@@ -5,6 +5,17 @@ from pathlib import Path
 from typing import Any
 
 
+def _preprocessed_variants(image: Any) -> list[Any]:
+    """Return conservative OCR variants for faint, low-contrast, or scanned pages."""
+    from PIL import ImageFilter, ImageOps
+    gray = ImageOps.grayscale(image)
+    gray = ImageOps.autocontrast(gray)
+    enlarged = gray.resize((gray.width * 2, gray.height * 2))
+    denoised = enlarged.filter(ImageFilter.MedianFilter(size=3))
+    threshold = denoised.point(lambda pixel: 255 if pixel > 180 else 0)
+    return [gray, denoised, threshold]
+
+
 _DEFAULT_WINDOWS_COMMAND = Path(os.environ.get("ProgramFiles", r"C:\Program Files")) / "Tesseract-OCR" / "tesseract.exe"
 
 
@@ -48,6 +59,20 @@ def ocr_page(page: Any, *, language: str = "eng", dpi: int = 200, tesseract_cmd:
     pixmap = page.get_pixmap(matrix=__import__("pymupdf").Matrix(dpi / 72, dpi / 72), alpha=False)
     image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
     try:
-        return pytesseract.image_to_string(image, lang=language).strip()
+        text = pytesseract.image_to_string(image, lang=language, config="--psm 3").strip()
+        if text:
+            return text
+        # Retry only empty results: preprocessing is substantially more expensive.
+        retry_dpi = max(dpi, 300)
+        if retry_dpi != dpi:
+            pixmap = page.get_pixmap(matrix=__import__("pymupdf").Matrix(retry_dpi / 72, retry_dpi / 72), alpha=False)
+            image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
+        for variant in _preprocessed_variants(image):
+            for psm in (6, 11, 12):
+                text = pytesseract.image_to_string(variant, lang=language,
+                                                   config=f"--psm {psm}").strip()
+                if text:
+                    return text
+        return ""
     except pytesseract.TesseractNotFoundError as exc:
         raise RuntimeError("Tesseract executable is not installed or not on PATH") from exc
