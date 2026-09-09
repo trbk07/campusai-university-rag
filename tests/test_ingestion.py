@@ -134,6 +134,16 @@ def test_continuation_headers_ignore_units_and_case():
     assert pdf_parser._same_header(["Revenue (VND)", "COST"], ["revenue vnd", "cost"])
 
 
+def test_two_column_blocks_are_read_column_by_column():
+    blocks = [
+        {"text": "L1", "bbox": (40, 20, 240, 40), "size": 10},
+        {"text": "R1", "bbox": (360, 20, 560, 40), "size": 10},
+        {"text": "L2", "bbox": (40, 60, 240, 80), "size": 10},
+        {"text": "R2", "bbox": (360, 60, 560, 80), "size": 10},
+    ]
+    assert [item["text"] for item in pdf_parser._order_blocks(blocks, 600)] == ["L1", "L2", "R1", "R2"]
+
+
 def test_heading_detection_respects_margin_for_normal_case():
     assert not pdf_parser._looks_like_heading("Báo cáo thường niên", font_size=10, body_size=10, y=20, page_height=800)
     assert pdf_parser._looks_like_heading("1. Kết quả kinh doanh", font_size=10, body_size=10, y=20, page_height=800)

@@ -39,6 +39,33 @@ def _ocr_quality_warning(text: str, page_number: int) -> str | None:
     return None
 
 
+def _order_blocks(blocks: list[dict], page_width: float) -> list[dict]:
+    """Order text blocks in reading order, including clearly separated columns.
+
+    PyMuPDF returns blocks in a layout-dependent order.  For ordinary pages we
+    retain the familiar top-to-bottom ordering.  When two non-overlapping
+    columns are unambiguous, each column is read top-to-bottom before moving to
+    the next one; this avoids interleaving left/right paragraphs.
+    """
+    if len(blocks) < 4 or not page_width:
+        return sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+    starts = sorted({round(item["bbox"][0], 1) for item in blocks})
+    gaps = [(right - left, left, right) for left, right in zip(starts, starts[1:])]
+    gap, boundary, _ = max(gaps, default=(0.0, 0.0, 0.0))
+    if gap < page_width * 0.18:
+        return sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+    left = [item for item in blocks if item["bbox"][0] <= boundary]
+    right = [item for item in blocks if item["bbox"][0] > boundary]
+    if len(left) < 2 or len(right) < 2:
+        return sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+    left_max = max(item["bbox"][2] for item in left)
+    right_min = min(item["bbox"][0] for item in right)
+    if left_max > right_min:
+        return sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+    key = lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1))
+    return sorted(left, key=key) + sorted(right, key=key)
+
+
 def _looks_like_heading(line: str, *, font_size: float | None = None, body_size: float | None = None,
                         y: float | None = None, page_height: float | None = None) -> bool:
     line = _clean(line)
@@ -87,10 +114,12 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
         document.pages = len(pdf)
         page_blocks = []
         page_heights = []
+        page_widths = []
         page_objects = []
         for page in pdf:
             page_objects.append(page)
             page_heights.append(page.rect.height)
+            page_widths.append(page.rect.width)
             blocks = []
             for block in page.get_text("dict").get("blocks", []):
                 if block.get("type") != 0:
@@ -110,7 +139,7 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             page_section = section
             page_height = page_heights[page_number - 1]
             lines = []
-            ordered_blocks = sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+            ordered_blocks = _order_blocks(blocks, page_widths[page_number - 1])
             for block in ordered_blocks:
                 clean = block["text"]
                 if clean in repeated:
