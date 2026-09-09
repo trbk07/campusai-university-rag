@@ -103,6 +103,12 @@ def test_ocr_failure_is_recorded(tmp_path, monkeypatch):
     assert "OCR failed" in parsed.warnings[0]
 
 
+def test_dynamic_margin_header_is_detected():
+    pages = [[{"text": "Báo cáo | Trang 1", "bbox": (0, 0, 100, 10)}],
+             [{"text": "Báo cáo | Trang 2", "bbox": (0, 0, 100, 10)}]]
+    assert pdf_parser._repeated_margin_text(pages) == {"Báo cáo | Trang 1", "Báo cáo | Trang 2"}
+
+
 def test_continuation_headers_ignore_units_and_case():
     assert pdf_parser._same_header(["Revenue (VND)", "COST"], ["revenue vnd", "cost"])
 

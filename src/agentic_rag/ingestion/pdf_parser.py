@@ -43,7 +43,7 @@ def _looks_like_heading(line: str, *, font_size: float | None = None, body_size:
 
 
 def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
-    """Find identical text blocks repeated at the top/bottom of several pages."""
+    """Find repeated margin text, including templates with changing page/date tokens."""
     page_candidates = []
     for blocks in pages:
         if not blocks:
@@ -51,7 +51,17 @@ def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
         ordered = sorted(blocks, key=lambda item: item["bbox"][1])
         page_candidates.append({_clean(item["text"]) for item in (ordered[:2] + ordered[-2:]) if item["text"]})
     counts = Counter(text for candidates in page_candidates for text in candidates)
-    return {text for text, count in counts.items() if count >= 2 and len(text) > 2}
+    result = {text for text, count in counts.items() if count >= 2 and len(text) > 2}
+    templates: dict[str, dict[int, set[str]]] = {}
+    for page_index, candidates in enumerate(page_candidates):
+        for text in candidates:
+            template = re.sub(r"\b(?:page|trang|p(?:age)?)[\s:#-]*\d+\b|\b\d{1,4}[/-]\d{1,2}[/-]\d{1,4}\b", "<token>", text, flags=re.I)
+            if template != text and len(template.replace("<token>", "").strip()) > 2:
+                templates.setdefault(template.casefold(), {}).setdefault(page_index, set()).add(text)
+    for pages_for_template in templates.values():
+        if len(pages_for_template) >= 2:
+            result.update(text for values in pages_for_template.values() for text in values)
+    return result
 
 
 def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1800,
@@ -101,7 +111,7 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             if lines:
                 document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
                                                    section=page_section, source=source, max_chars=max_chars))
-            elif not blocks:
+            if use_ocr and (not blocks or not lines):
                 if use_ocr:
                     try:
                         ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
