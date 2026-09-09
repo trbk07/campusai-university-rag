@@ -9,6 +9,7 @@ dependencies = ["pandas>=2.2,<3.0", "pdfplumber>=0.11,<1.0", "pymupdf>=1.24,<2.0
 [project.optional-dependencies]
 dev = ["pytest>=8.0,<9.0"]
 ocr = ["pytesseract>=0.3.13,<1.0", "pillow>=10.0,<13.0"]
+pdf-repair = ["pikepdf>=9.0,<11.0"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -18,6 +19,6 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 testpaths = ["tests"]
 

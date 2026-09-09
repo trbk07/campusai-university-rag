@@ -14,6 +14,8 @@ def main() -> None:
     parser.add_argument("--ocr-language", default="eng")
     parser.add_argument("--ocr-dpi", type=int, default=200)
     parser.add_argument("--tesseract-cmd", default=None)
+    parser.add_argument("--ocr-confidence", action="store_true",
+                        help="Record Tesseract word confidence and bounding boxes")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     chunks_path = args.output_dir / "chunks.jsonl"
@@ -22,7 +24,8 @@ def main() -> None:
         for pdf_path in sorted(args.input_dir.glob("*.pdf")):
             try:
                 document = parse_pdf(pdf_path, use_ocr=args.ocr, ocr_language=args.ocr_language,
-                                     ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd)
+                                     ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd,
+                                     collect_ocr_confidence=args.ocr_confidence)
             except Exception as exc:
                 from agentic_rag.ingestion.metadata import ParsedDocument
                 document = ParsedDocument(doc_id=pdf_path.stem, source=str(pdf_path),

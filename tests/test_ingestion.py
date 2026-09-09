@@ -5,9 +5,12 @@ import sys
 import pymupdf
 from agentic_rag.ingestion.chunker import chunk_text
 from agentic_rag.ingestion.pdf_parser import parse_pdf
-from agentic_rag.ingestion.table_extractor import normalize_rows
+from agentic_rag.ingestion.table_extractor import normalize_rows, table_diagnostics
 import agentic_rag.ingestion.pdf_parser as pdf_parser
 from agentic_rag.ingestion.ocr import available_languages, resolve_tesseract
+from agentic_rag.ingestion.ocr import _ocr_data_result, _result_score
+from agentic_rag.ingestion.numeric import financial_invariants, parse_numeric
+from scripts.benchmark_ingestion import classify_warnings
 
 
 def make_pdf(path):
@@ -53,6 +56,40 @@ def test_empty_table_is_discarded():
     assert normalize_rows([[None, ""], [None, None]]) is None
 
 
+def test_numeric_parser_preserves_raw_and_handles_financial_formats():
+    assert parse_numeric("(1,234.50)").value == -1234.5
+    assert parse_numeric("1.234,50").value == 1234.5
+    assert parse_numeric("12.5%").is_percent is True
+    assert parse_numeric("—").status == "missing"
+
+
+def test_table_diagnostics_preserve_ambiguity_without_mutating_values():
+    diagnostics = table_diagnostics([["Period", "Revenue", "Revenue"], ["2024", "100", None]])
+    assert diagnostics["merged_cell_suspected"] is True
+    assert diagnostics["duplicate_headers"] == ["Revenue"]
+    assert diagnostics["raw_rows"] == 2
+
+
+def test_financial_invariant_warns_without_mutating_values():
+    import pandas as pd
+    frame = pd.DataFrame([[100, 70, 20]], columns=["Assets", "Liabilities", "Equity"])
+    findings = financial_invariants(frame)
+    assert findings[0]["invariant"] == "assets_equals_liabilities_plus_equity"
+    assert findings[0]["status"] == "warning"
+    assert frame.iloc[0, 0] == 100
+
+
+def test_numeric_diagnostics_are_additive_to_table_diagnostics():
+    diagnostics = table_diagnostics([["Year", "Revenue"], ["2024", "1,234.50"]])
+    assert diagnostics["numeric_parsed"] >= 2
+    assert diagnostics["raw_rows"] == 2
+
+
+def test_benchmark_warning_categories_are_deterministic():
+    categories = classify_warnings(["page 1: OCR failed", "table has ambiguous header", "PDF structural preflight failed"])
+    assert categories == {"ocr": 1, "table": 1, "pdf": 1, "numeric": 0, "other": 0}
+
+
 def test_cli_end_to_end(tmp_path):
     input_dir = tmp_path / "input"
     output_dir = tmp_path / "output"
@@ -66,10 +103,30 @@ def test_cli_end_to_end(tmp_path):
     assert (output_dir / "chunks.jsonl").read_text(encoding="utf-8").strip()
 
 
+def test_ocr_tsv_diagnostics_are_tolerant_of_missing_fields():
+    result = _ocr_data_result({"text": ["Revenue", ""], "conf": ["91"]})
+    assert result["text"] == "Revenue"
+    assert result["mean_confidence"] == 91.0
+    assert result["words"][0]["bbox"] == [None, None, None, None]
+
+
+def test_ocr_result_score_prefers_confidence_then_coverage():
+    confident = {"mean_confidence": 90.0, "word_count": 2, "text": "OK"}
+    longer = {"mean_confidence": 80.0, "word_count": 20, "text": "long"}
+    assert _result_score(confident) > _result_score(longer)
+
+
 def test_ocr_resolver_accepts_explicit_executable(tmp_path):
     executable = tmp_path / "tesseract.exe"
     executable.write_text("stub")
     assert resolve_tesseract(str(executable)) == str(executable)
+
+
+def test_pdf_preflight_is_optional_without_pikepdf(tmp_path, monkeypatch):
+    path = tmp_path / "report.pdf"
+    make_pdf(path)
+    monkeypatch.setitem(sys.modules, "pikepdf", None)
+    assert pdf_parser._pdf_preflight(str(path)) == []
 
 
 def test_ocr_language_parser_returns_list(monkeypatch):
@@ -109,6 +166,21 @@ def test_ocr_quality_warning_is_recorded(tmp_path, monkeypatch):
     monkeypatch.setattr(pdf_parser, "ocr_page", lambda page, **kwargs: "x")
     parsed = parse_pdf(path, use_ocr=True)
     assert "very short" in parsed.warnings[0]
+
+
+def test_ocr_confidence_is_recorded(tmp_path, monkeypatch):
+    path = tmp_path / "image_only.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(path)
+    doc.close()
+    monkeypatch.setattr(pdf_parser, "ocr_page_with_data", lambda page, **kwargs: {
+        "text": "OCR revenue text", "words": [{"text": "OCR", "confidence": 55}],
+        "word_count": 3, "mean_confidence": 55.0, "low_confidence_words": 1,
+    })
+    parsed = parse_pdf(path, use_ocr=True, collect_ocr_confidence=True)
+    assert parsed.ocr_diagnostics["1"]["mean_confidence"] == 55.0
+    assert any("mean confidence" in warning for warning in parsed.warnings)
 
 
 def test_ocr_failure_is_recorded(tmp_path, monkeypatch):

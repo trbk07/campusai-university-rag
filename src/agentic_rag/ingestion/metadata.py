@@ -26,6 +26,7 @@ class TableRecord:
     table_id: str
     start_page: int | None = None
     end_page: int | None = None
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if self.start_page is None:
@@ -42,6 +43,7 @@ class ParsedDocument:
     tables: list[TableRecord] = field(default_factory=list)
     pages: int = 0
     warnings: list[str] = field(default_factory=list)
+    ocr_diagnostics: dict[str, dict[str, Any]] = field(default_factory=dict)
 
     def to_manifest(self) -> dict[str, Any]:
         return {
@@ -51,8 +53,10 @@ class ParsedDocument:
             "num_chunks": len(self.chunks),
             "num_tables": len(self.tables),
             "tables": [{"table_id": table.table_id, "start_page": table.start_page,
-                        "end_page": table.end_page, "columns": list(table.dataframe.columns)}
+                        "end_page": table.end_page, "columns": list(table.dataframe.columns),
+                        "diagnostics": table.diagnostics}
                        for table in self.tables],
             "warnings": self.warnings,
+            "ocr_diagnostics": self.ocr_diagnostics,
         }
 

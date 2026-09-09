@@ -36,11 +36,17 @@ uv sync --extra dev --extra ocr
 winget install --id UB-Mannheim.TesseractOCR -e --accept-package-agreements --accept-source-agreements
 # Or install from https://github.com/UB-Mannheim/tesseract/wiki
 uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-language eng
+# Optional word-level confidence and bounding boxes for review queues
+uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-confidence
 ```
 
 The adapter automatically detects `C:\Program Files\Tesseract-OCR\tesseract.exe`, PATH installations, and `TESSERACT_CMD`; it also accepts `--tesseract-cmd` for custom locations. For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`). The repository does not commit OS-specific Tesseract binaries; the setup script installs the correct runtime on each Windows machine.
 
-The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary.
+The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary. Table manifests also retain non-destructive diagnostics for ambiguous merged or multi-row headers, numeric parse status, and high-confidence financial invariant warnings; raw cell values are not silently rewritten. With `--ocr-confidence`, the manifest also contains per-page Tesseract word confidence, low-confidence counts, and rendered-image bounding boxes; confidence is a review signal, not a calibrated probability.
+
+Optional PDF repair/preflight support is available with `uv sync --extra pdf-repair`. It checks encryption and structural errors through pikepdf/qpdf without modifying the original PDF. Encrypted files still require the correct password.
+
+Run a resumable, metrics-only benchmark over all PDFs (no extracted text is written): `uv run python scripts/benchmark_ingestion.py --input-dir data/raw --output data/processed/benchmark.json`. The report is checkpointed after every PDF and can resume with `--resume`; `summary.complete=true` and `summary.coverage=1.0` are the acceptance gates for the full corpus.
 
 Generate a compact manual review report with 30 chunks, 10 tables, and parser failures:
 

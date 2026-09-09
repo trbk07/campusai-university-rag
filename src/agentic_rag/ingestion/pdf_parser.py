@@ -1,6 +1,8 @@
 """PDF text and table parser with page/section metadata."""
 from collections import Counter
 from pathlib import Path
+import tempfile
+import os
 import re
 import string
 import statistics
@@ -9,7 +11,7 @@ import pymupdf
 import pdfplumber
 from .chunker import chunk_text
 from .metadata import ContentMetadata, ParsedDocument, TableRecord
-from .table_extractor import normalize_rows, table_schema
+from .table_extractor import normalize_rows, table_diagnostics, table_schema
 
 
 def _same_header(left: list[object], right: list[object]) -> bool:
@@ -18,7 +20,40 @@ def _same_header(left: list[object], right: list[object]) -> bool:
         text = _clean(str(value)).casefold()
         return re.sub(r"[\W_]+", "", text)
     return [normalize(value) for value in left] == [normalize(value) for value in right]
-from .ocr import ocr_page
+from .ocr import ocr_page, ocr_page_with_data
+
+
+def _repair_pdf_copy(source: str) -> str | None:
+    """Create a temporary repaired copy without modifying the source PDF."""
+    try:
+        import pikepdf
+        handle, target = tempfile.mkstemp(suffix=".pdf")
+        os.close(handle)
+        with pikepdf.open(source) as pdf:
+            pdf.save(target)
+        return target
+    except Exception:
+        try:
+            os.unlink(target)
+        except (UnboundLocalError, OSError):
+            pass
+        return None
+
+
+def _pdf_preflight(source: str) -> list[str]:
+    """Run optional qpdf structural checks without changing the source PDF."""
+    try:
+        import pikepdf
+    except ImportError:
+        return []
+    try:
+        with pikepdf.open(source):
+            return []
+    except pikepdf.PasswordError:
+        return ["PDF is encrypted; password is required"]
+    except Exception as exc:
+        return [f"PDF structural preflight failed: {type(exc).__name__}: {exc}"]
+
 
 _HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$", re.UNICODE)
 
@@ -106,10 +141,33 @@ def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
 
 def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1800,
               use_ocr: bool = False, ocr_language: str = "eng", ocr_dpi: int = 200,
-              tesseract_cmd: str | None = None) -> ParsedDocument:
+              tesseract_cmd: str | None = None, collect_ocr_confidence: bool = False,
+              _allow_repair: bool = True) -> ParsedDocument:
     source = str(Path(path))
     doc_id = doc_id or Path(path).stem
+    try:
+        probe = pymupdf.open(source)
+        probe.close()
+    except Exception as exc:
+        if _allow_repair:
+            repaired = _repair_pdf_copy(source)
+            if repaired:
+                try:
+                    document = parse_pdf(repaired, doc_id=doc_id, max_chars=max_chars,
+                                         use_ocr=use_ocr, ocr_language=ocr_language, ocr_dpi=ocr_dpi,
+                                         tesseract_cmd=tesseract_cmd, collect_ocr_confidence=collect_ocr_confidence,
+                                         _allow_repair=False)
+                    document.source = source
+                    document.warnings.insert(0, "PDF parsed from temporary repaired copy")
+                    return document
+                finally:
+                    try:
+                        os.unlink(repaired)
+                    except OSError:
+                        pass
+        raise exc
     document = ParsedDocument(doc_id=doc_id, source=source)
+    document.warnings.extend(_pdf_preflight(source))
     with pymupdf.open(source) as pdf:
         document.pages = len(pdf)
         page_blocks = []
@@ -156,14 +214,31 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             if not blocks or not lines:
                 if use_ocr:
                     try:
-                        ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
-                                            dpi=ocr_dpi, tesseract_cmd=tesseract_cmd)
+                        diagnostics = None
+                        if collect_ocr_confidence:
+                            try:
+                                diagnostics = ocr_page_with_data(page_objects[page_number - 1], language=ocr_language,
+                                                                 dpi=ocr_dpi, tesseract_cmd=tesseract_cmd)
+                                ocr_text = diagnostics["text"]
+                            except (AttributeError, TypeError):
+                                # Preserve compatibility with simple test/custom OCR adapters.
+                                ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
+                                                    dpi=ocr_dpi, tesseract_cmd=tesseract_cmd)
+                        else:
+                            ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
+                                                dpi=ocr_dpi, tesseract_cmd=tesseract_cmd)
                     except RuntimeError as exc:
                         document.warnings.append(f"page {page_number}: OCR failed: {exc}")
                     else:
                         if ocr_text:
                             document.chunks.extend(chunk_text(ocr_text, doc_id=doc_id, page=page_number,
                                                                section=section, source=source, max_chars=max_chars))
+                            if diagnostics is not None:
+                                document.ocr_diagnostics[str(page_number)] = diagnostics
+                                mean = diagnostics.get("mean_confidence")
+                                if mean is not None and mean < 70:
+                                    document.warnings.append(
+                                        f"page {page_number}: OCR mean confidence is {mean:.1f}; manual review required")
                             quality_warning = _ocr_quality_warning(ocr_text, page_number)
                             if quality_warning:
                                 document.warnings.append(quality_warning)
@@ -178,8 +253,13 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                 if frame is None:
                     continue
                 metadata = ContentMetadata(doc_id, page_number, None, "table", source)
+                diagnostics = table_diagnostics(rows or [])
+                if diagnostics.get("merged_cell_suspected"):
+                    document.warnings.append(
+                        f"page {page_number}: table {index} has ambiguous merged or multi-row headers; review raw table")
                 document.tables.append(TableRecord(frame, table_schema(frame), metadata,
-                                                   f"{doc_id}_p{page_number}_t{index}"))
+                                                   f"{doc_id}_p{page_number}_t{index}",
+                                                   diagnostics=diagnostics))
     _stitch_tables(document)
     return document
 
