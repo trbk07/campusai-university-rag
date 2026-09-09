@@ -103,6 +103,11 @@ def test_ocr_failure_is_recorded(tmp_path, monkeypatch):
     assert "OCR failed" in parsed.warnings[0]
 
 
+def test_heading_detection_respects_margin_for_normal_case():
+    assert not pdf_parser._looks_like_heading("Báo cáo thường niên", font_size=10, body_size=10, y=20, page_height=800)
+    assert pdf_parser._looks_like_heading("1. Kết quả kinh doanh", font_size=10, body_size=10, y=20, page_height=800)
+
+
 def test_section_is_carried_to_next_page(tmp_path):
     path = tmp_path / "multi_page.pdf"
     doc = pymupdf.open()

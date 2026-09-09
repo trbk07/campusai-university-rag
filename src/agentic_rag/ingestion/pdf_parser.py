@@ -2,6 +2,7 @@
 from collections import Counter
 from pathlib import Path
 import re
+import statistics
 import pandas as pd
 import pymupdf
 import pdfplumber
@@ -28,7 +29,9 @@ def _looks_like_heading(line: str, *, font_size: float | None = None, body_size:
     upper = line.isupper()
     short_title = len(words) <= 10 and not line.endswith(".")
     margin_signal = bool(y is not None and page_height and (y < page_height * .18 or y > page_height * .82))
-    return upper or numbered or layout_signal or (short_title and not margin_signal)
+    if margin_signal and not (upper or numbered or layout_signal):
+        return False
+    return upper or numbered or layout_signal or short_title
 
 
 def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
@@ -70,12 +73,14 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             page_blocks.append(blocks)
         repeated = _repeated_margin_text(page_blocks)
         section = None
-        body_size = next((block["size"] for blocks in page_blocks for block in blocks if block["size"]), None)
+        sizes = [block["size"] for blocks in page_blocks for block in blocks if block["size"]]
+        body_size = statistics.median(sizes) if sizes else None
         for page_number, blocks in enumerate(page_blocks, start=1):
             page_section = section
             page_height = page_heights[page_number - 1]
             lines = []
-            for block in blocks:
+            ordered_blocks = sorted(blocks, key=lambda item: (round(item["bbox"][1], 1), round(item["bbox"][0], 1)))
+            for block in ordered_blocks:
                 clean = block["text"]
                 if clean in repeated:
                     continue
@@ -120,13 +125,16 @@ def _stitch_tables(document: ParsedDocument) -> None:
     """Merge adjacent page tables when the normalized schemas match."""
     merged: list[TableRecord] = []
     for record in document.tables:
-        if merged and merged[-1].dataframe.columns.tolist() == record.dataframe.columns.tolist():
+        if (merged
+                and record.metadata.page == merged[-1].metadata.page + 1
+                and merged[-1].dataframe.columns.tolist() == record.dataframe.columns.tolist()):
             previous = merged[-1]
             next_frame = record.dataframe
-            if next_frame.iloc[0].astype(str).tolist() == previous.dataframe.columns.astype(str).tolist():
+            if not next_frame.empty and next_frame.iloc[0].astype(str).tolist() == previous.dataframe.columns.astype(str).tolist():
                 next_frame = next_frame.iloc[1:].reset_index(drop=True)
-            previous.dataframe = pd.concat([previous.dataframe, next_frame], ignore_index=True)
-            previous.schema = table_schema(previous.dataframe)
+            if not next_frame.empty:
+                previous.dataframe = pd.concat([previous.dataframe, next_frame], ignore_index=True)
+                previous.schema = table_schema(previous.dataframe)
         else:
             merged.append(record)
     document.tables = merged
