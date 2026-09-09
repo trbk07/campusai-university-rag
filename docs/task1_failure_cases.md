@@ -10,12 +10,12 @@ uv run python scripts/inspect_ingestion.py --input-dir data/raw --output data/pr
 
 | PDF characteristic | Risk | Current handling |
 |---|---|---|
-| Repeated header/footer | Text pollution or false headings | Repeated top/bottom blocks are filtered using page position and frequency; unusual layouts still need review |
-| Merged cells | Missing values or duplicate headers | Ragged rows are padded, whitespace normalized, and duplicate headers receive stable suffixes |
-| Multi-page tables | Table may be split per page | Adjacent compatible schemas are stitched; repeated continuation headers are removed |
-| Scanned/image-only pages | No text/table extraction | Detected and recorded as an OCR-required warning; OCR engine is not bundled |
-| Complex nested tables | Several small extracted tables | Empty rows/columns are removed and cell text is normalized; ambiguous layouts are preserved for review |
-| Vietnamese diacritics | Heading heuristic sensitivity | Unicode, numbering, font-size, and page-position signals are combined |
-| Advanced layout | Reading order can be ambiguous | Text blocks, coordinates, font size, and margin filtering are used; no learned layout model is bundled |
+| Repeated header/footer | Text pollution or false headings | Identical cleaned blocks found among the first/last two blocks of at least two pages are removed; headers/footers that vary by page, occur in the body, or use an unusual layout still need review |
+| Merged cells | Missing values or duplicate headers | Rows are padded to the widest row, cell whitespace is normalized, all-empty rows/columns are dropped, and duplicate/blank headers receive stable names; cell-spanning meaning is not reconstructed |
+| Multi-page tables | Table may be split per page or continuation rows may be misclassified | Consecutive extracted tables with identical normalized column names are concatenated; a repeated first row matching the previous header is dropped; differing schemas remain separate for review |
+| Scanned/image-only pages | No text layer or native table extraction | Pages without text blocks produce an `OCR required` warning by default; with `--ocr`, local Tesseract renders and OCRs the page, records OCR failures, and preserves empty-result warnings. Tesseract and language data are installed separately by the setup script |
+| Complex nested tables | Several small extracted tables or ambiguous cell boundaries | pdfplumber tables are normalized independently, empty rows/columns are removed, and cell text is cleaned; nested structure is not inferred or flattened semantically, so ambiguous layouts are preserved for review |
+| Vietnamese diacritics | Heading heuristic sensitivity or OCR character errors | Heading detection is Unicode-aware and combines uppercase, numbering, relative font size, short-title, and page-position signals; Vietnamese OCR uses the separately installed `vie` language data, but scans still require review |
+| Advanced layout | Reading order can be ambiguous | Text is read from PyMuPDF blocks and line spans using coordinates, font size, and block order; only repeated top/bottom margin blocks are filtered. No learned layout model or geometric table reconstruction is bundled |
 
 The review artifact is generated local data and should not be committed.
