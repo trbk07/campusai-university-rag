@@ -33,6 +33,7 @@ class ParsedDocument:
     chunks: list[TextChunk] = field(default_factory=list)
     tables: list[TableRecord] = field(default_factory=list)
     pages: int = 0
+    warnings: list[str] = field(default_factory=list)
 
     def to_manifest(self) -> dict[str, Any]:
         return {
@@ -41,6 +42,6 @@ class ParsedDocument:
             "pages": self.pages,
             "num_chunks": len(self.chunks),
             "num_tables": len(self.tables),
+            "warnings": self.warnings,
         }
-
 

@@ -5,8 +5,9 @@ from .metadata import TableRecord
 
 
 def normalize_rows(rows: list[list[object | None]]) -> pd.DataFrame | None:
-    """Convert pdfplumber rows to a clean DataFrame, including merged-cell blanks."""
-    rows = [list(row) for row in rows if row and any(value not in (None, "") for value in row)]
+    """Normalize ragged, merged, repeated-header, and nested-table-like rows safely."""
+    rows = [[None if value is None else " ".join(str(value).split()) for value in row]
+            for row in rows if row and any(value not in (None, "") for value in row)]
     if not rows:
         return None
     width = max(len(row) for row in rows)

@@ -1,18 +1,45 @@
 """PDF text and table parser with page/section metadata."""
+from collections import Counter
 from pathlib import Path
 import re
+import pandas as pd
 import pymupdf
 import pdfplumber
 from .chunker import chunk_text
 from .metadata import ContentMetadata, ParsedDocument, TableRecord
 from .table_extractor import normalize_rows, table_schema
 
-_HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-Ỹ][^.!?]{2,100}$")
+_HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$", re.UNICODE)
 
 
-def _looks_like_heading(line: str) -> bool:
-    line = " ".join(line.split())
-    return bool(line and len(line) <= 120 and _HEADING.match(line) and (line.isupper() or len(line.split()) <= 12))
+def _clean(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _looks_like_heading(line: str, *, font_size: float | None = None, body_size: float | None = None,
+                        y: float | None = None, page_height: float | None = None) -> bool:
+    line = _clean(line)
+    if not line or len(line) > 120 or not _HEADING.match(line) or line.endswith((":", ";")):
+        return False
+    words = line.split()
+    layout_signal = bool(font_size and body_size and font_size >= body_size * 1.12)
+    numbered = bool(re.match(r"^\d+(?:\.\d+)*[.)]?\s+", line))
+    upper = line.isupper()
+    short_title = len(words) <= 10 and not line.endswith(".")
+    margin_signal = bool(y is not None and page_height and (y < page_height * .18 or y > page_height * .82))
+    return upper or numbered or layout_signal or (short_title and not margin_signal)
+
+
+def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
+    """Find identical text blocks repeated at the top/bottom of several pages."""
+    page_candidates = []
+    for blocks in pages:
+        if not blocks:
+            continue
+        ordered = sorted(blocks, key=lambda item: item["bbox"][1])
+        page_candidates.append({_clean(item["text"]) for item in (ordered[:2] + ordered[-2:]) if item["text"]})
+    counts = Counter(text for candidates in page_candidates for text in candidates)
+    return {text for text, count in counts.items() if count >= 2 and len(text) > 2}
 
 
 def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1800) -> ParsedDocument:
@@ -21,33 +48,69 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
     document = ParsedDocument(doc_id=doc_id, source=source)
     with pymupdf.open(source) as pdf:
         document.pages = len(pdf)
-        section = None
-        for page_number, page in enumerate(pdf, start=1):
-            text = page.get_text("text") or ""
-            page_section = section
-            lines = []
-            for line in text.splitlines():
-                clean = " ".join(line.split())
-                if not clean:
+        page_blocks = []
+        page_heights = []
+        for page in pdf:
+            page_heights.append(page.rect.height)
+            blocks = []
+            for block in page.get_text("dict").get("blocks", []):
+                if block.get("type") != 0:
                     continue
-                if _looks_like_heading(clean):
+                raw_lines = [_clean(" ".join(span["text"] for span in line.get("spans", [])))
+                             for line in block.get("lines", [])]
+                sizes = [span["size"] for line in block.get("lines", []) for span in line.get("spans", [])]
+                for text in raw_lines:
+                    if text:
+                        blocks.append({"text": text, "bbox": block["bbox"], "size": max(sizes, default=0.0)})
+            page_blocks.append(blocks)
+        repeated = _repeated_margin_text(page_blocks)
+        section = None
+        body_size = next((block["size"] for blocks in page_blocks for block in blocks if block["size"]), None)
+        for page_number, blocks in enumerate(page_blocks, start=1):
+            page_section = section
+            page_height = page_heights[page_number - 1]
+            lines = []
+            for block in blocks:
+                clean = block["text"]
+                if clean in repeated:
+                    continue
+                if _looks_like_heading(clean, font_size=block["size"], body_size=body_size,
+                                        y=block["bbox"][1], page_height=page_height):
                     section = clean
                     page_section = clean
                 else:
                     lines.append(clean)
-            document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
-                                               section=page_section, source=source, max_chars=max_chars))
+            if lines:
+                document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
+                                                   section=page_section, source=source, max_chars=max_chars))
+            elif not blocks:
+                document.warnings.append(f"page {page_number}: no text layer; OCR required")
     with pdfplumber.open(source) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
             for index, rows in enumerate(page.extract_tables() or []):
-                if not rows:
-                    continue
-                frame = normalize_rows(rows)
+                frame = normalize_rows(rows or [])
                 if frame is None:
                     continue
                 metadata = ContentMetadata(doc_id, page_number, None, "table", source)
                 document.tables.append(TableRecord(frame, table_schema(frame), metadata,
                                                    f"{doc_id}_p{page_number}_t{index}"))
+    _stitch_tables(document)
     return document
+
+
+def _stitch_tables(document: ParsedDocument) -> None:
+    """Merge adjacent page tables when the normalized schemas match."""
+    merged: list[TableRecord] = []
+    for record in document.tables:
+        if merged and merged[-1].dataframe.columns.tolist() == record.dataframe.columns.tolist():
+            previous = merged[-1]
+            next_frame = record.dataframe
+            if next_frame.iloc[0].astype(str).tolist() == previous.dataframe.columns.astype(str).tolist():
+                next_frame = next_frame.iloc[1:].reset_index(drop=True)
+            previous.dataframe = pd.concat([previous.dataframe, next_frame], ignore_index=True)
+            previous.schema = table_schema(previous.dataframe)
+        else:
+            merged.append(record)
+    document.tables = merged
 
 

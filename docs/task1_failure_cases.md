@@ -10,11 +10,12 @@ uv run python scripts/inspect_ingestion.py --input-dir data/raw --output data/pr
 
 | PDF characteristic | Risk | Current handling |
 |---|---|---|
-| Repeated header/footer | Text pollution or false headings | Text is normalized; footer classifier is future work |
-| Merged cells | Missing values or duplicate headers | Rows are padded; duplicate headers get stable suffixes |
-| Multi-page tables | Table may be split per page | Tables retain page metadata; stitching is future work |
-| Scanned/image-only pages | No text/table extraction | Requires OCR, outside Task 1 |
-| Complex nested tables | Several small extracted tables | Empty tables are discarded; manual review remains necessary |
-| Vietnamese diacritics | Heading heuristic sensitivity | Unicode-aware basic heuristic; no layout model yet |
+| Repeated header/footer | Text pollution or false headings | Repeated top/bottom blocks are filtered using page position and frequency; unusual layouts still need review |
+| Merged cells | Missing values or duplicate headers | Ragged rows are padded, whitespace normalized, and duplicate headers receive stable suffixes |
+| Multi-page tables | Table may be split per page | Adjacent compatible schemas are stitched; repeated continuation headers are removed |
+| Scanned/image-only pages | No text/table extraction | Detected and recorded as an OCR-required warning; OCR engine is not bundled |
+| Complex nested tables | Several small extracted tables | Empty rows/columns are removed and cell text is normalized; ambiguous layouts are preserved for review |
+| Vietnamese diacritics | Heading heuristic sensitivity | Unicode, numbering, font-size, and page-position signals are combined |
+| Advanced layout | Reading order can be ambiguous | Text blocks, coordinates, font size, and margin filtering are used; no learned layout model is bundled |
 
 The review artifact is generated local data and should not be committed.
