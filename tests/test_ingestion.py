@@ -9,7 +9,8 @@ from agentic_rag.ingestion.table_extractor import normalize_rows, table_diagnost
 import agentic_rag.ingestion.pdf_parser as pdf_parser
 from agentic_rag.ingestion.ocr import available_languages, resolve_tesseract
 from agentic_rag.ingestion.ocr import _ocr_data_result, _result_score
-from agentic_rag.ingestion.numeric import financial_invariants, parse_numeric
+from agentic_rag.ingestion.numeric import detect_scale, financial_invariants, parse_numeric
+from scripts.ground_truth import aggregate, evaluate_case
 from scripts.benchmark_ingestion import classify_warnings
 
 
@@ -68,6 +69,21 @@ def test_table_diagnostics_preserve_ambiguity_without_mutating_values():
     assert diagnostics["merged_cell_suspected"] is True
     assert diagnostics["duplicate_headers"] == ["Revenue"]
     assert diagnostics["raw_rows"] == 2
+
+
+def test_scale_detection_is_explicit():
+    assert detect_scale("VND million") == 1_000_000
+    assert detect_scale("USD bn") == 1_000_000_000
+    assert detect_scale("reported amount") == 1
+
+
+def test_ground_truth_metrics_are_reproducible():
+    result = evaluate_case(
+        {"id": "x", "expected": {"headers": ["A", "B"], "numeric_cells": ["1"], "dimensions": [1, 2]}},
+        {"actual": {"headers": ["A", "B"], "numeric_cells": ["1"], "dimensions": [1, 2]}},
+    )
+    assert result["headers"]["f1"] == 1.0
+    assert aggregate([result])["mean_f1"] == 1.0
 
 
 def test_financial_invariant_warns_without_mutating_values():

@@ -54,6 +54,8 @@ Generate a compact manual review report with 30 chunks, 10 tables, and parser fa
 uv run python scripts\inspect_ingestion.py --input-dir data\raw --output data\processed\review.json
 ```
 
+Run the anonymized ground-truth evaluator with `uv run python scripts/ground_truth.py --annotations data/ground_truth/annotations.json --predictions data/ground_truth/predictions.json --output data/processed/ground_truth.report.json`. It reports header and numeric-cell precision/recall/F1 plus table-dimension accuracy without storing document text. Financial validation also emits numeric warnings for unparsed cells and high-confidence invariant failures; explicit units such as million/billion are detected without guessing from magnitude.
+
 See [`docs/task1_failure_cases.md`](docs/task1_failure_cases.md) for known parser limitations.
 
 ## Tests

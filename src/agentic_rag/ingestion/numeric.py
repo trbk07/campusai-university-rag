@@ -53,26 +53,56 @@ def numeric_diagnostics(rows: list[list[object | None]]) -> dict[str, object]:
             "numeric_unparsed": sum(item.value is None for item in candidates)}
 
 
+def _header_key(value: object) -> str:
+    text = re.sub(r"[^a-z0-9]+", " ", str(value).casefold())
+    return " ".join(text.split())
+
+
+def detect_scale(text: object) -> float:
+    """Return explicit unit scale; never infer scale from magnitude."""
+    value = str(text).casefold()
+    if any(token in value for token in ("billion", "bn", " tỷ", "tỷ")):
+        return 1_000_000_000.0
+    if any(token in value for token in ("million", "mn", "mio", " triệu", "trieu")):
+        return 1_000_000.0
+    if any(token in value for token in ("thousand", "k", " nghìn", "nghin")):
+        return 1_000.0
+    return 1.0
+
+
 def financial_invariants(frame: object, *, tolerance: float = 0.01) -> list[dict[str, object]]:
-    """Check only explicit, high-confidence financial column relationships."""
-    columns = {str(column).casefold().strip(): column for column in getattr(frame, "columns", [])}
+    """Validate high-confidence balance, subtotal, margin, and growth relationships."""
+    columns = {_header_key(column): column for column in getattr(frame, "columns", [])}
+    aliases = {
+        "assets": ("assets", "total assets", "total asset"),
+        "liabilities": ("liabilities", "total liabilities", "total liability"),
+        "equity": ("equity", "total equity", "shareholders equity"),
+        "revenue": ("revenue", "net revenue", "sales"),
+        "gross_profit": ("gross profit",),
+        "operating_expenses": ("operating expenses", "opex"),
+        "operating_income": ("operating income", "ebit"),
+        "total": ("total", "subtotal"),
+    }
+    selected = {key: columns[name] for key, names in aliases.items() for name in names if name in columns}
     result: list[dict[str, object]] = []
-    aliases = {"assets": ("assets", "total assets"),
-               "liabilities": ("liabilities", "total liabilities"),
-               "equity": ("equity", "total equity")}
-    selected = {}
-    for key, names in aliases.items():
-        for name in names:
-            if name in columns:
-                selected[key] = columns[name]
-                break
-    if len(selected) == 3:
-        for index, row in frame.iterrows():
-            values = {key: parse_numeric(row[column]).value for key, column in selected.items()}
-            if all(value is not None for value in values.values()):
-                difference = values["assets"] - values["liabilities"] - values["equity"]
-                if abs(difference) > tolerance:
-                    result.append({"invariant": "assets_equals_liabilities_plus_equity",
-                                   "row": int(index), "difference": difference,
-                                   "status": "warning", "confidence": 0.9})
+    for index, row in getattr(frame, "iterrows", lambda: [])():
+        values = {key: parse_numeric(row[column]).value for key, column in selected.items()}
+        def check(name: str, difference: float, confidence: float = 0.9) -> None:
+            if abs(difference) > tolerance:
+                result.append({"invariant": name, "row": int(index), "difference": difference,
+                               "status": "warning", "confidence": confidence})
+        if all(values.get(key) is not None for key in ("assets", "liabilities", "equity")):
+            check("assets_equals_liabilities_plus_equity", values["assets"] - values["liabilities"] - values["equity"])
+        if all(values.get(key) is not None for key in ("revenue", "gross_profit", "operating_expenses", "operating_income")):
+            check("operating_income_equals_gross_profit_minus_opex",
+                  values["operating_income"] - values["gross_profit"] + values["operating_expenses"])
     return result
+
+
+def numeric_validation_score(findings: list[dict[str, object]], expected_invariants: set[str]) -> dict[str, float]:
+    found = {str(item.get("invariant")) for item in findings}
+    tp = len(found & expected_invariants)
+    precision = tp / len(found) if found else 1.0
+    recall = tp / len(expected_invariants) if expected_invariants else 1.0
+    return {"precision": precision, "recall": recall,
+            "f1": (2 * precision * recall / (precision + recall) if precision + recall else 0.0)}

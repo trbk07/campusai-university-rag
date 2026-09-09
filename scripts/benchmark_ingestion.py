@@ -58,7 +58,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--ocr", action="store_true")
     parser.add_argument("--resume", action="store_true", help="reuse completed files in an existing report")
+    parser.add_argument("--ground-truth", type=Path, help="optional anonymized accuracy annotation JSON")
     args = parser.parse_args()
+    if args.ground_truth and not args.ground_truth.exists():
+        parser.error(f"ground-truth file does not exist: {args.ground_truth}")
     paths = sorted(args.input_dir.glob("*.pdf"))
     documents: list[dict] = []
     if args.resume and args.output.exists():

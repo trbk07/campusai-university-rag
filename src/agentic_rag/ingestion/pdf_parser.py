@@ -257,6 +257,16 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                 if diagnostics.get("merged_cell_suspected"):
                     document.warnings.append(
                         f"page {page_number}: table {index} has ambiguous merged or multi-row headers; review raw table")
+                invariant_findings = diagnostics.get("financial_invariants", [])
+                for finding in invariant_findings:
+                    document.warnings.append(
+                        f"page {page_number}: numeric invariant {finding['invariant']} failed "
+                        f"(difference={finding['difference']})")
+                if diagnostics.get("numeric_unparsed", 0):
+                    document.warnings.append(
+                        f"page {page_number}: numeric validation found "
+                        f"{diagnostics['numeric_unparsed']} unparsed cells")
+
                 document.tables.append(TableRecord(frame, table_schema(frame), metadata,
                                                    f"{doc_id}_p{page_number}_t{index}",
                                                    diagnostics=diagnostics))
