@@ -13,8 +13,9 @@ uv sync --extra dev
 For a complete Windows OCR setup after cloning:
 
 ```powershell
+# Run PowerShell as Administrator because vie.traineddata is installed under Program Files
 powershell -ExecutionPolicy Bypass -File scripts\setup_ocr_windows.ps1
-uv run python scripts\ocr_check.py --language eng
+uv run python scripts\ocr_check.py --language eng+vie
 ```
 
 The project supports Python 3.11–3.14. Do not commit `.venv`, `.env`, source PDFs, models, or generated indexes.
