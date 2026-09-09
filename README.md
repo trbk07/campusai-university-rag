@@ -24,11 +24,13 @@ For scanned/image-only PDFs, install the optional Python OCR dependencies and th
 
 ```powershell
 uv sync --extra dev --extra ocr
-# Install Tesseract separately and ensure it is on PATH, or pass --tesseract-cmd
+# Windows: install Tesseract with winget (standard path is auto-detected)
+winget install --id UB-Mannheim.TesseractOCR -e --accept-package-agreements --accept-source-agreements
+# Or install from https://github.com/UB-Mannheim/tesseract/wiki
 uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-language eng
 ```
 
-For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`).
+The adapter automatically detects `C:\Program Files\Tesseract-OCR\tesseract.exe`, PATH installations, and accepts `--tesseract-cmd` for custom locations. For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`).
 
 The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary.
 
