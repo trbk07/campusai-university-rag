@@ -20,8 +20,13 @@ def main() -> None:
     manifests = []
     with chunks_path.open("w", encoding="utf-8") as chunks_file:
         for pdf_path in sorted(args.input_dir.glob("*.pdf")):
-            document = parse_pdf(pdf_path, use_ocr=args.ocr, ocr_language=args.ocr_language,
-                                  ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd)
+            try:
+                document = parse_pdf(pdf_path, use_ocr=args.ocr, ocr_language=args.ocr_language,
+                                     ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd)
+            except Exception as exc:
+                from agentic_rag.ingestion.metadata import ParsedDocument
+                document = ParsedDocument(doc_id=pdf_path.stem, source=str(pdf_path),
+                                          warnings=[f"document failed: {type(exc).__name__}: {exc}"])
             for chunk in document.chunks:
                 chunks_file.write(json.dumps({"text": chunk.text, "metadata": vars(chunk.metadata)}, ensure_ascii=False) + "\n")
             for table in document.tables:

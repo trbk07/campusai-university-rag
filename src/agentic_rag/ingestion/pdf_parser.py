@@ -9,6 +9,14 @@ import pdfplumber
 from .chunker import chunk_text
 from .metadata import ContentMetadata, ParsedDocument, TableRecord
 from .table_extractor import normalize_rows, table_schema
+
+
+def _same_header(left: list[object], right: list[object]) -> bool:
+    """Compare continuation headers after case/whitespace/unit punctuation cleanup."""
+    def normalize(value: object) -> str:
+        text = _clean(str(value)).casefold()
+        return re.sub(r"[\W_]+", "", text)
+    return [normalize(value) for value in left] == [normalize(value) for value in right]
 from .ocr import ocr_page
 
 _HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$", re.UNICODE)
@@ -130,11 +138,13 @@ def _stitch_tables(document: ParsedDocument) -> None:
                 and merged[-1].dataframe.columns.tolist() == record.dataframe.columns.tolist()):
             previous = merged[-1]
             next_frame = record.dataframe
-            if not next_frame.empty and next_frame.iloc[0].astype(str).tolist() == previous.dataframe.columns.astype(str).tolist():
+            if (not next_frame.empty
+                    and _same_header(next_frame.iloc[0].tolist(), previous.dataframe.columns.tolist())):
                 next_frame = next_frame.iloc[1:].reset_index(drop=True)
             if not next_frame.empty:
                 previous.dataframe = pd.concat([previous.dataframe, next_frame], ignore_index=True)
                 previous.schema = table_schema(previous.dataframe)
+                previous.end_page = record.end_page
         else:
             merged.append(record)
     document.tables = merged

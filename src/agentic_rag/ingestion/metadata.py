@@ -24,6 +24,14 @@ class TableRecord:
     schema: dict[str, str]
     metadata: ContentMetadata
     table_id: str
+    start_page: int | None = None
+    end_page: int | None = None
+
+    def __post_init__(self) -> None:
+        if self.start_page is None:
+            self.start_page = self.metadata.page
+        if self.end_page is None:
+            self.end_page = self.metadata.page
 
 
 @dataclass
@@ -42,6 +50,9 @@ class ParsedDocument:
             "pages": self.pages,
             "num_chunks": len(self.chunks),
             "num_tables": len(self.tables),
+            "tables": [{"table_id": table.table_id, "start_page": table.start_page,
+                        "end_page": table.end_page, "columns": list(table.dataframe.columns)}
+                       for table in self.tables],
             "warnings": self.warnings,
         }
 
