@@ -7,6 +7,7 @@ from agentic_rag.ingestion.chunker import chunk_text
 from agentic_rag.ingestion.pdf_parser import parse_pdf
 from agentic_rag.ingestion.table_extractor import normalize_rows
 import agentic_rag.ingestion.pdf_parser as pdf_parser
+from agentic_rag.ingestion.ocr import available_languages, resolve_tesseract
 
 
 def make_pdf(path):
@@ -63,6 +64,17 @@ def test_cli_end_to_end(tmp_path):
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest[0]["doc_id"] == "sample"
     assert (output_dir / "chunks.jsonl").read_text(encoding="utf-8").strip()
+
+
+def test_ocr_resolver_accepts_explicit_executable(tmp_path):
+    executable = tmp_path / "tesseract.exe"
+    executable.write_text("stub")
+    assert resolve_tesseract(str(executable)) == str(executable)
+
+
+def test_ocr_language_parser_returns_list(monkeypatch):
+    monkeypatch.setattr(pdf_parser, "ocr_page", lambda page, **kwargs: "OCR revenue text")
+    assert isinstance(available_languages("C:\\missing\\tesseract.exe"), list)
 
 
 def test_ocr_fallback_adds_chunk_for_image_only_page(tmp_path, monkeypatch):

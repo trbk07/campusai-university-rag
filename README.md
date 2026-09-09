@@ -10,6 +10,13 @@ This project uses `uv` so dependencies are isolated in `.venv` and reproducible 
 uv sync --extra dev
 ```
 
+For a complete Windows OCR setup after cloning:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\setup_ocr_windows.ps1
+uv run python scripts\ocr_check.py --language eng
+```
+
 The project supports Python 3.11–3.14. Do not commit `.venv`, `.env`, source PDFs, models, or generated indexes.
 
 ## Task 1: document processing
@@ -30,7 +37,7 @@ winget install --id UB-Mannheim.TesseractOCR -e --accept-package-agreements --ac
 uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-language eng
 ```
 
-The adapter automatically detects `C:\Program Files\Tesseract-OCR\tesseract.exe`, PATH installations, and accepts `--tesseract-cmd` for custom locations. For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`).
+The adapter automatically detects `C:\Program Files\Tesseract-OCR\tesseract.exe`, PATH installations, and `TESSERACT_CMD`; it also accepts `--tesseract-cmd` for custom locations. For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`). The repository does not commit OS-specific Tesseract binaries; the setup script installs the correct runtime on each Windows machine.
 
 The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary.
 
