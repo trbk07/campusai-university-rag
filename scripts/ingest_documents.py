@@ -10,13 +10,18 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
+    parser.add_argument("--ocr", action="store_true", help="OCR pages without a text layer")
+    parser.add_argument("--ocr-language", default="eng")
+    parser.add_argument("--ocr-dpi", type=int, default=200)
+    parser.add_argument("--tesseract-cmd", default=None)
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     chunks_path = args.output_dir / "chunks.jsonl"
     manifests = []
     with chunks_path.open("w", encoding="utf-8") as chunks_file:
         for pdf_path in sorted(args.input_dir.glob("*.pdf")):
-            document = parse_pdf(pdf_path)
+            document = parse_pdf(pdf_path, use_ocr=args.ocr, ocr_language=args.ocr_language,
+                                  ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd)
             for chunk in document.chunks:
                 chunks_file.write(json.dumps({"text": chunk.text, "metadata": vars(chunk.metadata)}, ensure_ascii=False) + "\n")
             for table in document.tables:

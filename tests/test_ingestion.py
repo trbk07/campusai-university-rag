@@ -6,6 +6,7 @@ import pymupdf
 from agentic_rag.ingestion.chunker import chunk_text
 from agentic_rag.ingestion.pdf_parser import parse_pdf
 from agentic_rag.ingestion.table_extractor import normalize_rows
+import agentic_rag.ingestion.pdf_parser as pdf_parser
 
 
 def make_pdf(path):
@@ -62,6 +63,32 @@ def test_cli_end_to_end(tmp_path):
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest[0]["doc_id"] == "sample"
     assert (output_dir / "chunks.jsonl").read_text(encoding="utf-8").strip()
+
+
+def test_ocr_fallback_adds_chunk_for_image_only_page(tmp_path, monkeypatch):
+    path = tmp_path / "image_only.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(path)
+    doc.close()
+    monkeypatch.setattr(pdf_parser, "ocr_page", lambda page, **kwargs: "OCR revenue text")
+    parsed = parse_pdf(path, use_ocr=True)
+    assert parsed.chunks[0].text == "OCR revenue text"
+    assert parsed.chunks[0].metadata.page == 1
+    assert parsed.warnings == []
+
+
+def test_ocr_failure_is_recorded(tmp_path, monkeypatch):
+    path = tmp_path / "image_only.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(path)
+    doc.close()
+    def fail(*args, **kwargs):
+        raise RuntimeError("Tesseract executable is not installed")
+    monkeypatch.setattr(pdf_parser, "ocr_page", fail)
+    parsed = parse_pdf(path, use_ocr=True)
+    assert "OCR failed" in parsed.warnings[0]
 
 
 def test_section_is_carried_to_next_page(tmp_path):

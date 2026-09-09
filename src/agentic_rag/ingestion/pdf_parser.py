@@ -8,6 +8,7 @@ import pdfplumber
 from .chunker import chunk_text
 from .metadata import ContentMetadata, ParsedDocument, TableRecord
 from .table_extractor import normalize_rows, table_schema
+from .ocr import ocr_page
 
 _HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$", re.UNICODE)
 
@@ -42,7 +43,9 @@ def _repeated_margin_text(pages: list[list[dict]]) -> set[str]:
     return {text for text, count in counts.items() if count >= 2 and len(text) > 2}
 
 
-def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1800) -> ParsedDocument:
+def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1800,
+              use_ocr: bool = False, ocr_language: str = "eng", ocr_dpi: int = 200,
+              tesseract_cmd: str | None = None) -> ParsedDocument:
     source = str(Path(path))
     doc_id = doc_id or Path(path).stem
     document = ParsedDocument(doc_id=doc_id, source=source)
@@ -50,7 +53,9 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
         document.pages = len(pdf)
         page_blocks = []
         page_heights = []
+        page_objects = []
         for page in pdf:
+            page_objects.append(page)
             page_heights.append(page.rect.height)
             blocks = []
             for block in page.get_text("dict").get("blocks", []):
@@ -84,7 +89,20 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                 document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
                                                    section=page_section, source=source, max_chars=max_chars))
             elif not blocks:
-                document.warnings.append(f"page {page_number}: no text layer; OCR required")
+                if use_ocr:
+                    try:
+                        ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
+                                            dpi=ocr_dpi, tesseract_cmd=tesseract_cmd)
+                    except RuntimeError as exc:
+                        document.warnings.append(f"page {page_number}: OCR failed: {exc}")
+                    else:
+                        if ocr_text:
+                            document.chunks.extend(chunk_text(ocr_text, doc_id=doc_id, page=page_number,
+                                                               section=section, source=source, max_chars=max_chars))
+                        else:
+                            document.warnings.append(f"page {page_number}: OCR returned no text")
+                else:
+                    document.warnings.append(f"page {page_number}: no text layer; OCR required")
     with pdfplumber.open(source) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
             for index, rows in enumerate(page.extract_tables() or []):

@@ -20,6 +20,16 @@ Put local PDFs in `data/raw/`, then run:
 uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed
 ```
 
+For scanned/image-only PDFs, install the optional Python OCR dependencies and the Tesseract executable:
+
+```powershell
+uv sync --extra dev --extra ocr
+# Install Tesseract separately and ensure it is on PATH, or pass --tesseract-cmd
+uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-language eng
+```
+
+For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`).
+
 The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary.
 
 Generate a compact manual review report with 30 chunks, 10 tables, and parser failures:
