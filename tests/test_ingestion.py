@@ -90,6 +90,27 @@ def test_ocr_fallback_adds_chunk_for_image_only_page(tmp_path, monkeypatch):
     assert parsed.warnings == []
 
 
+def test_no_text_layer_warning_is_recorded_without_ocr(tmp_path):
+    path = tmp_path / "image_only.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(path)
+    doc.close()
+    parsed = parse_pdf(path, use_ocr=False)
+    assert parsed.warnings == ["page 1: no usable text layer; OCR required"]
+
+
+def test_ocr_quality_warning_is_recorded(tmp_path, monkeypatch):
+    path = tmp_path / "image_only.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(path)
+    doc.close()
+    monkeypatch.setattr(pdf_parser, "ocr_page", lambda page, **kwargs: "x")
+    parsed = parse_pdf(path, use_ocr=True)
+    assert "very short" in parsed.warnings[0]
+
+
 def test_ocr_failure_is_recorded(tmp_path, monkeypatch):
     path = tmp_path / "image_only.pdf"
     doc = pymupdf.open()

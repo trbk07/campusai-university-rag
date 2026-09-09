@@ -2,6 +2,7 @@
 from collections import Counter
 from pathlib import Path
 import re
+import string
 import statistics
 import pandas as pd
 import pymupdf
@@ -24,6 +25,18 @@ _HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$",
 
 def _clean(value: str) -> str:
     return " ".join(value.split())
+
+
+def _ocr_quality_warning(text: str, page_number: int) -> str | None:
+    clean = _clean(text)
+    if len(clean) < 10:
+        return f"page {page_number}: OCR text is very short ({len(clean)} chars); manual review required"
+    printable = sum(char.isprintable() and not char.isspace() for char in clean)
+    suspicious = sum(not (char.isalnum() or char.isspace() or char in string.punctuation or '\u00c0' <= char <= '\u024f')
+                    for char in clean)
+    if printable and suspicious / printable > 0.12:
+        return f"page {page_number}: OCR text contains suspicious characters; manual review required"
+    return None
 
 
 def _looks_like_heading(line: str, *, font_size: float | None = None, body_size: float | None = None,
@@ -111,7 +124,7 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             if lines:
                 document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
                                                    section=page_section, source=source, max_chars=max_chars))
-            if use_ocr and (not blocks or not lines):
+            if not blocks or not lines:
                 if use_ocr:
                     try:
                         ocr_text = ocr_page(page_objects[page_number - 1], language=ocr_language,
@@ -122,10 +135,13 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                         if ocr_text:
                             document.chunks.extend(chunk_text(ocr_text, doc_id=doc_id, page=page_number,
                                                                section=section, source=source, max_chars=max_chars))
+                            quality_warning = _ocr_quality_warning(ocr_text, page_number)
+                            if quality_warning:
+                                document.warnings.append(quality_warning)
                         else:
                             document.warnings.append(f"page {page_number}: OCR returned no text")
                 else:
-                    document.warnings.append(f"page {page_number}: no text layer; OCR required")
+                    document.warnings.append(f"page {page_number}: no usable text layer; OCR required")
     with pdfplumber.open(source) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
             for index, rows in enumerate(page.extract_tables() or []):
