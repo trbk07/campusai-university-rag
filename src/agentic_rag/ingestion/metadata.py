@@ -52,6 +52,8 @@ class ParsedDocument:
             "pages": self.pages,
             "num_chunks": len(self.chunks),
             "num_tables": len(self.tables),
+            "status": "review_required" if any(table.diagnostics.get("status") == "review_required" for table in self.tables) else ("warning" if self.warnings else "ok"),
+            "tables_review_required": sum(table.diagnostics.get("status") == "review_required" for table in self.tables),
             "tables": [{"table_id": table.table_id, "start_page": table.start_page,
                         "end_page": table.end_page, "columns": list(table.dataframe.columns),
                         "diagnostics": table.diagnostics}

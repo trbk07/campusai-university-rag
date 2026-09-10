@@ -12,6 +12,11 @@ from agentic_rag.ingestion.ocr import _ocr_data_result, _result_score
 from agentic_rag.ingestion.numeric import detect_scale, financial_invariants, parse_numeric
 from scripts.ground_truth import aggregate, evaluate_case
 from scripts.benchmark_ingestion import classify_warnings
+from agentic_rag.ingestion.table_extractor import table_quality_score
+from agentic_rag.ingestion.text_normalization import repair_mojibake, normalize_extracted_text
+from evaluation.metrics.answer_metrics import answer_report
+from evaluation.metrics.citation_metrics import citation_report
+from evaluation.metrics.retrieval_metrics import retrieval_report
 
 
 def make_pdf(path):
@@ -47,6 +52,20 @@ def test_parse_pdf_without_tables_is_supported(tmp_path):
     assert parse_pdf(path).tables == []
 
 
+def test_pdf_glyph_repairs_are_phrase_scoped():
+    assert pdf_parser._repair_pdf_glyphs("tỷ ồng và lắp ặt") == "tỷ đồng và lắp đặt"
+    assert pdf_parser._repair_pdf_glyphs("Cơ 3.100.000 ­ồng") == "Cơ 3.100.000 đồng"
+    assert pdf_parser._repair_pdf_glyphs("ồng ặt") == "ồng ặt"
+
+
+def test_pdf_lines_use_line_coordinates_for_reading_order():
+    blocks = [
+        {"text": "L2", "bbox": (20, 100, 200, 120), "size": 10},
+        {"text": "L1", "bbox": (20, 50, 200, 70), "size": 10},
+    ]
+    assert [item["text"] for item in pdf_parser._order_blocks(blocks, 600)] == ["L1", "L2"]
+
+
 def test_merged_cell_rows_are_normalized_and_schema_is_stable():
     frame = normalize_rows([["Period", "Revenue", "Revenue"], ["2024", "100", None], ["2025", None, "120"]])
     assert list(frame.columns) == ["Period", "Revenue", "Revenue_1"]
@@ -55,6 +74,23 @@ def test_merged_cell_rows_are_normalized_and_schema_is_stable():
 
 def test_empty_table_is_discarded():
     assert normalize_rows([[None, ""], [None, None]]) is None
+
+
+def test_two_row_financial_header_is_flattened_without_filling_cells():
+    frame = normalize_rows([["", "Kết quả", "Kết quả"], ["Kỳ", "Doanh thu", "Lợi nhuận"], ["2024", "100", "20"]])
+    assert list(frame.columns) == ["Kỳ", "Kết quả | Doanh thu", "Kết quả | Lợi nhuận"]
+    assert frame.iloc[0].tolist() == ["2024", "100", "20"]
+
+
+def test_table_quality_routes_ambiguous_tables_to_review():
+    assert table_quality_score({"merged_cell_suspected": True, "duplicate_headers": ["x"], "numeric_candidates": 10, "numeric_unparsed": 0, "financial_invariants": []}) < 0.75
+
+
+def test_table_diagnostics_expose_stable_review_reasons():
+    diagnostics = table_diagnostics([["Period"], ["2024"]])
+    assert diagnostics["single_column"] is True
+    assert "single_column" in diagnostics["review_reasons"]
+    assert isinstance(diagnostics["review_reasons"], list)
 
 
 def test_numeric_parser_preserves_raw_and_handles_financial_formats():
@@ -69,12 +105,52 @@ def test_table_diagnostics_preserve_ambiguity_without_mutating_values():
     assert diagnostics["merged_cell_suspected"] is True
     assert diagnostics["duplicate_headers"] == ["Revenue"]
     assert diagnostics["raw_rows"] == 2
+    assert diagnostics["status"] == "review_required"
+
+
+def test_mojibake_is_repaired_without_touching_valid_vietnamese():
+    repaired, changed = repair_mojibake("BÃ¡o cÃ¡o ThÆ°á»ng niÃªn")
+    assert changed is True
+    assert repaired == "Báo cáo Thường niên"
+    valid, valid_changed = normalize_extracted_text("Báo cáo thường niên")
+    assert valid == "Báo cáo thường niên"
+    assert valid_changed is False
+    normalized, changed = normalize_extracted_text("Cơ 3.100.000 \u00adồng")
+    assert normalized == "Cơ 3.100.000 ồng"
+    assert changed is True
+
+
+def test_table_diagnostics_flag_single_column_after_normalization():
+    diagnostics = table_diagnostics([["BÃ¡o cÃ¡o"], ["1"]])
+    assert diagnostics["single_column"] is True
+    assert diagnostics["mojibake_detected"] is False
+    assert diagnostics["status"] == "review_required"
+
+
+def test_normalization_removes_pdf_control_artifacts_and_repairs_mojibake():
+    normalized, changed = normalize_extracted_text("BÃ¡o\x12 CÃ¡o\x7f ThÆ°á»ng NiÃªn")
+    assert changed is True
+    assert normalized == "Báo Cáo Thường Niên"
+    assert "\\x12" not in normalized and "\\x7f" not in normalized
+
+
+def test_valid_vietnamese_and_punctuation_are_preserved():
+    text = "Báo cáo tài chính — năm 2024 (đã kiểm toán)"
+    normalized, changed = normalize_extracted_text(text)
+    assert normalized == text
+    assert changed is False
 
 
 def test_scale_detection_is_explicit():
     assert detect_scale("VND million") == 1_000_000
     assert detect_scale("USD bn") == 1_000_000_000
     assert detect_scale("reported amount") == 1
+
+
+def test_qa_metrics_are_reproducible():
+    assert answer_report([{"prediction": "Doanh thu 1.000 tỷ", "answer": "Doanh thu 1.000 tỷ"}])["exact_match"] == 1.0
+    assert retrieval_report([{"retrieved": ["p2", "p1"], "relevant": ["p1"]}])["recall@5"] == 1.0
+    assert citation_report([{"citations": ["doc:p1"], "supported": ["doc:p1"]}])["citation_precision"] == 1.0
 
 
 def test_ground_truth_metrics_are_reproducible():
@@ -117,6 +193,27 @@ def test_cli_end_to_end(tmp_path):
     manifest = json.loads((output_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest[0]["doc_id"] == "sample"
     assert (output_dir / "chunks.jsonl").read_text(encoding="utf-8").strip()
+
+
+def test_ingestion_clean_output_and_run_provenance(tmp_path):
+    input_dir = tmp_path / "input"
+    output_dir = tmp_path / "output"
+    input_dir.mkdir()
+    output_dir.mkdir()
+    make_pdf(input_dir / "sample.pdf")
+    (output_dir / "stale.csv").write_text("stale", encoding="utf-8")
+    subprocess.run([
+        sys.executable, "scripts/ingest_documents.py", "--input-dir", str(input_dir),
+        "--output-dir", str(output_dir), "--clean-output"
+    ], check=True, capture_output=True, text=True)
+    assert not (output_dir / "stale.csv").exists()
+    assert isinstance(json.loads((output_dir / "manifest.json").read_text(encoding="utf-8")), list)
+    run_manifest = json.loads((output_dir / "run_manifest.json").read_text(encoding="utf-8"))
+    assert run_manifest["schema_version"] == 2
+    assert run_manifest["pipeline_version"]
+    assert len(run_manifest["documents"]) == 1
+    assert len(run_manifest["documents"][0]["source_sha256"]) == 64
+    assert {item["path"] for item in run_manifest["artifacts"]} >= {"chunks.jsonl", "manifest.json"}
 
 
 def test_ocr_tsv_diagnostics_are_tolerant_of_missing_fields():

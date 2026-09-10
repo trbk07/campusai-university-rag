@@ -31,6 +31,8 @@ def classify_warnings(warnings: list[str]) -> dict[str, int]:
 def _summary(documents: list[dict], elapsed: float, expected: int) -> dict:
     return {"files": expected, "processed": len(documents),
             "ok": sum(x["status"] == "ok" for x in documents),
+            "warning": sum(x["status"] == "warning" for x in documents),
+            "review_required": sum(x["status"] == "review_required" for x in documents),
             "failed": sum(x["status"] == "failed" for x in documents),
             "pages": sum(x["pages"] for x in documents),
             "chunks": sum(x["chunks"] for x in documents),
@@ -82,7 +84,9 @@ def main() -> None:
         try:
             parsed = parse_pdf(path, use_ocr=args.ocr)
             categories = classify_warnings(parsed.warnings)
-            item.update({"status": "ok", "pages": parsed.pages,
+            table_review = any(table.diagnostics.get("status") == "review_required" for table in parsed.tables)
+            status = "review_required" if table_review else ("warning" if parsed.warnings else "ok")
+            item.update({"status": status, "pages": parsed.pages,
                          "chunks": len(parsed.chunks), "tables": len(parsed.tables),
                          "warnings": len(parsed.warnings), "warning_categories": categories,
                          "ocr_pages": len(parsed.ocr_diagnostics),

@@ -21,6 +21,7 @@ def _same_header(left: list[object], right: list[object]) -> bool:
         return re.sub(r"[\W_]+", "", text)
     return [normalize(value) for value in left] == [normalize(value) for value in right]
 from .ocr import ocr_page, ocr_page_with_data
+from .text_normalization import normalize_extracted_text
 
 
 def _repair_pdf_copy(source: str) -> str | None:
@@ -59,7 +60,26 @@ _HEADING = re.compile(r"^(?:\d+(?:\.\d+)*[.)]?\s+)?[A-ZÀ-ỸĐ][^.!?]{2,100}$",
 
 
 def _clean(value: str) -> str:
-    return " ".join(value.split())
+    return normalize_extracted_text(value)[0]
+
+
+def _repair_pdf_glyphs(value: str) -> str:
+    """Repair only unambiguous recurring PDF glyph-map losses.
+
+    These substitutions are intentionally phrase-scoped; arbitrary Vietnamese
+    words must never be guessed from a missing first character.
+    """
+    value = value.replace("tỷ ồng", "tỷ đồng")
+    value = value.replace("Tỷ ồng", "Tỷ đồng")
+    value = value.replace("lắp ặt", "lắp đặt")
+    value = value.replace("Lắp ặt", "Lắp đặt")
+    value = re.sub(r"\bCơ\s+(\d[\d.,]*)\s*[-\u00ad ]*ồng\b", r"Cơ \1 đồng", value)
+    return value
+
+
+def _suspicious_text(value: str) -> bool:
+    """Flag likely unrecoverable glyph loss for manifest/manual review."""
+    return bool(re.search(r"(?<![A-Za-zÀ-ỹĐđ])(?:ồng|ặt)(?![A-Za-zÀ-ỹĐđ])|\u00ad", value))
 
 
 def _ocr_quality_warning(text: str, page_number: int) -> str | None:
@@ -182,12 +202,13 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             for block in page.get_text("dict").get("blocks", []):
                 if block.get("type") != 0:
                     continue
-                raw_lines = [_clean(" ".join(span["text"] for span in line.get("spans", [])))
-                             for line in block.get("lines", [])]
-                sizes = [span["size"] for line in block.get("lines", []) for span in line.get("spans", [])]
-                for text in raw_lines:
+                for line in block.get("lines", []):
+                    raw = " ".join(span["text"] for span in line.get("spans", []))
+                    text = _clean(_repair_pdf_glyphs(raw))
+                    sizes = [span["size"] for span in line.get("spans", [])]
                     if text:
-                        blocks.append({"text": text, "bbox": block["bbox"], "size": max(sizes, default=0.0)})
+                        blocks.append({"text": text, "bbox": line.get("bbox", block["bbox"]),
+                                       "size": max(sizes, default=0.0)})
             page_blocks.append(blocks)
         repeated = _repeated_margin_text(page_blocks)
         section = None
@@ -200,6 +221,9 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             ordered_blocks = _order_blocks(blocks, page_widths[page_number - 1])
             for block in ordered_blocks:
                 clean = block["text"]
+                if _suspicious_text(clean) and _repair_pdf_glyphs(clean) == clean:
+                    document.warnings.append(
+                        f"page {page_number}: possible PDF glyph loss requires review: {clean[:120]}")
                 if clean in repeated:
                     continue
                 if _looks_like_heading(clean, font_size=block["size"], body_size=body_size,
