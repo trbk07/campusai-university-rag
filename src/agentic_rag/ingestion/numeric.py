@@ -45,9 +45,27 @@ def parse_numeric(value: object) -> NumericValue:
     return NumericValue(raw, number, is_percent=percent)
 
 
+def _is_numeric_candidate(value: object) -> bool:
+    """Return whether a cell contains an explicit numeric signal.
+
+    Table labels are intentionally excluded from numeric quality metrics.  A
+    previous implementation treated every non-empty cell as a numeric
+    candidate, making ordinary labels such as ``Thường xuyên`` appear as
+    numeric parsing failures and distorting table quality scores.
+    """
+    if value is None:
+        return False
+    text = str(value).replace("\u00a0", " ").strip()
+    if not text or text.casefold() in _MISSING:
+        return False
+    if re.search(r"\d", text):
+        return True
+    return bool(re.search(r"[%‰]|[+\-()]", text) and len(text) <= 32)
+
+
 def numeric_diagnostics(rows: list[list[object | None]]) -> dict[str, object]:
-    parsed = [parse_numeric(value) for row in rows for value in row]
-    candidates = [item for item in parsed if item.status != "missing"]
+    candidates = [parse_numeric(value) for row in rows for value in row
+                  if _is_numeric_candidate(value)]
     return {"numeric_candidates": len(candidates),
             "numeric_parsed": sum(item.value is not None for item in candidates),
             "numeric_unparsed": sum(item.value is None for item in candidates)}

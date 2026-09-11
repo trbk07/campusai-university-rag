@@ -17,4 +17,5 @@ data/tables/*
 !data/tables/.gitkeep
 .vscode/
 .idea/
+.chrome-smoke/
 

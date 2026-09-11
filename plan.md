@@ -953,7 +953,7 @@ adaptive-rag-financial/
 │
 ├── api/
 │   └── main.py
-├── ui/
+├── front_end/
 │   └── app.py
 ├── tests/
 └── docs/

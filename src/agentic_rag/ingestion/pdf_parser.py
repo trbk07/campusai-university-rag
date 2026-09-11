@@ -10,7 +10,7 @@ import pandas as pd
 import pymupdf
 import pdfplumber
 from .chunker import chunk_text
-from .metadata import ContentMetadata, ParsedDocument, TableRecord
+from .metadata import ContentMetadata, FigureRecord, ParsedDocument, TableRecord
 from .table_extractor import normalize_rows, table_diagnostics, table_schema
 
 
@@ -198,6 +198,18 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
             page_objects.append(page)
             page_heights.append(page.rect.height)
             page_widths.append(page.rect.width)
+            document.page_dimensions[str(len(page_objects))] = {
+                "width": float(page.rect.width), "height": float(page.rect.height)
+            }
+            for image_index, image in enumerate(page.get_images(full=True)):
+                for rect_index, rect in enumerate(page.get_image_rects(image)):
+                    document.figures.append(FigureRecord(
+                        figure_id=f"{doc_id}_p{len(page_objects)}_fig{image_index}_{rect_index}",
+                        page=len(page_objects), bbox=tuple(float(value) for value in rect),
+                        kind="figure", image_index=image_index,
+                        metadata=ContentMetadata(doc_id, len(page_objects), None, "figure", source,
+                                                 tuple(float(value) for value in rect),
+                                                 float(page.rect.width), float(page.rect.height))))
             blocks = []
             for block in page.get_text("dict").get("blocks", []):
                 if block.get("type") != 0:
@@ -233,8 +245,15 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                 else:
                     lines.append(clean)
             if lines:
+                line_boxes = [block["bbox"] for block in ordered_blocks if block["text"] in lines]
+                text_bbox = None
+                if line_boxes:
+                    text_bbox = (min(box[0] for box in line_boxes), min(box[1] for box in line_boxes),
+                                 max(box[2] for box in line_boxes), max(box[3] for box in line_boxes))
                 document.chunks.extend(chunk_text(" ".join(lines), doc_id=doc_id, page=page_number,
-                                                   section=page_section, source=source, max_chars=max_chars))
+                                                   section=page_section, source=source, max_chars=max_chars,
+                                                   bbox=text_bbox, page_width=page_widths[page_number - 1],
+                                                   page_height=page_height))
             if not blocks or not lines:
                 if use_ocr:
                     try:
@@ -276,7 +295,15 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
                 frame = normalize_rows(rows or [])
                 if frame is None:
                     continue
-                metadata = ContentMetadata(doc_id, page_number, None, "table", source)
+                table_bbox = None
+                try:
+                    extracted = list(page.find_tables().tables)
+                    if index < len(extracted):
+                        table_bbox = tuple(float(value) for value in extracted[index].bbox)
+                except (AttributeError, IndexError, TypeError):
+                    pass
+                metadata = ContentMetadata(doc_id, page_number, None, "table", source, table_bbox,
+                                           float(page.width), float(page.height))
                 diagnostics = table_diagnostics(rows or [])
                 if diagnostics.get("merged_cell_suspected"):
                     document.warnings.append(

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "native_text",
+      "file": "native_text.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "text"
+        ],
+        "bbox_required": true,
+        "text_contains": "native text extraction"
+      }
+    },
+    {
+      "id": "vietnamese",
+      "file": "vietnamese.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "text"
+        ],
+        "bbox_required": true,
+        "text_contains": "Báo cáo doanh thu và lợi nhuận"
+      }
+    },
+    {
+      "id": "two_column",
+      "file": "two_column.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "text"
+        ],
+        "bbox_required": true,
+        "text_contains": "LEFT COLUMN"
+      }
+    },
+    {
+      "id": "text_image",
+      "file": "text_image.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "figure"
+        ],
+        "bbox_required": true,
+        "text_contains": "Text surrounding an embedded image"
+      }
+    },
+    {
+      "id": "simple_table",
+      "file": "simple_table.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "table"
+        ],
+        "bbox_required": true,
+        "text_contains": "Year | Revenue"
+      }
+    },
+    {
+      "id": "merged_table",
+      "file": "merged_table.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "table"
+        ],
+        "bbox_required": true,
+        "text_contains": "Result | 2024 | 2025"
+      }
+    },
+    {
+      "id": "multipage_table",
+      "file": "multipage_table.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "table"
+        ],
+        "bbox_required": true,
+        "text_contains": "Year | Revenue"
+      }
+    },
+    {
+      "id": "chart",
+      "file": "chart.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "chart"
+        ],
+        "bbox_required": true,
+        "text_contains": "Revenue chart (image artifact)"
+      }
+    },
+    {
+      "id": "scanned_like",
+      "file": "scanned_like.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "ocr"
+        ],
+        "bbox_required": true,
+        "text_contains": "OCR review fixture"
+      }
+    },
+    {
+      "id": "mixed_layout",
+      "file": "mixed_layout.pdf",
+      "expected": {
+        "pages": 1,
+        "content_types": [
+          "mixed"
+        ],
+        "bbox_required": true,
+        "text_contains": "Heading"
+      }
+    }
+  ]
+}

@@ -37,6 +37,9 @@ def test_parse_text_has_page_and_metadata(tmp_path):
     assert parsed.chunks[0].metadata.page == 1
     assert parsed.chunks[0].metadata.section == "REVENUE"
     assert parsed.chunks[0].metadata.content_type == "text"
+    assert parsed.chunks[0].metadata.bbox
+    assert parsed.chunks[0].metadata.page_width == 595
+    assert parsed.page_dimensions["1"]["height"] == 842
 
 
 def test_chunking_splits_at_word_boundary():
@@ -175,6 +178,15 @@ def test_numeric_diagnostics_are_additive_to_table_diagnostics():
     diagnostics = table_diagnostics([["Year", "Revenue"], ["2024", "1,234.50"]])
     assert diagnostics["numeric_parsed"] >= 2
     assert diagnostics["raw_rows"] == 2
+
+
+def test_numeric_diagnostics_ignore_non_numeric_labels():
+    diagnostics = table_diagnostics([
+        ["Category", "Amount"],
+        ["Thường xuyên", "1.234,50"],
+    ])
+    assert diagnostics["numeric_candidates"] == 1
+    assert diagnostics["numeric_unparsed"] == 0
 
 
 def test_benchmark_warning_categories_are_deterministic():
