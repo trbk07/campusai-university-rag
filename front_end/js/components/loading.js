@@ -1,0 +1,1 @@
+export const setLoading=(el,loading)=>{if(el)el.toggleAttribute('aria-busy',loading)};

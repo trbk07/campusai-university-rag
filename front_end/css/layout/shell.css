@@ -1,0 +1,1 @@
+.app-shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}.content{max-width:1200px;padding:32px;margin:auto}.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:18px}.page-intro{margin-bottom:26px}

@@ -1,0 +1,1 @@
+export const openModal=(id)=>document.getElementById(id)?.classList.add('open'); export const closeModal=(id)=>document.getElementById(id)?.classList.remove('open');

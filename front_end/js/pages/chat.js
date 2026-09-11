@@ -1,0 +1,1 @@
+export function initChat(){return true}

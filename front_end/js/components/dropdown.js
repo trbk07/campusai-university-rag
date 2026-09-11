@@ -1,0 +1,1 @@
+export function initDropdowns(){document.querySelectorAll('[data-dropdown]').forEach(el=>el.addEventListener('change',()=>el.dispatchEvent(new CustomEvent('dropdown:change',{detail:el.value}))));}

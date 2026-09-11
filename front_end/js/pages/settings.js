@@ -1,0 +1,1 @@
+export function initSettings(){return true}
