@@ -56,7 +56,7 @@ uv run python scripts\inspect_ingestion.py --input-dir data\raw --output data\pr
 
 Run the anonymized ground-truth evaluator with `uv run python scripts/ground_truth.py --annotations data/ground_truth/annotations.json --predictions data/ground_truth/predictions.json --output data/processed/ground_truth.report.json`. It reports header and numeric-cell precision/recall/F1 plus table-dimension accuracy without storing document text. Financial validation also emits numeric warnings for unparsed cells and high-confidence invariant failures; explicit units such as million/billion are detected without guessing from magnitude.
 
-See [`docs/task1_failure_cases.md`](docs/task1_failure_cases.md) for known parser limitations.
+See [`docs/task1_failure_cases.md`](docs/task1_failure_cases.md) for known parser limitations and [`docs/task1_acceptance.md`](docs/task1_acceptance.md) for the reproducible Task 1 acceptance report and Task 2 handoff criteria.
 
 ## Tests
 

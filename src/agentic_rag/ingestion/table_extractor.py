@@ -125,10 +125,14 @@ def table_quality_score(diagnostics: dict[str, object]) -> float:
 
 
 def save_table(record: TableRecord, output_dir: str | Path) -> Path:
+    """Write normalized CSV and an immutable raw/provenance sidecar."""
+    import json
     target = Path(output_dir)
     target.mkdir(parents=True, exist_ok=True)
     path = target / f"{record.table_id}.csv"
     record.dataframe.to_csv(path, index=False, encoding="utf-8")
+    raw_path = target / f"{record.table_id}.raw.json"
+    raw_path.write_text(json.dumps(record.to_raw_record(), ensure_ascii=False, indent=2, default=str), encoding="utf-8")
     return path
 
 

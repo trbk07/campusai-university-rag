@@ -1,23 +1,17 @@
-"""CLI for parsing PDFs into JSONL chunks and CSV tables."""
+"""CLI for parsing PDFs into JSONL chunks, tables, and figure artifacts."""
 import argparse
-import hashlib
 import json
+import os
 import shutil
+import tempfile
 from pathlib import Path
-from agentic_rag.ingestion.pdf_parser import parse_pdf
+from agentic_rag.ingestion.pdf_parser import parse_pdf, materialize_figures
 from agentic_rag.ingestion.table_extractor import save_table
+from agentic_rag.ingestion.provenance import sha256_file, validate_artifacts
 
 
 SCHEMA_VERSION = 2
 PIPELINE_VERSION = "task1-ingestion-2026-09"
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def _clean_output(path: Path) -> None:
@@ -31,8 +25,8 @@ def _clean_output(path: Path) -> None:
             child.unlink()
 
 
-def _artifact_manifest(path: Path) -> dict[str, str | int]:
-    return {"path": path.name, "bytes": path.stat().st_size, "sha256": _sha256(path)}
+def _artifact_manifest(path: Path, root: Path) -> dict[str, str | int]:
+    return {"path": path.relative_to(root).as_posix(), "bytes": path.stat().st_size, "sha256": sha256_file(path)}
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -47,15 +41,16 @@ def main() -> None:
     parser.add_argument("--clean-output", action="store_true",
                         help="Delete existing contents of this output directory before ingestion")
     args = parser.parse_args()
-    if args.clean_output:
-        _clean_output(args.output_dir)
-    args.output_dir.mkdir(parents=True, exist_ok=True)
-    chunks_path = args.output_dir / "chunks.jsonl"
+    # Never expose a partially written run.  The caller sees the previous
+    # complete output until validation and promotion finish successfully.
+    args.output_dir.parent.mkdir(parents=True, exist_ok=True)
+    temp_dir = Path(tempfile.mkdtemp(prefix=f".{args.output_dir.name}-", dir=args.output_dir.parent))
+    chunks_path = temp_dir / "chunks.jsonl"
     manifests = []
     source_hashes = {}
     with chunks_path.open("w", encoding="utf-8") as chunks_file:
         for pdf_path in sorted(args.input_dir.glob("*.pdf")):
-            source_hashes[pdf_path.stem] = _sha256(pdf_path)
+            source_hashes[pdf_path.stem] = sha256_file(pdf_path)
             try:
                 document = parse_pdf(pdf_path, use_ocr=args.ocr, ocr_language=args.ocr_language,
                                      ocr_dpi=args.ocr_dpi, tesseract_cmd=args.tesseract_cmd,
@@ -67,24 +62,41 @@ def main() -> None:
             for chunk in document.chunks:
                 chunks_file.write(json.dumps({"text": chunk.text, "metadata": vars(chunk.metadata)}, ensure_ascii=False) + "\n")
             for table in document.tables:
-                save_table(table, args.output_dir / "tables")
+                save_table(table, temp_dir / "tables")
+            materialize_figures(document, temp_dir)
             manifest = document.to_manifest()
             manifest["source_sha256"] = source_hashes[pdf_path.stem]
             manifest["pipeline_version"] = PIPELINE_VERSION
             manifest["schema_version"] = SCHEMA_VERSION
             manifests.append(manifest)
-    manifest_path = args.output_dir / "manifest.json"
+    manifest_path = temp_dir / "manifest.json"
     manifest_path.write_text(json.dumps(manifests, indent=2, ensure_ascii=False), encoding="utf-8")
     generated = [chunks_path, manifest_path]
-    generated.extend(sorted((args.output_dir / "tables").glob("*.csv")) if (args.output_dir / "tables").exists() else [])
+    generated.extend(sorted((temp_dir / "tables").glob("*.csv")) if (temp_dir / "tables").exists() else [])
+    generated.extend(sorted((temp_dir / "tables").glob("*.raw.json")) if (temp_dir / "tables").exists() else [])
+    generated.extend(sorted((temp_dir / "figures").rglob("*.png")) if (temp_dir / "figures").exists() else [])
     run_manifest = {
         "schema_version": SCHEMA_VERSION,
         "pipeline_version": PIPELINE_VERSION,
         "documents": manifests,
-        "artifacts": [_artifact_manifest(path) for path in generated if path.exists()],
+        "artifacts": [_artifact_manifest(path, temp_dir) for path in generated if path.exists()],
     }
-    (args.output_dir / "run_manifest.json").write_text(
+    (temp_dir / "run_manifest.json").write_text(
         json.dumps(run_manifest, indent=2, ensure_ascii=False), encoding="utf-8")
+    artifact_errors = validate_artifacts(temp_dir, run_manifest)
+    if artifact_errors:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise SystemExit("artifact validation failed: " + "; ".join(artifact_errors))
+    failed = [item for item in manifests if item.get("status") == "failed"]
+    if failed:
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        raise SystemExit(f"ingestion failed for {len(failed)} document(s); output was not published")
+    if args.output_dir.exists():
+        if args.clean_output:
+            shutil.rmtree(args.output_dir)
+        else:
+            shutil.rmtree(args.output_dir)
+    os.replace(temp_dir, args.output_dir)
 
 
 if __name__ == "__main__":

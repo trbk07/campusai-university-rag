@@ -1,5 +1,6 @@
 """PDF text and table parser with page/section metadata."""
 from collections import Counter
+from dataclasses import replace
 from pathlib import Path
 import tempfile
 import os
@@ -22,6 +23,38 @@ def _same_header(left: list[object], right: list[object]) -> bool:
     return [normalize(value) for value in left] == [normalize(value) for value in right]
 from .ocr import ocr_page, ocr_page_with_data
 from .text_normalization import normalize_extracted_text
+from .provenance import sha256_file
+
+
+def materialize_figures(document: ParsedDocument, output_dir: str | Path) -> None:
+    """Render each detected image bbox to an auditable PNG artifact."""
+    if any(warning.startswith("document failed:") for warning in document.warnings):
+        return
+    target = Path(output_dir) / "figures"
+    target.mkdir(parents=True, exist_ok=True)
+    with pymupdf.open(document.source) as pdf:
+        for figure in document.figures:
+            if not figure.bbox or figure.page < 1 or figure.page > len(pdf):
+                document.figures[document.figures.index(figure)] = replace(
+                    figure, status="review_required",
+                    ocr_diagnostics={**figure.ocr_diagnostics, "artifact_error": "invalid page or bbox"})
+                continue
+            page = pdf[figure.page - 1]
+            rect = pymupdf.Rect(figure.bbox) & page.rect
+            if rect.is_empty or rect.width <= 1 or rect.height <= 1:
+                document.figures[document.figures.index(figure)] = replace(
+                    figure, status="review_required",
+                    ocr_diagnostics={**figure.ocr_diagnostics, "artifact_error": "empty bbox"})
+                continue
+            path = target / f"{figure.figure_id}.png"
+            pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=rect, alpha=False)
+            pixmap.save(str(path))
+            diagnostics = {**figure.ocr_diagnostics, "artifact_bytes": path.stat().st_size,
+                           "render_scale": 2.0,
+                           "bbox_clipped": tuple(float(v) for v in rect) != tuple(float(v) for v in figure.bbox)}
+            document.figures[document.figures.index(figure)] = replace(
+                figure, artifact_name=str(path.relative_to(Path(output_dir))).replace("\\", "/"),
+                artifact_sha256=sha256_file(path), ocr_diagnostics=diagnostics)
 
 
 def _repair_pdf_copy(source: str) -> str | None:
@@ -320,7 +353,8 @@ def parse_pdf(path: str | Path, *, doc_id: str | None = None, max_chars: int = 1
 
                 document.tables.append(TableRecord(frame, table_schema(frame), metadata,
                                                    f"{doc_id}_p{page_number}_t{index}",
-                                                   diagnostics=diagnostics))
+                                                   diagnostics=diagnostics,
+                                                   raw_rows=rows or []))
     _stitch_tables(document)
     return document
 
@@ -330,7 +364,7 @@ def _stitch_tables(document: ParsedDocument) -> None:
     merged: list[TableRecord] = []
     for record in document.tables:
         if (merged
-                and record.metadata.page == merged[-1].metadata.page + 1
+                and record.metadata.page == (merged[-1].end_page or merged[-1].metadata.page) + 1
                 and merged[-1].dataframe.columns.tolist() == record.dataframe.columns.tolist()):
             previous = merged[-1]
             next_frame = record.dataframe
@@ -341,6 +375,16 @@ def _stitch_tables(document: ParsedDocument) -> None:
                 previous.dataframe = pd.concat([previous.dataframe, next_frame], ignore_index=True)
                 previous.schema = table_schema(previous.dataframe)
                 previous.end_page = record.end_page
+                if previous.raw_rows is not None and record.raw_rows is not None:
+                    # Preserve every source row; raw sidecars are audit evidence,
+                    # including repeated continuation headers.
+                    previous.raw_rows.extend(record.raw_rows)
+                # Stitching changes row counts and header diagnostics; never retain
+                # diagnostics calculated for the pre-merge fragment.
+                diagnostic_rows = [list(previous.dataframe.columns)] + previous.dataframe.astype(object).where(pd.notna(previous.dataframe), None).values.tolist()
+                previous.diagnostics = table_diagnostics(diagnostic_rows)
+                previous.diagnostics["stitched"] = True
+                previous.diagnostics["stitched_pages"] = [previous.start_page, previous.end_page]
         else:
             merged.append(record)
     document.tables = merged

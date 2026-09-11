@@ -11,12 +11,25 @@ from agentic_rag.ingestion.ocr import available_languages, resolve_tesseract
 from agentic_rag.ingestion.ocr import _ocr_data_result, _result_score
 from agentic_rag.ingestion.numeric import detect_scale, financial_invariants, parse_numeric
 from scripts.ground_truth import aggregate, evaluate_case
-from scripts.benchmark_ingestion import classify_warnings
-from agentic_rag.ingestion.table_extractor import table_quality_score
+from scripts.benchmark_ingestion import classify_warnings, _summary
+from agentic_rag.ingestion.table_extractor import table_quality_score, save_table
+from agentic_rag.ingestion.metadata import ContentMetadata, FigureRecord, ChartRecord, ParsedDocument, TableRecord
 from agentic_rag.ingestion.text_normalization import repair_mojibake, normalize_extracted_text
 from evaluation.metrics.answer_metrics import answer_report
 from evaluation.metrics.citation_metrics import citation_report
 from evaluation.metrics.retrieval_metrics import retrieval_report
+
+
+def test_figure_and_chart_manifest_preserve_review_state_and_provenance():
+    figure = FigureRecord("f1", 2, (1.0, 2.0, 30.0, 40.0), artifact_name="f1.png", status="detected")
+    chart = ChartRecord("f1", title="Revenue", evidence={"source": "ocr"})
+    document = ParsedDocument("doc", "report.pdf", figures=[figure], charts=[chart])
+    manifest = document.to_manifest()
+    assert manifest["figures"][0]["artifact_name"] == "f1.png"
+    assert manifest["figures"][0]["status"] == "detected"
+    assert manifest["charts"][0]["title"] == "Revenue"
+    assert manifest["charts"][0]["status"] == "review_required"
+    assert manifest["status"] == "review_required"
 
 
 def make_pdf(path):
@@ -85,6 +98,18 @@ def test_two_row_financial_header_is_flattened_without_filling_cells():
     assert frame.iloc[0].tolist() == ["2024", "100", "20"]
 
 
+def test_table_serializer_writes_normalized_and_raw_provenance(tmp_path):
+    frame = normalize_rows([["Period", "Revenue"], ["2024", "100"]])
+    record = TableRecord(frame, {"Period": "object", "Revenue": "object"},
+                         ContentMetadata("doc", 2, None, "table", "upload.pdf"),
+                         "doc_p2_t0", raw_rows=[["Period", "Revenue"], ["2024", "100"]])
+    save_table(record, tmp_path)
+    assert (tmp_path / "doc_p2_t0.csv").exists()
+    raw = json.loads((tmp_path / "doc_p2_t0.raw.json").read_text(encoding="utf-8"))
+    assert raw["rows"] == [["Period", "Revenue"], ["2024", "100"]]
+    assert raw["source"] == "upload.pdf"
+
+
 def test_table_quality_routes_ambiguous_tables_to_review():
     assert table_quality_score({"merged_cell_suspected": True, "duplicate_headers": ["x"], "numeric_candidates": 10, "numeric_unparsed": 0, "financial_invariants": []}) < 0.75
 
@@ -148,6 +173,17 @@ def test_scale_detection_is_explicit():
     assert detect_scale("VND million") == 1_000_000
     assert detect_scale("USD bn") == 1_000_000_000
     assert detect_scale("reported amount") == 1
+
+
+def test_benchmark_summary_marks_complete_corpus_without_hiding_review_queue():
+    summary = _summary([
+        {"status": "review_required", "pages": 2, "chunks": 3, "tables": 4,
+         "warnings": 1, "warning_categories": {"ocr": 0, "table": 1, "pdf": 0, "numeric": 0, "other": 0}}
+    ], 0.1, 1)
+    assert summary["complete"] is True
+    assert summary["coverage"] == 1.0
+    assert summary["failed"] == 0
+    assert summary["review_required"] == 1
 
 
 def test_qa_metrics_are_reproducible():
