@@ -18,6 +18,41 @@ python3 scripts/bootstrap.py
 
 If `uv` is available, the equivalent reproducible setup is `uv sync --extra dev`, followed by `uv run pytest -q`. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` (or `GROQ_API_KEY`) before using a real LLM. The first real request is sent to the provider; repeated identical prompts are served from `data/cache/llm_cache.sqlite` with original usage and latency preserved.
 
+### T1 LLM acceptance tests
+
+Offline acceptance tests use a deterministic mocked transport and run with:
+
+```powershell
+python -m pytest -q tests/test_llm.py
+```
+
+The optional live Gemini test must be explicitly enabled; it is skipped by default and never logs the API key:
+
+```powershell
+$env:RUN_LLM_INTEGRATION = "1"
+$env:GEMINI_API_KEY = "..."
+python -m pytest -q tests/integration
+```
+
+The SQLite cache stores response text, provider usage metadata, and original network latency. Cache hits do not invoke the provider or rate limiter. Concurrent identical cache misses are single-flight and create one provider request. Transient HTTP errors (408, 429, 5xx) and temporary network failures are retried with bounded exponential backoff; authentication and other 4xx errors are not retried. Gemini credentials use a request header and are never part of URLs or cache keys. Do not commit `.env`, API keys, or cache databases.
+
+For the coverage gate and tracked-file secret scan:
+
+```powershell
+uv run --extra dev pytest -q --cov=finrag.llm --cov-fail-under=90
+python scripts/secret_scan.py
+```
+
+On Windows, the equivalent Make targets are `make test-windows`,
+`make coverage-windows`, and `make secret-scan-windows`. If `make` is not
+installed, run the commands directly from PowerShell:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe -m pytest -q --cov=finrag.llm --cov-fail-under=90
+.venv\Scripts\python.exe scripts\secret_scan.py
+```
+
 ## Ingestion (Groups B / T3-T4)
 
 ```powershell

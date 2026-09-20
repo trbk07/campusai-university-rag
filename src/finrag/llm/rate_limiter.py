@@ -36,4 +36,4 @@ class RateLimiter:
         """Sleep for bounded exponential backoff, honoring provider hints."""
         if retry_after is None:
             retry_after = min(60.0, 0.5 * (2 ** max(0, attempt)) + random.random() * 0.25)
-        time.sleep(max(0.0, retry_after))
+        time.sleep(min(60.0, max(0.0, retry_after)))
