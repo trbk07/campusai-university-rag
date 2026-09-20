@@ -1,1 +1,0 @@
-import {request} from './client.js'; export const getAnalytics=()=>request('/analytics');

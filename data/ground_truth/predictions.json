@@ -1,6 +1,0 @@
-{
-  "predictions": [
-    {"case": "balance_sheet_001", "actual": {"headers": ["Assets", "Liabilities", "Equity"], "numeric_cells": ["100", "70", "30"], "dimensions": [1, 3]}},
-    {"case": "income_statement_001", "actual": {"headers": ["Revenue", "Gross Profit", "Operating Expenses", "Operating Income"], "numeric_cells": ["1000", "400", "250", "150"], "dimensions": [1, 4]}}
-  ]
-}

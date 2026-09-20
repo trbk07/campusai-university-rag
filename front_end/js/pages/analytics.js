@@ -1,1 +1,0 @@
-export function initAnalytics(){return true}

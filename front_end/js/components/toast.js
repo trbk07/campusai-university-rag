@@ -1,1 +1,0 @@
-export function toast(message){const el=document.createElement('div');el.className='alert';el.textContent=message;el.style.cssText='position:fixed;right:20px;bottom:20px;z-index:5';document.body.append(el);setTimeout(()=>el.remove(),3000)}

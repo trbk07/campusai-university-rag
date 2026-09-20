@@ -1,1 +1,0 @@
-export const number=(value)=>new Intl.NumberFormat().format(value); export const percent=(value)=>`${(Number(value)*100).toFixed(1)}%`; export const date=(value)=>new Date(value).toLocaleDateString();

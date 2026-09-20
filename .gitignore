@@ -10,6 +10,10 @@ data/processed/*
 data/chunks/*
 data/index/*
 data/tables/*
+data/store/*
+*.pdf
+*.sqlite
+*.sqlite3
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/chunks/.gitkeep

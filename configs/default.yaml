@@ -1,0 +1,9 @@
+llm:
+  provider: gemini
+  model: gemini-2.0-flash
+  timeout_seconds: 60
+  requests_per_minute: 10
+  cache_path: data/cache/llm_cache.sqlite
+limits:
+  max_upload_mb: 50
+  max_pages: 200

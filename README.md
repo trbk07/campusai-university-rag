@@ -1,14 +1,68 @@
-# Adaptive RAG for Financial & Business Reports
+# Adaptive Financial RAG
 
-Adaptive RAG for semi-structured financial and business PDFs.
+Implementation follows `plan.md` and its `src/finrag/` structure. Groups A and B provide the isolated LLM foundation plus PDF ingestion with validation, page provenance, tables, metadata, chunking, registry, and SHA256 caching.
 
 ## Environment
 
-This project uses `uv` so dependencies are isolated in `.venv` and reproducible with `uv.lock`.
+All Python dependencies are installed inside the repository's `.venv`; nothing is installed globally. The recommended one-command setup is:
 
 ```powershell
-uv sync --extra dev
+# Windows
+python scripts\\bootstrap.py
+.venv\\Scripts\\python.exe -m pytest -q
+
+# macOS/Linux
+python3 scripts/bootstrap.py
+.venv/bin/python -m pytest -q
 ```
+
+If `uv` is available, the equivalent reproducible setup is `uv sync --extra dev`, followed by `uv run pytest -q`. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` (or `GROQ_API_KEY`) before using a real LLM. The first real request is sent to the provider; repeated identical prompts are served from `data/cache/llm_cache.sqlite` with original usage and latency preserved.
+
+## Ingestion (Groups B / T3-T4)
+
+```powershell
+uv run python -c "from finrag.ingestion.pipeline import ingest_document; print(ingest_document('report.pdf'))"
+```
+
+The current parser uses PyMuPDF as a deterministic local adapter; scanned PDFs are rejected with a clear OCR error rather than producing unreliable text. Tables are stored as Parquet when an optional local Parquet backend is available, with a JSON schema beside each table; ingestion itself never fails just because that optional backend is absent. Outputs go to `data/store/<sha256>/` and repeat uploads use the cache.
+
+### Groups A/B acceptance
+
+The T1–T4 foundation is implemented in `src/finrag`: provider-neutral LLM clients
+(`complete`/`generate` plus JSON parsing), SQLite response caching with original
+usage and latency, a thread-safe RPM limiter, PDF validation, page-preserving
+parsing, conservative table extraction, automatic metadata detection, and
+text/table chunks. `ingest_document()` registers each successful document in
+`<store>/registry.json`; a repeated upload is identified by the file SHA256 and
+returns the persisted result without parsing again. Image-only PDFs fail fast
+with an actionable OCR message. The default safety limits are 50 MB and 200
+pages and can be overridden explicitly for local experiments.
+
+### Groups C/D: retrieval and dev evaluation
+
+Build one BM25 and one dense index per ingested document:
+
+```powershell
+uv run python scripts\build_index.py --store-dir data\store --index-dir data\index
+```
+
+The default dense encoder is a deterministic hashed-vector fallback so the
+pipeline is reproducible offline. To use `BAAI/bge-m3` and the optional
+cross-encoder reranker, install `sentence-transformers` and pass the model
+name with `--dense-model`; the persisted index still keeps each document
+isolated. Search can combine BM25 and dense results with RRF and preserve
+`doc_id`, page, chunk, and content type through `HybridRetriever`.
+
+Validate the 20-row dev benchmark and run the T8 retrieval comparison with:
+
+```powershell
+uv run python scripts\validate_benchmark.py data\benchmark\dev.jsonl
+uv run python evaluation\run_retrieval_eval.py --index-root data\index
+```
+
+The evaluator reports Recall@3, Recall@5, MRR, and per-query results for
+BM25, dense, hybrid, and hybrid+rerank. Benchmark labels remain external
+evaluation data; they are not used by ingestion or retrieval code.
 
 For a complete Windows OCR setup after cloning:
 

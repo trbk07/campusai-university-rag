@@ -1,1081 +1,305 @@
-# Adaptive RAG for Semi-structured Financial Reports — DSAI CV Project Plan
+# Adaptive Agentic RAG cho Báo cáo tài chính — Plan v2
 
-## 0. Project Positioning
+Ứng dụng hỏi đáp trên báo cáo tài chính PDF (text + bảng). **Người dùng tự upload PDF làm input**, hệ thống parse, lập chỉ mục, rồi tự chọn mức xử lý theo độ khó của câu hỏi để cân bằng **độ chính xác** và **chi phí (latency, số lần gọi LLM)**. Toàn bộ chạy miễn phí.
 
-### 0.1 Mục tiêu
-
-Xây dựng một hệ thống **Adaptive Retrieval & Reasoning** cho các báo cáo tài chính/doanh nghiệp dạng PDF có cả **văn bản, bảng và cấu trúc phân cấp**. Hệ thống không chỉ trả lời câu hỏi bằng RAG mà còn học một chiến lược định tuyến nhẹ để lựa chọn mức độ xử lý phù hợp với độ khó của câu hỏi.
-
-Project được thiết kế theo hướng **AI/DS research-oriented engineering**: mỗi thành phần quan trọng đều có baseline, metric, ablation và error analysis. Mục tiêu của project không phải chứng minh “có thể build một chatbot RAG”, mà chứng minh bằng thực nghiệm rằng **adaptive reasoning có thể giữ chất lượng gần với full-agentic reasoning trong khi giảm latency và số lần gọi model/tool**.
-
-### 0.2 Bài toán
-
-LLM/RAG thông thường gặp ba vấn đề khi làm việc với báo cáo tài chính:
-
-1. **Retrieval mismatch:** thông tin có thể nằm trong text hoặc table; chỉ dùng dense retrieval hoặc chỉ dùng keyword search dễ bỏ sót evidence.
-2. **Numerical/table reasoning:** flatten bảng thành text khiến việc lọc, nhóm, so sánh và tính toán dễ sai.
-3. **Over-reasoning / under-reasoning:** câu hỏi đơn giản không cần agentic reasoning, trong khi câu hỏi comparison/multi-hop lại cần nhiều bước. Luôn dùng pipeline phức tạp gây tăng latency và model usage; luôn dùng RAG đơn giản lại làm giảm chất lượng ở câu khó.
-
-### 0.3 Research Questions
-
-**RQ1 — Retrieval:** Hybrid retrieval + reranking có cải thiện khả năng tìm đúng evidence so với BM25 hoặc dense retrieval đơn lẻ không?
-
-**RQ2 — Structured reasoning:** Việc giữ bảng dưới dạng DataFrame và dùng constrained table-query tool có cải thiện độ chính xác trên câu hỏi cần lọc/nhóm/so sánh số liệu không?
-
-**RQ3 — Agentic reasoning:** Agentic multi-step reasoning có cải thiện answer accuracy trên câu hỏi comparison/multi-hop so với RAG thông thường không?
-
-**RQ4 — Main contribution:** Adaptive routing có giữ answer accuracy/citation correctness gần với full-agentic pipeline nhưng giảm average latency và model/tool usage không?
-
-**RQ5 — Reliability:** Evidence verification + citation checking có làm giảm unsupported claims/hallucination và citation errors không?
-
-### 0.4 Main Contribution
-
-**Adaptive Retrieval & Reasoning:** một lightweight router phân loại câu hỏi thành Easy / Medium / Hard và chọn pipeline tương ứng:
-
-- **Easy:** Retrieve → Answer
-- **Medium:** Retrieve → Table Query/Calculator → Answer
-- **Hard:** Plan → Multi-step Retrieval/Tools → Reason → Verify → Answer
-
-Contribution chỉ được coi là thành công nếu benchmark chứng minh được trade-off **accuracy/reliability vs. latency/model usage**, không chỉ dựa trên demo.
-
-### 0.5 Target domain
-
-**Financial & Business Reports** là domain chính để giữ phạm vi tập trung. Có thể dùng:
-
-- Annual reports
-- Financial statements/reports
-- Business/ESG reports có bảng số liệu
-
-Không mở rộng đồng thời sang tài liệu kỹ thuật trong phiên bản chính; điều này giúp benchmark, error analysis và câu chuyện CV nhất quán hơn.
-
-### 0.6 Output cuối
-
-- Web QA demo cho financial/business PDFs
-- Evidence + page citation cho từng câu trả lời
-- Benchmark có 5 loại câu hỏi
-- So sánh Naive RAG / Hybrid RAG / Agentic RAG / Adaptive Agentic RAG
-- Retrieval evaluation
-- Answer/citation/reliability evaluation
-- Ablation study
-- Router evaluation
-- Error taxonomy
-- Phân tích accuracy–latency–model usage
-- README + architecture diagram + video demo + report
+Các PDF Vinamilk, FPT, Apple, Tesla chỉ là **dữ liệu đánh giá** (nằm ngoài code ứng dụng), không được hardcode ở đâu trong hệ thống.
 
 ---
 
-# 1. Scope & Design Principles
+## 1. Câu hỏi nghiên cứu & benchmark
 
-## 1.1 MUST HAVE
-
-1. Structure-aware PDF parsing
-2. Text/table separation
-3. Structure-aware chunking + page/section metadata
-4. BM25 + dense retrieval
-5. Hybrid retrieval bằng RRF
-6. Cross-encoder reranking
-7. Lightweight difficulty router
-8. Agent loop cho Hard questions
-9. Calculator tool
-10. Constrained table-query tool
-11. Evidence store + citation checker
-12. Re-retrieval khi evidence chưa đủ
-13. Bốn pipeline baseline/comparison
-14. Benchmark + reproducible evaluation
-15. Ablation study
-16. Error analysis
-17. Quantitative evidence cho adaptive routing
-
-## 1.2 SHOULD HAVE
-
-- External benchmark: FinQA và/hoặc TAT-QA
-- Deploy demo
-- Pareto/accuracy-vs-latency visualization
-- Caching và experiment logs
-- Router confusion matrix
-
-## 1.3 KHÔNG CẦN
-
-Không thêm chỉ để làm CV “ngầu”:
-
-- Multi-agent / agent swarm
-- LangGraph/AutoGen/CrewAI nếu không cần thiết
-- Fine-tuning LLM
-- Knowledge graph
-- Voice interface
-- Vision-language model
-- Fine-tune embedding/reranker
-- Nhiều domain không liên quan
-
-Framework chỉ là implementation detail; **baseline, experiment và kết quả** mới là phần quan trọng.
-
----
-
-# 2. System Architecture
-
-```text
-                    Financial / Business PDF
-                              │
-                              ▼
-                 Structure-aware Ingestion
-                    ┌─────────┴─────────┐
-                    ▼                   ▼
-                  Text                Tables
-                    │                   │
-          section-aware chunks     DataFrame + Schema
-                    │                   │
-                    └─────────┬─────────┘
-                              ▼
-                  Hybrid Retrieval Index
-                  ┌───────────┴───────────┐
-                  ▼                       ▼
-                BM25                   Dense
-                  └───────────┬───────────┘
-                              ▼
-                            RRF
-                              ▼
-                          Reranker
-                              │
-Query ───────────────► Lightweight Router
-                              │
-              ┌───────────────┼────────────────┐
-              ▼               ▼                ▼
-            EASY           MEDIUM            HARD
-              │               │                │
-          Retrieve        Retrieve         Plan
-              │               │                │
-            Answer       Table/Calc      Multi-step Retrieve
-                              │                │
-                              ▼             Reason
-                           Answer              │
-                              │             Verify
-                              └──────┬─────────┘
-                                     ▼
-                           Evidence Verification
-                                     │
-                           ┌─────────┴─────────┐
-                           ▼                   ▼
-                       Supported          Insufficient
-                           │                   │
-                           ▼              Re-retrieve
-                    Answer + Citation          │
-                                              └──► Verify
-```
-
----
-
-# 3. Tech Stack
-
-| Component | Choice | Purpose |
+| RQ | Câu hỏi | Task |
 |---|---|---|
-| Language | Python | ML/RAG ecosystem |
-| PDF parsing | PyMuPDF + pdfplumber/Camelot hoặc Docling | Text/heading/table extraction |
-| Chunking | Custom structure-aware chunker | Preserve section/table semantics |
-| Dense embedding | `bge-m3` | Multilingual semantic retrieval |
-| Sparse retrieval | BM25 | Exact terms, numbers, company names |
-| Hybrid fusion | RRF | Combine BM25 + dense without fragile score tuning |
-| Vector store | Chroma hoặc Qdrant | Persist dense index |
-| Reranker | `bge-reranker-v2-m3` | Re-rank top candidates |
-| Router | Embedding features + Logistic Regression | Lightweight difficulty classifier |
-| Agent | Custom ReAct-style loop | Full control for experiments |
-| LLM | One primary provider/model family for controlled evaluation; stronger model only for Hard path if necessary | Generation/reasoning |
-| Calculator | `numexpr`/`asteval` | Safe numerical computation |
-| Table tool | Pandas + restricted expression validation | Structured table reasoning |
-| Verification | LLM judge + deterministic citation checks | Reliability evaluation |
-| Benchmark | Custom + FinQA/TAT-QA subset | Internal + external validation |
-| API | FastAPI | Serving |
-| UI | Streamlit | Demo |
-| Deployment | HF Spaces / Render / Streamlit Cloud | Public demo if feasible |
-| Tracking | JSON/CSV + pandas | Reproducible experiments |
+| RQ1 | Hybrid (BM25 + dense + RRF + rerank) hơn từng retriever đơn lẻ bao nhiêu? | T8 |
+| RQ2 | Table tool giúp câu tính toán chính xác hơn bao nhiêu so với đọc bảng dạng text? | T16 |
+| RQ3 | Adaptive giữ được bao nhiêu accuracy của Full-Agentic với bao nhiêu chi phí? | T15–T16 |
 
-### Model-control principle
+**Benchmark 50 câu** trên 4 PDF mẫu = 5 nhóm × 10: Fact, Table filter/groupby, Calculation, Comparison, Multi-hop. Chia **dev 20 / test 30**; tune chỉ trên dev. Test phải có ≥ 1 file **chưa từng dùng khi tune** để kiểm tra khả năng tổng quát hoá sang tài liệu lạ.
 
-Không thay đổi model giữa các pipeline trong cùng một experiment nếu không phải biến đang được nghiên cứu. Nếu dùng model reasoning mạnh hơn cho Hard path, phải giữ model/config cố định giữa **Agentic** và **Adaptive** để kết quả phản ánh routing thay vì model quality.
+**Độ khó định nghĩa theo số vị trí bằng chứng** (không theo từ khoá):
+- Easy: 1 vị trí, không tính toán.
+- Medium: 1 bảng/1 trang, cần lọc/tra cứu hoặc ≤ 1 phép tính (so sánh 2 năm trong cùng một bảng là Medium).
+- Hard: ≥ 2 vị trí (khác trang/khác tài liệu/khác bảng) hoặc tính nhiều bước.
 
-Judge model nên khác model sinh câu trả lời khi có thể để giảm self-evaluation bias.
+**Metric:** Recall@3/5, MRR (retrieval) · accuracy (số: sai số tương đối ≤ 0.1% sau chuẩn hoá đơn vị; text: khớp chuẩn hoá + chấm tay phần còn lại) · citation match (trang trích dẫn ∈ trang vàng) · hallucination (đáp án chứa số không có trong bằng chứng) · latency API, số call/câu.
 
----
-
-# 4. Data & Benchmark Design
-
-## 4.1 Document set
-
-Chọn khoảng **8–15 financial/business reports** có chất lượng PDF đủ tốt và có nhiều bảng. Giữ một số tài liệu hoàn toàn ngoài benchmark tuning để kiểm tra generalization.
-
-Mỗi document lưu:
-
+Mẫu một câu benchmark:
 ```json
-{
-  "doc_id": "annual_report_2024",
-  "page": 12,
-  "section": "Revenue Breakdown",
-  "content_type": "table",
-  "text": "..."
-}
+{"qid":"t-017","split":"test","question":"...","category":"calculation","difficulty":"medium",
+ "gold_answer":{"value":12345.6,"unit":"triệu đồng","period":"2024"},
+ "gold_evidence":[{"doc_id":"<sha256-hoặc-tên-file>","pages":[12]}]}
 ```
-
-## 4.2 Question taxonomy
-
-Benchmark chính gồm 5 loại:
-
-1. **Fact** — lấy một thông tin trực tiếp
-2. **Table** — lọc/group/aggregate từ bảng
-3. **Calculation** — tính toán từ evidence
-4. **Comparison** — so sánh hai hoặc nhiều giá trị/period
-5. **Multi-hop** — cần evidence từ nhiều section/table/document
-
-## 4.3 Difficulty labels
-
-Difficulty phải được định nghĩa theo **số bước reasoning cần thiết**, không theo độ dài câu:
-
-- **Easy:** một evidence unit đủ trả lời; không cần tool.
-- **Medium:** cần một structured query và/hoặc phép tính.
-- **Hard:** cần từ hai evidence units trở lên, comparison xuyên section/document, hoặc nhiều bước retrieval/reasoning.
-
-Gán nhãn thủ công trước khi train/evaluate router.
-
-## 4.4 Dataset split
-
-Tối thiểu:
-
-```text
-Router labeled set:
-70% train / 30% validation
-
-QA benchmark:
-Tập evaluation cố định, không dùng để tune prompt/router thresholds.
-
-External benchmark:
-FinQA/TAT-QA subset chỉ dùng như external validation.
-```
-
-Không dùng cùng một câu để vừa tune router vừa báo cáo final answer accuracy.
-
-## 4.5 Benchmark size
-
-Mục tiêu cuối:
-
-- ≥30 câu/type cho benchmark chính nếu đủ thời gian
-- Ưu tiên **Comparison + Multi-hop + Table** vì đây là nơi project có contribution rõ nhất
-- External FinQA/TAT-QA: 20–50 câu phù hợp scope
-
-Nếu thiếu thời gian, giảm số câu nhưng **không bỏ các loại câu khó**.
 
 ---
 
-# 5. Evaluation Protocol
+## 2. Yêu cầu phát sinh vì input là PDF người dùng tự đưa vào
 
-## 5.1 Retrieval metrics
-
-- Recall@3
-- Recall@5
-- Recall@10
-- MRR
-
-So sánh:
-
-```text
-BM25
-Dense
-Hybrid (RRF)
-Hybrid + Reranker
-```
-
-## 5.2 Answer metrics
-
-- Answer Accuracy
-- Numerical Accuracy cho câu có đáp án số
-- Citation Correctness
-- Evidence Support / Faithfulness
-- Hallucination / Unsupported Claim Rate
-
-## 5.3 Efficiency metrics
-
-- Average latency
-- p50 latency
-- p95 latency nếu đủ sample
-- Number of LLM calls
-- Number of tool calls
-- Token usage nếu provider cho phép
-
-Với free API, **request count/token usage** được dùng làm proxy cho cost.
-
-## 5.4 Router metrics
-
-- Accuracy
-- Macro-F1
-- Confusion matrix
-- Hard→Easy error rate
-- Easy→Hard over-routing rate
-
-Hai lỗi cần phân tích riêng:
-
-```text
-Hard → Easy = nguy hiểm cho accuracy
-Easy → Hard = tốn latency/model usage
-```
-
-## 5.5 Main success criterion
-
-Adaptive Agentic RAG chỉ được kết luận tốt nếu đồng thời đạt:
-
-```text
-Accuracy / Citation Quality ≈ Full Agentic
-                         AND
-Average latency < Full Agentic
-                         AND
-LLM/tool usage < Full Agentic
-```
-
-Không đặt trước một con số improvement. **Chỉ báo cáo kết quả thực nghiệm thật.**
+1. **Không hardcode** tên công ty, năm, đơn vị, hay cấu trúc bảng. Tất cả được tự phát hiện từ PDF (ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ); UI cho phép người dùng sửa nếu phát hiện sai.
+2. **Cache theo SHA256 của file:** upload lại cùng file thì không parse/embed lại.
+3. **Mỗi tài liệu một index riêng**, truy vấn lọc theo `doc_id`; hỗ trợ chọn nhiều tài liệu và câu hỏi so sánh giữa các file.
+4. **Xử lý chậm:** Docling + bge-m3 trên CPU tốn thời gian → chạy nền, có progress bar, giới hạn kích thước/số trang (ngưỡng chốt bằng số đo ở T2).
+5. **Song ngữ:** phát hiện ngôn ngữ từng tài liệu để chọn tokenizer (tiếng Việt cần tách từ); prompt/router chạy được cả VN và EN; trả lời theo ngôn ngữ câu hỏi.
+6. **Kiểm tra đầu vào:** file hỏng, mã hoá, PDF scan không có text → báo lỗi rõ ràng (hoặc OCR nếu khả thi) thay vì trả kết quả rác.
+7. **Nội dung PDF là dữ liệu không tin cậy:** tách rõ trong prompt, tool chỉ nhận DSL JSON, không thực thi gì sinh ra từ nội dung tài liệu.
+8. **Riêng tư:** nội dung file đi qua API LLM free-tier; hiện cảnh báo trong UI và kiểm tra điều khoản sử dụng dữ liệu của gói miễn phí.
 
 ---
 
-# 6. Experimental Baselines
+## 3. Tech stack (0đ)
 
-## Baseline A — Naive RAG
-
-```text
-Dense Retrieval → LLM → Answer
-```
-
-Không tool, không agent, không verification nâng cao.
-
-## Baseline B — Hybrid RAG
-
-```text
-BM25 + Dense → RRF → Reranker → LLM → Answer
-```
-
-Dùng để đo contribution của retrieval.
-
-## Baseline C — Full Agentic RAG
-
-```text
-Every query
-    ↓
-Strong/Full agentic pipeline
-    ↓
-Retrieve → Tool/Plan → Reason → Verify
-```
-
-Dùng làm upper/reference system cho câu hỏi khó.
-
-## Proposed — Adaptive Agentic RAG
-
-```text
-Question
-   ↓
-Router
- ┌─┼─────────────┐
-Easy Medium      Hard
- ↓     ↓           ↓
-RAG   RAG+Tool   Full Agentic
- └─────┴───────────┘
-          ↓
-       Verify
-```
-
-### Fair comparison
-
-Bốn pipeline phải chạy trên:
-
-- cùng document index
-- cùng benchmark
-- cùng answer protocol
-- cùng evaluation metrics
-- cùng model/config khi model không phải biến nghiên cứu
+| Thành phần | Chọn | Ghi chú |
+|---|---|---|
+| Parser PDF + bảng | Docling (local) | Thử trên PDF tiếng Việt thật ở T2 |
+| Dense embedding | `BAAI/bge-m3` | Qua `sentence-transformers` (FastEmbed Python không có model này) |
+| Reranker | `bge-reranker-v2-m3` | Qua `sentence-transformers` (FastEmbed Python không có) |
+| Sparse | `rank-bm25` + tách từ VN (`underthesea`/`pyvi`) | Tách theo khoảng trắng sẽ cắt đôi "doanh thu" |
+| Vector DB | ChromaDB persist | Một collection/thư mục cho mỗi tài liệu |
+| LLM | Gemini Flash (model id trong config) + Groq (dự phòng/dev) | Đọc quota thật trong AI Studio; Groq 8B chỉ 6K token/phút → không dùng cho benchmark chính |
+| Table sandbox | pandas + DSL JSON + AST calculator | Không `eval/exec` chuỗi do LLM sinh |
+| Cache | `diskcache`/SQLite | Lưu cả latency và token gốc |
+| UI | Streamlit | Community Cloud chỉ ~2.7 GB RAM, không chứa nổi bge-m3 + reranker + Docling → chạy local hoặc HF Spaces (16 GB, cần kiểm tra Space miễn phí) |
 
 ---
 
-# 7. Detailed Roadmap — 12 Weeks
+## 4. Kiến trúc & 4 pipeline
 
-## Task 1 — Document Processing (Week 1)
+```mermaid
+flowchart TD
+  U[User upload PDF] --> V0[Validate + SHA256]
+  V0 --> B[Docling parse]
+  B --> C[Text chunks]
+  B --> D[Tables: parquet + schema]
+  C & D --> E[Chuẩn hoá số/đơn vị + tự phát hiện metadata]
+  E --> F[(BM25)]
+  E --> G[(bge-m3 + Chroma)]
+  F & G --> H[RRF + reranker top 5]
+  Q[Query + tài liệu đã chọn] --> R{Router}
+  R -->|Easy| P1[Retrieve -> answer]
+  R -->|Medium| P2[Retrieve -> table_query/calc -> answer]
+  R -->|Hard| P3[Planner -> agent loop <=3 bước]
+  H -.-> P1 & P2 & P3
+  P1 & P2 & P3 --> V[Verify: số khớp bằng chứng + trang trích dẫn]
+  V --> O[Answer + Doc/Page]
+```
 
-### Steps
+| Pipeline | Retrieval | Agent | Router |
+|---|---|---|---|
+| P0 Baseline | Dense only | – | – |
+| P1 Hybrid | BM25+Dense+RRF+rerank | – | – |
+| P2 Full-Agentic | Hybrid | mọi câu | – |
+| P3 Adaptive | Hybrid | chỉ nhánh Hard | rules hoặc LLM |
 
-1. Chọn 8–15 financial/business PDFs.
-2. Test parser trên text, headings, bảng đơn giản và bảng merged-cell.
-3. Implement `pdf_parser.py`.
-4. Tách text/heading/table.
-5. Gắn `doc_id/page/section/content_type` ngay khi parse.
-6. Implement structure-aware chunking.
-7. Chuyển bảng thành DataFrame + schema.
-8. Manual quality check 20–30 chunks và 5–10 tables.
-
-### DoD
-
-- PDF parse ổn định.
-- Không flatten bảng thành text duy nhất.
-- Chunk có page/section metadata.
-- Table có DataFrame + schema.
-
-### Experiment
-
-Ghi lại các failure cases của parser để dùng cho error analysis cuối project.
+Router: `rules` (regex số năm/từ khoá so sánh/số tài liệu được chọn, 0 call) và `llm` (structured output, có cache); so sánh cả hai với **oracle** (dùng nhãn vàng) để biết cận trên.
 
 ---
 
-## Task 2 — Retrieval Baseline & Hybrid Retrieval (Weeks 2–3)
+## 5. Cấu trúc thư mục
 
-### Week 2
-
-1. Build BM25 index.
-2. Build dense index.
-3. Tạo 30–50 query retrieval ground truth.
-4. Implement Recall@K/MRR.
-5. So sánh BM25 vs Dense.
-
-### Week 3
-
-6. Implement RRF hybrid retrieval.
-7. Add cross-encoder reranker.
-8. So sánh:
-
-```text
-BM25
-Dense
-Hybrid
-Hybrid + Reranker
 ```
-
-9. Chọn cấu hình retrieval cố định cho các task sau.
-
-### DoD
-
-Có bảng + biểu đồ retrieval metrics và nhận xét rõ **khi nào BM25/Dense/Hybrid có lợi thế**.
-
----
-
-## Task 3 — Difficulty Router (Week 4)
-
-### Steps
-
-1. Define Easy/Medium/Hard.
-2. Label 60–100 representative questions nếu đủ dữ liệu.
-3. Baseline heuristic router.
-4. Generate embeddings cho questions.
-5. Train Logistic Regression classifier.
-6. 70/30 train-validation split.
-7. Report Accuracy, Macro-F1, confusion matrix.
-8. Tune threshold bằng validation set.
-9. Đặc biệt phân tích Hard→Easy và Easy→Hard.
-
-### DoD
-
-Router có metric độc lập và có thể giải thích được vì sao một query được route vào từng nhánh.
-
----
-
-## Task 4 — Agentic Reasoning (Week 5)
-
-### Steps
-
-1. Implement tool interface.
-2. Implement minimal ReAct-style loop.
-3. Easy path: Retrieve → Answer.
-4. Hard path: Planner → sub-queries → retrieve → aggregate evidence.
-5. Log every step.
-6. Test trên Comparison/Multi-hop questions.
-
-### DoD
-
-Agent có log dạng:
-
-```text
-Question
-→ Router
-→ Sub-question 1
-→ Evidence
-→ Sub-question 2
-→ Evidence
-→ Final reasoning
-```
-
-Không cần multi-agent.
-
----
-
-## Task 5 — Structured Table Reasoning (Week 6)
-
-### 5.1 Calculator
-
-1. Implement calculator.
-2. Tool schema rõ ràng.
-3. Log input/output.
-4. Test numerical questions.
-
-### 5.2 Table Query Tool — Signature Feature
-
-Input:
-
-```text
-Question + Table Schema
-```
-
-Output:
-
-```text
-Validated pandas expression
-→ result
-```
-
-Cho phép một whitelist nhỏ:
-
-- filtering
-- `.loc`
-- `.groupby`
-- `.sum()`
-- `.mean()`
-- `.max()`
-- `.min()`
-
-Không cho phép arbitrary Python/`exec`.
-
-### 5.3 Error handling
-
-Nếu expression sai:
-
-```text
-Tool error
-→ agent retry (max 1–2)
-→ verify result
-```
-
-### DoD
-
-Có benchmark riêng cho Table/Calculation/Comparison và chứng minh table tool hoạt động trên các câu mà text-only RAG dễ sai.
-
----
-
-## Task 6 — Evidence Verification (Week 7)
-
-### Steps
-
-1. Evidence store.
-2. Answer verifier.
-3. Citation checker.
-4. Check numerical output against tool output.
-5. Check citation → đúng page/chunk.
-6. Nếu evidence thiếu → query rewrite → re-retrieve.
-7. Retry tối đa 2 lần.
-8. Test trên câu có missing/insufficient evidence.
-
-### DoD
-
-Hệ thống có thể:
-
-```text
-Unsupported answer
-       ↓
-Verifier detects
-       ↓
-Re-retrieve
-       ↓
-Verify again
-```
-
-hoặc trả lời rõ rằng tài liệu không đủ thông tin.
-
----
-
-## Task 7 — Integrate Adaptive Pipeline (Week 8)
-
-Implement:
-
-```text
-adaptive_agentic_rag.py
-```
-
-Ba branch:
-
-```text
-Easy
-Retrieve → Answer → Verify
-
-Medium
-Retrieve → Table/Calculator → Answer → Verify
-
-Hard
-Plan → Multi-step Retrieval/Tools → Reason → Verify
-```
-
-### Critical experiment
-
-So sánh:
-
-```text
-Full Agentic on every query
-vs.
-Adaptive Agentic
-```
-
-Cùng benchmark, cùng model/config.
-
-Log:
-
-- accuracy
-- citation correctness
-- hallucination rate
-- latency
-- LLM calls
-- tool calls
-
-### DoD
-
-Có evidence định lượng cho RQ4.
-
----
-
-# 8. Benchmark & Ablation (Weeks 9–10)
-
-## Week 9 — Main benchmark
-
-Chạy 4 pipeline:
-
-```text
-Naive RAG
-Hybrid RAG
-Agentic RAG
-Adaptive Agentic RAG
-```
-
-Trên cùng benchmark.
-
-Report:
-
-| Pipeline | Accuracy | Citation | Hallucination | Avg Latency | LLM Calls |
-|---|---:|---:|---:|---:|---:|
-| Naive | | | | | |
-| Hybrid | | | | | |
-| Agentic | | | | | |
-| Adaptive | | | | | |
-
-Không điền số trước khi chạy experiment.
-
-## Week 10 — Ablation
-
-### Retrieval
-
-- no-hybrid
-- no-reranker
-
-### Reasoning
-
-- no-router
-- no-planner
-
-### Tools
-
-- no-calculator
-- no-table-tool
-- no-tools
-
-### Reliability
-
-- no-verification
-- no-re-retrieval
-
-### Mục tiêu
-
-Không chỉ nói “component này tốt”; phải đo **component đó đóng góp bao nhiêu**.
-
----
-
-# 9. Error Analysis (Week 11)
-
-Chọn 20–30 failed cases hoặc toàn bộ nếu dataset nhỏ.
-
-Phân loại lỗi:
-
-1. Parser failure
-2. Retrieval miss
-3. Reranker failure
-4. Router misclassification
-5. Planner failure
-6. Table extraction error
-7. Table query expression error
-8. Calculator error
-9. Evidence verification failure
-10. Hallucination despite retrieved evidence
-11. Citation mismatch
-
-Với mỗi category lưu:
-
-```text
-Question
-Expected evidence
-System behavior
-Failure cause
-Potential fix
-```
-
-### Output
-
-`failure_taxonomy.csv` + 5–10 representative examples trong README/report.
-
-Đây là phần bắt buộc để project thể hiện khả năng **debug AI system**, không chỉ build demo.
-
----
-
-# 10. Analysis & Visualization (Week 11)
-
-Tạo tối thiểu:
-
-### Figure 1 — Retrieval comparison
-
-```text
-Recall@5 / MRR
-BM25 vs Dense vs Hybrid vs Reranker
-```
-
-### Figure 2 — Pipeline comparison
-
-```text
-Accuracy vs Latency
-Naive / Hybrid / Agentic / Adaptive
-```
-
-### Figure 3 — Router confusion matrix
-
-```text
-Easy / Medium / Hard
-```
-
-### Figure 4 — Error distribution
-
-```text
-Retrieval / Router / Table / Tool / Hallucination / Citation
-```
-
-Không cần biểu đồ nếu bảng số liệu đã đủ rõ; ưu tiên biểu đồ thực sự hỗ trợ argument.
-
----
-
-# 11. External Validation (Week 10–11, nếu đủ thời gian)
-
-Dùng một subset nhỏ của **FinQA và/hoặc TAT-QA**.
-
-Mục đích không phải cạnh tranh SOTA mà để trả lời:
-
-> “Phương pháp có hoạt động ngoài benchmark tự xây không?”
-
-Chỉ sử dụng các câu phù hợp với domain/table reasoning.
-
-Report riêng external benchmark, không trộn với benchmark nội bộ.
-
----
-
-# 12. Deployment & Wrap-up (Week 12)
-
-## Demo
-
-```text
-Upload PDF
-   ↓
-Ask question
-   ↓
-Show answer
-   ↓
-Show cited page/evidence
-   ↓
-Show optional reasoning trace/tool summary
-```
-
-Không expose chain-of-thought nội bộ; chỉ hiển thị **action trace** an toàn như:
-
-```text
-Router: Hard
-Retrieved: pages 12, 18
-Used: Table Query + Calculator
-Verification: Passed
-```
-
-## README bắt buộc
-
-1. Problem
-2. Why standard RAG is insufficient
-3. Proposed architecture
-4. Main contribution
-5. Dataset
-6. Evaluation protocol
-7. Main results
-8. Ablation
-9. Error analysis
-10. Limitations
-11. Demo
-12. Reproduction instructions
-
-## Video
-
-1–2 phút:
-
-- Upload report
-- Ask Easy question
-- Ask Table/Calculation question
-- Ask Multi-hop question
-- Show evidence/citation
-- Show action trace
-
----
-
-# 13. Reproducibility & Engineering Quality
-
-## Required
-
-```text
-configs/
-  retrieval.yaml
-  router.yaml
-  agent.yaml
-  eval.yaml
-
-src/
-evaluation/
-tests/
-```
-
-Mỗi experiment phải log:
-
-```json
-{
-  "pipeline": "adaptive",
-  "model": "...",
-  "question_id": "q023",
-  "route": "medium",
-  "llm_calls": 1,
-  "tool_calls": 1,
-  "latency_ms": 1234,
-  "answer": "...",
-  "citations": ["doc01:p12"],
-  "evaluation": {}
-}
-```
-
-### Tests
-
-- parser tests
-- retrieval tests
-- router tests
-- table tool tests
-- citation tests
-- end-to-end test
-
-### Caching
-
-Cache LLM/tool outputs để không gọi lại API khi debug hoặc chạy ablation. Điều này đặc biệt quan trọng khi dùng free tier.
-
----
-
-# 14. Suggested Repository Structure
-
-```text
-adaptive-rag-financial/
+adaptive-financial-rag/
 ├── README.md
-├── pyproject.toml
-├── .env.example
+├── requirements.txt
+├── .env.example                 # GEMINI_API_KEY, GROQ_API_KEY
+├── .gitignore                   # data/eval_docs, data/store, data/cache
+├── Makefile                     # ingest | bench | ablate | report | app | test
 │
 ├── configs/
-│   ├── retrieval.yaml
-│   ├── router.yaml
-│   ├── agent.yaml
-│   └── eval.yaml
+│   └── default.yaml             # model id, top_k, rrf_k, max_steps=3, giới hạn file/trang, RPM/TPM/RPD
 │
 ├── data/
-│   ├── raw/
-│   ├── processed/
-│   ├── chunks/
-│   ├── tables/
+│   ├── eval_docs/               # 4 PDF mẫu CHỈ để đánh giá + SOURCES.md
+│   ├── store/<sha256>/          # mỗi tài liệu: parsed.md, tables/*.parquet + *.schema.json, meta.json, index/
+│   ├── cache/                   # llm_cache.sqlite
 │   └── benchmark/
-│       ├── fact.jsonl
-│       ├── table.jsonl
-│       ├── calculation.jsonl
-│       ├── comparison.jsonl
-│       ├── multihop.jsonl
-│       └── external/
+│       ├── dev.jsonl            # 20 câu
+│       └── test.jsonl           # 30 câu (đóng băng)
 │
-├── src/
-│   └── adaptive_rag/
-│       ├── ingestion/
-│       │   ├── pdf_parser.py
-│       │   ├── table_extractor.py
-│       │   ├── chunker.py
-│       │   └── metadata.py
-│       │
-│       ├── retrieval/
-│       │   ├── bm25.py
-│       │   ├── dense.py
-│       │   ├── hybrid.py
-│       │   ├── reranker.py
-│       │   └── index.py
-│       │
-│       ├── router/
-│       │   ├── features.py
-│       │   ├── classifier.py
-│       │   └── thresholds.py
-│       │
-│       ├── agent/
-│       │   ├── planner.py
-│       │   ├── agent_loop.py
-│       │   └── prompts/
-│       │
-│       ├── tools/
-│       │   ├── calculator.py
-│       │   ├── table_query.py
-│       │   └── retrieval_tool.py
-│       │
-│       ├── verification/
-│       │   ├── evidence_store.py
-│       │   ├── answer_verifier.py
-│       │   └── citation_checker.py
-│       │
-│       └── pipelines/
-│           ├── naive_rag.py
-│           ├── hybrid_rag.py
-│           ├── agentic_rag.py
-│           └── adaptive_rag.py
+├── src/finrag/
+│   ├── schemas.py               # Document, Chunk, Table, Evidence, AgentStep, Answer
+│   ├── documents/
+│   │   └── registry.py          # thêm/xoá/liệt kê tài liệu, tra theo SHA256, trạng thái xử lý
+│   ├── ingestion/
+│   │   ├── validate.py          # kích thước, số trang, mã hoá, có text hay không
+│   │   ├── docling_parser.py    # PDF -> markdown + bảng, giữ số trang
+│   │   ├── table_extractor.py   # DataFrame + schema (cột, kỳ, đơn vị), nối bảng nhiều trang
+│   │   ├── numeric_normalizer.py# 1.234,5 <-> 1,234.5; (123) = âm; triệu/tỷ đồng
+│   │   ├── metadata_detector.py # ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ
+│   │   ├── chunker.py           # heading path; bảng là 1 đơn vị
+│   │   └── pipeline.py          # ingest_document(pdf) -> Document (có cache theo SHA256)
+│   ├── retrieval/
+│   │   ├── tokenizer_vi.py
+│   │   ├── bm25_index.py
+│   │   ├── dense_index.py
+│   │   ├── fusion.py            # RRF tự viết (~15 dòng)
+│   │   ├── reranker.py
+│   │   └── hybrid.py            # search(query, doc_ids, filters)
+│   ├── llm/
+│   │   ├── client.py            # generate(), generate_json(schema)
+│   │   ├── rate_limiter.py      # token bucket + retry-after + backoff
+│   │   └── cache.py             # khoá = hash(model, prompt, schema); lưu response, usage, latency gốc
+│   ├── tools/
+│   │   ├── table_query.py       # thực thi DSL JSON
+│   │   └── safe_calc.py         # AST evaluator: + - * / ** %, pct_change
+│   ├── router/
+│   │   ├── rules.py
+│   │   ├── llm_router.py
+│   │   └── oracle.py
+│   ├── agent/
+│   │   ├── react_loop.py        # planner + loop, tối đa 3 bước; tools: search, table_query, calc, finish
+│   │   └── prompts/
+│   ├── verify.py                # numeric grounding + citation check (không tốn LLM call)
+│   └── pipelines/               # baseline.py, hybrid.py, agentic.py, adaptive.py
 │
 ├── evaluation/
-│   ├── retrieval_metrics.py
-│   ├── answer_metrics.py
-│   ├── citation_metrics.py
-│   ├── efficiency_metrics.py
-│   ├── router_metrics.py
-│   ├── run_benchmark.py
+│   ├── metrics.py
+│   ├── run_retrieval_eval.py    # RQ1
+│   ├── run_benchmark.py         # --pipeline --split ; ghi JSONL append-only
 │   ├── run_ablation.py
-│   └── error_analysis.py
+│   ├── make_report.py          # bảng kết quả + CI bootstrap
+│   ├── results/                 # <run_id>.jsonl (git sha, config, model id, ngày)
+│   └── error_analysis/
+│       ├── error_taxonomy.csv
+│       └── error_analysis.md
 │
-├── notebooks/
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_retrieval_eval.ipynb
-│   ├── 03_router_eval.ipynb
-│   └── 04_ablation_analysis.ipynb
+├── scripts/
+│   └── build_index.py           # ingest hàng loạt PDF mẫu (chạy được trên Colab)
 │
-├── api/
-│   └── main.py
-├── front_end/
-│   └── app.py
-├── tests/
-└── docs/
-    ├── architecture.md
-    ├── experiments.md
-    └── report.md
+├── app/
+│   ├── app.py                   # Streamlit: upload PDF, danh sách tài liệu, chọn tài liệu, hỏi, badge route, trace, đáp án + [Doc, Page]
+│   └── components/
+│
+└── tests/
+    ├── test_rrf.py
+    ├── test_numeric_normalizer.py
+    ├── test_safe_calc.py
+    ├── test_table_query_sandbox.py   # có ca tấn công: __import__, __class__
+    └── test_ingest_validate.py       # file hỏng / mã hoá / scan
+```
+
+DSL cho table tool (LLM chỉ sinh JSON này, code cục bộ thực thi):
+```json
+{"table_id":"<doc>_p12_t1","op":"select","rows":{"label_contains":"doanh thu thuần"},"cols":["2024","2023"]}
+{"op":"calc","expr":"(a-b)/b*100","vars":{"a":"cell:r1c1","b":"cell:r1c2"}}
 ```
 
 ---
 
-# 15. Final Deliverables Checklist
+## 6. Danh sách task (làm tuần tự từ T1 đến T19)
 
-## Core system
+Mỗi task chỉ bắt đầu khi task trước đó đã đạt mục **Xong khi**. Tổng ước lượng ~146 giờ (≈ 16 tuần nếu 9 giờ/tuần).
 
-- [ ] Financial/business PDF ingestion
-- [ ] Structure-aware chunking
-- [ ] Table → DataFrame + schema
-- [ ] BM25 retrieval
-- [ ] Dense retrieval
-- [ ] Hybrid RRF retrieval
-- [ ] Reranker
-- [ ] Lightweight difficulty router
-- [ ] Agentic multi-step reasoning
-- [ ] Calculator tool
-- [ ] Constrained Table Query Tool
-- [ ] Evidence verification
-- [ ] Citation checker
-- [ ] Re-retrieval
+### Nhóm A — Nền móng
 
-## Research / evaluation
+**T1. Khung dự án + LLM client** (~5h) · Phụ thuộc: không
+- Tạo repo, môi trường Python 3.11, `configs/default.yaml`, `Makefile`.
+- Viết `llm/client.py`, `rate_limiter.py`, `cache.py` (cache lưu response + usage + latency gốc).
+- Lấy Gemini API key; đọc quota thật trong AI Studio và Groq console.
+- *Xong khi:* gọi Gemini một prompt; gọi lại lần 2 lấy từ cache với 0 API call nhưng vẫn báo latency/token gốc.
 
-- [ ] RQ1 retrieval experiment
-- [ ] RQ2 table reasoning experiment
-- [ ] RQ3 agentic reasoning experiment
-- [ ] RQ4 adaptive vs full-agentic experiment
-- [ ] RQ5 verification experiment
-- [ ] Router Accuracy/F1/confusion matrix
-- [ ] 4-pipeline comparison
-- [ ] Ablation study
-- [ ] Error taxonomy
-- [ ] Accuracy/latency analysis
-- [ ] External benchmark if feasible
+**T2. Kiểm tra khả thi** (~5h) · Phụ thuộc: T1
+- Chạy Docling thử trên PDF tiếng Việt và tiếng Anh thật: bảng có gãy cột không, có lỗi font phải OCR không, bao nhiêu giây/trang.
+- Chạy `TextEmbedding.list_supported_models()` của FastEmbed để xác nhận; đo RAM và tốc độ bge-m3 + reranker trên CPU và Colab.
+- Chốt giới hạn upload (MB, số trang) dựa trên số đo.
+- *Xong khi:* ghi lại quyết định dùng/không dùng từng thành phần và ngưỡng upload vào README (mục Hạn chế).
 
-## Engineering / presentation
+### Nhóm B — Ingestion (PDF người dùng đưa vào)
 
-- [ ] Automated tests
-- [ ] Experiment logs
-- [ ] LLM response caching
-- [ ] Public demo
-- [ ] README
-- [ ] Architecture diagram
-- [ ] 1–2 minute demo video
-- [ ] Final report/technical note
+**T3. Ingestion 1: validate → parse → bảng** (~12h) · Phụ thuộc: T2
+- `validate.py`, `docling_parser.py`, `table_extractor.py`, `documents/registry.py`; cache theo SHA256; lưu vào `data/store/<sha256>/`.
+- Bảng lưu `.parquet` + `schema.json`; nối bảng kéo dài nhiều trang; giữ số trang cho mọi chunk/bảng.
+- Test `test_ingest_validate.py`: file hỏng, mã hoá, scan.
+- *Xong khi:* `ingest_document(pdf)` chạy trên 4 PDF mẫu và trên 1 PDF khác chưa từng thấy; upload lại cùng file trả kết quả tức thì.
+
+**T4. Ingestion 2: chuẩn hoá, metadata tự động, chunking** (~8h) · Phụ thuộc: T3
+- `numeric_normalizer.py` (+ test), `metadata_detector.py` (ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ), `chunker.py` (heading path, bảng là 1 đơn vị); metadata mỗi chunk: `doc_id, page, chunk_id, content_type, unit, fiscal_year, language`.
+- Chấm tay 20 bảng ngẫu nhiên để có tỉ lệ parse đúng (dùng lại ở T17).
+- *Xong khi:* metadata phát hiện đúng trên tất cả tài liệu thử; không còn tên công ty/năm nào hardcode.
+
+### Nhóm C — Retrieval
+
+**T5. Index theo từng tài liệu** (~7h) · Phụ thuộc: T4
+- `tokenizer_vi.py`, `bm25_index.py`, `dense_index.py` (bge-m3 + Chroma persist), lưu index trong thư mục của tài liệu; xoá tài liệu thì xoá luôn index.
+- *Xong khi:* thêm/xoá tài liệu trong registry mà index luôn nhất quán; xử lý nền có báo tiến độ.
+
+**T6. Hybrid retrieval** (~7h) · Phụ thuộc: T5
+- `fusion.py` (RRF, có test), `reranker.py`, `hybrid.py: search(query, doc_ids, filters)` gộp kết quả nhiều tài liệu.
+- *Xong khi:* 5 câu hỏi mẫu trả về đúng trang; tìm được trên nhiều tài liệu cùng lúc.
+
+### Nhóm D — Benchmark dev & đo retrieval
+
+**T7. Soạn benchmark dev (20 câu)** (~8h) · Phụ thuộc: T6
+- 20 câu phủ đủ 5 nhóm, gán độ khó theo định nghĩa mục 1, gán đáp án vàng + trang vàng.
+- *Xong khi:* `dev.jsonl` hợp lệ theo schema.
+
+**T8. RQ1: đo retrieval** (~5h) · Phụ thuộc: T7
+- `metrics.py` (phần retrieval), `run_retrieval_eval.py`. So sánh BM25 / Dense / Hybrid / Hybrid + rerank; tách text vs table và VN vs EN.
+- *Cổng 1:* Recall@5 của Hybrid + rerank còn thấp (ví dụ < 0.7) thì quay lại sửa T3–T6 trước khi làm tiếp.
+
+### Nhóm E — Sinh đáp án, tool, agent
+
+**T9. Harness đánh giá + P0/P1** (~9h) · Phụ thuộc: T8
+- Hoàn tất `metrics.py` (accuracy, citation, hallucination, cost), `run_benchmark.py`, pipeline P0 và P1 chạy trên dev.
+- *Xong khi:* một lệnh chạy dev cho P0/P1 ra bảng kết quả; chạy lại lần 2 hoàn toàn từ cache.
+
+**T10. Table tool** (~9h) · Phụ thuộc: T9
+- `safe_calc.py` (AST), `table_query.py` (DSL). Viết test bảo mật trước (`test_safe_calc.py`, `test_table_query_sandbox.py`).
+- *Xong khi:* toàn bộ test xanh; không có đường `eval/exec` nào trong `tools/`.
+
+**T11. Verify** (~5h) · Phụ thuộc: T9
+- `verify.py`: mọi số trong đáp án phải khớp bằng chứng/kết quả tool; trang trích dẫn phải chứa bằng chứng; không đủ bằng chứng thì retrieve lại tối đa 1 lần.
+- *Xong khi:* bắt được các ca đáp án bịa số trên dev.
+
+**T12. Agent loop → P2 Full-Agentic** (~10h) · Phụ thuộc: T6, T10, T11
+- `react_loop.py`: tối đa 3 bước, bước đầu gộp phân rã sub-query để tiết kiệm call; tools `search / table_query / calc / finish`; trần call mỗi câu.
+- *Xong khi:* P2 chạy hết dev, log đủ từng bước, không vòng lặp vô hạn.
+
+**T13. Router → P3 Adaptive** (~8h) · Phụ thuộc: T12
+- `rules.py`, `llm_router.py` (có cache), `oracle.py`; ghép P3; nếu verify thất bại thì nâng lên nhánh cao hơn một lần.
+- *Cổng 2 (MVP):* P0–P3 chạy end-to-end trên dev, có bảng kết quả sơ bộ.
+
+### Nhóm F — Thực nghiệm
+
+**T14. Soạn test set (30 câu) và đóng băng** (~9h) · Phụ thuộc: T13
+- Viết test set (gồm ≥ 1 file chưa từng dùng khi tune) **trước khi** xem kết quả pipeline trên nó; đọc lại nhãn một lượt để sửa sai; gắn tag git.
+- *Xong khi:* `test.jsonl` đóng băng, ước lượng số call một lượt quét đầy đủ để lên lịch theo quota ngày.
+
+**T15. Chạy chính P0–P3 trên test** (~6h) · Phụ thuộc: T14
+- Cùng một model id cho cả 4 pipeline. `make_report.py` xuất bảng theo nhóm + tổng, kèm n và CI bootstrap.
+- *Xong khi:* có bảng Accuracy / Citation / Hallucination / Latency / Calls cho 4 pipeline.
+
+**T16. Ablation** (~6h) · Phụ thuộc: T15
+- No-Table-Tool: đọc bảng dạng text thô, đo tụt accuracy ở nhóm Calculation (RQ2).
+- No-Router: dùng P2 cho mọi câu, đo tăng latency và số call (RQ3).
+- So sánh router rules vs LLM vs oracle.
+- *Xong khi:* bảng ablation trong `evaluation/results/`.
+
+**T17. Error taxonomy** (~7h) · Phụ thuộc: T15, T16
+- Lấy 15–20 ca sai/lệch trang, gán giai đoạn gây lỗi: Docling parse lệch cột · retrieval trượt · router sai nhánh · DSL/phép tính sai · sinh đáp án sai · trích dẫn sai. Ghi `error_taxonomy.csv` + `error_analysis.md`.
+- *Xong khi:* có bảng đếm theo nhóm lỗi + 3–5 ví dụ đại diện.
+
+### Nhóm G — Sản phẩm & đóng gói
+
+**T18. Ứng dụng Streamlit** (~12h) · Phụ thuộc: T13
+- Sidebar: upload PDF (tiến độ xử lý nền), danh sách tài liệu + siêu dữ liệu phát hiện được (sửa được), chọn tài liệu, cảnh báo riêng tư.
+- Khung chính: ô hỏi → badge route (Easy/Medium/Hard) → các bước tool → đáp án + `[Doc, Page]` (mở đúng trang PDF gốc).
+- Báo lỗi rõ khi file không hợp lệ.
+- *Xong khi:* người lạ upload một PDF mới và hỏi được câu đầu tiên mà không cần chỉnh code.
+
+**T19. Đóng gói** (~8h) · Phụ thuộc: T17, T18
+- README: sơ đồ kiến trúc, cách chạy, bảng kết quả thật (kèm n và CI), hạn chế.
+- Chạy local hoặc deploy HF Spaces nếu tạo được Space miễn phí; quay video demo 90 giây (upload file → 1 câu Easy nhanh + 1 câu Hard có trace).
+- *Xong khi:* clone repo mới → chạy theo README → demo được; gắn tag `v1.0`.
 
 ---
 
-# 16. CV Positioning
+## 7. Lưu ý kỹ thuật bắt buộc
 
-## Project title
+- **Số và đơn vị:** chuẩn hoá định dạng số Việt/Anh, số âm trong ngoặc, triệu/tỷ đồng, hợp nhất vs riêng lẻ. Đây là nguồn lỗi lớn nhất của QA tài chính.
+- **Latency:** đo thời gian gọi API thật, tách riêng thời gian chờ rate limit. Replay từ cache vẫn dùng latency gốc.
+- **Quota:** thiết kế cho ~250 request/ngày; cache mọi prompt; không trộn provider trong cùng một bảng kết quả.
+- **Không tune trên test.** Ghi rõ n; với 30 câu test chỉ kết luận ở mức xu hướng và báo cáo cả kết quả không đẹp.
+- **Kết quả trong README chỉ lấy từ `evaluation/results/`.**
 
-**Adaptive RAG for Semi-structured Financial Reports**
+## 8. Cắt giảm khi trễ
 
-Tên này phù hợp hơn “Agentic RAG for Semi-structured Documents” vì thể hiện ngay:
-
-- domain
-- core problem
-- main contribution
-
-## CV bullets sau khi project hoàn thành
-
-Chỉ sử dụng số liệu **đã thực nghiệm thật**.
-
-> **Adaptive RAG for Semi-structured Financial Reports**
->
-> • Developed an adaptive RAG system for financial reports, combining structure-aware document parsing, hybrid BM25+dense retrieval, reranking, and difficulty-aware routing for multi-step reasoning.
->
-> • Designed a constrained table-query pipeline that preserves PDF tables as structured DataFrames, enabling reliable filtering, aggregation, comparison, and numerical reasoning.
->
-> • Implemented evidence verification and citation checking with iterative re-retrieval to reduce unsupported answers and improve citation reliability.
->
-> • Evaluated Naive, Hybrid, Agentic, and Adaptive RAG through retrieval metrics, answer accuracy, hallucination/citation analysis, latency, and ablation studies; report quantitative trade-offs between quality and inference cost.
-
-### Khi có kết quả tốt
-
-Ưu tiên thay bullet cuối bằng số liệu:
-
-```text
-Improved Recall@5 by X% over dense retrieval.
-Maintained X% answer accuracy while reducing average latency by Y% vs. full-agentic RAG.
-Reduced unsupported claims by X% with evidence verification.
-```
-
-Không ghi các con số này trước khi benchmark hoàn tất.
-
----
-
-# 17. What Makes This a DSAI-Level Student Project?
-
-Project được coi là hoàn chỉnh khi câu chuyện có đủ chuỗi:
-
-```text
-Real problem
-    ↓
-Hypothesis / Research Questions
-    ↓
-Baseline
-    ↓
-Proposed method
-    ↓
-Controlled experiments
-    ↓
-Ablation
-    ↓
-Error analysis
-    ↓
-Quantitative conclusion
-```
-
-Không đánh giá project dựa trên số lượng framework.
-
-**Core identity:**
-
-> A research-oriented AI system that studies whether adaptive retrieval and reasoning can make RAG over semi-structured financial documents more accurate and reliable without paying the full latency/model-usage cost of agentic reasoning on every query.
-
-Đây là định vị cần giữ xuyên suốt code, README, report và CV.
+Cắt theo thứ tự: so sánh router LLM/oracle (T13, T16) → ablation phụ (T16) → OCR cho PDF scan (T3) → deploy HF Spaces (T19, chạy local + video). **Không cắt:** T3–T6, T9–T13, T14–T15, T17, T18.

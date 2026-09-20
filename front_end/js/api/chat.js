@@ -1,1 +1,0 @@
-import {request} from './client.js'; export const askQuestion=(question)=>request('/query',{method:'POST',body:JSON.stringify({question})});

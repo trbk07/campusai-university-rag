@@ -1,1 +1,0 @@
-export function initDocuments(){return true}
