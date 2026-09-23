@@ -18,13 +18,18 @@ python3 scripts/bootstrap.py
 
 If `uv` is available, the equivalent reproducible setup is `uv sync --extra dev`, followed by `uv run pytest -q`. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` (or `GROQ_API_KEY`) before using a real LLM. The first real request is sent to the provider; repeated identical prompts are served from `data/cache/llm_cache.sqlite` with original usage and latency preserved.
 
-### T1 LLM acceptance tests
+### Task 1 (T1): LLM foundation acceptance tests
 
-Offline acceptance tests use a deterministic mocked transport and run with:
+Task 1 is the provider-neutral LLM foundation described in
+[`docs/t1_acceptance.md`](docs/t1_acceptance.md). Offline acceptance tests use a
+deterministic mocked transport and run with:
 
 ```powershell
-python -m pytest -q tests/test_llm.py
+python -m pytest -q tests/test_llm.py tests/test_llm_acceptance.py
 ```
+
+The document-processing work below is separate ingestion work (Groups B / T3-T4),
+not Task 1.
 
 The optional live Gemini test must be explicitly enabled; it is skipped by default and never logs the API key:
 
@@ -35,6 +40,54 @@ python -m pytest -q tests/integration
 ```
 
 The SQLite cache stores response text, provider usage metadata, and original network latency. Cache hits do not invoke the provider or rate limiter. Concurrent identical cache misses are single-flight and create one provider request. Transient HTTP errors (408, 429, 5xx) and temporary network failures are retried with bounded exponential backoff; authentication and other 4xx errors are not retried. Gemini credentials use a request header and are never part of URLs or cache keys. Do not commit `.env`, API keys, or cache databases.
+
+### Task 2 (T2): feasibility benchmark
+
+Task 2 has a reproducible, opt-in benchmark at
+[`scripts/benchmark_t2.py`](scripts/benchmark_t2.py). It separates cold PyMuPDF
+parse time, first ingestion, and warm SHA-256 cache lookup; records page/table
+coverage, RSS peak, environment metadata, and failure isolation. The benchmark
+accepts only PDFs supplied through `--input-dir` and never names a production
+document in code.
+
+Run the parser-only evidence collection offline:
+
+```powershell
+.venv\Scripts\python.exe scripts\benchmark_t2.py `
+  --input-dir <directory-containing-user-supplied-pdfs> `
+  --output evaluation\t2_results.json
+.venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json
+```
+
+The optional feasibility environment is intentionally separate from production:
+
+```powershell
+uv sync --extra feasibility
+.venv\Scripts\python.exe scripts\benchmark_t2.py `
+  --input-dir <directory-containing-user-supplied-pdfs> `
+  --run-docling --run-models --device cpu
+```
+
+Use `--device cuda` in a CUDA/Colab runtime and keep that JSON as a separate
+run. Model downloads are never implicit. The report records the exact
+FastEmbed `TextEmbedding.list_supported_models()` output, bge-m3 and
+reranker cold/warm latency, throughput, embedding dimension, model-load RSS,
+and CUDA metadata. A report is `acceptance_ready` only when model execution and
+measured parser limits both exist; blocked or skipped components remain visible.
+
+Create the manual table/layout review queue after parsing:
+
+```powershell
+.venv\Scripts\python.exe scripts\create_t2_table_review.py `
+  evaluation\t2_results.json --output evaluation\t2_table_review.json
+```
+
+The queue has explicit checks for headers, numeric cells, column alignment,
+merged cells, and page continuity. Do not promote the derived upload limits
+until representative Vietnamese/English text PDFs, scan/mixed-layout PDFs,
+model CPU/CUDA measurements, and the manual table review are complete. The
+current checked-in `50 MB / 250 pages` values remain a provisional safety cap;
+they are not presented as an SLA.
 
 For the coverage gate and tracked-file secret scan:
 
@@ -56,7 +109,7 @@ installed, run the commands directly from PowerShell:
 ## Ingestion (Groups B / T3-T4)
 
 ```powershell
-uv run python -c "from finrag.ingestion.pipeline import ingest_document; print(ingest_document('report.pdf'))"
+uv run python -c "from finrag.ingestion.pipeline import ingest_document; print(ingest_document('path\provided\by\the\user\report.pdf'))"
 ```
 
 The current parser uses PyMuPDF as a deterministic local adapter; scanned PDFs are rejected with a clear OCR error rather than producing unreliable text. Tables are stored as Parquet when an optional local Parquet backend is available, with a JSON schema beside each table; ingestion itself never fails just because that optional backend is absent. Outputs go to `data/store/<sha256>/` and repeat uploads use the cache.
@@ -70,8 +123,7 @@ parsing, conservative table extraction, automatic metadata detection, and
 text/table chunks. `ingest_document()` registers each successful document in
 `<store>/registry.json`; a repeated upload is identified by the file SHA256 and
 returns the persisted result without parsing again. Image-only PDFs fail fast
-with an actionable OCR message. The default safety limits are 50 MB and 200
-pages and can be overridden explicitly for local experiments.
+with an actionable OCR message. The default safety limits are 50 MB and 250 pages, selected from the Task 2 feasibility benchmark; they can be overridden explicitly for local experiments.
 
 ### Groups C/D: retrieval and dev evaluation
 
@@ -145,7 +197,7 @@ uv run python scripts\inspect_ingestion.py --input-dir data\raw --output data\pr
 
 Run the anonymized ground-truth evaluator with `uv run python scripts/ground_truth.py --annotations data/ground_truth/annotations.json --predictions data/ground_truth/predictions.json --output data/processed/ground_truth.report.json`. It reports header and numeric-cell precision/recall/F1 plus table-dimension accuracy without storing document text. Financial validation also emits numeric warnings for unparsed cells and high-confidence invariant failures; explicit units such as million/billion are detected without guessing from magnitude.
 
-See [`docs/task1_failure_cases.md`](docs/task1_failure_cases.md) for known parser limitations and [`docs/task1_acceptance.md`](docs/task1_acceptance.md) for the reproducible Task 1 acceptance report and Task 2 handoff criteria.
+See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the reproducible Task 1 acceptance report and its documented limitations. Ingestion-specific diagnostics are described in the ingestion sections above.
 
 ## Tests
 

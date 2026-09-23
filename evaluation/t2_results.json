@@ -1,0 +1,179 @@
+{
+  "schema_version": 2,
+  "environment": {
+    "python": "3.14.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "pid": 3052,
+    "device_requested": "cpu",
+    "device_selected": "cpu",
+    "cuda": {
+      "available": false,
+      "device_count": 0,
+      "device_names": [],
+      "torch_version": "2.14.0+cpu",
+      "cuda_version": null
+    },
+    "packages": {
+      "docling": "2.130.0",
+      "fastembed": "0.8.1",
+      "sentence_transformers": "5.7.0",
+      "psutil": "7.2.2",
+      "torch": "2.14.0"
+    }
+  },
+  "fastembed": {
+    "implementation": "fastembed",
+    "requested_model": "BAAI/bge-m3",
+    "status": "success",
+    "supported_model_count": 37,
+    "supported_models": [
+      "BAAI/bge-base-en",
+      "BAAI/bge-base-en-v1.5",
+      "BAAI/bge-large-en-v1.5",
+      "BAAI/bge-small-en",
+      "BAAI/bge-small-en-v1.5",
+      "BAAI/bge-small-zh-v1.5",
+      "mixedbread-ai/mxbai-embed-large-v1",
+      "snowflake/snowflake-arctic-embed-xs",
+      "snowflake/snowflake-arctic-embed-s",
+      "snowflake/snowflake-arctic-embed-m",
+      "snowflake/snowflake-arctic-embed-m-long",
+      "snowflake/snowflake-arctic-embed-l",
+      "jinaai/jina-clip-v1",
+      "minishlab/potion-base-8M",
+      "minishlab/potion-retrieval-32M",
+      "minishlab/potion-multilingual-128M",
+      "Qdrant/clip-ViT-B-32-text",
+      "google/siglip2-base-patch16-224",
+      "sentence-transformers/all-MiniLM-L6-v2",
+      "jinaai/jina-embeddings-v2-base-en",
+      "jinaai/jina-embeddings-v2-small-en",
+      "jinaai/jina-embeddings-v2-base-de",
+      "jinaai/jina-embeddings-v2-base-code",
+      "jinaai/jina-embeddings-v2-base-zh",
+      "jinaai/jina-embeddings-v2-base-es",
+      "thenlper/gte-base",
+      "thenlper/gte-large",
+      "nomic-ai/nomic-embed-text-v1.5",
+      "nomic-ai/nomic-embed-text-v1.5-Q",
+      "nomic-ai/nomic-embed-text-v1",
+      "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "intfloat/multilingual-e5-large",
+      "jinaai/jina-embeddings-v3",
+      "google/embeddinggemma-300m",
+      "Qwen/Qwen3-Embedding-0.6B",
+      "Qwen/Qwen3-Embedding-0.6B-Q"
+    ],
+    "requested_model_supported": false,
+    "note": "The production plan uses sentence-transformers for bge-m3; this is an availability check only."
+  },
+  "parser": [
+    {
+      "path": "2024_BCTC HN KT.pdf",
+      "file_size_bytes": 7375906,
+      "sha256": "f9e80cb03a3a3beb414ad93c62d4734664edc030a636d563ab88555f73763237",
+      "implementation": "pymupdf",
+      "pages": 125,
+      "status": "skipped",
+      "reason": "no_text_requires_ocr",
+      "docling": {
+        "status": "failed",
+        "error_type": "LocalEntryNotFoundError",
+        "error": "Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, set 'HF_HUB_OFFLINE=0' as environment variable."
+      }
+    },
+    {
+      "path": "fpt_annual_report_2024_63d63bc4cd.pdf",
+      "file_size_bytes": 15732827,
+      "sha256": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4",
+      "implementation": "pymupdf",
+      "pages": 213,
+      "status": "success",
+      "text_chars": 542752,
+      "cold_parse_seconds": 0.347197,
+      "cold_seconds_per_page": 0.00163,
+      "cold_baseline_rss_mb": 616.61,
+      "cold_peak_rss_mb": 635.61,
+      "cold_peak_rss_delta_mb": 19.0,
+      "ingest_seconds": 0.056393,
+      "warm_cache_seconds": 0.05104,
+      "cached": true,
+      "chunks": 216,
+      "tables": 3,
+      "table_inventory": [
+        {
+          "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p77_t1",
+          "pages": [
+            77
+          ],
+          "row_count": 2,
+          "column_count": 2,
+          "headers_present": true
+        },
+        {
+          "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p78_t1",
+          "pages": [
+            78
+          ],
+          "row_count": 1,
+          "column_count": 2,
+          "headers_present": true
+        },
+        {
+          "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p111_t1",
+          "pages": [
+            111
+          ],
+          "row_count": 2,
+          "column_count": 2,
+          "headers_present": true
+        }
+      ],
+      "language": "en",
+      "peak_rss_mb": 591.17,
+      "docling": {
+        "status": "failed",
+        "error_type": "LocalEntryNotFoundError",
+        "error": "Cannot find an appropriate cached snapshot folder for the specified revision on the local disk and outgoing traffic has been disabled. To enable repo look-ups and downloads online, set 'HF_HUB_OFFLINE=0' as environment variable."
+      }
+    }
+  ],
+  "models": {
+    "status": "failed",
+    "dense_model": "BAAI/bge-m3",
+    "reranker_model": "BAAI/bge-reranker-v2-m3",
+    "device": "cpu",
+    "text_count": 64,
+    "error_type": "OSError",
+    "error": "We couldn't connect to 'https://huggingface.co' to load the files, and couldn't find them in the cached files.\nCheck your internet connection or see how to run the library in offline mode at 'https://huggingface.co/docs/transformers/installation#offline-mode'."
+  },
+  "updated_at_utc": "2026-09-23T18:33:24Z",
+  "limits": {
+    "status": "insufficient_evidence",
+    "evidence": {
+      "documents": 1,
+      "p95_seconds_per_page": 0.00163,
+      "max_cold_peak_rss_delta_mb": 19.0,
+      "failure_rate": 0.0,
+      "memory_budget_mb": 2048,
+      "concurrency": 1,
+      "timeout_seconds": 120,
+      "reason": "at_least_two_document_sizes_are_required_to_estimate_memory_growth_per_page"
+    },
+    "limits": null
+  },
+  "summary": {
+    "documents_discovered": 2,
+    "documents_recorded": 2,
+    "successful": 1,
+    "failed": 0,
+    "skipped": 1,
+    "complete": true,
+    "max_upload_mb": 50,
+    "max_pages": 250,
+    "acceptance_ready": false
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "status": "pending",
+  "tables": [
+    {
+      "doc_sha256": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4",
+      "source_path": "fpt_annual_report_2024_63d63bc4cd.pdf",
+      "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p77_t1",
+      "pages": [
+        77
+      ],
+      "row_count": 2,
+      "column_count": 2,
+      "headers_present": true,
+      "review": {
+        "header_correct": null,
+        "numeric_cells_correct": null,
+        "column_alignment": null,
+        "merged_cells_handled": null,
+        "page_continuity": null,
+        "notes": ""
+      }
+    },
+    {
+      "doc_sha256": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4",
+      "source_path": "fpt_annual_report_2024_63d63bc4cd.pdf",
+      "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p78_t1",
+      "pages": [
+        78
+      ],
+      "row_count": 1,
+      "column_count": 2,
+      "headers_present": true,
+      "review": {
+        "header_correct": null,
+        "numeric_cells_correct": null,
+        "column_alignment": null,
+        "merged_cells_handled": null,
+        "page_continuity": null,
+        "notes": ""
+      }
+    },
+    {
+      "doc_sha256": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4",
+      "source_path": "fpt_annual_report_2024_63d63bc4cd.pdf",
+      "table_id": "fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4_p111_t1",
+      "pages": [
+        111
+      ],
+      "row_count": 2,
+      "column_count": 2,
+      "headers_present": true,
+      "review": {
+        "header_correct": null,
+        "numeric_cells_correct": null,
+        "column_alignment": null,
+        "merged_cells_handled": null,
+        "page_continuity": null,
+        "notes": ""
+      }
+    }
+  ],
+  "source_report_sha256": "6dfe07605a5114cde70e16d8321f79b6f6d04cf3add0d6c58071fecc0659c27f"
+}

@@ -15,6 +15,10 @@ numeric minimum/maximum. This is intentionally not a full JSON Schema engine.
 Run from `D:\Project`:
 
 ```powershell
+# Task 1 acceptance tests only
+uv run --extra dev pytest -q tests/test_llm.py tests/test_llm_acceptance.py
+
+# Full repository regression suite and coverage gate
 uv run --extra dev pytest -q
 uv run --extra dev pytest -q --cov=finrag.llm --cov-fail-under=90
 ```
@@ -42,7 +46,8 @@ The acceptance suite verifies:
 Latest local offline result:
 
 ```text
-41 passed, 1 skipped
+Task 1 acceptance: 33 passed
+Full repository: 41 passed, 1 skipped
 ```
 
 The one skipped test is the opt-in live Gemini contract test. The test is
@@ -51,15 +56,16 @@ intentionally skipped unless a newly issued, unexposed `GEMINI_API_KEY` and
 checks that the second identical request is cached with unchanged usage and
 latency. Live verification is therefore **not claimed by offline CI**.
 
-Live verification completed locally on 2026-09-21:
+A previous local live verification was recorded on 2026-09-21:
 
 ```text
 1 passed in 3.94s
 ```
 
-The live run used `gemini-3.8-flash` and supplied the credential only through
-the process environment. The credential value is intentionally not recorded
-in this report.
+That historical run used `gemini-3.8-flash` and supplied the credential only
+through the process environment. It is not part of offline CI and was not
+re-run as part of the current repository validation. The credential value is
+intentionally not recorded in this report.
 
 ## Configuration and security
 

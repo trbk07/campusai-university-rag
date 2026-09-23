@@ -64,7 +64,7 @@ def ingest_document(
     path: str | Path,
     store_dir: str | Path = "data/store",
     max_mb: int = 50,
-    max_pages: int = 200,
+    max_pages: int = 250,
     progress: ProgressCallback | None = None,
     registry: DocumentRegistry | None = None,
 ) -> Document:

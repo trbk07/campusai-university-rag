@@ -27,7 +27,7 @@ class ValidationError(ValueError):
 def validate_pdf(
     path: str | Path,
     max_mb: int = 50,
-    max_pages: int = 200,
+    max_pages: int = 250,
 ) -> PDFValidation:
     """Validate a PDF without modifying it.
 
