@@ -117,3 +117,26 @@ def test_hybrid_reranker_failure_falls_back_to_fused_results(tmp_path):
         tmp_path / "index", reranker=FailingReranker()
     ).search("prerequisite", ["doc"], mode="hybrid_rerank", top_k=1)
     assert results[0].retriever == "hybrid"
+
+
+def test_reranker_threshold_is_applied_after_reranking(tmp_path):
+    records = [
+        {"chunk_id": "a", "doc_id": "doc", "content": "prerequisite", "page": 1},
+        {"chunk_id": "b", "doc_id": "doc", "content": "course", "page": 2},
+    ]
+    index_dir = tmp_path / "index" / "doc"
+    BM25Index(records, "en").save(index_dir / "bm25.json")
+    dense = DenseIndex(records)
+    dense.build(records)
+    dense.save(index_dir / "dense.json")
+
+    class FixedReranker:
+        model_name = "fixed"
+
+        def rerank(self, _query, candidates, top_k=5):
+            return [(item["chunk_id"], 0.9 if item["chunk_id"] == "a" else 0.1) for item in candidates[:top_k]]
+
+    results = HybridRetriever(tmp_path / "index", reranker=FixedReranker()).search(
+        "prerequisite", ["doc"], mode="hybrid_rerank", score_threshold=0.5, top_k=2
+    )
+    assert [result.chunk_id for result in results] == ["a"]

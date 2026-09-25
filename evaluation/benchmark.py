@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections import Counter
 
 
-CATEGORIES = {"fact", "table_filter_groupby", "calculation", "comparison", "multi_hop"}
+CATEGORIES = {"fact", "table_filter_groupby", "calculation", "comparison", "multi_hop", "exact_code", "negative"}
 DIFFICULTIES = {"easy", "medium", "hard"}
 
 
@@ -28,8 +28,10 @@ def validate_records(records: list[dict], expected_split: str = "dev", expected_
             errors.append(f"row {index}: invalid category")
         if record.get("difficulty") not in DIFFICULTIES:
             errors.append(f"row {index}: invalid difficulty")
-        if not isinstance(record.get("gold_evidence"), list) or not record.get("gold_evidence"):
-            errors.append(f"row {index}: gold_evidence must be non-empty")
+        evidence = record.get("gold_evidence")
+        is_negative = record.get("category") == "negative" or record.get("query_type") == "negative"
+        if not isinstance(evidence, list) or (not evidence and not is_negative):
+            errors.append(f"row {index}: gold_evidence must be a non-empty list unless query is negative")
     if expected_count == 20 and set(counts) == CATEGORIES and any(counts[category] != 4 for category in CATEGORIES):
         errors.append(f"category balance must be 4 each, got {dict(counts)}")
     return errors

@@ -67,7 +67,9 @@ class HybridRetriever:
                 records[chunk_id] = item
         return records
 
-    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid") -> list[RetrievalResult]:
+    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None) -> list[RetrievalResult]:
+        if score_threshold is not None and score_threshold < 0:
+            raise ValueError("score_threshold must be non-negative")
         if doc_ids is None:
             doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
         if not doc_ids or top_k <= 0:
@@ -81,6 +83,7 @@ class HybridRetriever:
             filter_key,
             top_k,
             mode,
+            score_threshold,
             self.rrf_k,
             self.rerank_candidate_limit,
             getattr(self.reranker, "model_name", None),
@@ -125,6 +128,11 @@ class HybridRetriever:
                 for item_id, score in ranked
                 if all(records[item_id].get("metadata", {}).get(key) == value for key, value in filters.items())
             ]
+        # A reranker has its own score space. Apply thresholds after reranking
+        # there; applying the dense/RRF threshold first would discard useful
+        # candidates before the calibrated confidence is available.
+        if score_threshold is not None and not (self.reranker is not None and mode in {"rerank", "hybrid_rerank"}):
+            ranked = [(item_id, score) for item_id, score in ranked if score >= score_threshold]
         ranked = ranked[:top_k * 3]
         candidates = [
             records[item_id]
@@ -140,12 +148,16 @@ class HybridRetriever:
                 # Keep the interactive API alive if an injected/remote
                 # reranker fails. The fused ranking is still valid evidence.
                 ranked = ranked[:top_k]
+                if score_threshold is not None:
+                    ranked = [(item_id, score) for item_id, score in ranked if score >= score_threshold]
                 score_by_id = dict(ranked)
                 label = "hybrid"
             else:
                 score_by_id = dict(reranked)
                 ranked = reranked
                 label = "hybrid_rerank"
+                if score_threshold is not None:
+                    ranked = [(item_id, score) for item_id, score in ranked if score >= score_threshold]
         else:
             ranked = ranked[:top_k]
             score_by_id = dict(ranked)
