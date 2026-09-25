@@ -197,10 +197,22 @@ def _request_json(request, timeout: int, limiter, max_retries: int) -> dict:
         except urllib.error.HTTPError as error:
             if error.code in {401, 403}:
                 raise LLMAuthenticationError("provider authentication failed") from error
+            detail = ""
+            try:
+                raw_detail = error.read().decode("utf-8", errors="replace")
+                if raw_detail:
+                    try:
+                        parsed_detail = json.loads(raw_detail)
+                        detail = str(parsed_detail.get("error", {}).get("message", ""))
+                    except (json.JSONDecodeError, AttributeError):
+                        detail = raw_detail[:300]
+            except (OSError, UnicodeError):
+                detail = ""
+            suffix = f": {detail[:300]}" if detail else ""
             failure = (
-                LLMRateLimitError("provider rate limit exceeded")
+                LLMRateLimitError(f"provider rate limit exceeded{suffix}")
                 if error.code == 429
-                else LLMProviderError(f"provider returned HTTP {error.code}")
+                else LLMProviderError(f"provider returned HTTP {error.code}{suffix}")
             )
             if error.code not in transient or attempt >= max_retries:
                 raise failure from error
@@ -267,6 +279,38 @@ def _validate_schema(value: Any, schema: dict[str, Any], path: str = "$") -> Non
     if isinstance(value, list) and "items" in schema:
         for index, item in enumerate(value):
             _validate_schema(item, schema["items"], f"{path}[{index}]")
+
+
+_GEMINI_SCHEMA_KEYS = {
+    "type", "format", "title", "description", "nullable", "enum",
+    "items", "properties", "required", "propertyOrdering",
+    "minItems", "maxItems", "minProperties", "maxProperties",
+}
+
+
+def _gemini_schema(schema: dict[str, Any]) -> dict[str, Any]:
+    """Project application JSON Schema to Gemini's supported dialect."""
+
+    def project(value: Any) -> Any:
+        if isinstance(value, dict):
+            result = {}
+            for key, child in value.items():
+                if key == "properties" and isinstance(child, dict):
+                    result[key] = {name: project(node) for name, node in child.items()}
+                elif key in _GEMINI_SCHEMA_KEYS:
+                    projected = project(child)
+                    if key == "type" and isinstance(projected, str):
+                        projected = projected.upper()
+                    result[key] = projected
+            return result
+        if isinstance(value, list):
+            return [project(item) for item in value]
+        return value
+
+    projected = project(schema)
+    if not isinstance(projected, dict):
+        raise TypeError("Gemini response schema must be an object")
+    return projected
 
 
 class OpenAICompatibleClient:
@@ -477,7 +521,7 @@ class GeminiClient(OpenAICompatibleClient):
         generation_config = dict(kwargs.pop("generationConfig", {}))
         generation_config["responseMimeType"] = "application/json"
         if schema is not None:
-            generation_config["responseSchema"] = schema
+            generation_config["responseSchema"] = _gemini_schema(schema)
         response = self.generate(prompt, generationConfig=generation_config, **kwargs)
         text = response.text.strip()
         fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.I | re.S)

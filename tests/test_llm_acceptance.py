@@ -19,6 +19,7 @@ from campusai.llm.client import (
     _request_json,
     _sleep_backoff,
     _validate_schema,
+    _gemini_schema,
     _retry_after_seconds,
     build_cache_key,
 )
@@ -374,6 +375,29 @@ def test_json_generation_and_gemini_error_shapes(monkeypatch):
         gemini.generate_json("y")
     with pytest.raises(LLMResponseError):
         gemini.complete("z")
+
+
+def test_gemini_schema_projects_unsupported_json_schema_keywords():
+    schema = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "answer": {"type": "string", "minLength": 1, "maxLength": 10},
+            "items": {
+                "type": "array",
+                "items": {"type": "string", "pattern": "x"},
+            },
+        },
+    }
+
+    projected = _gemini_schema(schema)
+
+    assert "additionalProperties" not in projected
+    assert "minLength" not in projected["properties"]["answer"]
+    assert "maxLength" not in projected["properties"]["answer"]
+    assert "pattern" not in projected["properties"]["items"]["items"]
+    assert projected["type"] == "OBJECT"
+    assert projected["properties"]["answer"]["type"] == "STRING"
 
 
 def test_limiter_paths_and_provider_response_types(monkeypatch):

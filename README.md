@@ -17,6 +17,8 @@ machine-specific reports are excluded from version control.
 - Task 2 PDF ingestion/retrieval foundation: implemented and acceptance-tested
 - Production parser: PyMuPDF fast path with SHA-256 cache
 - Retrieval: BM25 + dense + RRF; explicit `hybrid_rerank` for hard queries
+- Basic RAG: bilingual grounded prompts, provenance-safe context budgets,
+  versioned query-answer cache and deterministic abstention acceptance
 - Academic metadata: language, document type, academic years and semesters
 - Web UI/public deployment: next phase; the repository is currently the backend foundation
 
@@ -135,6 +137,31 @@ Phase 1/2 acceptance evidence is regenerated in
 [`evaluation/phase12_acceptance.json`](evaluation/phase12_acceptance.json).
 The release scope, hashes, commands, OCR policy, and known limitations are in
 [`docs/phase12_release.md`](docs/phase12_release.md).
+
+## Phase 4: Basic RAG
+
+Phase 4 provides the retrieval-to-grounded-answer flow. Context blocks retain
+document/page provenance, budgets are enforced with a conservative token
+estimate, and Vietnamese/English prompts require evidence-only JSON answers.
+Repeated questions are cached by a SHA-256 key containing corpus/index version,
+filters, retrieval mode, prompt/model version and context budget; API keys are
+never part of the key or cached answer metadata.
+
+Run the offline Phase 4 acceptance benchmark and focused tests:
+
+```powershell
+.venv\Scripts\python.exe evaluation\run_phase4_basic_rag.py
+.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_phase4_basic_rag.py tests\test_grounding.py
+```
+
+See [`docs/phase4_release.md`](docs/phase4_release.md) and the generated
+[`phase4_basic_rag.json`](evaluation/results/phase4_basic_rag.json). The
+benchmark builds its university fixture corpus at runtime and does not use
+`.tmp` artifacts as acceptance evidence.
+
+Optional live Gemini grounding evidence is available with
+`tests/integration/test_phase4_gemini.py`; it requires `RUN_LLM_INTEGRATION=1`
+and a `GEMINI_API_KEY` supplied only through the environment.
 
 ## Performance evidence
 

@@ -482,6 +482,10 @@ Exit criteria: Recall@5 và p95 query được ghi theo từng corpus; restart p
 
 Exit criteria: câu hỏi fact có answer/evidence; câu ngoài corpus không được bịa.
 
+Phase 4 acceptance: completed with bilingual prompts, provenance-preserving
+context/token budgets, versioned query-answer cache, deterministic abstention
+tests and offline report in `evaluation/results/phase4_basic_rag.json`.
+
 ### Phase 5 — Citation, grounding và abstention
 
 - output schema bắt buộc `answer`, `citations`, `confidence`, `abstained`;

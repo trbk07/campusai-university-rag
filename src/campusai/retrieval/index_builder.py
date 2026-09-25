@@ -72,6 +72,8 @@ def _write_corpus_manifest(root: Path, doc_id: str, items: list[dict], dense_man
             "document_id": document_root.name,
             "corpus_hash": manifest.get("corpus_hash"),
             "item_count": manifest.get("item_count"),
+            "bm25_sha256": hashlib.sha256((document_root / "bm25.json").read_bytes()).hexdigest()
+            if (document_root / "bm25.json").is_file() else None,
         })
     corpus_fingerprint = hashlib.sha256(
         json.dumps(document_manifests, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
