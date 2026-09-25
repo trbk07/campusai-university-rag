@@ -5,9 +5,12 @@ from pathlib import Path
 import fitz
 
 from campusai.ingestion.chunker import _MAX_CHARS, make_chunks
+from campusai.schemas import Chunk, Document, Table
 from campusai.ingestion.jobs import IngestionJobManager
 from campusai.ingestion.metadata_detector import detect_metadata
 from campusai.ingestion.table_extractor import extract_tables
+from campusai.ingestion.pipeline import delete_document_full
+from campusai.retrieval.index_builder import build_document_indexes, remove_document_from_index
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "phase12"
@@ -73,6 +76,27 @@ def test_prerequisite_golden_fixture_preserves_table_header_and_section_boundary
     assert "CS310" not in table_chunk.content
 
 
+def test_heading_variant_golden_fixtures():
+    for name in (
+        "heading_split_across_lines.json",
+        "heading_across_page_break.json",
+        "roman_numeral_heading.json",
+        "uppercase_title_edge_case.json",
+    ):
+        fixture = json.loads((FIXTURES / name).read_text(encoding="utf-8"))
+        chunks = make_chunks(
+            fixture["document"]["pages"],
+            fixture["document"]["doc_id"],
+            fixture["document"]["metadata"],
+        )
+        expected = fixture["expected"]
+        if expected.get("heading"):
+            assert any(expected["heading"] in chunk.heading_path for chunk in chunks)
+        if expected.get("not_heading"):
+            assert all(expected["not_heading"] not in chunk.heading_path for chunk in chunks)
+        assert any(expected["contains"] in chunk.content for chunk in chunks)
+
+
 def test_chunk_diagnostics_bound_size_empty_pages_and_heading_errors():
     diagnostics = {}
     chunks = make_chunks(
@@ -89,6 +113,43 @@ def test_chunk_diagnostics_bound_size_empty_pages_and_heading_errors():
     assert diagnostics["empty_pages"] == [2]
     assert all(len(chunk.content) <= _MAX_CHARS + 200 for chunk in chunks)
     assert any(first.content[-50:] in second.content for first, second in zip(chunks, chunks[1:]))
+
+
+def test_oversized_table_cell_keeps_json_valid():
+    diagnostics = {}
+    table = Table("doc_p1_t1", "doc", [1], ["Code", "Description"], [["CS101", "x" * 5000]])
+    chunks = make_chunks([{"page": 1, "text": "Table"}], "doc", {}, [table], diagnostics)
+    table_chunk = next(chunk for chunk in chunks if chunk.content_type == "table")
+    payload = table_chunk.content.split("\n\n", 1)[1]
+    parsed = json.loads(payload)
+    assert parsed["truncated"] is True
+    assert parsed["original_columns"] == 2
+    assert table_chunk.content.startswith("[Page: 1]")
+
+
+def test_document_index_artifacts_can_be_removed(tmp_path):
+    doc_id = "a" * 64
+    chunk = Chunk("chunk-1", doc_id, 1, "prerequisite course", metadata={})
+    document = Document(doc_id, str(tmp_path / "source.pdf"), 1, chunks=[chunk])
+    target = build_document_indexes(document, tmp_path / "index")
+    assert (target / "bm25.json").exists()
+    assert (target / "dense.json").exists()
+    assert remove_document_from_index(doc_id, tmp_path / "index") is True
+    assert not target.exists()
+    assert remove_document_from_index(doc_id, tmp_path / "index") is True
+
+
+def test_delete_document_full_reports_store_and_index(tmp_path):
+    doc_id = "b" * 64
+    store = tmp_path / "store"
+    artifact = store / doc_id
+    artifact.mkdir(parents=True)
+    (artifact / "metadata.json").write_text("{}", encoding="utf-8")
+    index = tmp_path / "index" / doc_id
+    index.mkdir(parents=True)
+    result = delete_document_full(doc_id, store_dir=store, index_dir=tmp_path / "index")
+    assert result == {"store": True, "index": True}
+    assert not artifact.exists() and not index.exists()
 
 
 def test_scan_job_finishes_as_review_required_with_ocr_reason(tmp_path):

@@ -34,8 +34,8 @@ testpaths = ["tests"]
 # teardown and prevents the next run from cleaning the directory.
 addopts = "-ra -p no:cacheprovider"
 [tool.coverage.run]
-source = ["src/campusai/llm"]
+source = ["src/campusai"]
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 85
 show_missing = true

@@ -42,6 +42,15 @@ The acceptance contract covers:
 - fail-closed citation validation for document, chunk, page range, table ID,
   source hash, and deleted artifacts.
 
+Confidence note: the current metadata confidence is a binary signal (0.9 when
+the field matches a known pattern, 0.0 otherwise), not a calibrated
+probability. Future calibration can incorporate source-page position and
+pattern specificity.
+
+The document registry uses an in-process `threading.RLock`; it is safe for
+threads in one process, but distributed multi-process registry locking remains
+out of scope for Phase 1/2.
+
 The golden regression suite is:
 
 ```powershell

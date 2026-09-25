@@ -130,6 +130,15 @@ class SQLiteLLMCache:
                 self._memory_connection.close()
                 self._memory_connection = None
 
+    def purge_by_doc_id(self, doc_id: str) -> bool:
+        """Return false because cache keys are query/provider hashes.
+
+        Responses are deliberately keyed without document identity. Purging by
+        substring would risk deleting unrelated prompts, so document deletion
+        leaves this cache untouched unless a future schema adds doc metadata.
+        """
+        return False
+
     def __enter__(self) -> "SQLiteLLMCache":
         return self
 

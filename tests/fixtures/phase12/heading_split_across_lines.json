@@ -1,0 +1,4 @@
+{
+  "document": {"doc_id": "split-heading", "metadata": {}, "pages": [{"page": 1, "text": "1. ADMISSION\nREQUIREMENTS\nApplicants submit evidence."}]},
+  "expected": {"heading": "1. ADMISSION REQUIREMENTS", "contains": "Applicants submit evidence."}
+}

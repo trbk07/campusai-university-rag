@@ -1,0 +1,4 @@
+{
+  "document": {"doc_id": "page-heading", "metadata": {}, "pages": [{"page": 1, "text": "1. ADMISSION"}, {"page": 2, "text": "REQUIREMENTS\nApplicants submit evidence."}]},
+  "expected": {"heading": "1. ADMISSION REQUIREMENTS", "contains": "Applicants submit evidence."}
+}

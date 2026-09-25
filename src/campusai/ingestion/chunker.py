@@ -81,7 +81,9 @@ def _looks_like_heading(line: str) -> tuple[bool, int, str]:
     upper_ratio = sum(char.isupper() for char in letters) / max(1, len(letters))
     # Uppercase titles are reliable when short and not sentence-like.  A
     # minimum length avoids classifying navigation labels as sections.
-    if len(words) <= 12 and len(stripped) >= 4 and upper_ratio >= 0.82 and not stripped.endswith((".", ";", ",")):
+    if (len(words) <= 12 and len(stripped) >= 4 and upper_ratio >= 0.82
+            and stripped.casefold() not in {"home", "menu", "next", "previous", "contents", "index"}
+            and not stripped.endswith((".", ";", ","))):
         return True, 1, stripped
     return False, 0, ""
 
@@ -109,9 +111,50 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
         buffer.clear()
         buffer_pages.clear()
 
+    normalized_pages: list[tuple[int, list[str]]] = []
     for page in pages:
         page_number = int(page["page"])
         lines = [line.strip() for line in str(page.get("text", "")).splitlines() if line.strip()]
+        normalized_pages.append((page_number, lines))
+
+    # PDF text extraction can split a short heading over two visual lines or a
+    # page boundary. Join only an obvious numbered heading fragment followed by
+    # a title-like continuation; ordinary prose remains untouched.
+    for index, (_page_number, lines) in enumerate(normalized_pages):
+        next_lines = normalized_pages[index + 1][1] if index + 1 < len(normalized_pages) else []
+        position = 0
+        while position + 1 < len(lines):
+            first, continuation = lines[position], lines[position + 1]
+            numbered = re.match(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+$", first)
+            continuation_is_title = continuation.isupper() or (
+                len(continuation.split()) <= 2 and not continuation.endswith((".", ";", ","))
+            )
+            if (numbered and len(first.split()) <= 5
+                    and len(continuation.split()) <= 8 and continuation_is_title):
+                lines[position:position + 2] = [f"{first} {continuation}"]
+            else:
+                position += 1
+        while lines:
+            first = lines[-1]
+            is_heading, _level, _heading = _looks_like_heading(first)
+            numbered = re.match(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+$", first)
+            if not (is_heading and numbered and len(first.split()) <= 5):
+                break
+            continuation = next_lines[0] if next_lines else (lines[1] if len(lines) > 1 else "")
+            if not continuation or len(continuation.split()) > 8:
+                break
+            continuation_is_title = continuation.isupper() or (
+                len(continuation.split()) <= 2 and not continuation.endswith((".", ";", ","))
+            )
+            if continuation_is_title:
+                lines[-1] = f"{first} {continuation}".strip()
+                if next_lines and continuation == next_lines[0]:
+                    next_lines.pop(0)
+                elif len(lines) > 1:
+                    lines.pop(-2)
+                break
+
+    for page_number, lines in normalized_pages:
         if not lines:
             empty_pages.append(page_number)
             continue
@@ -191,6 +234,56 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
     return batches
 
 
+def _truncate_table_payload_safely(
+    headers: list[str], rows: list[list[str]], max_chars: int
+) -> str:
+    """Return a bounded, valid JSON representation of a table payload.
+
+    A row is never cut in the middle of serialized JSON.  If one cell is
+    larger than the complete chunk budget, its value is shortened and the
+    payload records that fact for downstream consumers.
+    """
+    original_columns = len(headers)
+    columns = list(range(original_columns))
+    selected_rows = [list(row) for row in rows[:1]]
+    marker = {"truncated": True, "original_columns": original_columns}
+
+    def encode(values: list[list[str]], indexes: list[int]) -> str:
+        payload = {
+            "headers": [headers[i] for i in indexes],
+            "rows": [[row[i] if i < len(row) else "" for i in indexes] for row in values],
+            **marker,
+        }
+        return json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+
+    # Prefer preserving the complete first row and remove display columns.
+    while len(columns) > 1 and len(encode(selected_rows, columns)) > max_chars:
+        columns.pop()
+    if len(encode(selected_rows, columns)) <= max_chars:
+        return encode(selected_rows, columns)
+
+    # The first cell may itself be huge. Binary-search its safe prefix.
+    row = selected_rows[0] if selected_rows else [""]
+    if not row:
+        row = [""]
+        selected_rows = [row]
+    columns = [0]
+    value = str(row[0])
+    low, high, best = 0, len(value), ""
+    while low <= high:
+        middle = (low + high) // 2
+        row[0] = value[:middle] + ("…" if middle < len(value) else "")
+        if len(encode(selected_rows, columns)) <= max_chars:
+            best = row[0]
+            low = middle + 1
+        else:
+            high = middle - 1
+    row[0] = best
+    result = encode(selected_rows, columns)
+    # This only occurs when the fixed JSON envelope itself is too large.
+    return result[:max_chars] if len(result) > max_chars else result
+
+
 def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any] | None = None):
     """Build text/table units and return diagnostics for acceptance reports."""
     chunks: list[Chunk] = []
@@ -240,11 +333,10 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
             payload = json.dumps({"headers": table.headers, "rows": rows}, ensure_ascii=False)
             content = f"{table_header}\n\n{payload}"
             if len(content) > _MAX_CHARS:
-                # A single cell can itself be larger than the budget. Keep the
-                # raw value in deterministic continuation chunks as a last
-                # resort; normal tables are packed by complete rows above.
                 report.setdefault("oversized_table_cells", []).append(table_chunk_id)
-                content = content[:_MAX_CHARS]
+                payload_budget = max(1, _MAX_CHARS - len(table_header) - 2)
+                payload = _truncate_table_payload_safely(table.headers, rows, payload_budget)
+                content = f"{table_header}\n\n{payload}"
             chunk_metadata = {
                 **metadata,
                 "doc_id": doc_id,

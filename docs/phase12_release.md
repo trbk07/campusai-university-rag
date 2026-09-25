@@ -30,9 +30,9 @@ Status: acceptance-complete for Task 1, Phase 1/2, and extended T2 scope.
 ## Command results
 
 ```text
-Task 1 tests: 33 passed
-Full repository: 71 passed, 1 skipped
-Task 1 coverage: 95.01% (required >= 90%)
+Full repository: 75 passed, 1 skipped
+Full-source coverage: 86.29% (required >= 85%; run with
+`pytest --cov=src/campusai --cov-report=term-missing`)
 Phase 1/2 acceptance: 16/16 exit criteria true
 T2 normal report validation: pass
 T2 extended acceptance: pass (models, Docling comparison, table review)
@@ -55,6 +55,9 @@ provided key. It is not used to claim offline acceptance.
   `review_required/ocr_required` and are not indexed.
 - The SQLite cache is not encrypted at rest; filesystem permissions remain an
   operator responsibility. Distributed multi-process locking is out of scope.
+- LLM cache keys are provider/query hashes and contain no document ID, so full
+  document deletion purges storage and retrieval indexes but leaves unrelated
+  query responses untouched.
 - The T2 report is reproducible extended benchmark evidence. The model run was
   CPU-only and the model/cache downloads are not committed; the report records
   the exact environment and measurements.

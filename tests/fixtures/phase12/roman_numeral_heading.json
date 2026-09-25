@@ -1,0 +1,4 @@
+{
+  "document": {"doc_id": "roman-heading", "metadata": {}, "pages": [{"page": 1, "text": "II. ELIGIBILITY\nApplicants must qualify."}]},
+  "expected": {"heading": "II. ELIGIBILITY", "contains": "Applicants must qualify."}
+}

@@ -1,0 +1,4 @@
+{
+  "document": {"doc_id": "uppercase-heading", "metadata": {}, "pages": [{"page": 1, "text": "MENU\nADMISSION REQUIREMENTS\nApplicants submit evidence."}]},
+  "expected": {"heading": "ADMISSION REQUIREMENTS", "not_heading": "MENU", "contains": "Applicants submit evidence."}
+}

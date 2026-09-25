@@ -214,7 +214,7 @@ def ingest_document(
         metadata["warnings"] = ["ocr_used"]
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)
-    tables = extract_tables(pages, document_id)
+    tables = extract_tables(pages, document_id, pdf_path=pdf_path)
     for table in tables:
         table.schema.update(
             {
@@ -292,3 +292,24 @@ def delete_document(
     if artifact_dir.exists():
         shutil.rmtree(artifact_dir)
     return removed is not None or not artifact_dir.exists()
+
+
+def delete_document_full(
+    doc_id: str,
+    *,
+    store_dir: str | Path = "data/store",
+    index_dir: str | Path | None = None,
+    llm_cache=None,
+    registry: DocumentRegistry | None = None,
+) -> dict[str, bool]:
+    """Delete storage artifacts and any per-document retrieval artifacts."""
+    result = {"store": delete_document(doc_id, store_dir=store_dir, registry=registry)}
+    if index_dir is not None:
+        from ..retrieval.index_builder import remove_document_from_index
+
+        result["index"] = remove_document_from_index(doc_id, index_dir)
+    if llm_cache is not None:
+        # LLM cache keys are provider/query hashes and intentionally contain no
+        # doc_id, so there is no safe document-scoped purge operation.
+        result["cache"] = bool(getattr(llm_cache, "purge_by_doc_id", lambda _doc_id: False)(doc_id))
+    return result

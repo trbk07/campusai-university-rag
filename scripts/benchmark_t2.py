@@ -519,10 +519,12 @@ def benchmark_models(
     if device == "cuda":
         try:
             import torch
-
+        except ImportError:
+            return {**result, "status": "blocked", "reason": "torch_not_installed"}
+        try:
             if not torch.cuda.is_available():
                 return {**result, "status": "blocked", "reason": "cuda_unavailable"}
-        except (ImportError, OSError) as error:
+        except Exception as error:  # CUDA runtime/driver probe failure
             return {
                 **result,
                 "status": "blocked",

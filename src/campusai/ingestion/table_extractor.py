@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from ..schemas import Table
 
@@ -28,12 +29,55 @@ def _is_candidate(line: str) -> bool:
     return "|" in line or numeric_cells >= 1
 
 
-def extract_tables(pages: list[dict], doc_id: str) -> list[Table]:
+def _extract_pdfplumber(pdf_path: str | Path, doc_id: str) -> list[Table]:
+    import pdfplumber
+
+    tables: list[Table] = []
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        for page_number, page in enumerate(pdf.pages, start=1):
+            for table_number, raw_table in enumerate(page.extract_tables() or [], start=1):
+                rows = [["" if cell is None else str(cell).strip() for cell in row] for row in raw_table]
+                rows = [row for row in rows if any(row)]
+                if len(rows) < 2:
+                    continue
+                width = max(map(len, rows))
+                rows = [row + [""] * (width - len(row)) for row in rows]
+                tables.append(Table(
+                    table_id=f"{doc_id}_p{page_number}_t{table_number}",
+                    doc_id=doc_id,
+                    pages=[page_number],
+                    headers=rows[0],
+                    rows=rows[1:],
+                    schema={"columns": width, "row_count": len(rows) - 1,
+                            "parser": "pdfplumber", "pages": [page_number],
+                            "warnings": [], "raw_preserved": True},
+                ))
+    return tables
+
+
+def extract_tables(
+    pages: list[dict], doc_id: str, pdf_path: str | Path | None = None
+) -> list[Table]:
     """Extract candidate tables and merge adjacent repeated-header pages.
 
     The extractor preserves raw cell text. Ambiguous rows are retained with a
     warning in the schema instead of being silently rewritten.
     """
+    if pdf_path is not None:
+        parsed = _extract_pdfplumber(pdf_path, doc_id)
+        if parsed:
+            # Keep the heuristic parser as a page-level fallback. pdfplumber
+            # can miss a tab-aligned or merged-cell table on one page while
+            # finding another table elsewhere in the document.
+            parsed_pages = {page for table in parsed for page in table.pages}
+            fallback = _extract_heuristic_tables(pages, doc_id)
+            parsed.extend(table for table in fallback if table.pages[0] not in parsed_pages)
+            return parsed
+    return _extract_heuristic_tables(pages, doc_id)
+
+
+def _extract_heuristic_tables(pages: list[dict], doc_id: str) -> list[Table]:
+    """Extract tables from already-flattened page text as a fallback."""
     tables: list[Table] = []
     for page in pages:
         page_number = int(page["page"])
