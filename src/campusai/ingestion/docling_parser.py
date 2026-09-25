@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
+import statistics
 from typing import Any, Callable
 
 import fitz
@@ -21,20 +22,37 @@ class DoclingUnavailable(RuntimeError):
 def parse_pdf(
     path: str | Path,
     progress: Callable[[float], None] | None = None,
-) -> list[dict[str, str | int]]:
-    """Extract one text string for every page using the local adapter."""
+) -> list[dict[str, Any]]:
+    """Extract page text while preserving lightweight font/layout metadata."""
 
     document = fitz.open(str(path))
-    pages: list[dict[str, str | int]] = []
+    raw_pages: list[dict[str, Any]] = []
+    body_font_sizes: list[float] = []
     try:
         total_pages = max(1, len(document))
         for page_number, page in enumerate(document, start=1):
-            pages.append({"page": page_number, "text": page.get_text("text")})
+            lines: list[dict[str, Any]] = []
+            for block in page.get_text("dict").get("blocks", []):
+                for line in block.get("lines", []):
+                    spans = line.get("spans", [])
+                    text = "".join(str(span.get("text", "")) for span in spans).strip()
+                    if not text or not spans:
+                        continue
+                    size = max(float(span.get("size", 0.0)) for span in spans)
+                    lines.append({"text": text, "font_size": round(size, 1),
+                                  "bold": any("bold" in str(span.get("font", "")).lower() for span in spans)})
+                    body_font_sizes.append(size)
+            raw_pages.append({"page": page_number, "lines": lines})
             if progress is not None:
                 progress(page_number / total_pages)
     finally:
         document.close()
-    return pages
+    body_median = statistics.median(body_font_sizes) if body_font_sizes else 0.0
+    return [{
+        "page": raw["page"],
+        "text": "\n".join(line["text"] for line in raw["lines"]),
+        "lines_meta": [{**line, "is_larger_font": bool(body_median and line["font_size"] > body_median * 1.08)} for line in raw["lines"]],
+    } for raw in raw_pages]
 
 
 def _docling_version() -> str | None:

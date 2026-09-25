@@ -11,6 +11,7 @@ from ..schemas import Chunk
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
+_SENTENCE_SPLIT = re.compile(r"\n{2,}|(?<=[.!?])\s+(?=[A-ZÀ-ỸĐ])")
 _ARTICLE_HEADING = re.compile(r"^(?:điều|article|chương|chapter|mục|section)\s+[\w.-]+(?:\s*[:.-].*)?$", re.IGNORECASE)
 
 
@@ -64,7 +65,7 @@ def _context_header(metadata: dict, headings: list[str], page: int, page_range: 
     return "[" + " | ".join(parts) + "]"
 
 
-def _looks_like_heading(line: str) -> tuple[bool, int, str]:
+def _looks_like_heading(line: str, layout: dict[str, Any] | None = None) -> tuple[bool, int, str]:
     """Recognize headings commonly emitted by PDF text extraction."""
     stripped = line.strip()
     if not stripped:
@@ -72,7 +73,14 @@ def _looks_like_heading(line: str) -> tuple[bool, int, str]:
     if stripped.startswith("#"):
         level = len(stripped) - len(stripped.lstrip("#"))
         return True, max(1, min(level, 6)), stripped.lstrip("#").strip()
-    if _ARTICLE_HEADING.match(stripped) or _NUMBERED_HEADING.match(stripped):
+    numbered_or_article = bool(_ARTICLE_HEADING.match(stripped) or _NUMBERED_HEADING.match(stripped))
+    ends_with_sentence_punct = stripped.endswith((".", ";", ",", "?", "!")) and not stripped.endswith("...")
+    if numbered_or_article:
+        if layout is not None:
+            if not ((layout.get("is_larger_font") or layout.get("bold")) and len(stripped.split()) <= 12):
+                return False, 0, ""
+        elif len(stripped.split()) > 12 or ends_with_sentence_punct:
+            return False, 0, ""
         prefix = re.match(r"^(\d+(?:\.\d+)*|[IVXLC]+|(?:điều|article|chương|chapter|mục|section))", stripped, re.IGNORECASE)
         depth = prefix.group(1).count(".") + 1 if prefix and prefix.group(1)[0].isdigit() else 1
         return True, min(depth, 6), stripped
@@ -111,17 +119,20 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
         buffer.clear()
         buffer_pages.clear()
 
-    normalized_pages: list[tuple[int, list[str]]] = []
+    normalized_pages: list[tuple[int, list[str], list[dict[str, Any] | None]]] = []
     for page in pages:
         page_number = int(page["page"])
         lines = [line.strip() for line in str(page.get("text", "")).splitlines() if line.strip()]
-        normalized_pages.append((page_number, lines))
+        raw_meta = page.get("lines_meta")
+        metas = list(raw_meta) if isinstance(raw_meta, list) and len(raw_meta) == len(lines) else [None] * len(lines)
+        normalized_pages.append((page_number, lines, metas))
 
     # PDF text extraction can split a short heading over two visual lines or a
     # page boundary. Join only an obvious numbered heading fragment followed by
     # a title-like continuation; ordinary prose remains untouched.
-    for index, (_page_number, lines) in enumerate(normalized_pages):
+    for index, (_page_number, lines, metas) in enumerate(normalized_pages):
         next_lines = normalized_pages[index + 1][1] if index + 1 < len(normalized_pages) else []
+        next_metas = normalized_pages[index + 1][2] if index + 1 < len(normalized_pages) else []
         position = 0
         while position + 1 < len(lines):
             first, continuation = lines[position], lines[position + 1]
@@ -132,6 +143,11 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
             if (numbered and len(first.split()) <= 5
                     and len(continuation.split()) <= 8 and continuation_is_title):
                 lines[position:position + 2] = [f"{first} {continuation}"]
+                merged = [metas[position], metas[position + 1]]
+                metas[position:position + 2] = [None if all(item is None for item in merged) else {
+                    "is_larger_font": any(bool(item and item.get("is_larger_font")) for item in merged),
+                    "bold": any(bool(item and item.get("bold")) for item in merged),
+                }]
             else:
                 position += 1
         while lines:
@@ -150,16 +166,17 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
                 lines[-1] = f"{first} {continuation}".strip()
                 if next_lines and continuation == next_lines[0]:
                     next_lines.pop(0)
+                    next_metas.pop(0)
                 elif len(lines) > 1:
                     lines.pop(-2)
                 break
 
-    for page_number, lines in normalized_pages:
+    for page_number, lines, metas in normalized_pages:
         if not lines:
             empty_pages.append(page_number)
             continue
-        for line in lines:
-            is_heading, level, heading = _looks_like_heading(line)
+        for line_index, line in enumerate(lines):
+            is_heading, level, heading = _looks_like_heading(line, metas[line_index])
             if is_heading:
                 flush()
                 if level > len(heading_path) + 1:
@@ -187,7 +204,7 @@ def _split_with_overlap(content: str, max_chars: int = _MAX_CHARS, overlap_chars
     overlap_chars = max(0, min(int(overlap_chars), max_chars // 4))
     if len(content) <= max_chars:
         return [content]
-    paragraphs = [part.strip() for part in re.split(r"\n{2,}|(?<=[.!?])\s+(?=[A-ZÀ-ỸĐ])", content) if part.strip()]
+    paragraphs = [part.strip() for part in _SENTENCE_SPLIT.split(content) if part.strip()]
     if not paragraphs:
         paragraphs = [content]
     pieces: list[str] = []

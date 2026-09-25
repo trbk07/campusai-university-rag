@@ -4,12 +4,13 @@ from pathlib import Path
 
 import fitz
 
-from campusai.ingestion.chunker import _MAX_CHARS, make_chunks
+from campusai.ingestion.chunker import _MAX_CHARS, _truncate_table_payload_safely, make_chunks
 from campusai.schemas import Chunk, Document, Table
 from campusai.ingestion.jobs import IngestionJobManager
 from campusai.ingestion.metadata_detector import detect_metadata
 from campusai.ingestion.table_extractor import extract_tables
 from campusai.ingestion.pipeline import delete_document_full
+from campusai.ingestion.docling_parser import parse_pdf
 from campusai.retrieval.index_builder import build_document_indexes, remove_document_from_index
 
 
@@ -95,6 +96,35 @@ def test_heading_variant_golden_fixtures():
         if expected.get("not_heading"):
             assert all(expected["not_heading"] not in chunk.heading_path for chunk in chunks)
         assert any(expected["contains"] in chunk.content for chunk in chunks)
+
+
+def test_numbered_list_inside_section_stays_one_section():
+    fixture = json.loads((FIXTURES / "numbered_list_inside_section.json").read_text(encoding="utf-8"))
+    chunks = make_chunks(fixture["document"]["pages"], fixture["document"]["doc_id"], {})
+    assert len(chunks) == 1
+    assert list(chunks[0].heading_path) == fixture["expected"]["section"]
+    assert all(value in chunks[0].content for value in fixture["expected"]["contains"])
+
+
+def test_truncate_table_payload_binary_searches_single_oversized_cell():
+    payload = _truncate_table_payload_safely(["Note"], [["x" * 5000]], max_chars=200)
+    parsed = json.loads(payload)
+    assert parsed["truncated"] is True
+    assert len(payload) <= 200
+
+
+def test_pdf_parser_preserves_layout_signals_for_heading_detection(tmp_path):
+    source = tmp_path / "layout.pdf"
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((72, 72), "1. Graduation requirements", fontsize=18, fontname="hebo")
+    page.insert_text((72, 110), "Students must complete the internship.", fontsize=10)
+    document.save(source)
+    document.close()
+    pages = parse_pdf(source)
+    assert pages[0]["lines_meta"][0]["is_larger_font"] is True
+    chunks = make_chunks(pages, "layout-doc", {})
+    assert chunks[0].heading_path == ["1. Graduation requirements"]
 
 
 def test_chunk_diagnostics_bound_size_empty_pages_and_heading_errors():
