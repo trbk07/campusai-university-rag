@@ -5,9 +5,9 @@ text-based PDFs such as regulations, curricula, syllabi, student handbooks and
 course catalogs, then retrieves page-level evidence for grounded answers with
 citations and abstention.
 
-The project has been moved from a financial-report RAG prototype to a public
-university-information product. Finance-only fixtures, generated PDFs and
-machine-specific reports were removed; they are not the product domain.
+The product domain is university information: academic regulations, curricula,
+syllabi, student handbooks and course catalogs. Generated artifacts and
+machine-specific reports are excluded from version control.
 
 ## Current state
 
@@ -40,9 +40,8 @@ Task 2 is retained as the document and retrieval layer:
 - BM25, dense fallback, hybrid RRF, query cache and optional reranking;
 - evaluation scripts and measured performance artifacts.
 
-The important product change is the domain layer: metadata and benchmarks now
-target university documents. Finance-only metadata aliases and fixtures are no
-longer part of the production path.
+The product domain is represented consistently in metadata, benchmarks and
+retrieval examples: all production-facing examples target university documents.
 
 ## Local setup
 
@@ -133,8 +132,7 @@ citation metrics.
 
 The Task 2 benchmark engine in [`scripts/benchmark_t2.py`](scripts/benchmark_t2.py)
 records parser/model measurements for an operator-supplied university corpus.
-The old machine-specific financial snapshot was removed during the domain
-migration. The useful engineering rules are:
+The useful engineering rules are:
 
 - PyMuPDF is the production default for selectable-text PDFs;
 - persisted SHA-256 cache lookup is much faster than first ingestion;
