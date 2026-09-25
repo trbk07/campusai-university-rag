@@ -35,6 +35,40 @@ def _first_match(patterns: list[str], text: str) -> str | None:
     return None
 
 
+def _evidence_for(text: str, value: object, field: str) -> tuple[str | None, int | None]:
+    """Return a short source excerpt and physical page for a detected value."""
+
+    if value is None:
+        return None, None
+    candidates = [str(value)]
+    if field in {"academic_year", "semester"}:
+        candidates = [str(value)]
+    if field == "document_type":
+        candidates = [
+            {"regulation": "quy chế", "curriculum": "chương trình đào tạo",
+             "syllabus": "đề cương", "handbook": "sổ tay",
+             "course_catalog": "danh mục học phần", "academic_notice": "thông báo"}.get(str(value), str(value))
+        ]
+    match = None
+    for candidate in candidates:
+        match = re.search(re.escape(candidate), text, re.IGNORECASE)
+        if match:
+            break
+    if match is None:
+        # Inferred language has no single label; retain a bounded source sample.
+        first_line = next((line.strip() for line in text.splitlines() if line.strip()), None)
+        if not first_line:
+            return None, None
+        match_start, match_end = 0, min(len(first_line), 160)
+        snippet = first_line[:match_end]
+    else:
+        match_start, match_end = match.start(), match.end()
+        snippet = text[max(0, match_start - 80) : min(len(text), match_end + 80)].strip()
+    page_markers = list(re.finditer(r"(?:^|\n)##\s*Page\s+(\d+)\b", text[:match_start]))
+    source_page = int(page_markers[-1].group(1)) if page_markers else (1 if text.strip() else None)
+    return snippet, source_page
+
+
 def _iso_date(value: str | None) -> str | None:
     if not value:
         return None
@@ -164,12 +198,12 @@ def detect_metadata(text: str) -> dict:
         "academic_notice": r"\b(thong bao|announcement|academic notice)\b",
     }
     scores: dict[str, int] = {}
-    evidence: list[str] = []
+    document_type_evidence: list[str] = []
     for candidate, pattern in academic_patterns.items():
         count = len(re.findall(pattern, low))
         if count:
             scores[candidate] = count
-            evidence.append(candidate)
+            document_type_evidence.append(candidate)
     document_type = (
         max(scores, key=lambda item: (scores[item], -list(academic_patterns).index(item)))
         if scores
@@ -239,34 +273,34 @@ def detect_metadata(text: str) -> dict:
         "program": entities["program"],
         "course": entities["course"],
         "course_code": entities["course_code"],
+        "document_type": document_type if document_type != "unknown" else None,
+        "academic_year": entities["academic_year"],
+        "semester": semesters[0] if len(semesters) == 1 else None,
         "version": entities["version"],
         "effective_date": entities["effective_date"],
         "issue_date": entities["issue_date"],
         "language": language,
     }
-    metadata_evidence = {
-        field: {
-            "value": value,
-            "confidence": 0.9 if value is not None else 0.0,
-            "evidence": None,
-        }
-        for field, value in field_values.items()
-    }
-    # Preserve a short, auditable source snippet without storing the entire PDF.
+    metadata_evidence = {}
     for field, value in field_values.items():
-        if value is None:
-            continue
-        match = re.search(re.escape(str(value)), text, re.IGNORECASE)
-        if match:
-            start = max(0, match.start() - 80)
-            metadata_evidence[field]["evidence"] = text[start : match.end() + 80].strip()
+        field_evidence, source_page = _evidence_for(text, value, field)
+        confidence = 0.0 if value is None else (
+            document_type_confidence if field == "document_type" else
+            language_confidence if field == "language" else 0.9
+        )
+        metadata_evidence[field] = {
+            "value": value,
+            "confidence": round(float(confidence), 4),
+            "evidence": field_evidence,
+            "source_page": source_page,
+        }
     return {
         "domain": "academic" if is_academic else "general",
         "language": language,
         "language_confidence": language_confidence,
         "document_type": document_type,
-        "document_type_evidence": evidence,
         "document_type_confidence": document_type_confidence,
+        "document_type_source_page": metadata_evidence["document_type"]["source_page"],
         "academic_years": academic_years,
         "years": years,
         "semesters": semesters,
@@ -285,5 +319,9 @@ def detect_metadata(text: str) -> dict:
         "metadata_evidence": metadata_evidence,
         **{f"{field}_confidence": item["confidence"] for field, item in metadata_evidence.items()},
         **{f"{field}_evidence": item["evidence"] for field, item in metadata_evidence.items()},
+        **{f"{field}_source_page": item["source_page"] for field, item in metadata_evidence.items()},
+        # Keep this field as the list of matched type labels; the generic
+        # field evidence above is the bounded source snippet.
+        "document_type_evidence": document_type_evidence,
         "academic_metadata": academic_metadata,
     }

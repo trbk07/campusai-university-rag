@@ -453,7 +453,7 @@ Chỉ đóng Phase 1 và Phase 2 khi tất cả lệnh sau cùng pass trong work
 .\.venv\Scripts\python.exe scripts\accept_phase12.py --input-dir data\corpus\university --holdout data\corpus\university\uet_admission_2025.pdf --output evaluation\phase12_acceptance.json
 .\.venv\Scripts\python.exe scripts\secret_scan.py
 .\.venv\Scripts\python.exe -m compileall -q src scripts tests
-.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\holdout.pdf
+.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\uet_admission_2025.pdf
 .\.venv\Scripts\python.exe scripts\validate_t2.py --acceptance evaluation\t2_results.json
 ```
 
@@ -608,3 +608,11 @@ Các giới hạn trên phải được kiểm tra lại lúc deploy vì free-ti
 - [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app): tham khảo giới hạn tài nguyên khi chọn route free.
 
 Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có benchmark và provenance riêng thay vì sao chép nguyên framework.
+## 9. Phase 1/2 regenerated acceptance evidence
+
+- Full suite: 70 passed, 1 skipped (live Gemini integration requires an external secret).
+- Phase 1/2 acceptance: all 16 exit criteria are true in `evaluation/phase12_acceptance.json`.
+- Corpus: 8 real UET/VNU PDFs with manifest SHA-256, a declared holdout, Vietnamese/English, scan/image, and mixed-layout coverage.
+- Provenance validator: fail-closed checks for chunk/document/page/page-range/table/source hash; delete and lifecycle checks pass.
+- T2 report: schema-2 report validates with `scripts/validate_t2.py`; model/docling acceptance remains a separate Phase 3 feasibility gate.
+- OCR policy: scan-only inputs stay `review_required/ocr_required` and are never indexed until an OCR worker is installed and verified.

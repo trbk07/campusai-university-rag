@@ -58,6 +58,14 @@
       "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2022/07/Th%C3%B4ng-b%C3%A1o-tuy%E1%BB%83n-sinh-%C4%91%C3%A0o-t%E1%BA%A1o-b%E1%BA%ADc-Th%E1%BA%A1c-s%C4%A9-%C4%91%E1%BB%A3t-2-n%C4%83m-2022.pdf",
       "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
       "holdout": false
+    },
+    {
+      "filename": "uet_mai_joint_curriculum_2022.pdf",
+      "document_type": "curriculum",
+      "language": "en",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2022/05/Annex-1-Joint-Curriculum-VNU-UET-MAI-update-20220127-1.pdf",
+      "sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+      "holdout": false
     }
   ]
 }

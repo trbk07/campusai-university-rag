@@ -78,7 +78,7 @@ Run the offline acceptance suite:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q tests\test_llm.py tests\test_llm_acceptance.py
-.venv\Scripts\python.exe -m pytest -q --cov=campusai.llm --cov-fail-under=90
+.venv\Scripts\python.exe -m pytest -q --basetemp=D:\Project\.tmp\pytest-t1 -p no:cacheprovider --cov=campusai.llm --cov-fail-under=90
 ```
 
 The live Gemini contract test is opt-in only:
@@ -90,7 +90,9 @@ $env:GEMINI_API_KEY = "<new key supplied only in the environment>"
 ```
 
 See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the exact acceptance
-scope and security limitations. The cache is not encrypted at rest.
+scope and security limitations. Current Task 1 evidence is 33 focused tests,
+70 full-repository tests, and 95.01% LLM coverage. The cache is not encrypted
+at rest.
 
 ## Task 2: ingestion and retrieval
 
@@ -127,6 +129,11 @@ Validate the university seed benchmark:
 The benchmark is currently a 20-question seed. Phase 8 in `plan.md` expands it
 to 100–300 reviewed questions with temporal, multi-hop, unanswerable and
 citation metrics.
+
+Phase 1/2 acceptance evidence is regenerated in
+[`evaluation/phase12_acceptance.json`](evaluation/phase12_acceptance.json).
+The release scope, hashes, commands, OCR policy, and known limitations are in
+[`docs/phase12_release.md`](docs/phase12_release.md).
 
 ## Performance evidence
 

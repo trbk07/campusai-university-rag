@@ -9,8 +9,8 @@
   },
   "corpus": {
     "input_dir": "D:\\Project\\data\\corpus\\university",
-    "supplied_real_pdfs": 7,
-    "supplied_text_pdfs": 4,
+    "supplied_real_pdfs": 8,
+    "supplied_text_pdfs": 5,
     "supplied_review_pdfs": 3,
     "generated_acceptance_fixtures": 0,
     "real_document_hashes": [
@@ -19,6 +19,7 @@
       "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
       "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
       "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
       "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
       "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
     ],
@@ -40,7 +41,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.03992,
+      "elapsed_seconds": 0.03778,
       "doc_id": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
       "metadata_quality": {
         "institution": null,
@@ -50,6 +51,37 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 0,
+        "fields_with_page": 0,
+        "invalid_confidence": 0,
+        "missing_evidence": [
+          "language"
+        ],
+        "missing_page": [
+          "language"
+        ],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "admission_notice",
       "manifest_sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9"
@@ -68,7 +100,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.057069,
+      "elapsed_seconds": 0.043871,
       "doc_id": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
       "metadata_quality": {
         "institution": null,
@@ -78,6 +110,37 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 0,
+        "fields_with_page": 0,
+        "invalid_confidence": 0,
+        "missing_evidence": [
+          "language"
+        ],
+        "missing_page": [
+          "language"
+        ],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": true,
       "manifest_document_type": "admission_regulation",
       "manifest_sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7"
@@ -96,7 +159,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.008891,
+      "elapsed_seconds": 0.019644,
       "doc_id": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
       "metadata_quality": {
         "institution": null,
@@ -106,6 +169,37 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 0,
+        "fields_with_page": 0,
+        "invalid_confidence": 0,
+        "missing_evidence": [
+          "language"
+        ],
+        "missing_page": [
+          "language"
+        ],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "curriculum",
       "manifest_sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967"
@@ -120,7 +214,7 @@
       "chunks": 3,
       "tables": 0,
       "warnings": [],
-      "elapsed_seconds": 0.028042,
+      "elapsed_seconds": 0.026791,
       "doc_id": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
       "metadata_quality": {
         "institution": null,
@@ -130,6 +224,33 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 2,
+        "fields_with_page": 2,
+        "invalid_confidence": 0,
+        "missing_evidence": [],
+        "missing_page": [],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 3,
+        "table_count": 0,
+        "min_chunk_length": 183,
+        "mean_chunk_length": 431.333,
+        "p50_chunk_length": 335,
+        "p95_chunk_length": 731.9,
+        "max_chunk_length": 776,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 1,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "curriculum",
       "manifest_sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8"
@@ -144,7 +265,7 @@
       "chunks": 164,
       "tables": 1,
       "warnings": [],
-      "elapsed_seconds": 0.363124,
+      "elapsed_seconds": 0.375337,
       "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -154,9 +275,87 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 6,
+        "fields_with_page": 6,
+        "invalid_confidence": 0,
+        "missing_evidence": [],
+        "missing_page": [],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 164,
+        "table_count": 1,
+        "min_chunk_length": 234,
+        "mean_chunk_length": 333.213,
+        "p50_chunk_length": 285.0,
+        "p95_chunk_length": 610.65,
+        "max_chunk_length": 2268,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "curriculum",
       "manifest_sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6"
+    },
+    {
+      "document": "uet_mai_joint_curriculum_2022.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "succeeded",
+      "pages": 3,
+      "language": "en",
+      "document_type": "unknown",
+      "chunks": 42,
+      "tables": 0,
+      "warnings": [],
+      "elapsed_seconds": 0.072126,
+      "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+      "metadata_quality": {
+        "institution": "UNIVERSITY OF",
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 2,
+        "fields_with_page": 2,
+        "invalid_confidence": 0,
+        "missing_evidence": [],
+        "missing_page": [],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 42,
+        "table_count": 0,
+        "min_chunk_length": 98,
+        "mean_chunk_length": 172.333,
+        "p50_chunk_length": 111.0,
+        "p95_chunk_length": 184.75,
+        "max_chunk_length": 2270,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
+      "holdout": false,
+      "manifest_document_type": "curriculum",
+      "manifest_sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13"
     },
     {
       "document": "uet_masters_admission_2022.pdf",
@@ -168,7 +367,7 @@
       "chunks": 109,
       "tables": 4,
       "warnings": [],
-      "elapsed_seconds": 0.124047,
+      "elapsed_seconds": 0.121513,
       "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -178,6 +377,33 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 4,
+        "fields_with_page": 4,
+        "invalid_confidence": 0,
+        "missing_evidence": [],
+        "missing_page": [],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 109,
+        "table_count": 4,
+        "min_chunk_length": 188,
+        "mean_chunk_length": 456.037,
+        "p50_chunk_length": 308,
+        "p95_chunk_length": 1041.6,
+        "max_chunk_length": 2278,
+        "overlap_count": 3,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "admission_notice",
       "manifest_sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59"
@@ -192,7 +418,7 @@
       "chunks": 50,
       "tables": 0,
       "warnings": [],
-      "elapsed_seconds": 0.066034,
+      "elapsed_seconds": 0.071813,
       "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -202,6 +428,33 @@
       },
       "chunks_over_limit": [],
       "missing_chunk_provenance": [],
+      "metadata_audit": {
+        "fields_checked": 12,
+        "fields_with_evidence": 5,
+        "fields_with_page": 5,
+        "invalid_confidence": 0,
+        "missing_evidence": [],
+        "missing_page": [],
+        "critical_false_positives": 0
+      },
+      "chunk_metrics": {
+        "chunk_count": 50,
+        "table_count": 0,
+        "min_chunk_length": 208,
+        "mean_chunk_length": 251.56,
+        "p50_chunk_length": 230.5,
+        "p95_chunk_length": 416.7,
+        "max_chunk_length": 555,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 1,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "artifact_exists": true,
       "holdout": false,
       "manifest_document_type": "curriculum_update",
       "manifest_sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
@@ -221,8 +474,8 @@
       "no_extractable_text",
       "ocr_required"
     ],
-    "elapsed_seconds": 0.064052,
-    "doc_id": "5701566651f4462020e0e43feec1ecc74e3797af547f7b48d8c80087776164fa",
+    "elapsed_seconds": 0.062992,
+    "doc_id": "d836c1ea24d66f60bd7a9f3a6559f86af1d828b8813d2c8ffdfda57bc29a7764",
     "metadata_quality": {
       "institution": null,
       "program": null,
@@ -230,7 +483,38 @@
       "effective_date": null
     },
     "chunks_over_limit": [],
-    "missing_chunk_provenance": []
+    "missing_chunk_provenance": [],
+    "metadata_audit": {
+      "fields_checked": 12,
+      "fields_with_evidence": 0,
+      "fields_with_page": 0,
+      "invalid_confidence": 0,
+      "missing_evidence": [
+        "language"
+      ],
+      "missing_page": [
+        "language"
+      ],
+      "critical_false_positives": 0
+    },
+    "chunk_metrics": {
+      "chunk_count": 0,
+      "table_count": 0,
+      "min_chunk_length": 0,
+      "mean_chunk_length": 0,
+      "p50_chunk_length": 0,
+      "p95_chunk_length": 0,
+      "max_chunk_length": 0,
+      "overlap_count": 0,
+      "duplicate_rate": 0,
+      "missing_heading_count": 0,
+      "missing_citation_count": 0,
+      "invalid_page_range_count": 0,
+      "table_header_loss_count": 0,
+      "section_boundary_failures": 0,
+      "chunks_over_limit": []
+    },
+    "artifact_exists": true
   },
   "exit_criteria": {
     "every_chunk_has_doc_page_type_and_citation": true,
@@ -242,6 +526,196 @@
     "failure_mode_coverage_met": true,
     "real_corpus_manifest_complete": true,
     "holdout_declared": true,
-    "all_real_documents_terminal": true
+    "all_real_documents_terminal": true,
+    "metadata_evidence_valid": true,
+    "provenance_valid": true,
+    "metrics_report_complete": true,
+    "deletion_clean": true,
+    "lifecycle_checks_pass": true,
+    "acceptance_regression_pass": true
+  },
+  "metadata_evidence": {
+    "fields_checked": 60,
+    "fields_with_evidence": 19,
+    "fields_with_page": 19,
+    "invalid_confidence": 0,
+    "missing_evidence": [],
+    "missing_page": [],
+    "critical_false_positives": 0
+  },
+  "provenance": {
+    "chunks_checked": 368,
+    "missing_fields": [],
+    "invalid_pages": 0,
+    "invalid_citations": 0,
+    "table_header_loss": 0
+  },
+  "chunk_metrics": {
+    "documents": {
+      "uet_admission_2024.pdf": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_admission_2025.pdf": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_computer_engineering_program.pdf": {
+        "chunk_count": 0,
+        "table_count": 0,
+        "min_chunk_length": 0,
+        "mean_chunk_length": 0,
+        "p50_chunk_length": 0,
+        "p95_chunk_length": 0,
+        "max_chunk_length": 0,
+        "overlap_count": 0,
+        "duplicate_rate": 0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_cs_progression.pdf": {
+        "chunk_count": 3,
+        "table_count": 0,
+        "min_chunk_length": 183,
+        "mean_chunk_length": 431.333,
+        "p50_chunk_length": 335,
+        "p95_chunk_length": 731.9,
+        "max_chunk_length": 776,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 1,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_electronics_program_2023.pdf": {
+        "chunk_count": 164,
+        "table_count": 1,
+        "min_chunk_length": 234,
+        "mean_chunk_length": 333.213,
+        "p50_chunk_length": 285.0,
+        "p95_chunk_length": 610.65,
+        "max_chunk_length": 2268,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_mai_joint_curriculum_2022.pdf": {
+        "chunk_count": 42,
+        "table_count": 0,
+        "min_chunk_length": 98,
+        "mean_chunk_length": 172.333,
+        "p50_chunk_length": 111.0,
+        "p95_chunk_length": 184.75,
+        "max_chunk_length": 2270,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_masters_admission_2022.pdf": {
+        "chunk_count": 109,
+        "table_count": 4,
+        "min_chunk_length": 188,
+        "mean_chunk_length": 456.037,
+        "p50_chunk_length": 308,
+        "p95_chunk_length": 1041.6,
+        "max_chunk_length": 2278,
+        "overlap_count": 3,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 0,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      },
+      "uet_program_adjustments_2021.pdf": {
+        "chunk_count": 50,
+        "table_count": 0,
+        "min_chunk_length": 208,
+        "mean_chunk_length": 251.56,
+        "p50_chunk_length": 230.5,
+        "p95_chunk_length": 416.7,
+        "max_chunk_length": 555,
+        "overlap_count": 0,
+        "duplicate_rate": 0.0,
+        "missing_heading_count": 1,
+        "missing_citation_count": 0,
+        "invalid_page_range_count": 0,
+        "table_header_loss_count": 0,
+        "section_boundary_failures": 0,
+        "chunks_over_limit": []
+      }
+    },
+    "corpus": {
+      "document_count": 8,
+      "succeeded_count": 5,
+      "review_required_count": 3,
+      "failed_count": 0,
+      "total_chunks": 368,
+      "total_tables": 5,
+      "overall_duplicate_rate": 0.0,
+      "overall_overflow": 0,
+      "overall_missing_provenance": 0,
+      "overall_invalid_citations": 0
+    }
+  },
+  "deletion_checks": {
+    "delete_returned_true": true,
+    "artifact_removed": true,
+    "registry_removed": true
+  },
+  "lifecycle_checks": {
+    "dedupe_same_job": true,
+    "terminal": true,
+    "has_timestamps": true,
+    "registry_reload": true
+  },
+  "regression_tests": {
+    "exit_code": 0,
+    "passed": true,
+    "output_tail": "......                                                                   [100%]\n6 passed in 0.14s\n"
   }
 }

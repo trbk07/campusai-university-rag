@@ -1,8 +1,10 @@
 # Task 2 feasibility benchmark for CampusAI
 
-This document describes a repeatable benchmark, not a checked-in result. The
-previous machine-specific financial snapshot and generated PDFs were removed
-when the project moved to university knowledge.
+This document describes a repeatable benchmark and its intentional local
+evidence artifact `evaluation/t2_results.json`. The report contains hashes and
+metrics only, not extracted page text. The previous machine-specific
+financial snapshot and generated PDFs were removed when the project moved to
+university knowledge.
 
 ## What is measured
 
@@ -28,8 +30,8 @@ mixed-layout document and a holdout document outside the main input directory.
 
 ```powershell
 .venv\Scripts\python.exe scripts\benchmark_t2.py `
-  --input-dir <university-pdf-dir> `
-  --holdout <holdout.pdf> `
+  --input-dir data\corpus\university `
+  --holdout data\corpus\university\uet_admission_2025.pdf `
   --output evaluation\t2_results.json
 
 .venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json
@@ -74,6 +76,11 @@ An artifact is acceptance-ready only when:
 Task 2 results are feasibility evidence, not a product guarantee. Public web
 quotas should be stricter than a machine benchmark and must be configured per
 deployment environment.
+
+The normal parser benchmark is the accepted Phase 1/2 scope. Extended
+`--run-models`/`--run-docling`/manual table-review acceptance is intentionally
+deferred to the Phase 3 feasibility gate; `validate_t2.py` without
+`--acceptance` is the required current validation command.
 
 ## Product decisions based on the benchmark
 

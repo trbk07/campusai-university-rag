@@ -32,11 +32,10 @@ testpaths = ["tests"]
 # Let pytest create an isolated temporary directory per invocation. A fixed
 # basetemp is unsafe on Windows when a worker or native PDF handle survives
 # teardown and prevents the next run from cleaning the directory.
-addopts = "-ra"
+addopts = "-ra -p no:cacheprovider"
 [tool.coverage.run]
 source = ["src/campusai/llm"]
 
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
-

@@ -1,0 +1,334 @@
+{
+  "schema_version": 2,
+  "environment": {
+    "python": "3.14.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "pid": 10064,
+    "device_requested": "auto",
+    "device_selected": "cpu",
+    "cuda": {
+      "available": false,
+      "device_count": 0,
+      "device_names": [],
+      "torch_version": "2.14.0+cpu",
+      "cuda_version": null
+    },
+    "packages": {
+      "docling": "2.130.0",
+      "fastembed": "0.8.1",
+      "sentence_transformers": "5.7.0",
+      "psutil": "7.2.2",
+      "torch": "2.14.0"
+    }
+  },
+  "fastembed": {
+    "implementation": "fastembed",
+    "requested_model": "BAAI/bge-m3",
+    "status": "success",
+    "supported_model_count": 37,
+    "supported_models": [
+      "BAAI/bge-base-en",
+      "BAAI/bge-base-en-v1.5",
+      "BAAI/bge-large-en-v1.5",
+      "BAAI/bge-small-en",
+      "BAAI/bge-small-en-v1.5",
+      "BAAI/bge-small-zh-v1.5",
+      "mixedbread-ai/mxbai-embed-large-v1",
+      "snowflake/snowflake-arctic-embed-xs",
+      "snowflake/snowflake-arctic-embed-s",
+      "snowflake/snowflake-arctic-embed-m",
+      "snowflake/snowflake-arctic-embed-m-long",
+      "snowflake/snowflake-arctic-embed-l",
+      "jinaai/jina-clip-v1",
+      "minishlab/potion-base-8M",
+      "minishlab/potion-retrieval-32M",
+      "minishlab/potion-multilingual-128M",
+      "Qdrant/clip-ViT-B-32-text",
+      "google/siglip2-base-patch16-224",
+      "sentence-transformers/all-MiniLM-L6-v2",
+      "jinaai/jina-embeddings-v2-base-en",
+      "jinaai/jina-embeddings-v2-small-en",
+      "jinaai/jina-embeddings-v2-base-de",
+      "jinaai/jina-embeddings-v2-base-code",
+      "jinaai/jina-embeddings-v2-base-zh",
+      "jinaai/jina-embeddings-v2-base-es",
+      "thenlper/gte-base",
+      "thenlper/gte-large",
+      "nomic-ai/nomic-embed-text-v1.5",
+      "nomic-ai/nomic-embed-text-v1.5-Q",
+      "nomic-ai/nomic-embed-text-v1",
+      "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+      "intfloat/multilingual-e5-large",
+      "jinaai/jina-embeddings-v3",
+      "google/embeddinggemma-300m",
+      "Qwen/Qwen3-Embedding-0.6B",
+      "Qwen/Qwen3-Embedding-0.6B-Q"
+    ],
+    "requested_model_supported": false,
+    "note": "The production plan uses sentence-transformers for bge-m3; this is an availability check only."
+  },
+  "parser": [
+    {
+      "path": "data\\corpus\\university\\uet_admission_2024.pdf",
+      "file_size_bytes": 10050693,
+      "sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "implementation": "pymupdf",
+      "content_type": "scan_or_image",
+      "pages": 35,
+      "status": "skipped",
+      "reason": "no_text_requires_ocr"
+    },
+    {
+      "path": "data\\corpus\\university\\uet_admission_2025.pdf",
+      "file_size_bytes": 13037919,
+      "sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "implementation": "pymupdf",
+      "content_type": "scan_or_image",
+      "pages": 32,
+      "status": "skipped",
+      "reason": "no_text_requires_ocr",
+      "holdout": true
+    },
+    {
+      "path": "data\\corpus\\university\\uet_computer_engineering_program.pdf",
+      "file_size_bytes": 1178167,
+      "sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "implementation": "pymupdf",
+      "content_type": "scan_or_image",
+      "pages": 6,
+      "status": "skipped",
+      "reason": "no_text_requires_ocr"
+    },
+    {
+      "path": "data\\corpus\\university\\uet_cs_progression.pdf",
+      "file_size_bytes": 84506,
+      "sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "implementation": "pymupdf",
+      "content_type": "text",
+      "pages": 1,
+      "status": "success",
+      "text_chars": 1339,
+      "cold_parse_seconds": 0.005375,
+      "cold_seconds_per_page": 0.005375,
+      "cold_baseline_rss_mb": 279.98,
+      "cold_peak_rss_mb": 280.1,
+      "cold_peak_rss_delta_mb": 0.12,
+      "ingest_seconds": 0.012297,
+      "warm_cache_seconds": 0.023008,
+      "cached": true,
+      "chunks": 3,
+      "tables": 0,
+      "table_inventory": [],
+      "language": "vi",
+      "peak_rss_mb": 280.34
+    },
+    {
+      "path": "data\\corpus\\university\\uet_electronics_program_2023.pdf",
+      "file_size_bytes": 3489029,
+      "sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "implementation": "pymupdf",
+      "content_type": "text",
+      "pages": 13,
+      "status": "success",
+      "text_chars": 17735,
+      "cold_parse_seconds": 0.041213,
+      "cold_seconds_per_page": 0.00317,
+      "cold_baseline_rss_mb": 281.6,
+      "cold_peak_rss_mb": 281.6,
+      "cold_peak_rss_delta_mb": 0.0,
+      "ingest_seconds": 0.297776,
+      "warm_cache_seconds": 0.070125,
+      "cached": true,
+      "chunks": 164,
+      "tables": 1,
+      "table_inventory": [
+        {
+          "table_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p8_t1",
+          "pages": [
+            8
+          ],
+          "row_count": 1,
+          "column_count": 2,
+          "headers_present": true
+        }
+      ],
+      "language": "vi",
+      "peak_rss_mb": 319.34
+    },
+    {
+      "path": "data\\corpus\\university\\uet_mai_joint_curriculum_2022.pdf",
+      "file_size_bytes": 452176,
+      "sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+      "implementation": "pymupdf",
+      "content_type": "mixed_layout",
+      "pages": 3,
+      "status": "success",
+      "text_chars": 4348,
+      "cold_parse_seconds": 0.012189,
+      "cold_seconds_per_page": 0.004063,
+      "cold_baseline_rss_mb": 319.38,
+      "cold_peak_rss_mb": 320.54,
+      "cold_peak_rss_delta_mb": 1.16,
+      "ingest_seconds": 0.056494,
+      "warm_cache_seconds": 0.064294,
+      "cached": true,
+      "chunks": 42,
+      "tables": 0,
+      "table_inventory": [],
+      "language": "en",
+      "peak_rss_mb": 322.09
+    },
+    {
+      "path": "data\\corpus\\university\\uet_masters_admission_2022.pdf",
+      "file_size_bytes": 429108,
+      "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "implementation": "pymupdf",
+      "content_type": "text",
+      "pages": 18,
+      "status": "success",
+      "text_chars": 27229,
+      "cold_parse_seconds": 0.027693,
+      "cold_seconds_per_page": 0.001538,
+      "cold_baseline_rss_mb": 322.11,
+      "cold_peak_rss_mb": 322.13,
+      "cold_peak_rss_delta_mb": 0.02,
+      "ingest_seconds": 0.117783,
+      "warm_cache_seconds": 0.068354,
+      "cached": true,
+      "chunks": 109,
+      "tables": 4,
+      "table_inventory": [
+        {
+          "table_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p4_t1",
+          "pages": [
+            4
+          ],
+          "row_count": 1,
+          "column_count": 2,
+          "headers_present": true
+        },
+        {
+          "table_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p15_t1",
+          "pages": [
+            15
+          ],
+          "row_count": 2,
+          "column_count": 2,
+          "headers_present": true
+        },
+        {
+          "table_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p16_t1",
+          "pages": [
+            16
+          ],
+          "row_count": 3,
+          "column_count": 2,
+          "headers_present": true
+        },
+        {
+          "table_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p17_t1",
+          "pages": [
+            17
+          ],
+          "row_count": 3,
+          "column_count": 2,
+          "headers_present": true
+        }
+      ],
+      "language": "vi",
+      "peak_rss_mb": 322.86
+    },
+    {
+      "path": "data\\corpus\\university\\uet_program_adjustments_2021.pdf",
+      "file_size_bytes": 119441,
+      "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "implementation": "pymupdf",
+      "content_type": "text",
+      "pages": 3,
+      "status": "success",
+      "text_chars": 3626,
+      "cold_parse_seconds": 0.006396,
+      "cold_seconds_per_page": 0.002132,
+      "cold_baseline_rss_mb": 322.86,
+      "cold_peak_rss_mb": 322.86,
+      "cold_peak_rss_delta_mb": 0.0,
+      "ingest_seconds": 0.063961,
+      "warm_cache_seconds": 0.087984,
+      "cached": true,
+      "chunks": 50,
+      "tables": 0,
+      "table_inventory": [],
+      "language": "vi",
+      "peak_rss_mb": 322.95
+    }
+  ],
+  "models": {
+    "status": "not_run",
+    "reason": "use --run-models for explicit model execution"
+  },
+  "updated_at_utc": "2026-09-25T04:27:33Z",
+  "limits": {
+    "status": "measured",
+    "evidence": {
+      "documents": 5,
+      "p95_seconds_per_page": 0.005375,
+      "max_cold_peak_rss_delta_mb": 1.16,
+      "model_peak_rss_mb": null,
+      "failure_rate": 0.0,
+      "memory_budget_mb": 2048,
+      "concurrency": 1,
+      "timeout_seconds": 120
+    },
+    "failure_rate_gate": {
+      "threshold": 0.05,
+      "passed": true
+    },
+    "limits": {
+      "soft_max_pages": 1412,
+      "hard_max_pages": 1765,
+      "hard_max_upload_mb": 50,
+      "formula": "min(timeout / p95_seconds_per_page, (memory_budget - model_peak_rss) / (max_peak_rss_delta * concurrency))",
+      "promotion_gate": "failure_rate <= 0.05 and representative table review is complete"
+    }
+  },
+  "docling_comparison": {
+    "status": "not_run",
+    "documents": [],
+    "decision": {
+      "production_parser": "pymupdf",
+      "docling_role": "fallback_and_layout_review",
+      "rationale": "PyMuPDF is materially lighter for page text and cache ingestion; Docling is retained for layout-heavy or table-review cases because the measured CPU RSS and latency are higher and table output varies."
+    }
+  },
+  "summary": {
+    "documents_discovered": 8,
+    "documents_recorded": 8,
+    "successful": 5,
+    "failed": 0,
+    "skipped": 3,
+    "complete": true,
+    "max_upload_mb": 50,
+    "max_pages": 250,
+    "coverage": {
+      "documents": 8,
+      "text_documents": 5,
+      "scan_or_image_documents": 3,
+      "languages": [
+        "en",
+        "vi"
+      ],
+      "has_vietnamese_text": true,
+      "has_english_text": true,
+      "has_scan_or_image": true,
+      "has_mixed_layout": true,
+      "mixed_layout_documents": 1,
+      "has_tables": true,
+      "table_documents": 2,
+      "has_holdout": true
+    },
+    "acceptance_ready": false
+  }
+}

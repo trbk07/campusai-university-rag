@@ -10,6 +10,60 @@ from ..retrieval.hybrid import RetrievalResult
 
 
 @dataclass(frozen=True)
+class CitationValidation:
+    """Machine-checkable result for a citation/provenance lookup."""
+
+    valid: bool
+    errors: tuple[str, ...] = ()
+
+
+def validate_citation(
+    citation: "Citation | dict[str, Any]",
+    result: RetrievalResult,
+    *,
+    source_hash: str | None = None,
+) -> CitationValidation:
+    """Validate every citation coordinate against the retrieved evidence.
+
+    This is deliberately independent of an LLM and fails closed when a caller
+    supplies an invalid document, chunk, page range, table id, or source hash.
+    """
+
+    if isinstance(citation, Citation):
+        values = citation.to_dict()
+    else:
+        values = citation
+    errors: list[str] = []
+    if str(values.get("chunk_id", "")) != result.chunk_id:
+        errors.append("chunk_id_mismatch")
+    if str(values.get("doc_id", result.doc_id)) != result.doc_id:
+        errors.append("doc_id_mismatch")
+    try:
+        page = int(values.get("page", -1))
+    except (TypeError, ValueError):
+        page = -1
+    if page != result.page:
+        errors.append("page_mismatch")
+    expected_range = tuple(result.metadata.get("page_range", [result.page, result.page]))
+    supplied_range = tuple(values.get("page_range", expected_range))
+    if (
+        len(expected_range) != 2
+        or len(supplied_range) != 2
+        or supplied_range != expected_range
+        or not (supplied_range[0] <= page <= supplied_range[1])
+    ):
+        errors.append("page_range_mismatch")
+    expected_table = result.metadata.get("table_id")
+    if expected_table is not None and values.get("table_id", expected_table) != expected_table:
+        errors.append("table_id_mismatch")
+    cited_hash = values.get("source_hash")
+    expected_hash = source_hash or result.metadata.get("source_hash")
+    if cited_hash is not None and expected_hash is not None and cited_hash != expected_hash:
+        errors.append("source_hash_mismatch")
+    return CitationValidation(not errors, tuple(errors))
+
+
+@dataclass(frozen=True)
 class Citation:
     """A citation validated against one retrieved chunk."""
 
@@ -20,6 +74,8 @@ class Citation:
     section_path: str = ""
     source_name: str = ""
     page_range: tuple[int, int] = (0, 0)
+    table_id: str = ""
+    source_hash: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -30,6 +86,8 @@ class Citation:
             "quote": self.quote,
             "section_path": self.section_path,
             "source_name": self.source_name,
+            "table_id": self.table_id,
+            "source_hash": self.source_hash,
         }
 
 
@@ -156,7 +214,10 @@ EVIDENCE:
         citations: list[Citation] = []
         for raw in payload.get("citations", []):
             result = by_chunk.get(str(raw.get("chunk_id", "")))
-            if result is None or int(raw.get("page", -1)) != result.page:
+            if result is None:
+                return _abstention("citation_not_in_evidence")
+            validation = validate_citation(raw, result)
+            if not validation.valid:
                 return _abstention("citation_not_in_evidence")
             citations.append(
                 Citation(
@@ -167,6 +228,8 @@ EVIDENCE:
                     " > ".join(result.metadata.get("heading_path", [])),
                     str(result.metadata.get("source_name", "")),
                     tuple(result.metadata.get("page_range", [result.page, result.page])),
+                    str(result.metadata.get("table_id", "")),
+                    str(result.metadata.get("source_hash", "")),
                 )
             )
         if not citations or bool(payload.get("abstained")):

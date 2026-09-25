@@ -27,7 +27,7 @@ On Windows without `make`, use:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe -m pytest -q --cov=campusai.llm --cov-fail-under=90
+.venv\Scripts\python.exe -m pytest -q --basetemp=D:\Project\.tmp\pytest-t1 -p no:cacheprovider --cov=campusai.llm --cov-fail-under=90
 .venv\Scripts\python.exe scripts\secret_scan.py
 ```
 
@@ -47,7 +47,8 @@ Latest local offline result after the CampusAI namespace/domain migration:
 
 ```text
 Task 1 acceptance: 33 passed
-Full repository: 63 passed, 1 skipped
+Full repository: 70 passed, 1 skipped
+Task 1 coverage: 95.01% (fail-under=90)
 ```
 
 The one skipped test is the opt-in live Gemini contract test. The test is

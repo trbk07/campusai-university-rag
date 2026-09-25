@@ -1,4 +1,4 @@
-from campusai.rag.grounding import GroundedAnswerGenerator
+from campusai.rag.grounding import GroundedAnswerGenerator, validate_citation
 from campusai.rag.service import choose_query_mode
 from campusai.retrieval.hybrid import RetrievalResult
 
@@ -62,6 +62,24 @@ def test_no_evidence_abstains_without_calling_llm():
     answer = GroundedAnswerGenerator(FakeLLM({})).answer("Câu hỏi", [])
     assert answer.abstained is True
     assert answer.reason == "no_retrieval_evidence"
+
+
+def test_citation_validator_rejects_wrong_page_range_and_source_hash():
+    evidence = result()
+    evidence.metadata.update({"page_range": [3, 4], "source_hash": "sha-good"})
+    validation = validate_citation(
+        {
+            "chunk_id": "c1",
+            "doc_id": "doc-1",
+            "page": 3,
+            "page_range": [9, 9],
+            "source_hash": "sha-bad",
+        },
+        evidence,
+    )
+    assert validation.valid is False
+    assert "page_range_mismatch" in validation.errors
+    assert "source_hash_mismatch" in validation.errors
 
 
 def test_hard_questions_only_use_reranker_when_available():
