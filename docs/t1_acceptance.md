@@ -47,7 +47,7 @@ Latest local offline result after the CampusAI namespace/domain migration:
 
 ```text
 Task 1 acceptance: 33 passed
-Full repository: 70 passed, 1 skipped
+Full repository: 71 passed, 1 skipped
 Task 1 coverage: 95.01% (fail-under=90)
 ```
 

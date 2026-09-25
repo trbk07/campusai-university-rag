@@ -41,7 +41,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.03778,
+      "elapsed_seconds": 0.039659,
       "doc_id": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
       "metadata_quality": {
         "institution": null,
@@ -100,7 +100,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.043871,
+      "elapsed_seconds": 0.045105,
       "doc_id": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
       "metadata_quality": {
         "institution": null,
@@ -159,7 +159,7 @@
         "no_extractable_text",
         "ocr_required"
       ],
-      "elapsed_seconds": 0.019644,
+      "elapsed_seconds": 0.021672,
       "doc_id": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
       "metadata_quality": {
         "institution": null,
@@ -214,7 +214,7 @@
       "chunks": 3,
       "tables": 0,
       "warnings": [],
-      "elapsed_seconds": 0.026791,
+      "elapsed_seconds": 0.027282,
       "doc_id": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
       "metadata_quality": {
         "institution": null,
@@ -265,7 +265,7 @@
       "chunks": 164,
       "tables": 1,
       "warnings": [],
-      "elapsed_seconds": 0.375337,
+      "elapsed_seconds": 0.316887,
       "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -316,7 +316,7 @@
       "chunks": 42,
       "tables": 0,
       "warnings": [],
-      "elapsed_seconds": 0.072126,
+      "elapsed_seconds": 0.065101,
       "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
       "metadata_quality": {
         "institution": "UNIVERSITY OF",
@@ -367,7 +367,7 @@
       "chunks": 109,
       "tables": 4,
       "warnings": [],
-      "elapsed_seconds": 0.121513,
+      "elapsed_seconds": 0.131511,
       "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -418,7 +418,7 @@
       "chunks": 50,
       "tables": 0,
       "warnings": [],
-      "elapsed_seconds": 0.071813,
+      "elapsed_seconds": 0.071581,
       "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
       "metadata_quality": {
         "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
@@ -474,8 +474,8 @@
       "no_extractable_text",
       "ocr_required"
     ],
-    "elapsed_seconds": 0.062992,
-    "doc_id": "d836c1ea24d66f60bd7a9f3a6559f86af1d828b8813d2c8ffdfda57bc29a7764",
+    "elapsed_seconds": 0.079663,
+    "doc_id": "31c4eb575539d631d1b254196b6c193f32d24dfa98f41caa16c40b59eb04d30e",
     "metadata_quality": {
       "institution": null,
       "program": null,
@@ -716,6 +716,6 @@
   "regression_tests": {
     "exit_code": 0,
     "passed": true,
-    "output_tail": "......                                                                   [100%]\n6 passed in 0.14s\n"
+    "output_tail": "......                                                                   [100%]\n6 passed in 0.18s\n"
   }
 }

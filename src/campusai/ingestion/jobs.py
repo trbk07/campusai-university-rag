@@ -75,6 +75,9 @@ class IngestionJobManager:
         batch_size: int = 8,
         max_mb: int = 50,
         max_pages: int = 218,
+        enable_ocr: bool = False,
+        ocr_max_pages: int = 50,
+        ocr_timeout_seconds: float = 120.0,
     ) -> str:
         path = Path(source_path).resolve()
         digest = self._sha256(path)
@@ -108,6 +111,9 @@ class IngestionJobManager:
                 batch_size,
                 max_mb,
                 max_pages,
+                enable_ocr,
+                ocr_max_pages,
+                ocr_timeout_seconds,
             )
             return job.job_id
 
@@ -129,6 +135,9 @@ class IngestionJobManager:
         batch_size: int,
         max_mb: int,
         max_pages: int,
+        enable_ocr: bool,
+        ocr_max_pages: int,
+        ocr_timeout_seconds: float,
     ) -> None:
         try:
             if self._cancel_events[job_id].is_set():
@@ -150,6 +159,7 @@ class IngestionJobManager:
                 stage_progress = {
                     "validating": (0.00, 0.08),
                     "parsing": (0.08, 0.45),
+                    "ocr": (0.45, 0.75),
                     "detecting_metadata": (0.45, 0.55),
                     "extracting_tables": (0.55, 0.65),
                     "chunking": (0.65, 0.76),
@@ -171,6 +181,9 @@ class IngestionJobManager:
                 max_mb=max_mb,
                 max_pages=max_pages,
                 progress=progress,
+                enable_ocr=enable_ocr,
+                ocr_max_pages=ocr_max_pages,
+                ocr_timeout_seconds=ocr_timeout_seconds,
             )
             cancel_event = self._cancel_events[job_id]
             if cancel_event.is_set():

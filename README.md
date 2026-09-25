@@ -91,7 +91,7 @@ $env:GEMINI_API_KEY = "<new key supplied only in the environment>"
 
 See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the exact acceptance
 scope and security limitations. Current Task 1 evidence is 33 focused tests,
-70 full-repository tests, and 95.01% LLM coverage. The cache is not encrypted
+71 full-repository tests, and 95.01% LLM coverage. The cache is not encrypted
 at rest.
 
 ## Task 2: ingestion and retrieval
@@ -105,10 +105,11 @@ The default ingestion path is intentionally lightweight:
 5. create page/heading/table chunks with provenance;
 6. persist the document by SHA-256 and build indexes separately.
 
-Docling is available only as a layout/table review option. It is not the
-default web parser because cold model loading and CPU layout processing are
-too slow for interactive requests. Scan-only PDFs currently stop with a clear
-OCR-required status; OCR is an explicit later worker capability.
+Docling is available as a layout/table review option. It is not the default
+web parser because cold model loading and CPU layout processing are too slow
+for interactive requests. Scan-only PDFs can use the explicit, bounded
+RapidOCR ONNX worker; without `enable_ocr=True` they stop with a clear
+`review_required/ocr_required` status.
 
 Build an index for an ingested document:
 

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "status": "success",
+  "source": "D:\\Project\\data\\corpus\\university\\uet_admission_2025.pdf",
+  "source_sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+  "engine": "rapidocr-onnxruntime",
+  "pages_processed": 32,
+  "pages_with_text": 32,
+  "average_confidence": 0.946419,
+  "ocr_seconds": 143.156363,
+  "acceptance_seconds": 143.310782,
+  "limits": {
+    "max_pages": 50,
+    "timeout_seconds": 180.0
+  },
+  "text_persisted": false
+}

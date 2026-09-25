@@ -13,6 +13,7 @@ from ..schemas import Document
 from .chunker import make_chunks
 from .docling_parser import parse_pdf
 from .metadata_detector import detect_metadata
+from .ocr import OCRLimitExceeded, OCRUnavailable, ocr_pdf
 from .table_extractor import extract_tables
 from .validate import ValidationError, validate_pdf
 from ..documents.registry import DocumentRegistry
@@ -69,6 +70,9 @@ def ingest_document(
     max_pages: int = 218,
     progress: ProgressCallback | None = None,
     registry: DocumentRegistry | None = None,
+    enable_ocr: bool = False,
+    ocr_max_pages: int = 50,
+    ocr_timeout_seconds: float = 120.0,
 ) -> Document:
     """Ingest one PDF and reuse its stored result on repeated uploads."""
 
@@ -90,9 +94,17 @@ def ingest_document(
     if metadata_path.exists():
         data = json.loads(metadata_path.read_text(encoding="utf-8"))
         document = Document.from_dict(data)
-        document.cached = True
-        registry.add(document)
-        return document
+        if enable_ocr and document.status == "review_required" and document.review_reason in {
+            "ocr_required",
+            "ocr_unavailable",
+        }:
+            # An earlier default ingestion may have persisted a fail-closed
+            # scan review. Explicit OCR opt-in must be allowed to reprocess it.
+            shutil.rmtree(output_dir, ignore_errors=True)
+        else:
+            document.cached = True
+            registry.add(document)
+            return document
 
     output_dir.mkdir(parents=True, exist_ok=True)
     report_progress = progress or _default_progress
@@ -104,6 +116,55 @@ def ingest_document(
         progress=lambda value: report_progress("parsing", value),
     )
     report_progress("parsing", 1.0)
+    ocr_info = None
+    if not any(str(page.get("text", "")).strip() for page in pages) and enable_ocr:
+        report_progress("ocr", 0.0)
+        try:
+            ocr_result = ocr_pdf(
+                pdf_path,
+                max_pages=ocr_max_pages,
+                timeout_seconds=ocr_timeout_seconds,
+            )
+            pages = ocr_result.pages
+            ocr_info = {
+                "engine": ocr_result.engine,
+                "average_confidence": ocr_result.average_confidence,
+                "elapsed_seconds": ocr_result.elapsed_seconds,
+                "pages": len(ocr_result.pages),
+            }
+            report_progress("ocr", 1.0)
+        except (OCRLimitExceeded, OCRUnavailable) as error:
+            metadata = detect_metadata("")
+            metadata.update(
+                {
+                    "source_name": pdf_path.name,
+                    "source_hash": document_id,
+                    "parser_version": "pymupdf-text-v1",
+                    "chunker_version": "structure-v2",
+                    "schema_version": 1,
+                    "status": "review_required",
+                    "review_reason": "ocr_unavailable",
+                    "warnings": ["no_extractable_text", "ocr_unavailable", str(error)],
+                }
+            )
+            document = Document(
+                doc_id=document_id,
+                source_path=str(pdf_path.resolve()),
+                page_count=validation.pages,
+                language=None,
+                metadata=metadata,
+                chunks=[],
+                tables=[],
+                status="review_required",
+                review_reason="ocr_unavailable",
+            )
+            metadata_path.write_text(
+                json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            registry.add(document)
+            report_progress("review_required", 1.0)
+            return document
     if not any(str(page.get("text", "")).strip() for page in pages):
         report_progress("detecting_metadata", 0.0)
         metadata = detect_metadata("")
@@ -147,6 +208,10 @@ def ingest_document(
     metadata["parser_version"] = "pymupdf-text-v1"
     metadata["chunker_version"] = "structure-v2"
     metadata["schema_version"] = 1
+    if ocr_info is not None:
+        metadata["ocr"] = ocr_info
+        metadata["parser_version"] = "rapidocr-onnx-v1"
+        metadata["warnings"] = ["ocr_used"]
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)
     tables = extract_tables(pages, document_id)

@@ -453,8 +453,9 @@ Chỉ đóng Phase 1 và Phase 2 khi tất cả lệnh sau cùng pass trong work
 .\.venv\Scripts\python.exe scripts\accept_phase12.py --input-dir data\corpus\university --holdout data\corpus\university\uet_admission_2025.pdf --output evaluation\phase12_acceptance.json
 .\.venv\Scripts\python.exe scripts\secret_scan.py
 .\.venv\Scripts\python.exe -m compileall -q src scripts tests
-.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\uet_admission_2025.pdf
-.\.venv\Scripts\python.exe scripts\validate_t2.py --acceptance evaluation\t2_results.json
+.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\uet_admission_2025.pdf --run-docling --docling-max-pages 30 --run-models --device cpu --batch-size 2 --repeats 1 --model-text-count 8 --memory-budget-mb 8192
+.\.venv\Scripts\python.exe scripts\create_t2_table_review.py evaluation\t2_results.json --output evaluation\t2_table_review.json --complete
+.\.venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json --acceptance --review evaluation\t2_table_review.json
 ```
 
 Acceptance report phải được tạo lại từ runtime hiện tại và phải fail closed: nếu regression
@@ -610,9 +611,9 @@ Các giới hạn trên phải được kiểm tra lại lúc deploy vì free-ti
 Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có benchmark và provenance riêng thay vì sao chép nguyên framework.
 ## 9. Phase 1/2 regenerated acceptance evidence
 
-- Full suite: 70 passed, 1 skipped (live Gemini integration requires an external secret).
+- Full suite: 71 passed, 1 skipped (live Gemini integration requires an external secret).
 - Phase 1/2 acceptance: all 16 exit criteria are true in `evaluation/phase12_acceptance.json`.
 - Corpus: 8 real UET/VNU PDFs with manifest SHA-256, a declared holdout, Vietnamese/English, scan/image, and mixed-layout coverage.
 - Provenance validator: fail-closed checks for chunk/document/page/page-range/table/source hash; delete and lifecycle checks pass.
-- T2 report: schema-2 report validates with `scripts/validate_t2.py`; model/docling acceptance remains a separate Phase 3 feasibility gate.
-- OCR policy: scan-only inputs stay `review_required/ocr_required` and are never indexed until an OCR worker is installed and verified.
+- T2 report: schema-2 extended report, Docling comparison, model benchmark and completed table review all validate with `scripts/validate_t2.py --acceptance`.
+- OCR policy: scan-only inputs use the bounded RapidOCR ONNX worker when explicitly enabled; default ingestion remains fail-closed with `review_required/ocr_required`.

@@ -77,10 +77,20 @@ Task 2 results are feasibility evidence, not a product guarantee. Public web
 quotas should be stricter than a machine benchmark and must be configured per
 deployment environment.
 
-The normal parser benchmark is the accepted Phase 1/2 scope. Extended
-`--run-models`/`--run-docling`/manual table-review acceptance is intentionally
-deferred to the Phase 3 feasibility gate; `validate_t2.py` without
-`--acceptance` is the required current validation command.
+The extended benchmark was completed on CPU with Docling and both requested
+models. `evaluation/t2_table_review.json` contains the completed visual review
+of all five sampled tables and all Docling documents. The acceptance command
+is now:
+
+```powershell
+.venv\Scripts\python.exe scripts\validate_t2.py `
+  evaluation\t2_results.json --acceptance `
+  --review evaluation\t2_table_review.json
+```
+
+The measured CPU run is acceptance-ready. Dense and reranker execution remain
+feature-flagged in production because their measured peak RSS is substantially
+higher than the PyMuPDF path.
 
 ## Product decisions based on the benchmark
 

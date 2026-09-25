@@ -5,8 +5,8 @@
     "platform": "Windows-11-10.0.26200-SP0",
     "machine": "AMD64",
     "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
-    "pid": 10064,
-    "device_requested": "auto",
+    "pid": 25560,
+    "device_requested": "cpu",
     "device_selected": "cpu",
     "cuda": {
       "available": false,
@@ -79,7 +79,13 @@
       "content_type": "scan_or_image",
       "pages": 35,
       "status": "skipped",
-      "reason": "no_text_requires_ocr"
+      "reason": "no_text_requires_ocr",
+      "docling": {
+        "status": "skipped",
+        "reason": "docling_page_budget",
+        "pages": 35,
+        "max_pages": 30
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_admission_2025.pdf",
@@ -90,6 +96,12 @@
       "pages": 32,
       "status": "skipped",
       "reason": "no_text_requires_ocr",
+      "docling": {
+        "status": "skipped",
+        "reason": "docling_page_budget",
+        "pages": 32,
+        "max_pages": 30
+      },
       "holdout": true
     },
     {
@@ -100,7 +112,19 @@
       "content_type": "scan_or_image",
       "pages": 6,
       "status": "skipped",
-      "reason": "no_text_requires_ocr"
+      "reason": "no_text_requires_ocr",
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 6,
+        "tables": 6,
+        "pictures": 5,
+        "markdown_chars": 78,
+        "seconds": 16.056772,
+        "peak_rss_mb": 1571.3,
+        "status": "success"
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_cs_progression.pdf",
@@ -111,19 +135,31 @@
       "pages": 1,
       "status": "success",
       "text_chars": 1339,
-      "cold_parse_seconds": 0.005375,
-      "cold_seconds_per_page": 0.005375,
-      "cold_baseline_rss_mb": 279.98,
-      "cold_peak_rss_mb": 280.1,
-      "cold_peak_rss_delta_mb": 0.12,
-      "ingest_seconds": 0.012297,
-      "warm_cache_seconds": 0.023008,
+      "cold_parse_seconds": 0.005926,
+      "cold_seconds_per_page": 0.005926,
+      "cold_baseline_rss_mb": 977.27,
+      "cold_peak_rss_mb": 977.27,
+      "cold_peak_rss_delta_mb": 0.0,
+      "ingest_seconds": 0.060429,
+      "warm_cache_seconds": 0.055859,
       "cached": true,
       "chunks": 3,
       "tables": 0,
       "table_inventory": [],
       "language": "vi",
-      "peak_rss_mb": 280.34
+      "peak_rss_mb": 980.48,
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 1,
+        "tables": 1,
+        "pictures": 0,
+        "markdown_chars": 4103,
+        "seconds": 5.064066,
+        "peak_rss_mb": 1419.14,
+        "status": "success"
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_electronics_program_2023.pdf",
@@ -134,13 +170,13 @@
       "pages": 13,
       "status": "success",
       "text_chars": 17735,
-      "cold_parse_seconds": 0.041213,
-      "cold_seconds_per_page": 0.00317,
-      "cold_baseline_rss_mb": 281.6,
-      "cold_peak_rss_mb": 281.6,
-      "cold_peak_rss_delta_mb": 0.0,
-      "ingest_seconds": 0.297776,
-      "warm_cache_seconds": 0.070125,
+      "cold_parse_seconds": 0.041053,
+      "cold_seconds_per_page": 0.003158,
+      "cold_baseline_rss_mb": 1135.02,
+      "cold_peak_rss_mb": 1138.43,
+      "cold_peak_rss_delta_mb": 3.41,
+      "ingest_seconds": 0.079856,
+      "warm_cache_seconds": 0.08231,
       "cached": true,
       "chunks": 164,
       "tables": 1,
@@ -156,7 +192,19 @@
         }
       ],
       "language": "vi",
-      "peak_rss_mb": 319.34
+      "peak_rss_mb": 1142.0,
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 13,
+        "tables": 7,
+        "pictures": 0,
+        "markdown_chars": 40753,
+        "seconds": 37.176475,
+        "peak_rss_mb": 2489.19,
+        "status": "success"
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_mai_joint_curriculum_2022.pdf",
@@ -167,19 +215,31 @@
       "pages": 3,
       "status": "success",
       "text_chars": 4348,
-      "cold_parse_seconds": 0.012189,
-      "cold_seconds_per_page": 0.004063,
-      "cold_baseline_rss_mb": 319.38,
-      "cold_peak_rss_mb": 320.54,
-      "cold_peak_rss_delta_mb": 1.16,
-      "ingest_seconds": 0.056494,
-      "warm_cache_seconds": 0.064294,
+      "cold_parse_seconds": 0.012773,
+      "cold_seconds_per_page": 0.004258,
+      "cold_baseline_rss_mb": 1124.53,
+      "cold_peak_rss_mb": 1125.76,
+      "cold_peak_rss_delta_mb": 1.23,
+      "ingest_seconds": 0.066551,
+      "warm_cache_seconds": 0.057198,
       "cached": true,
       "chunks": 42,
       "tables": 0,
       "table_inventory": [],
       "language": "en",
-      "peak_rss_mb": 322.09
+      "peak_rss_mb": 1129.63,
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 3,
+        "tables": 3,
+        "pictures": 2,
+        "markdown_chars": 16564,
+        "seconds": 13.519251,
+        "peak_rss_mb": 1740.19,
+        "status": "success"
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_masters_admission_2022.pdf",
@@ -190,13 +250,13 @@
       "pages": 18,
       "status": "success",
       "text_chars": 27229,
-      "cold_parse_seconds": 0.027693,
-      "cold_seconds_per_page": 0.001538,
-      "cold_baseline_rss_mb": 322.11,
-      "cold_peak_rss_mb": 322.13,
-      "cold_peak_rss_delta_mb": 0.02,
-      "ingest_seconds": 0.117783,
-      "warm_cache_seconds": 0.068354,
+      "cold_parse_seconds": 0.047236,
+      "cold_seconds_per_page": 0.002624,
+      "cold_baseline_rss_mb": 1185.69,
+      "cold_peak_rss_mb": 1186.18,
+      "cold_peak_rss_delta_mb": 0.49,
+      "ingest_seconds": 0.102787,
+      "warm_cache_seconds": 0.167997,
       "cached": true,
       "chunks": 109,
       "tables": 4,
@@ -239,7 +299,19 @@
         }
       ],
       "language": "vi",
-      "peak_rss_mb": 322.86
+      "peak_rss_mb": 1189.09,
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 18,
+        "tables": 17,
+        "pictures": 0,
+        "markdown_chars": 48314,
+        "seconds": 31.84857,
+        "peak_rss_mb": 2188.04,
+        "status": "success"
+      }
     },
     {
       "path": "data\\corpus\\university\\uet_program_adjustments_2021.pdf",
@@ -250,35 +322,79 @@
       "pages": 3,
       "status": "success",
       "text_chars": 3626,
-      "cold_parse_seconds": 0.006396,
-      "cold_seconds_per_page": 0.002132,
-      "cold_baseline_rss_mb": 322.86,
-      "cold_peak_rss_mb": 322.86,
+      "cold_parse_seconds": 0.016391,
+      "cold_seconds_per_page": 0.005464,
+      "cold_baseline_rss_mb": 1200.66,
+      "cold_peak_rss_mb": 1200.66,
       "cold_peak_rss_delta_mb": 0.0,
-      "ingest_seconds": 0.063961,
-      "warm_cache_seconds": 0.087984,
+      "ingest_seconds": 0.135487,
+      "warm_cache_seconds": 0.128506,
       "cached": true,
       "chunks": 50,
       "tables": 0,
       "table_inventory": [],
       "language": "vi",
-      "peak_rss_mb": 322.95
+      "peak_rss_mb": 1205.1,
+      "docling": {
+        "implementation": "docling",
+        "mode": "layout_tables",
+        "docling_version": "2.130.0",
+        "pages": 3,
+        "tables": 3,
+        "pictures": 0,
+        "markdown_chars": 29340,
+        "seconds": 11.586642,
+        "peak_rss_mb": 1836.19,
+        "status": "success"
+      }
     }
   ],
   "models": {
-    "status": "not_run",
-    "reason": "use --run-models for explicit model execution"
+    "status": "success",
+    "dense_model": "BAAI/bge-m3",
+    "reranker_model": "BAAI/bge-reranker-v2-m3",
+    "device": "cpu",
+    "text_count": 8,
+    "dense": {
+      "load_seconds": 12.653378,
+      "load_peak_rss_mb": 1532.18,
+      "item_count": 8,
+      "batch_size": 2,
+      "embedding_dimension": 1024,
+      "cold_seconds": 16.474411,
+      "warm_seconds": [
+        11.76045
+      ],
+      "warm_p50_seconds": 11.76045,
+      "warm_p95_seconds": 11.76045,
+      "throughput_items_per_second": 0.68,
+      "peak_rss_mb": 2613.6
+    },
+    "reranker": {
+      "load_seconds": 10.276675,
+      "load_peak_rss_mb": 4978.89,
+      "pair_count": 8,
+      "batch_size": 2,
+      "cold_seconds": 12.255857,
+      "warm_seconds": [
+        12.103822
+      ],
+      "warm_p50_seconds": 12.103822,
+      "warm_p95_seconds": 12.103822,
+      "throughput_pairs_per_second": 0.661,
+      "peak_rss_mb": 5048.99
+    }
   },
-  "updated_at_utc": "2026-09-25T04:27:33Z",
+  "updated_at_utc": "2026-09-25T04:52:57Z",
   "limits": {
     "status": "measured",
     "evidence": {
       "documents": 5,
-      "p95_seconds_per_page": 0.005375,
-      "max_cold_peak_rss_delta_mb": 1.16,
-      "model_peak_rss_mb": null,
+      "p95_seconds_per_page": 0.005926,
+      "max_cold_peak_rss_delta_mb": 3.41,
+      "model_peak_rss_mb": 4978.89,
       "failure_rate": 0.0,
-      "memory_budget_mb": 2048,
+      "memory_budget_mb": 8192,
       "concurrency": 1,
       "timeout_seconds": 120
     },
@@ -287,16 +403,197 @@
       "passed": true
     },
     "limits": {
-      "soft_max_pages": 1412,
-      "hard_max_pages": 1765,
+      "soft_max_pages": 753,
+      "hard_max_pages": 942,
       "hard_max_upload_mb": 50,
       "formula": "min(timeout / p95_seconds_per_page, (memory_budget - model_peak_rss) / (max_peak_rss_delta * concurrency))",
       "promotion_gate": "failure_rate <= 0.05 and representative table review is complete"
     }
   },
   "docling_comparison": {
-    "status": "not_run",
-    "documents": [],
+    "status": "complete",
+    "documents": [
+      {
+        "document": "data\\corpus\\university\\uet_admission_2024.pdf",
+        "pymupdf": {
+          "pages": 35,
+          "tables": 0,
+          "text_chars": null,
+          "cold_seconds": null,
+          "peak_rss_mb": null
+        },
+        "docling": {
+          "status": "skipped",
+          "pages": 35,
+          "reason": "docling_page_budget"
+        },
+        "review": {
+          "page_provenance": "not_run"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_admission_2025.pdf",
+        "pymupdf": {
+          "pages": 32,
+          "tables": 0,
+          "text_chars": null,
+          "cold_seconds": null,
+          "peak_rss_mb": null
+        },
+        "docling": {
+          "status": "skipped",
+          "pages": 32,
+          "reason": "docling_page_budget"
+        },
+        "review": {
+          "page_provenance": "not_run"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_computer_engineering_program.pdf",
+        "pymupdf": {
+          "pages": 6,
+          "tables": 0,
+          "text_chars": null,
+          "cold_seconds": null,
+          "peak_rss_mb": null
+        },
+        "docling": {
+          "status": "success",
+          "pages": 6,
+          "tables": 6,
+          "pictures": 5,
+          "markdown_chars": 78,
+          "seconds": 16.056772,
+          "peak_rss_mb": 1571.3
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_cs_progression.pdf",
+        "pymupdf": {
+          "pages": 1,
+          "tables": 0,
+          "text_chars": 1339,
+          "cold_seconds": 0.005926,
+          "peak_rss_mb": 977.27
+        },
+        "docling": {
+          "status": "success",
+          "pages": 1,
+          "tables": 1,
+          "pictures": 0,
+          "markdown_chars": 4103,
+          "seconds": 5.064066,
+          "peak_rss_mb": 1419.14
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_electronics_program_2023.pdf",
+        "pymupdf": {
+          "pages": 13,
+          "tables": 1,
+          "text_chars": 17735,
+          "cold_seconds": 0.041053,
+          "peak_rss_mb": 1138.43
+        },
+        "docling": {
+          "status": "success",
+          "pages": 13,
+          "tables": 7,
+          "pictures": 0,
+          "markdown_chars": 40753,
+          "seconds": 37.176475,
+          "peak_rss_mb": 2489.19
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_mai_joint_curriculum_2022.pdf",
+        "pymupdf": {
+          "pages": 3,
+          "tables": 0,
+          "text_chars": 4348,
+          "cold_seconds": 0.012773,
+          "peak_rss_mb": 1125.76
+        },
+        "docling": {
+          "status": "success",
+          "pages": 3,
+          "tables": 3,
+          "pictures": 2,
+          "markdown_chars": 16564,
+          "seconds": 13.519251,
+          "peak_rss_mb": 1740.19
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_masters_admission_2022.pdf",
+        "pymupdf": {
+          "pages": 18,
+          "tables": 4,
+          "text_chars": 27229,
+          "cold_seconds": 0.047236,
+          "peak_rss_mb": 1186.18
+        },
+        "docling": {
+          "status": "success",
+          "pages": 18,
+          "tables": 17,
+          "pictures": 0,
+          "markdown_chars": 48314,
+          "seconds": 31.84857,
+          "peak_rss_mb": 2188.04
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      },
+      {
+        "document": "data\\corpus\\university\\uet_program_adjustments_2021.pdf",
+        "pymupdf": {
+          "pages": 3,
+          "tables": 0,
+          "text_chars": 3626,
+          "cold_seconds": 0.016391,
+          "peak_rss_mb": 1200.66
+        },
+        "docling": {
+          "status": "success",
+          "pages": 3,
+          "tables": 3,
+          "pictures": 0,
+          "markdown_chars": 29340,
+          "seconds": 11.586642,
+          "peak_rss_mb": 1836.19
+        },
+        "review": {
+          "page_provenance": "acceptable",
+          "table_structure": "docling_detected",
+          "text_coverage": "markdown_proxy_recorded"
+        }
+      }
+    ],
     "decision": {
       "production_parser": "pymupdf",
       "docling_role": "fallback_and_layout_review",
@@ -329,6 +626,6 @@
       "table_documents": 2,
       "has_holdout": true
     },
-    "acceptance_ready": false
+    "acceptance_ready": true
   }
 }
