@@ -1,7 +1,7 @@
 {
   "document": {
     "doc_id": "numbered-list-section",
-    "pages": [{"page": 1, "text": "1. Graduation requirements\n1. Earn at least 130 credits.\n2. Complete the internship.\n3. Submit the final report."}]
+    "pages": [{"page": 1, "text": "1. Graduation requirements\n1. Earn at least 130 credits\n2. Complete the internship\n3. Submit the final report"}]
   },
   "expected": {
     "section": ["1. Graduation requirements"],

@@ -96,6 +96,37 @@ def _looks_like_heading(line: str, layout: dict[str, Any] | None = None) -> tupl
     return False, 0, ""
 
 
+def _numbered_list_run_lines(lines: list[str]) -> set[int]:
+    """Return lines belonging to consecutive numeric list runs.
+
+    A consecutive run is stronger evidence of a list item than the surface
+    ``1.`` prefix is evidence of a heading.  The caller keeps article-style
+    headings (``Article 1``/``Điều 1``) separate because those are structural
+    headings rather than list items.
+    """
+    run_indexes: set[int] = set()
+    sequence: list[tuple[int, int]] = []
+
+    def flush() -> None:
+        if len(sequence) >= 2:
+            run_indexes.update(index for index, _number in sequence)
+        sequence.clear()
+
+    for index, line in enumerate(lines):
+        match = re.match(r"^(\d+)[.)]\s+\S", line.strip())
+        if not match:
+            flush()
+            continue
+        number = int(match.group(1))
+        if sequence and number == sequence[-1][1] + 1:
+            sequence.append((index, number))
+        else:
+            flush()
+            sequence.append((index, number))
+    flush()
+    return run_indexes
+
+
 def _text_sections(text: str) -> list[tuple[str, list[str]]]:
     """Backwards-compatible helper for callers that provide one text page."""
     sections, _diagnostics = _sectionize([{"page": 1, "text": text}])
@@ -175,8 +206,12 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
         if not lines:
             empty_pages.append(page_number)
             continue
+        list_run_indexes = _numbered_list_run_lines(lines)
         for line_index, line in enumerate(lines):
             is_heading, level, heading = _looks_like_heading(line, metas[line_index])
+            if (is_heading and line_index in list_run_indexes
+                    and not _ARTICLE_HEADING.match(line.strip())):
+                is_heading = False
             if is_heading:
                 flush()
                 if level > len(heading_path) + 1:
