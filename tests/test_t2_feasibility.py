@@ -1,3 +1,5 @@
+import importlib.util
+
 from scripts.benchmark_t2 import (
     _benchmark_encoder,
     benchmark_models,
@@ -41,7 +43,10 @@ def test_encoder_metrics_use_validator_field_names():
 def test_cuda_without_hardware_is_blocked_without_loading_models():
     result = benchmark_models(["course prerequisite"], device="cuda", batch_size=1, repeats=1)
     assert result["status"] == "blocked"
-    assert result["reason"] == "cuda_unavailable"
+    if importlib.util.find_spec("torch") is None:
+        assert result["reason"] == "torch_not_installed"
+    else:
+        assert result["reason"] in {"cuda_unavailable", "cuda_probe_failed"}
 
 
 def test_corpus_coverage_exposes_all_acceptance_dimensions():
