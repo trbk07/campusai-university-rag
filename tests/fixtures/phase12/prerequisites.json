@@ -1,0 +1,32 @@
+{
+  "name": "prerequisites",
+  "document": {
+    "doc_id": "golden-prerequisites",
+    "metadata": {
+      "domain": "academic",
+      "document_type": "course_catalog",
+      "language": "vi",
+      "institution": "Đại học Campus",
+      "program": "Công nghệ thông tin",
+      "academic_years": [2025, 2026]
+    },
+    "pages": [
+      {
+        "page": 7,
+        "text": "3. Học phần tiên quyết\nMã học phần | Tên học phần | Tiên quyết\nCS201 | Cấu trúc dữ liệu | CS101"
+      },
+      {
+        "page": 8,
+        "text": "4. Học phần tự chọn\nCS310 | Trí tuệ nhân tạo | Không"
+      }
+    ]
+  },
+  "expected": {
+    "section": ["3. Học phần tiên quyết"],
+    "page_range": [7, 7],
+    "contains": ["CS201", "CS101", "Tiên quyết"],
+    "does_not_contain": ["CS310", "tự chọn"],
+    "table_header_contains": ["Mã học phần", "Tiên quyết"],
+    "citation_page": 7
+  }
+}

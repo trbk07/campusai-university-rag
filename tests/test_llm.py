@@ -5,13 +5,13 @@ import urllib.error
 
 import pytest
 
-from finrag.llm.cache import SQLiteLLMCache
-from finrag.llm.client import (
+from campusai.llm.cache import SQLiteLLMCache
+from campusai.llm.client import (
     LLMAuthenticationError,
     LLMResponseError,
     OpenAICompatibleClient,
 )
-from finrag.llm.rate_limiter import RateLimiter
+from campusai.llm.rate_limiter import RateLimiter
 
 
 def _response(payload):

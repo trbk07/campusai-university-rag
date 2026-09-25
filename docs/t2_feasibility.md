@@ -1,80 +1,87 @@
-# Task 2 feasibility validation
+# Task 2 feasibility benchmark for CampusAI
+
+This document describes a repeatable benchmark, not a checked-in result. The
+previous machine-specific financial snapshot and generated PDFs were removed
+when the project moved to university knowledge.
 
 ## What is measured
 
-The benchmark is intentionally split into evidence-producing stages:
+The benchmark separates evidence-producing stages:
 
-1. PDF admission and SHA-256 identity.
-2. Cold local parsing, first ingestion, and warm persisted-cache lookup.
-3. Optional Docling conversion on the same operator-supplied PDFs.
-4. FastEmbed supported-model inventory without a download.
-5. Optional `BAAI/bge-m3` and `BAAI/bge-reranker-v2-m3` CPU/CUDA runs.
-6. RSS peak, cold/warm latency, throughput, embedding dimension, and runtime metadata.
-7. A manual table/layout review queue with five explicit checks.
-8. A conservative page limit derived from measured p95 parse latency and memory.
+1. PDF admission and SHA-256 identity;
+2. cold parsing, first ingestion and warm persisted-cache lookup;
+3. optional Docling conversion for layout/table review;
+4. optional embedding and reranker cold/warm measurements;
+5. RSS peak, latency, throughput, embedding dimension and environment;
+6. manual table/layout review checks;
+7. conservative page and memory limits derived from the supplied corpus.
 
-The runner is `scripts/benchmark_t2.py`. It writes after each PDF, supports
-`--resume`, isolates failures, and keeps document text out of the report.
+The runner is [`scripts/benchmark_t2.py`](../scripts/benchmark_t2.py). It
+supports resume, isolates individual document failures, and does not write page
+text into the report.
 
-## Reproduction
+## Reproduction with a university corpus
 
-Parser-only run:
+Supply a directory containing representative university PDFs. Include both
+Vietnamese and English text PDFs, at least one curriculum/regulation table, a
+mixed-layout document and a holdout document outside the main input directory.
 
 ```powershell
 .venv\Scripts\python.exe scripts\benchmark_t2.py `
-  --input-dir <directory-containing-user-supplied-pdfs> `
+  --input-dir <university-pdf-dir> `
+  --holdout <holdout.pdf> `
   --output evaluation\t2_results.json
+
 .venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json
 .venv\Scripts\python.exe scripts\create_t2_table_review.py `
   evaluation\t2_results.json --output evaluation\t2_table_review.json
+.venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json `
+  --acceptance --review evaluation\t2_table_review.json
 ```
 
-Install the opt-in benchmark stack before running Docling or model downloads:
+The output files are local benchmark artifacts and should only be committed
+when they describe an intentional, reproducible CampusAI corpus. Do not commit
+private university PDFs or extracted content.
+
+## Optional heavy benchmark
 
 ```powershell
 uv sync --extra feasibility
 .venv\Scripts\python.exe scripts\benchmark_t2.py `
-  --input-dir <directory-containing-user-supplied-pdfs> `
-  --run-docling --run-models --device cpu
+  --input-dir <university-pdf-dir> `
+  --holdout <holdout.pdf> `
+  --run-docling --docling-max-pages 30 --run-models --device cpu `
+  --batch-size 2 --repeats 1 --model-text-count 8 `
+  --memory-budget-mb 8192 --output evaluation\t2_results.json
 ```
 
-For Colab/CUDA, run the same command with `--device cuda` and retain the
-environment metadata and JSON as a separate run. `--run-models` is explicit so
-large model downloads cannot happen accidentally.
+Run CUDA separately only when the deployment target actually has CUDA. Model
+downloads are explicit; missing optional dependencies are recorded as blocked,
+not silently treated as successful measurements.
 
 ## Acceptance gates
 
-The report can be called acceptance-ready only when all of these are true:
+An artifact is acceptance-ready only when:
 
-- `summary.complete` is true for the supplied corpus;
-- there is representative Vietnamese and English text, scan/mixed-layout, and
-  table coverage, including a holdout document;
-- `models.status == "success"` contains dense and reranker cold/warm metrics,
-  throughput, dimension, and RSS;
-- Docling output has been reviewed against the local parser;
-- the table review queue is filled for the selected sample;
-- `limits.status == "measured"` and its failure-rate gate passes;
-- CPU and CUDA/Colab runs are reported separately when both deployment modes
-  are in scope.
+- the supplied corpus completes and includes a holdout;
+- Vietnamese/English, text, scan/mixed-layout and table cases are represented;
+- optional model metrics are complete when model benchmarking is requested;
+- Docling output has a manual comparison when requested;
+- the table review queue is complete;
+- measured limits pass the failure-rate gate;
+- every promoted limit records its corpus, environment and command.
 
-The validator accepts older schema-1 artifacts for compatibility, but new runs
-use schema 2 and require explicit `fastembed` and `limits` sections. Missing
-optional dependencies are recorded as `blocked`; they do not count as a model
-benchmark.
+Task 2 results are feasibility evidence, not a product guarantee. Public web
+quotas should be stricter than a machine benchmark and must be configured per
+deployment environment.
 
-## Current local evidence
+## Product decisions based on the benchmark
 
-The checked-in local run contains one 213-page English text PDF and one
-125-page image-only PDF. The text PDF produced a cold parse measurement and a
-warm cache measurement; the scan was correctly skipped with an OCR-required
-reason. FastEmbed is installed and reports 37 supported models, but
-`BAAI/bge-m3` is not one of them. Docling and sentence-transformers are
-installed, yet their model snapshots are not present locally and outbound
-Hugging Face traffic is blocked, so no bge latency or reranker result is
-claimed. The CPU and CUDA attempts are retained separately in
-`evaluation/t2_results.json` and `evaluation/t2_results_cuda.json`; the latter
-records `cuda.available=false`. The table queue is pending manual review.
-
-The derived page limit is intentionally not copied into production config until
-the missing corpus, model, and review evidence is supplied. The configured
-`50 MB / 250 pages` remains a provisional safety cap, not a measured model SLA.
+- PyMuPDF remains the default parser for selectable-text PDFs.
+- Docling is a review/fallback path for layout-heavy documents, not the normal
+  interactive request path.
+- Scan-only PDFs enter an OCR/review queue rather than blocking a web request.
+- The normal query path is BM25 + dense + RRF; reranking is opt-in for hard
+  questions and must have a memory/timeout fallback.
+- Indexes are persisted per document/corpus version and query embeddings are
+  reused across selected documents.

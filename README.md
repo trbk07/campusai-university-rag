@@ -1,211 +1,186 @@
-# Adaptive Financial RAG
+# CampusAI
 
-Implementation follows `plan.md` and its `src/finrag/` structure. Groups A and B provide the isolated LLM foundation plus PDF ingestion with validation, page provenance, tables, metadata, chunking, registry, and SHA256 caching.
+CampusAI is an evidence-grounded university knowledge assistant. It ingests
+text-based PDFs such as regulations, curricula, syllabi, student handbooks and
+course catalogs, then retrieves page-level evidence for grounded answers with
+citations and abstention.
 
-## Environment
+The project has been moved from a financial-report RAG prototype to a public
+university-information product. Finance-only fixtures, generated PDFs and
+machine-specific reports were removed; they are not the product domain.
 
-All Python dependencies are installed inside the repository's `.venv`; nothing is installed globally. The recommended one-command setup is:
+## Current state
 
-```powershell
-# Windows
-python scripts\\bootstrap.py
-.venv\\Scripts\\python.exe -m pytest -q
+- Package: `campusai`
+- Distribution: `campusai-evidence-rag`
+- Task 1 LLM foundation: implemented and acceptance-tested
+- Task 2 PDF ingestion/retrieval foundation: implemented and acceptance-tested
+- Production parser: PyMuPDF fast path with SHA-256 cache
+- Retrieval: BM25 + dense + RRF; explicit `hybrid_rerank` for hard queries
+- Academic metadata: language, document type, academic years and semesters
+- Web UI/public deployment: next phase; the repository is currently the backend foundation
 
-# macOS/Linux
-python3 scripts/bootstrap.py
-.venv/bin/python -m pytest -q
-```
+The detailed product plan, reuse decisions and deployment roadmap are in
+[`plan.md`](plan.md).
 
-If `uv` is available, the equivalent reproducible setup is `uv sync --extra dev`, followed by `uv run pytest -q`. Copy `.env.example` to `.env` and set `GEMINI_API_KEY` (or `GROQ_API_KEY`) before using a real LLM. The first real request is sent to the provider; repeated identical prompts are served from `data/cache/llm_cache.sqlite` with original usage and latency preserved.
+## What is reused from the old Tasks
 
-### Task 1 (T1): LLM foundation acceptance tests
+Task 1 is retained as the application reliability layer:
 
-Task 1 is the provider-neutral LLM foundation described in
-[`docs/t1_acceptance.md`](docs/t1_acceptance.md). Offline acceptance tests use a
-deterministic mocked transport and run with:
+- Gemini and OpenAI-compatible clients;
+- SQLite response cache and process-local single-flight protection;
+- rate limiting, bounded retry/backoff and `Retry-After` handling;
+- JSON parsing/schema validation;
+- environment-only secret loading and provider factory.
 
-```powershell
-python -m pytest -q tests/test_llm.py tests/test_llm_acceptance.py
-```
+Task 2 is retained as the document and retrieval layer:
 
-The document-processing work below is separate ingestion work (Groups B / T3-T4),
-not Task 1.
+- PDF validation, page provenance, tables, metadata and structure-aware chunks;
+- document registry, SHA-256 deduplication and background jobs;
+- BM25, dense fallback, hybrid RRF, query cache and optional reranking;
+- evaluation scripts and measured performance artifacts.
 
-The optional live Gemini test must be explicitly enabled; it is skipped by default and never logs the API key:
+The important product change is the domain layer: metadata and benchmarks now
+target university documents. Finance-only metadata aliases and fixtures are no
+longer part of the production path.
 
-```powershell
-$env:RUN_LLM_INTEGRATION = "1"
-$env:GEMINI_API_KEY = "..."
-python -m pytest -q tests/integration
-```
-
-The SQLite cache stores response text, provider usage metadata, and original network latency. Cache hits do not invoke the provider or rate limiter. Concurrent identical cache misses are single-flight and create one provider request. Transient HTTP errors (408, 429, 5xx) and temporary network failures are retried with bounded exponential backoff; authentication and other 4xx errors are not retried. Gemini credentials use a request header and are never part of URLs or cache keys. Do not commit `.env`, API keys, or cache databases.
-
-### Task 2 (T2): feasibility benchmark
-
-Task 2 has a reproducible, opt-in benchmark at
-[`scripts/benchmark_t2.py`](scripts/benchmark_t2.py). It separates cold PyMuPDF
-parse time, first ingestion, and warm SHA-256 cache lookup; records page/table
-coverage, RSS peak, environment metadata, and failure isolation. The benchmark
-accepts only PDFs supplied through `--input-dir` and never names a production
-document in code.
-
-Run the parser-only evidence collection offline:
+## Local setup
 
 ```powershell
-.venv\Scripts\python.exe scripts\benchmark_t2.py `
-  --input-dir <directory-containing-user-supplied-pdfs> `
-  --output evaluation\t2_results.json
-.venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json
-```
-
-The optional feasibility environment is intentionally separate from production:
-
-```powershell
-uv sync --extra feasibility
-.venv\Scripts\python.exe scripts\benchmark_t2.py `
-  --input-dir <directory-containing-user-supplied-pdfs> `
-  --run-docling --run-models --device cpu
-```
-
-Use `--device cuda` in a CUDA/Colab runtime and keep that JSON as a separate
-run. Model downloads are never implicit. The report records the exact
-FastEmbed `TextEmbedding.list_supported_models()` output, bge-m3 and
-reranker cold/warm latency, throughput, embedding dimension, model-load RSS,
-and CUDA metadata. A report is `acceptance_ready` only when model execution and
-measured parser limits both exist; blocked or skipped components remain visible.
-
-Create the manual table/layout review queue after parsing:
-
-```powershell
-.venv\Scripts\python.exe scripts\create_t2_table_review.py `
-  evaluation\t2_results.json --output evaluation\t2_table_review.json
-```
-
-The queue has explicit checks for headers, numeric cells, column alignment,
-merged cells, and page continuity. Do not promote the derived upload limits
-until representative Vietnamese/English text PDFs, scan/mixed-layout PDFs,
-model CPU/CUDA measurements, and the manual table review are complete. The
-current checked-in `50 MB / 250 pages` values remain a provisional safety cap;
-they are not presented as an SLA.
-
-For the coverage gate and tracked-file secret scan:
-
-```powershell
-uv run --extra dev pytest -q --cov=finrag.llm --cov-fail-under=90
-python scripts/secret_scan.py
-```
-
-On Windows, the equivalent Make targets are `make test-windows`,
-`make coverage-windows`, and `make secret-scan-windows`. If `make` is not
-installed, run the commands directly from PowerShell:
-
-```powershell
-.venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe -m pytest -q --cov=finrag.llm --cov-fail-under=90
-.venv\Scripts\python.exe scripts\secret_scan.py
-```
-
-## Ingestion (Groups B / T3-T4)
-
-```powershell
-uv run python -c "from finrag.ingestion.pipeline import ingest_document; print(ingest_document('path\provided\by\the\user\report.pdf'))"
-```
-
-The current parser uses PyMuPDF as a deterministic local adapter; scanned PDFs are rejected with a clear OCR error rather than producing unreliable text. Tables are stored as Parquet when an optional local Parquet backend is available, with a JSON schema beside each table; ingestion itself never fails just because that optional backend is absent. Outputs go to `data/store/<sha256>/` and repeat uploads use the cache.
-
-### Groups A/B acceptance
-
-The T1–T4 foundation is implemented in `src/finrag`: provider-neutral LLM clients
-(`complete`/`generate` plus JSON parsing), SQLite response caching with original
-usage and latency, a thread-safe RPM limiter, PDF validation, page-preserving
-parsing, conservative table extraction, automatic metadata detection, and
-text/table chunks. `ingest_document()` registers each successful document in
-`<store>/registry.json`; a repeated upload is identified by the file SHA256 and
-returns the persisted result without parsing again. Image-only PDFs fail fast
-with an actionable OCR message. The default safety limits are 50 MB and 250 pages, selected from the Task 2 feasibility benchmark; they can be overridden explicitly for local experiments.
-
-### Groups C/D: retrieval and dev evaluation
-
-Build one BM25 and one dense index per ingested document:
-
-```powershell
-uv run python scripts\build_index.py --store-dir data\store --index-dir data\index
-```
-
-The default dense encoder is a deterministic hashed-vector fallback so the
-pipeline is reproducible offline. To use `BAAI/bge-m3` and the optional
-cross-encoder reranker, install `sentence-transformers` and pass the model
-name with `--dense-model`; the persisted index still keeps each document
-isolated. Search can combine BM25 and dense results with RRF and preserve
-`doc_id`, page, chunk, and content type through `HybridRetriever`.
-
-Validate the 20-row dev benchmark and run the T8 retrieval comparison with:
-
-```powershell
-uv run python scripts\validate_benchmark.py data\benchmark\dev.jsonl
-uv run python evaluation\run_retrieval_eval.py --index-root data\index
-```
-
-The evaluator reports Recall@3, Recall@5, MRR, and per-query results for
-BM25, dense, hybrid, and hybrid+rerank. Benchmark labels remain external
-evaluation data; they are not used by ingestion or retrieval code.
-
-For a complete Windows OCR setup after cloning:
-
-```powershell
-# Run PowerShell as Administrator because vie.traineddata is installed under Program Files
-powershell -ExecutionPolicy Bypass -File scripts\setup_ocr_windows.ps1
-uv run python scripts\ocr_check.py --language eng+vie
-```
-
-The project supports Python 3.11–3.14. Do not commit `.venv`, `.env`, source PDFs, models, or generated indexes.
-
-## Task 1: document processing
-
-Put local PDFs in `data/raw/`, then run:
-
-```powershell
-uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed
-```
-
-For scanned/image-only PDFs, install the optional Python OCR dependencies and the Tesseract executable:
-
-```powershell
-uv sync --extra dev --extra ocr
-# Windows: install Tesseract with winget (standard path is auto-detected)
-winget install --id UB-Mannheim.TesseractOCR -e --accept-package-agreements --accept-source-agreements
-# Or install from https://github.com/UB-Mannheim/tesseract/wiki
-uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-language eng
-# Optional word-level confidence and bounding boxes for review queues
-uv run python scripts\ingest_documents.py --input-dir data\raw --output-dir data\processed --ocr --ocr-confidence
-```
-
-The adapter automatically detects `C:\Program Files\Tesseract-OCR\tesseract.exe`, PATH installations, and `TESSERACT_CMD`; it also accepts `--tesseract-cmd` for custom locations. For Vietnamese OCR, install the `vie` Tesseract language data and use `--ocr-language vie` (or `eng+vie`). The repository does not commit OS-specific Tesseract binaries; the setup script installs the correct runtime on each Windows machine.
-
-The output contains `chunks.jsonl`, `manifest.json`, and CSV tables under `tables/`. Text chunks retain `doc_id`, page, section, content type, and source. Tables remain structured as DataFrames during parsing and are serialized as CSV only at the output boundary. Table manifests also retain non-destructive diagnostics for ambiguous merged or multi-row headers, numeric parse status, and high-confidence financial invariant warnings; raw cell values are not silently rewritten. With `--ocr-confidence`, the manifest also contains per-page Tesseract word confidence, low-confidence counts, and rendered-image bounding boxes; confidence is a review signal, not a calibrated probability.
-
-Optional PDF repair/preflight support is available with `uv sync --extra pdf-repair`. It checks encryption and structural errors through pikepdf/qpdf without modifying the original PDF. Encrypted files still require the correct password.
-
-Run a resumable, metrics-only benchmark over all PDFs (no extracted text is written): `uv run python scripts/benchmark_ingestion.py --input-dir data/raw --output data/processed/benchmark.json`. The report is checkpointed after every PDF and can resume with `--resume`; `summary.complete=true` and `summary.coverage=1.0` are the acceptance gates for the full corpus.
-
-Generate a compact manual review report with 30 chunks, 10 tables, and parser failures:
-
-```powershell
-uv run python scripts\inspect_ingestion.py --input-dir data\raw --output data\processed\review.json
-```
-
-Run the anonymized ground-truth evaluator with `uv run python scripts/ground_truth.py --annotations data/ground_truth/annotations.json --predictions data/ground_truth/predictions.json --output data/processed/ground_truth.report.json`. It reports header and numeric-cell precision/recall/F1 plus table-dimension accuracy without storing document text. Financial validation also emits numeric warnings for unparsed cells and high-confidence invariant failures; explicit units such as million/billion are detected without guessing from magnitude.
-
-See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the reproducible Task 1 acceptance report and its documented limitations. Ingestion-specific diagnostics are described in the ingestion sections above.
-
-## Tests
-
-```powershell
+uv sync --extra dev
 uv run pytest -q
 ```
 
-## Data policy
+Without `uv`:
 
-Raw reports and generated outputs are local artifacts and are ignored by Git. Use small synthetic fixtures in tests; do not commit proprietary or large PDFs.
+```powershell
+.venv\Scripts\python.exe -m pytest -q
+.venv\Scripts\python.exe scripts\secret_scan.py
+```
 
+Optional model/feasibility dependencies are deliberately separate:
+
+```powershell
+uv sync --extra feasibility
+```
+
+Do not commit `.env`, API keys, source PDFs, model files, generated indexes or
+cache databases.
+
+## Task 1: LLM foundation
+
+The provider-neutral client is under [`src/campusai/llm`](src/campusai/llm).
+It supports `complete`, `generate` and validated `generate_json` for Gemini and
+OpenAI-compatible endpoints. Identical prompts are cached; concurrent misses
+are single-flight. Transient HTTP/network failures are retried with bounded
+backoff, while credentials are kept out of URLs, cache keys, logs and errors.
+
+Run the offline acceptance suite:
+
+```powershell
+.venv\Scripts\python.exe -m pytest -q tests\test_llm.py tests\test_llm_acceptance.py
+.venv\Scripts\python.exe -m pytest -q --cov=campusai.llm --cov-fail-under=90
+```
+
+The live Gemini contract test is opt-in only:
+
+```powershell
+$env:RUN_LLM_INTEGRATION = "1"
+$env:GEMINI_API_KEY = "<new key supplied only in the environment>"
+.venv\Scripts\python.exe -m pytest -q tests\integration\test_gemini.py
+```
+
+See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the exact acceptance
+scope and security limitations. The cache is not encrypted at rest.
+
+## Task 2: ingestion and retrieval
+
+The default ingestion path is intentionally lightweight:
+
+1. validate size/page count and detect scan-only PDFs;
+2. extract pages with PyMuPDF;
+3. detect academic metadata;
+4. extract tables and preserve raw values;
+5. create page/heading/table chunks with provenance;
+6. persist the document by SHA-256 and build indexes separately.
+
+Docling is available only as a layout/table review option. It is not the
+default web parser because cold model loading and CPU layout processing are
+too slow for interactive requests. Scan-only PDFs currently stop with a clear
+OCR-required status; OCR is an explicit later worker capability.
+
+Build an index for an ingested document:
+
+```powershell
+.venv\Scripts\python.exe scripts\build_index.py --help
+.venv\Scripts\python.exe scripts\warm_retrieval.py --help
+```
+
+Use `mode=hybrid` for the normal fast path. Use `mode=hybrid_rerank` only for
+hard questions when a reranker is configured and memory is available.
+
+Validate the university seed benchmark:
+
+```powershell
+.venv\Scripts\python.exe scripts\validate_benchmark.py data\benchmark\dev.jsonl
+```
+
+The benchmark is currently a 20-question seed. Phase 8 in `plan.md` expands it
+to 100–300 reviewed questions with temporal, multi-hop, unanswerable and
+citation metrics.
+
+## Performance evidence
+
+The Task 2 benchmark engine in [`scripts/benchmark_t2.py`](scripts/benchmark_t2.py)
+records parser/model measurements for an operator-supplied university corpus.
+The old machine-specific financial snapshot was removed during the domain
+migration. The useful engineering rules are:
+
+- PyMuPDF is the production default for selectable-text PDFs;
+- persisted SHA-256 cache lookup is much faster than first ingestion;
+- the normal hybrid query path does not invoke a cross-encoder;
+- encoder/reranker models are process-wide singletons when enabled;
+- reranking is a deliberate hard-query feature because its CPU memory and cold
+  load are too expensive for every web request.
+
+See [`docs/performance_ux_checklist.md`](docs/performance_ux_checklist.md) for
+the remaining web UX, observability, quota and deletion work.
+
+## Free deployment target
+
+The planned public demo uses a lightweight web frontend, background ingestion,
+free-tier object/database storage and a provider free quota with mandatory
+cache/rate limits. The free deployment must enforce small uploads, page limits,
+per-user quotas and queue limits. It is a demo environment, not an unlimited
+production SLA.
+
+The architecture and phase-by-phase deployment work are documented in
+[`plan.md`](plan.md). No API secret is required for the offline parser/retrieval
+tests.
+
+## Repository layout
+
+```text
+src/campusai/        package code
+  ingestion/         validation, parsing, metadata, tables, chunking, jobs
+  retrieval/         BM25, dense, hybrid, fusion, reranker, model runtime
+  llm/               Task 1 provider/cache/retry foundation
+  rag/               grounded answer and citation layer
+tests/               offline and integration-contract tests
+evaluation/          benchmark metrics and Task 2 evidence
+data/benchmark/      small synthetic benchmark fixtures
+configs/             local defaults and free-web quotas
+docs/                acceptance and performance reports
+```
+
+## References used for design
+
+- [MarkItDown](https://github.com/microsoft/markitdown) for a modular converter
+  pipeline pattern and optional format dependencies;
+- [FAISS](https://github.com/facebookresearch/faiss) for future vector-index
+  scaling;
+- [LlamaIndex ingestion pipeline](https://docs.llamaindex.ai/en/stable/module_guides/loading/ingestion_pipeline/)
+  and [Haystack rankers](https://docs.haystack.deepset.ai/docs/ranker) for
+  comparison of ingestion metadata flow and reranking placement.
+- [Jmhzbmcn2/med_rag](https://github.com/Jmhzbmcn2/med_rag) for practical API,
+  source-card, context-header and retrieval-evaluation patterns.

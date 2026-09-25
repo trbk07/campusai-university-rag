@@ -1,8 +1,8 @@
-# Task 1 acceptance report
+# CampusAI Task 1 acceptance report
 
 ## Scope
 
-Task 1 provides a provider-neutral LLM foundation with Gemini and
+CampusAI Task 1 provides a provider-neutral LLM foundation with Gemini and
 OpenAI-compatible clients, SQLite response caching, rate limiting, bounded
 retry/backoff, JSON parsing/schema checks, and an environment-only factory.
 
@@ -20,14 +20,14 @@ uv run --extra dev pytest -q tests/test_llm.py tests/test_llm_acceptance.py
 
 # Full repository regression suite and coverage gate
 uv run --extra dev pytest -q
-uv run --extra dev pytest -q --cov=finrag.llm --cov-fail-under=90
+uv run --extra dev pytest -q --cov=campusai.llm --cov-fail-under=90
 ```
 
 On Windows without `make`, use:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe -m pytest -q --cov=finrag.llm --cov-fail-under=90
+.venv\Scripts\python.exe -m pytest -q --cov=campusai.llm --cov-fail-under=90
 .venv\Scripts\python.exe scripts\secret_scan.py
 ```
 
@@ -43,11 +43,11 @@ The acceptance suite verifies:
 - factory BOM handling, nested YAML values, provider selection, environment keys, and validation;
 - fenced JSON, malformed JSON, and the documented schema subset.
 
-Latest local offline result:
+Latest local offline result after the CampusAI namespace/domain migration:
 
 ```text
 Task 1 acceptance: 33 passed
-Full repository: 41 passed, 1 skipped
+Full repository: 63 passed, 1 skipped
 ```
 
 The one skipped test is the opt-in live Gemini contract test. The test is

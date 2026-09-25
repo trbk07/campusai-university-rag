@@ -1,7 +1,7 @@
 """Opt-in live Gemini contract test (never runs in offline CI)."""
 import os
 import pytest
-from finrag.llm import GeminiClient, SQLiteLLMCache
+from campusai.llm import GeminiClient, SQLiteLLMCache
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_LLM_INTEGRATION") != "1" or not os.getenv("GEMINI_API_KEY"),

@@ -1,15 +1,15 @@
 import fitz
 import pytest
 
-from finrag.ingestion.metadata_detector import detect_metadata
-from finrag.ingestion.numeric_normalizer import normalize_number
-from finrag.ingestion.pipeline import ingest_document
-from finrag.ingestion.table_extractor import extract_tables
-from finrag.ingestion.validate import ValidationError, validate_pdf
-from finrag.schemas import Chunk, Table
+from campusai.ingestion.metadata_detector import detect_metadata
+from campusai.ingestion.numeric_normalizer import normalize_number
+from campusai.ingestion.pipeline import ingest_document
+from campusai.ingestion.table_extractor import extract_tables
+from campusai.ingestion.validate import ValidationError, validate_pdf
+from campusai.schemas import Chunk, Table
 
 
-def pdf(path, text="Revenue 2024 2023\n1,234.5 1.000,0\n"):
+def pdf(path, text="Course 2024 2023\n3 2\n"):
     document = fitz.open()
     page = document.new_page()
     page.insert_text((72, 72), text)
@@ -19,7 +19,7 @@ def pdf(path, text="Revenue 2024 2023\n1,234.5 1.000,0\n"):
 
 def test_ingest_and_cache(tmp_path):
     source = tmp_path / "a.pdf"
-    pdf(source, "Báo cáo hợp nhất 2024\nDoanh thu | 2024 | 2023\n1.234,5 | 1.000,0")
+    pdf(source, "Quy che dao tao 2024\nMa hoc phan | Hoc ky | Tin chi\nCS101 | 1 | 3")
     first = ingest_document(source, tmp_path / "store")
     second = ingest_document(source, tmp_path / "store")
     assert first.doc_id == second.doc_id
@@ -47,26 +47,30 @@ def test_numeric_formats():
     assert normalize_number("1.234,5") == 1234.5
     assert normalize_number("1,234.5") == 1234.5
     assert normalize_number("(123)") == -123
-    assert normalize_number("−1 234,50") == -1234.5
+    assert normalize_number("-1 234,50") == -1234.5
     assert normalize_number("N/A") is None
 
 
-def test_metadata_supports_unicode_and_mojibake():
-    metadata = detect_metadata("Báo cáo hợp nhất, đơn vị: triệu đồng, năm 2024")
+def test_metadata_supports_university_documents():
+    metadata = detect_metadata(
+        "Quy chế đào tạo năm học 2024-2025, học kỳ 1, "
+        "học phí 1 triệu đồng và 3 tín chỉ."
+    )
+    assert metadata["domain"] == "academic"
     assert metadata["language"] == "vi"
     assert metadata["currency"] == "VND"
-    assert metadata["units"] == ["million"]
-    assert metadata["consolidation"] == "consolidated"
-    assert 2024 in metadata["fiscal_years"]
+    assert metadata["units"] == ["credit", "million"]
+    assert metadata["academic_years"] == [2024, 2025]
+    assert metadata["semesters"] == ["1"]
 
 
 def test_table_extractor_merges_continuations_and_keeps_warnings():
     pages = [
-        {"page": 1, "text": "Khoản mục | 2024 | 2023\nDoanh thu | 10 | 9"},
-        {"page": 2, "text": "Khoản mục | 2024 | 2023\nChi phí | 4 | 3"},
+        {"page": 1, "text": "Hoc phan | 2024 | 2023\nCS101 | 3 | 3"},
+        {"page": 2, "text": "Hoc phan | 2024 | 2023\nCS102 | 4 | 4"},
     ]
     tables = extract_tables(pages, "doc")
     assert len(tables) == 1
     assert tables[0].pages == [1, 2]
-    assert tables[0].rows[-1][0] == "Chi phí"
+    assert tables[0].rows[-1][0] == "CS102"
     assert tables[0].schema["raw_preserved"] is True

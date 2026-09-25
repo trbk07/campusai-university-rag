@@ -28,7 +28,7 @@ wheels = [
 ]
 
 [[package]]
-name = "adaptive-rag-financial-business-reports"
+name = "campusai-evidence-rag"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

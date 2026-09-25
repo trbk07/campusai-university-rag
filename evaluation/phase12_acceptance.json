@@ -1,0 +1,247 @@
+{
+  "schema_version": 2,
+  "phase": "1-2",
+  "environment": {
+    "python": "3.14.6 (main, Jun 23 2026, 15:20:04) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "parser_version": "pymupdf-text-v1",
+    "chunker_version": "structure-v2"
+  },
+  "corpus": {
+    "input_dir": "D:\\Project\\data\\corpus\\university",
+    "supplied_real_pdfs": 7,
+    "supplied_text_pdfs": 4,
+    "supplied_review_pdfs": 3,
+    "generated_acceptance_fixtures": 0,
+    "real_document_hashes": [
+      "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+    ],
+    "holdout": "D:\\Project\\data\\corpus\\university\\uet_admission_2025.pdf",
+    "finance_files_excluded": true
+  },
+  "documents": [
+    {
+      "document": "uet_admission_2024.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "review_required",
+      "pages": 35,
+      "language": null,
+      "document_type": "unknown",
+      "chunks": 0,
+      "tables": 0,
+      "warnings": [
+        "PDF không có text; cần OCR",
+        "no_extractable_text",
+        "ocr_required"
+      ],
+      "elapsed_seconds": 0.03992,
+      "doc_id": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "metadata_quality": {
+        "institution": null,
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "admission_notice",
+      "manifest_sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9"
+    },
+    {
+      "document": "uet_admission_2025.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "review_required",
+      "pages": 32,
+      "language": null,
+      "document_type": "unknown",
+      "chunks": 0,
+      "tables": 0,
+      "warnings": [
+        "PDF không có text; cần OCR",
+        "no_extractable_text",
+        "ocr_required"
+      ],
+      "elapsed_seconds": 0.057069,
+      "doc_id": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "metadata_quality": {
+        "institution": null,
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": true,
+      "manifest_document_type": "admission_regulation",
+      "manifest_sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7"
+    },
+    {
+      "document": "uet_computer_engineering_program.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "review_required",
+      "pages": 6,
+      "language": null,
+      "document_type": "unknown",
+      "chunks": 0,
+      "tables": 0,
+      "warnings": [
+        "PDF không có text; cần OCR",
+        "no_extractable_text",
+        "ocr_required"
+      ],
+      "elapsed_seconds": 0.008891,
+      "doc_id": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "metadata_quality": {
+        "institution": null,
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "curriculum",
+      "manifest_sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967"
+    },
+    {
+      "document": "uet_cs_progression.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "succeeded",
+      "pages": 1,
+      "language": "vi",
+      "document_type": "curriculum",
+      "chunks": 3,
+      "tables": 0,
+      "warnings": [],
+      "elapsed_seconds": 0.028042,
+      "doc_id": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "metadata_quality": {
+        "institution": null,
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "curriculum",
+      "manifest_sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8"
+    },
+    {
+      "document": "uet_electronics_program_2023.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "succeeded",
+      "pages": 13,
+      "language": "vi",
+      "document_type": "curriculum",
+      "chunks": 164,
+      "tables": 1,
+      "warnings": [],
+      "elapsed_seconds": 0.363124,
+      "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "metadata_quality": {
+        "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
+        "program": "Tên ngành đào tạo",
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "curriculum",
+      "manifest_sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6"
+    },
+    {
+      "document": "uet_masters_admission_2022.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "succeeded",
+      "pages": 18,
+      "language": "vi",
+      "document_type": "regulation",
+      "chunks": 109,
+      "tables": 4,
+      "warnings": [],
+      "elapsed_seconds": 0.124047,
+      "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "metadata_quality": {
+        "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
+        "program": "Kỹ thuật phần mềm",
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "admission_notice",
+      "manifest_sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59"
+    },
+    {
+      "document": "uet_program_adjustments_2021.pdf",
+      "source_kind": "supplied_real_corpus",
+      "status": "succeeded",
+      "pages": 3,
+      "language": "vi",
+      "document_type": "curriculum",
+      "chunks": 50,
+      "tables": 0,
+      "warnings": [],
+      "elapsed_seconds": 0.066034,
+      "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "metadata_quality": {
+        "institution": "ĐẠI HỌC QUỐC GIA HÀ NỘI",
+        "program": null,
+        "version": null,
+        "effective_date": null
+      },
+      "chunks_over_limit": [],
+      "missing_chunk_provenance": [],
+      "holdout": false,
+      "manifest_document_type": "curriculum_update",
+      "manifest_sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+    }
+  ],
+  "scan_review": {
+    "document": "scan.pdf",
+    "source_kind": "generated_scan_review_fixture",
+    "status": "review_required",
+    "pages": 1,
+    "language": null,
+    "document_type": "unknown",
+    "chunks": 0,
+    "tables": 0,
+    "warnings": [
+      "PDF không có text; cần OCR",
+      "no_extractable_text",
+      "ocr_required"
+    ],
+    "elapsed_seconds": 0.064052,
+    "doc_id": "5701566651f4462020e0e43feec1ecc74e3797af547f7b48d8c80087776164fa",
+    "metadata_quality": {
+      "institution": null,
+      "program": null,
+      "version": null,
+      "effective_date": null
+    },
+    "chunks_over_limit": [],
+    "missing_chunk_provenance": []
+  },
+  "exit_criteria": {
+    "every_chunk_has_doc_page_type_and_citation": true,
+    "scan_review_required_ocr": true,
+    "golden_fixtures_present": true,
+    "no_chunk_overflow": true,
+    "real_corpus_minimum_met": true,
+    "document_type_coverage_met": true,
+    "failure_mode_coverage_met": true,
+    "real_corpus_manifest_complete": true,
+    "holdout_declared": true,
+    "all_real_documents_terminal": true
+  }
+}

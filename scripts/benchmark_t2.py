@@ -192,9 +192,24 @@ def environment(device: str) -> dict[str, Any]:
 
 
 def _read_pages(path: Path) -> list[dict[str, Any]]:
-    from finrag.ingestion.docling_parser import parse_pdf
+    from campusai.ingestion.docling_parser import parse_pdf
 
     return parse_pdf(path)
+
+
+def _pdf_has_images(path: Path) -> bool:
+    """Return whether a text PDF also contains raster/image layout content."""
+
+    try:
+        import fitz
+
+        document = fitz.open(str(path))
+        try:
+            return any(page.get_images(full=True) for page in document)
+        finally:
+            document.close()
+    except Exception:
+        return False
 
 
 def _sample_texts(paths: Iterable[Path], limit: int = 64) -> list[str]:
@@ -212,11 +227,11 @@ def _sample_texts(paths: Iterable[Path], limit: int = 64) -> list[str]:
                 samples.append(text[:4000])
             if len(samples) >= limit:
                 return samples
-    return samples or ["Financial report revenue and operating income."]
+    return samples or ["university curriculum course prerequisite and semester."]
 
 
 def _run_docling(path: Path) -> dict[str, Any]:
-    from finrag.ingestion.docling_parser import parse_with_docling
+    from campusai.ingestion.docling_parser import parse_with_docling
 
     started = time.perf_counter()
     with PeakMemory() as memory:
@@ -232,17 +247,20 @@ def benchmark_parser(
     max_mb: int,
     max_pages: int,
     run_docling: bool,
+    store_dir: Path = Path("data/processed/t2_store"),
+    docling_max_pages: int | None = None,
 ) -> dict[str, Any]:
     """Measure cold parsing separately from persisted-cache lookup."""
 
-    from finrag.ingestion.pipeline import ingest_document
-    from finrag.ingestion.validate import validate_pdf
+    from campusai.ingestion.pipeline import ingest_document
+    from campusai.ingestion.validate import validate_pdf
 
     result: dict[str, Any] = {
         "path": str(path),
         "file_size_bytes": path.stat().st_size,
         "sha256": sha256(path),
         "implementation": "pymupdf",
+        "content_type": "unknown",
     }
 
     try:
@@ -257,16 +275,26 @@ def benchmark_parser(
 
     result["pages"] = validation.pages
     if not validation.has_text:
-        result.update({"status": "skipped", "reason": "no_text_requires_ocr"})
+        result.update(
+            {"status": "skipped", "reason": "no_text_requires_ocr", "content_type": "scan_or_image"}
+        )
         if run_docling:
-            try:
-                result["docling"] = _run_docling(path)
-            except Exception as error:
+            if docling_max_pages is not None and validation.pages > docling_max_pages:
                 result["docling"] = {
-                    "status": "blocked" if type(error).__name__ == "DoclingUnavailable" else "failed",
-                    "error_type": type(error).__name__,
-                    "error": str(error),
+                    "status": "skipped",
+                    "reason": "docling_page_budget",
+                    "pages": validation.pages,
+                    "max_pages": docling_max_pages,
                 }
+            else:
+                try:
+                    result["docling"] = _run_docling(path)
+                except Exception as error:
+                    result["docling"] = {
+                        "status": "blocked" if type(error).__name__ == "DoclingUnavailable" else "failed",
+                        "error_type": type(error).__name__,
+                        "error": str(error),
+                    }
         return result
 
     try:
@@ -278,6 +306,9 @@ def benchmark_parser(
         result.update(
             {
                 "status": "success",
+                "content_type": (
+                    "mixed_layout" if _pdf_has_images(path) else "text"
+                ),
                 "pages": len(pages),
                 "text_chars": sum(len(str(page.get("text", ""))) for page in pages),
                 "cold_parse_seconds": round(cold_seconds, 6),
@@ -292,7 +323,6 @@ def benchmark_parser(
             }
         )
 
-        store_dir = Path("data/processed/t2_store")
         started = time.perf_counter()
         document = ingest_document(
             path,
@@ -342,14 +372,22 @@ def benchmark_parser(
         )
 
     if run_docling:
-        try:
-            result["docling"] = _run_docling(path)
-        except Exception as error:
+        if docling_max_pages is not None and result.get("pages", 0) > docling_max_pages:
             result["docling"] = {
-                "status": "blocked" if type(error).__name__ == "DoclingUnavailable" else "failed",
-                "error_type": type(error).__name__,
-                "error": str(error),
+                "status": "skipped",
+                "reason": "docling_page_budget",
+                "pages": result.get("pages"),
+                "max_pages": docling_max_pages,
             }
+        else:
+            try:
+                result["docling"] = _run_docling(path)
+            except Exception as error:
+                result["docling"] = {
+                    "status": "blocked" if type(error).__name__ == "DoclingUnavailable" else "failed",
+                    "error_type": type(error).__name__,
+                    "error": str(error),
+                }
     return result
 
 
@@ -424,7 +462,7 @@ def _benchmark_encoder(
     return {
         "item_count": len(texts),
         "batch_size": batch_size,
-        "dimension": len(vectors[0]) if len(vectors) else 0,
+        "embedding_dimension": len(vectors[0]) if len(vectors) else 0,
         "cold_seconds": round(cold_seconds, 6),
         "warm_seconds": [round(value, 6) for value in warm_seconds],
         "warm_p50_seconds": round(warm_p50, 6) if warm_p50 is not None else None,
@@ -440,7 +478,7 @@ def _benchmark_reranker(
     batch_size: int,
     repeats: int,
 ) -> dict[str, Any]:
-    pairs = [["What is revenue?", text] for text in texts]
+    pairs = [["What is the course prerequisite?", text] for text in texts]
     started = time.perf_counter()
     with PeakMemory() as memory:
         model.predict(pairs, batch_size=batch_size, show_progress_bar=False)
@@ -478,6 +516,20 @@ def benchmark_models(
         "device": device,
         "text_count": len(texts),
     }
+    if device == "cuda":
+        try:
+            import torch
+
+            if not torch.cuda.is_available():
+                return {**result, "status": "blocked", "reason": "cuda_unavailable"}
+        except (ImportError, OSError) as error:
+            return {
+                **result,
+                "status": "blocked",
+                "reason": "cuda_probe_failed",
+                "error_type": type(error).__name__,
+                "error": str(error),
+            }
     if not _module_available("sentence_transformers"):
         return {**result, "reason": "sentence_transformers_not_installed"}
 
@@ -551,6 +603,11 @@ def derive_limits(
         "concurrency": concurrency,
         "timeout_seconds": timeout_seconds,
     }
+    failure_rate_gate = {
+        "threshold": 0.05,
+        "passed": evidence["failure_rate"] is not None
+        and evidence["failure_rate"] <= 0.05,
+    }
 
     distinct_page_counts = {row.get("pages") for row in rows}
     if (
@@ -559,7 +616,20 @@ def derive_limits(
         or evidence["max_cold_peak_rss_delta_mb"] is None
     ):
         evidence["reason"] = "at_least_two_document_sizes_are_required_to_estimate_memory_growth_per_page"
-        return {"status": "insufficient_evidence", "evidence": evidence, "limits": None}
+        return {
+            "status": "insufficient_evidence",
+            "evidence": evidence,
+            "failure_rate_gate": failure_rate_gate,
+            "limits": None,
+        }
+    if not failure_rate_gate["passed"]:
+        evidence["reason"] = "failure_rate_must_be_at_most_0.05_to_promote_limits"
+        return {
+            "status": "insufficient_evidence",
+            "evidence": evidence,
+            "failure_rate_gate": failure_rate_gate,
+            "limits": None,
+        }
 
     p95_seconds = float(evidence["p95_seconds_per_page"])
     measured_rss = float(evidence["max_cold_peak_rss_delta_mb"])
@@ -571,6 +641,7 @@ def derive_limits(
     return {
         "status": "measured",
         "evidence": evidence,
+        "failure_rate_gate": failure_rate_gate,
         "limits": {
             "soft_max_pages": max(1, math.floor(hard_pages * 0.8)),
             "hard_max_pages": hard_pages,
@@ -591,6 +662,115 @@ def _model_peak_rss(models: dict[str, Any]) -> float | None:
         if isinstance(value, (int, float)):
             peaks.append(float(value))
     return max(peaks) if peaks else None
+
+
+def corpus_coverage(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Summarize the corpus dimensions needed by the T2 acceptance gate."""
+
+    text_rows = [
+        row
+        for row in rows
+        if row.get("content_type") in {"text", "mixed_layout"}
+        and row.get("language")
+    ]
+    languages = sorted(
+        {
+            str(row["language"])
+            for row in text_rows
+            if row.get("language")
+        }
+    )
+    table_rows = [
+        row
+        for row in text_rows
+        if row.get("tables", 0) or row.get("table_inventory")
+    ]
+    return {
+        "documents": len(rows),
+        "text_documents": len(text_rows),
+        "scan_or_image_documents": sum(
+            row.get("content_type") == "scan_or_image" for row in rows
+        ),
+        "languages": languages,
+        "has_vietnamese_text": "vi" in languages,
+        "has_english_text": "en" in languages,
+        "has_scan_or_image": any(
+            row.get("content_type") == "scan_or_image" for row in rows
+        ),
+        "has_mixed_layout": any(
+            row.get("content_type") == "mixed_layout" for row in rows
+        ),
+        "mixed_layout_documents": sum(
+            row.get("content_type") == "mixed_layout" for row in rows
+        ),
+        "has_tables": bool(table_rows),
+        "table_documents": len(table_rows),
+        "has_holdout": any(row.get("holdout") is True for row in rows),
+    }
+
+
+def docling_comparison(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    """Record side-by-side evidence and the production parser decision."""
+
+    documents: list[dict[str, Any]] = []
+    for row in rows:
+        docling = row.get("docling")
+        if not isinstance(docling, dict):
+            continue
+        item: dict[str, Any] = {
+            "document": row.get("path"),
+            "pymupdf": {
+                "pages": row.get("pages"),
+                "tables": row.get("tables", 0),
+                "text_chars": row.get("text_chars"),
+                "cold_seconds": row.get("cold_parse_seconds"),
+                "peak_rss_mb": row.get("cold_peak_rss_mb"),
+            },
+            "docling": {
+                key: docling.get(key)
+                for key in (
+                    "status",
+                    "pages",
+                    "tables",
+                    "pictures",
+                    "markdown_chars",
+                    "seconds",
+                    "peak_rss_mb",
+                    "reason",
+                )
+                if key in docling
+            },
+        }
+        if docling.get("status") == "success":
+            item["review"] = {
+                "page_provenance": (
+                    "acceptable"
+                    if docling.get("pages") == row.get("pages")
+                    else "needs_review"
+                ),
+                "table_structure": (
+                    "docling_detected"
+                    if docling.get("tables", 0)
+                    else "pymupdf_or_manual_review_required"
+                ),
+                "text_coverage": "markdown_proxy_recorded",
+            }
+        else:
+            item["review"] = {"page_provenance": "not_run"}
+        documents.append(item)
+    return {
+        "status": "complete" if documents else "not_run",
+        "documents": documents,
+        "decision": {
+            "production_parser": "pymupdf",
+            "docling_role": "fallback_and_layout_review",
+            "rationale": (
+                "PyMuPDF is materially lighter for page text and cache ingestion; "
+                "Docling is retained for layout-heavy or table-review cases because "
+                "the measured CPU RSS and latency are higher and table output varies."
+            ),
+        },
+    }
 
 
 def _load_report(path: Path) -> dict[str, Any]:
@@ -623,9 +803,31 @@ def main() -> None:
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     parser.add_argument("--batch-size", type=int, default=8)
     parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument(
+        "--model-text-count",
+        type=int,
+        default=64,
+        help="Fixed number of non-empty page excerpts used for model timing.",
+    )
     parser.add_argument("--memory-budget-mb", type=int, default=2048)
     parser.add_argument("--concurrency", type=int, default=1)
     parser.add_argument("--timeout-seconds", type=int, default=120)
+    parser.add_argument(
+        "--store-dir",
+        type=Path,
+        default=Path("data/processed/t2_store"),
+        help="Persist benchmark cache/registry here (separate from production data).",
+    )
+    parser.add_argument(
+        "--docling-max-pages",
+        type=int,
+        help="Skip Docling conversion above this page count and record the reason.",
+    )
+    parser.add_argument(
+        "--holdout",
+        type=Path,
+        help="Mark one supplied PDF as a holdout document for the coverage gate.",
+    )
     args = parser.parse_args()
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -647,19 +849,53 @@ def main() -> None:
             },
         }
 
-    files = sorted(args.input_dir.glob("*.pdf"))
+    # Backfill fields introduced after earlier schema-2 artifacts were created.
+    for row in report["parser"]:
+        if "content_type" not in row:
+            row["content_type"] = (
+                "text"
+                if row.get("status") == "success"
+                else "scan_or_image"
+                if row.get("reason") == "no_text_requires_ocr"
+                else "unknown"
+            )
+
+    files = sorted(
+        path
+        for path in args.input_dir.rglob("*.pdf")
+        if path.is_file()
+        and not any(
+            part.startswith(".") or part in {"tmp", "output"}
+            for part in path.relative_to(args.input_dir).parts
+        )
+    )
+    if args.holdout:
+        for row in report["parser"]:
+            if row.get("path") and Path(row["path"]).resolve() == args.holdout.resolve():
+                row["holdout"] = True
     recorded = {row.get("sha256") for row in report["parser"]}
     for path in files:
         if sha256(path) in recorded:
             continue
         report["parser"].append(
-            benchmark_parser(path, args.max_mb, args.max_pages, args.run_docling)
+            benchmark_parser(
+                path,
+                args.max_mb,
+                args.max_pages,
+                args.run_docling,
+                store_dir=args.store_dir,
+                docling_max_pages=args.docling_max_pages,
+            )
         )
+        if args.holdout and path.resolve() == args.holdout.resolve():
+            report["parser"][-1]["holdout"] = True
         report["updated_at_utc"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
 
     if args.run_models:
-        texts = _sample_texts(files)
+        if args.model_text_count <= 0:
+            raise SystemExit("--model-text-count must be positive")
+        texts = _sample_texts(files, limit=args.model_text_count)
         report["models"] = benchmark_models(
             texts,
             report["environment"]["device_selected"],
@@ -673,6 +909,7 @@ def main() -> None:
         concurrency=args.concurrency,
         timeout_seconds=args.timeout_seconds,
     )
+    report["docling_comparison"] = docling_comparison(report["parser"])
     report["summary"] = {
         "documents_discovered": len(files),
         "documents_recorded": len(report["parser"]),
@@ -682,6 +919,7 @@ def main() -> None:
         "complete": len({row.get("sha256") for row in report["parser"]}) == len(files),
         "max_upload_mb": args.max_mb,
         "max_pages": args.max_pages,
+        "coverage": corpus_coverage(report["parser"]),
         "acceptance_ready": (
             report["limits"]["status"] == "measured"
             and report["models"].get("status") == "success"

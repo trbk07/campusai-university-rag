@@ -9,8 +9,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from finrag.schemas import Chunk, Document, Table
-from finrag.retrieval.index_builder import build_document_indexes
+from campusai.schemas import Chunk, Document, Table
+from campusai.retrieval.index_builder import build_document_indexes
 
 
 def load_document(meta_path: Path) -> Document:
@@ -26,6 +26,8 @@ def main() -> None:
     parser.add_argument("--index-dir", default="data/index")
     parser.add_argument("--doc-id", action="append")
     parser.add_argument("--dense-model", default="fallback-hash-256")
+    parser.add_argument("--device", default="cpu", choices=("cpu", "cuda"))
+    parser.add_argument("--batch-size", type=int, default=8)
     args = parser.parse_args()
     root = Path(args.store_dir)
     selected = set(args.doc_id or [])
@@ -33,7 +35,13 @@ def main() -> None:
         document = load_document(meta_path)
         if selected and document.doc_id not in selected:
             continue
-        target = build_document_indexes(document, args.index_dir, args.dense_model)
+        target = build_document_indexes(
+            document,
+            args.index_dir,
+            args.dense_model,
+            device=args.device,
+            batch_size=args.batch_size,
+        )
         print(f"indexed {document.doc_id} -> {target}")
 
 

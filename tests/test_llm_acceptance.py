@@ -8,8 +8,8 @@ from email.utils import formatdate
 
 import pytest
 
-from finrag.llm.cache import SQLiteLLMCache
-from finrag.llm.client import (
+from campusai.llm.cache import SQLiteLLMCache
+from campusai.llm.client import (
     GeminiClient,
     LLMAuthenticationError,
     LLMProviderError,
@@ -22,14 +22,14 @@ from finrag.llm.client import (
     _retry_after_seconds,
     build_cache_key,
 )
-from finrag.llm.factory import (
+from campusai.llm.factory import (
     _fallback_yaml,
     _integer,
     _read_config,
     _scalar,
     create_llm,
 )
-from finrag.llm.rate_limiter import RateLimiter
+from campusai.llm.rate_limiter import RateLimiter
 
 
 def _response(payload):
@@ -132,7 +132,7 @@ def test_transient_http_errors_retry_then_succeed(status, monkeypatch):
         return _response({"choices": [{"message": {"content": "recovered"}}]})
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-    monkeypatch.setattr("finrag.llm.client._sleep_backoff", lambda *args: None)
+    monkeypatch.setattr("campusai.llm.client._sleep_backoff", lambda *args: None)
     response = OpenAICompatibleClient(
         "https://provider.test/chat", "key", "model", max_retries=1
     ).complete("retry")
@@ -151,7 +151,7 @@ def test_timeout_retries_then_succeeds(monkeypatch):
         return _response({"choices": [{"message": {"content": "recovered"}}]})
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-    monkeypatch.setattr("finrag.llm.client._sleep_backoff", lambda *args: None)
+    monkeypatch.setattr("campusai.llm.client._sleep_backoff", lambda *args: None)
     assert OpenAICompatibleClient(
         "https://provider.test/chat", "key", "model", max_retries=1
     ).complete("retry").text == "recovered"
@@ -169,7 +169,7 @@ def test_retry_exhaustion_and_429_classification(monkeypatch):
         )
 
     monkeypatch.setattr("urllib.request.urlopen", fake_urlopen)
-    monkeypatch.setattr("finrag.llm.client._sleep_backoff", lambda *args: None)
+    monkeypatch.setattr("campusai.llm.client._sleep_backoff", lambda *args: None)
     with pytest.raises(LLMRateLimitError):
         OpenAICompatibleClient(
             "https://provider.test/chat", "key", "model", max_retries=2
@@ -178,13 +178,13 @@ def test_retry_exhaustion_and_429_classification(monkeypatch):
 
 
 def test_retry_after_http_date_is_supported(monkeypatch):
-    monkeypatch.setattr("finrag.llm.client.time.time", lambda: 1_000.0)
+    monkeypatch.setattr("campusai.llm.client.time.time", lambda: 1_000.0)
     value = formatdate(1_003.0, usegmt=True)
     assert 2.0 <= _retry_after_seconds(value) <= 3.0
 
 
 def test_retry_helpers_cover_limiter_and_invalid_date(monkeypatch):
-    monkeypatch.setattr("finrag.llm.client.parsedate_to_datetime", lambda value: None)
+    monkeypatch.setattr("campusai.llm.client.parsedate_to_datetime", lambda value: None)
     assert _retry_after_seconds("invalid-but-parseable") is None
 
     class FakeLimiter:
@@ -264,7 +264,7 @@ def test_retry_and_schema_edge_cases(monkeypatch):
     assert _retry_after_seconds(None) is None
     assert _retry_after_seconds("not-a-date") is None
     sleeps = []
-    monkeypatch.setattr("finrag.llm.client.time.sleep", sleeps.append)
+    monkeypatch.setattr("campusai.llm.client.time.sleep", sleeps.append)
     _sleep_backoff(0)
     _sleep_backoff(0, 1000)
     assert sleeps == [0.75, 60.0]
@@ -313,7 +313,7 @@ def test_transport_error_classification_and_json_shapes(monkeypatch):
         raise urllib.error.URLError("offline")
 
     monkeypatch.setattr("urllib.request.urlopen", network_error)
-    monkeypatch.setattr("finrag.llm.client._sleep_backoff", lambda *args: None)
+    monkeypatch.setattr("campusai.llm.client._sleep_backoff", lambda *args: None)
     with pytest.raises(LLMProviderError):
         OpenAICompatibleClient("https://provider.test", "key", "model", max_retries=1).complete("x")
 
@@ -476,7 +476,7 @@ def test_limiter_and_cache_context(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         RateLimiter(-1)
     limiter = RateLimiter(0)
-    monkeypatch.setattr("finrag.llm.rate_limiter.time.sleep", lambda delay: None)
+    monkeypatch.setattr("campusai.llm.rate_limiter.time.sleep", lambda delay: None)
     limiter.wait()
     limiter.backoff(1, 1000)
     with SQLiteLLMCache(str(tmp_path / "context.sqlite")) as cache:

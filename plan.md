@@ -1,305 +1,610 @@
-# Adaptive Agentic RAG cho Báo cáo tài chính — Plan v2
+# CampusAI — Evidence-Grounded University Knowledge Assistant
 
-Ứng dụng hỏi đáp trên báo cáo tài chính PDF (text + bảng). **Người dùng tự upload PDF làm input**, hệ thống parse, lập chỉ mục, rồi tự chọn mức xử lý theo độ khó của câu hỏi để cân bằng **độ chính xác** và **chi phí (latency, số lần gọi LLM)**. Toàn bộ chạy miễn phí.
+## 1. Quyết định sản phẩm
 
-Các PDF Vinamilk, FPT, Apple, Tesla chỉ là **dữ liệu đánh giá** (nằm ngoài code ứng dụng), không được hardcode ở đâu trong hệ thống.
+Tên dự án chính thức: **CampusAI**.
 
----
+Tên mô tả: **Evidence-Grounded University Knowledge Assistant**.
 
-## 1. Câu hỏi nghiên cứu & benchmark
+Slug repository/package: `campusai-evidence-rag` / `campusai`.
 
-| RQ | Câu hỏi | Task |
-|---|---|---|
-| RQ1 | Hybrid (BM25 + dense + RRF + rerank) hơn từng retriever đơn lẻ bao nhiêu? | T8 |
-| RQ2 | Table tool giúp câu tính toán chính xác hơn bao nhiêu so với đọc bảng dạng text? | T16 |
-| RQ3 | Adaptive giữ được bao nhiêu accuracy của Full-Agentic với bao nhiêu chi phí? | T15–T16 |
+CampusAI là trợ lý hỏi đáp tri thức đại học. Người dùng tải lên các tài liệu có nguồn rõ ràng như quy chế đào tạo, chương trình đào tạo, đề cương học phần, sổ tay sinh viên, thông báo học vụ và bảng học phí. Hệ thống trích xuất nội dung, lập chỉ mục, trả lời bằng tiếng Việt hoặc tiếng Anh, luôn dẫn nguồn đến tài liệu/trang và từ chối khi không có đủ bằng chứng.
 
-**Benchmark 50 câu** trên 4 PDF mẫu = 5 nhóm × 10: Fact, Table filter/groupby, Calculation, Comparison, Multi-hop. Chia **dev 20 / test 30**; tune chỉ trên dev. Test phải có ≥ 1 file **chưa từng dùng khi tune** để kiểm tra khả năng tổng quát hoá sang tài liệu lạ.
+Phạm vi cốt lõi:
 
-**Độ khó định nghĩa theo số vị trí bằng chứng** (không theo từ khoá):
-- Easy: 1 vị trí, không tính toán.
-- Medium: 1 bảng/1 trang, cần lọc/tra cứu hoặc ≤ 1 phép tính (so sánh 2 năm trong cùng một bảng là Medium).
-- Hard: ≥ 2 vị trí (khác trang/khác tài liệu/khác bảng) hoặc tính nhiều bước.
+- học phần, mã môn, tín chỉ, học kỳ, điều kiện tiên quyết;
+- quy chế, thời hạn đăng ký, điều kiện tốt nghiệp, thủ tục học vụ;
+- so sánh chương trình hoặc quy định giữa các năm;
+- truy vấn nhiều tài liệu và câu hỏi cần nối nhiều mảnh bằng chứng;
+- bảng biểu có thể kiểm tra được, không để LLM tự đoán số liệu.
 
-**Metric:** Recall@3/5, MRR (retrieval) · accuracy (số: sai số tương đối ≤ 0.1% sau chuẩn hoá đơn vị; text: khớp chuẩn hoá + chấm tay phần còn lại) · citation match (trang trích dẫn ∈ trang vàng) · hallucination (đáp án chứa số không có trong bằng chứng) · latency API, số call/câu.
+Không còn coi báo cáo tài chính là domain sản phẩm. Các fixture PDF và report
+finance-only đã được xóa; khi cần đo lại Task 2, benchmark phải chạy trên corpus
+đại học được cung cấp và review lại từ đầu.
 
-Mẫu một câu benchmark:
-```json
-{"qid":"t-017","split":"test","question":"...","category":"calculation","difficulty":"medium",
- "gold_answer":{"value":12345.6,"unit":"triệu đồng","period":"2024"},
- "gold_evidence":[{"doc_id":"<sha256-hoặc-tên-file>","pages":[12]}]}
+## 2. Mục tiêu và tiêu chí hoàn thành
+
+### Mục tiêu người dùng
+
+Một sinh viên có thể mở website, tải 5–10 tài liệu của trường, chờ hệ thống xử lý nền, hỏi một câu tự nhiên và nhận được:
+
+1. câu trả lời ngắn, rõ, đúng phạm vi tài liệu;
+2. citation dạng `[Tên tài liệu, trang N]` cho từng kết luận quan trọng;
+3. đoạn trích/preview để kiểm tra ngay;
+4. nhãn thời gian hoặc phiên bản tài liệu;
+5. câu trả lời “chưa đủ bằng chứng” khi không tìm thấy thông tin đáng tin cậy.
+
+### Definition of Done
+
+- Có website public chạy được bằng hạ tầng free-tier.
+- Upload PDF text-based, hiển thị progress và trạng thái job.
+- Parse, chunk, metadata, index và cache thành công.
+- Tìm kiếm BM25 + dense; query đơn giản không phải chờ reranker nặng.
+- Có chế độ rerank cho câu hỏi khó.
+- LLM chỉ được trả lời từ context đã chọn, có citation và abstention.
+- Có bộ benchmark university 100–300 câu hỏi, tách dev/test, không test trên corpus đã tune.
+- Báo cáo Recall@k, MRR/nDCG, citation precision, groundedness, abstention precision, p50/p95 latency và chi phí/token.
+- Có câu hỏi so sánh năm 2025/2026 và multi-hop trong benchmark.
+- Có dashboard tối thiểu để xem tài liệu, câu hỏi, nguồn và điểm đánh giá.
+- Deploy public bằng các dịch vụ free; có giới hạn abuse và không lưu secret trong repo.
+
+## 3. Kiến trúc mục tiêu
+
+```text
+Browser
+  │ upload / progress / chat / citations
+  ▼
+Web app/API
+  ├── rate limit + file validation + tenant/user quota
+  ├── document registry + job status
+  └── query router
+        ├── easy: BM25 hoặc cache
+        ├── normal: BM25 + dense + RRF
+        └── hard: hybrid → cross-encoder rerank
+  │
+  ├── object storage: PDF, parsed markdown, tables, manifests
+  ├── metadata DB: users, documents, versions, jobs, feedback
+  └── background worker
+        ├── validate PDF
+        ├── PyMuPDF page extraction
+        ├── academic metadata detection
+        ├── structure-aware chunking + provenance
+        ├── BM25 / dense index
+        └── ready / failed / review-required
+  │
+  ▼
+Grounded answer service
+  ├── evidence selection
+  ├── citation validation
+  ├── deterministic table/calculation path
+  ├── LLM answer generation
+  └── abstention if evidence is insufficient
 ```
 
----
+### Sơ đồ hệ thống CampusAI
 
-## 2. Yêu cầu phát sinh vì input là PDF người dùng tự đưa vào
-
-1. **Không hardcode** tên công ty, năm, đơn vị, hay cấu trúc bảng. Tất cả được tự phát hiện từ PDF (ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ); UI cho phép người dùng sửa nếu phát hiện sai.
-2. **Cache theo SHA256 của file:** upload lại cùng file thì không parse/embed lại.
-3. **Mỗi tài liệu một index riêng**, truy vấn lọc theo `doc_id`; hỗ trợ chọn nhiều tài liệu và câu hỏi so sánh giữa các file.
-4. **Xử lý chậm:** Docling + bge-m3 trên CPU tốn thời gian → chạy nền, có progress bar, giới hạn kích thước/số trang (ngưỡng chốt bằng số đo ở T2).
-5. **Song ngữ:** phát hiện ngôn ngữ từng tài liệu để chọn tokenizer (tiếng Việt cần tách từ); prompt/router chạy được cả VN và EN; trả lời theo ngôn ngữ câu hỏi.
-6. **Kiểm tra đầu vào:** file hỏng, mã hoá, PDF scan không có text → báo lỗi rõ ràng (hoặc OCR nếu khả thi) thay vì trả kết quả rác.
-7. **Nội dung PDF là dữ liệu không tin cậy:** tách rõ trong prompt, tool chỉ nhận DSL JSON, không thực thi gì sinh ra từ nội dung tài liệu.
-8. **Riêng tư:** nội dung file đi qua API LLM free-tier; hiện cảnh báo trong UI và kiểm tra điều khoản sử dụng dữ liệu của gói miễn phí.
-
----
-
-## 3. Tech stack (0đ)
-
-| Thành phần | Chọn | Ghi chú |
-|---|---|---|
-| Parser PDF + bảng | Docling (local) | Thử trên PDF tiếng Việt thật ở T2 |
-| Dense embedding | `BAAI/bge-m3` | Qua `sentence-transformers` (FastEmbed Python không có model này) |
-| Reranker | `bge-reranker-v2-m3` | Qua `sentence-transformers` (FastEmbed Python không có) |
-| Sparse | `rank-bm25` + tách từ VN (`underthesea`/`pyvi`) | Tách theo khoảng trắng sẽ cắt đôi "doanh thu" |
-| Vector DB | ChromaDB persist | Một collection/thư mục cho mỗi tài liệu |
-| LLM | Gemini Flash (model id trong config) + Groq (dự phòng/dev) | Đọc quota thật trong AI Studio; Groq 8B chỉ 6K token/phút → không dùng cho benchmark chính |
-| Table sandbox | pandas + DSL JSON + AST calculator | Không `eval/exec` chuỗi do LLM sinh |
-| Cache | `diskcache`/SQLite | Lưu cả latency và token gốc |
-| UI | Streamlit | Community Cloud chỉ ~2.7 GB RAM, không chứa nổi bge-m3 + reranker + Docling → chạy local hoặc HF Spaces (16 GB, cần kiểm tra Space miễn phí) |
-
----
-
-## 4. Kiến trúc & 4 pipeline
+Sơ đồ dưới đây mô tả luồng chính từ lúc người dùng upload tài liệu đến khi nhận câu trả
+lời có provenance. Nhánh `review_required` dừng trước indexing; chỉ tài liệu ở trạng thái
+`ready` mới được phép truy vấn.
 
 ```mermaid
-flowchart TD
-  U[User upload PDF] --> V0[Validate + SHA256]
-  V0 --> B[Docling parse]
-  B --> C[Text chunks]
-  B --> D[Tables: parquet + schema]
-  C & D --> E[Chuẩn hoá số/đơn vị + tự phát hiện metadata]
-  E --> F[(BM25)]
-  E --> G[(bge-m3 + Chroma)]
-  F & G --> H[RRF + reranker top 5]
-  Q[Query + tài liệu đã chọn] --> R{Router}
-  R -->|Easy| P1[Retrieve -> answer]
-  R -->|Medium| P2[Retrieve -> table_query/calc -> answer]
-  R -->|Hard| P3[Planner -> agent loop <=3 bước]
-  H -.-> P1 & P2 & P3
-  P1 & P2 & P3 --> V[Verify: số khớp bằng chứng + trang trích dẫn]
-  V --> O[Answer + Doc/Page]
+flowchart LR
+    U[Người dùng / Browser]
+    API[Web API<br/>Upload · Query · Poll job]
+    SEC[Validation & Security<br/>Magic bytes · quota · rate limit<br/>path safety · size/page limits]
+    JOB[Ingestion Job Manager<br/>Queue · progress · retry · cancel<br/>dedupe · bounded workers]
+
+    subgraph ING[Phase 1 — Ingestion]
+        PARSE[PyMuPDF parser<br/>page-level text extraction]
+        META[Academic metadata detector<br/>value · confidence · evidence]
+        TABLE[Table extractor<br/>raw values · headers · table ID]
+        CHUNK[Phase 2 chunker<br/>heading · section · page range]
+        PERSIST[(Document Registry<br/>SHA-256 · versions · manifests)]
+        STORE[(Artifact Store<br/>PDF · parsed text · chunks · tables)]
+        REVIEW[review_required<br/>ocr_required<br/>no indexing]
+    end
+
+    subgraph IDX[Indexing & Retrieval]
+        BM25[BM25 index]
+        DENSE[Dense index<br/>optional model / fallback]
+        FUSION[Hybrid fusion<br/>RRF · filters · dedupe]
+        RERANK[Optional reranker<br/>hard queries only]
+    end
+
+    subgraph ANSWER[Grounded answer service]
+        EVIDENCE[Evidence selection<br/>context budget]
+        VALIDATE[Citation validator<br/>chunk · document · page · range]
+        TABLECALC[Deterministic table/calculation path]
+        LLM[LLM JSON generation<br/>context-only · schema validation]
+        ABSTAIN[Abstention<br/>insufficient evidence]
+        RESP[Answer + citations<br/>source/page preview]
+    end
+
+    U --> API
+    API --> SEC
+    SEC -->|valid PDF| JOB
+    SEC -->|invalid| ERR[Structured error<br/>error_code · action]
+    JOB --> PARSE
+    PARSE -->|text available| META
+    PARSE -->|scan-only / parse risk| REVIEW
+    META --> TABLE
+    TABLE --> CHUNK
+    CHUNK --> PERSIST
+    CHUNK --> STORE
+    PERSIST -->|ingestion complete| JOB
+    STORE --> BM25
+    STORE --> DENSE
+    BM25 --> FUSION
+    DENSE --> FUSION
+    FUSION -->|normal query| EVIDENCE
+    FUSION -->|hard query| RERANK --> EVIDENCE
+    API -->|query only when ready| EVIDENCE
+    EVIDENCE --> TABLECALC
+    EVIDENCE --> LLM
+    TABLECALC --> VALIDATE
+    LLM --> VALIDATE
+    VALIDATE -->|valid evidence| RESP
+    VALIDATE -->|missing / invalid evidence| ABSTAIN
+    ABSTAIN --> RESP
+    RESP --> U
+
+    classDef phase1 fill:#e8f3ff,stroke:#2878b5,color:#12344d;
+    classDef phase2 fill:#eef9ee,stroke:#3b8f4c,color:#183d20;
+    classDef safety fill:#fff4df,stroke:#c27a00,color:#4d3100;
+    classDef answer fill:#f3eaff,stroke:#8355b5,color:#32184d;
+    class SEC,JOB,REVIEW,ERR safety;
+    class PARSE,META,TABLE,PERSIST,STORE phase1;
+    class CHUNK phase2;
+    class EVIDENCE,VALIDATE,TABLECALC,LLM,ABSTAIN,RESP answer;
 ```
 
-| Pipeline | Retrieval | Agent | Router |
-|---|---|---|---|
-| P0 Baseline | Dense only | – | – |
-| P1 Hybrid | BM25+Dense+RRF+rerank | – | – |
-| P2 Full-Agentic | Hybrid | mọi câu | – |
-| P3 Adaptive | Hybrid | chỉ nhánh Hard | rules hoặc LLM |
+#### Các invariant quan trọng trong sơ đồ
 
-Router: `rules` (regex số năm/từ khoá so sánh/số tài liệu được chọn, 0 call) và `llm` (structured output, có cache); so sánh cả hai với **oracle** (dùng nhãn vàng) để biết cận trên.
+| Điểm kiểm soát | Invariant nghiệm thu |
+|---|---|
+| Validation | File không hợp lệ bị chặn trước khi parse; không tin filename để xác định PDF. |
+| Ingestion | Job có progress/stage/error; retry idempotent; dedupe theo SHA-256. |
+| Scan/OCR | Scan-only kết thúc `review_required/ocr_required`, không sinh chunk/index. |
+| Chunking | `len(chunk.content) <= _MAX_CHARS`; heading path, page range và table boundary được giữ. |
+| Persistence | Registry/artifact có source hash, parser/chunker/schema version và có thể delete đầy đủ. |
+| Retrieval | Chỉ tài liệu `ready` được truy vấn; hybrid/reranker không làm mất provenance. |
+| Answer | Citation phải trỏ đến evidence tồn tại và page hợp lệ; nếu không thì abstain. |
 
----
+### Các quyết định kỹ thuật đã chốt
 
-## 5. Cấu trúc thư mục
+1. **Parser mặc định là PyMuPDF.** Đây là đường nhanh cho PDF có text, hiện đã có cache SHA-256, progress theo trang và kiểm tra scan. Docling chỉ chạy trong explicit review job cho layout/table khó; không dùng cho request thông thường.
+2. **Retrieval mặc định là `hybrid`.** `BM25 + dense + RRF` đủ nhanh cho web free. `hybrid_rerank` là chế độ opt-in cho câu hỏi khó, giới hạn tối đa 8 candidate.
+3. **Model phải load một lần mỗi process.** Runtime singleton và LRU query cache được giữ lại; không load encoder/reranker trong mỗi request.
+4. **Reranker không nằm trên free web request path.** CPU reranker hiện có peak memory khoảng 4.5 GB và load khoảng 56 giây trên máy benchmark; chỉ dùng worker có RAM phù hợp hoặc bật theo feature flag.
+5. **Không đưa Knowledge Graph vào MVP.** Chỉ triển khai sau khi benchmark chứng minh hybrid/multi-hop chưa giải quyết được quan hệ prerequisite hoặc version.
+6. **Không thêm framework RAG nặng ở giai đoạn đầu.** Các component hiện tại minh bạch, dễ benchmark và đã có test; có thể học pattern ingestion/index/store của LlamaIndex hoặc Haystack sau khi có nhu cầu, nhưng không đổi framework chỉ vì xu hướng.
+7. **FAISS là hướng scale-up, không bắt buộc ở MVP.** Corpus nhỏ dùng index hiện tại để giảm dependency và cold start; khi vector count tăng, benchmark FAISS với cosine bằng normalized inner product trước khi chuyển.
 
+## 4. Code hiện tại: giữ lại, sửa và xây mới
+
+### Giữ lại và tái sử dụng trực tiếp
+
+| Thành phần | Giá trị với CampusAI |
+|---|---|
+| `src/campusai/ingestion/validate.py` | giới hạn file/trang, nhận diện PDF scan, lỗi rõ ràng |
+| `docling_parser.py` / PyMuPDF path | parse page-level nhanh, giữ số trang và progress |
+| `table_extractor.py` | bảng có schema, raw preservation, cảnh báo không phá dữ liệu |
+| `chunker.py` | chunk theo heading/page/table, kế thừa metadata và provenance |
+| `documents/registry.py` | đăng ký tài liệu, cache theo hash, tránh ingest lặp |
+| `ingestion/jobs.py` | background job, retry, dedupe, bounded executor, progress |
+| `retrieval/bm25.py`, `dense_index.py`, `fusion.py`, `hybrid.py` | nền tảng retrieval nhanh, RRF, filter theo document |
+| `retrieval/model_runtime.py` | singleton encoder/reranker, tránh cold load lặp |
+| `llm/client.py`, `cache.py`, `rate_limiter.py`, `factory.py` | provider-neutral client, cache, retry/backoff, giới hạn request |
+| `evaluation/`, `scripts/validate_benchmark.py` | khung đánh giá và kiểm tra benchmark |
+| Task 2 benchmark/tests | engine đánh giá parser/retrieval có thể chạy lại trên corpus đại học |
+
+### Đối chiếu riêng với Task 1 cũ
+
+Task 1 cũ không bị bỏ đi và không cần viết lại từ đầu. Nó trở thành lớp gọi
+LLM dùng chung cho CampusAI:
+
+- `client.py`: giữ nguyên transport Gemini/OpenAI-compatible, `complete`,
+  `generate`, `generate_json`, phân loại lỗi và retry;
+- `cache.py`: giữ SQLite cache, response metadata và single-flight ở client;
+- `rate_limiter.py`: giữ giới hạn request và backoff;
+- `factory.py`: giữ cấu hình provider, environment-only secret và fallback YAML;
+- `tests/test_llm*.py`, `tests/integration/test_gemini.py`: giữ làm acceptance
+  contract, chỉ đổi import namespace `finrag` → `campusai`;
+- `docs/t1_acceptance.md`: giữ làm báo cáo acceptance, cập nhật tên sản phẩm;
+- `rag/grounding.py` mới dùng trực tiếp `generate_json` của Task 1 để trả về
+  answer/citations/abstention; LLM không được bypass citation validator.
+
+Không đưa API key, cache response hoặc provider-specific payload vào layer
+retrieval. Nếu sau này đổi Gemini sang provider free khác, chỉ factory/client
+được thay; ingestion, retrieval và citation contract không đổi.
+
+### Đã sửa để phù hợp domain mới
+
+- Đổi package từ `finrag` thành `campusai`; đổi project/lock metadata thành `campusai-evidence-rag`.
+- Đổi metadata detector từ tài chính-only thành academic: `domain`, `document_type`, `academic_years`, `years`, `semesters`, `language`, `currency` và `units` dùng cho học phí/tín chỉ.
+- Xóa các alias tài chính-only như `fiscal_years` và `consolidation`; benchmark finance cũ đã được dọn khỏi repository.
+- Đổi table schema để mang metadata academic, không còn field tài chính-only.
+- Đổi numeric normalizer thành parser số dùng chung cho tín chỉ, học phí, phần trăm và bảng; không tự đoán đơn vị.
+- Đổi warm-up query sang prerequisite/semester.
+- Đổi `data/benchmark/dev.jsonl` thành seed benchmark university gồm fact, table, calculation, comparison và multi-hop.
+- Đổi `configs/default.yaml` có app domain, quota web và tên CampusAI.
+
+### Chưa cần thay đổi
+
+- Contract `Document`, `Chunk`, `Table`: provenance hiện tại đúng với citation.
+- SHA-256 cache, page number, `content_type`, heading path.
+- Fallback dense deterministic cho môi trường không có model.
+- LLM transport, schema validation, retry và cache vì đây là hạ tầng dùng chung.
+- giới hạn benchmark Task 2 50 MB/218 trang; đây là giới hạn đo năng lực, không phải quota public web.
+
+### Phải xây thêm
+
+1. `academic_metadata` chuẩn hóa institution/program/course/academic-year/version/effective-date; trường nào không có bằng chứng thì để `null`.
+2. Answer pipeline có prompt grounding, context budget, citation validator và abstention policy.
+3. Temporal resolver: chọn bản hiện hành theo `effective_date`, trả lời so sánh khi user hỏi “khác gì giữa năm X/Y”.
+4. Multi-document retrieval và evidence set để không trộn nhầm hai chương trình.
+5. Deterministic table/calculation executor cho tín chỉ, tỷ lệ, học phí; LLM chỉ diễn giải kết quả.
+6. Web UI/API, storage adapter, authentication nhẹ, quota, health check và job polling.
+7. Evaluation dashboard, feedback “citation đúng/sai”, trace latency theo từng stage.
+
+## 5. Lộ trình triển khai theo phase
+
+### Phase 0 — Đổi tên, contract và baseline
+
+Trạng thái: **đang thực hiện**.
+
+- hoàn tất tên CampusAI, package `campusai`, README và plan này;
+- chạy import scan không còn `finrag` trong code production;
+- giữ Task 2 artifacts để regression;
+- tạo `ARCHITECTURE.md`, `.env.example`, policy dữ liệu.
+
+Exit criteria: test suite pass; import public là `campusai.*`; benchmark validator pass.
+
+### Phase 1 — Ingestion đại học (10/10 gate)
+
+#### Chiến lược đã chọn
+
+Phase 1 dùng pipeline deterministic-first: PyMuPDF cho PDF text-based là đường mặc định,
+Docling/OCR chỉ là nhánh review opt-in cho tài liệu khó. Không gọi LLM để parse metadata,
+không index tài liệu chưa đạt validation, và không coi fixture sinh tự động là corpus thật.
+Mỗi tài liệu được xử lý qua một job idempotent, có registry, version, provenance và trạng
+thái rõ ràng. Đây là lựa chọn tối ưu cho free-tier vì giảm cold start, chi phí và bề mặt lỗi,
+đồng thời vẫn mở đường cho OCR/layout parser ở worker riêng.
+
+#### Contract đầu vào và corpus nghiệm thu
+
+- [ ] Có tối thiểu **5 PDF đại học thật**, ưu tiên UET/VNU; corpus phải đa dạng loại/layout
+  và không dùng synthetic fixture để thay thế coverage thật.
+- [ ] Corpus bao phủ regulation, curriculum, syllabus, handbook, course catalog, tài liệu
+  nhiều trang, tài liệu có bảng, tiếng Việt có dấu, tiếng Anh/song ngữ và ít nhất hai
+  phiên bản/năm khác nhau.
+- [ ] Có `supplied_real_corpus`, `generated_test_fixtures` và `holdout_corpus` tách biệt.
+- [ ] Mỗi PDF có manifest gồm tên, nguồn, năm, số trang, loại tài liệu, ngôn ngữ,
+  SHA-256 và trạng thái quyền sử dụng; corpus và manifest được version/hash trong report.
+- [ ] Holdout không được dùng để tune parser/chunker; acceptance phải chạy được từ workspace
+  sạch và không đọc dữ liệu ngoài repository mà không khai báo.
+
+#### Pipeline và lifecycle bắt buộc
+
+Trạng thái canonical:
+
+```text
+queued → validating → parsing → detecting_metadata → extracting_tables
+       → chunking → persisting → indexing → succeeded
+       ↘ review_required / failed / cancelled
 ```
-adaptive-financial-rag/
-├── README.md
-├── requirements.txt
-├── .env.example                 # GEMINI_API_KEY, GROQ_API_KEY
-├── .gitignore                   # data/eval_docs, data/store, data/cache
-├── Makefile                     # ingest | bench | ablate | report | app | test
-│
-├── configs/
-│   └── default.yaml             # model id, top_k, rrf_k, max_steps=3, giới hạn file/trang, RPM/TPM/RPD
-│
-├── data/
-│   ├── eval_docs/               # 4 PDF mẫu CHỈ để đánh giá + SOURCES.md
-│   ├── store/<sha256>/          # mỗi tài liệu: parsed.md, tables/*.parquet + *.schema.json, meta.json, index/
-│   ├── cache/                   # llm_cache.sqlite
-│   └── benchmark/
-│       ├── dev.jsonl            # 20 câu
-│       └── test.jsonl           # 30 câu (đóng băng)
-│
-├── src/finrag/
-│   ├── schemas.py               # Document, Chunk, Table, Evidence, AgentStep, Answer
-│   ├── documents/
-│   │   └── registry.py          # thêm/xoá/liệt kê tài liệu, tra theo SHA256, trạng thái xử lý
-│   ├── ingestion/
-│   │   ├── validate.py          # kích thước, số trang, mã hoá, có text hay không
-│   │   ├── docling_parser.py    # PDF -> markdown + bảng, giữ số trang
-│   │   ├── table_extractor.py   # DataFrame + schema (cột, kỳ, đơn vị), nối bảng nhiều trang
-│   │   ├── numeric_normalizer.py# 1.234,5 <-> 1,234.5; (123) = âm; triệu/tỷ đồng
-│   │   ├── metadata_detector.py # ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ
-│   │   ├── chunker.py           # heading path; bảng là 1 đơn vị
-│   │   └── pipeline.py          # ingest_document(pdf) -> Document (có cache theo SHA256)
-│   ├── retrieval/
-│   │   ├── tokenizer_vi.py
-│   │   ├── bm25_index.py
-│   │   ├── dense_index.py
-│   │   ├── fusion.py            # RRF tự viết (~15 dòng)
-│   │   ├── reranker.py
-│   │   └── hybrid.py            # search(query, doc_ids, filters)
-│   ├── llm/
-│   │   ├── client.py            # generate(), generate_json(schema)
-│   │   ├── rate_limiter.py      # token bucket + retry-after + backoff
-│   │   └── cache.py             # khoá = hash(model, prompt, schema); lưu response, usage, latency gốc
-│   ├── tools/
-│   │   ├── table_query.py       # thực thi DSL JSON
-│   │   └── safe_calc.py         # AST evaluator: + - * / ** %, pct_change
-│   ├── router/
-│   │   ├── rules.py
-│   │   ├── llm_router.py
-│   │   └── oracle.py
-│   ├── agent/
-│   │   ├── react_loop.py        # planner + loop, tối đa 3 bước; tools: search, table_query, calc, finish
-│   │   └── prompts/
-│   ├── verify.py                # numeric grounding + citation check (không tốn LLM call)
-│   └── pipelines/               # baseline.py, hybrid.py, agentic.py, adaptive.py
-│
-├── evaluation/
-│   ├── metrics.py
-│   ├── run_retrieval_eval.py    # RQ1
-│   ├── run_benchmark.py         # --pipeline --split ; ghi JSONL append-only
-│   ├── run_ablation.py
-│   ├── make_report.py          # bảng kết quả + CI bootstrap
-│   ├── results/                 # <run_id>.jsonl (git sha, config, model id, ngày)
-│   └── error_analysis/
-│       ├── error_taxonomy.csv
-│       └── error_analysis.md
-│
-├── scripts/
-│   └── build_index.py           # ingest hàng loạt PDF mẫu (chạy được trên Colab)
-│
-├── app/
-│   ├── app.py                   # Streamlit: upload PDF, danh sách tài liệu, chọn tài liệu, hỏi, badge route, trace, đáp án + [Doc, Page]
-│   └── components/
-│
-└── tests/
-    ├── test_rrf.py
-    ├── test_numeric_normalizer.py
-    ├── test_safe_calc.py
-    ├── test_table_query_sandbox.py   # có ca tấn công: __import__, __class__
-    └── test_ingest_validate.py       # file hỏng / mã hoá / scan
-```
 
-DSL cho table tool (LLM chỉ sinh JSON này, code cục bộ thực thi):
+- [ ] Mỗi stage có `started_at`, `finished_at`, progress, duration và error có cấu trúc:
+  `error_code`, `message`, `stage`, `retryable`, `action`.
+- [ ] Tách rõ `ingestion_complete` và `index_ready`; scan-only không được gắn
+  `succeeded` hoặc đưa vào index.
+- [ ] Retry chỉ dành cho lỗi retryable, có backoff/idempotency key và không tạo bản ghi,
+  file, chunk hay index trùng.
+- [ ] Có cancel an toàn, cleanup khi fail/cancel, bounded worker theo CPU/RAM, và phục hồi
+  registry sau process restart.
+- [ ] Concurrent upload cùng SHA-256 được dedupe; hai file khác nhau cùng filename vẫn
+  được lưu độc lập.
+
+#### Validation và an toàn file
+
+- [ ] Kiểm tra PDF magic bytes/signature, không tin filename/suffix; giới hạn file size,
+  page count, tổng text/table size và thời gian parse.
+- [ ] Upload root được cô lập; filename được normalize; chặn path traversal, symlink và
+  đường dẫn ngoài root.
+- [ ] Từ chối hoặc chuyển review đối với PDF rỗng, hỏng, encrypted, scan-only và
+  decompression bomb; có memory guard và timeout.
+- [ ] Temporary files luôn được dọn sau success/fail/cancel; log không chứa toàn bộ nội
+  dung tài liệu nhạy cảm.
+- [ ] Có test cho file giả, file hỏng, encrypted, file quá lớn, zip/decompression abuse,
+  symlink/path traversal và timeout.
+
+#### Metadata học thuật có bằng chứng
+
+Detector phải trả về schema ổn định cho `institution`, `faculty/school`, `program`,
+`course`, `course_code`, `document_type`, `academic_year`, `semester`, `version`,
+`effective_date`, `issue_date`, `language`. Mỗi field có thể có:
+
 ```json
-{"table_id":"<doc>_p12_t1","op":"select","rows":{"label_contains":"doanh thu thuần"},"cols":["2024","2023"]}
-{"op":"calc","expr":"(a-b)/b*100","vars":{"a":"cell:r1c1","b":"cell:r1c2"}}
+{
+  "value": "Kỹ thuật Cơ điện tử",
+  "confidence": 0.92,
+  "evidence": "Chương trình đào tạo ngành Kỹ thuật Cơ điện tử",
+  "source_page": 1
+}
 ```
 
----
+- [ ] Không suy diễn field khi thiếu bằng chứng: trả `null`, confidence thấp và warning.
+- [ ] Regex/context phân biệt tên chương trình với số tín chỉ; `155 tín chỉ` không được
+  nhận là `program`.
+- [ ] Ưu tiên bìa, quyết định ban hành, header/footer có kiểm soát; hỗ trợ tiếng Việt có
+  dấu/không dấu và tiếng Anh.
+- [ ] Có unit test positive/negative cho từng field và integration test trên toàn corpus;
+  không có metadata nghiêm trọng sai trên holdout.
 
-## 6. Danh sách task (làm tuần tự từ T1 đến T19)
+#### Scan/OCR và persistence
 
-Mỗi task chỉ bắt đầu khi task trước đó đã đạt mục **Xong khi**. Tổng ước lượng ~146 giờ (≈ 16 tuần nếu 9 giờ/tuần).
+- [ ] Scan-only trả `review_required` với error code `ocr_required`, không gọi LLM và
+  không index text rỗng.
+- [ ] OCR là background job opt-in, có page/time/cost limit và test cho PDF scan một trang,
+  nhiều trang và PDF trộn text/image; Phase 1 không phụ thuộc OCR production để pass.
+- [ ] Registry dedupe theo SHA-256 nhưng vẫn lưu source metadata, ingestion config,
+  parser/chunker/schema version; pipeline version khác không ghi đè artifact cũ.
+- [ ] Delete document xóa PDF, parsed text, chunks, tables, index, cache và metadata;
+  có TTL/cache cleanup và test xác nhận xóa thật.
 
-### Nhóm A — Nền móng
+#### Definition of Done Phase 1
 
-**T1. Khung dự án + LLM client** (~5h) · Phụ thuộc: không
-- Tạo repo, môi trường Python 3.11, `configs/default.yaml`, `Makefile`.
-- Viết `llm/client.py`, `rate_limiter.py`, `cache.py` (cache lưu response + usage + latency gốc).
-- Lấy Gemini API key; đọc quota thật trong AI Studio và Groq console.
-- *Xong khi:* gọi Gemini một prompt; gọi lại lần 2 lấy từ cache với 0 API call nhưng vẫn báo latency/token gốc.
+- [ ] Corpus thật tối thiểu đạt coverage: ít nhất 5 PDF, tối thiểu 3 loại tài liệu,
+  có tài liệu nhiều trang, có bảng, có tiếng Việt/Anh nếu scope hỗ trợ, và có ít nhất
+  một PDF scan hoặc layout lỗi; report phân biệt real corpus/fixtures/holdout.
+- [ ] Mọi chunk hợp lệ có `doc_id`, source, page/page range, `content_type`, source hash,
+  parser/chunker version và citation; scan không làm worker treo.
+- [ ] Job progress/retry/dedupe/cancel/cleanup/restart pass integration/concurrency tests.
+- [ ] Validation, metadata evidence, registry, delete/TTL và security scan không còn P0/P1.
+- [ ] Acceptance report được regenerate từ code hiện tại; không được sửa tay để biến fail
+  thành pass.
+- [ ] Sửa `scripts/accept_phase12.py` để acceptance dùng coverage gate thực tế; fixture
+  chỉ được báo riêng cho regression, không thay thế corpus thật. Report phải có holdout
+  và phải fail closed khi regression test tương ứng fail.
 
-**T2. Kiểm tra khả thi** (~5h) · Phụ thuộc: T1
-- Chạy Docling thử trên PDF tiếng Việt và tiếng Anh thật: bảng có gãy cột không, có lỗi font phải OCR không, bao nhiêu giây/trang.
-- Chạy `TextEmbedding.list_supported_models()` của FastEmbed để xác nhận; đo RAM và tốc độ bge-m3 + reranker trên CPU và Colab.
-- Chốt giới hạn upload (MB, số trang) dựa trên số đo.
-- *Xong khi:* ghi lại quyết định dùng/không dùng từng thành phần và ngưỡng upload vào README (mục Hạn chế).
+### Phase 2 — Chunking và cấu trúc (10/10 gate)
 
-### Nhóm B — Ingestion (PDF người dùng đưa vào)
+#### Chiến lược đã chọn
 
-**T3. Ingestion 1: validate → parse → bảng** (~12h) · Phụ thuộc: T2
-- `validate.py`, `docling_parser.py`, `table_extractor.py`, `documents/registry.py`; cache theo SHA256; lưu vào `data/store/<sha256>/`.
-- Bảng lưu `.parquet` + `schema.json`; nối bảng kéo dài nhiều trang; giữ số trang cho mọi chunk/bảng.
-- Test `test_ingest_validate.py`: file hỏng, mã hoá, scan.
-- *Xong khi:* `ingest_document(pdf)` chạy trên 4 PDF mẫu và trên 1 PDF khác chưa từng thấy; upload lại cùng file trả kết quả tức thì.
+Phase 2 dùng structure-aware chunking với section làm đơn vị ngữ nghĩa, page provenance
+làm đơn vị citation, và table là content type độc lập. Heading được nhận diện bằng rule
+deterministic có normalization Unicode; không dùng LLM để đoán section. Mọi chunk phải
+đạt invariant trước khi persist: kích thước tuyệt đối, section boundary đúng, provenance
+đủ và citation mở được đúng trang.
 
-**T4. Ingestion 2: chuẩn hoá, metadata tự động, chunking** (~8h) · Phụ thuộc: T3
-- `numeric_normalizer.py` (+ test), `metadata_detector.py` (ngôn ngữ, đơn vị, năm tài chính, hợp nhất/riêng lẻ, tiền tệ), `chunker.py` (heading path, bảng là 1 đơn vị); metadata mỗi chunk: `doc_id, page, chunk_id, content_type, unit, fiscal_year, language`.
-- Chấm tay 20 bảng ngẫu nhiên để có tỉ lệ parse đúng (dùng lại ở T17).
-- *Xong khi:* metadata phát hiện đúng trên tất cả tài liệu thử; không còn tên công ty/năm nào hardcode.
+#### P0: golden fixtures và section correctness
 
-### Nhóm C — Retrieval
+- [ ] Golden `Điều kiện tốt nghiệp` và `Học phần tiên quyết` pass trên các biến thể: viết
+  hoa, đánh số, dấu câu, heading bị tách dòng và heading kéo qua trang.
+- [ ] Golden test xác nhận đúng heading, section, page, page range, citation và nội dung;
+  không ăn sang section kế bên. Bắt buộc pass:
+  `test_graduation_golden_fixture_keeps_section_and_citation_page`.
+- [ ] Heading tiếng Việt có dấu được giữ nguyên bản gốc; normalized form dùng cho search
+  (`ĐIỀU KIỆN` → `dieu kien`) nhưng không làm mất numbering.
+- [ ] Mục lục, header/footer, tên bảng, câu viết hoa dài và mã học phần phải được loại
+  khỏi heading bằng context/page-frequency/numbering checks.
 
-**T5. Index theo từng tài liệu** (~7h) · Phụ thuộc: T4
-- `tokenizer_vi.py`, `bm25_index.py`, `dense_index.py` (bge-m3 + Chroma persist), lưu index trong thư mục của tài liệu; xoá tài liệu thì xoá luôn index.
-- *Xong khi:* thêm/xoá tài liệu trong registry mà index luôn nhất quán; xử lý nền có báo tiến độ.
+#### Heading và section inheritance
 
-**T6. Hybrid retrieval** (~7h) · Phụ thuộc: T5
-- `fusion.py` (RRF, có test), `reranker.py`, `hybrid.py: search(query, doc_ids, filters)` gộp kết quả nhiều tài liệu.
-- *Xong khi:* 5 câu hỏi mẫu trả về đúng trang; tìm được trên nhiều tài liệu cùng lúc.
+- [ ] Hỗ trợ Markdown, `1/1.1/1.1.1`, `Điều/Khoản/Mục/Chương`, `Article/Section/Chapter`,
+  heading có `: . -`, heading qua dòng và qua trang.
+- [ ] Heading record có `text`, `normalized`, `level`, `source_page`, `confidence`.
+- [ ] `heading_path` kế thừa đúng document → page → section → chunk; heading cấp thấp
+  không làm mất cấp cao, heading mới chỉ thay level tương ứng.
+- [ ] Section tiếp tục đúng qua page break; không gán text trước heading vào section sau;
+  page range và nested headings phải chính xác.
+- [ ] Có test section liền kề, nested headings, heading cuối trang, bảng xen giữa section
+  và tài liệu layout hỗn hợp.
 
-### Nhóm D — Benchmark dev & đo retrieval
+#### Chunk-size invariant và overlap
 
-**T7. Soạn benchmark dev (20 câu)** (~8h) · Phụ thuộc: T6
-- 20 câu phủ đủ 5 nhóm, gán độ khó theo định nghĩa mục 1, gán đáp án vàng + trang vàng.
-- *Xong khi:* `dev.jsonl` hợp lệ theo schema.
+- [ ] Tính budget sau khi biết context header: `body_budget = MAX_CHARS - header_len -
+  safety_margin`; áp dụng cho text và table.
+- [ ] Final guard chạy sau khi ghép header/content/overlap; nếu vượt thì split lại cho đến
+  khi `len(final_chunk.content) <= _MAX_CHARS`.
+- [ ] Unicode được đo ổn định; overlap không được làm chunk vượt giới hạn; input hợp lệ
+  luôn có `diagnostics["chunks_over_limit"] == []`.
+- [ ] Chỉ ghi overflow khi một đơn vị không thể chia nhỏ hơn, kèm warning và reason rõ ràng;
+  không dùng `allowed_margin` để che lỗi splitter.
 
-**T8. RQ1: đo retrieval** (~5h) · Phụ thuộc: T7
-- `metrics.py` (phần retrieval), `run_retrieval_eval.py`. So sánh BM25 / Dense / Hybrid / Hybrid + rerank; tách text vs table và VN vs EN.
-- *Cổng 1:* Recall@5 của Hybrid + rerank còn thấp (ví dụ < 0.7) thì quay lại sửa T3–T6 trước khi làm tiếp.
+#### Table chunk contract
 
-### Nhóm E — Sinh đáp án, tool, agent
+- [ ] Mỗi table là chunk độc lập, giữ raw values, header đầy đủ, `table_id` ổn định,
+  section path, source, page range và `content_type="table"`.
+- [ ] Table nhiều trang được nối đúng, lặp header khi cần, không trộn với section kế tiếp;
+  không tự diễn giải/normalize làm mất dữ liệu.
+- [ ] Schema tối thiểu: `headers`, `rows`, `units`, `page`, `page_range`, `table_id`,
+  `section`, `source`; test cột không đều, ô trống, merged cells, thiếu header và split
+  nhiều trang. Bắt buộc pass:
+  `test_prerequisite_golden_fixture_preserves_table_header_and_section_boundary`.
 
-**T9. Harness đánh giá + P0/P1** (~9h) · Phụ thuộc: T8
-- Hoàn tất `metrics.py` (accuracy, citation, hallucination, cost), `run_benchmark.py`, pipeline P0 và P1 chạy trên dev.
-- *Xong khi:* một lệnh chạy dev cho P0/P1 ra bảng kết quả; chạy lại lần 2 hoàn toàn từ cache.
+#### Provenance, citation và metric
 
-**T10. Table tool** (~9h) · Phụ thuộc: T9
-- `safe_calc.py` (AST), `table_query.py` (DSL). Viết test bảo mật trước (`test_safe_calc.py`, `test_table_query_sandbox.py`).
-- *Xong khi:* toàn bộ test xanh; không có đường `eval/exec` nào trong `tools/`.
+- [ ] Mọi chunk có `doc_id`, source name, page, page range, content type, chunk ID,
+  heading path, table ID nếu có, parser/chunker version và source hash.
+- [ ] Citation validator kiểm tra chunk/document tồn tại, page/page range hợp lệ, table ID
+  tồn tại và không trỏ vào chunk đã xóa; test end-to-end:
+  `query → retrieved chunk → citation → source document/page`.
+- [ ] Báo cáo corpus thật có chunk count/document, min/mean/p50/p95/max length, overflow,
+  overlap, duplicate rate, thiếu heading/citation, sai page range, section boundary failure
+  và table mất header.
 
-**T11. Verify** (~5h) · Phụ thuộc: T9
-- `verify.py`: mọi số trong đáp án phải khớp bằng chứng/kết quả tool; trang trích dẫn phải chứa bằng chứng; không đủ bằng chứng thì retrieve lại tối đa 1 lần.
-- *Xong khi:* bắt được các ca đáp án bịa số trên dev.
+#### Definition of Done Phase 2
 
-**T12. Agent loop → P2 Full-Agentic** (~10h) · Phụ thuộc: T6, T10, T11
-- `react_loop.py`: tối đa 3 bước, bước đầu gộp phân rã sub-query để tiết kiệm call; tools `search / table_query / calc / finish`; trần call mỗi câu.
-- *Xong khi:* P2 chạy hết dev, log đủ từng bước, không vòng lặp vô hạn.
+- [ ] Hai golden fixture pass; chunk overflow bằng 0 trên corpus hợp lệ.
+- [ ] Không mất heading, numbering, section path, table header/id hoặc page range; không
+  trộn section liền nhau.
+- [ ] Citation validator pass 100%; mọi chunk có provenance đầy đủ.
+- [ ] Metric report trên corpus thật và holdout có version/hash; layout thực tế, bảng nhiều
+  trang, font lỗi, page rỗng và heading tách dòng đều có test.
+- [ ] Acceptance JSON, test runtime, tài liệu và code không còn mismatch.
 
-**T13. Router → P3 Adaptive** (~8h) · Phụ thuộc: T12
-- `rules.py`, `llm_router.py` (có cache), `oracle.py`; ghép P3; nếu verify thất bại thì nâng lên nhánh cao hơn một lần.
-- *Cổng 2 (MVP):* P0–P3 chạy end-to-end trên dev, có bảng kết quả sơ bộ.
+### Phase 1/2 acceptance gate chung
 
-### Nhóm F — Thực nghiệm
+Chỉ đóng Phase 1 và Phase 2 khi tất cả lệnh sau cùng pass trong workspace sạch:
 
-**T14. Soạn test set (30 câu) và đóng băng** (~9h) · Phụ thuộc: T13
-- Viết test set (gồm ≥ 1 file chưa từng dùng khi tune) **trước khi** xem kết quả pipeline trên nó; đọc lại nhãn một lượt để sửa sai; gắn tag git.
-- *Xong khi:* `test.jsonl` đóng băng, ước lượng số call một lượt quét đầy đủ để lên lịch theo quota ngày.
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe scripts\accept_phase12.py --input-dir data\corpus\university --holdout data\corpus\university\uet_admission_2025.pdf --output evaluation\phase12_acceptance.json
+.\.venv\Scripts\python.exe scripts\secret_scan.py
+.\.venv\Scripts\python.exe -m compileall -q src scripts tests
+.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\holdout.pdf
+.\.venv\Scripts\python.exe scripts\validate_t2.py --acceptance evaluation\t2_results.json
+```
 
-**T15. Chạy chính P0–P3 trên test** (~6h) · Phụ thuộc: T14
-- Cùng một model id cho cả 4 pipeline. `make_report.py` xuất bảng theo nhóm + tổng, kèm n và CI bootstrap.
-- *Xong khi:* có bảng Accuracy / Citation / Hallucination / Latency / Calls cho 4 pipeline.
+Acceptance report phải được tạo lại từ runtime hiện tại và phải fail closed: nếu regression
+test tương ứng fail, report không được ghi nhận `true`. Release note phải ghi commit/version,
+Python/OS/package versions, parser/chunker version, corpus hash, holdout hash và thời gian
+chạy. Bất kỳ P0/P1 security, reliability, provenance hoặc reproducibility nào còn mở đều
+giữ phase ở trạng thái chưa đạt.
 
-**T16. Ablation** (~6h) · Phụ thuộc: T15
-- No-Table-Tool: đọc bảng dạng text thô, đo tụt accuracy ở nhóm Calculation (RQ2).
-- No-Router: dùng P2 cho mọi câu, đo tăng latency và số call (RQ3).
-- So sánh router rules vs LLM vs oracle.
-- *Xong khi:* bảng ablation trong `evaluation/results/`.
+### Phase 3 — Embedding và vector search
 
-**T17. Error taxonomy** (~7h) · Phụ thuộc: T15, T16
-- Lấy 15–20 ca sai/lệch trang, gán giai đoạn gây lỗi: Docling parse lệch cột · retrieval trượt · router sai nhánh · DSL/phép tính sai · sinh đáp án sai · trích dẫn sai. Ghi `error_taxonomy.csv` + `error_analysis.md`.
-- *Xong khi:* có bảng đếm theo nhóm lỗi + 3–5 ví dụ đại diện.
+- dùng fallback hash cho test/dev không tải model;
+- production benchmark một embedding model multilingual nhẹ;
+- persist index theo corpus/version, không build lại mỗi query;
+- thêm FAISS chỉ khi benchmark corpus vượt ngưỡng hiện tại.
 
-### Nhóm G — Sản phẩm & đóng gói
+Exit criteria: Recall@5 và p95 query được ghi theo từng corpus; restart process không mất index.
 
-**T18. Ứng dụng Streamlit** (~12h) · Phụ thuộc: T13
-- Sidebar: upload PDF (tiến độ xử lý nền), danh sách tài liệu + siêu dữ liệu phát hiện được (sửa được), chọn tài liệu, cảnh báo riêng tư.
-- Khung chính: ô hỏi → badge route (Easy/Medium/Hard) → các bước tool → đáp án + `[Doc, Page]` (mở đúng trang PDF gốc).
-- Báo lỗi rõ khi file không hợp lệ.
-- *Xong khi:* người lạ upload một PDF mới và hỏi được câu đầu tiên mà không cần chỉnh code.
+### Phase 4 — Basic RAG
 
-**T19. Đóng gói** (~8h) · Phụ thuộc: T17, T18
-- README: sơ đồ kiến trúc, cách chạy, bảng kết quả thật (kèm n và CI), hạn chế.
-- Chạy local hoặc deploy HF Spaces nếu tạo được Space miễn phí; quay video demo 90 giây (upload file → 1 câu Easy nhanh + 1 câu Hard có trace).
-- *Xong khi:* clone repo mới → chạy theo README → demo được; gắn tag `v1.0`.
+- lấy top-k context, dựng prompt tiếng Việt/Anh;
+- trả lời ngắn và nêu rõ document/page;
+- cache câu hỏi giống nhau theo corpus version;
+- context budget không vượt giới hạn model/provider.
 
----
+Exit criteria: câu hỏi fact có answer/evidence; câu ngoài corpus không được bịa.
 
-## 7. Lưu ý kỹ thuật bắt buộc
+### Phase 5 — Citation, grounding và abstention
 
-- **Số và đơn vị:** chuẩn hoá định dạng số Việt/Anh, số âm trong ngoặc, triệu/tỷ đồng, hợp nhất vs riêng lẻ. Đây là nguồn lỗi lớn nhất của QA tài chính.
-- **Latency:** đo thời gian gọi API thật, tách riêng thời gian chờ rate limit. Replay từ cache vẫn dùng latency gốc.
-- **Quota:** thiết kế cho ~250 request/ngày; cache mọi prompt; không trộn provider trong cùng một bảng kết quả.
-- **Không tune trên test.** Ghi rõ n; với 30 câu test chỉ kết luận ở mức xu hướng và báo cáo cả kết quả không đẹp.
-- **Kết quả trong README chỉ lấy từ `evaluation/results/`.**
+- output schema bắt buộc `answer`, `citations`, `confidence`, `abstained`;
+- citation phải trỏ đến chunk tồn tại và page hợp lệ;
+- claim không có evidence bị loại hoặc chuyển thành abstention;
+- phân biệt “không tìm thấy” với “tài liệu không đề cập”.
 
-## 8. Cắt giảm khi trễ
+Exit criteria: citation precision và abstention precision được đo tự động trên test set.
 
-Cắt theo thứ tự: so sánh router LLM/oracle (T13, T16) → ablation phụ (T16) → OCR cho PDF scan (T3) → deploy HF Spaces (T19, chạy local + video). **Không cắt:** T3–T6, T9–T13, T14–T15, T17, T18.
+### Phase 6 — BM25 + hybrid + RRF
+
+- query routing: exact code/course trước, hybrid sau;
+- filter theo document/program/year khi người dùng chọn;
+- normalize score, RRF, dedupe chunk và giới hạn candidate;
+- đo latency riêng BM25, dense, fusion.
+
+Exit criteria: hybrid thắng từng retriever đơn trên Recall@k mà p95 vẫn phù hợp free CPU.
+
+### Phase 7 — Reranker
+
+- chỉ rerank top 8–20 candidate trong worker hoặc route hard;
+- warm một lần lúc startup; không load trong callback người dùng;
+- có circuit breaker/fallback về hybrid khi thiếu RAM/timeout;
+- ghi `reranker_used` và latency vào trace.
+
+Exit criteria: reranker cải thiện nDCG/citation precision đủ lớn để biện minh chi phí.
+
+### Phase 8 — Evaluation và benchmark
+
+Tối thiểu 100–300 câu hỏi do người tạo và review, phân phối:
+
+- 30% fact/definition;
+- 20% table/filter/calculation;
+- 20% prerequisite/multi-hop;
+- 15% temporal/comparison;
+- 15% unanswerable/ambiguous/adversarial.
+
+Đo Recall@3/5/10, MRR hoặc nDCG, answer exact/semantic, citation precision/recall, groundedness, abstention precision/recall, p50/p95 end-to-end, peak RAM và cache hit. Có ablation: BM25-only, dense-only, hybrid, hybrid+rerank, có/không metadata filter.
+
+Exit criteria: có report versioned; mọi tối ưu sau đó phải không làm xấu answer/citation metrics.
+
+### Phase 9 — Temporal RAG
+
+- version document theo academic year/effective date;
+- query “hiện hành”, “năm 2025”, “khác gì” phải chọn đúng version;
+- citation hiển thị ngày hiệu lực và trạng thái superseded;
+- không merge hai phiên bản nếu user không yêu cầu comparison.
+
+### Phase 10 — Multi-document và multi-hop
+
+- evidence set có `doc_id` và role cho từng hop;
+- truy vấn course → prerequisite → rule → answer;
+- tách retrieval của từng document rồi mới fusion khi cần;
+- đánh giá contamination giữa các chương trình.
+
+### Phase 11 — Knowledge Graph (deferred)
+
+Chỉ làm khi Phase 8 cho thấy lỗi còn lại chủ yếu là quan hệ entity, không phải retrieval/citation. Schema dự kiến: `Course`, `Program`, `Prerequisite`, `Semester`, `Regulation`, `EffectiveDate`. Không xây graph trước benchmark.
+
+### Phase 12 — Web app
+
+- dashboard tài liệu: upload, loại tài liệu, version, trạng thái, lỗi;
+- progress job và nút retry/review;
+- chat với source cards, page preview, copy citation;
+- filter program/year/semester;
+- feedback citation đúng/sai;
+- giới hạn file, user, concurrency và câu hỏi/phút.
+
+### Phase 13 — Deploy free
+
+MVP public nên tách:
+
+- **Streamlit Community Cloud** cho UI/demo nhẹ;
+- storage/database free-tier cho metadata và PDF nhỏ;
+- worker CPU riêng hoặc Hugging Face Space nếu cần process dài;
+- LLM provider free quota với cache bắt buộc;
+- không tải BGE-m3/reranker nặng trong Streamlit request path.
+
+Nếu chỉ dùng một service để demo, chấp nhận giới hạn: tài liệu nhỏ, một worker, queue ngắn, không đảm bảo SLA. Tài liệu lớn và OCR không nên chạy đồng bộ trong web request.
+
+### Phase 14 — Production polish
+
+- structured logs, request/job id, stage timings;
+- health/readiness check và graceful shutdown;
+- secret từ platform environment, không commit API key;
+- xóa file theo TTL, privacy notice, export/delete user data;
+- smoke test sau deploy, rollback image, backup manifest;
+- README deploy một lệnh và public demo URL.
+
+## 6. Hạ tầng free được chọn
+
+| Nhu cầu | Lựa chọn MVP | Giới hạn cần chấp nhận |
+|---|---|---|
+| UI | Streamlit Community Cloud | tài nguyên khoảng 2 core/2.7 GB RAM/50 GB; phù hợp demo nhẹ |
+| Worker/model nặng | Hugging Face Spaces CPU hoặc Space phù hợp | cold start và quota; GPU free không mặc định đảm bảo |
+| File | local ephemeral cho demo hoặc Cloudflare R2 | free tier có quota; cần TTL và giới hạn upload |
+| Metadata | Supabase Postgres | free project có quota; không lưu embedding khổng lồ vô hạn |
+| LLM | free-tier provider, mặc định Gemini-compatible adapter | RPM/TPM/RPD thay đổi; phải cache và rate-limit |
+| Vector | file index trong artifact/storage | rebuild theo corpus version; FAISS khi scale |
+
+Các giới hạn trên phải được kiểm tra lại lúc deploy vì free-tier thay đổi theo thời gian. Không hứa “miễn phí vô hạn” hay SLA production.
+
+## 7. Thứ tự việc phải làm ngay
+
+1. Hoàn tất import/namespace scan và chạy toàn bộ test sau rename.
+2. Thêm test academic metadata và test table schema mới.
+3. Thêm `answer/grounding/citation` module, chưa cần UI.
+4. Tạo corpus university nhỏ có bản 2025/2026 và 20–30 câu hỏi vàng.
+5. Kết nối answer pipeline với `HybridRetriever` ở mode fast.
+6. Đo baseline answer/citation/latency; sau đó mới bật reranker.
+7. Tạo web app tối thiểu upload → job → chat → citation.
+8. Deploy demo free; giới hạn quota trước khi chia sẻ public.
+9. Mở rộng benchmark lên 100–300 câu hỏi và tạo evaluation dashboard.
+
+## 8. Nguồn tham khảo kỹ thuật
+
+- [Microsoft MarkItDown](https://github.com/microsoft/markitdown): tham khảo mô hình converter pipeline và optional dependencies; không dùng thay parser layout chính.
+- [FAISS](https://github.com/facebookresearch/faiss): tham khảo dense similarity search và lựa chọn index khi corpus lớn.
+- [LlamaIndex ingestion](https://docs.llamaindex.ai/en/stable/module_guides/loading/ingestion_pipeline/): tham khảo pipeline loader → transformations → index/store và metadata lineage.
+- [Haystack ranker](https://docs.haystack.deepset.ai/docs/ranker): tham khảo vị trí reranker sau retriever và trade-off latency.
+- [Jmhzbmcn2/med_rag](https://github.com/Jmhzbmcn2/med_rag): tham khảo API chat/health,
+  source cards (`title`, `section`, `text`, `score`), giới hạn input, fallback khi
+  reranker lỗi, context header cho chunk và metric retrieval theo loại tài liệu.
+- [Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-overview): tham khảo hardware/deployment options.
+- [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app): tham khảo giới hạn tài nguyên khi chọn route free.
+
+Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có benchmark và provenance riêng thay vì sao chép nguyên framework.

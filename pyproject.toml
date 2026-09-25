@@ -1,7 +1,7 @@
 [project]
-name = "adaptive-rag-financial-business-reports"
+name = "campusai-evidence-rag"
 version = "0.1.0"
-description = "Adaptive RAG for financial and business reports"
+description = "CampusAI evidence-grounded RAG for university knowledge"
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
 dependencies = ["pandas>=2.2,<3.0", "pdfplumber>=0.11,<1.0", "pymupdf>=1.24,<2.0", "pyyaml>=6.0,<7.0"]
@@ -29,9 +29,12 @@ where = ["src"]
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
 testpaths = ["tests"]
-
+# Let pytest create an isolated temporary directory per invocation. A fixed
+# basetemp is unsafe on Windows when a worker or native PDF handle survives
+# teardown and prevents the next run from cleaning the directory.
+addopts = "-ra"
 [tool.coverage.run]
-source = ["src/finrag/llm"]
+source = ["src/campusai/llm"]
 
 [tool.coverage.report]
 fail_under = 90

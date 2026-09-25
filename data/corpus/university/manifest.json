@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "institution": "Vietnam National University, Hanoi - University of Engineering and Technology (UET)",
+  "corpus_kind": "supplied_real_corpus",
+  "documents": [
+    {
+      "filename": "uet_admission_2024.pdf",
+      "document_type": "admission_notice",
+      "language": "vi",
+      "source_url": "https://tuyensinh.uet.vnu.edu.vn/wp-content/images/CV_1957_HuongDanTuyenSinhNam_2024.pdf",
+      "sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "holdout": false
+    },
+    {
+      "filename": "uet_admission_2025.pdf",
+      "document_type": "admission_regulation",
+      "language": "vi",
+      "source_url": "https://tuyensinh.uet.vnu.edu.vn/wp-content/images/1868_Quy-che-tuyen-sinh-DHCQ-tai-DHQGHN_2025.pdf",
+      "sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "holdout": true
+    },
+    {
+      "filename": "uet_program_adjustments_2021.pdf",
+      "document_type": "curriculum_update",
+      "language": "vi",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2021/12/Danh-s%C3%A1ch-5.pdf",
+      "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "holdout": false
+    },
+    {
+      "filename": "uet_cs_progression.pdf",
+      "document_type": "curriculum",
+      "language": "vi-en",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2019/06/Ti%E1%BA%BFn-tr%C3%ACnh-%C4%91%C3%A0o-t%E1%BA%A1o-CT-KHMT-chu%E1%BA%A9n.pdf",
+      "sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "holdout": false
+    },
+    {
+      "filename": "uet_computer_engineering_program.pdf",
+      "document_type": "curriculum",
+      "language": "vi",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2017/09/173.qd-ban-h%C3%A0nh-CT-K%E1%BB%B9-thu%E1%BA%ADt-m%C3%A1y-t%C3%ADnh.pdf",
+      "sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "holdout": false
+    },
+    {
+      "filename": "uet_electronics_program_2023.pdf",
+      "document_type": "curriculum",
+      "language": "vi",
+      "source_url": "https://fet.uet.vnu.edu.vn/wp-content/uploads/2024/03/2.-Khung-chuong-trinh-dai-hoc-he-chuan_Cong-nghe-ky-thuat-dien-tu-Vien-thong_2023.pdf",
+      "sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "holdout": false
+    },
+    {
+      "filename": "uet_masters_admission_2022.pdf",
+      "document_type": "admission_notice",
+      "language": "vi",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2022/07/Th%C3%B4ng-b%C3%A1o-tuy%E1%BB%83n-sinh-%C4%91%C3%A0o-t%E1%BA%A1o-b%E1%BA%ADc-Th%E1%BA%A1c-s%C4%A9-%C4%91%E1%BB%A3t-2-n%C4%83m-2022.pdf",
+      "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "holdout": false
+    }
+  ]
+}

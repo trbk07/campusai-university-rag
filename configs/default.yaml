@@ -4,6 +4,23 @@ llm:
   timeout_seconds: 60
   requests_per_minute: 10
   cache_path: data/cache/llm_cache.sqlite
+app:
+  name: CampusAI
+  domain: university_knowledge
+  default_language: vi
 limits:
   max_upload_mb: 50
-  max_pages: 250
+  max_pages: 218
+web:
+  # Safer defaults for a free public demo; benchmark limits stay above.
+  max_upload_mb: 20
+  max_pages: 100
+  max_documents_per_user: 10
+  max_questions_per_minute: 10
+retrieval:
+  dense_model: fallback-hash-256
+  reranker_model: null
+  device: cpu
+  batch_size: 8
+  query_cache_size: 128
+  rerank_candidate_limit: 8

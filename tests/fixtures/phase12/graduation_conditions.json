@@ -1,0 +1,33 @@
+{
+  "name": "graduation_conditions",
+  "document": {
+    "doc_id": "golden-graduation",
+    "metadata": {
+      "domain": "academic",
+      "document_type": "regulation",
+      "language": "vi",
+      "institution": "Đại học Campus",
+      "program": "Kỹ thuật máy tính",
+      "academic_years": [2025, 2026],
+      "effective_date": "2025-09-01",
+      "version": "2.0"
+    },
+    "pages": [
+      {
+        "page": 1,
+        "text": "QUY CHẾ ĐÀO TẠO\n1. Điều kiện tốt nghiệp\nSinh viên phải tích lũy đủ 130 tín chỉ và hoàn thành thực tập."
+      },
+      {
+        "page": 2,
+        "text": "2. Xếp loại tốt nghiệp\nĐiểm trung bình tích lũy được dùng để xếp loại sau khi đủ điều kiện."
+      }
+    ]
+  },
+  "expected": {
+    "section": ["1. Điều kiện tốt nghiệp"],
+    "page_range": [1, 1],
+    "contains": ["130 tín chỉ", "thực tập"],
+    "does_not_contain": ["xếp loại"],
+    "citation_page": 1
+  }
+}

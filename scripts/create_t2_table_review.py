@@ -26,7 +26,19 @@ def _file_hash(path: Path) -> str:
 
 def create_review_queue(report: dict[str, Any], max_tables: int = 20) -> dict[str, Any]:
     tables: list[dict[str, Any]] = []
+    docling_documents: list[dict[str, Any]] = []
     for document in report.get("parser", []):
+        docling_documents.append(
+            {
+                "doc_sha256": document.get("sha256"),
+                "source_path": document.get("path"),
+                "observed_status": document.get("docling", {}).get("status", "not_run"),
+                "review_status": "pending",
+                "notes": "",
+            }
+        )
+        if len(tables) >= max_tables:
+            continue
         for table in document.get("table_inventory", []):
             review = {field: None for field in CHECK_FIELDS}
             review["notes"] = ""
@@ -39,20 +51,53 @@ def create_review_queue(report: dict[str, Any], max_tables: int = 20) -> dict[st
                 }
             )
             if len(tables) >= max_tables:
-                return {"schema_version": 1, "status": "pending", "tables": tables}
-    return {"schema_version": 1, "status": "pending", "tables": tables}
+                break
+    return {
+        "schema_version": 2,
+        "status": "pending",
+        "tables": tables,
+        "docling_review": {"status": "pending", "documents": docling_documents},
+    }
 
 
 def validate_review(review: dict[str, Any]) -> list[str]:
     errors: list[str] = []
+    if review.get("status") not in {"pending", "complete"}:
+        errors.append("status must be pending or complete")
     tables = review.get("tables")
     if not isinstance(tables, list):
         return ["tables must be a list"]
     for index, table in enumerate(tables):
+        if not isinstance(table, dict):
+            errors.append(f"tables[{index}] must be an object")
+            continue
         values = table.get("review", {})
         for field in CHECK_FIELDS:
             if values.get(field) not in (True, False, None):
                 errors.append(f"tables[{index}].review.{field} must be true, false, or null")
+        if not isinstance(values.get("notes", ""), str):
+            errors.append(f"tables[{index}].review.notes must be a string")
+        if review.get("status") == "complete":
+            for field in CHECK_FIELDS:
+                if values.get(field) not in (True, False):
+                    errors.append(
+                        f"tables[{index}].review.{field} is required when review is complete"
+                    )
+    docling = review.get("docling_review", {})
+    if not isinstance(docling, dict):
+        errors.append("docling_review must be an object")
+    else:
+        documents = docling.get("documents")
+        if not isinstance(documents, list):
+            errors.append("docling_review.documents must be a list")
+        elif docling.get("status") == "complete":
+            for index, document in enumerate(documents):
+                if not isinstance(document, dict) or document.get("review_status") != "complete":
+                    errors.append(
+                        f"docling_review.documents[{index}].review_status must be complete"
+                    )
+        elif docling.get("status") not in {"pending", "complete"}:
+            errors.append("docling_review.status must be pending or complete")
     return errors
 
 

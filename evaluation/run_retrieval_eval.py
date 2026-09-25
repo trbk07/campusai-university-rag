@@ -10,8 +10,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from evaluation.metrics import evaluate_retrieval
-from finrag.retrieval.hybrid import HybridRetriever
-from finrag.retrieval.reranker import Reranker
+from campusai.retrieval.hybrid import HybridRetriever
+from campusai.retrieval.reranker import Reranker
 
 
 def load_jsonl(path: str | Path) -> list[dict]:

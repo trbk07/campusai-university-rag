@@ -1,3 +1,0 @@
-﻿cached,chunks,cold_baseline_rss_mb,cold_parse_seconds,cold_peak_rss_delta_mb,cold_peak_rss_mb,cold_seconds_per_page,file_size_bytes,implementation,ingest_seconds,language,pages,path,peak_rss_mb,reason,sha256,status,tables,text_chars,warm_cache_seconds
-,,,,,,,7375906,pymupdf,,,125,2024_BCTC HN KT.pdf,,no_text_requires_ocr,f9e80cb03a3a3beb414ad93c62d4734664edc030a636d563ab88555f73763237,skipped,,,
-True,216,284.93,0.385304,16.09,301.02,0.001809,15732827,pymupdf,0.052305,en,213,fpt_annual_report_2024_63d63bc4cd.pdf,292.46,,fa791cffcea5e14e287af9df36f4ac8b5dd8a21c4a13be46495b30a56e3ee1c4,success,3,542752,0.047198
