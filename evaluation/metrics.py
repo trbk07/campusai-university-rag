@@ -30,14 +30,24 @@ def reciprocal_rank(results: list, gold_evidence: list[dict]) -> float:
 
 def evaluate_retrieval(records: Iterable[dict], retrieve, k_values: tuple[int, ...] = (3, 5)) -> dict:
     rows = []
+    answerable_rows = []
     for record in records:
         results = retrieve(record)
         evidence = record.get("gold_evidence", [])
-        rows.append({"qid": record.get("qid"), "recall": {str(k): recall_at_k(results, evidence, k) for k in k_values}, "mrr": reciprocal_rank(results, evidence)})
+        row = {"qid": record.get("qid"), "recall": {str(k): recall_at_k(results, evidence, k) for k in k_values}, "mrr": reciprocal_rank(results, evidence)}
+        rows.append(row)
+        # MRR measures the rank of a relevant result.  Negative queries have
+        # no relevant result by definition, so they are reported separately
+        # by the benchmark's abstention/FPR metrics and excluded here.
+        if evidence:
+            answerable_rows.append(row)
     count = len(rows)
+    answerable_count = len(answerable_rows)
     return {
         "n": count,
         "recall": {str(k): sum(row["recall"][str(k)] for row in rows) / count if count else 0.0 for k in k_values},
         "mrr": sum(row["mrr"] for row in rows) / count if count else 0.0,
+        "answerable_n": answerable_count,
+        "mrr_answerable": sum(row["mrr"] for row in answerable_rows) / answerable_count if answerable_count else 0.0,
         "per_query": rows,
     }

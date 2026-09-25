@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 from evaluation.benchmark import validate_records
+from evaluation.metrics import evaluate_retrieval
 from campusai.retrieval.hybrid import HybridRetriever
 from evaluation.run_retrieval_benchmark import _corpus_metadata, _indexed_document_ids, _negative_metrics, _percentile, load_calibration_threshold, load_jsonl
 
@@ -16,6 +17,22 @@ def test_negative_metrics_report_abstention_and_false_positive_rates():
     assert _negative_metrics(records, {"n1": 0, "n2": 2}, 5) == {
         "n": 2, "abstention_rate": 0.5, "false_positive_rate": 0.5, "mean_results": 1, "top_k": 5
     }
+
+
+def test_mrr_excludes_negative_queries_but_keeps_raw_audit_metric():
+    records = [
+        {"qid": "p1", "gold_evidence": [{"doc_id": "doc", "pages": [1]}]},
+        {"qid": "n1", "category": "negative", "gold_evidence": []},
+    ]
+
+    class Result:
+        def __init__(self, doc_id, page):
+            self.doc_id, self.page, self.chunk_id = doc_id, page, None
+
+    report = evaluate_retrieval(records, lambda record: [Result("doc", 1)] if record["qid"] == "p1" else [Result("other", 1)])
+    assert report["mrr"] == 0.5
+    assert report["answerable_n"] == 1
+    assert report["mrr_answerable"] == 1.0
 
 
 def test_corpus_metadata_reads_manifest_fields(tmp_path):

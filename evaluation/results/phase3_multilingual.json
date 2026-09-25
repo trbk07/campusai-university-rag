@@ -9,6 +9,9 @@
   },
   "index_dir": ".tmp\\phase3-multilingual-index",
   "top_k": 5,
+  "score_threshold": null,
+  "reranker_model": null,
+  "threshold_source": null,
   "modes": {
     "bm25": {
       "quality": {
@@ -19,6 +22,8 @@
           "5": 0.48
         },
         "mrr": 0.465,
+        "answerable_n": 95,
+        "mrr_answerable": 0.48947368421052634,
         "per_query": [
           {
             "qid": "test-001",
@@ -922,11 +927,12 @@
           }
         ]
       },
+      "score_threshold": null,
       "negative_queries": {
         "n": 5,
-        "abstention_rate": 0.0,
-        "false_positive_rate": 1.0,
-        "mean_results": 1,
+        "abstention_rate": 0.4,
+        "false_positive_rate": 0.6,
+        "mean_results": 3,
         "top_k": 5
       },
       "corpus": {
@@ -1076,14 +1082,14 @@
         }
       },
       "latency_ms": {
-        "cold_query": 6142.015,
-        "p50": 47.08,
-        "p95": 51.875,
-        "p99": 52.241,
+        "cold_query": 11287.112,
+        "p50": 103.832,
+        "p95": 112.95,
+        "p99": 117.149,
         "count": 100
       },
-      "warm_query_ms": 47.114,
-      "load_ms": 3.98,
+      "warm_query_ms": 105.63,
+      "load_ms": 4.11,
       "loaded_documents": 2,
       "index_size_bytes": 126265
     },
@@ -1096,6 +1102,8 @@
           "5": 0.95
         },
         "mrr": 0.6866666666666668,
+        "answerable_n": 95,
+        "mrr_answerable": 0.7228070175438597,
         "per_query": [
           {
             "qid": "test-001",
@@ -1999,6 +2007,7 @@
           }
         ]
       },
+      "score_threshold": null,
       "negative_queries": {
         "n": 5,
         "abstention_rate": 0.0,
@@ -2153,14 +2162,14 @@
         }
       },
       "latency_ms": {
-        "cold_query": 92.933,
-        "p50": 46.915,
-        "p95": 52.567,
-        "p99": 56.2,
+        "cold_query": 193.963,
+        "p50": 100.334,
+        "p95": 109.558,
+        "p99": 110.865,
         "count": 100
       },
-      "warm_query_ms": 47.166,
-      "load_ms": 5.946,
+      "warm_query_ms": 92.783,
+      "load_ms": 6.9,
       "loaded_documents": 2,
       "index_size_bytes": 126265
     },
@@ -2173,6 +2182,8 @@
           "5": 0.95
         },
         "mrr": 0.705,
+        "answerable_n": 95,
+        "mrr_answerable": 0.7421052631578947,
         "per_query": [
           {
             "qid": "test-001",
@@ -3076,6 +3087,7 @@
           }
         ]
       },
+      "score_threshold": null,
       "negative_queries": {
         "n": 5,
         "abstention_rate": 0.0,
@@ -3230,14 +3242,14 @@
         }
       },
       "latency_ms": {
-        "cold_query": 90.989,
-        "p50": 46.952,
-        "p95": 52.187,
-        "p99": 55.2,
+        "cold_query": 96.352,
+        "p50": 46.832,
+        "p95": 56.078,
+        "p99": 70.603,
         "count": 100
       },
-      "warm_query_ms": 47.012,
-      "load_ms": 5.322,
+      "warm_query_ms": 47.872,
+      "load_ms": 5.422,
       "loaded_documents": 2,
       "index_size_bytes": 126265
     }
