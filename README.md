@@ -20,7 +20,9 @@ machine-specific reports are excluded from version control.
 - Basic RAG: bilingual grounded prompts, provenance-safe context budgets,
   versioned query-answer cache and deterministic abstention acceptance
 - Academic metadata: language, document type, academic years and semesters
-- Web UI/public deployment: next phase; the repository is currently the backend foundation
+- Dependency-free accessible demo UI and WSGI smoke server are included in
+  `src/campusai/web.py`; production deployment still needs provider wiring and
+  a managed process/storage service.
 
 The detailed product plan, reuse decisions and deployment roadmap are in
 [`plan.md`](plan.md).
@@ -162,6 +164,18 @@ benchmark builds its university fixture corpus at runtime and does not use
 Optional live Gemini grounding evidence is available with
 `tests/integration/test_phase4_gemini.py`; it requires `RUN_LLM_INTEGRATION=1`
 and a `GEMINI_API_KEY` supplied only through the environment.
+
+Run the local UI shell and operational checks:
+
+```powershell
+.venv\Scripts\python.exe scripts\serve.py
+.venv\Scripts\python.exe scripts\load_test.py --users 1 5 20
+.venv\Scripts\python.exe scripts\recovery_check.py --index-root data\index
+```
+
+The load test measures transport/application concurrency. The recovery check
+loads every index and verifies that a checksum-corrupted copy is rejected
+without mutating the live index.
 
 ## Performance evidence
 

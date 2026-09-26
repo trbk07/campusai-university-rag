@@ -378,17 +378,23 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                 table_headings = list(section_headings)
                 break
         table_header = _context_header(metadata, table_headings, first_page, page_range)
+        # Keep a human-readable header line in addition to the lossless JSON
+        # payload. JSON escapes embedded newlines, which makes multi-line PDF
+        # headers hard to search and impossible for strict provenance checks
+        # to verify by plain substring matching.
+        readable_headers = " | ".join(str(header) for header in table.headers if str(header).strip())
+        table_header_line = f"Table headers: {readable_headers}" if readable_headers else "Table headers:"
         table_budget = max(1, _MAX_CHARS - len(table_header) - 2)
         batches = _table_row_batches(table.headers, table.rows, table_budget)
         for part, rows in enumerate(batches, start=1):
             table_chunk_id = table.table_id if len(batches) == 1 else f"{table.table_id}_part{part}"
             payload = json.dumps({"headers": table.headers, "rows": rows}, ensure_ascii=False)
-            content = f"{table_header}\n\n{payload}"
+            content = f"{table_header}\n{table_header_line}\n\n{payload}"
             if len(content) > _MAX_CHARS:
                 report.setdefault("oversized_table_cells", []).append(table_chunk_id)
-                payload_budget = max(1, _MAX_CHARS - len(table_header) - 2)
+                payload_budget = max(1, _MAX_CHARS - len(table_header) - len(table_header_line) - 3)
                 payload = _truncate_table_payload_safely(table.headers, rows, payload_budget)
-                content = f"{table_header}\n\n{payload}"
+                content = f"{table_header}\n{table_header_line}\n\n{payload}"
             chunk_metadata = {
                 **metadata,
                 "doc_id": doc_id,

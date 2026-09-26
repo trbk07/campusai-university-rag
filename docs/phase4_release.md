@@ -60,11 +60,12 @@ $env:PHASE4_LLM_MODEL = "gemini-3.8-flash"
 ```
 
 The live test validates a real provider JSON response, grounded answer and
-fixture citation. It is intentionally opt-in and is not required for offline
-CI because quota/network availability is external state.
+fixture citation. The current release run passed both integration tests in
+16.54 seconds. It remains opt-in and is not required for offline CI because
+quota/network availability is external state.
 
 ## Known limitations
 
 The benchmark uses deterministic fixture LLM responses for offline acceptance.
-Live provider quality, latency and quota behavior remain provider-contract
-tests rather than a release gate.
+Live provider quality under broad load and quota exhaustion remain outside
+this two-test provider contract and require a deployment-level drill.

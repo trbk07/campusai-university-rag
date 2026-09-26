@@ -248,6 +248,20 @@ class IngestionJobManager:
             job = self._jobs.get(job_id)
             return job.to_dict() if job else None
 
+    def list(self) -> list[dict[str, Any]]:
+        """Return job summaries for a dashboard/admin endpoint."""
+        with self._lock:
+            return [job.to_dict() for job in self._jobs.values()]
+
+    def stats(self) -> dict[str, int]:
+        """Return queue state counts without exposing source contents."""
+        with self._lock:
+            counts: dict[str, int] = {}
+            for job in self._jobs.values():
+                counts[job.state] = counts.get(job.state, 0) + 1
+            counts["active_workers"] = sum(1 for job in self._jobs.values() if job.state == "running")
+            return counts
+
     def cancel(self, job_id: str) -> bool:
         """Request cooperative cancellation and release queued work when possible."""
 

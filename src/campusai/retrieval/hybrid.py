@@ -11,6 +11,7 @@ from .bm25_index import BM25Index
 from .dense_index import DenseIndex
 from .fusion import reciprocal_rank_fusion
 from .reranker import Reranker
+from .calibration import RetrievalPolicy
 
 
 @dataclass(frozen=True)
@@ -33,12 +34,14 @@ class HybridRetriever:
         reranker: Reranker | None = None,
         query_cache_size: int = 128,
         rerank_candidate_limit: int = 8,
+        policies: dict[str, RetrievalPolicy] | None = None,
     ) -> None:
         self.index_root = Path(index_root)
         self.rrf_k = rrf_k
         self.reranker = reranker
         self.query_cache_size = max(0, query_cache_size)
         self.rerank_candidate_limit = max(1, rerank_candidate_limit)
+        self.policies = dict(policies or {})
         self._indexes: dict[str, tuple[BM25Index, DenseIndex]] = {}
         self._query_cache: OrderedDict[tuple, list[RetrievalResult]] = OrderedDict()
 
@@ -74,6 +77,14 @@ class HybridRetriever:
             doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
         if not doc_ids or top_k <= 0:
             return []
+        if not query or not query.strip():
+            return []
+        # A calibrated policy is the production default when supplied by the
+        # service. Explicit call-site thresholds remain supported for tests and
+        # offline experiments, but cannot silently override a stricter policy.
+        policy = self.policies.get(mode)
+        if policy is not None:
+            score_threshold = max(score_threshold or 0.0, policy.threshold)
         # JSON keeps nested filter values hashable and deterministic, so a UI
         # filter payload cannot crash the fast path before retrieval starts.
         filter_key = json.dumps(filters or {}, sort_keys=True, ensure_ascii=False, default=str)
@@ -181,3 +192,9 @@ class HybridRetriever:
             while len(self._query_cache) > self.query_cache_size:
                 self._query_cache.popitem(last=False)
         return results
+
+    @classmethod
+    def with_calibration_report(cls, index_root: str | Path, report_path: str | Path, **kwargs) -> "HybridRetriever":
+        """Construct a retriever whose abstention threshold is auditable."""
+        policy = RetrievalPolicy.from_report(report_path)
+        return cls(index_root, policies={policy.mode: policy}, **kwargs)

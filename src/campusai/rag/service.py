@@ -9,6 +9,7 @@ from typing import Any
 from ..retrieval.hybrid import HybridRetriever, RetrievalResult
 from .cache import RAGAnswerCache, build_rag_cache_key
 from .grounding import GroundedAnswer, GroundedAnswerGenerator
+from ..observability import MetricsRegistry
 
 
 def choose_query_mode(question: str, *, reranker_available: bool) -> str:
@@ -39,11 +40,13 @@ class CampusAIQueryService:
         retriever: HybridRetriever,
         answer_generator: GroundedAnswerGenerator,
         cache: RAGAnswerCache | None = None,
+        metrics: MetricsRegistry | None = None,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
         self.cache = cache if cache is not None else RAGAnswerCache()
         self.last_cache_hit = False
+        self.metrics = metrics or MetricsRegistry()
 
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
         """Return a stable version from the selected corpus/index manifests."""
@@ -120,6 +123,10 @@ class CampusAIQueryService:
             model=getattr(self.answer_generator.llm, "model", None) or getattr(self.answer_generator.llm, "model_name", None),
             context_budget=budget,
         )
+        with self.metrics.observe("rag.ask"):
+            return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)
+
+    def _ask_uncached_or_cached(self, question, doc_ids, filters, top_k, selected_mode, language, version, key):
         cached = self.cache.get(key)
         if cached is not None:
             self.last_cache_hit = True
