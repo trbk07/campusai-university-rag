@@ -9,10 +9,15 @@ import threading
 from typing import Any
 
 from ..llm.cache import SQLiteLLMCache
+from .claims import Claim
+from .confidence import POLICY_VERSION
 from .grounding import Citation, GroundedAnswer
+from .schemas import SCHEMA_VERSION
 
 
-PROMPT_VERSION = "phase4-v1"
+PROMPT_VERSION = "phase5-v1"
+GROUNDING_POLICY_VERSION = "phase5-v1"
+ABSTENTION_POLICY_VERSION = "phase5-v1"
 
 
 def normalize_question(question: str) -> str:
@@ -33,6 +38,10 @@ def build_rag_cache_key(
     model: str | None,
     context_budget: dict[str, int | float | None],
     prompt_version: str = PROMPT_VERSION,
+    grounding_policy_version: str = GROUNDING_POLICY_VERSION,
+    confidence_policy_version: str = POLICY_VERSION,
+    abstention_policy_version: str = ABSTENTION_POLICY_VERSION,
+    schema_version: str = SCHEMA_VERSION,
 ) -> str:
     """Hash only canonical request semantics; never store secrets in the key."""
 
@@ -45,6 +54,10 @@ def build_rag_cache_key(
         "mode": mode,
         "corpus_version": corpus_version,
         "prompt_version": prompt_version,
+        "grounding_policy_version": grounding_policy_version,
+        "confidence_policy_version": confidence_policy_version,
+        "abstention_policy_version": abstention_policy_version,
+        "schema_version": schema_version,
         "model": model or "none",
         "context_budget": context_budget,
     }
@@ -88,6 +101,12 @@ class RAGAnswerCache:
                 abstained=bool(payload["abstained"]),
                 reason=payload.get("reason"),
                 cache_hit=True,
+                claims=tuple(Claim(str(item.get("claim_id", "")), str(item.get("text", "")), str(item.get("type", "fact")), 1,
+                                   tuple(item.get("citation_ids", [])), str(item.get("status", "supported")), float(item.get("support_score", 0.0)), ())
+                              for item in payload.get("claims", []) if isinstance(item, dict)),
+                evidence_status=str(payload.get("evidence_status", "found")),
+                confidence_score=payload.get("confidence_score"),
+                policy_version=str(payload.get("confidence_policy_version", POLICY_VERSION)),
             )
         except (KeyError, TypeError, ValueError, json.JSONDecodeError):
             return None
@@ -98,6 +117,10 @@ class RAGAnswerCache:
             "no_relevant_evidence",
             "context_budget_exceeded",
             "model_abstained",
+            "unsupported_claim",
+            "provider_abstained",
+            "conflicting_evidence",
+            "ambiguous_question",
         }
         if answer.abstained and answer.reason not in cacheable_abstentions:
             return

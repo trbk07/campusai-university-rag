@@ -8,6 +8,15 @@ from typing import Any, Iterable
 
 from ..llm.client import LLMClient, LLMError
 from ..retrieval.hybrid import RetrievalResult
+from .claims import Claim, align_claims, extract_claims, normalize_text
+from .confidence import POLICY_VERSION, score_confidence
+from .calibration import IsotonicCalibrator
+from .decision import decide
+from .abstention import taxonomy_reason
+from .evidence import EvidenceRegistry
+from .schemas import SCHEMA_VERSION, validate_response
+from .policies import sanitize_evidence_text
+from .policies import has_conflicting_numeric_evidence, is_ambiguous_question
 
 
 @dataclass(frozen=True)
@@ -16,6 +25,13 @@ class CitationValidation:
 
     valid: bool
     errors: tuple[str, ...] = ()
+
+
+def validate_quote(quote: str, content: str) -> bool:
+    """Validate quote fidelity without stripping accents or numbers."""
+    if not quote:
+        return True
+    return len(quote) <= 1200 and normalize_text(quote) in normalize_text(content)
 
 
 def validate_citation(
@@ -61,6 +77,8 @@ def validate_citation(
     expected_hash = source_hash or result.metadata.get("source_hash")
     if cited_hash is not None and expected_hash is not None and cited_hash != expected_hash:
         errors.append("source_hash_mismatch")
+    if not validate_quote(str(values.get("quote", "")), result.content):
+        errors.append("quote_not_in_evidence")
     return CitationValidation(not errors, tuple(errors))
 
 
@@ -102,6 +120,10 @@ class GroundedAnswer:
     abstained: bool = False
     reason: str | None = None
     cache_hit: bool = False
+    claims: tuple[Claim, ...] = ()
+    evidence_status: str = "found"
+    confidence_score: float | None = None
+    policy_version: str = POLICY_VERSION
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -110,8 +132,33 @@ class GroundedAnswer:
             "confidence": self.confidence,
             "abstained": self.abstained,
             "reason": self.reason,
+            "abstention_reason": taxonomy_reason(self.reason),
             "cache_hit": self.cache_hit,
+            "claims": [
+                {"claim_id": claim.claim_id, "text": claim.text, "type": claim.claim_type,
+                 "status": claim.status, "citation_ids": list(claim.citation_ids),
+                 "support_score": claim.support_score, "numeric_conflict": claim.numeric_conflict}
+                for claim in self.claims
+            ],
+            "evidence_status": self.evidence_status,
+            "confidence_score": self.confidence_score,
+            "schema_version": SCHEMA_VERSION,
+            "confidence_policy_version": self.policy_version,
         }
+
+    def to_public_dict(self) -> dict[str, Any]:
+        """Return only the stable UI/API contract; diagnostics stay internal."""
+        payload = self.to_dict()
+        payload["claims"] = [
+            {**{key: claim[key] for key in ("claim_id", "text", "type")},
+             "citation_ids": [item for item in claim["citation_ids"]
+                              if item in {citation["chunk_id"] for citation in payload.get("citations", [])}]}
+            for claim in payload.get("claims", [])
+        ]
+        public = {key: value for key, value in payload.items()
+                  if key in {"answer", "citations", "confidence", "abstained", "claims", "abstention_reason"}}
+        public["schema_version"] = "phase5-public-v2"
+        return public
 
 
 ANSWER_SCHEMA = {
@@ -135,6 +182,21 @@ ANSWER_SCHEMA = {
                 },
             },
         },
+        "claims": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["claim_id", "text", "citation_ids"],
+                "additionalProperties": False,
+                "properties": {
+                    "claim_id": {"type": "string", "minLength": 1},
+                    "text": {"type": "string", "minLength": 1, "maxLength": 1200},
+                    "type": {"type": "string"},
+                    "citation_ids": {"type": "array", "items": {"type": "string"}},
+                    "required_citations": {"type": "integer", "minimum": 1},
+                },
+            },
+        },
     },
 }
 
@@ -154,7 +216,7 @@ def _context_block(result: RetrievalResult) -> tuple[str, str]:
         f"document={source_name}\ndoc_id={result.doc_id}\npage={result.page}\n"
         f"page_range={page_range[0]}-{page_range[1]}\nsection={section}\ncontent:\n"
     )
-    return metadata, result.content.strip()
+    return metadata, sanitize_evidence_text(result.content.strip())
 
 
 def build_context(
@@ -215,11 +277,13 @@ class GroundedAnswerGenerator:
         max_context_chars: int = 12000,
         max_context_tokens: int | None = None,
         min_retrieval_score: float | None = None,
+        calibrator: IsotonicCalibrator | None = None,
     ) -> None:
         self.llm = llm
         self.max_context_chars = max(1000, max_context_chars)
         self.max_context_tokens = max_context_tokens if max_context_tokens is None else max(64, max_context_tokens)
         self.min_retrieval_score = min_retrieval_score
+        self.calibrator = calibrator
 
     def prompt(self, question: str, results: list[RetrievalResult], language: str = "vi") -> str:
         context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens)
@@ -229,7 +293,7 @@ class GroundedAnswerGenerator:
                 "Use only the supplied evidence. Do not use outside knowledge, guess, or infer unsupported facts.\n"
                 "If evidence is insufficient, set abstained=true and answer briefly that the documents do not establish it.\n"
                 "Every material claim must cite one or more supplied chunk_id values.\n"
-                "Return valid JSON only with answer, confidence (high|medium|low), abstained, and citations.\n"
+                "Return valid JSON only with answer, claims, confidence (high|medium|low), abstained, and citations. Each claim must list citation_ids.\n"
                 "Keep the answer direct and short (1-3 short paragraphs)."
             )
         else:
@@ -253,6 +317,10 @@ class GroundedAnswerGenerator:
             return _abstention("empty_question")
         if not results:
             return _abstention("no_retrieval_evidence")
+        if is_ambiguous_question(question, results):
+            return _abstention("ambiguous_question")
+        if has_conflicting_numeric_evidence(results, question):
+            return _abstention("conflicting_evidence")
         if self.min_retrieval_score is not None and max(result.score for result in results) < self.min_retrieval_score:
             return _abstention("no_relevant_evidence")
         if self.llm is None:
@@ -304,12 +372,41 @@ class GroundedAnswerGenerator:
             )
         if not citations or bool(payload.get("abstained")):
             return _abstention("model_abstained", tuple(citations))
+        return _phase5_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
+                                calibrator=self.calibrator)
+
+
+def _phase5_finalize(answer: str, citations: tuple[Citation, ...], payload: dict[str, Any],
+                     results: list[RetrievalResult], language: str,
+                     calibrator: IsotonicCalibrator | None = None) -> GroundedAnswer:
+    """Recompute claim support/confidence; provider labels are never trusted."""
+    registry = EvidenceRegistry(results)
+    citation_ids = tuple(citation.chunk_id for citation in citations)
+    raw_claims = payload.get("claims") if isinstance(payload.get("claims"), list) else None
+    claims = extract_claims(answer, raw_claims)
+    # Keep claim-to-citation links precise. Claims without an explicit mapping
+    # are resolved against the registry by ``align_claims``.
+    citation_map = {claim.claim_id: claim.citation_ids for claim in claims}
+    claims = align_claims(claims, registry, citation_map)
+    # Partial claims are allowed only when every claim has some aligned
+    # evidence and none is unsupported/contradicted. The answer remains
+    # citation-backed and confidence is reduced by completeness below.
+    decision = decide(claims, allow_partial=True)
+    if decision.status != "answered":
         return GroundedAnswer(
-            answer=str(payload["answer"]),
-            citations=tuple(citations),
-            confidence=str(payload["confidence"]),
-            abstained=False,
+            answer="Chưa đủ bằng chứng để xác nhận đầy đủ câu trả lời.", citations=citations,
+            confidence="low", abstained=True, reason=decision.reason or "unsupported_claim", claims=tuple(claims),
+            evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
+    claim_support = sum(claim.support_score for claim in claims) / max(1, len(claims))
+    completeness = sum(claim.status == "supported" and bool(claim.citation_ids) for claim in claims) / max(1, len(claims))
+    retrieval_support = max(0.0, min(1.0, max(float(result.score) for result in results)))
+    confidence = score_confidence(retrieval_support=retrieval_support, claim_entailment=claim_support,
+                                  citation_completeness=completeness, calibrator=calibrator)
+    evidence_status = "partial" if any(claim.status == "partial" for claim in claims) else "found"
+    return GroundedAnswer(answer=answer, citations=citations, confidence=confidence.label,
+                          abstained=False, claims=tuple(claims), evidence_status=evidence_status,
+                          confidence_score=confidence.score)
 
 
 def format_citation(citation: Citation, language: str = "vi") -> str:

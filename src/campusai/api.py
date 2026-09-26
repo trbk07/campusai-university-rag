@@ -54,7 +54,8 @@ class CampusAIApplication:
         if not isinstance(question, str) or not question.strip():
             return {"ok": False, "error_code": "empty_question", "action": "provide_question"}
         answer = self.query_service.ask(question, **options)
-        return {"ok": True, "answer": answer.to_dict(),
+        serializer = getattr(answer, "to_public_dict", answer.to_dict)
+        return {"ok": True, "answer": serializer(),
                 "cache_hit": self.query_service.last_cache_hit}
 
     def metrics_snapshot(self) -> dict[str, Any]:
