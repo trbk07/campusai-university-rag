@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from collections import OrderedDict
 from pathlib import Path
@@ -133,6 +134,15 @@ class HybridRetriever:
             ranked = reciprocal_rank_fusion([bm25_ranked, dense_ranked], self.rrf_k, top_k * 3)
             label = "hybrid"
         ranked = [(item_id, score) for item_id, score in ranked if item_id in records]
+        requested_pages = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", query, re.I)}
+        if requested_pages:
+            # An explicit page constraint is stronger than a small fusion
+            # score difference: prefer that page, while preserving score order
+            # among chunks on the same page.
+            ranked.sort(key=lambda pair: (
+                0 if int(records[pair[0]].get("page", 0)) in requested_pages else 1,
+                -pair[1], pair[0],
+            ))
         if filters:
             ranked = [
                 (item_id, score)

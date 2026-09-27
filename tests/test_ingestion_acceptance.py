@@ -1,4 +1,4 @@
-import json
+﻿import json
 import time
 from pathlib import Path
 
@@ -14,7 +14,7 @@ from campusai.ingestion.docling_parser import parse_pdf
 from campusai.retrieval.index_builder import build_document_indexes, remove_document_from_index
 
 
-FIXTURES = Path(__file__).parent / "fixtures" / "phase12"
+FIXTURES = Path(__file__).parent / "fixtures" / "ingestion"
 
 
 def test_academic_metadata_contract_has_normalized_entities_and_effective_date():

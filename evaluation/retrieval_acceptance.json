@@ -1,6 +1,6 @@
-{
+﻿{
   "schema_version": 1,
-  "phase": "phase3",
+  "phase": "retrieval",
   "status": "conditional",
   "benchmark_count": 100,
   "offline_hash_provider": true,
@@ -17,8 +17,8 @@
     "recall": 1.0,
     "false_positive_rate": 0.0
   },
-  "multilingual_artifact": "evaluation/results/phase3_multilingual.json",
-  "hash_artifact": "evaluation/results/phase3_hash.json",
+  "multilingual_artifact": "evaluation/results/retrieval_multilingual.json",
+  "hash_artifact": "evaluation/results/retrieval_hash.json",
   "multilingual_recall_at_5": 0.95,
   "multilingual_dense_mrr": 0.686667,
   "multilingual_dense_mrr_answerable": 0.722807,

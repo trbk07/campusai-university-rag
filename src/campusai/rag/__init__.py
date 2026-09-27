@@ -7,7 +7,7 @@ from .evidence import EvidenceRecord, EvidenceRegistry
 from .claims import Claim, extract_claims, align_claims
 from .abstention import AbstentionReason
 from .confidence import Confidence, POLICY_VERSION
-from .calibration import IsotonicCalibrator, CALIBRATION_VERSION
+from .calibration import IsotonicCalibrator, CALIBRATION_VERSION, load_calibration_artifact
 
 __all__ = [
     "CampusAIQueryService",
@@ -27,4 +27,5 @@ __all__ = [
     "POLICY_VERSION",
     "IsotonicCalibrator",
     "CALIBRATION_VERSION",
+    "load_calibration_artifact",
 ]

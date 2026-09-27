@@ -1,14 +1,14 @@
-# Phase 1/2 acceptance
+﻿# Phase 1/2 acceptance
 
 Phase 1/2 now has executable acceptance evidence in
-[`evaluation/phase12_acceptance.json`](../evaluation/phase12_acceptance.json).
+[`evaluation/ingestion_acceptance.json`](../evaluation/ingestion_acceptance.json).
 Regenerate it with:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\accept_phase12.py `
+.\.venv\Scripts\python.exe scripts\validate_ingestion.py `
   --input-dir data\corpus\university `
   --holdout data\corpus\university\uet_admission_2025.pdf `
-  --output evaluation\phase12_acceptance.json
+  --output evaluation\ingestion_acceptance.json
 ```
 
 The runner uses eight supplied real UET/VNU university PDFs. The minimum is
@@ -21,10 +21,10 @@ and can never make the real-corpus gate pass. A 10/10 run must also declare a
 real holdout:
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\accept_phase12.py `
+.\.venv\Scripts\python.exe scripts\validate_ingestion.py `
   --input-dir data\corpus\university `
   --holdout data\corpus\university\uet_admission_2025.pdf `
-  --output evaluation\phase12_acceptance.json
+  --output evaluation\ingestion_acceptance.json
 ```
 
 The acceptance contract covers:
@@ -37,7 +37,7 @@ The acceptance contract covers:
 - PDF-style heading detection, section inheritance, page ranges, overlap,
   empty-page and heading diagnostics;
 - independent table chunks with preserved headers, table IDs, and page ranges;
-- golden fixtures for `Điều kiện tốt nghiệp` and `Học phần tiên quyết`.
+- golden fixtures for `Äiá»u kiá»‡n tá»‘t nghiá»‡p` and `Há»c pháº§n tiÃªn quyáº¿t`.
 - atomic registry persistence and full document artifact deletion.
 - fail-closed citation validation for document, chunk, page range, table ID,
   source hash, and deleted artifacts.
@@ -54,5 +54,5 @@ out of scope for Phase 1/2.
 The golden regression suite is:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q tests\test_phase12_acceptance.py
+.\.venv\Scripts\python.exe -m pytest -q tests\test_ingestion_acceptance.py
 ```

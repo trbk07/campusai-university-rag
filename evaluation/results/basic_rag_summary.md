@@ -1,8 +1,8 @@
-# Phase 4 Basic RAG acceptance
+﻿# Phase 4 Basic RAG acceptance
 
 **Status: PASS**
 
-Dataset: `data/benchmark/phase4_basic_rag.jsonl` (30 records, SHA-256 `4bf94bdc0e406079060fc86580ed25a041f5cd4fd8dee8939406b12fe0d2dc5f`).
+Dataset: `data/benchmark/basic_rag.jsonl` (30 records, SHA-256 `4bf94bdc0e406079060fc86580ed25a041f5cd4fd8dee8939406b12fe0d2dc5f`).
 
 | Metric | Result | Threshold |
 |---|---:|---:|

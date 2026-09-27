@@ -8,6 +8,7 @@ import unicodedata
 from typing import Iterable
 
 from .evidence import EvidenceRegistry
+from ..retrieval.tokenizer_vi import repair_mojibake
 
 CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}
 
@@ -18,12 +19,15 @@ NUMBER_RE = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?\s*(?:%|credits?|tín\s*chỉ|ng�
 
 
 def normalize_text(value: str) -> str:
-    value = unicodedata.normalize("NFC", str(value)).casefold()
+    value = unicodedata.normalize("NFC", repair_mojibake(value)).casefold()
     # Small, auditable academic-domain bilingual aliases. This is not a
     # generative synonym model; numeric/code fidelity remains exact.
     value = re.sub(r"\bcredits?\b", "tín chỉ", value)
     value = re.sub(r"\binternship\b", "thực tập", value)
     value = re.sub(r"\bprerequisite[s]?\b", "tiên quyết", value)
+    # Metadata often uses machine-readable separators (for example
+    # ``course_catalog``). Treat them like whitespace during grounding.
+    value = re.sub(r"[_/\\-]+", " ", value)
     return re.sub(r"\s+", " ", value).strip()
 
 
@@ -108,7 +112,8 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
                 best = max(best, 1.0)
                 best_records = [item]
                 continue
-            evidence_tokens = _tokens(" ".join((item.content, item.source_name, *item.heading_path, *item.metadata_tokens)))
+            evidence_tokens = _tokens(" ".join((item.content, item.doc_id, item.source_name,
+                                                  *item.heading_path, *item.metadata_tokens)))
             overlap = len(claim_tokens & evidence_tokens) / max(1, len(claim_tokens))
             evidence_markers = _exact_markers(item.content)
             metadata_text = normalize_text(" ".join(item.metadata_tokens))

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from typing import Any
 
 from ..retrieval.hybrid import HybridRetriever, RetrievalResult
@@ -32,6 +33,17 @@ def choose_query_mode(question: str, *, reranker_available: bool) -> str:
     return "hybrid_rerank" if hard and reranker_available else "hybrid"
 
 
+def retrieval_query(question: str) -> str:
+    """Prefer an explicit topic anchor while retaining page/scope markers."""
+    raw = str(question).strip()
+    if "Topic:" not in raw:
+        return raw
+    intent, topic = raw.split("Topic:", 1)
+    topic = topic.strip()
+    scope = " ".join(re.findall(r"(?:page|trang)\s+\d+|\b20\d{2}\b|\b[A-Z]{2,}\d{2,}\b", intent, re.I))
+    return " ".join(part for part in (topic, scope) if part).strip() or raw
+
+
 class CampusAIQueryService:
     """Public application service used by a future web/API adapter."""
 
@@ -46,6 +58,7 @@ class CampusAIQueryService:
         self.answer_generator = answer_generator
         self.cache = cache if cache is not None else RAGAnswerCache()
         self.last_cache_hit = False
+        self.last_retrieval: list[RetrievalResult] = []
         self.metrics = metrics or MetricsRegistry()
 
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
@@ -139,7 +152,11 @@ class CampusAIQueryService:
             if cached is not None:
                 self.last_cache_hit = True
                 return cached
-            results = self.retrieve(question, doc_ids, filters, top_k, selected_mode)
+            results = self.retriever.search(
+                retrieval_query(question), doc_ids=doc_ids, filters=filters,
+                top_k=top_k, mode=selected_mode,
+            )
+            self.last_retrieval = list(results)
             answer = self.answer_generator.answer(question, results, language)
             self.cache.put(key, answer)
             return answer

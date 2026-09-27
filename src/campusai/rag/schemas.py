@@ -1,11 +1,11 @@
-"""Strict Phase 5 response contract."""
+﻿"""Strict Phase 5 response contract."""
 
 from __future__ import annotations
 
 from typing import NotRequired, TypedDict
 
-PUBLIC_SCHEMA_VERSION = "phase5-public-v2"
-SCHEMA_VERSION = "phase5-internal-v2"
+PUBLIC_SCHEMA_VERSION = "grounding-public-v2"
+SCHEMA_VERSION = "grounding-internal-v2"
 PUBLIC_FIELDS = {"answer", "citations", "confidence", "abstained", "claims", "abstention_reason", "schema_version"}
 INTERNAL_FIELDS = {
     "reason", "cache_hit", "evidence_status", "confidence_score",
@@ -40,7 +40,8 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
     for field in ("answer", "citations", "confidence", "abstained"):
         if field not in payload:
             errors.append(f"missing_{field}")
-    if "schema_version" in payload and payload["schema_version"] not in {PUBLIC_SCHEMA_VERSION, SCHEMA_VERSION}:
+    allowed_schema_versions = {SCHEMA_VERSION, PUBLIC_SCHEMA_VERSION} if include_internal else {PUBLIC_SCHEMA_VERSION}
+    if "schema_version" in payload and payload["schema_version"] not in allowed_schema_versions:
         errors.append("schema_version_invalid")
     if include_internal and payload.get("schema_version") not in {SCHEMA_VERSION, PUBLIC_SCHEMA_VERSION}:
         errors.append("internal_schema_version_invalid")
@@ -54,7 +55,10 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
         errors.append("abstained_invalid")
     if isinstance(payload.get("citations"), list):
         for index, citation in enumerate(payload["citations"]):
-            if not isinstance(citation, dict) or not isinstance(citation.get("chunk_id"), str) or not isinstance(citation.get("page"), int):
+            if (not isinstance(citation, dict)
+                    or not isinstance(citation.get("chunk_id"), str)
+                    or not isinstance(citation.get("page"), int)
+                    or citation.get("page", 0) < 1):
                 errors.append(f"citation_{index}_invalid")
     if "abstained" in payload:
         if payload["abstained"] and not (payload.get("abstention_reason") or payload.get("reason")):
@@ -64,9 +68,13 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
     if isinstance(payload.get("claims"), list):
         citation_ids = {item.get("chunk_id") for item in payload.get("citations", []) if isinstance(item, dict)}
         for index, claim in enumerate(payload["claims"]):
-            if not isinstance(claim, dict) or not isinstance(claim.get("text"), str):
+            if not isinstance(claim, dict) or not isinstance(claim.get("text"), str) or not claim.get("text", "").strip():
                 errors.append(f"claim_{index}_invalid")
                 continue
+            if not isinstance(claim.get("citation_ids", []), list):
+                errors.append(f"claim_{index}_citations_invalid")
+            elif any(not isinstance(item, str) for item in claim.get("citation_ids", [])):
+                errors.append(f"claim_{index}_citation_id_invalid")
             if claim.get("status") not in {None, "supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}:
                 errors.append(f"claim_{index}_status_invalid")
             if not include_internal and any(item not in citation_ids for item in claim.get("citation_ids", [])):

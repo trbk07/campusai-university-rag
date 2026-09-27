@@ -1,4 +1,4 @@
-"""Reproducible Phase 3 retrieval quality and latency benchmark."""
+﻿"""Reproducible Phase 3 retrieval quality and latency benchmark."""
 
 from __future__ import annotations
 
@@ -162,7 +162,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", default="data/benchmark/retrieval_test.jsonl")
     parser.add_argument("--index-dir", "--index-root", dest="index_dir", default="data/index")
-    parser.add_argument("--output", default="evaluation/results/phase3_hash.json")
+    parser.add_argument("--output", default="evaluation/results/retrieval_hash.json")
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--score-threshold", type=float, default=None)
     parser.add_argument("--reranker-model", default=None)
@@ -182,7 +182,7 @@ def main() -> None:
     records = load_jsonl(args.benchmark)
     modes = (args.mode,) if args.mode != "all" else ("bm25", "dense", "hybrid", "hybrid_rerank")
     report = {
-        "schema_version": 1, "phase": "phase3", "benchmark": str(Path(args.benchmark)),
+        "schema_version": 1, "phase": "retrieval", "benchmark": str(Path(args.benchmark)),
         "benchmark_count": len(records), "environment": {"python": sys.version, "platform": platform.platform()},
         "index_dir": str(Path(args.index_dir)), "top_k": args.top_k,
         "score_threshold": args.score_threshold,

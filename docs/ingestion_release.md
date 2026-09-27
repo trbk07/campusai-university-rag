@@ -1,10 +1,10 @@
-# CampusAI Task 1/Task 2 release evidence
+﻿# CampusAI Task 1/Task 2 release evidence
 
 Status: acceptance-complete for Task 1, Phase 1/2, and extended T2 scope.
 
 ## Version and environment
 
-- Release tags: `phase12-complete` and the final `task2-complete` tag
+- Release tags: `ingestion-complete` and the final `task2-complete` tag
   (commit message: `chore: complete T2 extended acceptance`).
 - Package version: `0.1.0` (`campusai-evidence-rag` / `campusai`).
 - Python: `3.14.6`.

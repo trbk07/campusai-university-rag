@@ -1,4 +1,4 @@
-"""Produce reproducible Phase 1/2 acceptance evidence on a university corpus.
+﻿"""Produce reproducible Phase 1/2 acceptance evidence on a university corpus.
 
 The acceptance gate is coverage-based: supplied real PDFs must cover the
 minimum document/layout/failure modes. Generated fixtures are explicitly
@@ -93,7 +93,7 @@ def _record(path: Path, store_dir: Path, source_kind: str) -> dict:
             metadata_audit["fields_with_page"] += 1
         elif value is not None:
             metadata_audit["missing_page"].append(field)
-        if field == "program" and isinstance(value, str) and re.search(r"\b\d+\s+tín\s+chỉ\b", value, re.I):
+        if field == "program" and isinstance(value, str) and re.search(r"\b\d+\s+tÃ­n\s+chá»‰\b", value, re.I):
             metadata_audit["critical_false_positives"] += 1
 
     lengths = [len(chunk.content) for chunk in document.chunks]
@@ -201,7 +201,7 @@ def build_report(
         supplied.append(path)
     supplied = supplied[:20]
 
-    with tempfile.TemporaryDirectory(prefix="campusai-phase12-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="campusai-ingestion-") as temp_dir:
         work = Path(temp_dir)
         fixture_paths: list[Path] = []
         needed = max(0, 10 - len(supplied)) if not require_real else 0
@@ -348,7 +348,7 @@ def _run_regression(root: Path) -> dict:
     with tempfile.TemporaryDirectory(prefix="campusai-pytest-") as temp:
         result = subprocess.run(
             [sys.executable, "-m", "pytest", "-q", "--basetemp", temp,
-             "tests/test_phase12_acceptance.py"],
+             "tests/test_ingestion_acceptance.py"],
             cwd=root, capture_output=True, text=True,
         )
     output = (result.stdout or "") + (result.stderr or "")
@@ -394,7 +394,7 @@ def _run_delete_check(source: Path) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input-dir", type=Path, default=Path("."))
-    parser.add_argument("--output", type=Path, default=Path("evaluation/phase12_acceptance.json"))
+    parser.add_argument("--output", type=Path, default=Path("evaluation/ingestion_acceptance.json"))
     parser.add_argument(
         "--allow-fixtures",
         action="store_true",

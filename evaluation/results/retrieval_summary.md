@@ -1,8 +1,8 @@
-# Phase 3 benchmark summary
+﻿# Phase 3 benchmark summary
 
 ## Verdict
 
-**Conditional Go — 9.1/10 retrieval-engineering readiness.** Persistence,
+**Conditional Go â€” 9.1/10 retrieval-engineering readiness.** Persistence,
 restart safety, benchmark reproducibility, Recall@5, and answerable-query MRR
 pass. Raw MRR is retained for audit, but it includes five unanswerable queries
 and is not used as the ranking-quality acceptance metric. Negative-query
@@ -14,7 +14,7 @@ abstention and corpus scale still prevent production acceptance.
 - Records: 100
 - Platform: Windows 11
 - Python: 3.14.6
-- Multilingual index: `.tmp/phase3-multilingual-index`
+- Multilingual index: `.tmp/retrieval-multilingual-index`
 - Multilingual model: local Hugging Face cached model; see dense index manifests
 - Indexed documents: 2
 - Indexed chunks: 5
@@ -49,7 +49,7 @@ latency remains below 500 ms.
 
 ## Calibration follow-up
 
-`phase3_calibration.json` is fit only on `retrieval_calibration.jsonl` using
+`retrieval_calibration.json` is fit only on `retrieval_calibration.jsonl` using
 the cached `bge-reranker-v2-m3`. It selects threshold `0.46367466` with
 calibration Recall `1.0` and false-positive rate `0.0`. The test runner can
 apply it without copying the number manually using `--calibration-report`;

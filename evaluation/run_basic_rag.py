@@ -1,4 +1,4 @@
-"""Deterministic Phase 4 Basic RAG acceptance benchmark.
+﻿"""Deterministic Phase 4 Basic RAG acceptance benchmark.
 
 The benchmark builds a small university-only corpus from tracked Phase 1/2
 fixtures at runtime. It uses a fake LLM contract so acceptance is offline,
@@ -26,7 +26,7 @@ from campusai.schemas import Chunk, Document
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "tests" / "fixtures" / "phase12"
+FIXTURES = ROOT / "tests" / "fixtures" / "ingestion"
 
 
 def load_records(path: str | Path) -> list[dict]:
@@ -69,15 +69,42 @@ class FixtureLLM:
         self.calls += 1
         record = self.active or {}
         if not record.get("answerable"):
-            return {"answer": "The selected documents do not establish this.", "confidence": "low", "abstained": True, "citations": []}
+            return {"answer": "The selected documents do not establish this.", "confidence": "low",
+                    "abstained": True, "abstention_reason": record.get("gold_abstention_reason"),
+                    "citations": []}
+        gold_evidence = record.get("gold_evidence")
+        if gold_evidence is None:
+            gold_evidence = [evidence for claim in record.get("gold_claims", [])
+                             for evidence in claim.get("evidence", [])]
         evidence = []
         for match in re.finditer(r"chunk_id=([^\n]+).*?doc_id=([^\n]+).*?page=(\d+).*?page_range=(\d+)-(\d+)", prompt, re.S):
             chunk_id, doc_id, page, start, end = match.groups()
-            if any(item["doc_id"] == doc_id and int(item["page"]) == int(page) for item in record.get("gold_evidence", [])):
+            if any(item["doc_id"] == doc_id and int(item["page"]) == int(page) for item in gold_evidence):
                 evidence.append({"chunk_id": chunk_id, "doc_id": doc_id, "page": int(page), "page_range": [int(start), int(end)]})
         if not evidence:
-            return {"answer": "The selected documents do not establish this.", "confidence": "low", "abstained": True, "citations": []}
-        return {"answer": record["gold_answer"], "confidence": "high", "abstained": False, "citations": evidence}
+            return {"answer": "The selected documents do not establish this.", "confidence": "low",
+                    "abstained": True, "abstention_reason": "no_evidence_found", "citations": []}
+        answer = record.get("gold_answer")
+        if answer is None:
+            answer = "; ".join(str(claim.get("text", "")) for claim in record.get("gold_claims", [])
+                                 if str(claim.get("text", "")).strip())
+        payload = {"answer": answer or "The selected documents do not establish this.",
+                   "confidence": "high", "abstained": False, "citations": evidence}
+        if record.get("gold_claims"):
+            claims = []
+            for index, claim in enumerate(record["gold_claims"], 1):
+                claim_evidence = claim.get("evidence", [])
+                ids = []
+                for item in claim_evidence:
+                    match = next((citation for citation in evidence
+                                  if item.get("doc_id") == citation.get("doc_id")
+                                  and int(item.get("page")) == int(citation.get("page"))), None)
+                    if match is not None and match["chunk_id"] not in ids:
+                        ids.append(match["chunk_id"])
+                claims.append({"claim_id": claim.get("claim_id", f"claim-{index}"),
+                               "text": claim.get("text", ""), "citation_ids": ids})
+            payload["claims"] = claims
+        return payload
 
 
 def percentile(values: list[float], pct: float) -> float | None:
@@ -88,9 +115,9 @@ def percentile(values: list[float], pct: float) -> float | None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", default="data/benchmark/phase4_basic_rag.jsonl")
-    parser.add_argument("--output", default="evaluation/results/phase4_basic_rag.json")
-    parser.add_argument("--summary", default="evaluation/results/phase4_summary.md")
+    parser.add_argument("--benchmark", default="data/benchmark/basic_rag.jsonl")
+    parser.add_argument("--output", default="evaluation/results/basic_rag_report.json")
+    parser.add_argument("--summary", default="evaluation/results/basic_rag_summary.md")
     args = parser.parse_args()
     records = load_records(args.benchmark)
     with tempfile.TemporaryDirectory(prefix="campusai-phase4-") as temp_dir:

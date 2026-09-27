@@ -1,4 +1,4 @@
-"""Generate answers only from retrieved, page-grounded evidence."""
+﻿"""Generate answers only from retrieved, page-grounded evidence."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from .confidence import POLICY_VERSION, score_confidence
 from .calibration import IsotonicCalibrator
 from .decision import decide
 from .abstention import taxonomy_reason
+from .abstention import AbstentionReason
 from .evidence import EvidenceRegistry
 from .schemas import SCHEMA_VERSION, validate_response
 from .policies import sanitize_evidence_text
@@ -149,6 +150,10 @@ class GroundedAnswer:
     def to_public_dict(self) -> dict[str, Any]:
         """Return only the stable UI/API contract; diagnostics stay internal."""
         payload = self.to_dict()
+        payload["citations"] = [
+            {key: citation[key] for key in ("chunk_id", "doc_id", "page", "page_range", "quote", "section_path", "source_name", "table_id")}
+            for citation in payload.get("citations", [])
+        ]
         payload["claims"] = [
             {**{key: claim[key] for key in ("claim_id", "text", "type")},
              "citation_ids": [item for item in claim["citation_ids"]
@@ -157,7 +162,7 @@ class GroundedAnswer:
         ]
         public = {key: value for key, value in payload.items()
                   if key in {"answer", "citations", "confidence", "abstained", "claims", "abstention_reason"}}
-        public["schema_version"] = "phase5-public-v2"
+        public["schema_version"] = "grounding-public-v2"
         return public
 
 
@@ -169,6 +174,7 @@ ANSWER_SCHEMA = {
         "answer": {"type": "string", "minLength": 1, "maxLength": 6000},
         "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
         "abstained": {"type": "boolean"},
+        "abstention_reason": {"type": "string", "enum": [reason.value for reason in AbstentionReason]},
         "citations": {
             "type": "array",
             "items": {
@@ -260,7 +266,7 @@ def build_context(
 
 def _abstention(reason: str, citations: tuple[Citation, ...] = ()) -> GroundedAnswer:
     return GroundedAnswer(
-        answer="Mình chưa tìm thấy đủ bằng chứng trong các tài liệu đã chọn để trả lời chắc chắn.",
+        answer="MÃ¬nh chÆ°a tÃ¬m tháº¥y Ä‘á»§ báº±ng chá»©ng trong cÃ¡c tÃ i liá»‡u Ä‘Ã£ chá»n Ä‘á»ƒ tráº£ lá»i cháº¯c cháº¯n.",
         citations=citations,
         confidence="low",
         abstained=True,
@@ -298,12 +304,12 @@ class GroundedAnswerGenerator:
             )
         else:
             instructions = (
-                "Bạn là CampusAI, trợ lý tri thức đại học dựa trên bằng chứng.\n"
+                "Báº¡n lÃ  CampusAI, trá»£ lÃ½ tri thá»©c Ä‘áº¡i há»c dá»±a trÃªn báº±ng chá»©ng.\n"
                 "Chỉ dùng thông tin trong EVIDENCE; không dùng kiến thức bên ngoài, không đoán hoặc suy diễn.\n"
-                "Nếu bằng chứng chưa đủ, đặt abstained=true và nói ngắn rằng tài liệu chưa xác lập được câu trả lời.\n"
-                "Mọi kết luận quan trọng phải trích dẫn một hoặc nhiều chunk_id có trong EVIDENCE.\n"
-                "Chỉ trả về JSON hợp lệ gồm answer, confidence (high|medium|low), abstained và citations.\n"
-                "Trả lời trực tiếp, ngắn gọn (1-3 đoạn ngắn)."
+                "Náº¿u báº±ng chá»©ng chÆ°a Ä‘á»§, Ä‘áº·t abstained=true vÃ  nÃ³i ngáº¯n ráº±ng tÃ i liá»‡u chÆ°a xÃ¡c láº­p Ä‘Æ°á»£c cÃ¢u tráº£ lá»i.\n"
+                "Má»i káº¿t luáº­n quan trá»ng pháº£i trÃ­ch dáº«n má»™t hoáº·c nhiá»u chunk_id cÃ³ trong EVIDENCE.\n"
+                "Chá»‰ tráº£ vá» JSON há»£p lá»‡ gá»“m answer, confidence (high|medium|low), abstained vÃ  citations.\n"
+                "Tráº£ lá»i trá»±c tiáº¿p, ngáº¯n gá»n (1-3 Ä‘oáº¡n ngáº¯n)."
             )
         return f"{instructions}\n\nQUESTION:\n{question}\n\nEVIDENCE:\n{context}"
 
@@ -344,6 +350,16 @@ class GroundedAnswerGenerator:
             return _abstention("empty_model_answer")
         if len(payload["answer"].strip()) > 1600 or payload.get("confidence") not in {"high", "medium", "low"}:
             return _abstention("invalid_model_output")
+        raw_claims = payload.get("claims")
+        if isinstance(raw_claims, list):
+            # Structured claims are the authoritative claim/citation contract:
+            # a claim without an explicit direct citation is unsafe to publish.
+            for raw_claim in raw_claims:
+                if not isinstance(raw_claim, dict) or not str(raw_claim.get("text", "")).strip():
+                    return _abstention("invalid_model_output")
+                citation_ids = raw_claim.get("citation_ids", raw_claim.get("citation_chunk_ids", []))
+                if not isinstance(citation_ids, list) or not citation_ids or any(not str(item).strip() for item in citation_ids):
+                    return _abstention("unsupported_claim")
 
         citations: list[Citation] = []
         seen_chunks: set[str] = set()
@@ -371,12 +387,19 @@ class GroundedAnswerGenerator:
                 )
             )
         if not citations or bool(payload.get("abstained")):
-            return _abstention("model_abstained", tuple(citations))
-        return _phase5_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
+            provider_reason = payload.get("abstention_reason")
+            allowed = {reason.value for reason in AbstentionReason}
+            if provider_reason not in allowed:
+                provider_reason = "provider_abstained"
+            # Provider labels are accepted only after deterministic policy
+            # checks above have had the opportunity to classify conflict and
+            # ambiguity. Unknown or unsupported labels remain generic.
+            return _abstention(provider_reason, tuple(citations))
+        return _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
                                 calibrator=self.calibrator)
 
 
-def _phase5_finalize(answer: str, citations: tuple[Citation, ...], payload: dict[str, Any],
+def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: dict[str, Any],
                      results: list[RetrievalResult], language: str,
                      calibrator: IsotonicCalibrator | None = None) -> GroundedAnswer:
     """Recompute claim support/confidence; provider labels are never trusted."""
@@ -388,15 +411,23 @@ def _phase5_finalize(answer: str, citations: tuple[Citation, ...], payload: dict
     # are resolved against the registry by ``align_claims``.
     citation_map = {claim.claim_id: claim.citation_ids for claim in claims}
     claims = align_claims(claims, registry, citation_map)
-    # Partial claims are allowed only when every claim has some aligned
-    # evidence and none is unsupported/contradicted. The answer remains
-    # citation-backed and confidence is reduced by completeness below.
-    decision = decide(claims, allow_partial=True)
+    # Phase 5 is fail-closed: a partially supported answer can hide an
+    # unsupported number, code, date, or polarity change.
+    decision = decide(claims, allow_partial=False)
     if decision.status != "answered":
         return GroundedAnswer(
-            answer="Chưa đủ bằng chứng để xác nhận đầy đủ câu trả lời.", citations=citations,
+            answer="ChÆ°a Ä‘á»§ báº±ng chá»©ng Ä‘á»ƒ xÃ¡c nháº­n Ä‘áº§y Ä‘á»§ cÃ¢u tráº£ lá»i.", citations=citations,
             confidence="low", abstained=True, reason=decision.reason or "unsupported_claim", claims=tuple(claims),
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
+        )
+    used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
+    if used_citation_ids:
+        citations = tuple(citation for citation in citations if citation.chunk_id in used_citation_ids)
+    if not citations:
+        return GroundedAnswer(
+            answer="ChÃ†Â°a Ã„â€˜Ã¡Â»Â§ bÃ¡ÂºÂ±ng chÃ¡Â»Â©ng Ã„â€˜Ã¡Â»Æ’ xÃƒÂ¡c nhÃ¡ÂºÂ­n Ã„â€˜Ã¡ÂºÂ§y Ã„â€˜Ã¡Â»Â§ cÃƒÂ¢u trÃ¡ÂºÂ£ lÃ¡Â»Âi.",
+            confidence="low", abstained=True, reason="unsupported_claim", claims=tuple(claims),
+            evidence_status="unsupported_claim", confidence_score=0.0,
         )
     claim_support = sum(claim.support_score for claim in claims) / max(1, len(claims))
     completeness = sum(claim.status == "supported" and bool(claim.citation_ids) for claim in claims) / max(1, len(claims))

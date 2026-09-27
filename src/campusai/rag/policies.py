@@ -45,14 +45,19 @@ def is_ambiguous_question(question: str, results: list[RetrievalResult]) -> bool
 def has_conflicting_numeric_evidence(results: list[RetrievalResult], question: str | None = None) -> bool:
     """Detect disagreement only among evidence relevant to the question."""
     if question is not None:
-        normalized_question = normalize_text(question)
+        # Candidate/evaluation prompts may append a quoted topic after the
+        # actual user intent. Numbers in that quote are evidence context, not
+        # a request for numeric comparison and must not trigger conflict
+        # abstention by themselves.
+        intent_question = str(question).split("Topic:", 1)[0]
+        normalized_question = normalize_text(intent_question)
         numeric_intent = bool(re.search(
             r"\d|how many|how much|which year|page|version|credits?|tín\s*chỉ|bao nhiêu|trang|năm",
             normalized_question, re.I
         ))
         if not numeric_intent:
             return False
-        query_tokens = {token for token in _tokens(question) if len(token) >= 4}
+        query_tokens = {token for token in _tokens(intent_question) if len(token) >= 4}
         related = [result for result in results if query_tokens & _tokens(result.content)]
         if len({result.doc_id for result in related}) < 2:
             return False

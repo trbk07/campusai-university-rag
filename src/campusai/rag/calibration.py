@@ -1,11 +1,34 @@
-"""Small dependency-free isotonic calibrator for Phase 5 confidence scores."""
+﻿"""Small dependency-free isotonic calibrator for Phase 5 confidence scores."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import hashlib
+import json
+import math
+from pathlib import Path
 
 
-CALIBRATION_VERSION = "phase5-isotonic-v1"
+CALIBRATION_VERSION = "grounding-isotonic-v1"
+
+
+def calibration_payload_sha256(payload: dict) -> str:
+    """Return the stable digest used to pin a calibration artifact."""
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def load_calibration_artifact(path: str | Path, *, expected_sha256: str | None = None) -> tuple["IsotonicCalibrator", str]:
+    """Load and verify a persisted Phase 5 calibrator fail-closed."""
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    artifact = payload.get("artifact", payload)
+    actual = calibration_payload_sha256(artifact)
+    declared = payload.get("artifact_sha256")
+    if declared and declared != actual:
+        raise ValueError("calibration artifact checksum mismatch")
+    if expected_sha256 and expected_sha256 != actual:
+        raise ValueError("calibration artifact checksum mismatch")
+    return IsotonicCalibrator.from_dict(artifact), actual
 
 
 @dataclass(frozen=True)
@@ -18,7 +41,13 @@ class IsotonicCalibrator:
     def fit(cls, scores: list[float], labels: list[bool]) -> "IsotonicCalibrator":
         if len(scores) != len(labels) or not scores:
             raise ValueError("scores and labels must be non-empty and equal length")
-        ordered = sorted((max(0.0, min(1.0, float(score))), int(label)) for score, label in zip(scores, labels))
+        cleaned = []
+        for score, label in zip(scores, labels):
+            value = float(score)
+            if not math.isfinite(value):
+                raise ValueError("calibration scores must be finite")
+            cleaned.append((max(0.0, min(1.0, value)), int(bool(label))))
+        ordered = sorted(cleaned)
         blocks: list[list[float | int]] = []
         for score, label in ordered:
             blocks.append([score, score, 1, label])
@@ -32,7 +61,10 @@ class IsotonicCalibrator:
         )
 
     def predict(self, score: float) -> float:
-        value = max(0.0, min(1.0, float(score)))
+        value = float(score)
+        if not math.isfinite(value):
+            raise ValueError("calibration score must be finite")
+        value = max(0.0, min(1.0, value))
         for threshold, calibrated in zip(self.thresholds, self.values):
             if value <= threshold:
                 return calibrated
@@ -43,10 +75,18 @@ class IsotonicCalibrator:
 
     @classmethod
     def from_dict(cls, payload: dict) -> "IsotonicCalibrator":
-        if payload.get("version") != CALIBRATION_VERSION:
+        if not isinstance(payload, dict) or payload.get("version") != CALIBRATION_VERSION:
             raise ValueError("unsupported calibration artifact version")
-        thresholds = tuple(float(value) for value in payload["thresholds"])
-        values = tuple(float(value) for value in payload["values"])
+        try:
+            thresholds = tuple(float(value) for value in payload["thresholds"])
+            values = tuple(float(value) for value in payload["values"])
+        except (KeyError, TypeError, ValueError):
+            raise ValueError("invalid calibration artifact") from None
         if not thresholds or len(thresholds) != len(values):
+            raise ValueError("invalid calibration artifact")
+        if (any(not math.isfinite(value) or not 0 <= value <= 1 for value in thresholds)
+                or any(not math.isfinite(value) or not 0 <= value <= 1 for value in values)
+                or tuple(sorted(thresholds)) != thresholds
+                or tuple(sorted(values)) != values):
             raise ValueError("invalid calibration artifact")
         return cls(thresholds, values)

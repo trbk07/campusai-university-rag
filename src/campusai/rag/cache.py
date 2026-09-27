@@ -1,4 +1,4 @@
-"""Versioned, credential-free cache for grounded RAG answers."""
+﻿"""Versioned, credential-free cache for grounded RAG answers."""
 
 from __future__ import annotations
 
@@ -15,9 +15,9 @@ from .grounding import Citation, GroundedAnswer
 from .schemas import SCHEMA_VERSION
 
 
-PROMPT_VERSION = "phase5-v1"
-GROUNDING_POLICY_VERSION = "phase5-v1"
-ABSTENTION_POLICY_VERSION = "phase5-v1"
+PROMPT_VERSION = "grounding-v1"
+GROUNDING_POLICY_VERSION = "grounding-v1"
+ABSTENTION_POLICY_VERSION = "grounding-v1"
 
 
 def normalize_question(question: str) -> str:
@@ -127,7 +127,7 @@ class RAGAnswerCache:
         if not answer.abstained and not answer.citations:
             return
         payload = json.dumps(answer.to_dict(), ensure_ascii=False, sort_keys=True)
-        self._store.put(key, payload, {"kind": "phase4_grounded_answer"}, 0.0)
+        self._store.put(key, payload, {"kind": "basic_rag_grounded_answer"}, 0.0)
 
     def lock(self, key: str) -> threading.Lock:
         return self._lock_for(key)

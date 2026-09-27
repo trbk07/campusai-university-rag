@@ -1,8 +1,8 @@
-# Phase 4 release evidence — Basic RAG
+﻿# Phase 4 release evidence â€” Basic RAG
 
 ## Decision
 
-**Pass — 10/10 offline acceptance contract.** The Phase 4 benchmark uses a
+**Pass â€” 10/10 offline acceptance contract.** The Phase 4 benchmark uses a
 tracked university-only fixture corpus built at runtime. It does not use any
 `.tmp` financial artifact or live provider quota.
 
@@ -32,14 +32,14 @@ tracked university-only fixture corpus built at runtime. It does not use any
 Run:
 
 ```powershell
-.venv\Scripts\python.exe evaluation\run_phase4_basic_rag.py
-.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_phase4_basic_rag.py tests\test_grounding.py
+.venv\Scripts\python.exe evaluation\run_basic_rag.py
+.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_basic_rag.py tests\test_grounding.py
 ```
 
 The canonical outputs are:
 
-- [`phase4_basic_rag.json`](../evaluation/results/phase4_basic_rag.json)
-- [`phase4_summary.md`](../evaluation/results/phase4_summary.md)
+- [`basic_rag_report.json`](../evaluation/results/basic_rag_report.json)
+- [`basic_rag_summary.md`](../evaluation/results/basic_rag_summary.md)
 
 The acceptance thresholds are met: answerable answer success, citation
 resolution/page/document accuracy, negative abstention, zero fabrication and
@@ -56,7 +56,7 @@ environment:
 $env:RUN_LLM_INTEGRATION = "1"
 $env:GEMINI_API_KEY = "<key supplied only in the environment>"
 $env:PHASE4_LLM_MODEL = "gemini-3.8-flash"
-.venv\Scripts\python.exe -m pytest -q tests\integration\test_phase4_gemini.py
+.venv\Scripts\python.exe -m pytest -q tests\integration\test_basic_rag_provider.py
 ```
 
 The live test validates a real provider JSON response, grounded answer and

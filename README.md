@@ -1,4 +1,4 @@
-# CampusAI
+﻿# CampusAI
 
 CampusAI is an evidence-grounded university knowledge assistant. It ingests
 text-based PDFs such as regulations, curricula, syllabi, student handbooks and
@@ -132,13 +132,13 @@ Validate the university seed benchmark:
 ```
 
 The benchmark is currently a 20-question seed. Phase 8 in `plan.md` expands it
-to 100–300 reviewed questions with temporal, multi-hop, unanswerable and
+to 100â€“300 reviewed questions with temporal, multi-hop, unanswerable and
 citation metrics.
 
 Phase 1/2 acceptance evidence is regenerated in
-[`evaluation/phase12_acceptance.json`](evaluation/phase12_acceptance.json).
+[`evaluation/ingestion_acceptance.json`](evaluation/ingestion_acceptance.json).
 The release scope, hashes, commands, OCR policy, and known limitations are in
-[`docs/phase12_release.md`](docs/phase12_release.md).
+[`docs/ingestion_release.md`](docs/ingestion_release.md).
 
 ## Phase 4: Basic RAG
 
@@ -152,17 +152,17 @@ never part of the key or cached answer metadata.
 Run the offline Phase 4 acceptance benchmark and focused tests:
 
 ```powershell
-.venv\Scripts\python.exe evaluation\run_phase4_basic_rag.py
-.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_phase4_basic_rag.py tests\test_grounding.py
+.venv\Scripts\python.exe evaluation\run_basic_rag.py
+.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_basic_rag.py tests\test_grounding.py
 ```
 
-See [`docs/phase4_release.md`](docs/phase4_release.md) and the generated
-[`phase4_basic_rag.json`](evaluation/results/phase4_basic_rag.json). The
+See [`docs/basic_rag_release.md`](docs/basic_rag_release.md) and the generated
+[`basic_rag_report.json`](evaluation/results/basic_rag_report.json). The
 benchmark builds its university fixture corpus at runtime and does not use
 `.tmp` artifacts as acceptance evidence.
 
 Optional live Gemini grounding evidence is available with
-`tests/integration/test_phase4_gemini.py`; it requires `RUN_LLM_INTEGRATION=1`
+`tests/integration/test_basic_rag_provider.py`; it requires `RUN_LLM_INTEGRATION=1`
 and a `GEMINI_API_KEY` supplied only through the environment.
 
 Run the local UI shell and operational checks:

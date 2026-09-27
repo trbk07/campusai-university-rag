@@ -1,13 +1,13 @@
-{
+﻿{
   "schema_version": 1,
-  "phase": "phase3",
+  "phase": "retrieval",
   "benchmark": "data\\benchmark\\retrieval_test.jsonl",
   "benchmark_count": 100,
   "environment": {
     "python": "3.14.6 (main, Jun 23 2026, 15:20:04) [MSC v.1944 64 bit (AMD64)]",
     "platform": "Windows-11-10.0.26200-SP0"
   },
-  "index_dir": ".tmp\\phase3-golden-index",
+  "index_dir": ".tmp\\retrieval-multilingual-index",
   "top_k": 5,
   "score_threshold": null,
   "reranker_model": null,
@@ -939,33 +939,33 @@
         "document_count": 2,
         "chunk_count": 5,
         "models": [
-          "fallback-hash-256"
+          "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181"
         ],
         "model_revisions": [
           "1"
         ],
         "providers": [
-          "hash"
+          "sentence-transformers"
         ],
         "embedding_dimensions": [
-          256
+          1024
         ],
         "documents": [
           {
             "document_id": "golden-graduation",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 3,
             "corpus_hash": "075a410fd136b5b0f66adc2f2bcf15adfd35bddf832df851ae28edcbe03db08b"
           },
           {
             "document_id": "golden-prerequisites",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 2,
             "corpus_hash": "13dde878d8bd5af600e0418584bdc88e1507c259d3183bbadafd800fa3cb1b0e"
           }
@@ -1082,40 +1082,31 @@
         }
       },
       "latency_ms": {
-        "cold_query": 0.167,
-        "p50": 0.077,
-        "p95": 0.098,
-        "p99": 0.789,
+        "cold_query": 11287.112,
+        "p50": 103.832,
+        "p95": 112.95,
+        "p99": 117.149,
         "count": 100
       },
-      "warm_query_ms": 0.087,
-      "load_ms": 2.782,
+      "warm_query_ms": 105.63,
+      "load_ms": 4.11,
       "loaded_documents": 2,
-      "index_size_bytes": 21718
+      "index_size_bytes": 126265
     },
     "dense": {
       "quality": {
         "n": 100,
         "recall": {
-          "1": 0.45,
-          "3": 0.9,
+          "1": 0.46,
+          "3": 0.95,
           "5": 0.95
         },
-        "mrr": 0.6375,
+        "mrr": 0.6866666666666668,
         "answerable_n": 95,
-        "mrr_answerable": 0.6710526315789473,
+        "mrr_answerable": 0.7228070175438597,
         "per_query": [
           {
             "qid": "test-001",
-            "recall": {
-              "1": 1.0,
-              "3": 1.0,
-              "5": 1.0
-            },
-            "mrr": 1.0
-          },
-          {
-            "qid": "test-002",
             "recall": {
               "1": 0.0,
               "3": 1.0,
@@ -1124,13 +1115,22 @@
             "mrr": 0.5
           },
           {
+            "qid": "test-002",
+            "recall": {
+              "1": 1.0,
+              "3": 1.0,
+              "5": 1.0
+            },
+            "mrr": 1.0
+          },
+          {
             "qid": "test-003",
             "recall": {
               "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-004",
@@ -1148,7 +1148,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-006",
@@ -1166,16 +1166,16 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-008",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-009",
@@ -1184,7 +1184,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-010",
@@ -1199,10 +1199,10 @@
             "qid": "test-011",
             "recall": {
               "1": 0.0,
-              "3": 0.0,
+              "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.25
+            "mrr": 0.5
           },
           {
             "qid": "test-012",
@@ -1217,10 +1217,10 @@
             "qid": "test-013",
             "recall": {
               "1": 0.0,
-              "3": 0.0,
+              "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.25
+            "mrr": 0.5
           },
           {
             "qid": "test-014",
@@ -1238,7 +1238,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-016",
@@ -1256,7 +1256,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-018",
@@ -1274,7 +1274,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-020",
@@ -1292,7 +1292,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-022",
@@ -1310,7 +1310,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-024",
@@ -1328,65 +1328,56 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-026",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-027",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-028",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-029",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-030",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-031",
             "recall": {
-              "1": 1.0,
-              "3": 1.0,
-              "5": 1.0
-            },
-            "mrr": 1.0
-          },
-          {
-            "qid": "test-032",
-            "recall": {
               "1": 0.0,
               "3": 1.0,
               "5": 1.0
@@ -1394,107 +1385,107 @@
             "mrr": 0.5
           },
           {
-            "qid": "test-033",
+            "qid": "test-032",
             "recall": {
               "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
             "mrr": 1.0
+          },
+          {
+            "qid": "test-033",
+            "recall": {
+              "1": 0.0,
+              "3": 1.0,
+              "5": 1.0
+            },
+            "mrr": 0.3333333333333333
           },
           {
             "qid": "test-034",
             "recall": {
               "1": 0.0,
-              "3": 0.0,
+              "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.25
+            "mrr": 0.5
           },
           {
             "qid": "test-035",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.3333333333333333
           },
           {
             "qid": "test-036",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-037",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-038",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-039",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-040",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-041",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-042",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-043",
             "recall": {
-              "1": 1.0,
-              "3": 1.0,
-              "5": 1.0
-            },
-            "mrr": 1.0
-          },
-          {
-            "qid": "test-044",
-            "recall": {
               "1": 0.0,
               "3": 1.0,
               "5": 1.0
@@ -1502,13 +1493,22 @@
             "mrr": 0.5
           },
           {
-            "qid": "test-045",
+            "qid": "test-044",
             "recall": {
               "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
             "mrr": 1.0
+          },
+          {
+            "qid": "test-045",
+            "recall": {
+              "1": 0.0,
+              "3": 1.0,
+              "5": 1.0
+            },
+            "mrr": 0.5
           },
           {
             "qid": "test-046",
@@ -1526,7 +1526,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-048",
@@ -1544,7 +1544,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-050",
@@ -1562,7 +1562,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-052",
@@ -1580,16 +1580,16 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-054",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 1.0
           },
           {
             "qid": "test-055",
@@ -1598,7 +1598,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-056",
@@ -1616,7 +1616,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-058",
@@ -1634,7 +1634,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-060",
@@ -1652,7 +1652,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-062",
@@ -1688,7 +1688,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-066",
@@ -1703,10 +1703,10 @@
             "qid": "test-067",
             "recall": {
               "1": 0.0,
-              "3": 0.0,
+              "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.25
+            "mrr": 0.5
           },
           {
             "qid": "test-068",
@@ -1724,7 +1724,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-070",
@@ -1742,25 +1742,25 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
-          },
-          {
-            "qid": "test-072",
-            "recall": {
-              "1": 0.0,
-              "3": 1.0,
-              "5": 1.0
-            },
             "mrr": 0.5
           },
           {
-            "qid": "test-073",
+            "qid": "test-072",
             "recall": {
               "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
             "mrr": 1.0
+          },
+          {
+            "qid": "test-073",
+            "recall": {
+              "1": 0.0,
+              "3": 1.0,
+              "5": 1.0
+            },
+            "mrr": 0.5
           },
           {
             "qid": "test-074",
@@ -1778,7 +1778,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-076",
@@ -1855,11 +1855,11 @@
           {
             "qid": "test-084",
             "recall": {
-              "1": 0.0,
+              "1": 1.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 1.0
           },
           {
             "qid": "test-085",
@@ -1886,7 +1886,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.5
+            "mrr": 0.3333333333333333
           },
           {
             "qid": "test-088",
@@ -1901,10 +1901,10 @@
             "qid": "test-089",
             "recall": {
               "1": 0.0,
-              "3": 0.0,
+              "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.25
+            "mrr": 0.3333333333333333
           },
           {
             "qid": "test-090",
@@ -1954,11 +1954,11 @@
           {
             "qid": "test-095",
             "recall": {
-              "1": 1.0,
+              "1": 0.0,
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 1.0
+            "mrr": 0.5
           },
           {
             "qid": "test-096",
@@ -2019,33 +2019,33 @@
         "document_count": 2,
         "chunk_count": 5,
         "models": [
-          "fallback-hash-256"
+          "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181"
         ],
         "model_revisions": [
           "1"
         ],
         "providers": [
-          "hash"
+          "sentence-transformers"
         ],
         "embedding_dimensions": [
-          256
+          1024
         ],
         "documents": [
           {
             "document_id": "golden-graduation",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 3,
             "corpus_hash": "075a410fd136b5b0f66adc2f2bcf15adfd35bddf832df851ae28edcbe03db08b"
           },
           {
             "document_id": "golden-prerequisites",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 2,
             "corpus_hash": "13dde878d8bd5af600e0418584bdc88e1507c259d3183bbadafd800fa3cb1b0e"
           }
@@ -2056,32 +2056,32 @@
           "fact": {
             "n": 25,
             "recall_at_5": 1.0,
-            "mrr": 0.633333
+            "mrr": 0.74
           },
           "table_filter_groupby": {
             "n": 20,
             "recall_at_5": 1.0,
-            "mrr": 0.7375
+            "mrr": 0.708333
           },
           "calculation": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.655556
+            "mrr": 0.766667
           },
           "comparison": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.65
+            "mrr": 0.722222
           },
           "multi_hop": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.661111
+            "mrr": 0.7
           },
           "exact_code": {
             "n": 5,
             "recall_at_5": 1.0,
-            "mrr": 0.733333
+            "mrr": 0.633333
           },
           "negative": {
             "n": 5,
@@ -2093,66 +2093,66 @@
           "easy": {
             "n": 35,
             "recall_at_5": 1.0,
-            "mrr": 0.659524
+            "mrr": 0.719048
           },
           "medium": {
             "n": 40,
             "recall_at_5": 1.0,
-            "mrr": 0.677083
+            "mrr": 0.745833
           },
           "hard": {
             "n": 25,
             "recall_at_5": 0.8,
-            "mrr": 0.543333
+            "mrr": 0.546667
           }
         },
         "language": {
           "vi": {
             "n": 50,
             "recall_at_5": 1.0,
-            "mrr": 0.685
+            "mrr": 0.733333
           },
           "en": {
             "n": 30,
             "recall_at_5": 1.0,
-            "mrr": 0.658333
+            "mrr": 0.738889
           },
           "mixed": {
             "n": 20,
             "recall_at_5": 0.75,
-            "mrr": 0.4875
+            "mrr": 0.491667
           }
         },
         "query_type": {
           "fact": {
             "n": 25,
             "recall_at_5": 1.0,
-            "mrr": 0.633333
+            "mrr": 0.74
           },
           "table_filter_groupby": {
             "n": 20,
             "recall_at_5": 1.0,
-            "mrr": 0.7375
+            "mrr": 0.708333
           },
           "calculation": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.655556
+            "mrr": 0.766667
           },
           "comparison": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.65
+            "mrr": 0.722222
           },
           "multi_hop": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.661111
+            "mrr": 0.7
           },
           "exact_code": {
             "n": 5,
             "recall_at_5": 1.0,
-            "mrr": 0.733333
+            "mrr": 0.633333
           },
           "negative": {
             "n": 5,
@@ -2162,16 +2162,16 @@
         }
       },
       "latency_ms": {
-        "cold_query": 0.113,
-        "p50": 0.081,
-        "p95": 0.115,
-        "p99": 0.164,
+        "cold_query": 193.963,
+        "p50": 100.334,
+        "p95": 109.558,
+        "p99": 110.865,
         "count": 100
       },
-      "warm_query_ms": 0.086,
-      "load_ms": 0.913,
+      "warm_query_ms": 92.783,
+      "load_ms": 6.9,
       "loaded_documents": 2,
-      "index_size_bytes": 21718
+      "index_size_bytes": 126265
     },
     "hybrid": {
       "quality": {
@@ -2181,9 +2181,9 @@
           "3": 0.95,
           "5": 0.95
         },
-        "mrr": 0.6533333333333333,
+        "mrr": 0.705,
         "answerable_n": 95,
-        "mrr_answerable": 0.687719298245614,
+        "mrr_answerable": 0.7421052631578947,
         "per_query": [
           {
             "qid": "test-001",
@@ -2210,7 +2210,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-004",
@@ -2228,7 +2228,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-006",
@@ -2246,7 +2246,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-008",
@@ -2264,7 +2264,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-010",
@@ -2282,7 +2282,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-012",
@@ -2300,7 +2300,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-014",
@@ -2318,7 +2318,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-016",
@@ -2336,7 +2336,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-018",
@@ -2354,7 +2354,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-020",
@@ -2372,7 +2372,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-022",
@@ -2390,7 +2390,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-024",
@@ -2408,7 +2408,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-026",
@@ -2606,7 +2606,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-048",
@@ -2624,7 +2624,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-050",
@@ -2660,7 +2660,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-054",
@@ -2678,7 +2678,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-056",
@@ -2696,7 +2696,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-058",
@@ -2714,7 +2714,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-060",
@@ -2732,7 +2732,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-062",
@@ -2750,7 +2750,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-064",
@@ -2768,7 +2768,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-066",
@@ -2786,7 +2786,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-068",
@@ -2804,7 +2804,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-070",
@@ -2822,7 +2822,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-072",
@@ -2858,7 +2858,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-076",
@@ -2876,7 +2876,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-078",
@@ -2912,7 +2912,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-082",
@@ -2930,7 +2930,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-084",
@@ -2984,7 +2984,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-090",
@@ -3002,7 +3002,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-092",
@@ -3020,7 +3020,7 @@
               "3": 1.0,
               "5": 1.0
             },
-            "mrr": 0.3333333333333333
+            "mrr": 0.5
           },
           {
             "qid": "test-094",
@@ -3099,33 +3099,33 @@
         "document_count": 2,
         "chunk_count": 5,
         "models": [
-          "fallback-hash-256"
+          "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181"
         ],
         "model_revisions": [
           "1"
         ],
         "providers": [
-          "hash"
+          "sentence-transformers"
         ],
         "embedding_dimensions": [
-          256
+          1024
         ],
         "documents": [
           {
             "document_id": "golden-graduation",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 3,
             "corpus_hash": "075a410fd136b5b0f66adc2f2bcf15adfd35bddf832df851ae28edcbe03db08b"
           },
           {
             "document_id": "golden-prerequisites",
-            "model_name": "fallback-hash-256",
+            "model_name": "C:\\Users\\LEGION\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
             "model_revision": "1",
-            "provider": "hash",
-            "embedding_dimension": 256,
+            "provider": "sentence-transformers",
+            "embedding_dimension": 1024,
             "item_count": 2,
             "corpus_hash": "13dde878d8bd5af600e0418584bdc88e1507c259d3183bbadafd800fa3cb1b0e"
           }
@@ -3136,7 +3136,7 @@
           "fact": {
             "n": 25,
             "recall_at_5": 1.0,
-            "mrr": 0.64
+            "mrr": 0.72
           },
           "table_filter_groupby": {
             "n": 20,
@@ -3146,22 +3146,22 @@
           "calculation": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.7
+            "mrr": 0.766667
           },
           "comparison": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.655556
+            "mrr": 0.733333
           },
           "multi_hop": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.722222
+            "mrr": 0.766667
           },
           "exact_code": {
             "n": 5,
             "recall_at_5": 1.0,
-            "mrr": 0.633333
+            "mrr": 0.7
           },
           "negative": {
             "n": 5,
@@ -3173,41 +3173,41 @@
           "easy": {
             "n": 35,
             "recall_at_5": 1.0,
-            "mrr": 0.671429
+            "mrr": 0.728571
           },
           "medium": {
             "n": 40,
             "recall_at_5": 1.0,
-            "mrr": 0.695833
+            "mrr": 0.75
           },
           "hard": {
             "n": 25,
             "recall_at_5": 0.8,
-            "mrr": 0.56
+            "mrr": 0.6
           }
         },
         "language": {
           "vi": {
             "n": 50,
             "recall_at_5": 1.0,
-            "mrr": 0.693333
+            "mrr": 0.74
           },
           "en": {
             "n": 30,
             "recall_at_5": 1.0,
-            "mrr": 0.683333
+            "mrr": 0.75
           },
           "mixed": {
             "n": 20,
             "recall_at_5": 0.75,
-            "mrr": 0.508333
+            "mrr": 0.55
           }
         },
         "query_type": {
           "fact": {
             "n": 25,
             "recall_at_5": 1.0,
-            "mrr": 0.64
+            "mrr": 0.72
           },
           "table_filter_groupby": {
             "n": 20,
@@ -3217,22 +3217,22 @@
           "calculation": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.7
+            "mrr": 0.766667
           },
           "comparison": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.655556
+            "mrr": 0.733333
           },
           "multi_hop": {
             "n": 15,
             "recall_at_5": 1.0,
-            "mrr": 0.722222
+            "mrr": 0.766667
           },
           "exact_code": {
             "n": 5,
             "recall_at_5": 1.0,
-            "mrr": 0.633333
+            "mrr": 0.7
           },
           "negative": {
             "n": 5,
@@ -3242,16 +3242,16 @@
         }
       },
       "latency_ms": {
-        "cold_query": 0.16,
-        "p50": 0.083,
-        "p95": 0.102,
-        "p99": 0.212,
+        "cold_query": 96.352,
+        "p50": 46.832,
+        "p95": 56.078,
+        "p99": 70.603,
         "count": 100
       },
-      "warm_query_ms": 0.087,
-      "load_ms": 0.886,
+      "warm_query_ms": 47.872,
+      "load_ms": 5.422,
       "loaded_documents": 2,
-      "index_size_bytes": 21718
+      "index_size_bytes": 126265
     }
   }
 }

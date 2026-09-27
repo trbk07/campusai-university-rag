@@ -1,7 +1,7 @@
-{
+﻿{
   "schema_version": 1,
   "phase": "phase4",
-  "benchmark": "data\\benchmark\\phase4_basic_rag.jsonl",
+  "benchmark": "data\\benchmark\\basic_rag.jsonl",
   "benchmark_sha256": "4bf94bdc0e406079060fc86580ed25a041f5cd4fd8dee8939406b12fe0d2dc5f",
   "count": 30,
   "answerable_count": 22,

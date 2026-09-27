@@ -1,10 +1,15 @@
-"""Validate a Phase 5 report without hand-editable pass flags."""
+﻿"""Validate a Phase 5 report without hand-editable pass flags."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from evaluation.benchmark_schema import validate_release_records
 
 
 def validate(report: dict) -> list[str]:
@@ -16,6 +21,29 @@ def validate(report: dict) -> list[str]:
         errors.append("benchmark_checksum_missing")
     if not report.get("metadata", {}).get("commit"):
         errors.append("commit_fingerprint_missing")
+    dataset = report.get("dataset", {})
+    if dataset.get("sha256") and report.get("benchmark_sha256") != dataset.get("sha256"):
+        errors.append("benchmark_checksum_mismatch")
+    if report.get("calibration_artifact_version") and not report.get("calibration_artifact_sha256"):
+        errors.append("calibration_checksum_missing")
+    if report.get("mode") == "runtime" and not report.get("calibration_artifact_version"):
+        errors.append("runtime_calibration_missing")
+    if report.get("mode") == "runtime":
+        if report.get("calibration_benchmark_sha256") != report.get("benchmark_sha256"):
+            errors.append("calibration_benchmark_checksum_mismatch")
+        population = report.get("calibration_population") or {}
+        for split in ("dev", "test", "holdout"):
+            labels = population.get(split, {})
+            if labels.get("positive", 0) <= 0 or labels.get("negative", 0) <= 0:
+                errors.append(f"calibration_{split}_label_degenerate")
+    rows = report.get("rows")
+    if report.get("mode") == "runtime":
+        if not isinstance(rows, list):
+            errors.append("report_rows_missing")
+        else:
+            errors.extend(f"dataset_{error}" for error in validate_release_records(rows))
+            if report.get("dataset_count") != len(rows):
+                errors.append("dataset_count_rows_mismatch")
     if metrics.get("unsupported_claim_leakage", 1) != 0:
         errors.append("unsupported_claim_leakage")
     if metrics.get("contradicted_claim_leakage", 0) != 0:
@@ -47,6 +75,8 @@ def validate(report: dict) -> list[str]:
     if report.get("dataset_count", 0) < 400:
         errors.append("dataset_too_small_for_release")
     calibration = report.get("calibration", {})
+    if report.get("mode") == "runtime" and report.get("risk_population") != "holdout":
+        errors.append("risk_population_must_be_holdout")
     for split in ("dev", "test", "holdout"):
         split_metrics = calibration.get(split, {})
         if split_metrics.get("count", 0) <= 0:
@@ -55,6 +85,12 @@ def validate(report: dict) -> list[str]:
         errors.append("holdout_ece")
     if calibration.get("holdout", {}).get("brier_score", 1) > 0.08:
         errors.append("holdout_brier_score")
+    for coverage, maximum in ((0.80, 0.01), (0.90, 0.02)):
+        risk = report.get("risk_at_coverage", {}).get(str(coverage))
+        if risk is None:
+            errors.append(f"risk_at_{int(coverage * 100)}_coverage_missing")
+        elif risk > maximum:
+            errors.append(f"risk_at_{int(coverage * 100)}_coverage")
     return errors
 
 

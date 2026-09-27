@@ -1,4 +1,4 @@
-"""Fit an abstention threshold on a calibration split only."""
+﻿"""Fit an abstention threshold on a calibration split only."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def main() -> None:
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--min-recall", type=float, default=0.85)
     parser.add_argument("--max-fpr", type=float, default=0.05)
-    parser.add_argument("--output", default="evaluation/results/phase3_calibration.json")
+    parser.add_argument("--output", default="evaluation/results/retrieval_calibration.json")
     args = parser.parse_args()
     records = load_jsonl(args.calibration)
     document_ids = _indexed_document_ids(args.index_dir)

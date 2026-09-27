@@ -1,4 +1,4 @@
-# Phase 3 release evidence
+﻿# Phase 3 release evidence
 
 ## Implemented
 
@@ -31,9 +31,9 @@ Multilingual benchmark: passed using the locally cached BAAI/bge-m3 model
 
 Canonical artifacts:
 
-- `evaluation/results/phase3_hash.json`
-- `evaluation/results/phase3_multilingual.json`
-- `evaluation/results/phase3_summary.md`
+- `evaluation/results/retrieval_hash.json`
+- `evaluation/results/retrieval_multilingual.json`
+- `evaluation/results/retrieval_summary.md`
 
 The multilingual dense and hybrid modes reached Recall@5 0.95 on the
 100-query benchmark. Latest warm p95 latency was 52.567 ms for dense and
@@ -63,6 +63,6 @@ The benchmark command is:
 ```powershell
 .\.venv\Scripts\python.exe -m evaluation.run_retrieval_benchmark `
   --benchmark data\benchmark\retrieval_test.jsonl `
-  --index-dir .tmp\phase3-index `
-  --output evaluation\results\phase3_hash.json
+  --index-dir .tmp\retrieval-index `
+  --output evaluation\results\retrieval_hash.json
 ```

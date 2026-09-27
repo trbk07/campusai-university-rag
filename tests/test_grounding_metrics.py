@@ -1,5 +1,5 @@
-from evaluation.metrics_grounding import evaluate_grounding
-from evaluation.validate_phase5 import validate
+﻿from evaluation.grounding_metrics import evaluate_grounding
+from evaluation.validate_release import validate
 from campusai.rag.schemas import validate_response
 from campusai.rag.calibration import IsotonicCalibrator
 from campusai.rag.confidence import score_confidence
@@ -23,12 +23,12 @@ def test_metrics_do_not_trust_self_reported_supported_status():
 
 def test_public_schema_requires_reason_for_abstention():
     valid, errors = validate_response({
-        "answer": "Không đủ bằng chứng.", "citations": [], "confidence": "low",
+        "answer": "KhÃ´ng Ä‘á»§ báº±ng chá»©ng.", "citations": [], "confidence": "low",
         "abstained": True, "abstention_reason": "unsupported_claim",
     })
     assert valid, errors
     invalid, errors = validate_response({
-        "answer": "Không đủ bằng chứng.", "citations": [], "confidence": "low", "abstained": True,
+        "answer": "KhÃ´ng Ä‘á»§ báº±ng chá»©ng.", "citations": [], "confidence": "low", "abstained": True,
     })
     assert not invalid
     assert "abstention_reason_missing" in errors
@@ -54,6 +54,19 @@ def test_public_grounding_response_excludes_internal_trace():
     assert "confidence_score" not in payload
     assert "evidence_status" not in payload
     assert "reason" not in payload
+
+
+def test_public_schema_rejects_internal_version_and_hides_source_hash():
+    answer = GroundedAnswer(
+        answer="ok", confidence="high",
+        citations=(__import__("campusai.rag.grounding", fromlist=["Citation"]).Citation(
+            "c1", "doc", 1, source_hash="secret"),),
+    )
+    public = answer.to_public_dict()
+    assert "source_hash" not in public["citations"][0]
+    valid, errors = validate_response({**public, "schema_version": "grounding-internal-v2"})
+    assert not valid
+    assert "schema_version_invalid" in errors
 
 
 def test_evidence_registry_reports_provenance_and_version_conflicts():

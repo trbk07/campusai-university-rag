@@ -15,6 +15,8 @@ class AbstentionReason(str, Enum):
     RETRIEVAL_BELOW_THRESHOLD = "retrieval_below_threshold"
     CONTEXT_BUDGET_EXCEEDED = "context_budget_exceeded"
     PROVIDER_ERROR = "provider_error"
+    PROVIDER_ABSTENTION = "provider_abstention"
+    # Legacy internal value retained for cache/API compatibility.
     PROVIDER_ABSTAINED = "provider_abstained"
     SYSTEM_ERROR = "system_error"
 
@@ -30,6 +32,7 @@ MESSAGES = {
     "context_budget_exceeded": "Bằng chứng tồn tại nhưng vượt quá giới hạn xử lý an toàn.",
     "provider_error": "Dịch vụ trả lời đang gặp lỗi; vui lòng thử lại sau.",
     "provider_abstained": "Mô hình không đưa ra câu trả lời có thể xác minh; cần thêm bằng chứng.",
+    "provider_abstention": "Mô hình không đưa ra câu trả lời có thể xác minh; cần thêm bằng chứng.",
     "system_error": "Hệ thống chưa thể hoàn tất yêu cầu này.",
 }
 

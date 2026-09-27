@@ -1,4 +1,4 @@
-import json
+﻿import json
 from pathlib import Path
 
 from evaluation.benchmark import validate_records
@@ -59,7 +59,7 @@ def test_benchmark_indexes_all_complete_documents_not_gold_scope(tmp_path):
     assert _indexed_document_ids(tmp_path) == ["doc-a", "doc-b"]
 
 
-def test_phase3_test_split_has_one_hundred_valid_records():
+def test_retrieval_test_split_has_one_hundred_valid_records():
     path = Path("data/benchmark/retrieval_test.jsonl")
     records = load_jsonl(path)
     assert len(records) == 100

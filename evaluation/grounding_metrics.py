@@ -43,12 +43,38 @@ def _predicted_evidence(row: dict, claim: dict) -> set[tuple]:
     return result
 
 
+def _link_counts(row: dict, predicted: dict, gold: dict) -> tuple[int, int, int]:
+    """Count citation links without double-counting chunk and page aliases."""
+    gold_items = [item for item in gold.get("evidence", []) if isinstance(item, dict)]
+    predicted_ids = set(str(item) for item in predicted.get("citation_ids", predicted.get("evidence_ids", [])) if item)
+    predicted_items = [item for item in row.get("citations", [])
+                       if isinstance(item, dict) and (not predicted_ids or item.get("chunk_id") in predicted_ids)]
+    gold_count = len(gold_items)
+    predicted_count = len({str(item.get("chunk_id") or f"{item.get('doc_id')}:{item.get('page')}") for item in predicted_items})
+    matched = 0
+    unused = set(range(len(gold_items)))
+    for citation in predicted_items:
+        for index in tuple(unused):
+            evidence = gold_items[index]
+            same_chunk = citation.get("chunk_id") and evidence.get("chunk_id") == citation.get("chunk_id")
+            same_coord = (citation.get("doc_id") == evidence.get("doc_id")
+                          and citation.get("page") is not None
+                          and int(citation.get("page")) == int(evidence.get("page")))
+            if same_chunk or same_coord:
+                matched += 1
+                unused.remove(index)
+                break
+    return gold_count, predicted_count, matched
+
+
 def _expand_gold(claims: list[dict]) -> list[dict]:
     """Make gold atomic at evaluation time without changing the source file."""
     expanded = []
     for claim in claims:
         text = str(claim.get("text", ""))
-        parts = [part.strip() for part in re.split(r"\s+(?:and|và)\s+", text, flags=re.I) if part.strip()]
+        # Keep evaluator atomicization aligned with the runtime extractor;
+        # annotated multi-evidence answers also use semicolons.
+        parts = [part.strip() for part in re.split(r"\s*(?:;|and|và)\s*", text, flags=re.I) if part.strip()]
         for part in parts or [text]:
             item = dict(claim)
             item.setdefault("claim_id", f"gold-{len(expanded) + 1}")
@@ -112,9 +138,10 @@ def evaluate_grounding(rows: Iterable[dict]) -> dict:
             gold_set, pred_set = _evidence_set(gold), _predicted_evidence(row, pred)
             if pred.get("status") == "supported" and bool(gold_set & pred_set):
                 grounded += 1
-            gold_links += len(gold_set)
-            predicted_links += len(pred_set)
-            linked_correct += len(gold_set & pred_set)
+            row_gold_links, row_predicted_links, row_matched_links = _link_counts(row, pred, gold)
+            gold_links += row_gold_links
+            predicted_links += row_predicted_links
+            linked_correct += row_matched_links
             complete_total += 1
             complete_hit += bool(gold_set & pred_set and pred.get("status") == "supported")
 
@@ -135,7 +162,7 @@ def evaluate_grounding(rows: Iterable[dict]) -> dict:
     for row in rows:
         score = row.get("confidence_score")
         if score is None:
-            score = label_scores.get(row.get("confidence"))
+            score = 0.0 if row.get("abstained") else label_scores.get(row.get("confidence"))
         if score is not None:
             confidence_scores.append(float(score))
             confidence_labels.append(bool(row.get("answerable", True)) and not bool(row.get("abstained")))

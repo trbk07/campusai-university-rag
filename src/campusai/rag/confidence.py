@@ -1,4 +1,4 @@
-"""Recomputed confidence scoring and calibration metrics."""
+﻿"""Recomputed confidence scoring and calibration metrics."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ import math
 from .calibration import IsotonicCalibrator
 
 
-POLICY_VERSION = "phase5-v1"
+POLICY_VERSION = "grounding-v1"
 
 
 @dataclass(frozen=True)

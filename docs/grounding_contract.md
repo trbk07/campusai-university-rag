@@ -1,6 +1,6 @@
-# Phase 5 contract
+﻿# Phase 5 contract
 
-Version: `phase5-public-v2` / `phase5-internal-v2`
+Version: `grounding-public-v2` / `grounding-internal-v2`
 
 ## Claim status
 
@@ -26,7 +26,7 @@ debug reasons, source hashes unless explicitly required by the API, or internal
 trace data. Every public claim has a stable `claim_id` and citation IDs that
 exist in the same response.
 
-`schema_version` is `phase5-public-v2`. An abstained response must provide one
+`schema_version` is `grounding-public-v2`. An abstained response must provide one
 canonical public reason. A citation without a claim mapping is not published.
 
 ## Abstention policy

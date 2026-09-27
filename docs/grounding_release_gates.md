@@ -13,6 +13,8 @@ Required dataset gates:
 - unique IDs, evidence for every answerable gold claim, and a reason for every
   gold abstention;
 - no uncontrolled cross-split source/template leakage.
+- every split contains both answerable and abstention cases so holdout metrics
+  are meaningful rather than degenerate.
 
 Required safety gates:
 
