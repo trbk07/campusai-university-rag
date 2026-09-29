@@ -6,6 +6,7 @@ import pytest
 
 from campusai.llm import GeminiClient, SQLiteLLMCache
 from campusai.rag.grounding import ANSWER_SCHEMA, GroundedAnswerGenerator
+from campusai.rag.schemas import validate_release_response
 from campusai.retrieval.hybrid import RetrievalResult
 
 
@@ -53,3 +54,6 @@ def test_live_gemini_grounded_answer_has_valid_fixture_citation(tmp_path):
     assert answer.citations[0].chunk_id == "phase4-live-c1"
     assert answer.citations[0].doc_id == "golden-graduation"
     assert answer.citations[0].page == 1
+    valid, errors = validate_release_response(answer.to_public_dict())
+    assert valid, errors
+    assert all(claim.status == "supported" for claim in answer.claims)

@@ -1,0 +1,32 @@
+{
+  "schema_version": "grounding-public-v2",
+  "policy_version": "grounding-v1",
+  "release_candidate": "phase5-rc1",
+  "thresholds_frozen": true,
+  "thresholds": {
+    "dataset_count_min": 400,
+    "citation_precision_min": 0.99,
+    "citation_recall_min": 0.98,
+    "citation_completeness_min": 0.98,
+    "citation_coordinate_validity_min": 1.0,
+    "grounded_claim_precision_min": 0.99,
+    "grounded_claim_recall_min": 0.95,
+    "abstention_precision_min": 0.99,
+    "abstention_recall_min": 0.98,
+    "reason_accuracy_min": 0.95,
+    "holdout_ece_max": 0.05,
+    "holdout_brier_score_max": 0.08,
+    "risk_at_80_coverage_max": 0.01,
+    "risk_at_90_coverage_max": 0.02,
+    "unsupported_claim_leakage_max": 0.0,
+    "contradicted_claim_leakage_max": 0.0,
+    "schema_invalid_rate_max": 0.0
+  },
+  "performance": {
+    "concurrency": [1, 5, 20],
+    "upload_ack_p95_ms_max": 300,
+    "query_warm_no_rerank_p95_ms_max": 1000,
+    "query_rerank_p95_ms_max": 2500,
+    "error_rate_max": 0.0
+  }
+}

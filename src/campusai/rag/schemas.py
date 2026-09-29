@@ -70,7 +70,10 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
         if payload["abstained"] and payload.get("abstention_reason") not in CANONICAL_ABSTENTION_REASONS:
             errors.append("abstention_reason_invalid")
     if isinstance(payload.get("claims"), list):
-        citation_ids = {item.get("chunk_id") for item in payload.get("citations", []) if isinstance(item, dict)}
+        citation_values = payload.get("citations")
+        citation_ids = {
+            item.get("chunk_id") for item in citation_values if isinstance(item, dict)
+        } if isinstance(citation_values, list) else set()
         for index, claim in enumerate(payload["claims"]):
             if not isinstance(claim, dict) or not isinstance(claim.get("text"), str) or not claim.get("text", "").strip():
                 errors.append(f"claim_{index}_invalid")
@@ -120,6 +123,9 @@ def validate_release_response(payload: object) -> tuple[bool, tuple[str, ...]]:
         for field in ("doc_id", "page_range", "quote", "source_name"):
             if field not in citation or citation.get(field) in (None, "", []):
                 errors.append(f"citation_{index}_{field}_missing")
+        for field in ("chunk_id", "doc_id", "quote", "source_name"):
+            if field in citation and not isinstance(citation.get(field), str):
+                errors.append(f"citation_{index}_{field}_invalid")
         page_range = citation.get("page_range")
         if (not isinstance(page_range, list) or len(page_range) != 2
                 or not all(isinstance(value, int) and value >= 1 for value in page_range)

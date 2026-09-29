@@ -26,6 +26,10 @@ class CampusAIApplication:
     def health(self) -> dict[str, Any]:
         return {"status": "ok", "service": "campusai"}
 
+    def liveness(self) -> dict[str, Any]:
+        """Process-level probe; dependency state belongs to readiness."""
+        return {"status": "alive", "service": "campusai"}
+
     def readiness(self) -> dict[str, Any]:
         retriever = self.query_service.retriever
         ready = retriever.index_root.exists()
@@ -60,3 +64,9 @@ class CampusAIApplication:
 
     def metrics_snapshot(self) -> dict[str, Any]:
         return self.metrics.as_dict()
+
+    def close(self) -> None:
+        """Gracefully stop worker and cache resources."""
+        if self.jobs is not None:
+            self.jobs.shutdown(wait=True)
+        self.query_service.close()

@@ -26,8 +26,9 @@ def make_wsgi_app(application: CampusAIApplication) -> Callable:
             body = INDEX_HTML.encode("utf-8")
             start_response("200 OK", [("Content-Type", "text/html; charset=utf-8"), ("Content-Length", str(len(body)))])
             return [body]
-        if path in {"/health", "/ready", "/metrics"} and method == "GET":
-            value = {"/health": application.health, "/ready": application.readiness, "/metrics": application.metrics_snapshot}[path]()
+        if path in {"/health", "/live", "/ready", "/metrics"} and method == "GET":
+            value = {"/health": application.health, "/live": application.liveness,
+                     "/ready": application.readiness, "/metrics": application.metrics_snapshot}[path]()
             return _json_response(value, start_response)
         if path == "/api/query" and method == "POST":
             try:

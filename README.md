@@ -205,6 +205,26 @@ The architecture and phase-by-phase deployment work are documented in
 [`plan.md`](plan.md). No API secret is required for the offline parser/retrieval
 tests.
 
+## Phase 5 production gate
+
+The source implementation is verified offline with more than 200 passing tests, including
+more than 50 deterministic citation, claim, provider-schema, prompt-injection
+and Unicode attacks. Production approval is intentionally stricter: it also
+requires an independent human annotation attestation, live-provider evidence,
+and staging recovery/rollback evidence.
+
+Use `scripts/annotation_signoff.py` for the reviewer artifact,
+`scripts/live_provider_evidence.py` for the opt-in provider run,
+`scripts/load_test.py` and `scripts/security_evidence.py` for local evidence,
+and `scripts/deployment_smoke.py`, `scripts/recovery_check.py` and
+`scripts/rollback_check.py` against immutable staging artifacts. Finally,
+`scripts/phase5_release.py` creates and validates the checksum-bound package.
+The validator returns 10.0 only when every non-compensable gate passes.
+
+See `docs/phase5_reproducibility.md`, `docs/phase5_operations.md`, and
+`docs/data_governance.md` for the clean-checkout, operations and privacy
+procedures.
+
 ## Repository layout
 
 ```text

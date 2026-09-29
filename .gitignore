@@ -24,4 +24,5 @@ data/store/*
 .vscode/
 .idea/
 .chrome-smoke/
+.release/
 

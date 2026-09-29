@@ -27,6 +27,7 @@ NEGATIVE_POLARITY_RE = re.compile(
 )
 MINIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+least|minimum|min\.?|tối\s+thiểu|ít\s+nhất|it\s+nhat)\b", re.I)
 MAXIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+most|maximum|max\.?|không\s+quá|khong\s+qua|no\s+more\s+than)\b", re.I)
+EXACT_QUALIFIER_RE = re.compile(r"\b(?:exactly|precisely|chính\s+xác|đúng|dung)\b", re.I)
 
 
 def normalize_text(value: str) -> str:
@@ -106,6 +107,8 @@ def _exact_markers(text: str) -> set[str]:
         markers.add("qualifier:minimum")
     if MAXIMUM_QUALIFIER_RE.search(normalized):
         markers.add("qualifier:maximum")
+    if EXACT_QUALIFIER_RE.search(normalized):
+        markers.add("qualifier:exact")
     return markers
 
 
