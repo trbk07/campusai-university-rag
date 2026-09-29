@@ -26,7 +26,7 @@ from campusai.rag.calibration import load_calibration_artifact
 from campusai.rag.grounding import GroundedAnswerGenerator
 from campusai.rag.grounding import build_context
 from campusai.rag.claims import normalize_text
-from campusai.rag.schemas import validate_response
+from campusai.rag.schemas import validate_response, validate_release_response
 from campusai.rag.service import CampusAIQueryService
 from campusai.retrieval.index_builder import build_document_indexes
 from campusai.retrieval.hybrid import HybridRetriever
@@ -43,6 +43,8 @@ def main():
     parser.add_argument("--calibration-sha256", default=None)
     parser.add_argument("--corpus-dir", default="data/corpus/university",
                         help="Real PDF corpus used by runtime mode")
+    parser.add_argument("--ocr", action="store_true",
+                        help="Enable bounded OCR for scan-only PDFs; off by default for reproducible release evaluation")
     args = parser.parse_args()
     records = load_records(args.benchmark)
     benchmark_path = Path(args.benchmark)
@@ -78,7 +80,7 @@ def main():
         else:
             store = Path(temp) / "store"
             for pdf_path in sorted(Path(args.corpus_dir).glob("*.pdf")):
-                document = ingest_document(pdf_path, store_dir=store, enable_ocr=args.mode == "runtime",
+                document = ingest_document(pdf_path, store_dir=store, enable_ocr=args.ocr,
                                            ocr_max_pages=50, ocr_timeout_seconds=120)
                 if document.status == "succeeded":
                     build_document_indexes(document, root, dense_model="fallback-hash-256")
@@ -98,7 +100,14 @@ def main():
                              for evidence in claim.get("evidence", [])]
             gold_coords = {(item.get("doc_id"), int(item.get("page", 0)))
                            for item in gold_evidence}
-            retrieved_coords = {(item.doc_id, item.page) for item in retrieved}
+            retrieved_coords = {
+                (item.doc_id, page)
+                for item in retrieved
+                for page in range(
+                    int((item.metadata or {}).get("page_range", [item.page, item.page])[0]),
+                    int((item.metadata or {}).get("page_range", [item.page, item.page])[1]) + 1,
+                )
+            }
             context = build_context(retrieved, max_chars=16000, max_tokens=6000)
             context_normalized = normalize_text(context)
             context_gold = any(
@@ -107,7 +116,11 @@ def main():
             )
             payload = answer.to_dict()
             internal_valid, internal_errors = validate_response(payload, include_internal=True)
-            public_valid, public_errors = validate_response(answer.to_public_dict())
+            public_payload = answer.to_public_dict()
+            public_valid, public_errors = (
+                validate_release_response(public_payload)
+                if args.mode == "runtime" else validate_response(public_payload)
+            )
             schema_valid = internal_valid and public_valid
             schema_errors = tuple(internal_errors) + tuple(public_errors)
             expected_reason = record.get("gold_abstention_reason")
@@ -136,7 +149,7 @@ def main():
                 "annotator_id": record.get("annotator_id"),
                 "schema_valid": schema_valid,
                 "schema_errors": list(schema_errors),
-                "citation_valid": all(citation.get("page", 0) > 0 for citation in payload.get("citations", [])),
+                "citation_valid": public_valid and all(citation.get("page", 0) > 0 for citation in payload.get("citations", [])),
                 "retrieval_hit_doc": any(item.doc_id == doc_id for doc_id, _page in gold_coords for item in retrieved),
                 "retrieval_hit_page": bool(gold_coords & retrieved_coords),
                 "retrieval_hit_chunk": any(
@@ -171,11 +184,17 @@ def main():
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=Path(__file__).parents[1], text=True).strip()
     except (OSError, subprocess.CalledProcessError):
         commit = "working-tree"
+    try:
+        working_tree = bool(subprocess.check_output(
+            ["git", "status", "--porcelain"], cwd=Path(__file__).parents[1], text=True
+        ).strip())
+    except (OSError, subprocess.CalledProcessError):
+        working_tree = True
     report = {
         "schema_version": 2, "phase": "grounding", "mode": args.mode,
         "benchmark": str(benchmark_path), "dataset_count": len(records),
         "benchmark_sha256": benchmark_sha256,
-        "metadata": {"commit": commit, "working_tree": bool(not commit or commit == "working-tree")},
+        "metadata": {"commit": commit, "working_tree": working_tree},
         "runtime": {"python": platform.python_version(), "platform": platform.platform(), "pid": os.getpid()},
         "dataset": {"path": str(benchmark_path), "sha256": benchmark_sha256,
                     "version": "grounding-independent-v1"},

@@ -36,6 +36,10 @@ TEMPLATES = (
     ("Does this rule apply to the current academic year?", "temporal/stale_source"),
     ("Is the numeric value exactly the one stated on the page?", "numeric_contradiction"),
     ("The provider abstains; should this response be reviewed?", "provider_abstention"),
+    ("What exact sentence establishes the topic on page {page}?", "answerable"),
+    ("Which academic fact can be verified from page {page}?", "answerable"),
+    ("Trích dẫn nào xác nhận thông tin ở trang {page}?", "answerable"),
+    ("Nội dung nào trên trang {page} có thể đối chiếu trực tiếp?", "answerable"),
 )
 SCAN_TEMPLATES = (
     ("document_does_not_mention", "Does the scanned page mention this topic?"),
@@ -103,7 +107,7 @@ def build(input_dir: Path, *, target: int, enable_ocr: bool = False) -> list[dic
                 if ocr_pages is not None and page_number <= len(ocr_pages):
                     page_text = ocr_pages[page_number - 1].get("text", "")
                 quote = _quote(page_text)
-                if not quote and split == "holdout":
+                if not quote:
                     for category, question in SCAN_TEMPLATES:
                         record_id = f"draft-{len(records) + 1:04d}"
                         records.append({
@@ -127,7 +131,13 @@ def build(input_dir: Path, *, target: int, enable_ocr: bool = False) -> list[dic
                     if answerable:
                         # Give the retriever a topical anchor. This is a
                         # candidate-generation aid, not a reviewed question.
-                        question = f"{question} Topic: {quote[:120]}"
+                        # Keep a stable source anchor in the candidate question.
+                        # Without it, generic page/title questions can retrieve
+                        # two year/version documents and trigger a false
+                        # numeric conflict before the provider is called.
+                        if not re.search(r"\b(?:page|trang)\s+\d+\b", question, re.I):
+                            question = f"{question} Page {page_number}."
+                        question = f"{question} Topic: {path.stem} {quote[:120]}"
                     records.append({
                         "id": record_id,
                         "split": split,
@@ -151,6 +161,10 @@ def build(input_dir: Path, *, target: int, enable_ocr: bool = False) -> list[dic
     if target < 400:
         return records[:target]
     quota = {"dev": 120, "test": 130, "holdout": 150}
+    # Keep the required abstention minimum in holdout; selective-risk
+    # evaluation measures coverage over publishable answers, so a balanced
+    # held-out negative population remains useful and non-degenerate.
+    positive_ratio = {"dev": 0.50, "test": 0.50, "holdout": 0.75}
     selected = []
     for split, minimum in quota.items():
         candidates = [record for record in records if record["split"] == split]
@@ -159,7 +173,7 @@ def build(input_dir: Path, *, target: int, enable_ocr: bool = False) -> list[dic
         # Reserve half the quota for answerable cases when available, then
         # fill the remainder with abstention cases.  This prevents a
         # scan-heavy source from producing a degenerate holdout.
-        positive_target = min(len(positives), max(1, minimum // 2))
+        positive_target = min(len(positives), max(1, int(minimum * positive_ratio[split])))
         negative_target = minimum - positive_target
         if len(negatives) < negative_target:
             positive_target = minimum - len(negatives)

@@ -115,10 +115,13 @@ class RAGAnswerCache:
         cacheable_abstentions = {
             "no_retrieval_evidence",
             "no_relevant_evidence",
+            "document_does_not_mention",
             "context_budget_exceeded",
             "model_abstained",
             "unsupported_claim",
+            "contradicted_claim",
             "provider_abstained",
+            "provider_abstention",
             "conflicting_evidence",
             "ambiguous_question",
         }

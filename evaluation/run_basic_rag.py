@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from campusai.rag.grounding import GroundedAnswerGenerator
 from campusai.rag.service import CampusAIQueryService
+from campusai.rag.claims import normalize_text
 from campusai.retrieval.index_builder import build_document_indexes
 from campusai.schemas import Chunk, Document
 
@@ -77,10 +78,41 @@ class FixtureLLM:
             gold_evidence = [evidence for claim in record.get("gold_claims", [])
                              for evidence in claim.get("evidence", [])]
         evidence = []
-        for match in re.finditer(r"chunk_id=([^\n]+).*?doc_id=([^\n]+).*?page=(\d+).*?page_range=(\d+)-(\d+)", prompt, re.S):
-            chunk_id, doc_id, page, start, end = match.groups()
-            if any(item["doc_id"] == doc_id and int(item["page"]) == int(page) for item in gold_evidence):
-                evidence.append({"chunk_id": chunk_id, "doc_id": doc_id, "page": int(page), "page_range": [int(start), int(end)]})
+        block_pattern = (
+            r"chunk_id=([^\n]+)\ndocument=([^\n]+)\ndoc_id=([^\n]+)\n"
+            r"page=(\d+)\npage_range=(\d+)-(\d+)\n(?:table_id=([^\n]+)\n)?"
+            r"section=.*?\ncontent:\n(.*?)(?=\n\n\[EVIDENCE\]|\Z)"
+        )
+        parsed_blocks = [match.groups() for match in re.finditer(block_pattern, prompt, re.S)]
+        # Emit one citation per gold evidence coordinate. The context window
+        # may contain several chunks from the same page; returning all of
+        # them inflates citation recall while penalising precision and makes
+        # claim-to-citation links needlessly ambiguous.
+        for gold_match in gold_evidence:
+            candidates = []
+            for chunk_id, source_name, doc_id, page, start, end, table_id, block_content in parsed_blocks:
+                start_page, end_page = int(start), int(end)
+                if (gold_match["doc_id"] != doc_id
+                        or not (start_page <= int(gold_match["page"]) <= end_page)):
+                    continue
+                gold_quote = str(gold_match.get("quote", "")).strip()
+                quote_match = bool(gold_quote and normalize_text(gold_quote) in normalize_text(block_content))
+                table_match = bool(gold_match.get("table_id") and gold_match.get("table_id") == table_id)
+                candidates.append((quote_match, table_match, -len(block_content), chunk_id,
+                                   chunk_id, source_name, doc_id, page, start, end, table_id, block_content))
+            if not candidates:
+                continue
+            selected = max(candidates)
+            (_quote_match, _table_match, _length, _sort_chunk_id,
+             chunk_id, source_name, doc_id, page, start, end, table_id, block_content) = selected
+            quote = str(gold_match.get("quote", "")).strip()
+            if quote and normalize_text(quote) not in normalize_text(block_content):
+                quote = next((line.strip() for line in block_content.splitlines() if line.strip()), "")
+            item = {"chunk_id": chunk_id, "doc_id": doc_id, "page": int(page),
+                    "page_range": [int(start), int(end)], "source_name": source_name, "quote": quote}
+            if table_id:
+                item["table_id"] = table_id
+            evidence.append(item)
         if not evidence:
             return {"answer": "The selected documents do not establish this.", "confidence": "low",
                     "abstained": True, "abstention_reason": "no_evidence_found", "citations": []}
@@ -98,7 +130,12 @@ class FixtureLLM:
                 for item in claim_evidence:
                     match = next((citation for citation in evidence
                                   if item.get("doc_id") == citation.get("doc_id")
-                                  and int(item.get("page")) == int(citation.get("page"))), None)
+                                  and (
+                                      int(item.get("page")) == int(citation.get("page"))
+                                      or int(citation.get("page_range", [citation.get("page"), citation.get("page")])[0])
+                                      <= int(item.get("page"))
+                                      <= int(citation.get("page_range", [citation.get("page"), citation.get("page")])[1])
+                                  )), None)
                     if match is not None and match["chunk_id"] not in ids:
                         ids.append(match["chunk_id"])
                 claims.append({"claim_id": claim.get("claim_id", f"claim-{index}"),

@@ -49,8 +49,13 @@ answerable source. This prevents a degenerate all-abstention holdout; scan
 pages are not treated as answerable unless OCR produces verifiable text.
 
 ```powershell
-.\.venv\Scripts\python.exe scripts\validate_benchmark_schema.py <reviewed.jsonl> --release
+.\.venv\Scripts\python.exe scripts\validate_benchmark_data.py <reviewed.jsonl> --release
 ```
+
+The repository now contains `data/benchmark/grounding_reviewed.jsonl` with
+400 records and a passing structural release validator. Its review metadata is
+engineering-generated and auditable; independent human annotation sign-off is
+still required before claiming production readiness.
 
 Only after that check passes should calibration be fit on `dev` and the
 runtime runner be executed against the reviewed artifact.

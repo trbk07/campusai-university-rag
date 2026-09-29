@@ -51,6 +51,10 @@ def has_conflicting_numeric_evidence(results: list[RetrievalResult], question: s
         # abstention by themselves.
         intent_question = str(question).split("Topic:", 1)[0]
         normalized_question = normalize_text(intent_question)
+        # A bare page reference describes the retrieval scope; it is not a
+        # request to compare numeric facts. Keep page numbers themselves so
+        # queries such as ``What is on page 3?`` remain numeric intent.
+        normalized_question = re.sub(r"\b(?:page|trang)\b", "", normalized_question)
         numeric_intent = bool(re.search(
             r"\d|how many|how much|which year|page|version|credits?|tín\s*chỉ|bao nhiêu|trang|năm",
             normalized_question, re.I

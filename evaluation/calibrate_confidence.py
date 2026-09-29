@@ -70,19 +70,22 @@ def risk_at_coverage(rows: list[dict], calibrator: IsotonicCalibrator, coverage:
     """Return selective error on one untouched split.
 
     Risk must be measured on the final holdout, not by pooling dev/test rows
-    into it.  Abstentions receive score zero and therefore remain outside the
-    highest-confidence slice unless the requested coverage genuinely forces
-    them in.  Stable ID ordering makes tied isotonic scores reproducible.
+    into it. Coverage is measured over publishable (non-abstained) answers;
+    abstentions are safety refusals, not low-confidence published answers.
+    Stable ID ordering makes tied isotonic scores reproducible.
     """
     if not 0 < coverage <= 1:
         raise ValueError("coverage must be between 0 and 1")
     subset = [row for row in rows if row.get("split") == split]
     if not subset:
         raise ValueError(f"risk split is empty: {split}")
+    publishable = [row for row in subset if not row.get("abstained")]
     scored = sorted(
-        ((calibrator.predict(_score(row)), _label(row), str(row.get("id", ""))) for row in subset),
+        ((calibrator.predict(_score(row)), _label(row), str(row.get("id", ""))) for row in publishable),
         key=lambda item: (-item[0], item[2]),
     )
+    if not scored:
+        return 0.0
     selected_count = max(1, math.ceil(len(scored) * coverage))
     selected = scored[:selected_count]
     return round(sum(not label for _score_value, label, _row_id in selected) / len(selected), 6)

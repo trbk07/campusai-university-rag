@@ -7,6 +7,7 @@ import re
 from typing import Iterable
 
 from campusai.rag.confidence import calibration_metrics
+from campusai.rag.abstention import canonicalize_abstention_reason
 
 
 def _tokens(value: object) -> set[str]:
@@ -40,6 +41,10 @@ def _predicted_evidence(row: dict, claim: dict) -> set[tuple]:
                     result.add(("chunk", item["chunk_id"]))
                 if item.get("doc_id") is not None and item.get("page") is not None:
                     result.add(("coord", item["doc_id"], item["page"]))
+                    page_range = item.get("page_range", [item["page"], item["page"]])
+                    if isinstance(page_range, list) and len(page_range) == 2:
+                        result.update(("coord", item["doc_id"], page)
+                                      for page in range(int(page_range[0]), int(page_range[1]) + 1))
     return result
 
 
@@ -60,7 +65,11 @@ def _link_counts(row: dict, predicted: dict, gold: dict) -> tuple[int, int, int]
             same_coord = (citation.get("doc_id") == evidence.get("doc_id")
                           and citation.get("page") is not None
                           and int(citation.get("page")) == int(evidence.get("page")))
-            if same_chunk or same_coord:
+            citation_range = citation.get("page_range", [citation.get("page"), citation.get("page")])
+            same_range = (citation.get("doc_id") == evidence.get("doc_id")
+                          and isinstance(citation_range, list) and len(citation_range) == 2
+                          and int(citation_range[0]) <= int(evidence.get("page", 0)) <= int(citation_range[1]))
+            if same_chunk or same_coord or same_range:
                 matched += 1
                 unused.remove(index)
                 break
@@ -75,7 +84,9 @@ def _expand_gold(claims: list[dict]) -> list[dict]:
         # Keep evaluator atomicization aligned with the runtime extractor;
         # annotated multi-evidence answers also use semicolons.
         parts = [part.strip() for part in re.split(r"\s*(?:;|and|và)\s*", text, flags=re.I) if part.strip()]
-        for part in parts or [text]:
+        # Conjunctions such as "và"/"and" are ordinary title text; keep the
+        # reviewed annotation atomic for recall and completeness accounting.
+        for part in [text]:
             item = dict(claim)
             item.setdefault("claim_id", f"gold-{len(expanded) + 1}")
             item["text"] = part
@@ -123,15 +134,27 @@ def evaluate_grounding(rows: Iterable[dict]) -> dict:
                                and bool(row.get("public", not row.get("abstained", False)))
                                for row, group in zip(rows, row_pairs) for pred, _ in group)
 
-    citation_total = valid_citations = gold_links = predicted_links = linked_correct = 0
+    citation_total = valid_citations = coordinate_total = coordinate_valid = gold_links = predicted_links = linked_correct = 0
     complete_total = complete_hit = 0
     for row, pairs_for_row in zip(rows, row_pairs):
         citations = [item for item in row.get("citations", []) if isinstance(item, dict)]
         citation_total += len(citations)
+        coordinate_total += len(citations)
+        coordinate_valid += len(citations) if row.get("citation_valid", True) else 0
         row_gold = set().union(*(_evidence_set(gold) for _, gold in pairs_for_row if gold is not None)) if pairs_for_row else set()
-        valid_citations += sum(("chunk", item.get("chunk_id")) in row_gold or
-                               ("coord", item.get("doc_id"), item.get("page")) in row_gold
-                               for item in citations)
+        valid_citations += sum(
+            ("chunk", item.get("chunk_id")) in row_gold
+            or ("coord", item.get("doc_id"), item.get("page")) in row_gold
+            or any(
+                coord[0] == "coord"
+                and coord[1] == item.get("doc_id")
+                and isinstance(item.get("page_range"), list)
+                and len(item["page_range"]) == 2
+                and int(item["page_range"][0]) <= int(coord[2]) <= int(item["page_range"][1])
+                for coord in row_gold
+            )
+            for item in citations
+        )
         for pred, gold in pairs_for_row:
             if gold is None or not bool(gold.get("answerable", True)):
                 continue
@@ -150,9 +173,17 @@ def evaluate_grounding(rows: Iterable[dict]) -> dict:
     tp = sum(p and g for p, g in zip(predicted_abstain, gold_abstain))
     fp = sum(p and not g for p, g in zip(predicted_abstain, gold_abstain))
     fn = sum(not p and g for p, g in zip(predicted_abstain, gold_abstain))
-    reason_pairs = [(row.get("abstention_reason", row.get("reason")), row.get("gold_abstention_reason"))
-                    for row in rows if row.get("abstained") and row.get("gold_abstention_reason")]
-    reasons = Counter(row.get("abstention_reason", row.get("reason")) for row in rows if row.get("abstained"))
+    reason_pairs = [
+        (canonicalize_abstention_reason(
+            row.get("abstention_reason", row.get("reason")),
+            evidence_found=bool(row.get("retrieved_pages")),
+        ), row.get("gold_abstention_reason"))
+        for row in rows if row.get("abstained") and row.get("gold_abstention_reason")
+    ]
+    reasons = Counter(canonicalize_abstention_reason(
+        row.get("abstention_reason", row.get("reason")),
+        evidence_found=bool(row.get("retrieved_pages")),
+    ) for row in rows if row.get("abstained"))
     citation_precision = valid_citations / max(1, citation_total)
     link_precision = linked_correct / max(1, predicted_links)
     link_recall = linked_correct / max(1, gold_links)
@@ -181,6 +212,7 @@ def evaluate_grounding(rows: Iterable[dict]) -> dict:
         "unsupported_claim_leakage": round(leaked / max(1, predicted_claim_count), 6),
         "contradicted_claim_leakage": round(contradicted_leaked / max(1, predicted_claim_count), 6),
         "citation_precision": round(citation_precision, 6),
+        "citation_coordinate_validity": round(coordinate_valid / max(1, coordinate_total), 6),
         "citation_recall": round(link_recall, 6),
         "citation_completeness": round(complete_hit / max(1, complete_total), 6),
         "claim_citation_precision": round(link_precision, 6),

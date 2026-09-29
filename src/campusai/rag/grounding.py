@@ -12,7 +12,7 @@ from .claims import Claim, align_claims, extract_claims, normalize_text
 from .confidence import POLICY_VERSION, score_confidence
 from .calibration import IsotonicCalibrator
 from .decision import decide
-from .abstention import taxonomy_reason
+from .abstention import canonicalize_abstention_reason
 from .abstention import AbstentionReason
 from .evidence import EvidenceRegistry
 from .schemas import SCHEMA_VERSION, validate_response
@@ -40,6 +40,8 @@ def validate_citation(
     result: RetrievalResult,
     *,
     source_hash: str | None = None,
+    require_quote: bool = False,
+    require_provenance: bool = False,
 ) -> CitationValidation:
     """Validate every citation coordinate against the retrieved evidence.
 
@@ -72,13 +74,22 @@ def validate_citation(
     ):
         errors.append("page_range_mismatch")
     expected_table = result.metadata.get("table_id")
-    if expected_table is not None and values.get("table_id", expected_table) != expected_table:
+    if expected_table is not None and values.get("table_id") != expected_table:
         errors.append("table_id_mismatch")
+    if require_provenance:
+        if not str(values.get("source_name", "")).strip() and result.metadata.get("source_name"):
+            errors.append("source_name_missing")
+        if result.metadata.get("source_hash") and values.get("source_hash") != result.metadata.get("source_hash"):
+            errors.append("source_hash_missing")
+        if not values.get("page_range"):
+            errors.append("page_range_missing")
+    if require_quote and not str(values.get("quote", "")).strip():
+        errors.append("quote_missing")
     cited_hash = values.get("source_hash")
     expected_hash = source_hash or result.metadata.get("source_hash")
     if cited_hash is not None and expected_hash is not None and cited_hash != expected_hash:
         errors.append("source_hash_mismatch")
-    if not validate_quote(str(values.get("quote", "")), result.content):
+    if not (require_quote and not str(values.get("quote", "")).strip()) and not validate_quote(str(values.get("quote", "")), result.content):
         errors.append("quote_not_in_evidence")
     return CitationValidation(not errors, tuple(errors))
 
@@ -133,7 +144,7 @@ class GroundedAnswer:
             "confidence": self.confidence,
             "abstained": self.abstained,
             "reason": self.reason,
-            "abstention_reason": taxonomy_reason(self.reason),
+            "abstention_reason": canonicalize_abstention_reason(self.reason),
             "cache_hit": self.cache_hit,
             "claims": [
                 {"claim_id": claim.claim_id, "text": claim.text, "type": claim.claim_type,
@@ -162,6 +173,8 @@ class GroundedAnswer:
         ]
         public = {key: value for key, value in payload.items()
                   if key in {"answer", "citations", "confidence", "abstained", "claims", "abstention_reason"}}
+        if not public.get("abstained"):
+            public.pop("abstention_reason", None)
         public["schema_version"] = "grounding-public-v2"
         return public
 
@@ -217,10 +230,11 @@ def _context_block(result: RetrievalResult) -> tuple[str, str]:
     page_range = result.metadata.get("page_range", [result.page, result.page])
     source_name = result.metadata.get("source_name") or result.doc_id
     section = " > ".join(result.metadata.get("heading_path", [])) or ""
+    table_line = f"table_id={result.metadata.get('table_id')}\n" if result.metadata.get("table_id") else ""
     metadata = (
         f"[EVIDENCE]\nchunk_id={result.chunk_id}\n"
         f"document={source_name}\ndoc_id={result.doc_id}\npage={result.page}\n"
-        f"page_range={page_range[0]}-{page_range[1]}\nsection={section}\ncontent:\n"
+        f"page_range={page_range[0]}-{page_range[1]}\n{table_line}section={section}\ncontent:\n"
     )
     return metadata, sanitize_evidence_text(result.content.strip())
 
@@ -266,8 +280,10 @@ def build_context(
 
 def _abstention(reason: str, citations: tuple[Citation, ...] = ()) -> GroundedAnswer:
     return GroundedAnswer(
-        answer="MÃ¬nh chÆ°a tÃ¬m tháº¥y Ä‘á»§ báº±ng chá»©ng trong cÃ¡c tÃ i liá»‡u Ä‘Ã£ chá»n Ä‘á»ƒ tráº£ lá»i cháº¯c cháº¯n.",
-        citations=citations,
+        answer="Mình chưa tìm thấy đủ bằng chứng trong các tài liệu đã chọn để trả lời chắc chắn.",
+        # Abstained public responses never expose orphan citations.  Evidence
+        # remains available in the internal trace when needed for diagnosis.
+        citations=(),
         confidence="low",
         abstained=True,
         reason=reason,
@@ -304,12 +320,12 @@ class GroundedAnswerGenerator:
             )
         else:
             instructions = (
-                "Báº¡n lÃ  CampusAI, trá»£ lÃ½ tri thá»©c Ä‘áº¡i há»c dá»±a trÃªn báº±ng chá»©ng.\n"
+                "Bạn là CampusAI, trợ lý tri thức đại học dựa trên bằng chứng.\n"
                 "Chỉ dùng thông tin trong EVIDENCE; không dùng kiến thức bên ngoài, không đoán hoặc suy diễn.\n"
-                "Náº¿u báº±ng chá»©ng chÆ°a Ä‘á»§, Ä‘áº·t abstained=true vÃ  nÃ³i ngáº¯n ráº±ng tÃ i liá»‡u chÆ°a xÃ¡c láº­p Ä‘Æ°á»£c cÃ¢u tráº£ lá»i.\n"
-                "Má»i káº¿t luáº­n quan trá»ng pháº£i trÃ­ch dáº«n má»™t hoáº·c nhiá»u chunk_id cÃ³ trong EVIDENCE.\n"
-                "Chá»‰ tráº£ vá» JSON há»£p lá»‡ gá»“m answer, confidence (high|medium|low), abstained vÃ  citations.\n"
-                "Tráº£ lá»i trá»±c tiáº¿p, ngáº¯n gá»n (1-3 Ä‘oáº¡n ngáº¯n)."
+                "Nếu bằng chứng chưa đủ, đặt abstained=true và nói ngắn rằng tài liệu chưa xác lập được câu trả lời.\n"
+                "Mọi kết luận quan trọng phải trích dẫn một hoặc nhiều chunk_id có trong EVIDENCE.\n"
+                "Chỉ trả về JSON hợp lệ gồm answer, claims, confidence (high|medium|low), abstained và citations. Mỗi claim phải có citation_ids.\n"
+                "Trả lời trực tiếp, ngắn gọn (1-3 đoạn ngắn)."
             )
         return f"{instructions}\n\nQUESTION:\n{question}\n\nEVIDENCE:\n{context}"
 
@@ -415,8 +431,10 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     # unsupported number, code, date, or polarity change.
     decision = decide(claims, allow_partial=False)
     if decision.status != "answered":
+        mapped_ids = {item for claim in claims for item in claim.citation_ids}
+        safe_citations = tuple(citation for citation in citations if citation.chunk_id in mapped_ids)
         return GroundedAnswer(
-            answer="ChÆ°a Ä‘á»§ báº±ng chá»©ng Ä‘á»ƒ xÃ¡c nháº­n Ä‘áº§y Ä‘á»§ cÃ¢u tráº£ lá»i.", citations=citations,
+            answer="Chưa đủ bằng chứng để xác nhận đầy đủ câu trả lời.", citations=safe_citations,
             confidence="low", abstained=True, reason=decision.reason or "unsupported_claim", claims=tuple(claims),
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
@@ -425,7 +443,7 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
         citations = tuple(citation for citation in citations if citation.chunk_id in used_citation_ids)
     if not citations:
         return GroundedAnswer(
-            answer="ChÃ†Â°a Ã„â€˜Ã¡Â»Â§ bÃ¡ÂºÂ±ng chÃ¡Â»Â©ng Ã„â€˜Ã¡Â»Æ’ xÃƒÂ¡c nhÃ¡ÂºÂ­n Ã„â€˜Ã¡ÂºÂ§y Ã„â€˜Ã¡Â»Â§ cÃƒÂ¢u trÃ¡ÂºÂ£ lÃ¡Â»Âi.",
+            answer="Chưa đủ bằng chứng để xác nhận đầy đủ câu trả lời.",
             confidence="low", abstained=True, reason="unsupported_claim", claims=tuple(claims),
             evidence_status="unsupported_claim", confidence_score=0.0,
         )

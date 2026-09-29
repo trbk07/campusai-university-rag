@@ -16,6 +16,7 @@ ABSTENTION_REASONS = {
     "ambiguous_question", "provider_abstention", "unsupported_claim", "contradicted_claim",
 }
 SPLITS = {"dev", "test", "holdout"}
+LANGUAGES = {"vi", "en", "mixed"}
 RELEASE_SPLIT_MINIMUMS = {"dev": 120, "test": 130, "holdout": 150}
 RELEASE_SPLIT_MINIMUM_POSITIVE_RATIO = 0.25
 
@@ -37,12 +38,16 @@ def validate_records(records: list[dict], *, minimum: int = 200) -> list[str]:
             continue
         if record["split"] not in SPLITS:
             errors.append(f"row_{index}_invalid_split")
+        if record.get("language") not in LANGUAGES:
+            errors.append(f"row_{index}_invalid_language")
         if record["category"] not in CATEGORIES:
             errors.append(f"row_{index}_invalid_category")
         if bool(record["answerable"]) and record.get("expected_status") != "found":
             errors.append(f"row_{index}_answerable_status_invalid")
         if not bool(record["answerable"]) and record.get("expected_status") not in ABSTENTION_REASONS:
             errors.append(f"row_{index}_abstention_status_invalid")
+        if not bool(record["answerable"]) and record.get("expected_status") != record.get("gold_abstention_reason"):
+            errors.append(f"row_{index}_expected_status_reason_mismatch")
         if not isinstance(record["gold_claims"], list):
             errors.append(f"row_{index}_claims_not_list")
         if bool(record["answerable"]) and not record["gold_claims"]:
@@ -105,6 +110,12 @@ def validate_release_records(records: list[dict]) -> list[str]:
                         errors.append(f"row_{index}_gold_claim_{claim_index}_evidence_{evidence_index}_coordinate_invalid")
                     if not str(evidence.get("quote", "")).strip():
                         errors.append(f"row_{index}_gold_claim_{claim_index}_evidence_{evidence_index}_quote_missing")
+                    if evidence.get("page_range") is not None:
+                        page_range = evidence.get("page_range")
+                        if (not isinstance(page_range, list) or len(page_range) != 2
+                                or not all(isinstance(value, int) and value >= 1 for value in page_range)
+                                or not page_range[0] <= evidence["page"] <= page_range[1]):
+                            errors.append(f"row_{index}_gold_claim_{claim_index}_evidence_{evidence_index}_page_range_invalid")
     # A group is allowed to occur in only one split. This prevents the same
     # source/template/topic or adversarial pattern from leaking calibration
     # information into test/holdout while keeping IDs unique.

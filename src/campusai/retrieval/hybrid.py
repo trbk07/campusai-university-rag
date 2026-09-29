@@ -13,6 +13,7 @@ from .dense_index import DenseIndex
 from .fusion import reciprocal_rank_fusion
 from .reranker import Reranker
 from .calibration import RetrievalPolicy
+from .tokenizer_vi import normalize_retrieval_query
 
 
 @dataclass(frozen=True)
@@ -106,24 +107,63 @@ class HybridRetriever:
                 self._query_cache.move_to_end(cache_key)
                 return list(cached)
         self._ensure_loaded(doc_ids)
+        search_query = normalize_retrieval_query(query)
         records = self._records(doc_ids)
+        requested_pages = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", query, re.I)}
         bm25_ranked, dense_ranked = [], []
         dense_query_vectors: dict[tuple[str, str], list[float]] = {}
         for doc_id in doc_ids:
             bm25, dense = self._indexes[doc_id]
-            bm25_ranked.extend(bm25.search(query, top_k=max(top_k * 3, 10)))
+            # An explicit page constraint is a provenance constraint, not just
+            # a ranking hint. Search all chunks in that case so a relevant
+            # page cannot disappear before the page filter is applied.
+            candidate_top_k = len(bm25.items) if requested_pages else max(top_k * 3, 10)
+            bm25_ranked.extend(bm25.search(search_query, top_k=candidate_top_k))
             vector_key = (dense.model_name, dense.device)
             query_vector = dense_query_vectors.get(vector_key)
             if query_vector is None:
-                query_vector = dense.encode_query(query)
+                query_vector = dense.encode_query(search_query)
                 dense_query_vectors[vector_key] = query_vector
             dense_ranked.extend(
                 dense.search(
-                    query,
-                    top_k=max(top_k * 3, 10),
+                    search_query,
+                    top_k=candidate_top_k,
                     query_vector=query_vector,
                 )
             )
+        source_hints = [
+            token.casefold() for token in re.findall(r"(?<!\w)[A-Za-z0-9]+_[A-Za-z0-9_.-]+|(?<!\w)[0-9a-f]{64}(?!\w)", query)
+        ]
+        if source_hints:
+            source_ids = {
+                item_id for item_id, item in records.items()
+                if any(hint in " ".join((str(item.get("doc_id", "")), str((item.get("metadata", {}) or {}).get("source_name", "")))).casefold()
+                       for hint in source_hints)
+            }
+            if source_ids:
+                bm25_ranked = [pair for pair in bm25_ranked if pair[0] in source_ids]
+                dense_ranked = [pair for pair in dense_ranked if pair[0] in source_ids]
+        if requested_pages:
+            requested_ids = {
+                item_id for item_id, item in records.items()
+                if int(item.get("page", 0)) in requested_pages
+                or any(
+                    start <= requested_page <= end
+                    for requested_page in requested_pages
+                    for start, end in [tuple(item.get("page_range", [item.get("page", 0), item.get("page", 0)]))]
+                )
+            }
+            if source_hints:
+                requested_ids = {
+                    item_id for item_id in requested_ids
+                    if any(
+                        hint in " ".join((str(records[item_id].get("doc_id", "")), str((records[item_id].get("metadata", {}) or {}).get("source_name", "")))).casefold()
+                        for hint in source_hints
+                    )
+                }
+            if requested_ids:
+                bm25_ranked = [pair for pair in bm25_ranked if pair[0] in requested_ids]
+                dense_ranked = [pair for pair in dense_ranked if pair[0] in requested_ids]
         if mode == "bm25":
             ranked = sorted(bm25_ranked, key=lambda pair: (-pair[1], pair[0]))[:top_k]
             label = "bm25"
@@ -134,15 +174,36 @@ class HybridRetriever:
             ranked = reciprocal_rank_fusion([bm25_ranked, dense_ranked], self.rrf_k, top_k * 3)
             label = "hybrid"
         ranked = [(item_id, score) for item_id, score in ranked if item_id in records]
-        requested_pages = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", query, re.I)}
+        # Benchmark/runtime queries may carry an explicit source anchor (for
+        # example ``uet_cs_progression``).  Treat that provenance token as a
+        # hard ranking signal so a generic title from another version cannot
+        # outrank the requested document merely because it shares common
+        # academic words.
+        if source_hints:
+            def source_boost(pair):
+                item_id, score = pair
+                item = records[item_id]
+                metadata = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
+                source_text = " ".join((str(item.get("doc_id", "")), str(metadata.get("source_name", "")))).casefold()
+                return (100.0 if any(hint in source_text for hint in source_hints) else 0.0, score, item_id)
+            ranked.sort(key=lambda pair: (-source_boost(pair)[0], -source_boost(pair)[1], source_boost(pair)[2]))
         if requested_pages:
             # An explicit page constraint is stronger than a small fusion
             # score difference: prefer that page, while preserving score order
             # among chunks on the same page.
-            ranked.sort(key=lambda pair: (
-                0 if int(records[pair[0]].get("page", 0)) in requested_pages else 1,
-                -pair[1], pair[0],
-            ))
+            def page_priority(pair):
+                item_id, score = pair
+                item = records[item_id]
+                metadata = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
+                source_text = " ".join((str(item.get("doc_id", "")), str(metadata.get("source_name", "")))).casefold()
+                source_match = bool(source_hints and any(hint in source_text for hint in source_hints))
+                return (
+                    0 if int(item.get("page", 0)) in requested_pages else 1,
+                    0 if source_match else 1,
+                    -score,
+                    item_id,
+                )
+            ranked.sort(key=page_priority)
         if filters:
             ranked = [
                 (item_id, score)

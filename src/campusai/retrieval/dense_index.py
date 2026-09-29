@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from .model_runtime import retrieval_runtime
-from .tokenizer_vi import normalized_tokens
+from .tokenizer_vi import normalized_tokens, retrieval_text
 
 SCHEMA_VERSION = 2
 HASH_MODEL = "fallback-hash-256"
@@ -138,7 +138,7 @@ class DenseIndex:
     def build(self, items: list[dict], *, corpus_id: str | None = None, document_id: str | None = None) -> None:
         started = time.perf_counter()
         self.items = list(items)
-        self.vectors = self._encode([item.get("content", "") for item in self.items])
+        self.vectors = self._encode([retrieval_text(item) for item in self.items])
         dimension = len(self.vectors[0]) if self.vectors else (256 if self.model_name == HASH_MODEL else 0)
         self.manifest = self._make_manifest(corpus_id, document_id, dimension, time.perf_counter() - started, corpus_hash(self.items))
 

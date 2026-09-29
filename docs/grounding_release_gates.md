@@ -30,7 +30,8 @@ Required calibration gates:
 - fit split is dev only;
 - holdout ECE <= 0.05 and Brier <= 0.08;
 - calibration count >= 400;
-- risk at 80% coverage <= 1% and at 90% coverage <= 2%.
+- risk at 80%/90% coverage <= 1%/2%, measured over publishable
+  non-abstained answers; abstentions remain outside the coverage denominator.
 
 If any gate fails, status is `pre-release` or `release_candidate`, never
 production-ready. Thresholds, annotations and policy are frozen before the

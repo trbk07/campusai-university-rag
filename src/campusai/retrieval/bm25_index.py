@@ -7,7 +7,7 @@ import math
 from collections import Counter
 from pathlib import Path
 
-from .tokenizer_vi import normalized_tokens
+from .tokenizer_vi import normalized_tokens, retrieval_text
 
 
 class BM25Index:
@@ -25,7 +25,7 @@ class BM25Index:
 
     def build(self, items: list[dict]) -> None:
         self.items = items
-        self.tokens = [normalized_tokens(item.get("content", ""), self.language) for item in items]
+        self.tokens = [normalized_tokens(retrieval_text(item), self.language) for item in items]
         self.term_frequency = [Counter(tokens) for tokens in self.tokens]
         self.document_frequency = Counter()
         for tokens in self.tokens:

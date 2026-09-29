@@ -23,7 +23,9 @@ def decide(claims: list[Claim], *, invalid_citation: bool = False,
         return Decision("abstained", "invalid_citation")
     hard_conflict = any(claim.status == "contradicted" for claim in claims)
     numeric_conflict = any(claim.numeric_conflict for claim in claims)
-    if has_conflict or hard_conflict:
+    if hard_conflict:
+        return Decision("abstained", "contradicted_claim")
+    if has_conflict:
         return Decision("abstained", "conflicting_evidence")
     if numeric_conflict:
         # Preserve the public legacy reason while retaining the stronger

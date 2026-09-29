@@ -17,10 +17,16 @@ def validate(report: dict) -> list[str]:
     errors = []
     if report.get("mode") != "runtime":
         errors.append("release_requires_runtime_mode")
+    if report.get("schema_version") != 2:
+        errors.append("report_schema_version_invalid")
+    if not report.get("policy_version"):
+        errors.append("policy_version_missing")
     if not report.get("benchmark_sha256"):
         errors.append("benchmark_checksum_missing")
     if not report.get("metadata", {}).get("commit"):
         errors.append("commit_fingerprint_missing")
+    if report.get("metadata", {}).get("working_tree") is not False:
+        errors.append("working_tree_dirty")
     dataset = report.get("dataset", {})
     if dataset.get("sha256") and report.get("benchmark_sha256") != dataset.get("sha256"):
         errors.append("benchmark_checksum_mismatch")
@@ -28,6 +34,8 @@ def validate(report: dict) -> list[str]:
         errors.append("calibration_checksum_missing")
     if report.get("mode") == "runtime" and not report.get("calibration_artifact_version"):
         errors.append("runtime_calibration_missing")
+    if report.get("mode") == "runtime" and not report.get("calibration_artifact_sha256"):
+        errors.append("runtime_calibration_checksum_missing")
     if report.get("mode") == "runtime":
         if report.get("calibration_benchmark_sha256") != report.get("benchmark_sha256"):
             errors.append("calibration_benchmark_checksum_mismatch")
@@ -54,6 +62,14 @@ def validate(report: dict) -> list[str]:
         errors.append("citation_recall")
     if metrics.get("citation_completeness", 0) < 0.98:
         errors.append("citation_completeness")
+    if metrics.get("citation_coordinate_validity", 0) < 1.0:
+        errors.append("citation_coordinate_validity")
+    if metrics.get("claim_citation_precision", 0) < 0.95:
+        errors.append("claim_citation_precision")
+    if metrics.get("claim_citation_recall", 0) < 0.95:
+        errors.append("claim_citation_recall")
+    if metrics.get("claim_citation_f1", 0) < 0.95:
+        errors.append("claim_citation_f1")
     if metrics.get("grounded_claim_precision", 0) < 0.99:
         errors.append("grounded_claim_precision")
     if metrics.get("grounded_claim_recall", 0) < 0.95:
@@ -81,6 +97,10 @@ def validate(report: dict) -> list[str]:
         split_metrics = calibration.get(split, {})
         if split_metrics.get("count", 0) <= 0:
             errors.append(f"calibration_{split}_missing")
+        if split not in report.get("split_metrics", {}):
+            errors.append(f"split_metrics_{split}_missing")
+    if not isinstance(report.get("category_metrics"), dict) or not report.get("category_metrics"):
+        errors.append("category_metrics_missing")
     if calibration.get("holdout", {}).get("ece", 1) > 0.05:
         errors.append("holdout_ece")
     if calibration.get("holdout", {}).get("brier_score", 1) > 0.08:

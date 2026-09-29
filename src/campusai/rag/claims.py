@@ -7,7 +7,7 @@ import re
 import unicodedata
 from typing import Iterable
 
-from .evidence import EvidenceRegistry
+from .evidence import EvidenceRecord, EvidenceRegistry
 from ..retrieval.tokenizer_vi import repair_mojibake
 
 CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}
@@ -16,6 +16,17 @@ CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", 
 STOPWORDS = {"the", "and", "are", "is", "of", "to", "a", "an", "what", "how", "là", "và", "của", "là", "cần", "phải"}
 CODE_RE = re.compile(r"\b[A-Z]{2,}[A-Z0-9]*\d{2,}\b", re.I)
 NUMBER_RE = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?\s*(?:%|credits?|tín\s*chỉ|ngày|năm)?", re.I)
+YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
+DATE_RE = re.compile(r"\b(?:\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})\b")
+POSITIVE_POLARITY_RE = re.compile(
+    r"\b(?:require(?:s|d)?|must|is\s+required|bắt\s+buộc|bat\s+buoc|phải|cần)\b", re.I
+)
+NEGATIVE_POLARITY_RE = re.compile(
+    r"\b(?:not\s+(?:require(?:d|s)?|mandatory|required)|không\s+(?:bắt\s+buộc|bat\s+buoc|cần)|khong\s+(?:bat\s+buoc|can))\b",
+    re.I,
+)
+MINIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+least|minimum|min\.?|tối\s+thiểu|ít\s+nhất|it\s+nhat)\b", re.I)
+MAXIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+most|maximum|max\.?|không\s+quá|khong\s+qua|no\s+more\s+than)\b", re.I)
 
 
 def normalize_text(value: str) -> str:
@@ -80,7 +91,32 @@ def extract_claims(answer: str, supplied: Iterable[dict] | None = None) -> list[
 
 
 def _exact_markers(text: str) -> set[str]:
-    return {normalize_text(item) for item in CODE_RE.findall(text)} | {normalize_text(item) for item in NUMBER_RE.findall(text)}
+    normalized = normalize_text(text)
+    markers = (
+        {f"code:{normalize_text(item)}" for item in CODE_RE.findall(text)}
+        | {f"value:{normalize_text(item)}" for item in NUMBER_RE.findall(text)}
+        | {f"year:{item}" for item in YEAR_RE.findall(text)}
+        | {f"date:{normalize_text(item)}" for item in DATE_RE.findall(text)}
+    )
+    if NEGATIVE_POLARITY_RE.search(normalized):
+        markers.add("polarity:negative")
+    elif POSITIVE_POLARITY_RE.search(normalized):
+        markers.add("polarity:positive")
+    if MINIMUM_QUALIFIER_RE.search(normalized):
+        markers.add("qualifier:minimum")
+    if MAXIMUM_QUALIFIER_RE.search(normalized):
+        markers.add("qualifier:maximum")
+    return markers
+
+
+def _markers_match(claim_markers: set[str], evidence_markers: set[str]) -> bool:
+    """Compare exact markers without inventing polarity from terse evidence."""
+    required = set(claim_markers)
+    claim_polarity = {item for item in claim_markers if item.startswith("polarity:")}
+    evidence_polarity = {item for item in evidence_markers if item.startswith("polarity:")}
+    if claim_polarity and not evidence_polarity:
+        required -= claim_polarity
+    return required <= evidence_markers
 
 
 def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_map: dict[str, tuple[str, ...]]) -> list[Claim]:
@@ -89,6 +125,7 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         ids = tuple(citation_map.get(claim.claim_id, claim.citation_ids))
         evidence = [registry.get(item) for item in ids]
         evidence = [item for item in evidence if item is not None]
+        missing_requested_evidence = bool(ids) and len(evidence) != len(set(ids))
         if not ids:
             # No provider mapping: search the registry and retain only the
             # evidence that actually supports this claim. Never attach every
@@ -117,7 +154,8 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             overlap = len(claim_tokens & evidence_tokens) / max(1, len(claim_tokens))
             evidence_markers = _exact_markers(item.content)
             metadata_text = normalize_text(" ".join(item.metadata_tokens))
-            marker_ok = not markers or markers <= evidence_markers or markers <= _exact_markers(metadata_text)
+            evidence_markers |= _exact_markers(metadata_text)
+            marker_ok = not markers or _markers_match(markers, evidence_markers)
             if markers and evidence_markers and not marker_ok and overlap >= 0.35:
                 if claim.claim_type == "numeric_fact":
                     numeric_mismatch = True
@@ -143,6 +181,40 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
                 best_records = [item]
             elif candidate == best and candidate > 0:
                 best_records.append(item)
+        # A proposition can be split across multiple chunks.  Recombine
+        # independently useful evidence before classifying the claim so a
+        # multi-evidence claim is not incorrectly marked partial merely
+        # because no single chunk contains every marker.
+        if len(evidence) > 1:
+            ranked_support = []
+            for item in evidence:
+                item_tokens = _tokens(" ".join((item.content, item.doc_id, item.source_name,
+                                                  *item.heading_path, *item.metadata_tokens)))
+                overlap = len(claim_tokens & item_tokens) / max(1, len(claim_tokens))
+                item_markers = _exact_markers(item.content) | _exact_markers(" ".join(item.metadata_tokens))
+                if overlap >= 0.2 or (markers & item_markers):
+                    ranked_support.append((overlap, item))
+            ranked_support.sort(key=lambda value: (-value[0], value[1].chunk_id))
+            combined: list[EvidenceRecord] = []
+            covered_tokens: set[str] = set()
+            covered_markers: set[str] = set()
+            for _overlap, item in ranked_support:
+                item_tokens = _tokens(item.content)
+                item_markers = _exact_markers(item.content) | _exact_markers(" ".join(item.metadata_tokens))
+                if (item_tokens - covered_tokens) or (item_markers & markers - covered_markers):
+                    combined.append(item)
+                    covered_tokens |= item_tokens
+                    covered_markers |= item_markers
+                if len(covered_tokens & claim_tokens) / max(1, len(claim_tokens)) >= 0.55 and markers <= covered_markers:
+                    break
+            token_coverage = len(covered_tokens & claim_tokens) / max(1, len(claim_tokens))
+            marker_coverage = not markers or _markers_match(markers, covered_markers)
+            if combined and token_coverage >= 0.55 and marker_coverage:
+                best = max(best, min(1.0, token_coverage))
+                best_records = combined
+        if missing_requested_evidence:
+            best = 0.0
+            best_records = []
         if not ids:
             ids = tuple(item.chunk_id for item in best_records if best > 0)
         if best >= 0.55:
