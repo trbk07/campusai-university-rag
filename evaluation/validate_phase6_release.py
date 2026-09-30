@@ -127,6 +127,26 @@ def validate() -> tuple[list[str], dict]:
         errors.append("release_benchmark_mismatch")
     if len(corpus.get("documents", [])) != dataset.get("documents"):
         errors.append("corpus_document_count_mismatch")
+    fingerprint_path = ROOT / "evaluation/results/phase6_release_manifest.json"
+    if fingerprint_path.is_file():
+        fingerprint = json.loads(fingerprint_path.read_text(encoding="utf-8"))
+        if fingerprint.get("status") != "pass" or fingerprint.get("working_tree") is not False:
+            errors.append("release_manifest_state")
+        for name, expected in fingerprint.get("artifacts", {}).items():
+            path = ROOT / name
+            if not path.is_file() or _sha(path) != expected:
+                errors.append(f"release_manifest_checksum:{name}")
+        source_commit = fingerprint.get("commit")
+        if not source_commit:
+            errors.append("release_manifest_commit_missing")
+        else:
+            try:
+                subprocess.check_call(
+                    ["git", "merge-base", "--is-ancestor", source_commit, "HEAD"],
+                    cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                )
+            except (OSError, subprocess.CalledProcessError):
+                errors.append("release_manifest_commit_not_in_history")
     summary = {
         "release_candidate": config.get("release_candidate"),
         "dataset": {"documents": dataset.get("documents"), "records": dataset.get("records")},
