@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "phase": 3,
+  "status": "conditional",
+  "review_score": 9.1,
+  "source_commit": "cacb451f3018a739cf92ee1ba1855392d5456e1b",
+  "source_report": "evaluation/results/retrieval_multilingual.json",
+  "benchmark": "data/benchmark/retrieval_test.jsonl",
+  "benchmark_sha256": "129691966dba03cddc3696b94032ffb2948ce511300560d0e2561acff5568e51",
+  "benchmark_records": 100,
+  "indexed_documents": 2,
+  "hybrid_raw_recall_at_5": 0.95,
+  "hybrid_answerable_recall_at_5": 1.0,
+  "hybrid_answerable_mrr": 0.742105,
+  "hybrid_negative_fpr": 1.0,
+  "hybrid_warm_p95_ms": 56.078,
+  "known_blockers": [
+    "benchmark_below_400",
+    "indexed_documents_below_8",
+    "negative_fpr_above_0.01",
+    "no_independent_phase3_test_and_holdout_evidence"
+  ]
+}

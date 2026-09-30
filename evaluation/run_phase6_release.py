@@ -24,6 +24,7 @@ from campusai.retrieval.negative import negative_query_reason
 from campusai.retrieval.routing import choose_route, detected_codes
 from evaluation.metrics import evaluate_retrieval
 from evaluation.phase6_schema import load_jsonl
+from evaluation.retrieval_failure_cases import failure_cases
 
 
 def _sha(path: Path) -> str:
@@ -117,6 +118,7 @@ def main() -> int:
     parser.add_argument("--calibration", type=Path, default=Path("evaluation/results/phase6_retrieval_calibration.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/results"))
     args = parser.parse_args()
+    args.output_dir.mkdir(parents=True, exist_ok=True)
     policy = RetrievalPolicy.from_report(args.calibration, expected_mode="hybrid_rrf")
     ranking_retriever = HybridRetriever(args.index_dir, query_cache_size=0)
     primary_retriever = HybridRetriever(args.index_dir, query_cache_size=0, policies={"hybrid_rrf": policy})
@@ -134,6 +136,14 @@ def main() -> int:
             key = f"{split}:{mode}"
             retriever = primary_retriever if mode in {"hybrid_rrf", "auto"} else ranking_retriever
             reports[key], outputs[key], traces[key] = _run_mode(rows, retriever, doc_ids, mode)
+    generated_failures = [
+        case
+        for split, rows in split_rows.items()
+        for case in failure_cases(rows, outputs[f"{split}:auto"], traces[f"{split}:auto"],
+                                  policy.threshold, family="regression_generated", split=split)
+    ]
+    (args.output_dir / "phase6_failure_cases_generated.json").write_text(
+        json.dumps(generated_failures, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     for mode, filename in (("bm25", "phase6_bm25_report.json"),
                            ("dense", "phase6_dense_report.json"),
                            ("hybrid_rrf", "phase6_hybrid_report.json")):
@@ -196,7 +206,8 @@ def main() -> int:
                        },
                    }}
     release = {
-        "schema_version": 1, "phase": 6, "status": "pass", "primary_mode": "auto",
+        "schema_version": 1, "phase": 6, "benchmark_family": "regression_generated",
+        "status": "pass", "primary_mode": "auto",
         "environment": {"python": platform.python_version(), "platform": platform.platform()},
         "model": manifest.get("model_name"), "model_revision": manifest.get("model_revision"),
         "rrf": {"k": ranking_retriever.rrf_k, "bm25_weight": ranking_retriever.rrf_weights[0],
@@ -208,6 +219,7 @@ def main() -> int:
         "ablation": ablation, "primary_test": primary_test, "primary_holdout": primary_holdout,
         "exact_code_recall_at_5": round(exact_recall, 6),
         "routing_accuracy": round(routing_accuracy, 6), "statistical_validation": statistical,
+        "failure_case_count": len(generated_failures),
     }
     hybrid_test = ablation["auto"]
     baselines = [ablation["bm25"], ablation["dense"]]

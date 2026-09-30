@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import re
 import time
 from dataclasses import dataclass
@@ -14,7 +15,8 @@ from .bm25_index import BM25Index
 from .dense_index import DenseIndex
 from .fusion import reciprocal_rank_fusion
 from .reranker import Reranker
-from .calibration import RetrievalPolicy
+from .calibration import CalibrationError, RetrievalPolicy
+from .confidence import LEGACY_CONFIDENCE_MODEL
 from .contracts import RETRIEVAL_MODES, RETRIEVAL_SCHEMA_VERSION, validate_filters
 from .dense_index import IndexNotFoundError
 from .routing import RoutingTrace, choose_route, detected_codes
@@ -36,6 +38,7 @@ class RetrievalResult:
     raw_score: float | None = None
     fusion_score: float | None = None
     confidence_score: float | None = None
+    confidence_features: dict[str, float] | None = None
     retriever_ranks: dict[str, int] | None = None
     retriever_sources: tuple[str, ...] = ()
     deduplicated: bool = False
@@ -53,6 +56,7 @@ class RetrievalResult:
             "content_type": self.content_type, "score": self.score,
             "raw_score": self.raw_score, "fusion_score": self.fusion_score,
             "confidence_score": self.confidence_score,
+            "confidence_features": dict(self.confidence_features or {}),
             "retrieval_mode": self.retriever, "rank": self.rank,
             "retriever_ranks": dict(self.retriever_ranks or {}),
             "retriever_sources": list(self.retriever_sources),
@@ -84,6 +88,8 @@ class HybridRetriever:
         self.rrf_weights = tuple(float(weight) for weight in rrf_weights)
         self.policies = dict(policies or {})
         self._indexes: dict[str, tuple[BM25Index, DenseIndex | None]] = {}
+        self._index_generations: dict[str, tuple] = {}
+        self._postings: dict[str, dict[str, dict[str, set[str]]]] = {}
         self._query_cache: OrderedDict[tuple, list[RetrievalResult]] = OrderedDict()
         self._trace_cache: dict[tuple, RoutingTrace] = {}
         self._index_lock = RLock()
@@ -107,27 +113,54 @@ class HybridRetriever:
         except IndexNotFoundError:
             dense = None
         self._indexes[doc_id] = (bm25, dense)
+        postings: dict[str, dict[str, set[str]]] = {}
+        for item in bm25.items:
+            item_id = item["chunk_id"]
+            metadata = item.get("metadata", {}) or {}
+            for key in ("institution", "program", "course_code", "academic_year",
+                        "semester", "document_type", "language"):
+                value = metadata.get(key)
+                if value is not None:
+                    postings.setdefault(key, {}).setdefault(str(value).casefold(), set()).add(item_id)
+            page_range = item.get("page_range", [item.get("page", 0), item.get("page", 0)])
+            for page in range(int(page_range[0]), int(page_range[1]) + 1):
+                postings.setdefault("page", {}).setdefault(str(page), set()).add(item_id)
+            years = set(re.findall(r"\b(?:19|20|21)\d{2}\b", str(item.get("content", ""))))
+            years.update(re.findall(r"\b(?:19|20|21)\d{2}\b", str(metadata.get("academic_year", ""))))
+            for year in years:
+                postings.setdefault("mentioned_year", {}).setdefault(year, set()).add(item_id)
+        self._postings[doc_id] = postings
+        self._index_generations[doc_id] = self._generation(doc_id)
         self._query_cache.clear()
         self._trace_cache.clear()
 
     def remove_document(self, doc_id: str) -> None:
         self._indexes.pop(doc_id, None)
+        self._postings.pop(doc_id, None)
+        self._index_generations.pop(doc_id, None)
         self._query_cache.clear()
         self._trace_cache.clear()
 
     def _ensure_loaded(self, doc_ids: list[str]) -> None:
         for doc_id in doc_ids:
-            if doc_id not in self._indexes:
+            if doc_id not in self._indexes or self._index_generations.get(doc_id) != self._generation(doc_id):
                 with self._index_lock:
-                    if doc_id not in self._indexes:
+                    if doc_id not in self._indexes or self._index_generations.get(doc_id) != self._generation(doc_id):
                         self.load_document(doc_id)
 
-    def _records(self, doc_ids: list[str]) -> dict[str, dict]:
+    def _generation(self, doc_id: str) -> tuple:
+        root = self.index_root / doc_id
+        return tuple((path.stat().st_mtime_ns, path.stat().st_size) if path.is_file() else None
+                     for path in (root / "bm25.json", root / "dense.json"))
+
+    def _records(self, doc_ids: list[str], eligible_ids: set[str] | None = None) -> dict[str, dict]:
         records = {}
         for doc_id in doc_ids:
             bm25, _dense = self._indexes[doc_id]
             for item in bm25.items:
                 chunk_id = item["chunk_id"]
+                if eligible_ids is not None and chunk_id not in eligible_ids:
+                    continue
                 if chunk_id in records and records[chunk_id].get("doc_id") != doc_id:
                     raise ValueError(f"Duplicate chunk_id across documents: {chunk_id}")
                 records[chunk_id] = item
@@ -151,17 +184,17 @@ class HybridRetriever:
             doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
         if not doc_ids or top_k <= 0:
             self.last_trace = RoutingTrace(route=route, detected_codes=codes, filters_applied=bool(normalized_filters),
-                                           abstained=True, latency_ms={"parse": round(parse_ms, 3), "total": round((time.perf_counter()-total_started)*1000, 3)})
+                                           abstained=True, abstention_reason="no_candidate", latency_ms={"parse": round(parse_ms, 3), "total": round((time.perf_counter()-total_started)*1000, 3)})
             return []
         if not query or not query.strip():
-            self.last_trace = RoutingTrace(route="abstain", abstained=True,
+            self.last_trace = RoutingTrace(route="abstain", abstained=True, abstention_reason="empty_query",
                                            latency_ms={"parse": round(parse_ms, 3), "total": round((time.perf_counter()-total_started)*1000, 3)})
             return []
         guard_reason = negative_query_reason(query)
         if guard_reason:
             self.last_trace = RoutingTrace(route="abstain", detected_codes=codes,
                                            filters_applied=bool(normalized_filters), abstained=True,
-                                           fallback=guard_reason,
+                                           fallback=guard_reason, abstention_reason="negative_query_policy",
                                            latency_ms={"parse": round(parse_ms, 3),
                                                        "total": round((time.perf_counter()-total_started)*1000, 3)})
             return []
@@ -177,16 +210,25 @@ class HybridRetriever:
             policy = self.policies.get("hybrid_rrf")
         if policy is not None:
             score_threshold = max(score_threshold or 0.0, policy.threshold)
+        confidence_model = policy.confidence_model if policy is not None else LEGACY_CONFIDENCE_MODEL
+        self._ensure_loaded(doc_ids)
+        corpus_manifest = self.index_root / "manifest.json"
+        corpus_fingerprint = (hashlib.sha256(corpus_manifest.read_bytes()).hexdigest()
+                              if corpus_manifest.is_file() else None)
+        if policy is not None and policy.index_sha256 and policy.index_sha256 != corpus_fingerprint:
+            raise CalibrationError("calibration index fingerprint mismatch")
         # JSON keeps nested filter values hashable and deterministic, so a UI
         # filter payload cannot crash the fast path before retrieval starts.
         filter_key = json.dumps(filters or {}, sort_keys=True, ensure_ascii=False, default=str)
+        query_plan_hash = hashlib.sha256(json.dumps(
+            {"query": query, "doc_ids": sorted(doc_ids), "filters": filter_key,
+             "top_k": top_k, "mode": mode}, sort_keys=True, ensure_ascii=False).encode("utf-8")).hexdigest()
         cache_key = (
-            query,
-            tuple(sorted(doc_ids)),
-            filter_key,
-            top_k,
-            mode,
+            query_plan_hash,
+            tuple((doc_id, self._index_generations[doc_id]) for doc_id in sorted(doc_ids)),
+            corpus_fingerprint,
             score_threshold,
+            confidence_model.fingerprint,
             self.rrf_k,
             self.rerank_candidate_limit,
             self.candidate_limit,
@@ -200,16 +242,36 @@ class HybridRetriever:
                     self._query_cache.move_to_end(cache_key)
                     self.last_trace = self._trace_cache.get(cache_key, self.last_trace)
                     return list(cached)
-        self._ensure_loaded(doc_ids)
         search_query = normalize_retrieval_query(query)
-        records = self._records(doc_ids)
-        eligible_ids = set(records)
+        requested_years = set(re.findall(r"\b(?:19|20|21)\d{2}\b", query))
+        if requested_years and not any(
+            self._postings[doc_id].get("mentioned_year", {}).get(year)
+            for doc_id in doc_ids for year in requested_years
+        ):
+            self.last_trace = RoutingTrace(
+                route=route, detected_codes=codes, filters_applied=bool(normalized_filters),
+                abstained=True, abstention_reason="negative_query_policy", fallback="year_not_in_corpus",
+                latency_ms={"parse": round(parse_ms, 3),
+                            "total": round((time.perf_counter() - total_started) * 1000, 3)},
+            )
+            return []
+        eligible_ids: set[str] | None = None
         if normalized_filters:
-            eligible_ids = {
-                item_id for item_id, item in records.items()
-                if all(str((item.get("metadata", {}) or {}).get(key, "")).casefold() == str(value).casefold()
-                       for key, value in normalized_filters.items())
+            for key, value in normalized_filters.items():
+                matches = {item_id for doc_id in doc_ids
+                           for item_id in self._postings[doc_id].get(key, {}).get(str(value).casefold(), set())}
+                eligible_ids = matches if eligible_ids is None else eligible_ids & matches
+        requested_pages = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", query, re.I)}
+        if requested_pages:
+            page_ids = {
+                item_id for doc_id in doc_ids for page in requested_pages
+                for item_id in self._postings[doc_id].get("page", {}).get(str(page), set())
             }
+            if page_ids:
+                eligible_ids = page_ids if eligible_ids is None else eligible_ids & page_ids
+        records = self._records(doc_ids, eligible_ids)
+        if eligible_ids is None:
+            eligible_ids = set(records)
         primary_code = codes[0] if codes else None
         exact_candidate_ids = {
             item_id for item_id, item in records.items()
@@ -229,37 +291,20 @@ class HybridRetriever:
             # context instead of choosing a document arbitrarily.
             effective_mode = "hybrid_rrf"
             route_fallback = "ambiguous_exact_code_hybrid_rrf"
-        requested_pages = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", query, re.I)}
-        requested_years = set(re.findall(r"\b(?:19|20|21)\d{2}\b", query))
-        if requested_years:
-            # The corpus contains historical documents whose effective year
-            # may live in page text rather than filename metadata. Reject only
-            # clearly impossible future years here; exact year filters remain
-            # strict and evidence-backed through ``validate_filters``.
-            if all(int(year) > 2030 for year in requested_years):
-                self.last_trace = RoutingTrace(route=route, detected_codes=codes,
-                                               filters_applied=bool(normalized_filters), abstained=True,
-                                               fallback="year_not_in_corpus", latency_ms={
-                                                   "parse": round(parse_ms, 3),
-                                                   "total": round((time.perf_counter()-total_started)*1000, 3)})
-                return []
         bm25_ranked, dense_ranked = [], []
         dense_query_vectors: dict[tuple[str, str], list[float]] = {}
         bm25_started = time.perf_counter()
         for doc_id in doc_ids:
             bm25, dense = self._indexes[doc_id]
-            # An explicit page constraint is a provenance constraint, not just
-            # a ranking hint. Search all chunks in that case so a relevant
-            # page cannot disappear before the page filter is applied.
-            candidate_top_k = len(bm25.items) if (requested_pages or normalized_filters or effective_mode == "exact_code") else min(self.candidate_limit, max(top_k * 3, 10))
-            bm25_ranked.extend(bm25.search(search_query, top_k=candidate_top_k))
+            candidate_top_k = min(self.candidate_limit, max(top_k * 3, 10))
+            bm25_ranked.extend(bm25.search(search_query, top_k=candidate_top_k, eligible_ids=eligible_ids))
         bm25_ms = (time.perf_counter() - bm25_started) * 1000
         dense_started = time.perf_counter()
         for doc_id in doc_ids:
             _bm25, dense = self._indexes[doc_id]
             if dense is None or effective_mode in {"bm25", "exact_code"}:
                 continue
-            candidate_top_k = len(_bm25.items) if (requested_pages or normalized_filters) else min(self.candidate_limit, max(top_k * 3, 10))
+            candidate_top_k = min(self.candidate_limit, max(top_k * 3, 10))
             vector_key = (dense.model_name, dense.device)
             query_vector = dense_query_vectors.get(vector_key)
             if query_vector is None:
@@ -270,44 +315,10 @@ class HybridRetriever:
                     search_query,
                     top_k=candidate_top_k,
                     query_vector=query_vector,
+                    eligible_ids=eligible_ids,
                 )
             )
         dense_ms = (time.perf_counter() - dense_started) * 1000
-        bm25_ranked = [pair for pair in bm25_ranked if pair[0] in eligible_ids]
-        dense_ranked = [pair for pair in dense_ranked if pair[0] in eligible_ids]
-        source_hints = [
-            token.casefold() for token in re.findall(r"(?<!\w)[A-Za-z0-9]+_[A-Za-z0-9_.-]+|(?<!\w)[0-9a-f]{64}(?!\w)", query)
-        ]
-        if source_hints:
-            source_ids = {
-                item_id for item_id, item in records.items()
-                if any(hint in " ".join((str(item.get("doc_id", "")), str((item.get("metadata", {}) or {}).get("source_name", "")))).casefold()
-                       for hint in source_hints)
-            }
-            if source_ids:
-                bm25_ranked = [pair for pair in bm25_ranked if pair[0] in source_ids]
-                dense_ranked = [pair for pair in dense_ranked if pair[0] in source_ids]
-        if requested_pages:
-            requested_ids = {
-                item_id for item_id, item in records.items()
-                if int(item.get("page", 0)) in requested_pages
-                or any(
-                    start <= requested_page <= end
-                    for requested_page in requested_pages
-                    for start, end in [tuple(item.get("page_range", [item.get("page", 0), item.get("page", 0)]))]
-                )
-            }
-            if source_hints:
-                requested_ids = {
-                    item_id for item_id in requested_ids
-                    if any(
-                        hint in " ".join((str(records[item_id].get("doc_id", "")), str((records[item_id].get("metadata", {}) or {}).get("source_name", "")))).casefold()
-                        for hint in source_hints
-                    )
-                }
-            if requested_ids:
-                bm25_ranked = [pair for pair in bm25_ranked if pair[0] in requested_ids]
-                dense_ranked = [pair for pair in dense_ranked if pair[0] in requested_ids]
         # Per-document indexes return scores in their own local order. RRF
         # requires one global rank per retriever; concatenating those lists
         # would silently make filesystem/doc-id order a ranking signal. Apply
@@ -320,6 +331,7 @@ class HybridRetriever:
             if not exact_candidate_ids:
                 self.last_trace = RoutingTrace(route=route, detected_codes=codes, filters_applied=bool(normalized_filters),
                                                bm25_used=True, dense_used=False, abstained=True,
+                                               abstention_reason="no_candidate",
                                                candidate_count=0, final_count=0,
                                                latency_ms={"parse": round(parse_ms, 3), "bm25": round(bm25_ms, 3),
                                                            "dense": 0.0, "fusion": 0.0,
@@ -354,19 +366,6 @@ class HybridRetriever:
             label = "hybrid_rrf" if effective_mode == "hybrid_rrf" else "hybrid"
         fusion_ms = (time.perf_counter() - fusion_started) * 1000
         ranked = [(item_id, score) for item_id, score in ranked if item_id in records]
-        # Benchmark/runtime queries may carry an explicit source anchor (for
-        # example ``uet_cs_progression``).  Treat that provenance token as a
-        # hard ranking signal so a generic title from another version cannot
-        # outrank the requested document merely because it shares common
-        # academic words.
-        if source_hints:
-            def source_boost(pair):
-                item_id, score = pair
-                item = records[item_id]
-                metadata = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
-                source_text = " ".join((str(item.get("doc_id", "")), str(metadata.get("source_name", "")))).casefold()
-                return (100.0 if any(hint in source_text for hint in source_hints) else 0.0, score, item_id)
-            ranked.sort(key=lambda pair: (-source_boost(pair)[0], -source_boost(pair)[1], source_boost(pair)[2]))
         if requested_pages:
             # An explicit page constraint is stronger than a small fusion
             # score difference: prefer that page, while preserving score order
@@ -374,12 +373,8 @@ class HybridRetriever:
             def page_priority(pair):
                 item_id, score = pair
                 item = records[item_id]
-                metadata = item.get("metadata", {}) if isinstance(item.get("metadata"), dict) else {}
-                source_text = " ".join((str(item.get("doc_id", "")), str(metadata.get("source_name", "")))).casefold()
-                source_match = bool(source_hints and any(hint in source_text for hint in source_hints))
                 return (
                     0 if int(item.get("page", 0)) in requested_pages else 1,
-                    0 if source_match else 1,
                     -score,
                     item_id,
                 )
@@ -389,19 +384,36 @@ class HybridRetriever:
         # candidates before the calibrated confidence is available.
         bm25_scores = dict(bm25_ranked)
         dense_scores = dict(dense_ranked)
+        bm25_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(bm25_ranked, 1)}
+        dense_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(dense_ranked, 1)}
         query_terms = {token for token in normalized_tokens(search_query) if len(token) >= 3}
         confidence_scores: dict[str, float] = {}
+        confidence_features: dict[str, dict[str, float]] = {}
+        fusion_margin = max(0.0, ranked[0][1] - ranked[1][1]) if len(ranked) > 1 else 0.0
         for item_id, _score in ranked:
             item_terms = set(normalized_tokens(retrieval_text(records[item_id])))
             lexical = len(query_terms & item_terms) / max(1, len(query_terms))
             dense_support = max(0.0, min(1.0, float(dense_scores.get(item_id, 0.0))))
             agreement = item_id in bm25_scores and item_id in dense_scores
-            confidence_scores[item_id] = round(min(1.0, .55 * lexical + .35 * dense_support + (.10 if agreement else 0.0)), 6)
+            features = {
+                "lexical_overlap": lexical,
+                "dense_cosine": dense_support,
+                "agreement": float(agreement),
+                "bm25_reciprocal_rank": 1.0 / bm25_ranks[item_id] if item_id in bm25_ranks else 0.0,
+                "dense_reciprocal_rank": 1.0 / dense_ranks[item_id] if item_id in dense_ranks else 0.0,
+                "fusion_margin": fusion_margin,
+                "query_length": min(1.0, len(query_terms) / 12.0),
+                "exact_code": float(item_id in exact_candidate_ids),
+                "filter_match": float(bool(normalized_filters)),
+            }
+            confidence_features[item_id] = features
+            confidence_scores[item_id] = confidence_model.predict(features)
         if effective_mode == "exact_code":
             confidence_scores.update({item_id: 1.0 for item_id, _score in ranked})
         elif route_fallback:
             confidence_scores.update({item_id: max(.8, confidence_scores.get(item_id, 0.0))
                                       for item_id in exact_candidate_ids})
+        abstention_reason = None
         if score_threshold is not None and not (self.reranker is not None and effective_mode in {"rerank", "hybrid_rerank"}):
             if effective_mode in {"hybrid", "hybrid_rrf"}:
                 # Confidence is an abstention decision for the query, not a
@@ -412,9 +424,12 @@ class HybridRetriever:
                 # result at rank 3 merely because rank 1 carried the strongest
                 # lexical signal.
                 if not ranked or max(confidence_scores.get(item_id, 0.0) for item_id, _score in ranked) < score_threshold:
+                    abstention_reason = "below_score_threshold" if ranked else "no_candidate"
                     ranked = []
             else:
                 ranked = [(item_id, score) for item_id, score in ranked if score >= score_threshold]
+                if not ranked:
+                    abstention_reason = "below_score_threshold"
         ranked = ranked[:top_k * 3]
         candidates = [
             records[item_id]
@@ -443,8 +458,6 @@ class HybridRetriever:
         else:
             ranked = ranked[:top_k]
             score_by_id = dict(ranked)
-        bm25_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(bm25_ranked, 1)}
-        dense_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(dense_ranked, 1)}
         raw_scores = dict(bm25_ranked if effective_mode in {"bm25", "exact_code"} else dense_ranked if effective_mode == "dense" else [])
         results = [
             RetrievalResult(
@@ -460,6 +473,7 @@ class HybridRetriever:
                 raw_score=raw_scores.get(item_id),
                 fusion_score=float(score_by_id[item_id]) if label in {"hybrid", "hybrid_rrf"} else None,
                 confidence_score=confidence_scores.get(item_id),
+                confidence_features=confidence_features.get(item_id),
                 retriever_ranks={name: values[item_id] for name, values in (("bm25", bm25_ranks), ("dense", dense_ranks)) if item_id in values},
                 retriever_sources=tuple(name for name, values in (("bm25", bm25_ranks), ("dense", dense_ranks)) if item_id in values),
                 deduplicated=item_id in bm25_ranks and item_id in dense_ranks,
@@ -470,7 +484,8 @@ class HybridRetriever:
         self.last_trace = RoutingTrace(
             route=route, detected_codes=codes, exact_match=effective_mode == "exact_code" and bool(results),
             filters_applied=bool(normalized_filters), bm25_used=bool(bm25_ranked), dense_used=bool(dense_ranked),
-            abstained=not results, fallback=fallback_reason,
+            abstained=not results, abstention_reason=(abstention_reason or "no_candidate") if not results else None,
+            fallback=fallback_reason,
             candidate_count=len(set(item_id for item_id, _ in bm25_ranked + dense_ranked)), final_count=len(results),
             latency_ms={"parse": round(parse_ms, 3), "bm25": round(bm25_ms, 3),
                         "dense": round(dense_ms, 3), "fusion": round(fusion_ms, 3),

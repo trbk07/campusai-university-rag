@@ -140,3 +140,16 @@ def test_reranker_threshold_is_applied_after_reranking(tmp_path):
         "prerequisite", ["doc"], mode="hybrid_rerank", score_threshold=0.5, top_k=2
     )
     assert [result.chunk_id for result in results] == ["a"]
+
+
+def test_calibrated_hybrid_abstention_reports_reason(tmp_path):
+    records = [{"chunk_id": "a", "doc_id": "doc", "content": "tuition policy 2024", "page": 1}]
+    index_dir = tmp_path / "index" / "doc"
+    BM25Index(records, "en").save(index_dir / "bm25.json")
+    dense = DenseIndex(records)
+    dense.build(records)
+    dense.save(index_dir / "dense.json")
+    retriever = HybridRetriever(tmp_path / "index", query_cache_size=0)
+    assert retriever.search("tuition policy", ["doc"], mode="hybrid_rrf", score_threshold=1.1) == []
+    assert retriever.last_trace.abstained is True
+    assert retriever.last_trace.abstention_reason == "below_score_threshold"

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "phase": 3,
+  "source_manifest_sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+  "index_manifest_sha256": "d820af47effd2d8f543658a8bbe605b9b7886895c7e5e1bf511b531511cd9a71",
+  "documents": 10,
+  "source_documents": 13,
+  "chunks": 942,
+  "languages": [
+    "en",
+    "vi",
+    "vi-en"
+  ],
+  "model": "BAAI/bge-m3",
+  "model_revision": "1",
+  "source_hashes": {
+    "uet_admission_2024.pdf": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+    "uet_admission_2025.pdf": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+    "uet_program_adjustments_2021.pdf": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+    "uet_cs_progression.pdf": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+    "uet_computer_engineering_program.pdf": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+    "uet_electronics_program_2023.pdf": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+    "uet_masters_admission_2022.pdf": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+    "uet_mai_joint_curriculum_2022.pdf": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+    "uet_mechatronics_curriculum_2023.pdf": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+    "uet_training_regulation_2014.pdf": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+    "uet_student_rewards_2023.pdf": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+    "uet_cs_curriculum_2019.pdf": "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+    "uet_electronics_course_map.pdf": "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a"
+  },
+  "created_from_commit": "cacb451f3018a739cf92ee1ba1855392d5456e1b",
+  "corpus_hash": "a72c1f02a0aa3f75bd10e627c56f79aeb3dcfc9ceb5af7121733b3bef852295b"
+}

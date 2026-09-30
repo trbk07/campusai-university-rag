@@ -11,7 +11,11 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from campusai.retrieval.hybrid import HybridRetriever
+from campusai.retrieval.confidence import FEATURES, RetrievalConfidenceModel
+from sklearn.linear_model import LogisticRegression
+import sklearn
 from evaluation.metrics import recall_at_k
+from evaluation.metrics import _is_relevant
 from evaluation.phase6_schema import load_jsonl
 
 
@@ -38,18 +42,40 @@ def main() -> int:
         results = retriever.search(
             row["question"], doc_ids, filters=row.get("filters"), top_k=10, mode="auto"
         )
-        evaluated.append((row, results))
-    answerable = [(row, values) for row, values in evaluated if row.get("answerable")]
-    negative = [(row, values) for row, values in evaluated if not row.get("answerable")]
-    baseline = sum(recall_at_k(values, row["gold_evidence"], 5) for row, values in answerable) / len(answerable)
-    candidates = sorted({0.0, 1.0, *[float(item.confidence_score or 0.0) for _row, values in evaluated for item in values]})
+        evaluated.append((row, results, retriever.last_trace))
+    answerable = [(row, values, trace) for row, values, trace in evaluated if row.get("answerable")]
+    negative = [(row, values, trace) for row, values, trace in evaluated if not row.get("answerable")]
+    feature_rows = []
+    feature_labels = []
+    for row, values, _trace in evaluated:
+        for item in values:
+            feature_rows.append([item.confidence_features[name] for name in FEATURES])
+            feature_labels.append(int(_is_relevant(item, row.get("gold_evidence", []))))
+    if len(set(feature_labels)) != 2:
+        raise SystemExit("dev calibration requires relevant and irrelevant candidate examples")
+    fitted = LogisticRegression(class_weight="balanced", solver="liblinear", C=1.0,
+                                random_state=0, max_iter=1000).fit(feature_rows, feature_labels)
+    confidence_model = RetrievalConfidenceModel(
+        version="phase6-logistic-v1", kind="logistic",
+        coefficients={name: float(value) for name, value in zip(FEATURES, fitted.coef_[0])},
+        intercept=float(fitted.intercept_[0]),
+    )
+    def confidence(values, trace):
+        if trace.exact_match and trace.route == "exact_code":
+            return 1.0
+        return max((confidence_model.predict(item.confidence_features) for item in values), default=0.0)
+    scored = [(row, values, confidence(values, trace)) for row, values, trace in evaluated]
+    answerable = [(row, values, score) for row, values, score in scored if row.get("answerable")]
+    negative = [(row, values, score) for row, values, score in scored if not row.get("answerable")]
+    baseline = sum(recall_at_k(values, row["gold_evidence"], 5) for row, values, _score in answerable) / len(answerable)
+    candidates = sorted({0.0, 1.0, *(score for _row, _values, score in scored)})
     trials = []
     for threshold in candidates:
-        def accepted(values):
-            return values if values and max((item.confidence_score or 0) for item in values) >= threshold else []
-        positive_recall = sum(recall_at_k(accepted(values), row["gold_evidence"], 5)
-                              for row, values in answerable) / len(answerable)
-        fpr = sum(bool(accepted(values)) for _row, values in negative) / len(negative)
+        def accepted(values, score):
+            return values if values and score >= threshold else []
+        positive_recall = sum(recall_at_k(accepted(values, score), row["gold_evidence"], 5)
+                              for row, values, score in answerable) / len(answerable)
+        fpr = sum(bool(accepted(values, score)) for _row, values, score in negative) / len(negative)
         trials.append({"threshold": threshold, "answerable_recall_at_5": positive_recall,
                        "false_positive_rate": fpr,
                        "recall_drop": baseline - positive_recall})
@@ -59,7 +85,12 @@ def main() -> int:
     manifest_path = args.index_dir / "manifest.json"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     report = {
-        "schema_version": 1, "phase": 6, "mode": "hybrid_rrf",
+        "schema_version": 2, "phase": 6, "mode": "hybrid_rrf",
+        "confidence_model": confidence_model.to_dict(),
+        "confidence_model_sha256": confidence_model.fingerprint,
+        "feature_schema": list(FEATURES), "training_split_sha256": _sha(args.benchmark),
+        "training_candidates": len(feature_rows), "training_positive_candidates": sum(feature_labels),
+        "sklearn_version": sklearn.__version__,
         "calibration_split": "dev", "holdout_used": False,
         "benchmark_sha256": _sha(args.benchmark), "index_sha256": _sha(manifest_path),
         "model": manifest.get("model_name"), "model_revision": manifest.get("model_revision"),

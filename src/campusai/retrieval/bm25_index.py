@@ -32,7 +32,8 @@ class BM25Index:
             self.document_frequency.update(set(tokens))
         self.avgdl = sum(map(len, self.tokens)) / max(1, len(self.tokens))
 
-    def search(self, query: str, top_k: int = 10) -> list[tuple[str, float]]:
+    def search(self, query: str, top_k: int = 10,
+               eligible_ids: set[str] | None = None) -> list[tuple[str, float]]:
         query_tokens = normalized_tokens(query, self.language)
         n = len(self.items)
         if not n:
@@ -40,6 +41,8 @@ class BM25Index:
         k1, b = 1.5, 0.75
         scored = []
         for index, frequencies in enumerate(self.term_frequency):
+            if eligible_ids is not None and self.items[index]["chunk_id"] not in eligible_ids:
+                continue
             length = len(self.tokens[index]) or 1
             score = 0.0
             for term in query_tokens:

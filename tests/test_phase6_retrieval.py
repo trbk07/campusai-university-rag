@@ -43,7 +43,7 @@ def _write_index(root, doc_id, records, *, dense=True):
     [
         ("CS201 prerequisite", "exact_code"),
         ("cs201 prerequisite", "exact_code"),
-        ("hoc phi", "bm25"),
+        ("hoc phi", "hybrid_rrf"),
         ("what is the graduation requirement", "hybrid_rrf"),
     ],
 )
@@ -212,3 +212,54 @@ def test_phase6_runtime_scopes_arbitrary_user_uploads_without_fixture_names(tmp_
     assert service.retrieve(
         "What does ORBITAL101 require?", doc_ids=["user-doc-beta"]
     ) == []
+
+
+def test_short_natural_query_uses_hybrid_and_year_is_not_hardcoded(tmp_path):
+    _write_index(tmp_path, "catalog", [_record("c1", "catalog", "program policy for 2035")])
+    retriever = HybridRetriever(tmp_path, query_cache_size=0)
+    assert choose_route("tuition policy") == "hybrid_rrf"
+    assert retriever.search("policy for 2035", ["catalog"], mode="auto")
+    assert retriever.search("policy for 2093", ["catalog"], mode="auto") == []
+    assert retriever.last_trace.fallback == "year_not_in_corpus"
+
+
+def test_internal_document_id_in_query_does_not_override_explicit_scope(tmp_path):
+    _write_index(tmp_path, "alpha", [_record("a", "alpha", "tuition policy")])
+    _write_index(tmp_path, "beta", [_record("b", "beta", "tuition policy")])
+    retriever = HybridRetriever(tmp_path, query_cache_size=0)
+    results = retriever.search("tuition policy alpha", ["beta"], mode="auto")
+    assert results and all(item.doc_id == "beta" for item in results)
+
+
+def test_filter_postings_limit_dense_and_bm25_before_ranking(tmp_path, monkeypatch):
+    _write_index(tmp_path, "doc", [
+        _record("allowed", "doc", "same policy topic", program="CNTT"),
+        _record("blocked", "doc", "same policy topic", program="DTVT"),
+    ])
+    seen = []
+    original_bm25 = BM25Index.search
+    original_dense = DenseIndex.search
+
+    def bm25_search(self, query, top_k=10, eligible_ids=None):
+        seen.append(("bm25", eligible_ids))
+        return original_bm25(self, query, top_k, eligible_ids)
+
+    def dense_search(self, query, top_k=10, query_vector=None, eligible_ids=None):
+        seen.append(("dense", eligible_ids))
+        return original_dense(self, query, top_k, query_vector, eligible_ids)
+
+    monkeypatch.setattr(BM25Index, "search", bm25_search)
+    monkeypatch.setattr(DenseIndex, "search", dense_search)
+    results = HybridRetriever(tmp_path, query_cache_size=0).search(
+        "same policy topic", ["doc"], filters={"program": "CNTT"}, mode="auto")
+    assert [item.chunk_id for item in results] == ["allowed"]
+    assert seen and all(ids == {"allowed"} for _name, ids in seen)
+
+
+def test_query_cache_reloads_rebuilt_document(tmp_path):
+    _write_index(tmp_path, "doc", [_record("old", "doc", "tuition policy")])
+    retriever = HybridRetriever(tmp_path, query_cache_size=4)
+    assert [item.chunk_id for item in retriever.search("tuition policy", ["doc"], mode="auto")] == ["old"]
+    _write_index(tmp_path, "doc", [_record("new", "doc", "library policy")])
+    results = retriever.search("tuition policy", ["doc"], mode="auto")
+    assert results and all(item.chunk_id == "new" for item in results)

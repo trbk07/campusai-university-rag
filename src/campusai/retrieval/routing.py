@@ -32,6 +32,7 @@ class RoutingTrace:
     bm25_used: bool = False
     dense_used: bool = False
     abstained: bool = False
+    abstention_reason: str | None = None
     fallback: str | None = None
     candidate_count: int = 0
     final_count: int = 0
@@ -51,7 +52,4 @@ def choose_route(query: str, *, filters: dict | None = None) -> str:
         return "exact_code"
     if filters:
         return "filtered_hybrid_rrf"
-    tokens = re.findall(r"\w+", query, re.UNICODE)
-    if len(tokens) <= 3:
-        return "bm25"
     return "hybrid_rrf"

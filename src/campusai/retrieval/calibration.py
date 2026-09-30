@@ -6,6 +6,8 @@ from dataclasses import dataclass
 import json
 from pathlib import Path
 
+from .confidence import LEGACY_CONFIDENCE_MODEL, RetrievalConfidenceModel
+
 
 class CalibrationError(ValueError):
     pass
@@ -35,6 +37,9 @@ class RetrievalPolicy:
     min_recall: float = 0.85
     max_false_positive_rate: float = 0.05
     source: str = "calibration"
+    confidence_model: RetrievalConfidenceModel = LEGACY_CONFIDENCE_MODEL
+    index_sha256: str | None = None
+    training_split_sha256: str | None = None
 
     def __post_init__(self) -> None:
         if self.mode not in {"bm25", "dense", "hybrid", "hybrid_rrf", "rerank", "hybrid_rerank"}:
@@ -52,6 +57,9 @@ class RetrievalPolicy:
             "min_recall": self.min_recall,
             "max_false_positive_rate": self.max_false_positive_rate,
             "source": self.source,
+            "confidence_model": self.confidence_model.to_dict(),
+            "index_sha256": self.index_sha256,
+            "training_split_sha256": self.training_split_sha256,
         }
 
     @classmethod
@@ -64,8 +72,13 @@ class RetrievalPolicy:
         if not isinstance(mode, str) or not isinstance(result.get("threshold"), (int, float)):
             raise CalibrationError("calibration report is missing mode or threshold")
         constraints = data.get("constraints", {})
+        model_data = data.get("confidence_model")
+        model = RetrievalConfidenceModel.from_dict(model_data) if model_data else LEGACY_CONFIDENCE_MODEL
+        if model_data and data.get("confidence_model_sha256") != model.fingerprint:
+            raise CalibrationError("confidence model checksum mismatch")
         return cls(mode, float(result["threshold"]), float(constraints.get("min_recall", 0.85)),
-                   float(constraints.get("max_false_positive_rate", 0.05)), str(path))
+                   float(constraints.get("max_false_positive_rate", 0.05)), str(path), model,
+                   data.get("index_sha256"), data.get("training_split_sha256"))
 
 
 def select_threshold(

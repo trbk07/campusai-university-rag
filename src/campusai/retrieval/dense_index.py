@@ -11,6 +11,11 @@ import time
 from pathlib import Path
 from typing import Any, Protocol
 
+try:
+    import numpy as np
+except ImportError:  # lightweight core installation
+    np = None
+
 from .model_runtime import retrieval_runtime
 from .tokenizer_vi import normalized_tokens, retrieval_text
 
@@ -122,6 +127,7 @@ class DenseIndex:
         self.vectors: list[list[float]] = []
         self.manifest: dict[str, Any] = {}
         self._provider_cache: EmbeddingProvider | None = None
+        self._matrix_cache = None
 
     def _provider(self) -> EmbeddingProvider:
         if self._provider_cache is not None:
@@ -139,6 +145,7 @@ class DenseIndex:
         started = time.perf_counter()
         self.items = list(items)
         self.vectors = self._encode([retrieval_text(item) for item in self.items])
+        self._matrix_cache = None
         dimension = len(self.vectors[0]) if self.vectors else (256 if self.model_name == HASH_MODEL else 0)
         self.manifest = self._make_manifest(corpus_id, document_id, dimension, time.perf_counter() - started, corpus_hash(self.items))
 
@@ -153,13 +160,25 @@ class DenseIndex:
     def encode_query(self, query: str) -> list[float]:
         return self._provider().encode_query(query)
 
-    def search(self, query: str, top_k: int = 10, query_vector: list[float] | None = None) -> list[tuple[str, float]]:
+    def search(self, query: str, top_k: int = 10, query_vector: list[float] | None = None,
+               eligible_ids: set[str] | None = None) -> list[tuple[str, float]]:
         if not self.items:
+            return []
+        indices = [index for index, item in enumerate(self.items)
+                   if eligible_ids is None or item["chunk_id"] in eligible_ids]
+        if not indices:
             return []
         query_vector = query_vector or self.encode_query(query)
         if len(query_vector) != len(self.vectors[0]):
             raise IndexVersionMismatchError("query embedding dimension does not match index")
-        scored = [(item["chunk_id"], _cosine(query_vector, vector)) for item, vector in zip(self.items, self.vectors)]
+        if np is not None:
+            if self._matrix_cache is None:
+                self._matrix_cache = np.asarray(self.vectors, dtype=np.float64)
+            similarities = self._matrix_cache[indices] @ np.asarray(query_vector, dtype=np.float64)
+            scored = [(self.items[index]["chunk_id"], float(score)) for index, score in zip(indices, similarities)]
+        else:
+            scored = [(self.items[index]["chunk_id"], _cosine(query_vector, self.vectors[index]))
+                      for index in indices]
         return sorted(scored, key=lambda pair: (-pair[1], pair[0]))[:top_k]
 
     def to_dict(self) -> dict:

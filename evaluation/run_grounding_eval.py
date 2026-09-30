@@ -37,6 +37,8 @@ from campusai.ingestion.pipeline import ingest_document
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", default="data/benchmark/basic_rag.jsonl")
+    parser.add_argument("--annotation-benchmark", default=None,
+                        help="Original reviewed rows when only explicit document selection was added")
     parser.add_argument("--output", default="evaluation/results/grounding_grounding.json")
     parser.add_argument("--mode", choices=("fixture", "draft", "runtime"), default="fixture")
     parser.add_argument("--calibration-artifact", default=None,
@@ -56,6 +58,15 @@ def main():
     records = load_records(args.benchmark)
     benchmark_path = Path(args.benchmark)
     benchmark_sha256 = hashlib.sha256(benchmark_path.read_bytes()).hexdigest()
+    annotation_benchmark_sha256 = benchmark_sha256
+    if args.annotation_benchmark:
+        original_path = Path(args.annotation_benchmark)
+        original_records = load_records(original_path)
+        stripped = [{key: value for key, value in row.items()
+                     if key not in {"selected_doc_ids", "selection_provenance"}} for row in records]
+        if stripped != original_records:
+            raise SystemExit("scoped benchmark differs from reviewed annotations")
+        annotation_benchmark_sha256 = hashlib.sha256(original_path.read_bytes()).hexdigest()
     if args.mode == "runtime":
         dataset_errors = validate_release_records(records)
         if dataset_errors:
@@ -74,7 +85,7 @@ def main():
         if args.mode == "runtime":
             if calibration_payload.get("fit_split") != "dev":
                 raise SystemExit("runtime calibration must declare fit_split=dev")
-            if calibration_payload.get("benchmark_sha256") != benchmark_sha256:
+            if calibration_payload.get("benchmark_sha256") != annotation_benchmark_sha256:
                 raise SystemExit("runtime calibration benchmark checksum mismatch")
         calibrator, calibration_sha256 = load_calibration_artifact(
             args.calibration_artifact, expected_sha256=args.calibration_sha256)
@@ -109,6 +120,7 @@ def main():
         for record in records:
             llm.active = record
             answer = service.ask(record["question"], top_k=12,
+                                 doc_ids=record.get("selected_doc_ids"),
                                  language=record.get("language", "vi"),
                                  mode=args.retrieval_mode)
             retrieved = service.last_retrieval
