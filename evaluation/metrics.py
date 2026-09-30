@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+import math
 
 
 def _is_relevant(result, gold_evidence: list[dict]) -> bool:
@@ -10,8 +11,10 @@ def _is_relevant(result, gold_evidence: list[dict]) -> bool:
     result_page = getattr(result, "page", result.get("page") if isinstance(result, dict) else None)
     result_chunk = getattr(result, "chunk_id", result.get("chunk_id") if isinstance(result, dict) else None)
     for evidence in gold_evidence:
-        if evidence.get("chunk_id") and evidence["chunk_id"] == result_chunk:
-            return True
+        if evidence.get("chunk_id"):
+            if evidence["chunk_id"] == result_chunk:
+                return True
+            continue
         if evidence.get("doc_id") == result_doc and (not evidence.get("pages") or result_page in evidence["pages"]):
             return True
     return False
@@ -28,13 +31,24 @@ def reciprocal_rank(results: list, gold_evidence: list[dict]) -> float:
     return 0.0
 
 
+def ndcg_at_k(results: list, gold_evidence: list[dict], k: int) -> float:
+    gains = [1.0 if _is_relevant(result, gold_evidence) else 0.0 for result in results[:k]]
+    dcg = sum(gain / math.log2(rank + 2) for rank, gain in enumerate(gains))
+    ideal_count = min(k, max(1, len(gold_evidence)))
+    idcg = sum(1.0 / math.log2(rank + 2) for rank in range(ideal_count))
+    return dcg / idcg if idcg and gold_evidence else 0.0
+
+
 def evaluate_retrieval(records: Iterable[dict], retrieve, k_values: tuple[int, ...] = (3, 5)) -> dict:
     rows = []
     answerable_rows = []
     for record in records:
         results = retrieve(record)
         evidence = record.get("gold_evidence", [])
-        row = {"qid": record.get("qid"), "recall": {str(k): recall_at_k(results, evidence, k) for k in k_values}, "mrr": reciprocal_rank(results, evidence)}
+        row = {"qid": record.get("qid"),
+               "recall": {str(k): recall_at_k(results, evidence, k) for k in k_values},
+               "ndcg": {str(k): ndcg_at_k(results, evidence, k) for k in k_values},
+               "mrr": reciprocal_rank(results, evidence)}
         rows.append(row)
         # MRR measures the rank of a relevant result.  Negative queries have
         # no relevant result by definition, so they are reported separately
@@ -46,6 +60,8 @@ def evaluate_retrieval(records: Iterable[dict], retrieve, k_values: tuple[int, .
     return {
         "n": count,
         "recall": {str(k): sum(row["recall"][str(k)] for row in rows) / count if count else 0.0 for k in k_values},
+        "answerable_recall": {str(k): sum(row["recall"][str(k)] for row in answerable_rows) / answerable_count if answerable_count else 0.0 for k in k_values},
+        "ndcg": {str(k): sum(row["ndcg"][str(k)] for row in answerable_rows) / answerable_count if answerable_count else 0.0 for k in k_values},
         "mrr": sum(row["mrr"] for row in rows) / count if count else 0.0,
         "answerable_n": answerable_count,
         "mrr_answerable": sum(row["mrr"] for row in answerable_rows) / answerable_count if answerable_count else 0.0,

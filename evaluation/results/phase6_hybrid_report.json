@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "mode": "hybrid_rrf",
+  "test": {
+    "mode": "hybrid_rrf",
+    "records": 130,
+    "quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.6076923076923076,
+        "3": 0.823076923076923,
+        "5": 0.8692307692307693,
+        "10": 0.8769230769230769
+      },
+      "answerable_recall": {
+        "1": 0.6752136752136753,
+        "3": 0.9145299145299145,
+        "5": 0.9658119658119658,
+        "10": 0.9743589743589743
+      },
+      "ndcg": {
+        "1": 0.6752136752136753,
+        "3": 0.8194910647741203,
+        "5": 0.8404533561922725,
+        "10": 0.8434978620649906
+      },
+      "mrr": 0.7193589743589743,
+      "answerable_n": 117,
+      "mrr_answerable": 0.7992877492877493
+    },
+    "negative": {
+      "count": 13,
+      "false_positive_rate": 0.153846,
+      "abstention_precision": 1.0,
+      "abstention_recall": 0.846154
+    },
+    "latency_ms": {
+      "cold": 1370.028,
+      "p50": 198.552,
+      "p95": 329.067,
+      "p99": 373.963
+    },
+    "schema_invalid_rate": 0.0,
+    "schema_errors": [],
+    "provenance_loss_rate": 0.0,
+    "filter_leakage": 0,
+    "segments": {
+      "category": {
+        "fact": {
+          "n": 32,
+          "recall_at_5": 0.96875,
+          "mrr": 0.727604
+        },
+        "exact_code": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.868333
+        },
+        "table_filter_calculation": {
+          "n": 20,
+          "recall_at_5": 0.95,
+          "mrr": 0.858333
+        },
+        "prerequisite": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.875
+        },
+        "multi_document": {
+          "n": 13,
+          "recall_at_5": 1.0,
+          "mrr": 0.730769
+        },
+        "comparison_year": {
+          "n": 12,
+          "recall_at_5": 0.833333,
+          "mrr": 0.725
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "difficulty": {
+        "easy": {
+          "n": 39,
+          "recall_at_5": 0.974359,
+          "mrr": 0.80641
+        },
+        "medium": {
+          "n": 39,
+          "recall_at_5": 1.0,
+          "mrr": 0.821368
+        },
+        "hard": {
+          "n": 52,
+          "recall_at_5": 0.692308,
+          "mrr": 0.577564
+        }
+      },
+      "language": {
+        "vi": {
+          "n": 129,
+          "recall_at_5": 0.875969,
+          "mrr": 0.724935
+        },
+        "mixed": {
+          "n": 1,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "query_type": {
+        "hybrid_rrf": {
+          "n": 97,
+          "recall_at_5": 0.958763,
+          "mrr": 0.785052
+        },
+        "exact_code": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.868333
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      }
+    },
+    "answerable_count": 117
+  },
+  "holdout": {
+    "mode": "hybrid_rrf",
+    "records": 130,
+    "quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.6846153846153846,
+        "3": 0.8,
+        "5": 0.8461538461538461,
+        "10": 0.8769230769230769
+      },
+      "answerable_recall": {
+        "1": 0.7606837606837606,
+        "3": 0.8888888888888888,
+        "5": 0.9401709401709402,
+        "10": 0.9743589743589743
+      },
+      "ndcg": {
+        "1": 0.7606837606837606,
+        "3": 0.8370959597374874,
+        "5": 0.8591819370745846,
+        "10": 0.8695157781532789
+      },
+      "mrr": 0.7521794871794871,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8357549857549857
+    },
+    "negative": {
+      "count": 13,
+      "false_positive_rate": 0.153846,
+      "abstention_precision": 1.0,
+      "abstention_recall": 0.846154
+    },
+    "latency_ms": {
+      "cold": 175.615,
+      "p50": 206.76,
+      "p95": 256.734,
+      "p99": 340.506
+    },
+    "schema_invalid_rate": 0.0,
+    "schema_errors": [],
+    "provenance_loss_rate": 0.0,
+    "filter_leakage": 0,
+    "segments": {
+      "category": {
+        "fact": {
+          "n": 33,
+          "recall_at_5": 0.848485,
+          "mrr": 0.668434
+        },
+        "exact_code": {
+          "n": 19,
+          "recall_at_5": 1.0,
+          "mrr": 0.837719
+        },
+        "table_filter_calculation": {
+          "n": 19,
+          "recall_at_5": 0.947368,
+          "mrr": 0.839912
+        },
+        "prerequisite": {
+          "n": 19,
+          "recall_at_5": 1.0,
+          "mrr": 1.0
+        },
+        "multi_document": {
+          "n": 13,
+          "recall_at_5": 0.923077,
+          "mrr": 0.892308
+        },
+        "comparison_year": {
+          "n": 14,
+          "recall_at_5": 1.0,
+          "mrr": 0.946429
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "difficulty": {
+        "easy": {
+          "n": 39,
+          "recall_at_5": 0.923077,
+          "mrr": 0.852991
+        },
+        "medium": {
+          "n": 39,
+          "recall_at_5": 0.948718,
+          "mrr": 0.814103
+        },
+        "hard": {
+          "n": 52,
+          "recall_at_5": 0.711538,
+          "mrr": 0.630128
+        }
+      },
+      "language": {
+        "vi": {
+          "n": 114,
+          "recall_at_5": 0.833333,
+          "mrr": 0.772222
+        },
+        "vi-en": {
+          "n": 15,
+          "recall_at_5": 1.0,
+          "mrr": 0.65
+        },
+        "mixed": {
+          "n": 1,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "query_type": {
+        "hybrid_rrf": {
+          "n": 98,
+          "recall_at_5": 0.928571,
+          "mrr": 0.835374
+        },
+        "exact_code": {
+          "n": 19,
+          "recall_at_5": 1.0,
+          "mrr": 0.837719
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      }
+    },
+    "answerable_count": 117
+  },
+  "model": "BAAI/bge-m3",
+  "model_revision": "1"
+}

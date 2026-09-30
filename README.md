@@ -225,6 +225,22 @@ See `docs/phase5_reproducibility.md`, `docs/phase5_operations.md`, and
 `docs/data_governance.md` for the clean-checkout, operations and privacy
 procedures.
 
+## Phase 6 hybrid retrieval
+
+Phase 6 adds deterministic query routing, exact-code ambiguity fallback,
+metadata filters, globally ranked BM25/dense candidates, rank-only weighted
+RRF, calibrated query-level abstention, and versioned retrieval traces. The
+13-document corpus under `data/corpus/university` is only a reproducible
+release benchmark fixture. It is never a built-in knowledge base: normal
+runtime ingestion indexes files supplied by the user, and queries are scoped
+to the uploaded `doc_ids` selected by that user.
+
+The locked RC3 evidence uses `BAAI/bge-m3` revision `1`, RRF `k=3`, weights
+`1.0/1.2`, and a 40-candidate cap. Rebuild and validate with the `phase6-*`
+Make targets above. See `docs/phase6_retrieval_release.md` and
+`docs/phase6_operations.md` for metrics, reproducibility, CPU settings, and
+the upload/index lifecycle.
+
 ## Repository layout
 
 ```text

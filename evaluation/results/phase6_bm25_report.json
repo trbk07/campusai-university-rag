@@ -1,0 +1,272 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "mode": "bm25",
+  "test": {
+    "mode": "bm25",
+    "records": 130,
+    "quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.5538461538461539,
+        "3": 0.7076923076923077,
+        "5": 0.7923076923076923,
+        "10": 0.8461538461538461
+      },
+      "answerable_recall": {
+        "1": 0.6153846153846154,
+        "3": 0.7863247863247863,
+        "5": 0.8803418803418803,
+        "10": 0.9401709401709402
+      },
+      "ndcg": {
+        "1": 0.6153846153846154,
+        "3": 0.7154024512515295,
+        "5": 0.752896913919021,
+        "10": 0.7727727743569688
+      },
+      "mrr": 0.647518315018315,
+      "answerable_n": 117,
+      "mrr_answerable": 0.7194647944647945
+    },
+    "negative": {
+      "count": 13,
+      "false_positive_rate": 0.461538,
+      "abstention_precision": 1.0,
+      "abstention_recall": 0.538462
+    },
+    "latency_ms": {
+      "cold": 1066.149,
+      "p50": 20.518,
+      "p95": 25.91,
+      "p99": 29.717
+    },
+    "schema_invalid_rate": 0.0,
+    "schema_errors": [],
+    "provenance_loss_rate": 0.0,
+    "filter_leakage": 0,
+    "segments": {
+      "category": {
+        "fact": {
+          "n": 32,
+          "recall_at_5": 0.90625,
+          "mrr": 0.614583
+        },
+        "exact_code": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.775
+        },
+        "table_filter_calculation": {
+          "n": 20,
+          "recall_at_5": 0.9,
+          "mrr": 0.86
+        },
+        "prerequisite": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.9
+        },
+        "multi_document": {
+          "n": 13,
+          "recall_at_5": 0.769231,
+          "mrr": 0.739286
+        },
+        "comparison_year": {
+          "n": 12,
+          "recall_at_5": 0.5,
+          "mrr": 0.35
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "difficulty": {
+        "easy": {
+          "n": 39,
+          "recall_at_5": 0.871795,
+          "mrr": 0.661966
+        },
+        "medium": {
+          "n": 39,
+          "recall_at_5": 0.897436,
+          "mrr": 0.781013
+        },
+        "hard": {
+          "n": 52,
+          "recall_at_5": 0.653846,
+          "mrr": 0.536561
+        }
+      },
+      "language": {
+        "vi": {
+          "n": 129,
+          "recall_at_5": 0.79845,
+          "mrr": 0.652538
+        },
+        "mixed": {
+          "n": 1,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "query_type": {
+        "hybrid_rrf": {
+          "n": 97,
+          "recall_at_5": 0.85567,
+          "mrr": 0.708014
+        },
+        "exact_code": {
+          "n": 20,
+          "recall_at_5": 1.0,
+          "mrr": 0.775
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      }
+    },
+    "answerable_count": 117
+  },
+  "holdout": {
+    "mode": "bm25",
+    "records": 130,
+    "quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.3769230769230769,
+        "3": 0.6153846153846154,
+        "5": 0.6384615384615384,
+        "10": 0.7076923076923077
+      },
+      "answerable_recall": {
+        "1": 0.4188034188034188,
+        "3": 0.6837606837606838,
+        "5": 0.7094017094017094,
+        "10": 0.7863247863247863
+      },
+      "ndcg": {
+        "1": 0.4188034188034188,
+        "3": 0.5814966097985415,
+        "5": 0.5921650364941085,
+        "10": 0.6175777148711787
+      },
+      "mrr": 0.5061324786324786,
+      "answerable_n": 117,
+      "mrr_answerable": 0.562369420702754
+    },
+    "negative": {
+      "count": 13,
+      "false_positive_rate": 0.461538,
+      "abstention_precision": 1.0,
+      "abstention_recall": 0.538462
+    },
+    "latency_ms": {
+      "cold": 40.833,
+      "p50": 21.84,
+      "p95": 29.501,
+      "p99": 32.373
+    },
+    "schema_invalid_rate": 0.0,
+    "schema_errors": [],
+    "provenance_loss_rate": 0.0,
+    "filter_leakage": 0,
+    "segments": {
+      "category": {
+        "fact": {
+          "n": 33,
+          "recall_at_5": 0.545455,
+          "mrr": 0.418939
+        },
+        "exact_code": {
+          "n": 19,
+          "recall_at_5": 0.894737,
+          "mrr": 0.762427
+        },
+        "table_filter_calculation": {
+          "n": 19,
+          "recall_at_5": 0.789474,
+          "mrr": 0.707602
+        },
+        "prerequisite": {
+          "n": 19,
+          "recall_at_5": 1.0,
+          "mrr": 0.657895
+        },
+        "multi_document": {
+          "n": 13,
+          "recall_at_5": 0.461538,
+          "mrr": 0.323718
+        },
+        "comparison_year": {
+          "n": 14,
+          "recall_at_5": 0.571429,
+          "mrr": 0.52381
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "difficulty": {
+        "easy": {
+          "n": 39,
+          "recall_at_5": 0.820513,
+          "mrr": 0.63084
+        },
+        "medium": {
+          "n": 39,
+          "recall_at_5": 0.538462,
+          "mrr": 0.474359
+        },
+        "hard": {
+          "n": 52,
+          "recall_at_5": 0.576923,
+          "mrr": 0.436432
+        }
+      },
+      "language": {
+        "vi": {
+          "n": 114,
+          "recall_at_5": 0.72807,
+          "mrr": 0.576194
+        },
+        "vi-en": {
+          "n": 15,
+          "recall_at_5": 0.0,
+          "mrr": 0.007407
+        },
+        "mixed": {
+          "n": 1,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      },
+      "query_type": {
+        "hybrid_rrf": {
+          "n": 98,
+          "recall_at_5": 0.673469,
+          "mrr": 0.523583
+        },
+        "exact_code": {
+          "n": 19,
+          "recall_at_5": 0.894737,
+          "mrr": 0.762427
+        },
+        "negative": {
+          "n": 13,
+          "recall_at_5": 0.0,
+          "mrr": 0.0
+        }
+      }
+    },
+    "answerable_count": 117
+  },
+  "model": "BAAI/bge-m3",
+  "model_revision": "1"
+}

@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "status": "pass",
+  "cases": 16,
+  "adversarial_false_positive_rate": 0.0,
+  "adversarial_crash_rate": 0.0,
+  "invalid_filter_leakage": 0,
+  "unsupported_retrieval_publish_rate": 0.0,
+  "invalid_citation_rate": 0.0,
+  "security_test_pass_rate": 1.0,
+  "deterministic_rate": 1.0,
+  "results": [
+    {
+      "case": "prompt_injection",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "prompt_injection",
+      "deterministic": true
+    },
+    {
+      "case": "prompt_injection_vi",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "prompt_injection",
+      "deterministic": true
+    },
+    {
+      "case": "fake_code",
+      "status": "pass",
+      "result_count": 0,
+      "route": "exact_code",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "unicode_confusable",
+      "status": "pass",
+      "result_count": 0,
+      "route": "bm25",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "future_year",
+      "status": "pass",
+      "result_count": 0,
+      "route": "hybrid_rrf",
+      "abstention_reason": "year_not_in_corpus",
+      "deterministic": true
+    },
+    {
+      "case": "wrong_program",
+      "status": "pass",
+      "result_count": 0,
+      "route": "filtered_hybrid_rrf",
+      "abstention_reason": "dense_unavailable_or_empty",
+      "deterministic": true
+    },
+    {
+      "case": "rare_keyword",
+      "status": "pass",
+      "result_count": 0,
+      "route": "hybrid_rrf",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "missing_document",
+      "status": "pass",
+      "result_count": 0,
+      "route": "hybrid_rrf",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "conflicting_filters",
+      "status": "pass",
+      "result_count": 0,
+      "route": "filtered_hybrid_rrf",
+      "abstention_reason": "dense_unavailable_or_empty",
+      "deterministic": true
+    },
+    {
+      "case": "retriever_disagreement",
+      "status": "pass",
+      "result_count": 0,
+      "route": "bm25",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "extreme_token",
+      "status": "pass",
+      "result_count": 0,
+      "route": "bm25",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "empty",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": null,
+      "deterministic": true
+    },
+    {
+      "case": "over_limit",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "query_too_long",
+      "deterministic": true
+    },
+    {
+      "case": "ambiguous",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "ambiguous_query",
+      "deterministic": true
+    },
+    {
+      "case": "stopwords",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "query_too_short_or_stopwords",
+      "deterministic": true
+    },
+    {
+      "case": "synthetic_short",
+      "status": "pass",
+      "result_count": 0,
+      "route": "abstain",
+      "abstention_reason": "query_too_short_or_stopwords",
+      "deterministic": true
+    }
+  ],
+  "errors": []
+}

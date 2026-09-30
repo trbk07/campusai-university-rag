@@ -1,0 +1,36 @@
+{
+  "phase": 6,
+  "release_candidate": "phase6-rc3",
+  "supersedes": "phase6-rc2",
+  "remediation_reports": [
+    "evaluation/results/phase6_rc1_remediation.json",
+    "evaluation/results/phase6_rc2_remediation.json"
+  ],
+  "benchmark_selection_offset": 31,
+  "schema_version": "retrieval-public-v1",
+  "index_schema_version": "hybrid-index-v2",
+  "thresholds_frozen": true,
+  "primary_mode": "auto",
+  "fusion_mode": "hybrid_rrf",
+  "reranker_in_scope": false,
+  "benchmark_min_records": 400,
+  "required_splits": ["dev", "test", "holdout"],
+  "rrf": {"k": 3, "bm25_weight": 1.0, "dense_weight": 1.2, "candidate_limit": 40},
+  "quality_gates": {
+    "hybrid_recall_at_5_min": 0.90,
+    "hybrid_recall_delta_over_best_single_min": 0.0,
+    "hybrid_ranking_improvement_required": true,
+    "exact_code_recall_at_5_min": 0.99,
+    "routing_accuracy_min": 0.98,
+    "negative_false_positive_rate_max": 0.05,
+    "adversarial_false_positive_rate_max": 0.01,
+    "answerable_recall_drop_max": 0.02
+  },
+  "performance_gates": {"warm_p95_ms_max": 500, "warm_p99_ms_max": 1000, "error_rate_max": 0.0},
+  "failure_semantics": {
+    "unknown_exact_code": "abstain",
+    "invalid_filter": "structured_error",
+    "dense_unavailable": "bm25_fallback_with_trace",
+    "index_mismatch": "fail_closed"
+  }
+}

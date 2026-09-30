@@ -30,6 +30,7 @@ from campusai.rag.schemas import validate_response, validate_release_response
 from campusai.rag.service import CampusAIQueryService
 from campusai.retrieval.index_builder import build_document_indexes
 from campusai.retrieval.hybrid import HybridRetriever
+from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.ingestion.pipeline import ingest_document
 
 
@@ -45,6 +46,12 @@ def main():
                         help="Real PDF corpus used by runtime mode")
     parser.add_argument("--ocr", action="store_true",
                         help="Enable bounded OCR for scan-only PDFs; off by default for reproducible release evaluation")
+    parser.add_argument("--index-dir", default=None,
+                        help="Reuse a persisted index (for example the Phase 6 release index)")
+    parser.add_argument("--retrieval-calibration", default=None,
+                        help="Optional Phase 6 retrieval calibration artifact")
+    parser.add_argument("--retrieval-mode", default=None,
+                        choices=("auto", "bm25", "dense", "hybrid", "hybrid_rrf"))
     args = parser.parse_args()
     records = load_records(args.benchmark)
     benchmark_path = Path(args.benchmark)
@@ -73,8 +80,11 @@ def main():
             args.calibration_artifact, expected_sha256=args.calibration_sha256)
         calibration_version = calibrator.version
     with tempfile.TemporaryDirectory(prefix="campusai-grounding-") as temp:
-        root = Path(temp) / "index"
-        if args.mode == "fixture":
+        root = Path(args.index_dir) if args.index_dir else Path(temp) / "index"
+        if args.index_dir:
+            if not (root / "manifest.json").is_file():
+                raise SystemExit("persisted retrieval index is missing manifest.json")
+        elif args.mode == "fixture":
             for name in ("graduation_conditions", "prerequisites"):
                 build_document_indexes(fixture_document(name), root, dense_model="fallback-hash-256")
         else:
@@ -85,8 +95,13 @@ def main():
                 if document.status == "succeeded":
                     build_document_indexes(document, root, dense_model="fallback-hash-256")
         llm = FixtureLLM()
+        policies = {}
+        if args.retrieval_calibration:
+            retrieval_policy = RetrievalPolicy.from_report(
+                args.retrieval_calibration, expected_mode="hybrid_rrf")
+            policies[retrieval_policy.mode] = retrieval_policy
         service = CampusAIQueryService(
-            HybridRetriever(root, query_cache_size=0),
+            HybridRetriever(root, query_cache_size=0, policies=policies),
             GroundedAnswerGenerator(llm, max_context_chars=16000, max_context_tokens=6000,
                                     calibrator=calibrator),
         )
@@ -94,7 +109,8 @@ def main():
         for record in records:
             llm.active = record
             answer = service.ask(record["question"], top_k=12,
-                                 language=record.get("language", "vi"))
+                                 language=record.get("language", "vi"),
+                                 mode=args.retrieval_mode)
             retrieved = service.last_retrieval
             gold_evidence = [evidence for claim in (record.get("gold_claims") or [])
                              for evidence in claim.get("evidence", [])]
@@ -206,6 +222,15 @@ def main():
         "calibration": calibration, "risk_at_coverage": risk_metrics,
         "risk_population": "holdout", "rows": rows,
     }
+    if args.index_dir:
+        index_manifest = Path(args.index_dir) / "manifest.json"
+        report["phase6_retrieval"] = {
+            "index_dir": str(args.index_dir), "mode": args.retrieval_mode,
+            "index_manifest_sha256": hashlib.sha256(index_manifest.read_bytes()).hexdigest(),
+            "calibration": args.retrieval_calibration,
+            "calibration_sha256": (hashlib.sha256(Path(args.retrieval_calibration).read_bytes()).hexdigest()
+                                    if args.retrieval_calibration else None),
+        }
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")

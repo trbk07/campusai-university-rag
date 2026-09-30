@@ -18,10 +18,12 @@ from .rag.service import CampusAIQueryService
 class CampusAIApplication:
     def __init__(self, query_service: CampusAIQueryService,
                  jobs: IngestionJobManager | None = None,
-                 metrics: MetricsRegistry | None = None) -> None:
+                 metrics: MetricsRegistry | None = None,
+                 ingestion_defaults: dict[str, Any] | None = None) -> None:
         self.query_service = query_service
         self.jobs = jobs
         self.metrics = metrics or query_service.metrics
+        self.ingestion_defaults = dict(ingestion_defaults or {})
 
     def health(self) -> dict[str, Any]:
         return {"status": "ok", "service": "campusai"}
@@ -39,7 +41,7 @@ class CampusAIApplication:
     def submit_ingestion(self, source_path: str, **options: Any) -> dict[str, Any]:
         if self.jobs is None:
             return {"ok": False, "error_code": "jobs_not_configured", "action": "configure_worker"}
-        job_id = self.jobs.submit(source_path, **options)
+        job_id = self.jobs.submit(source_path, **{**self.ingestion_defaults, **options})
         return {"ok": True, "job_id": job_id, "job": self.jobs.get(job_id)}
 
     def job(self, job_id: str) -> dict[str, Any]:

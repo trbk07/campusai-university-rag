@@ -27,7 +27,9 @@ def chunk_records(document: Document) -> list[dict]:
             "content_type": chunk.content_type,
             "heading_path": chunk.heading_path,
             "metadata": {
+                **document.metadata,
                 **chunk.metadata,
+                "source_name": Path(document.source_path).name,
                 "heading_path": chunk.heading_path,
                 "page_range": list(chunk.page_range or (chunk.page, chunk.page)),
             },

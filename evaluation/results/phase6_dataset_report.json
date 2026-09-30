@@ -1,0 +1,30 @@
+{
+  "records": 400,
+  "documents": 13,
+  "answerable": 360,
+  "unanswerable": 40,
+  "dev": 140,
+  "test": 130,
+  "holdout": 130,
+  "categories": {
+    "comparison_year": 40,
+    "exact_code": 60,
+    "fact": 100,
+    "multi_document": 40,
+    "negative": 40,
+    "prerequisite": 60,
+    "table_filter_calculation": 60
+  },
+  "duplicate_queries": 0,
+  "split_leakage": 0,
+  "missing_gold_evidence": 0,
+  "referenced_documents": 13,
+  "checksums": {
+    "dev": "fcf7c9c78a59ec511a2f4c7302d0b570d4c2302e2374ac9ce02c13184e3f30b4",
+    "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+    "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+  },
+  "manifest_sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+  "status": "pass",
+  "errors": []
+}

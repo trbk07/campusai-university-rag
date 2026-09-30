@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "release_candidate": "phase6-rc2",
+  "status": "rejected",
+  "immutable_after_evaluation": true,
+  "test": {
+    "primary_recall_at_5": 0.8461538461538461,
+    "negative_false_positive_rate": 0.0,
+    "hybrid_rrf_recall_at_5": 0.9316239316239316,
+    "exact_code_recall_at_5": 0.95
+  },
+  "holdout": {
+    "primary_recall_at_5": 0.8290598290598291,
+    "negative_false_positive_rate": 0.0
+  },
+  "failed_gates": [
+    "primary_recall_at_5",
+    "exact_code_recall",
+    "hybrid_below_single_retriever",
+    "hybrid_does_not_strictly_improve_recall"
+  ],
+  "root_cause": "The exact route required every detected code to occur in one chunk and forced an exact-only top-k even when a code matched multiple documents. This violated the predeclared ambiguity fallback contract and reduced the otherwise passing hybrid ranking.",
+  "remediation": [
+    "Preserve detected code order and use the first explicit code as the lookup target.",
+    "Use the exact-only fast path only for one code, one document, and a bounded candidate set.",
+    "For ambiguous exact matches, fuse exact candidates with global BM25 and dense ranks and record the fallback reason.",
+    "Generate a new deterministic RC3 question holdout with selection offset 31; RC2 reports remain rejected evidence."
+  ],
+  "rrf_or_threshold_tuned_from_holdout": false
+}

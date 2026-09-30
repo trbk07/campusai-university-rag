@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "release_candidate": "phase6-rc1",
+  "status": "rejected",
+  "immutable_after_evaluation": true,
+  "failed_gates": [
+    "primary_recall_at_5",
+    "negative_false_positive_rate",
+    "hybrid_below_single_retriever",
+    "hybrid_recall_improvement_below_2pp"
+  ],
+  "root_causes": [
+    "The dev split was Vietnamese-only while the test split was predominantly English, so the lexical-heavy confidence score did not generalize.",
+    "The eight-document corpus left no untouched source group after the failed holdout was opened.",
+    "Dense retrieval reached a near-ceiling test Recall@5, making a two-point hybrid gain impossible on that candidate."
+  ],
+  "remediation": [
+    "Do not reuse the rejected RC1 holdout as RC2 release evidence.",
+    "Expand the real corpus from 8 to 13 documents using five pre-existing repository PDFs.",
+    "Assign source-disjoint RC2 dev/test/holdout groups in the corpus manifest.",
+    "Place the English source in dev for multilingual calibration and reserve newly indexed sources for test and holdout."
+  ],
+  "parameter_changes_from_holdout": false
+}

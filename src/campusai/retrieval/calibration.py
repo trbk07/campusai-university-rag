@@ -37,7 +37,7 @@ class RetrievalPolicy:
     source: str = "calibration"
 
     def __post_init__(self) -> None:
-        if self.mode not in {"bm25", "dense", "hybrid", "rerank", "hybrid_rerank"}:
+        if self.mode not in {"bm25", "dense", "hybrid", "hybrid_rrf", "rerank", "hybrid_rerank"}:
             raise CalibrationError(f"unsupported retrieval mode: {self.mode}")
         if self.threshold < 0:
             raise CalibrationError("threshold must be non-negative")

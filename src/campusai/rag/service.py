@@ -53,6 +53,7 @@ class CampusAIQueryService:
         answer_generator: GroundedAnswerGenerator,
         cache: RAGAnswerCache | None = None,
         metrics: MetricsRegistry | None = None,
+        default_mode: str | None = None,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
@@ -60,6 +61,7 @@ class CampusAIQueryService:
         self.last_cache_hit = False
         self.last_retrieval: list[RetrievalResult] = []
         self.metrics = metrics or MetricsRegistry()
+        self.default_mode = default_mode
 
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
         """Return a stable version from the selected corpus/index manifests."""
@@ -89,7 +91,9 @@ class CampusAIQueryService:
         return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def _selected_mode(self, question: str, mode: str | None) -> str:
-        return mode or choose_query_mode(question, reranker_available=self.retriever.reranker is not None)
+        return mode or self.default_mode or choose_query_mode(
+            question, reranker_available=self.retriever.reranker is not None
+        )
 
     def retrieve(
         self,

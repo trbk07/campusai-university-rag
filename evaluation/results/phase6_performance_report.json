@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "status": "pass",
+  "host": {
+    "logical_cpus": 20,
+    "physical_cpus": 14
+  },
+  "concurrency": {
+    "1": {
+      "requests": 8,
+      "p50_ms": 16.43,
+      "p95_ms": 260.34,
+      "p99_ms": 260.34,
+      "mean_ms": 120.699,
+      "wall_ms": 966.822,
+      "errors": 0
+    },
+    "5": {
+      "requests": 8,
+      "p50_ms": 33.914,
+      "p95_ms": 401.667,
+      "p99_ms": 401.667,
+      "mean_ms": 176.764,
+      "wall_ms": 423.915,
+      "errors": 0
+    },
+    "20": {
+      "requests": 20,
+      "p50_ms": 243.359,
+      "p95_ms": 856.038,
+      "p99_ms": 926.443,
+      "mean_ms": 377.874,
+      "wall_ms": 963.355,
+      "errors": 0
+    }
+  },
+  "latency": {
+    "parse_p95_ms": 0.188,
+    "bm25_p95_ms": 5.912,
+    "dense_p95_ms": 239.812,
+    "fusion_p95_ms": 0.045,
+    "total_p95_ms": 247.767,
+    "cold_start_ms": 7664.37,
+    "warm_p50_ms": 208.683,
+    "warm_p95_ms": 247.839,
+    "warm_p99_ms": 247.839
+  },
+  "memory": {
+    "rss_before_bytes": 28192768,
+    "rss_after_load_bytes": 2126213120,
+    "peak_observed_rss_bytes": 2160394240
+  },
+  "cache": {
+    "miss_ms": 265.994,
+    "hit_ms": 0.072,
+    "hit_faster": true
+  },
+  "error_rate": 0.0,
+  "timeout_rate": 0.0,
+  "faults": {
+    "model_mismatch_rejected": true,
+    "corpus_mismatch_rejected": true,
+    "invalid_filter_rejected": true,
+    "empty_index_abstains": true,
+    "restart_load_pass": true,
+    "corrupt_index_rejected": true,
+    "dense_missing_fallback_valid": true,
+    "bm25_missing_fail_closed": true,
+    "dimension_pinned": true
+  },
+  "loaded_models": [
+    {
+      "kind": "encoder",
+      "model_name": "BAAI/bge-m3",
+      "device": "cpu"
+    }
+  ],
+  "workload_labels": [
+    "bm25",
+    "dense",
+    "hybrid",
+    "exact",
+    "filtered",
+    "negative",
+    "cache_miss",
+    "cache_hit"
+  ],
+  "errors": []
+}
