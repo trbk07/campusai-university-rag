@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "release_candidate": "phase6-rc3",
+  "commit": "b45c2667b2d33a89b89a1d4776b3fe62cfa6473f",
+  "working_tree": false,
+  "corpus_sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+  "benchmark_dev_sha256": "fcf7c9c78a59ec511a2f4c7302d0b570d4c2302e2374ac9ce02c13184e3f30b4",
+  "benchmark_test_sha256": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+  "benchmark_holdout_sha256": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "model": "BAAI/bge-m3",
+  "model_revision": "1",
+  "config_sha256": "7e4f8276fbaf05a30a704e6d8d3af199b4b0d3a638613c49f33f7d4fe0c5301d",
+  "python": "3.14.6",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "artifacts": {
+    "configs/phase6_retrieval_release.json": "7e4f8276fbaf05a30a704e6d8d3af199b4b0d3a638613c49f33f7d4fe0c5301d",
+    "data/corpus/university/manifest.json": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+    "data/benchmark/phase6_retrieval_dev.jsonl": "fcf7c9c78a59ec511a2f4c7302d0b570d4c2302e2374ac9ce02c13184e3f30b4",
+    "data/benchmark/phase6_retrieval_test.jsonl": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+    "data/benchmark/phase6_retrieval_holdout.jsonl": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4",
+    "evaluation/results/phase6_dataset_report.json": "e08a8ef050702d8451e8591de14b3533589aac9fae6faa95754d844fa72824aa",
+    "evaluation/results/phase6_retrieval_calibration.json": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "evaluation/results/phase6_bm25_report.json": "905159c97e4e95e0418b93b0b22c5d82073e082544a2dfad2ab02de1e519d332",
+    "evaluation/results/phase6_dense_report.json": "b2850dc5254d220bbe6f0d5b3585ffac6481b85a7c5ba64107fc0e3070fc6931",
+    "evaluation/results/phase6_hybrid_report.json": "2bf976d45973222f6503637709aabbe1bcbf36db6201c6d0dd04bbd7c8be1e26",
+    "evaluation/results/phase6_ablation_report.json": "200daccc9c4e03a8525d7125a3856bbe8be8143010b9e647914bbbd3f1bd8282",
+    "evaluation/results/phase6_holdout_report.json": "575c0d2272919bfb9f0adda3e8f6e4956149ca806296ea199add32dc0526c0e3",
+    "evaluation/results/phase6_performance_report.json": "47336c92c77aec32babf13ed75267730b05161b87ceb423fa6eda84cb877a52d",
+    "evaluation/results/phase6_security_report.json": "f76ff0eb6e53b8b09dd8d87752d1096f952cd1493dc080f1be295e89c1475422",
+    "evaluation/results/phase6_grounding_regression.json": "21be9076c3e9758578781fc58d5da17635e0a0a9b70f367bbfe5daea0fba7ec9",
+    "evaluation/results/phase6_rc1_remediation.json": "136df2c5216d97c97eaf395f919c0d7733f33f18f08391ef4b757c42a52af259",
+    "evaluation/results/phase6_rc2_remediation.json": "ee41498e14b039b1517279bd04a26b04e19f08dae6d5d627c137f09da96e472d",
+    "docs/phase6_retrieval_release.md": "703dc0f25d8f836ccc137330e78449c6d9964f7c9514feaa38fc07f0bbfbefab",
+    "docs/phase6_operations.md": "1bbdbde798c560016335c050e4abb49799b7095f64901188d4054f9ced816bf2"
+  },
+  "summary": {
+    "release_candidate": "phase6-rc3",
+    "dataset": {
+      "documents": 13,
+      "records": 400
+    },
+    "test_recall_at_5": 0.9829059829059829,
+    "holdout_recall_at_5": 0.9572649572649573,
+    "negative_fpr": 0.0,
+    "warm_p95_ms": 247.839,
+    "concurrency_20_p99_ms": 926.443
+  },
+  "status": "pass"
+}
