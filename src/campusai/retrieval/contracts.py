@@ -9,7 +9,7 @@ RETRIEVAL_SCHEMA_VERSION = "retrieval-public-v1"
 INDEX_SCHEMA_VERSION = "hybrid-index-v2"
 RETRIEVAL_MODES = {
     "auto", "exact_code", "exact_course", "bm25", "dense",
-    "hybrid", "hybrid_rrf", "rerank", "hybrid_rerank",
+    "hybrid", "hybrid_rrf", "rerank", "hybrid_rerank", "phase7",
 }
 FILTER_FIELDS = {
     "institution", "program", "course_code", "academic_year",

@@ -1,0 +1,211 @@
+"""Dev-only exploratory score/margin calibration for the Phase 7 reranker.
+
+The artifact is never marked passing if hard-query routing failed. Test and
+holdout are not loaded by this script.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import math
+from pathlib import Path
+import statistics
+import sys
+import time
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from campusai.retrieval.calibration import RetrievalPolicy
+from campusai.retrieval.hybrid import HybridRetriever
+from campusai.retrieval.phase7_reranker import (
+    ModelIdentity, OfflineCrossEncoderReranker, RerankCandidate, snapshot_sha256,
+)
+from evaluation.metrics import evaluate_retrieval, ndcg_at_k, recall_at_k, reciprocal_rank
+from evaluation.phase6_schema import load_jsonl
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _percentile(values: list[float], fraction: float) -> float:
+    ordered = sorted(values)
+    return ordered[max(0, math.ceil(fraction * len(ordered)) - 1)] if ordered else 0.0
+
+
+def _quality(rows: list[dict], outputs: dict[str, list]) -> dict:
+    metrics = evaluate_retrieval(rows, lambda row: outputs[row["qid"]], (1, 3, 5, 10))
+    return {"answerable_recall_at_5": metrics["answerable_recall"]["5"],
+            "mrr": metrics["mrr_answerable"], "ndcg_at_5": metrics["ndcg"]["5"],
+            "negative_fpr": sum(bool(outputs[row["qid"]]) for row in rows if not row["answerable"])
+                            / max(1, sum(not row["answerable"] for row in rows))}
+
+
+def calibrate(rows: list[dict], baseline: dict[str, list], proposals: dict[str, dict]) -> tuple[dict, dict]:
+    base_quality = _quality(rows, baseline)
+    by_id = {row["qid"]: row for row in rows}
+    answerable_count = max(1, sum(row["answerable"] for row in rows))
+    negative_count = max(1, sum(not row["answerable"] for row in rows))
+    deltas = {}
+    for qid, proposal in proposals.items():
+        row = by_id[qid]
+        gold = row["gold_evidence"]
+        before, after = baseline[qid], proposal["results"]
+        deltas[qid] = {
+            "answerable_recall_at_5": ((recall_at_k(after, gold, 5) - recall_at_k(before, gold, 5))
+                                       / answerable_count if row["answerable"] else 0.0),
+            "mrr": ((reciprocal_rank(after, gold) - reciprocal_rank(before, gold))
+                    / answerable_count if row["answerable"] else 0.0),
+            "ndcg_at_5": ((ndcg_at_k(after, gold, 5) - ndcg_at_k(before, gold, 5))
+                          / answerable_count if row["answerable"] else 0.0),
+            "negative_fpr": ((float(bool(after)) - float(bool(before))) / negative_count
+                             if not row["answerable"] else 0.0),
+        }
+    top_scores = sorted({item["top_score"] for item in proposals.values()})
+    margins = sorted({item["margin"] for item in proposals.values()})
+    if not top_scores:
+        return {"threshold": 0.0, "margin_threshold": 0.0}, {
+            "baseline": base_quality, "selected": base_quality, "feasible": False}
+    thresholds = [top_scores[0] - 1.0, *top_scores, top_scores[-1] + 1.0]
+    margin_thresholds = [0.0, *margins, margins[-1] + 1.0]
+    best = None
+    for threshold in thresholds:
+        for margin_threshold in margin_thresholds:
+            accepted = [qid for qid, proposal in proposals.items()
+                        if proposal["top_score"] >= threshold
+                        and proposal["margin"] >= margin_threshold]
+            quality = {key: base_quality[key] + sum(deltas[qid][key] for qid in accepted)
+                       for key in base_quality}
+            feasible = (quality["answerable_recall_at_5"] >= base_quality["answerable_recall_at_5"] - .005
+                        and quality["negative_fpr"] <= .01)
+            if not feasible:
+                continue
+            key = (quality["mrr"] + quality["ndcg_at_5"], quality["answerable_recall_at_5"],
+                   -len(accepted), threshold, margin_threshold)
+            if best is None or key > best[0]:
+                best = (key, threshold, margin_threshold, quality)
+    if best is None:
+        return {"threshold": top_scores[-1] + 1.0, "margin_threshold": 0.0}, {
+            "baseline": base_quality, "selected": base_quality, "feasible": False}
+    return {"threshold": best[1], "margin_threshold": best[2]}, {
+        "baseline": base_quality, "selected": best[3], "feasible": True}
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dev", type=Path, default=Path("data/benchmark/phase6_retrieval_dev.jsonl"))
+    parser.add_argument("--index-dir", type=Path, default=Path(".tmp/phase6-index"))
+    parser.add_argument("--phase6-calibration", type=Path,
+                        default=Path("evaluation/results/phase6_retrieval_calibration.json"))
+    parser.add_argument("--route-calibration", type=Path,
+                        default=Path(".tmp/phase7-route-calibration.json"))
+    parser.add_argument("--model-dir", type=Path, required=True)
+    parser.add_argument("--device", default="cpu", help="Explicit cpu, cuda or cuda:N device")
+    parser.add_argument("--rerank-cap", type=int, default=10)
+    parser.add_argument("--output", type=Path,
+                        default=Path(".tmp/phase7-reranker-calibration-candidate.json"))
+    args = parser.parse_args()
+    if not 1 <= args.rerank_cap <= 40:
+        raise SystemExit("rerank cap must be between 1 and 40")
+    rows = load_jsonl(args.dev)
+    if not rows or any(row.get("split") != "dev" for row in rows):
+        raise SystemExit("reranker calibration accepts only dev rows")
+    route = json.loads(args.route_calibration.read_text(encoding="utf-8"))
+    if (route.get("calibration_split") != "dev" or route.get("holdout_used") is not False
+            or route.get("training_split_sha256") != _sha(args.dev)
+            or route.get("index_sha256") != _sha(args.index_dir / "manifest.json")
+            or route.get("phase6_calibration_sha256") != _sha(args.phase6_calibration)):
+        raise SystemExit("route calibration provenance mismatch")
+    identity = ModelIdentity("BAAI/bge-reranker-v2-m3", args.model_dir.name,
+                             snapshot_sha256(args.model_dir), args.model_dir.name,
+                             device=args.device)
+    provider = OfflineCrossEncoderReranker(identity, args.model_dir,
+                                           timeout_ms=30000, candidate_cap=args.rerank_cap)
+    phase6 = RetrievalPolicy.from_report(args.phase6_calibration, expected_mode="hybrid_rrf")
+    retriever = HybridRetriever(args.index_dir, query_cache_size=0,
+                                policies={"hybrid_rrf": phase6})
+    doc_ids = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
+    baseline = {}
+    proposals = {}
+    latencies = []
+    errors = []
+    try:
+        for row in rows:
+            qid = row["qid"]
+            results = retriever.search(row["question"], doc_ids=doc_ids,
+                                       filters=row.get("filters"), top_k=40, mode="auto")
+            baseline[qid] = results
+            trace = retriever.last_trace
+            if trace.route in {"exact_code", "abstain"} or trace.abstained or len(results) < 2:
+                continue
+            confidence = float(results[0].confidence_score or 0.0)
+            fusion_margin = max(0.0, float(results[0].fusion_score or 0.0)
+                                - float(results[1].fusion_score or 0.0))
+            if (confidence >= route["easy_confidence_threshold"]
+                    and fusion_margin >= route["easy_margin_threshold"]):
+                continue
+            candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
+                                          item.page, item.content, item.rank,
+                                          float(item.fusion_score or 0.0))
+                          for item in results[:args.rerank_cap]]
+            started = time.perf_counter()
+            try:
+                ranking = provider.score(row["question"], candidates)
+            except Exception as error:
+                errors.append({"qid": qid, "error_type": type(error).__name__})
+                continue
+            latencies.append((time.perf_counter() - started) * 1000)
+            by_id = {item.chunk_id: item for item in results}
+            reranked = [by_id[item.candidate_id] for item in ranking]
+            reranked.extend(results[args.rerank_cap:])
+            proposals[qid] = {"results": reranked,
+                              "top_score": ranking[0].reranker_score,
+                              "margin": ranking[0].reranker_score - ranking[1].reranker_score
+                              if len(ranking) > 1 else 0.0}
+    finally:
+        provider.close()
+    selected, comparison = calibrate(rows, baseline, proposals)
+    quality = comparison["selected"]
+    score_gate = (comparison["feasible"] and quality["answerable_recall_at_5"] >= .95
+                  and quality["negative_fpr"] <= .01 and not errors)
+    route_gate = route.get("status") == "pass"
+    report = {"schema_version": 1, "phase": 7, "mode": "hybrid_rerank",
+              "version": "phase7-rerank-dev-v1",
+              "status": "pass" if score_gate and route_gate else "conditional",
+              "calibration_split": "dev", "holdout_used": False,
+              "model_identity": identity.to_dict(),
+              "model_identity_sha256": identity.fingerprint,
+              "index_sha256": _sha(args.index_dir / "manifest.json"),
+              "phase6_calibration_sha256": _sha(args.phase6_calibration),
+              "training_split_sha256": _sha(args.dev),
+              "route_calibration_sha256": _sha(args.route_calibration),
+              "threshold": selected["threshold"],
+              "margin_threshold": selected["margin_threshold"],
+              "easy_confidence_threshold": route["easy_confidence_threshold"],
+              "easy_margin_threshold": route["easy_margin_threshold"],
+              "candidate_cap": 40, "rerank_candidate_cap": args.rerank_cap,
+              "selection_rule": "rerank iff dev-fitted hard route and top logit/margin pass; otherwise Phase 6",
+              "positive_count": sum(row["answerable"] for row in rows),
+              "negative_count": sum(not row["answerable"] for row in rows),
+              "recall": quality["answerable_recall_at_5"],
+              "false_positive_rate": quality["negative_fpr"],
+              "comparison": comparison,
+              "routing_status": route.get("status"),
+              "rerank_requests": len(proposals),
+              "rerank_latency_ms": {"p50": _percentile(latencies, .5),
+                                     "p95": _percentile(latencies, .95),
+                                     "p99": _percentile(latencies, .99)},
+              "errors": errors}
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(json.dumps({"status": report["status"], "routing_status": report["routing_status"],
+                      "baseline": comparison["baseline"], "selected": quality,
+                      "rerank_requests": len(proposals), "rerank_p95_ms": report["rerank_latency_ms"]["p95"],
+                      "errors": len(errors)}, indent=2))
+    return 0 if report["status"] == "pass" else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

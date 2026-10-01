@@ -91,6 +91,8 @@ class CampusAIQueryService:
         return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
     def _selected_mode(self, question: str, mode: str | None) -> str:
+        if mode is None and self.default_mode is None and getattr(self.retriever, "phase7_enabled", False):
+            return "phase7"
         return mode or self.default_mode or choose_query_mode(
             question, reranker_available=self.retriever.reranker is not None
         )
@@ -129,6 +131,8 @@ class CampusAIQueryService:
             "max_tokens": self.answer_generator.max_context_tokens,
             "min_retrieval_score": self.answer_generator.min_retrieval_score,
         }
+        if selected_mode == "phase7":
+            budget["phase7_retrieval_fingerprint"] = self.retriever.phase7_cache_fingerprint
         key = build_rag_cache_key(
             question=question,
             language=language,

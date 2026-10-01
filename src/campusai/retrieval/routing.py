@@ -34,6 +34,8 @@ class RoutingTrace:
     abstained: bool = False
     abstention_reason: str | None = None
     fallback: str | None = None
+    rerank_selected: bool = False
+    rerank_reason: str | None = None
     candidate_count: int = 0
     final_count: int = 0
     latency_ms: dict[str, float] | None = None

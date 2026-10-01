@@ -9,6 +9,7 @@ do not create duplicate multi-gigabyte model copies.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 from threading import RLock
 from typing import Any
 
@@ -18,6 +19,7 @@ class RuntimeKey:
     kind: str
     model_name: str
     device: str
+    max_length: int | None = None
 
 
 class RetrievalModelRuntime:
@@ -45,12 +47,28 @@ class RetrievalModelRuntime:
                 self._models[key] = CrossEncoder(model_name, device=device)
             return self._models[key]
 
+    def get_offline_reranker(self, snapshot_dir: str | Path, *, device: str = "cpu",
+                             max_length: int = 512) -> Any:
+        """Load only a local verified snapshot, with an explicit token limit."""
+        path = Path(snapshot_dir).resolve()
+        if not path.is_dir():
+            raise FileNotFoundError("reranker snapshot missing")
+        key = RuntimeKey("reranker_offline", str(path), device, max_length)
+        with self._lock:
+            if key not in self._models:
+                from sentence_transformers import CrossEncoder
+
+                self._models[key] = CrossEncoder(str(path), device=device,
+                                                  max_length=max_length,
+                                                  local_files_only=True)
+            return self._models[key]
+
     def loaded_models(self) -> list[dict[str, str]]:
         with self._lock:
             return [
                 {
                     "kind": key.kind,
-                    "model_name": key.model_name,
+                    "model_name": "[local-snapshot]" if Path(key.model_name).is_absolute() else key.model_name,
                     "device": key.device,
                 }
                 for key in self._models

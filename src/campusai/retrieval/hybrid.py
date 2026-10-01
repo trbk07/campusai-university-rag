@@ -6,7 +6,7 @@ import json
 import hashlib
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from collections import OrderedDict
 from pathlib import Path
 from threading import RLock, local
@@ -21,6 +21,8 @@ from .contracts import RETRIEVAL_MODES, RETRIEVAL_SCHEMA_VERSION, validate_filte
 from .dense_index import IndexNotFoundError
 from .routing import RoutingTrace, choose_route, detected_codes
 from .negative import negative_query_reason
+from .phase7_policy import Phase7Policy
+from .phase7_reranker import RerankCandidate, RerankerProvider, RerankerUnavailable
 from .tokenizer_vi import normalize_retrieval_query, normalized_tokens, retrieval_text
 
 
@@ -42,6 +44,7 @@ class RetrievalResult:
     retriever_ranks: dict[str, int] | None = None
     retriever_sources: tuple[str, ...] = ()
     deduplicated: bool = False
+    reranker_score: float | None = None
     schema_version: str = RETRIEVAL_SCHEMA_VERSION
 
     @property
@@ -76,6 +79,9 @@ class HybridRetriever:
         candidate_limit: int = 40,
         rrf_weights: tuple[float, float] = (1.0, 1.2),
         policies: dict[str, RetrievalPolicy] | None = None,
+        phase7_provider: RerankerProvider | None = None,
+        phase7_policy: Phase7Policy | None = None,
+        phase7_enabled: bool = False,
     ) -> None:
         self.index_root = Path(index_root)
         self.rrf_k = rrf_k
@@ -87,6 +93,18 @@ class HybridRetriever:
             raise ValueError("rrf_weights must contain non-negative BM25 and dense weights")
         self.rrf_weights = tuple(float(weight) for weight in rrf_weights)
         self.policies = dict(policies or {})
+        self.phase7_provider = phase7_provider
+        self.phase7_policy = phase7_policy
+        self.phase7_enabled = phase7_enabled
+        self.phase7_activation_reason = "active" if phase7_enabled else "feature_disabled"
+        if phase7_enabled and (phase7_provider is None or phase7_policy is None
+                               or "hybrid_rrf" not in self.policies):
+            raise ValueError("Phase 7 requires a provider, calibrated policy and Phase 6 hybrid policy")
+        if phase7_enabled and phase7_policy.model_identity_sha256 != phase7_provider.model_identity.fingerprint:
+            raise ValueError("Phase 7 provider/calibration identity mismatch")
+        if phase7_enabled and (self.rrf_k != 3 or self.rrf_weights != (1.0, 1.2)
+                               or self.candidate_limit != 40):
+            raise ValueError("Phase 7 requires the frozen Phase 6 candidate-generation settings")
         self._indexes: dict[str, tuple[BM25Index, DenseIndex | None]] = {}
         self._index_generations: dict[str, tuple] = {}
         self._postings: dict[str, dict[str, dict[str, set[str]]]] = {}
@@ -167,6 +185,9 @@ class HybridRetriever:
         return records
 
     def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None) -> list[RetrievalResult]:
+        if mode == "phase7":
+            return self.search_phase7(query, doc_ids=doc_ids, filters=filters,
+                                      top_k=top_k, score_threshold=score_threshold)
         total_started = time.perf_counter()
         parse_started = total_started
         if score_threshold is not None and score_threshold < 0:
@@ -500,6 +521,77 @@ class HybridRetriever:
                     old_key, _ = self._query_cache.popitem(last=False)
                     self._trace_cache.pop(old_key, None)
         return results
+
+    @property
+    def phase7_cache_fingerprint(self) -> str:
+        if not self.phase7_enabled or self.phase7_policy is None or self.phase7_provider is None:
+            return "phase7-disabled"
+        return self.phase7_policy.fingerprint + ":" + self.phase7_provider.model_identity.fingerprint
+
+    def search_phase7(self, query: str, doc_ids: list[str] | None = None,
+                      filters: dict | None = None, top_k: int = 5,
+                      score_threshold: float | None = None) -> list[RetrievalResult]:
+        """Rerank only Phase 6-accepted candidates; otherwise return Phase 6."""
+        started = time.perf_counter()
+        policy = self.phase7_policy
+        provider = self.phase7_provider
+        candidate_k = (policy.candidate_cap if self.phase7_enabled and policy is not None
+                       and not detected_codes(query) else top_k)
+        baseline = self.search(query, doc_ids=doc_ids, filters=filters,
+                               top_k=candidate_k, mode="auto", score_threshold=score_threshold)
+        trace = self.last_trace
+
+        def finish(values: list[RetrievalResult], selected: bool, reason: str) -> list[RetrievalResult]:
+            latency = dict(trace.latency_ms or {})
+            latency["reranker"] = round(max(0.0, (time.perf_counter() - started) * 1000
+                                             - latency.get("total", 0.0)), 3)
+            latency["total"] = round((time.perf_counter() - started) * 1000, 3)
+            self.last_trace = replace(trace, rerank_selected=selected,
+                                      rerank_reason=reason, final_count=len(values), latency_ms=latency)
+            return values
+
+        if not self.phase7_enabled or policy is None or provider is None:
+            return finish(baseline[:top_k], False, "feature_disabled")
+        manifest = self.index_root / "manifest.json"
+        phase6 = self.policies.get("hybrid_rrf")
+        phase6_source = Path(phase6.source) if phase6 is not None else None
+        if (not manifest.is_file() or not phase6_source or not phase6_source.is_file()
+                or hashlib.sha256(manifest.read_bytes()).hexdigest() != policy.index_sha256
+                or hashlib.sha256(phase6_source.read_bytes()).hexdigest() != policy.phase6_calibration_sha256):
+            return finish(baseline[:top_k], False, "calibration_or_index_mismatch")
+        selected, reason = policy.route(query, baseline, trace)
+        if not selected:
+            return finish(baseline[:top_k], False, reason)
+        if top_k > policy.rerank_candidate_cap:
+            return finish(baseline[:top_k], False, "top_k_exceeds_rerank_cap")
+        candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
+                                      item.page, item.content, item.rank,
+                                      float(item.fusion_score or 0.0))
+                      for item in baseline[:policy.rerank_candidate_cap]]
+        try:
+            ranked = provider.score(query, candidates)
+        except RerankerUnavailable as error:
+            return finish(baseline[:top_k], False, str(error))
+        except Exception:
+            return finish(baseline[:top_k], False, "reranker_unavailable")
+        by_id = {item.chunk_id: item for item in baseline}
+        if (len(ranked) != len(candidates) or len({item.candidate_id for item in ranked}) != len(ranked)
+                or {item.candidate_id for item in ranked} != {item.candidate_id for item in candidates}
+                or any(item.final_rank != rank or item.model_identity != provider.model_identity
+                       for rank, item in enumerate(ranked, 1))
+                or any(ranked[index - 1].reranker_score < ranked[index].reranker_score
+                       for index in range(1, len(ranked)))
+                or any((item.doc_id, item.chunk_id, item.page) !=
+                       (by_id[item.candidate_id].doc_id, by_id[item.candidate_id].chunk_id,
+                        by_id[item.candidate_id].page) for item in ranked)):
+            return finish(baseline[:top_k], False, "reranker_provenance_invalid")
+        margin = ranked[0].reranker_score - ranked[1].reranker_score if len(ranked) > 1 else 0.0
+        if ranked[0].reranker_score < policy.threshold or margin < policy.margin_threshold:
+            return finish(baseline[:top_k], False, "reranker_score_or_margin_below_threshold")
+        results = [replace(by_id[item.candidate_id], rank=rank,
+                           reranker_score=item.reranker_score, retriever="hybrid_rerank")
+                   for rank, item in enumerate(ranked[:top_k], 1)]
+        return finish(results, True, reason)
 
     @classmethod
     def with_calibration_report(cls, index_root: str | Path, report_path: str | Path, **kwargs) -> "HybridRetriever":

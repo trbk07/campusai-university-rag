@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "base_release": "phase6-rc3",
+  "status": "pass",
+  "errors": [],
+  "commit": "8e3a331838fbccaa16b4dd00381b9ed4738e958f",
+  "working_tree_clean": true,
+  "reference_report_sha256": "575c0d2272919bfb9f0adda3e8f6e4956149ca806296ea199add32dc0526c0e3",
+  "rerun_report_sha256": [
+    "cd1a5c867d7b6178b9c550af527ff3b1a5ebdca02be2459eb5ba9caba06aea2d",
+    "c69f2c7f7d2abf09cbb9dffb3fc150c1c98b502d8c138b9102cf6f5535695b61"
+  ],
+  "benchmark_sha256": {
+    "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+    "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+  },
+  "corpus_sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "dense_model": {
+    "name": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "sha256": "2de076ad67d22ec2ca6f46f446c0c933e26023d1746a3100c4f2836721935d6c"
+  },
+  "calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+  "rrf": {
+    "k": 3,
+    "bm25_weight": 1.0,
+    "dense_weight": 1.2,
+    "candidate_limit": 40
+  },
+  "performance_report_sha256": "47336c92c77aec32babf13ed75267730b05161b87ceb423fa6eda84cb877a52d",
+  "rejected_report_sha256": [
+    "55a38b6f39f105519112900258d5af2c9fa5637ac9e1d86af99893e3edb05477"
+  ]
+}
