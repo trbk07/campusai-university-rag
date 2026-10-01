@@ -14,7 +14,8 @@ from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.retrieval.hybrid import HybridRetriever
 from evaluation.phase6_schema import load_jsonl
 from campusai.retrieval.rerank_policy import route_features
-from evaluation.release_artifacts import require_previous_gates, source_identity, sha256, write_json
+from evaluation.release_artifacts import (require_previous_gates, source_identity, sha256, write_json,
+                                           assert_tuning_allowed, freeze_before_evaluation)
 
 
 def route_metrics(samples: list[dict], confidence_threshold: float,
@@ -119,6 +120,7 @@ def main() -> int:
     args = parser.parse_args()
     if not args.exploratory:
         require_previous_gates("M4", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
+        assert_tuning_allowed(args.results_dir, route=True)
     policy = RetrievalPolicy.from_report(args.phase6_calibration, expected_mode="hybrid_rrf")
     retriever = HybridRetriever(args.index_dir, query_cache_size=0,
                                 policies={"hybrid_rrf": policy})
@@ -145,8 +147,12 @@ def main() -> int:
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     # Fit is frozen before held-out data are opened. No threshold search follows.
     if report["status"] == "pass":
+        freeze_before_evaluation(args.results_dir, {
+            "route": args.output, "smoke": args.results_dir / "model_snapshot_smoke.json",
+            "human_manifest": args.results_dir / "human_benchmark_manifest.json",
+        }, route=True)
         confusion = {"status": "pass", **{key: report[key] for key in
-                     ("source_sha256", "index_sha256", "phase6_calibration_sha256", "model_identity_sha256")},
+                     ("source_sha256", "runtime_sha256", "index_sha256", "phase6_calibration_sha256", "model_identity_sha256")},
                      "route_calibration_sha256": sha256(args.output), "splits": {}}
         for split in ("dev", "test", "holdout"):
             path = args.dev if split == "dev" else args.dev.parent / f"human_retrieval_{split}.jsonl"

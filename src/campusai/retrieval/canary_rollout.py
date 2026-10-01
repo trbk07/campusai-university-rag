@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import logging
 from threading import RLock
 from typing import Callable
 
@@ -47,6 +48,10 @@ class CanaryController:
                 or window["ram_limit_bytes"] <= 0 or window["peak_rss_bytes"] <= 0
                 or window["traffic_percent"] not in STEPS):
             raise ValueError("invalid canary metric domain or insufficient observations")
+        counts = ("requests", "queue_depth", "provenance_errors", "scope_errors", "citation_errors")
+        if (any(type(window[key]) is not int for key in counts)
+                or not window["p50_ms"] <= window["p95_ms"] <= window["p99_ms"]):
+            raise ValueError("canary counts must be integers and latency percentiles must be ordered")
         callback = None
         with self._lock:
             if self.rollback_reason:
@@ -59,7 +64,7 @@ class CanaryController:
                 self.traffic_percent = window["traffic_percent"]
                 self._healthy_windows = 0
                 self._latency_failures = 0
-            self._latency_failures = self._latency_failures + 1 if window["p95_ms"] > 1000 else 0
+            self._latency_failures = self._latency_failures + 1 if (window["p95_ms"] > 1000 or window["p99_ms"] > 2000) else 0
             reason = None
             if window["provenance_errors"] > 0:
                 reason = "provenance_error"
@@ -101,6 +106,12 @@ def rollback_retriever(retriever, reason: str = "operator_rollback") -> None:
     provider = retriever.phase7_provider
     close = getattr(provider, "close", None)
     if close:
-        close()
+        try:
+            close()
+        except Exception as error:
+            # Disabling admission and invalidating caches precede cleanup.
+            # A provider cleanup failure must not break Phase 6 fallback or
+            # expose model paths through its exception message.
+            logging.getLogger(__name__).warning("reranker cleanup failed (%s)", type(error).__name__)
     # Answer cache keys include the active policy fingerprint and mode; after
     # disabling, the Phase 6 namespace cannot reuse an earlier Phase 7 answer.

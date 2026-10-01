@@ -13,7 +13,8 @@ import json
 import math
 from pathlib import Path
 import re
-from threading import Lock, BoundedSemaphore
+from threading import Lock, BoundedSemaphore, Condition
+import time
 from typing import Callable, Protocol, Sequence
 
 from .model_runtime import retrieval_runtime
@@ -28,7 +29,8 @@ def snapshot_sha256(root: Path) -> str:
     if not root.is_dir():
         raise RerankerUnavailable("model_snapshot_missing")
     entries = []
-    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+    for path in sorted((item for item in root.rglob("*") if item.is_file()),
+                       key=lambda item: item.relative_to(root).as_posix()):
         digest = hashlib.sha256()
         with path.open("rb") as source:
             for block in iter(lambda: source.read(1024 * 1024), b""):
@@ -122,7 +124,11 @@ class OfflineCrossEncoderReranker:
         self.failure_limit = failure_limit
         self._permits = BoundedSemaphore(1 + queue_limit)
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="phase7-reranker")
+        self._submitted = self._completed = self._cancelled = self._rejected = 0
+        self._pending = self._active = self._max_queue_depth = 0
+        self._queue_wait_ms = self._max_queue_wait_ms = self._worker_ms = 0.0
         self._state_lock = Lock()
+        self._idle = Condition(self._state_lock)
         self._failures = 0
         self._closed = False
         self._verified = False
@@ -155,6 +161,41 @@ class OfflineCrossEncoderReranker:
                 raise RerankerUnavailable("model_checksum_mismatch")
             self._verified = True
 
+    def metrics_snapshot(self) -> dict:
+        """Actual admission/worker counters, including outstanding timed-out work."""
+        with self._state_lock:
+            return {"submitted_requests": self._submitted, "completed_requests": self._completed,
+                    "cancelled_requests": self._cancelled, "rejected_requests": self._rejected,
+                    "active_requests": self._active, "queue_depth": max(0, self._pending - int(self._active == 0)),
+                    "max_queue_depth": self._max_queue_depth, "queue_wait_ms_total": self._queue_wait_ms,
+                    "max_queue_wait_ms": self._max_queue_wait_ms, "worker_ms_total": self._worker_ms,
+                    "closed": self._closed, "failure_count": self._failures}
+
+    def _predict_queued(self, query, candidates, enqueued_at):
+        started = time.perf_counter()
+        waited = (started - enqueued_at) * 1000
+        with self._state_lock:
+            self._pending -= 1
+            self._active += 1
+            self._queue_wait_ms += waited
+            self._max_queue_wait_ms = max(self._max_queue_wait_ms, waited)
+        try:
+            return self._predict(query, candidates)
+        finally:
+            with self._state_lock:
+                self._active -= 1
+                self._completed += 1
+                self._worker_ms += (time.perf_counter() - started) * 1000
+                self._idle.notify_all()
+
+    def _release_admission(self, future):
+        if future.cancelled():
+            with self._state_lock:
+                self._pending -= 1
+                self._cancelled += 1
+                self._idle.notify_all()
+        self._permits.release()
+
     def score(self, query: str, candidates: Sequence[RerankCandidate], *,
               timeout_ms: int | None = None) -> list[RerankedCandidate]:
         if not candidates:
@@ -170,17 +211,23 @@ class OfflineCrossEncoderReranker:
             raise RerankerUnavailable("invalid_candidate_provenance")
         with self._state_lock:
             if self._closed:
+                self._rejected += 1
                 raise RerankerUnavailable("feature_disabled")
             if self._failures >= self.failure_limit:
+                self._rejected += 1
                 raise RerankerUnavailable("circuit_open")
             if not self._permits.acquire(blocking=False):
+                self._rejected += 1
                 raise RerankerUnavailable("queue_full")
             try:
-                future = self._executor.submit(self._predict, query, tuple(candidates))
+                future = self._executor.submit(self._predict_queued, query, tuple(candidates), time.perf_counter())
+                self._pending += 1
+                self._submitted += 1
+                self._max_queue_depth = max(self._max_queue_depth, max(0, self._pending - int(self._active == 0)))
             except Exception as error:
                 self._permits.release()
                 raise RerankerUnavailable("reranker_submit_failed") from error
-        future.add_done_callback(lambda _future: self._permits.release())
+        future.add_done_callback(self._release_admission)
         try:
             scores = future.result(timeout=(self.timeout_ms if timeout_ms is None else timeout_ms) / 1000)
         except FutureTimeout as error:
@@ -192,6 +239,8 @@ class OfflineCrossEncoderReranker:
             raise RerankerUnavailable(str(error) if isinstance(error, RerankerUnavailable)
                                       else "reranker_inference_failed") from error
         with self._state_lock:
+            if self._closed:
+                raise RerankerUnavailable("feature_disabled")
             self._failures = 0
         ranked = sorted(zip(candidates, scores),
                         key=lambda pair: (-pair[1], pair[0].original_rank, pair[0].candidate_id))
@@ -215,10 +264,13 @@ class OfflineCrossEncoderReranker:
 
     def drain(self, timeout_ms: int = 60000) -> None:
         """Wait for prior inference to finish between offline capacity profiles."""
-        try:
-            self._executor.submit(lambda: None).result(timeout=timeout_ms / 1000)
-        except Exception as error:
-            raise RerankerUnavailable("reranker_drain_failed") from error
+        deadline = time.monotonic() + timeout_ms / 1000
+        with self._idle:
+            while self._active or self._pending:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise RerankerUnavailable("reranker_drain_failed")
+                self._idle.wait(remaining)
 
     def close(self) -> None:
         with self._state_lock:

@@ -100,7 +100,9 @@ def main() -> int:
               and not first["reranked_cache_reused"] and not second["reranked_cache_reused"]
               and first["phase7_cache_key"] != second["phase6_cache_key"] and first["pid"] != second["pid"])
     smoke = read_json(args.results_dir / "model_snapshot_smoke.json")
+    from evaluation.release_artifacts import policy_bindings
     write_json(args.results_dir / "reranker_rollback.json", {"status": "pass" if passed else "conditional",
+               **policy_bindings(args.results_dir),
                **source_identity(Path(__file__).resolve().parents[1]), "index_sha256": before_hash,
                "phase6_calibration_sha256": sha256(args.results_dir / "phase6_retrieval_calibration.json"),
                "calibration_sha256": sha256(args.results_dir / "reranker_score_calibration.json"),

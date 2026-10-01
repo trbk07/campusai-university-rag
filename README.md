@@ -274,3 +274,12 @@ quality/performance measurements and gradual canary controls are documented
 in [the reranker release runbook](docs/reranker_release_runbook.md). Check
 readiness with `python -m evaluation.validate_reranker_release`; a missing
 critical gate keeps the score null and prevents production activation.
+
+Use `python -m evaluation.phase7_release STAGE` for each milestone, or the
+`phase7-baseline`, `phase7-human-freeze`, `phase7-candidate`, `phase7-model`,
+`phase7-route`, `phase7-calibration`, `phase7-quality`, `phase7-performance`,
+`phase7-security`, `phase7-faults`, `phase7-rollback`, `phase7-staging`, `phase7-staging-collect`,
+`phase7-validate`, and `phase7-release` Make targets. Pass stage options via
+`PHASE7_ARGS`; the workflow rejects missing prerequisites and checks the
+resulting milestone. [The Phase 7 plan](docs/phase7_release_plan.md) records
+the code work and the external evidence still required for 10/10.

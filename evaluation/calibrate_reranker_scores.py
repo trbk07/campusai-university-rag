@@ -25,7 +25,7 @@ from campusai.retrieval.cross_encoder_provider import (
 from evaluation.metrics import evaluate_retrieval, ndcg_at_k, recall_at_k, reciprocal_rank
 from evaluation.phase6_schema import load_jsonl
 from campusai.retrieval.rerank_policy import route_features
-from evaluation.release_artifacts import require_previous_gates, source_identity
+from evaluation.release_artifacts import require_previous_gates, source_identity, assert_tuning_allowed
 
 
 def _sha(path: Path) -> str:
@@ -115,6 +115,7 @@ def main() -> int:
     args = parser.parse_args()
     if not args.exploratory:
         require_previous_gates("M5", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
+        assert_tuning_allowed(args.results_dir)
     if not 1 <= args.rerank_cap <= 40:
         raise SystemExit("rerank cap must be between 1 and 40")
     rows = load_jsonl(args.dev)
@@ -144,7 +145,7 @@ def main() -> int:
         provider.warm_up()
         for row in rows:
             qid = row["qid"]
-            results = retriever.search(row["question"], doc_ids=doc_ids,
+            results = retriever.search(row["question"], doc_ids=row.get("doc_ids", doc_ids),
                                        filters=row.get("filters"), top_k=5, mode="auto")
             baseline[qid] = results
             trace = retriever.last_trace

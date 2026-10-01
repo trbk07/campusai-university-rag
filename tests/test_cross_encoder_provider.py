@@ -17,6 +17,19 @@ def _candidate(name, rank):
     return RerankCandidate(name, "doc", name, 2, f"content {name}", rank, 1 / rank)
 
 
+def test_snapshot_digest_uses_portable_case_sensitive_filename_order(tmp_path):
+    import hashlib
+    import json
+    (tmp_path / "README.md").write_bytes(b"model card")
+    (tmp_path / "config.json").write_bytes(b"{}")
+    # This order is the same on Windows and Linux; Windows Path sorting uses
+    # case folding and would otherwise reverse these entries.
+    entries = [("README.md", hashlib.sha256(b"model card").hexdigest()),
+               ("config.json", hashlib.sha256(b"{}").hexdigest())]
+    expected = hashlib.sha256(json.dumps(entries, separators=(",", ":")).encode()).hexdigest()
+    assert snapshot_sha256(tmp_path) == expected
+
+
 def test_phase7_provider_is_batched_singleton_and_provenance_preserving(tmp_path):
     (tmp_path / "config.json").write_text("{}", encoding="utf-8")
     loads = []

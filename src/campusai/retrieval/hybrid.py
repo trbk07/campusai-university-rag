@@ -551,6 +551,11 @@ class HybridRetriever:
                                       rerank_reason=reason, final_count=len(values), latency_ms=latency)
             return values
 
+        def disable(reason: str):
+            from .canary_rollout import rollback_retriever
+            rollback_retriever(self, reason)
+            return finish(baseline[:top_k], False, reason)
+
         if not self.phase7_enabled or policy is None or provider is None:
             return finish(baseline[:top_k], False, "feature_disabled")
         manifest = self.index_root / "manifest.json"
@@ -559,7 +564,7 @@ class HybridRetriever:
         if (not manifest.is_file() or not phase6_source or not phase6_source.is_file()
                 or hashlib.sha256(manifest.read_bytes()).hexdigest() != policy.index_sha256
                 or hashlib.sha256(phase6_source.read_bytes()).hexdigest() != policy.phase6_calibration_sha256):
-            return finish(baseline[:top_k], False, "calibration_or_index_mismatch")
+            return disable("calibration_or_index_mismatch")
         # Routing is fitted at five results and must use that same feature
         # extraction plan when the caller asks for Recall@10 or a larger view.
         routing_baseline = baseline
@@ -588,10 +593,19 @@ class HybridRetriever:
             safe_reasons = {"queue_full", "circuit_open", "reranker_timeout",
                             "model_checksum_mismatch", "model_snapshot_missing",
                             "invalid_model_scores", "reranker_inference_failed", "feature_disabled"}
-            return finish(baseline[:top_k], False,
-                          str(error) if str(error) in safe_reasons else "reranker_unavailable")
+            reason = str(error) if str(error) in safe_reasons else "reranker_unavailable"
+            if reason in {"circuit_open", "model_checksum_mismatch", "model_snapshot_missing",
+                          "invalid_model_scores", "reranker_inference_failed"}:
+                return disable(reason)
+            return finish(baseline[:top_k], False, reason)
+        except MemoryError:
+            return disable("reranker_oom")
+        except FileNotFoundError:
+            return disable("model_snapshot_missing")
         except Exception:
-            return finish(baseline[:top_k], False, "reranker_unavailable")
+            return disable("reranker_unavailable")
+        if not self.phase7_enabled:
+            return finish(baseline[:top_k], False, "feature_disabled")
         by_id = {item.chunk_id: item for item in pool}
         try:
             invalid = (len(ranked) != len(candidates) or len({item.candidate_id for item in ranked}) != len(ranked)
@@ -611,7 +625,7 @@ class HybridRetriever:
         except (AttributeError, KeyError, TypeError, ValueError):
             invalid = True
         if invalid:
-            return finish(baseline[:top_k], False, "reranker_provenance_invalid")
+            return disable("reranker_provenance_invalid")
         margin = ranked[0].reranker_score - ranked[1].reranker_score if len(ranked) > 1 else 0.0
         if ranked[0].reranker_score < policy.threshold or margin < policy.margin_threshold:
             return finish(baseline[:top_k], False, "reranker_score_or_margin_below_threshold")

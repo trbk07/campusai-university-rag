@@ -10,7 +10,7 @@ from pathlib import Path
 import threading
 import time
 
-from evaluation.release_artifacts import require_previous_gates, sha256, source_identity, write_json
+from evaluation.release_artifacts import require_previous_gates, sha256, source_identity, write_json, policy_bindings
 
 
 def percentile(values: list[float], fraction: float) -> float:
@@ -60,10 +60,13 @@ def main() -> int:
     retrieval_runtime().clear()
     started = time.perf_counter()
     phase6_path = args.results_dir / "phase6_retrieval_calibration.json"
-    retriever = build_phase7_retriever(args.index_dir, phase6_path, args.benchmark_dir / "human_retrieval_dev.jsonl")
-    if not retriever.phase7_enabled:
-        raise ValueError("activation rejected")
-    retriever.query_cache_size = 0
+    def activate():
+        value = build_phase7_retriever(args.index_dir, phase6_path, args.benchmark_dir / "human_retrieval_dev.jsonl")
+        if not value.phase7_enabled:
+            raise ValueError("activation rejected")
+        value.query_cache_size = 0
+        return value
+    retriever = activate()
     provider = retriever.phase7_provider
     docs = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
     rows = [json.loads(line) for line in (args.benchmark_dir / "human_retrieval_test.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -112,6 +115,13 @@ def main() -> int:
             if pair not in matrix:
                 matrix.append(pair)
         for cap, concurrency in matrix:
+            # Every profile starts with an independently activated provider.
+            # A previous circuit rollback cannot silently turn subsequent
+            # capacity measurements into Phase 6-only measurements.
+            provider.drain()
+            provider.close()
+            retriever = activate()
+            provider = retriever.phase7_provider
             # Capacity experiments don't fit thresholds or replace release policy.
             retriever.phase7_policy = replace(original_policy, rerank_candidate_cap=cap)
             provider.reset_circuit()
@@ -123,36 +133,53 @@ def main() -> int:
             provider.drain()
             part = {"profile": args.profile, "device": provider.model_identity.device,
                     "rerank_cap": cap, "concurrency": concurrency, "samples": samples,
+                    "provider_metrics": provider.metrics_snapshot(),
+                    "phase7_enabled_after": retriever.phase7_enabled,
                     "summary": summarize_samples(samples)}
             profiles.append(part)
-        retriever.phase7_policy = original_policy
-        provider.reset_circuit()
+        provider.close()
+        retriever = activate()
+        provider = retriever.phase7_provider
         all_samples = [search(hard_rows[i % len(hard_rows)]) for i in range(args.requests)]
         retrieval_only = [search(row, "auto") for row in hard_rows]
         pool = retriever.search(hard_rows[0]["question"], docs, top_k=40, mode="auto")
         candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id, item.page, item.content,
                                       item.rank, float(item.fusion_score or 0)) for item in pool[:original_policy.rerank_candidate_cap]]
-        reranker_only = []
+        provider.drain()
+        provider.close()
+        diagnostic = activate()
+        provider = diagnostic.phase7_provider
+        reranker_only, reranker_only_observations = [], []
         for _ in range(30):
             t = time.perf_counter()
-            provider.score(hard_rows[0]["question"], candidates)
-            reranker_only.append((time.perf_counter() - t) * 1000)
+            reason = None
+            try:
+                provider.score(hard_rows[0]["question"], candidates)
+            except Exception as error:
+                reason = type(error).__name__
+            elapsed = (time.perf_counter() - t) * 1000
+            reranker_only.append(elapsed)
+            reranker_only_observations.append({"latency_ms": elapsed, "error_type": reason})
+        provider.drain()
     finally:
         stop.set()
         monitor_thread.join(timeout=1)
         provider.close()
     bindings = {**source_identity(Path(__file__).resolve().parents[1]),
+                **policy_bindings(args.results_dir),
                 "index_sha256": sha256(args.index_dir / "manifest.json"),
                 "phase6_calibration_sha256": sha256(phase6_path),
                 "calibration_sha256": sha256(args.results_dir / "reranker_score_calibration.json"),
                 "model_identity_sha256": provider.model_identity.fingerprint}
     summary = summarize_samples(all_samples)
     passed = (summary["hard_rerank_requests"] >= 30 and summary["hard_p50_ms"] <= 500 and summary["hard_p95_ms"] <= 1000 and summary["hard_p99_ms"] <= 2000
-              and summary["timeout_rate"] <= .005 and not summary["errors"] and peak[0] <= .75 * args.deployment_ram_bytes)
+              and summary["timeout_rate"] <= .005 and not summary["errors"] and peak[0] <= .75 * args.deployment_ram_bytes
+              and all(row["error_type"] is None for row in reranker_only_observations))
     status = "pass" if passed else "conditional"
     write_json(args.results_dir / "reranker_performance.json", {"schema_version": 2, "phase": 7, "status": status, **bindings,
                "profile": args.profile, "samples": all_samples, "summary": summary, "cold_start_ms": cold_ms,
                "warmup_ms": warm_ms, "retrieval_only": retrieval_only, "reranker_only_ms": reranker_only,
+               "reranker_only_observations": reranker_only_observations,
                "peak_rss_bytes": peak[0], "cpu_utilization_percent": process.cpu_percent()})
     overflow_errors = sum(s["error"] for p in profiles for s in p["samples"] if s["reason"] == "queue_full")
     write_json(args.results_dir / "reranker_capacity.json", {"status": status, **bindings, "profiles": profiles,

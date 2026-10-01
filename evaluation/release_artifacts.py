@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 import subprocess
 
@@ -21,18 +22,67 @@ def write_json(path: Path, value: dict) -> None:
 
 
 def read_json(path: Path) -> dict:
-    value = json.loads(path.read_text(encoding="utf-8"))
+    value = json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant, parse_float=_finite_float)
     if not isinstance(value, dict):
         raise ValueError("artifact must be an object")
     return value
 
 
+def _reject_constant(value: str):
+    raise ValueError(f"non-finite JSON constant: {value}")
+
+
+def _finite_float(value: str) -> float:
+    parsed = float(value)
+    if not math.isfinite(parsed):
+        raise ValueError("non-finite JSON number")
+    return parsed
+
+
+def assert_tuning_allowed(results_dir: Path, *, route: bool = False) -> None:
+    """A held-out run consumes a study, even if inference or a gate fails."""
+    locks = [results_dir / "reranker_policy_freeze.json"]
+    if route:
+        locks.append(results_dir / "reranker_route_freeze.json")
+    if any(path.exists() for path in locks):
+        raise ValueError("held-out evaluation already started; use a new study/results directory and new reviewed data")
+
+
+def freeze_before_evaluation(results_dir: Path, paths: dict[str, Path], *, route: bool = False) -> dict:
+    """Persist bindings before opening held-out rows; permit identical reruns only."""
+    target = results_dir / ("reranker_route_freeze.json" if route else "reranker_policy_freeze.json")
+    bindings = {name: sha256(path) for name, path in paths.items()}
+    if target.exists():
+        if read_json(target).get("artifact_sha256") != bindings:
+            raise ValueError("frozen study inputs changed after held-out evaluation")
+        return read_json(target)
+    from datetime import datetime, timezone
+    record = {"schema_version": 1, "phase": 7, "status": "pass",
+              "heldout_started_at": datetime.now(timezone.utc).isoformat(), "artifact_sha256": bindings}
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # Exclusive creation prevents a second process from silently replacing the lock.
+    with target.open("x", encoding="utf-8") as stream:
+        json.dump(record, stream, indent=2, allow_nan=False)
+        stream.write("\n")
+    return record
+
+
+def policy_bindings(results_dir: Path) -> dict:
+    """Shared post-calibration lineage, independent of the measurement type."""
+    calibration = read_json(results_dir / "reranker_score_calibration.json")
+    return {"route_calibration_sha256": sha256(results_dir / "hard_query_route_calibration.json"),
+            "training_split_sha256": calibration["training_split_sha256"],
+            "human_benchmark_sha256": read_json(results_dir / "human_benchmark_manifest.json")["dataset_sha256"]}
+
+
 def source_identity(root: Path) -> dict:
     # Uncommitted implementation changes cannot be represented by HEAD alone.
-    files = sorted(path for directory in ("src", "evaluation", "scripts", "configs")
+    files = sorted(path for directory in ("src", "evaluation", "scripts", "configs", "tests")
                    for path in (root / directory).rglob("*")
                    if path.is_file() and "__pycache__" not in path.parts
                    and "results" not in path.relative_to(root).parts)
+    files = sorted(files + [root / name for name in ("pyproject.toml", "Makefile", "requirements.txt", "uv.lock")
+                            if (root / name).is_file()])
     digest = hashlib.sha256(json.dumps([(p.relative_to(root).as_posix(), sha256(p)) for p in files],
                                        separators=(",", ":")).encode()).hexdigest()
     from campusai.retrieval.runtime_provenance import runtime_sha256

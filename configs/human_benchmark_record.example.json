@@ -5,6 +5,8 @@
   "paraphrase_group": "REPLACE_WITH_REVIEWED_GROUP_ID",
   "answerable": false,
   "difficulty": "easy",
+  "doc_ids": [],
+  "filters": {},
   "gold_evidence": [],
   "tags": ["natural", "negative"],
   "source_url": "",
@@ -19,6 +21,8 @@
     "answerability": false,
     "evidence_sufficient": false,
     "corpus_temporal_scope": false,
-    "difficulty": false
+    "difficulty": false,
+    "no_paraphrase_leakage": false,
+    "expected_behavior": false
   }
 }

@@ -9,7 +9,7 @@ from pathlib import Path
 import random
 import statistics
 
-from evaluation.release_artifacts import require_previous_gates, sha256, source_identity, write_json
+from evaluation.release_artifacts import require_previous_gates, sha256, source_identity, write_json, policy_bindings
 
 
 def _relevant(item: dict, gold: list[dict]) -> bool:
@@ -80,6 +80,7 @@ def compare_split(rows: list[dict], baseline: dict[str, list[dict]],
         delta = {key: rerank_metrics[key] - base_metrics[key]
                  for key in ("recall1", "recall3", "recall5", "recall10", "mrr", "ndcg5")}
         per_query.append({"qid": qid, "answerable": row["answerable"], "question": row["question"],
+                          "difficulty": row.get("difficulty"),
                           "baseline": base_metrics, "phase7": rerank_metrics, "delta": delta,
                           "baseline_evidence": before, "phase7_evidence": after})
     aggregate = {}
@@ -97,7 +98,16 @@ def compare_split(rows: list[dict], baseline: dict[str, list[dict]],
     stats = {metric: paired_bootstrap([item["delta"][metric] for item in per_query if item["answerable"]],
                                      seed=seed) for metric in ("mrr", "ndcg5", "recall5")}
     relative = lambda metric: (current[metric] - base[metric]) / base[metric] if base[metric] else 0.0
+    hard = [item for item in per_query if item["answerable"] and item["difficulty"] == "hard"]
+    hard_metrics = {"paired_n": len(hard)}
+    if hard:
+        hard_metrics.update({name: {metric: statistics.mean(item[name][metric] for item in hard)
+                                     for metric in ("recall5", "mrr", "ndcg5")}
+                             for name in ("baseline", "phase7")})
+        hard_metrics["paired_statistics"] = {metric: paired_bootstrap([item["delta"][metric] for item in hard], seed=seed)
+                                              for metric in ("recall5", "mrr", "ndcg5")}
     return {"records": len(rows), "answerable": len(positive), "negative": len(negative), **aggregate,
+            "hard_queries": hard_metrics,
             "mrr_improvement_relative": relative("mrr"), "ndcg5_improvement_relative": relative("ndcg5"),
             "recall5_drop_absolute": base["recall5"] - current["recall5"],
             "negative_fpr": current["negative_fpr"], **dict(violations),
@@ -131,6 +141,12 @@ def main() -> int:
     parser.add_argument("--seed", type=int, default=7)
     args = parser.parse_args()
     require_previous_gates("M6", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
+    from evaluation.release_artifacts import freeze_before_evaluation
+    from evaluation.reranker_release_gates import ARTIFACTS
+    freeze_before_evaluation(args.results_dir, {
+        key: args.results_dir / ARTIFACTS[key]
+        for key in ("route", "calibration", "smoke", "human_manifest", "sensitivity")
+    })
     from campusai.retrieval.reranker_activation import build_phase7_retriever
     from campusai.retrieval.hybrid import HybridRetriever
     from campusai.retrieval.calibration import RetrievalPolicy
@@ -145,6 +161,7 @@ def main() -> int:
     docs = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
     evidence = frozen_evidence(args.index_dir)
     report = {"schema_version": 2, "phase": 7, **source_identity(Path(__file__).resolve().parents[1]),
+              **policy_bindings(args.results_dir),
               "index_sha256": sha256(args.index_dir / "manifest.json"),
               "calibration_sha256": sha256(args.results_dir / "reranker_score_calibration.json"),
               "phase6_calibration_sha256": sha256(phase6_path),

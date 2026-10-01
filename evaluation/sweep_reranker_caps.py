@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
-from evaluation.release_artifacts import read_json, require_previous_gates, sha256, write_json
+from evaluation.release_artifacts import read_json, require_previous_gates, sha256, write_json, assert_tuning_allowed
 
 
 def main() -> int:
@@ -19,6 +19,7 @@ def main() -> int:
     parser.add_argument("--p95-budget-ms", type=float, default=1000)
     args = parser.parse_args()
     require_previous_gates("M5", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
+    assert_tuning_allowed(args.results_dir)
     trials = []
     trial_dir = args.results_dir / "reranker_cap_trials"
     for cap in (8, 10, 12, 16, 20):
@@ -41,10 +42,11 @@ def main() -> int:
                and trial["p95_ms"] <= args.p95_budget_ms and trial["timeout_rate"] <= .005]
     selected = max(passing, key=lambda trial: (trial["mrr"], trial["recall"], -trial["p95_ms"], -trial["rerank_cap"])) if passing else None
     first = read_json(trial_dir / "cap-8.json")
-    bindings = {key: first[key] for key in ("source_sha256", "index_sha256", "phase6_calibration_sha256",
+    bindings = {key: first[key] for key in ("source_sha256", "runtime_sha256", "index_sha256", "phase6_calibration_sha256",
                                             "model_identity_sha256", "training_split_sha256", "route_calibration_sha256")}
     report = {"status": "pass" if selected else "conditional", "calibration_split": "dev", "test_used": False,
               "holdout_used": False, **bindings, "trials": trials, "selected_cap": selected["rerank_cap"] if selected else None,
+              "p95_budget_ms": args.p95_budget_ms,
               "selection_policy": "passing dev quality and latency; maximize MRR, recall, then minimize latency and cap"}
     write_json(args.results_dir / "reranker_cap_sensitivity.json", report)
     if selected:

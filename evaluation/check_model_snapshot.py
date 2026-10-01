@@ -13,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from campusai.retrieval.cross_encoder_provider import (
     ModelIdentity, OfflineCrossEncoderReranker, RerankCandidate, snapshot_sha256,
 )
+from campusai.retrieval.runtime_provenance import runtime_description
 from evaluation.release_artifacts import require_previous_gates, sha256, source_identity
 
 
@@ -28,8 +29,13 @@ def main() -> int:
     parser.add_argument("--benchmark-dir", type=Path, default=Path("data/benchmark"))
     parser.add_argument("--exploratory", action="store_true")
     args = parser.parse_args()
+    import re
+    if not re.fullmatch(r"[0-9a-f]{40}|[0-9a-f]{64}", args.model_dir.name):
+        raise ValueError("model directory must name an immutable commit revision (40 or 64 hex characters)")
     if not args.exploratory:
         require_previous_gates("M3", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
+        from evaluation.release_artifacts import assert_tuning_allowed
+        assert_tuning_allowed(args.results_dir, route=True)
     identity = ModelIdentity(args.model_name, args.model_dir.name,
                              snapshot_sha256(args.model_dir), args.model_dir.name,
                              device=args.device)
@@ -64,7 +70,10 @@ def main() -> int:
                   "index_sha256": sha256(args.index_dir / "manifest.json"),
                   "phase6_calibration_sha256": sha256(args.results_dir / "phase6_retrieval_calibration.json"),
                   "model_identity": identity.to_dict(),
+                  "runtime_environment": runtime_description(),
                   "model_identity_sha256": identity.fingerprint,
+                  "model_files_sha256": {path.relative_to(args.model_dir).as_posix(): sha256(path)
+                                         for path in sorted(args.model_dir.rglob("*")) if path.is_file()},
                   "latency_ms": {"first_request": round(first_ms, 3),
                                  "warm_2_candidates": round(warm_two_ms, 3),
                                  "warm_batch_candidates": warm_batches},

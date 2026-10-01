@@ -77,11 +77,11 @@ $env:RERANKER_WARMUP = 'true'
 .venv/Scripts/python.exe -m evaluation.audit_canary_staging --observations .tmp/staging-windows.json --fault-observations .tmp/staging-faults.json
 
 # M12: chạy sau khi working tree sạch; output dùng thư mục ignored.
-.venv/Scripts/python.exe -m evaluation.validate_reranker_release --release-manifest .release/reranker/release_manifest.json
+.venv/Scripts/python.exe -m evaluation.phase7_release release --model-dir $rerankerSnapshot
 ```
 
 Production phải cấu hình `RERANKER_DEPLOYMENT=production` và
-`RERANKER_RELEASE_MANIFEST=.release/reranker/release_manifest.json`. Activation
+`RERANKER_RELEASE_MANIFEST=evaluation/results/reranker_release_manifest.json`. Activation
 kiểm tra đủ gate, code runtime, model, device, index, calibration và cap. Sai
 bất kỳ binding nào thì trả về Phase 6. Snapshot được xác minh trước activation;
 warm-up có timeout startup riêng 60 giây, request giữ budget đã cấu hình.
@@ -140,6 +140,16 @@ Telemetry JSON cần environment=staging, environment_id, collector và bindings
 `calibration_sha256`, `model_identity_sha256`. Fault telemetry có `exercises`:
 mỗi bài tập chứa expected_reason, windows, service_phase7_enabled_after=false
 và new_reranker_calls_after=0. Phải đo đủ tám trigger trong `ROLLBACK_REASONS`.
+
+Telemetry sau calibration còn bind `route_calibration_sha256`,
+`training_split_sha256`, `human_benchmark_sha256`. Grounding XML được lưu tại
+`evaluation/results/grounding_test_reports/`; validator kiểm tra hash và các
+count test/errors/failures/skipped, không dùng file chỉ còn trong `.tmp`.
+
+`doc_ids` của benchmark human phải khai báo scope hợp lệ; gold không được vượt
+scope/filter. Review cần `no_paraphrase_leakage=true`, `expected_behavior=true`.
+Lệnh fit bị khóa sau khi mở held-out tương ứng, kể cả khi gate fail.
+Xem [workflow đầy đủ](phase7_release_plan.md) để chạy các target `phase7-*`.
 
 ## Kiểm tra code
 

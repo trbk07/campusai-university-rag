@@ -41,33 +41,28 @@ phase6-security:
 	.venv\Scripts\python.exe evaluation\run_phase6_security.py
 phase6-validate:
 	.venv\Scripts\python.exe evaluation\validate_phase6_release.py
-reranker-validate:
-	.venv\Scripts\python.exe -m evaluation.validate_reranker_release
-reranker-baseline-check:
-	.venv\Scripts\python.exe -m evaluation.validate_reranker_release --through M0
-reranker-human-freeze:
-	.venv\Scripts\python.exe -m evaluation.freeze_human_benchmark
-reranker-candidate-coverage:
-	.venv\Scripts\python.exe -m evaluation.evaluate_candidate_coverage
-reranker-route-calibration:
-	.venv\Scripts\python.exe -m evaluation.calibrate_hard_query_route
-reranker-quality:
-	.venv\Scripts\python.exe -m evaluation.compare_retrieval_quality
-reranker-validate:
-	.venv\Scripts\python.exe -m evaluation.validate_reranker_release
-reranker-baseline-check:
-	.venv\Scripts\python.exe -m evaluation.validate_reranker_release --through M0
-reranker-human-freeze:
-	.venv\Scripts\python.exe -m evaluation.freeze_human_benchmark
-reranker-candidate-coverage:
-	.venv\Scripts\python.exe -m evaluation.evaluate_candidate_coverage
-reranker-route-calibration:
-	.venv\Scripts\python.exe -m evaluation.calibrate_hard_query_route
-reranker-quality:
-	.venv\Scripts\python.exe -m evaluation.compare_retrieval_quality
 benchmark-draft:
 	.venv\Scripts\python.exe scripts\build_benchmark.py --input-dir data\corpus\university --output data\benchmark\grounding_draft.jsonl --target 400
 benchmark-review:
 	.venv\Scripts\python.exe scripts\review_benchmark.py data\benchmark\grounding_draft.jsonl data\benchmark\grounding_reviewed.jsonl --annotator-id engineering-review-1
 benchmark-validate:
 	.venv\Scripts\python.exe scripts\validate_benchmark_data.py data\benchmark\grounding_reviewed.jsonl --release
+
+ifeq ($(OS),Windows_NT)
+PHASE7_PYTHON ?= .venv/Scripts/python.exe
+else
+PHASE7_PYTHON ?= .venv/bin/python
+endif
+PHASE7_ARGS ?=
+PHASE7_STAGES := baseline human-freeze candidate model route calibration quality performance security faults rollback staging staging-collect validate release
+.PHONY: $(addprefix phase7-,$(PHASE7_STAGES))
+$(addprefix phase7-,$(PHASE7_STAGES)): phase7-%:
+	$(PHASE7_PYTHON) -m evaluation.phase7_release $* $(PHASE7_ARGS)
+
+# Existing command names remain compatible with the canonical Phase 7 workflow.
+reranker-validate: phase7-validate
+reranker-baseline-check: phase7-baseline
+reranker-human-freeze: phase7-human-freeze
+reranker-candidate-coverage: phase7-candidate
+reranker-route-calibration: phase7-route
+reranker-quality: phase7-quality

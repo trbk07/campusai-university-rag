@@ -26,4 +26,6 @@ data/store/*
 .idea/
 .chrome-smoke/
 .release/
+# The final manifest is generated only after the evidence commit is clean.
+evaluation/results/reranker_release_manifest.json
 

@@ -1,7 +1,7 @@
 # Human-natural question sources for Phase 7
 
 This is a **source inventory, not a reviewed benchmark**. No entries have been
-copied into `data/benchmark/phase6_human_natural.jsonl`, and no release gate
+copied into `data/benchmark/human_retrieval.jsonl`, and no release gate
 is satisfied by this inventory alone.
 
 | Source | Why useful | Required check before benchmark use |
@@ -31,3 +31,27 @@ is satisfied by this inventory alone.
 Public FAQ provenance is evidence of source phrasing, **not** proof that a
 particular row was independently reviewed. Until steps 2–4 are completed,
 M1 remains blocked and later release gates cannot advance.
+
+## Packet collection commands
+
+Use `python -m evaluation.human_benchmark_intake evidence --doc-id DOC` to
+list frozen coordinates, or add `--chunk-id CHUNK` to inspect the actual chunk.
+Prepare an author packet from `configs/human_benchmark_record.example.json`:
+fill the actual author/source/scope/question/evidence fields, leave review
+pending, and run `... human_benchmark_intake submit --packet AUTHOR.json`.
+Submission exclusively creates a question packet with its canonical SHA-256,
+frozen-index SHA-256 and actual submission time; it cannot contain an approval.
+
+The independent reviewer runs `... human_benchmark_intake inspect --qid QID`
+and supplies a separate JSON packet with `qid`, `reviewer`, `review_status`,
+all seven `review_checks`, `record_sha256`, `index_sha256`, and timezone-aware
+`reviewed_at`. Submit it with `... human_benchmark_intake review --packet REVIEW.json`.
+Every decision must be explicit. The reviewer must differ from the author;
+review must follow submission and bind unchanged question/index bytes.
+
+Run `... human_benchmark_intake export --output data/benchmark/human_retrieval.jsonl`
+after review. It exports approved records and an audit sidecar retaining both
+packets. Changed evidence, timestamps, self-review, incomplete checks and
+existing output/audit paths are rejected. Partial exports support collection
+but cannot satisfy M1's quotas. The CLI records submitted human provenance;
+it does not authenticate identity or create an author/reviewer attestation.

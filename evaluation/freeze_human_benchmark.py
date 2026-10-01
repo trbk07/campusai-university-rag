@@ -78,10 +78,13 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
                 or row["author"].strip().casefold() == row["reviewer"].strip().casefold()):
             errors.append(prefix + ":independent_human_review_required")
         review = row.get("review_checks", {})
-        required = {"natural", "answerability", "evidence_sufficient", "corpus_temporal_scope", "difficulty"}
+        required = {"natural", "answerability", "evidence_sufficient", "corpus_temporal_scope", "difficulty",
+                    "no_paraphrase_leakage", "expected_behavior"}
         if not isinstance(review, dict) or any(review.get(key) is not True for key in required):
             errors.append(prefix + ":incomplete_review_checks")
-        if not isinstance(row.get("source_url"), str) or urlparse(row["source_url"]).scheme not in {"https", "http"}:
+        if (not isinstance(row.get("source_url"), str)
+                or urlparse(row["source_url"]).scheme not in {"https", "http"}
+                or not urlparse(row["source_url"]).netloc):
             errors.append(prefix + ":missing_source_url")
         try:
             retrieved = datetime.fromisoformat(row.get("source_retrieved_at", "").replace("Z", "+00:00"))
@@ -103,10 +106,24 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
             gold = []
         if bool(gold) != row.get("answerable"):
             errors.append(prefix + ":answerability_evidence_mismatch")
+        doc_ids, filters = row.get("doc_ids"), row.get("filters", {})
+        known_docs = {key[0] for key in evidence}
+        if (not isinstance(doc_ids, list) or not doc_ids
+                or any(not isinstance(doc, str) or doc not in known_docs for doc in doc_ids)
+                or len(set(doc_ids)) != len(doc_ids)):
+            errors.append(prefix + ":invalid_doc_scope")
+            doc_ids = []
+        if not isinstance(filters, dict) or any(not isinstance(key, str) for key in filters):
+            errors.append(prefix + ":invalid_filters")
+            filters = {}
         for item in gold:
             frozen = evidence.get((item.get("doc_id"), item.get("chunk_id"))) if isinstance(item, dict) else None
             if (not frozen or type(item.get("page")) is not int or item["page"] != frozen.get("page")):
                 errors.append(prefix + ":evidence_provenance_mismatch")
+            elif item["doc_id"] not in doc_ids or any(
+                    str(frozen.get("metadata", {}).get(key, "")).casefold() != str(value).casefold()
+                    for key, value in filters.items()):
+                errors.append(prefix + ":evidence_scope_mismatch")
         counts["answerable"] += row.get("answerable") is True
         counts["negative"] += row.get("answerable") is False
         counts["hard"] += row.get("difficulty") == "hard" or "multi_hop" in tags
@@ -135,6 +152,11 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
         query = normalize_question(row["question"])
         if query in seen_queries:
             errors.append(f"regression_query_leakage:{row.get('qid')}")
+        tokens = set(query.split())
+        if len(tokens) >= 6:
+            for qid, _, other in questions:
+                if len(other) >= 6 and len(tokens & other) / len(tokens | other) >= .85:
+                    errors.append(f"regression_paraphrase_leakage:{row.get('qid')}:{qid}")
     return {"schema_version": 1, "phase": 7, "status": "pass" if not errors else "conditional",
             "errors": sorted(set(errors)), "records": len(rows), "counts": dict(counts),
             "split_counts": dict(split_counts), "independent_review_complete": not any(
@@ -148,6 +170,8 @@ def main() -> int:
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/results"))
     parser.add_argument("--regression-dir", type=Path, default=Path("data/benchmark"))
     args = parser.parse_args()
+    from evaluation.release_artifacts import assert_tuning_allowed
+    assert_tuning_allowed(args.output_dir, route=True)
     try:
         from evaluation.release_artifacts import require_previous_gates
         require_previous_gates("M1", args.output_dir, index_dir=args.index_dir, benchmark_dir=args.dataset.parent)
