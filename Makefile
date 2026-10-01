@@ -1,4 +1,4 @@
-.PHONY: setup test coverage secret-scan baseline benchmark-draft benchmark-review benchmark-validate grounding-eval release-validate phase5-adversarial phase5-security phase5-performance phase5-package-validate phase6-benchmark phase6-index phase6-calibrate phase6-evaluate phase6-operations phase6-security phase6-validate test-windows coverage-windows secret-scan-windows
+.PHONY: setup test coverage secret-scan baseline benchmark-draft benchmark-review benchmark-validate grounding-eval release-validate phase5-adversarial phase5-security phase5-performance phase5-package-validate phase6-benchmark phase6-index phase6-calibrate phase6-evaluate phase6-operations phase6-security phase6-validate test-windows coverage-windows secret-scan-windows reranker-validate reranker-baseline-check reranker-human-freeze reranker-candidate-coverage reranker-route-calibration reranker-quality
 setup:
 	python scripts/bootstrap.py
 test:
@@ -41,6 +41,30 @@ phase6-security:
 	.venv\Scripts\python.exe evaluation\run_phase6_security.py
 phase6-validate:
 	.venv\Scripts\python.exe evaluation\validate_phase6_release.py
+reranker-validate:
+	.venv\Scripts\python.exe -m evaluation.validate_reranker_release
+reranker-baseline-check:
+	.venv\Scripts\python.exe -m evaluation.validate_reranker_release --through M0
+reranker-human-freeze:
+	.venv\Scripts\python.exe -m evaluation.freeze_human_benchmark
+reranker-candidate-coverage:
+	.venv\Scripts\python.exe -m evaluation.evaluate_candidate_coverage
+reranker-route-calibration:
+	.venv\Scripts\python.exe -m evaluation.calibrate_hard_query_route
+reranker-quality:
+	.venv\Scripts\python.exe -m evaluation.compare_retrieval_quality
+reranker-validate:
+	.venv\Scripts\python.exe -m evaluation.validate_reranker_release
+reranker-baseline-check:
+	.venv\Scripts\python.exe -m evaluation.validate_reranker_release --through M0
+reranker-human-freeze:
+	.venv\Scripts\python.exe -m evaluation.freeze_human_benchmark
+reranker-candidate-coverage:
+	.venv\Scripts\python.exe -m evaluation.evaluate_candidate_coverage
+reranker-route-calibration:
+	.venv\Scripts\python.exe -m evaluation.calibrate_hard_query_route
+reranker-quality:
+	.venv\Scripts\python.exe -m evaluation.compare_retrieval_quality
 benchmark-draft:
 	.venv\Scripts\python.exe scripts\build_benchmark.py --input-dir data\corpus\university --output data\benchmark\grounding_draft.jsonl --target 400
 benchmark-review:

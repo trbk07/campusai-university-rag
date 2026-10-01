@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+import math
 import re
 import time
 from dataclasses import dataclass, replace
@@ -21,8 +22,8 @@ from .contracts import RETRIEVAL_MODES, RETRIEVAL_SCHEMA_VERSION, validate_filte
 from .dense_index import IndexNotFoundError
 from .routing import RoutingTrace, choose_route, detected_codes
 from .negative import negative_query_reason
-from .phase7_policy import Phase7Policy
-from .phase7_reranker import RerankCandidate, RerankerProvider, RerankerUnavailable
+from .rerank_policy import Phase7Policy
+from .cross_encoder_provider import RerankCandidate, RerankerProvider, RerankerUnavailable
 from .tokenizer_vi import normalize_retrieval_query, normalized_tokens, retrieval_text
 
 
@@ -535,10 +536,10 @@ class HybridRetriever:
         started = time.perf_counter()
         policy = self.phase7_policy
         provider = self.phase7_provider
-        candidate_k = (policy.candidate_cap if self.phase7_enabled and policy is not None
-                       and not detected_codes(query) else top_k)
+        # The fallback must be the *requested* Phase 6 search. top_k changes
+        # candidate generation and exact-code routing in Phase 6.
         baseline = self.search(query, doc_ids=doc_ids, filters=filters,
-                               top_k=candidate_k, mode="auto", score_threshold=score_threshold)
+                               top_k=top_k, mode="auto", score_threshold=score_threshold)
         trace = self.last_trace
 
         def finish(values: list[RetrievalResult], selected: bool, reason: str) -> list[RetrievalResult]:
@@ -559,39 +560,67 @@ class HybridRetriever:
                 or hashlib.sha256(manifest.read_bytes()).hexdigest() != policy.index_sha256
                 or hashlib.sha256(phase6_source.read_bytes()).hexdigest() != policy.phase6_calibration_sha256):
             return finish(baseline[:top_k], False, "calibration_or_index_mismatch")
-        selected, reason = policy.route(query, baseline, trace)
+        # Routing is fitted at five results and must use that same feature
+        # extraction plan when the caller asks for Recall@10 or a larger view.
+        routing_baseline = baseline
+        routing_trace = trace
+        if top_k != 5:
+            routing_baseline = self.search(query, doc_ids=doc_ids, filters=filters,
+                                           top_k=5, mode="auto", score_threshold=score_threshold)
+            routing_trace = self.last_trace
+        selected, reason = policy.route(query, routing_baseline, routing_trace)
         if not selected:
             return finish(baseline[:top_k], False, reason)
-        if top_k > policy.rerank_candidate_cap:
-            return finish(baseline[:top_k], False, "top_k_exceeds_rerank_cap")
+        pool = self.search(query, doc_ids=doc_ids, filters=filters,
+                           top_k=policy.candidate_cap, mode="auto", score_threshold=score_threshold)
+        if not pool:
+            return finish(baseline[:top_k], False, "empty_candidate_pool")
         candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
                                       item.page, item.content, item.rank,
                                       float(item.fusion_score or 0.0))
-                      for item in baseline[:policy.rerank_candidate_cap]]
+                      for item in pool[:policy.rerank_candidate_cap]]
+        if not self.phase7_enabled:
+            return finish(baseline[:top_k], False, "feature_disabled")
         try:
             ranked = provider.score(query, candidates)
         except RerankerUnavailable as error:
-            return finish(baseline[:top_k], False, str(error))
+            # Providers are injectable; their exception text is untrusted.
+            safe_reasons = {"queue_full", "circuit_open", "reranker_timeout",
+                            "model_checksum_mismatch", "model_snapshot_missing",
+                            "invalid_model_scores", "reranker_inference_failed", "feature_disabled"}
+            return finish(baseline[:top_k], False,
+                          str(error) if str(error) in safe_reasons else "reranker_unavailable")
         except Exception:
             return finish(baseline[:top_k], False, "reranker_unavailable")
-        by_id = {item.chunk_id: item for item in baseline}
-        if (len(ranked) != len(candidates) or len({item.candidate_id for item in ranked}) != len(ranked)
+        by_id = {item.chunk_id: item for item in pool}
+        try:
+            invalid = (len(ranked) != len(candidates) or len({item.candidate_id for item in ranked}) != len(ranked)
                 or {item.candidate_id for item in ranked} != {item.candidate_id for item in candidates}
+                or any(isinstance(item.reranker_score, bool)
+                       or not math.isfinite(item.reranker_score) for item in ranked)
                 or any(item.final_rank != rank or item.model_identity != provider.model_identity
                        for rank, item in enumerate(ranked, 1))
                 or any(ranked[index - 1].reranker_score < ranked[index].reranker_score
                        for index in range(1, len(ranked)))
                 or any((item.doc_id, item.chunk_id, item.page) !=
                        (by_id[item.candidate_id].doc_id, by_id[item.candidate_id].chunk_id,
-                        by_id[item.candidate_id].page) for item in ranked)):
+                        by_id[item.candidate_id].page) for item in ranked)
+                or any(item.original_rank != by_id[item.candidate_id].rank
+                       or item.original_rrf_score != float(by_id[item.candidate_id].fusion_score or 0.0)
+                       for item in ranked))
+        except (AttributeError, KeyError, TypeError, ValueError):
+            invalid = True
+        if invalid:
             return finish(baseline[:top_k], False, "reranker_provenance_invalid")
         margin = ranked[0].reranker_score - ranked[1].reranker_score if len(ranked) > 1 else 0.0
         if ranked[0].reranker_score < policy.threshold or margin < policy.margin_threshold:
             return finish(baseline[:top_k], False, "reranker_score_or_margin_below_threshold")
         results = [replace(by_id[item.candidate_id], rank=rank,
                            reranker_score=item.reranker_score, retriever="hybrid_rerank")
-                   for rank, item in enumerate(ranked[:top_k], 1)]
-        return finish(results, True, reason)
+                   for rank, item in enumerate(ranked, 1)]
+        results.extend(replace(item, rank=rank) for rank, item in
+                       enumerate(pool[len(candidates):], len(candidates) + 1))
+        return finish(results[:top_k], True, reason)
 
     @classmethod
     def with_calibration_report(cls, index_root: str | Path, report_path: str | Path, **kwargs) -> "HybridRetriever":

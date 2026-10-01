@@ -10,9 +10,10 @@ import time
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from campusai.retrieval.phase7_reranker import (
+from campusai.retrieval.cross_encoder_provider import (
     ModelIdentity, OfflineCrossEncoderReranker, RerankCandidate, snapshot_sha256,
 )
+from evaluation.release_artifacts import require_previous_gates, sha256, source_identity
 
 
 def main() -> int:
@@ -21,8 +22,14 @@ def main() -> int:
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--device", default="cpu", help="Explicit cpu, cuda or cuda:N device")
     parser.add_argument("--timeout-ms", type=int, default=10000)
-    parser.add_argument("--output", type=Path, default=Path(".tmp/phase7-model-smoke.json"))
+    parser.add_argument("--output", type=Path, default=Path("evaluation/results/model_snapshot_smoke.json"))
+    parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
+    parser.add_argument("--index-dir", type=Path, default=Path(".tmp/phase6-index"))
+    parser.add_argument("--benchmark-dir", type=Path, default=Path("data/benchmark"))
+    parser.add_argument("--exploratory", action="store_true")
     args = parser.parse_args()
+    if not args.exploratory:
+        require_previous_gates("M3", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
     identity = ModelIdentity(args.model_name, args.model_dir.name,
                              snapshot_sha256(args.model_dir), args.model_dir.name,
                              device=args.device)
@@ -30,6 +37,7 @@ def main() -> int:
                                            timeout_ms=args.timeout_ms)
     started = time.perf_counter()
     try:
+        provider.warm_up()
         probe = [
             RerankCandidate("a", "doc", "a", 1,
                             "The course requires introductory mathematics.", 1, .4),
@@ -39,7 +47,7 @@ def main() -> int:
         ranking = provider.score("What are the course prerequisites?", probe)
         first_ms = (time.perf_counter() - started) * 1000
         warm_started = time.perf_counter()
-        provider.score("What are the course prerequisites?", probe)
+        repeated = provider.score("What are the course prerequisites?", probe)
         warm_two_ms = (time.perf_counter() - warm_started) * 1000
         batch = [RerankCandidate(str(index), "doc", str(index), 1,
                                  probe[index % 2].content, index + 1, .4)
@@ -49,7 +57,12 @@ def main() -> int:
             batch_started = time.perf_counter()
             provider.score("What are the course prerequisites?", batch[:size])
             warm_batches[str(size)] = round((time.perf_counter() - batch_started) * 1000, 3)
-        report = {"schema_version": 1, "phase": 7, "status": "pass",
+        delta = max(abs(a.reranker_score - b.reranker_score) for a, b in zip(ranking, repeated))
+        report = {"schema_version": 1, "phase": 7, "status": "pass" if delta <= 1e-5 and not args.exploratory else "conditional",
+                  "deterministic": delta <= 1e-5, "max_score_delta": delta,
+                  **source_identity(Path(__file__).resolve().parents[1]),
+                  "index_sha256": sha256(args.index_dir / "manifest.json"),
+                  "phase6_calibration_sha256": sha256(args.results_dir / "phase6_retrieval_calibration.json"),
                   "model_identity": identity.to_dict(),
                   "model_identity_sha256": identity.fingerprint,
                   "latency_ms": {"first_request": round(first_ms, 3),

@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from campusai.retrieval.phase7_policy import Phase7Policy, Phase7PolicyError
-from campusai.retrieval.phase7_reranker import ModelIdentity
+from campusai.retrieval.rerank_policy import Phase7Policy, Phase7PolicyError
+from campusai.retrieval.cross_encoder_provider import ModelIdentity
 from campusai.retrieval.routing import RoutingTrace
 
 

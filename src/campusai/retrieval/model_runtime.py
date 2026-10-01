@@ -20,6 +20,7 @@ class RuntimeKey:
     model_name: str
     device: str
     max_length: int | None = None
+    snapshot_sha256: str | None = None
 
 
 class RetrievalModelRuntime:
@@ -48,12 +49,12 @@ class RetrievalModelRuntime:
             return self._models[key]
 
     def get_offline_reranker(self, snapshot_dir: str | Path, *, device: str = "cpu",
-                             max_length: int = 512) -> Any:
+                             max_length: int = 512, snapshot_sha256: str | None = None) -> Any:
         """Load only a local verified snapshot, with an explicit token limit."""
         path = Path(snapshot_dir).resolve()
         if not path.is_dir():
             raise FileNotFoundError("reranker snapshot missing")
-        key = RuntimeKey("reranker_offline", str(path), device, max_length)
+        key = RuntimeKey("reranker_offline", str(path), device, max_length, snapshot_sha256)
         with self._lock:
             if key not in self._models:
                 from sentence_transformers import CrossEncoder

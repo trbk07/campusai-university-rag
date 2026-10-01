@@ -123,18 +123,18 @@ def main() -> int:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--source-tree", type=Path, default=Path("."))
     parser.add_argument("--rejected-report", type=Path, action="append", default=[])
-    parser.add_argument("--output-dir", type=Path, default=Path(".tmp/phase7-baseline-evidence"))
+    parser.add_argument("--output-dir", type=Path, default=Path(".tmp/reranker-baseline-evidence"))
     args = parser.parse_args()
     report, manifest = create_baseline(args)
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    (args.output_dir / "phase7_baseline_phase6.json").write_text(
+    (args.output_dir / "retrieval_baseline_comparison.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    (args.output_dir / "phase7_baseline_manifest.json").write_text(
+    (args.output_dir / "retrieval_baseline_manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     lines = ["# Phase 7 frozen Phase 6 baseline", "", f"Status: {report['status']}.", "",
              f"Commit: `{manifest['commit']}`.", "", "Errors: " + (", ".join(report["errors"]) or "none") + ".", "",
              "Historical RC3 and both reruns are preserved separately; no metric was rewritten.", ""]
-    (args.output_dir / "phase7_baseline_phase6.md").write_text("\n".join(lines), encoding="utf-8")
+    (args.output_dir / "retrieval_baseline_comparison.md").write_text("\n".join(lines), encoding="utf-8")
     print(json.dumps({"status": report["status"], "errors": report["errors"],
                       "output_dir": str(args.output_dir)}, indent=2))
     return 0 if report["status"] == "pass" else 1

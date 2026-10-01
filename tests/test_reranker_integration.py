@@ -4,8 +4,8 @@ from campusai.retrieval.bm25_index import BM25Index
 from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.retrieval.dense_index import DenseIndex
 from campusai.retrieval.hybrid import HybridRetriever
-from campusai.retrieval.phase7_policy import Phase7Policy
-from campusai.retrieval.phase7_reranker import ModelIdentity, RerankedCandidate, RerankerUnavailable
+from campusai.retrieval.rerank_policy import Phase7Policy
+from campusai.retrieval.cross_encoder_provider import ModelIdentity, RerankedCandidate, RerankerUnavailable
 
 
 def _make_retriever(tmp_path, *, enabled=True, wrong_provenance=False, unavailable=False):

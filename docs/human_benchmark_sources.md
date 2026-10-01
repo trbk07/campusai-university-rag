@@ -20,12 +20,14 @@ is satisfied by this inventory alone.
    questions whose answer depends on newer policy than the indexed PDF.
 3. Have a second, independent reviewer check wording, answerability, evidence,
    language, difficulty and challenge tags. The reviewer must not be the author.
-4. Freeze 100–150 accepted records with at least 10 negatives, 10 hard
-   answerable, 10 exact-code, and the coverage required by
-   `evaluation/phase6_human_schema.py`. Preserve author/reviewer attestation.
-5. Run `evaluation/run_phase6_challenge.py` and Phase 7 routing/quality checks
-   separately from the generated regression set. Never fit on test/holdout.
+4. Freeze at least 150 accepted records with 100 answerable, 20 negative,
+   15 hard/multi-hop, 15 exact-code and 10 ambiguous/abstention records. Tags
+   may overlap. Preserve independent reviewer attestation, frozen PDF page
+   provenance and separate dev/test/holdout paraphrase groups.
+5. Run `python -m evaluation.freeze_human_benchmark` and then the sequential
+   gates in [`reranker_release_runbook.md`](reranker_release_runbook.md).
+   Keep human and generated regression quality separate. Never fit on test/holdout.
 
 Public FAQ provenance is evidence of source phrasing, **not** proof that a
 particular row was independently reviewed. Until steps 2–4 are completed,
-M2 and the human-natural release gate remain conditional.
+M1 remains blocked and later release gates cannot advance.

@@ -1,5 +1,5 @@
 from campusai.retrieval.hybrid import RetrievalResult
-from evaluation.phase7_candidate_recall import evaluate_split
+from evaluation.evaluate_candidate_coverage import evaluate_split
 
 
 def _result(chunk_id, doc_id="doc"):

@@ -11,6 +11,7 @@ from ..retrieval.hybrid import HybridRetriever, RetrievalResult
 from .cache import RAGAnswerCache, build_rag_cache_key
 from .grounding import GroundedAnswer, GroundedAnswerGenerator
 from ..observability import MetricsRegistry
+from ..retrieval.canary_rollout import CanaryController, rollback_retriever
 
 
 def choose_query_mode(question: str, *, reranker_available: bool) -> str:
@@ -54,6 +55,7 @@ class CampusAIQueryService:
         cache: RAGAnswerCache | None = None,
         metrics: MetricsRegistry | None = None,
         default_mode: str | None = None,
+        canary: CanaryController | None = None,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
@@ -62,6 +64,7 @@ class CampusAIQueryService:
         self.last_retrieval: list[RetrievalResult] = []
         self.metrics = metrics or MetricsRegistry()
         self.default_mode = default_mode
+        self.canary = canary
 
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
         """Return a stable version from the selected corpus/index manifests."""
@@ -90,7 +93,15 @@ class CampusAIQueryService:
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
-    def _selected_mode(self, question: str, mode: str | None) -> str:
+    def _selected_mode(self, question: str, mode: str | None, request_id: str | None = None) -> str:
+        if self.canary is not None and getattr(self.retriever, "phase7_enabled", False):
+            # Explicit phase7 mode must not bypass the configured canary cohort.
+            if mode in {None, "phase7"}:
+                return "phase7" if request_id and self.canary.admits(request_id) else "auto"
+        if (not getattr(self.retriever, "phase7_enabled", False)
+                and getattr(self.retriever, "phase7_activation_reason", "") != "feature_disabled"
+                and mode is None and self.default_mode is None):
+            return "auto"
         if mode is None and self.default_mode is None and getattr(self.retriever, "phase7_enabled", False):
             return "phase7"
         return mode or self.default_mode or choose_query_mode(
@@ -104,8 +115,9 @@ class CampusAIQueryService:
         filters: dict[str, Any] | None = None,
         top_k: int = 5,
         mode: str | None = None,
+        request_id: str | None = None,
     ) -> list[RetrievalResult]:
-        selected_mode = self._selected_mode(question, mode)
+        selected_mode = self._selected_mode(question, mode, request_id)
         return self.retriever.search(
             question,
             doc_ids=doc_ids,
@@ -123,8 +135,9 @@ class CampusAIQueryService:
         mode: str | None = None,
         language: str = "vi",
         corpus_version: str | None = None,
+        request_id: str | None = None,
     ) -> GroundedAnswer:
-        selected_mode = self._selected_mode(question, mode)
+        selected_mode = self._selected_mode(question, mode, request_id)
         version = corpus_version or self.corpus_version(doc_ids)
         budget = {
             "max_chars": self.answer_generator.max_context_chars,
@@ -171,3 +184,11 @@ class CampusAIQueryService:
 
     def close(self) -> None:
         self.cache.close()
+
+    def observe_canary_window(self, window: dict) -> str | None:
+        if self.canary is None:
+            raise ValueError("canary controller is not configured")
+        reason = self.canary.observe(window)
+        if reason:
+            rollback_retriever(self.retriever, reason)
+        return reason

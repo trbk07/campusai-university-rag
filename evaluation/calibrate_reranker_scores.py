@@ -19,11 +19,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.retrieval.hybrid import HybridRetriever
-from campusai.retrieval.phase7_reranker import (
+from campusai.retrieval.cross_encoder_provider import (
     ModelIdentity, OfflineCrossEncoderReranker, RerankCandidate, snapshot_sha256,
 )
 from evaluation.metrics import evaluate_retrieval, ndcg_at_k, recall_at_k, reciprocal_rank
 from evaluation.phase6_schema import load_jsonl
+from campusai.retrieval.rerank_policy import route_features
+from evaluation.release_artifacts import require_previous_gates, source_identity
 
 
 def _sha(path: Path) -> str:
@@ -95,18 +97,24 @@ def calibrate(rows: list[dict], baseline: dict[str, list], proposals: dict[str, 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dev", type=Path, default=Path("data/benchmark/phase6_retrieval_dev.jsonl"))
+    parser.add_argument("--dev", type=Path, default=Path("data/benchmark/human_retrieval_dev.jsonl"))
     parser.add_argument("--index-dir", type=Path, default=Path(".tmp/phase6-index"))
     parser.add_argument("--phase6-calibration", type=Path,
                         default=Path("evaluation/results/phase6_retrieval_calibration.json"))
     parser.add_argument("--route-calibration", type=Path,
-                        default=Path(".tmp/phase7-route-calibration.json"))
+                        default=Path("evaluation/results/hard_query_route_calibration.json"))
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--device", default="cpu", help="Explicit cpu, cuda or cuda:N device")
     parser.add_argument("--rerank-cap", type=int, default=10)
+    parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
+    parser.add_argument("--timeout-ms", type=int, default=1000)
+    parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
+    parser.add_argument("--exploratory", action="store_true")
     parser.add_argument("--output", type=Path,
-                        default=Path(".tmp/phase7-reranker-calibration-candidate.json"))
+                        default=Path(".tmp/reranker-reranker-calibration-candidate.json"))
     args = parser.parse_args()
+    if not args.exploratory:
+        require_previous_gates("M5", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
     if not 1 <= args.rerank_cap <= 40:
         raise SystemExit("rerank cap must be between 1 and 40")
     rows = load_jsonl(args.dev)
@@ -118,11 +126,11 @@ def main() -> int:
             or route.get("index_sha256") != _sha(args.index_dir / "manifest.json")
             or route.get("phase6_calibration_sha256") != _sha(args.phase6_calibration)):
         raise SystemExit("route calibration provenance mismatch")
-    identity = ModelIdentity("BAAI/bge-reranker-v2-m3", args.model_dir.name,
+    identity = ModelIdentity(args.model_name, args.model_dir.name,
                              snapshot_sha256(args.model_dir), args.model_dir.name,
                              device=args.device)
     provider = OfflineCrossEncoderReranker(identity, args.model_dir,
-                                           timeout_ms=30000, candidate_cap=args.rerank_cap)
+                                           timeout_ms=args.timeout_ms, candidate_cap=args.rerank_cap)
     phase6 = RetrievalPolicy.from_report(args.phase6_calibration, expected_mode="hybrid_rrf")
     retriever = HybridRetriever(args.index_dir, query_cache_size=0,
                                 policies={"hybrid_rrf": phase6})
@@ -131,11 +139,13 @@ def main() -> int:
     proposals = {}
     latencies = []
     errors = []
+    eligible = 0
     try:
+        provider.warm_up()
         for row in rows:
             qid = row["qid"]
             results = retriever.search(row["question"], doc_ids=doc_ids,
-                                       filters=row.get("filters"), top_k=40, mode="auto")
+                                       filters=row.get("filters"), top_k=5, mode="auto")
             baseline[qid] = results
             trace = retriever.last_trace
             if trace.route in {"exact_code", "abstain"} or trace.abstained or len(results) < 2:
@@ -143,24 +153,31 @@ def main() -> int:
             confidence = float(results[0].confidence_score or 0.0)
             fusion_margin = max(0.0, float(results[0].fusion_score or 0.0)
                                 - float(results[1].fusion_score or 0.0))
-            if (confidence >= route["easy_confidence_threshold"]
-                    and fusion_margin >= route["easy_margin_threshold"]):
+            features = route_features(row["question"], results)
+            hard = (confidence < route["easy_confidence_threshold"] or fusion_margin < route["easy_margin_threshold"]
+                    or (route.get("minimum_agreement", 0) and features["agreement"] < route["minimum_agreement"])
+                    or (route.get("constraint_threshold", 0) and features["constraints"] >= route["constraint_threshold"]))
+            if not hard:
                 continue
+            eligible += 1
+            pool = retriever.search(row["question"], doc_ids=row.get("doc_ids", doc_ids),
+                                    filters=row.get("filters"), top_k=40, mode="auto")
             candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
                                           item.page, item.content, item.rank,
                                           float(item.fusion_score or 0.0))
-                          for item in results[:args.rerank_cap]]
+                          for item in pool[:args.rerank_cap]]
             started = time.perf_counter()
             try:
                 ranking = provider.score(row["question"], candidates)
             except Exception as error:
-                errors.append({"qid": qid, "error_type": type(error).__name__})
+                errors.append({"qid": qid, "error_type": type(error).__name__,
+                               "reason": str(error) if str(error) in {"reranker_timeout", "invalid_model_scores", "queue_full", "circuit_open"} else "provider_failure"})
                 continue
             latencies.append((time.perf_counter() - started) * 1000)
-            by_id = {item.chunk_id: item for item in results}
+            by_id = {item.chunk_id: item for item in pool}
             reranked = [by_id[item.candidate_id] for item in ranking]
-            reranked.extend(results[args.rerank_cap:])
-            proposals[qid] = {"results": reranked,
+            reranked.extend(pool[args.rerank_cap:])
+            proposals[qid] = {"results": reranked[:5],
                               "top_score": ranking[0].reranker_score,
                               "margin": ranking[0].reranker_score - ranking[1].reranker_score
                               if len(ranking) > 1 else 0.0}
@@ -173,8 +190,9 @@ def main() -> int:
     route_gate = route.get("status") == "pass"
     report = {"schema_version": 1, "phase": 7, "mode": "hybrid_rerank",
               "version": "phase7-rerank-dev-v1",
-              "status": "pass" if score_gate and route_gate else "conditional",
-              "calibration_split": "dev", "holdout_used": False,
+              "status": "pass" if score_gate and route_gate and not args.exploratory else "conditional",
+              "calibration_split": "dev", "holdout_used": False, "test_used": False,
+              **source_identity(Path(__file__).resolve().parents[1]),
               "model_identity": identity.to_dict(),
               "model_identity_sha256": identity.fingerprint,
               "index_sha256": _sha(args.index_dir / "manifest.json"),
@@ -185,6 +203,8 @@ def main() -> int:
               "margin_threshold": selected["margin_threshold"],
               "easy_confidence_threshold": route["easy_confidence_threshold"],
               "easy_margin_threshold": route["easy_margin_threshold"],
+              "minimum_agreement": route.get("minimum_agreement", 0),
+              "constraint_threshold": route.get("constraint_threshold", 0),
               "candidate_cap": 40, "rerank_candidate_cap": args.rerank_cap,
               "selection_rule": "rerank iff dev-fitted hard route and top logit/margin pass; otherwise Phase 6",
               "positive_count": sum(row["answerable"] for row in rows),
@@ -194,10 +214,19 @@ def main() -> int:
               "comparison": comparison,
               "routing_status": route.get("status"),
               "rerank_requests": len(proposals),
+              "eligible_requests": eligible,
+              "fallback_rate": (eligible - sum(p["top_score"] >= selected["threshold"] and p["margin"] >= selected["margin_threshold"]
+                                               for p in proposals.values())) / max(1, eligible),
+              "timeout_rate": sum(e["reason"] == "reranker_timeout" for e in errors) / max(1, eligible),
+              "invalid_score_rate": sum(e["reason"] == "invalid_model_scores" for e in errors) / max(1, eligible),
               "rerank_latency_ms": {"p50": _percentile(latencies, .5),
                                      "p95": _percentile(latencies, .95),
                                      "p99": _percentile(latencies, .99)},
               "errors": errors}
+    report["calibration_observations"] = {
+        "baseline": {qid: [item.to_dict() for item in values] for qid, values in baseline.items()},
+        "proposals": {qid: {**proposal, "results": [item.to_dict() for item in proposal["results"]]}
+                      for qid, proposal in proposals.items()}}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": report["status"], "routing_status": report["routing_status"],

@@ -1,0 +1,24 @@
+{
+  "qid": "REPLACE_WITH_UNIQUE_ID",
+  "question": "REPLACE_WITH_A_REAL_HUMAN_QUESTION",
+  "split": "dev",
+  "paraphrase_group": "REPLACE_WITH_REVIEWED_GROUP_ID",
+  "answerable": false,
+  "difficulty": "easy",
+  "gold_evidence": [],
+  "tags": ["natural", "negative"],
+  "source_url": "",
+  "source_retrieved_at": "",
+  "author_type": "human",
+  "author": "",
+  "reviewer": "",
+  "review_status": "pending",
+  "evidence_source": "frozen_pdf",
+  "review_checks": {
+    "natural": false,
+    "answerability": false,
+    "evidence_sufficient": false,
+    "corpus_temporal_scope": false,
+    "difficulty": false
+  }
+}

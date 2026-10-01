@@ -1,5 +1,5 @@
 from campusai.retrieval.hybrid import RetrievalResult
-from evaluation.calibrate_phase7 import calibrate
+from evaluation.calibrate_reranker_scores import calibrate
 
 
 def _result(name):

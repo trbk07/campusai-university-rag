@@ -267,3 +267,10 @@ docs/                acceptance and performance reports
   comparison of ingestion metadata flow and reranking placement.
 - [Jmhzbmcn2/med_rag](https://github.com/Jmhzbmcn2/med_rag) for practical API,
   source-card, context-header and retrieval-evaluation patterns.
+## Optional retrieval reranker
+
+The reranker is disabled by default. Its release workflow, human review schema,
+quality/performance measurements and gradual canary controls are documented
+in [the reranker release runbook](docs/reranker_release_runbook.md). Check
+readiness with `python -m evaluation.validate_reranker_release`; a missing
+critical gate keeps the score null and prevents production activation.

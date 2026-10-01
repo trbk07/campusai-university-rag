@@ -124,22 +124,19 @@ class OfflineCrossEncoderReranker:
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="phase7-reranker")
         self._state_lock = Lock()
         self._failures = 0
+        self._closed = False
         self._verified = False
         self._model = None
         self._loader = model_loader or (lambda: retrieval_runtime().get_offline_reranker(
             self.model_dir, device=model_identity.device,
-            max_length=model_identity.max_length))
+            max_length=model_identity.max_length, snapshot_sha256=model_identity.model_sha256))
 
     @property
     def fingerprint(self) -> str:
         return self.model_identity.fingerprint
 
     def _predict(self, query: str, candidates: Sequence[RerankCandidate]) -> list[float]:
-        if not self._verified:
-            actual = snapshot_sha256(self.model_dir)
-            if actual != self.model_identity.model_sha256:
-                raise RerankerUnavailable("model_checksum_mismatch")
-            self._verified = True
+        self.verify_snapshot()
         if self._model is None:
             self._model = self._loader()
         model = self._model
@@ -151,27 +148,41 @@ class OfflineCrossEncoderReranker:
             raise RerankerUnavailable("invalid_model_scores")
         return scores
 
-    def score(self, query: str, candidates: Sequence[RerankCandidate]) -> list[RerankedCandidate]:
+    def verify_snapshot(self) -> None:
+        """Verify identity before activation without importing/loading the model."""
+        if not self._verified:
+            if snapshot_sha256(self.model_dir) != self.model_identity.model_sha256:
+                raise RerankerUnavailable("model_checksum_mismatch")
+            self._verified = True
+
+    def score(self, query: str, candidates: Sequence[RerankCandidate], *,
+              timeout_ms: int | None = None) -> list[RerankedCandidate]:
         if not candidates:
             return []
         if not query.strip() or len(candidates) > self.candidate_cap:
             raise RerankerUnavailable("invalid_query_or_candidate_cap")
         ids = [(item.doc_id, item.chunk_id) for item in candidates]
-        if len(ids) != len(set(ids)) or any(not item.candidate_id or item.page < 1 for item in candidates):
+        if (len(ids) != len(set(ids)) or len({item.candidate_id for item in candidates}) != len(candidates)
+                or any(not item.candidate_id or not item.doc_id or not item.chunk_id
+                       or isinstance(item.page, bool) or not isinstance(item.page, int) or item.page < 1
+                       or item.original_rank < 1 or not math.isfinite(item.original_rrf_score)
+                       for item in candidates)):
             raise RerankerUnavailable("invalid_candidate_provenance")
         with self._state_lock:
+            if self._closed:
+                raise RerankerUnavailable("feature_disabled")
             if self._failures >= self.failure_limit:
                 raise RerankerUnavailable("circuit_open")
-        if not self._permits.acquire(blocking=False):
-            raise RerankerUnavailable("queue_full")
-        try:
-            future = self._executor.submit(self._predict, query, tuple(candidates))
-        except Exception as error:
-            self._permits.release()
-            raise RerankerUnavailable("reranker_submit_failed") from error
+            if not self._permits.acquire(blocking=False):
+                raise RerankerUnavailable("queue_full")
+            try:
+                future = self._executor.submit(self._predict, query, tuple(candidates))
+            except Exception as error:
+                self._permits.release()
+                raise RerankerUnavailable("reranker_submit_failed") from error
         future.add_done_callback(lambda _future: self._permits.release())
         try:
-            scores = future.result(timeout=self.timeout_ms / 1000)
+            scores = future.result(timeout=(self.timeout_ms if timeout_ms is None else timeout_ms) / 1000)
         except FutureTimeout as error:
             future.cancel()
             self._record_failure()
@@ -197,5 +208,19 @@ class OfflineCrossEncoderReranker:
         with self._state_lock:
             self._failures = 0
 
+    def warm_up(self) -> None:
+        """Explicit startup probe; callers control activation on failure."""
+        self.score("model readiness probe", [RerankCandidate(
+            "warmup", "warmup", "warmup", 1, "Model readiness probe.", 1, 1.0)], timeout_ms=60000)
+
+    def drain(self, timeout_ms: int = 60000) -> None:
+        """Wait for prior inference to finish between offline capacity profiles."""
+        try:
+            self._executor.submit(lambda: None).result(timeout=timeout_ms / 1000)
+        except Exception as error:
+            raise RerankerUnavailable("reranker_drain_failed") from error
+
     def close(self) -> None:
+        with self._state_lock:
+            self._closed = True
         self._executor.shutdown(wait=False, cancel_futures=True)

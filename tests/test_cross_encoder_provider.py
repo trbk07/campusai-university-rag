@@ -3,7 +3,7 @@ from threading import Event
 
 import pytest
 
-from campusai.retrieval.phase7_reranker import (
+from campusai.retrieval.cross_encoder_provider import (
     ModelIdentity, OfflineCrossEncoderReranker, RerankCandidate,
     RerankerUnavailable, snapshot_sha256,
 )
@@ -124,3 +124,13 @@ def test_phase7_provider_rejects_snapshot_revision_mismatch(tmp_path):
                              snapshot_sha256(tmp_path), "other-revision")
     with pytest.raises(ValueError, match="snapshot revision mismatch"):
         OfflineCrossEncoderReranker(identity, tmp_path)
+
+
+def test_closed_provider_cannot_submit_new_inference(tmp_path):
+    (tmp_path / "config.json").write_text("{}", encoding="utf-8")
+    loads = []
+    provider = OfflineCrossEncoderReranker(_identity(tmp_path), tmp_path, model_loader=lambda: loads.append(1))
+    provider.close()
+    with pytest.raises(RerankerUnavailable, match="feature_disabled"):
+        provider.score("question", [_candidate("a", 1)])
+    assert loads == []
