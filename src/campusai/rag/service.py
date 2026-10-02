@@ -183,7 +183,17 @@ class CampusAIQueryService:
             return answer
 
     def close(self) -> None:
-        self.cache.close()
+        try:
+            close_provider = getattr(getattr(self.retriever, "phase7_provider", None), "close", None)
+            if close_provider is not None:
+                close_provider()
+        finally:
+            try:
+                self.cache.close()
+            finally:
+                close_llm = getattr(getattr(self.answer_generator, "llm", None), "close", None)
+                if close_llm is not None:
+                    close_llm()
 
     def observe_canary_window(self, window: dict) -> str | None:
         if self.canary is None:

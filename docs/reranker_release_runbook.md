@@ -4,7 +4,8 @@ Validator duy nhất là `evaluation/validate_reranker_release.py`. Điểm 10.0
 được xuất khi M0–M12 đều PASS, hash khớp và working tree sạch. `--through M0`
 có thể PASS nhưng `score` vẫn là `null`; đó chỉ là kiểm tra một phần.
 
-Hiện chưa có dataset human-natural được review độc lập hoặc telemetry staging.
+Hiện chưa có đủ artifact benchmark chuẩn (dataset, frozen split và metadata
+scope/evidence của từng record) hoặc telemetry staging để tái kiểm chứng.
 Giữ `RERANKER_ENABLED=false`. Các fixture trong tests và kiểm tra chèn lỗi
 không phải bằng chứng quality, performance hoặc staging của deployment.
 
@@ -55,6 +56,13 @@ $env:RERANKER_MODEL_REVISION = $smoke.model_identity.model_revision
 $env:RERANKER_MODEL_SHA256 = $smoke.model_identity.model_sha256
 $env:RERANKER_TOKENIZER_REVISION = $smoke.model_identity.tokenizer_revision
 $env:RERANKER_DEVICE = $smoke.model_identity.device
+$env:RERANKER_DTYPE = $smoke.model_identity.dtype
+$env:RERANKER_BATCH_SIZE = [string]$smoke.model_identity.batch_size
+$env:RERANKER_MAX_LENGTH = [string]$smoke.model_identity.max_length
+$env:RERANKER_BATCH_WINDOW_MS = [string]$smoke.model_identity.batch_window_ms
+$env:RERANKER_MAX_BATCH_PAIRS = [string]$smoke.model_identity.max_batch_pairs
+$env:RERANKER_SCORE_CACHE_SIZE = '0'
+$env:RERANKER_QUEUE_LIMIT = '19'
 $env:RERANKER_MODEL_DIR = $rerankerSnapshot
 $env:RERANKER_CALIBRATION = 'evaluation/results/reranker_score_calibration.json'
 $env:RERANKER_TIMEOUT_MS = '1000'
@@ -85,6 +93,23 @@ Production phải cấu hình `RERANKER_DEPLOYMENT=production` và
 kiểm tra đủ gate, code runtime, model, device, index, calibration và cap. Sai
 bất kỳ binding nào thì trả về Phase 6. Snapshot được xác minh trước activation;
 warm-up có timeout startup riêng 60 giây, request giữ budget đã cấu hình.
+
+Precision/batching khác mặc định cần truyền cùng `--dtype`, `--batch-size`,
+`--max-length`, `--batch-window-ms` và `--max-batch-pairs` cho M3/M5. M5 từ
+chối identity khác M3. Khi dùng `phase7_release performance`, queue mặc định
+là 19 (20 admission slots), có thể đổi bằng `--queue-limit` trước phép đo.
+
+M5 có lựa chọn `--low-score-action abstain` khi fit và sweep trên dev. Lựa
+chọn này nằm trong calibration artifact và cache fingerprint, không phải cờ
+runtime để bỏ qua gate. Điểm bằng chứng thấp có thể trả rỗng; margin thấp
+vẫn trả Phase 6, và mọi lỗi/timeout/provenance sai vẫn fallback như trước.
+Artifact cũ hoặc không có trường này giữ hành vi `phase6`. Validator tính lại
+recall/FPR theo đúng lựa chọn đã lưu và kiểm tra các cap trial dùng cùng lựa
+chọn. Chỉ policy đạt đầy đủ ngưỡng mới được promoted. Phép đo trên câu hỏi
+tự nhiên cho thấy threshold fit trên 57 câu formal chưa chuyển tốt; xem
+[báo cáo vòng 3](phase7_loop3_report.md) trước khi chọn abstain.
+Manifest production ràng buộc queue, timeout, circuit limit và score cache
+đã đo; đổi các giới hạn này sau đó sẽ bị activation từ chối.
 
 ## Human benchmark
 

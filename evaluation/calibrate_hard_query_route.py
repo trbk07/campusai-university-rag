@@ -62,23 +62,55 @@ def fit_route(samples: list[dict]) -> tuple[float, float, dict, bool]:
 
 
 def fit_feature_route(samples: list[dict]) -> tuple[dict, dict, bool]:
-    """Small explainable search, using only supplied dev retrieval features."""
-    def grid(values):
-        ordered = sorted(set(values))
-        return sorted({ordered[min(len(ordered)-1, round(i*(len(ordered)-1)/15))] for i in range(16)})
-    choices = []
-    for confidence in grid([0.0, 1.0, *[s["confidence"] for s in samples]]):
-        for margin in grid([0.0, *[s["margin"] for s in samples]]):
-            for agreement in (0.0, .2, .4, .6, .8, 1.0):
-                for constraints in (0, 1, 2, 3):
-                    metrics = route_metrics(samples, confidence, margin, agreement, constraints)
-                    feasible = metrics["hard_recall"] >= .95 and metrics["easy_unnecessary_rerank_rate"] <= .20
-                    config = {"easy_confidence_threshold": confidence, "easy_margin_threshold": margin,
-                              "minimum_agreement": agreement, "constraint_threshold": constraints}
-                    utility = metrics["hard_recall"] - max(0, metrics["easy_unnecessary_rerank_rate"] - .20)
-                    choices.append(((feasible, utility, -metrics["coverage"], -agreement, -constraints), config, metrics))
-    chosen = max(choices, key=lambda item: item[0])
-    return chosen[1], chosen[2], chosen[0][0]
+    """Exact dev threshold search within the declared interpretable family.
+
+    Every observed decision boundary is considered, rather than dropping
+    potentially feasible policies through quantile subsampling. Vectorization
+    retains the original hard/easy targets and deterministic selection rule.
+    """
+    import numpy as np
+    if not samples:
+        raise ValueError("route fitting requires dev retrieval samples")
+    import math
+    if any(not all(type(s.get(key)) in (int,float) and math.isfinite(s[key])
+                   for key in ("confidence","margin")) for s in samples):
+        raise ValueError("route fitting requires finite retrieval features")
+    confidences = sorted({0.0, 1.0, *(s["confidence"] for s in samples)})
+    margins = sorted({0.0, *(s["margin"] for s in samples)})
+    agreements = sorted({0.0, 1.0, *(s.get("agreement", 1.0) for s in samples)})
+    constraints = sorted({0, 1, *(int(s.get("constraints", 0)) for s in samples)})
+    hard = np.asarray([s["difficulty"] == "hard" for s in samples])
+    easy = np.asarray([s["difficulty"] == "easy" for s in samples])
+    confidence = np.asarray([s["confidence"] for s in samples])
+    margin = np.asarray([s["margin"] for s in samples])
+    agreement_values = np.asarray([s.get("agreement", 1.0) for s in samples])
+    constraint_values = np.asarray([s.get("constraints", 0) for s in samples])
+    base = ((confidence[None,None,:] < np.asarray(confidences)[:,None,None])
+            | (margin[None,None,:] < np.asarray(margins)[None,:,None]))
+    best = None
+    for agreement in agreements:
+        for constraint in constraints:
+            selected = (base | ((agreement_values < agreement) if agreement else False)
+                        | ((constraint_values >= constraint) if constraint else False))
+            hard_recall = selected[:,:,hard].mean(axis=2) if hard.any() else np.zeros(selected.shape[:2])
+            easy_rate = selected[:,:,easy].mean(axis=2) if easy.any() else np.ones(selected.shape[:2])
+            coverage = selected.mean(axis=2)
+            feasible = (hard_recall >= .95) & (easy_rate <= .20)
+            utility = hard_recall - np.maximum(0.0, easy_rate-.20)
+            eligible = feasible if feasible.any() else np.ones(feasible.shape,dtype=bool)
+            top_utility = utility[eligible].max()
+            eligible &= utility == top_utility
+            lowest_coverage = coverage[eligible].min()
+            ci, mi = np.argwhere(eligible & (coverage == lowest_coverage))[0]
+            key = (bool(feasible[ci,mi]),float(utility[ci,mi]),-float(coverage[ci,mi]),-agreement,-constraint)
+            config = {"easy_confidence_threshold":confidences[ci],"easy_margin_threshold":margins[mi],
+                      "minimum_agreement":agreement,"constraint_threshold":constraint}
+            if best is None or key > best[0]:
+                best = (key,config)
+    config = best[1]
+    metrics = route_metrics(samples,config["easy_confidence_threshold"],config["easy_margin_threshold"],
+                            config["minimum_agreement"],config["constraint_threshold"])
+    return config, metrics, best[0][0]
 
 
 def collect_samples(rows: list[dict], retriever, doc_ids: list[str]) -> tuple[list[dict], dict]:

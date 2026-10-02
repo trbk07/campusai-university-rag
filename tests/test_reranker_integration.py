@@ -1,4 +1,6 @@
 import hashlib
+from dataclasses import replace
+import pytest
 
 from campusai.retrieval.bm25_index import BM25Index
 from campusai.retrieval.calibration import RetrievalPolicy
@@ -95,3 +97,63 @@ def test_phase7_abstention_never_calls_reranker(tmp_path):
     assert retriever.search("", ["doc"], mode="phase7") == []
     assert retriever.search("ZZ999 prerequisite", ["doc"], mode="phase7") == []
     assert provider.calls == 0
+
+
+def test_calibrated_low_evidence_abstention_keeps_legacy_policy_and_margin_fallback(tmp_path):
+    retriever, provider, _ = _make_retriever(tmp_path)
+    baseline = retriever.search("tuition policy", ["doc"], mode="auto", top_k=2)
+    retriever.phase7_policy = replace(retriever.phase7_policy, threshold=2.0)
+    assert retriever.search("tuition policy", ["doc"], mode="phase7", top_k=2) == baseline
+    assert not retriever.last_trace.abstained
+    retriever.phase7_policy = replace(retriever.phase7_policy, low_score_action="abstain")
+    assert retriever.search("tuition policy", ["doc"], mode="phase7", top_k=2) == []
+    assert provider.calls == 2
+    assert retriever.last_trace.rerank_selected and retriever.last_trace.abstained
+    assert retriever.last_trace.abstention_reason == "reranker_no_evidence"
+    assert retriever.phase7_enabled
+    retriever.phase7_policy = replace(retriever.phase7_policy, threshold=0.0, margin_threshold=1.0)
+    assert retriever.search("tuition policy", ["doc"], mode="phase7", top_k=2) == baseline
+    assert not retriever.last_trace.abstained and not retriever.last_trace.rerank_selected
+
+
+@pytest.mark.parametrize('reason', ['queue_full', 'reranker_timeout', 'circuit_open'])
+def test_evidence_abstention_never_converts_provider_faults_to_missing_evidence(tmp_path, reason):
+    retriever, provider, _ = _make_retriever(tmp_path)
+    baseline = retriever.search("tuition policy", ["doc"], mode="auto", top_k=2)
+    retriever.phase7_policy = replace(retriever.phase7_policy, threshold=2.0, low_score_action="abstain")
+    def fail(_query, _candidates):
+        raise RerankerUnavailable(reason)
+    provider.score = fail
+    assert retriever.search("tuition policy", ["doc"], mode="phase7", top_k=2) == baseline
+    assert not retriever.last_trace.abstained and not retriever.last_trace.rerank_selected
+    assert retriever.last_trace.rerank_reason == reason
+
+
+def test_low_scores_with_invalid_provenance_still_use_phase6(tmp_path):
+    retriever, _, _ = _make_retriever(tmp_path, wrong_provenance=True)
+    baseline = retriever.search("tuition policy", ["doc"], mode="auto", top_k=2)
+    retriever.phase7_policy = replace(retriever.phase7_policy, threshold=2.0, low_score_action="abstain")
+    assert retriever.search("tuition policy", ["doc"], mode="phase7", top_k=2) == baseline
+    assert retriever.last_trace.rerank_reason == "reranker_provenance_invalid"
+    assert not retriever.phase7_enabled
+
+
+def test_service_abstention_skips_llm_and_policy_change_invalidates_answer_cache(tmp_path):
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from campusai.rag.cache import RAGAnswerCache
+    from tests.test_basic_rag import FakeLLM, valid_payload
+    retriever, provider, _ = _make_retriever(tmp_path)
+    retriever.phase7_policy = replace(retriever.phase7_policy, threshold=2.0, low_score_action='abstain')
+    llm = FakeLLM(valid_payload())
+    with RAGAnswerCache() as cache:
+        service = CampusAIQueryService(retriever, GroundedAnswerGenerator(llm), cache=cache)
+        answer = service.ask('tuition policy', ['doc'], mode='phase7')
+        assert answer.abstained and not answer.citations and llm.calls == 0
+        assert service.last_retrieval == []
+        cached = service.ask('tuition policy', ['doc'], mode='phase7')
+        assert cached.answer == answer.answer and cached.abstained and cached.cache_hit
+        assert service.last_cache_hit and provider.calls == 1
+        retriever.phase7_policy = replace(retriever.phase7_policy, low_score_action='phase6')
+        service.ask('tuition policy', ['doc'], mode='phase7')
+        assert not service.last_cache_hit and provider.calls == 2 and llm.calls == 1

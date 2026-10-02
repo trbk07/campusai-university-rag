@@ -9,6 +9,7 @@ import sys
 
 from evaluation.release_artifacts import read_json, require_previous_gates
 from evaluation.reranker_release_gates import default_args, validate
+from evaluation.reranker_model_options import add_inference_options, inference_cli
 
 STAGES = {
     "baseline": "M0", "human-freeze": "M1", "candidate": "M2", "model": "M3",
@@ -37,7 +38,7 @@ def commands(args) -> list[list[str]]:
                         "--regression-dir", str(args.benchmark_dir), "--index-dir", str(args.index_dir),
                         "--output-dir", str(args.results_dir))]
     if args.stage == "model":
-        return [command("check_model_snapshot", *common, *model, "--output", str(args.results_dir / "model_snapshot_smoke.json")),
+        return [command("check_model_snapshot", *common, *model, "--dtype", args.dtype, *inference_cli(args), "--output", str(args.results_dir / "model_snapshot_smoke.json")),
                 command("check_reranker_faults", *common, "--gate", "M3")]
     if args.stage in {"route", "calibration"}:
         options = ["--results-dir", str(args.results_dir), "--index-dir", str(args.index_dir),
@@ -46,7 +47,8 @@ def commands(args) -> list[list[str]]:
             return [command("calibrate_hard_query_route", *options,
                             "--phase6-calibration", str(args.results_dir / "phase6_retrieval_calibration.json"),
                             "--output", str(args.results_dir / "hard_query_route_calibration.json"))]
-        return [command("sweep_reranker_caps", *options, *model)]
+        return [command("sweep_reranker_caps", *options, *model, "--dtype", args.dtype, *inference_cli(args),
+                        "--low-score-action", getattr(args, "low_score_action", "phase6"))]
     if args.stage == "performance":
         return [command("measure_reranker_capacity", *common, "--deployment-ram-bytes", str(args.deployment_ram_bytes),
                         "--profile", args.profile)]
@@ -88,7 +90,9 @@ def measurement_environment(args) -> dict[str, str]:
                RERANKER_MODEL_SHA256=identity.model_sha256, RERANKER_TOKENIZER_REVISION=identity.tokenizer_revision,
                RERANKER_MODEL_DIR=str(args.model_dir.resolve()), RERANKER_DEVICE=identity.device,
                RERANKER_BATCH_SIZE=str(identity.batch_size), RERANKER_MAX_LENGTH=str(identity.max_length),
-               RERANKER_CANDIDATE_CAP="40", RERANKER_TIMEOUT_MS="1000", RERANKER_QUEUE_LIMIT="2",
+               RERANKER_DTYPE=identity.dtype, RERANKER_SCORE_CACHE_SIZE="0",
+               RERANKER_BATCH_WINDOW_MS=str(identity.batch_window_ms), RERANKER_MAX_BATCH_PAIRS=str(identity.max_batch_pairs),
+               RERANKER_CANDIDATE_CAP="40", RERANKER_TIMEOUT_MS="1000", RERANKER_QUEUE_LIMIT=str(getattr(args, "queue_limit", 19)),
                RERANKER_WARMUP="true", RERANKER_CALIBRATION=str((args.results_dir / "reranker_score_calibration.json").resolve()))
     return env
 
@@ -102,6 +106,9 @@ def main(argv=None) -> int:
     parser.add_argument("--model-dir", type=Path)
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--dtype", choices=("float32", "float16", "bfloat16"), default="float32")
+    add_inference_options(parser)
+    parser.add_argument("--queue-limit", type=int, default=19)
     parser.add_argument("--deployment-ram-bytes", type=int)
     parser.add_argument("--profile", default="cpu-small")
     parser.add_argument("--cases", type=Path, default=Path("data/benchmark/reranker_adversarial.jsonl"))
@@ -110,6 +117,7 @@ def main(argv=None) -> int:
     parser.add_argument("--environment-id", default="local-staging")
     parser.add_argument("--staging-requests", type=int, default=100)
     parser.add_argument("--staging-concurrency", type=int, default=1)
+    parser.add_argument("--low-score-action", choices=("phase6", "abstain"), default="phase6")
     parser.add_argument("--readiness-output", type=Path, default=Path(".release/reranker/readiness.json"))
     parser.add_argument("--release-manifest", type=Path, default=Path("evaluation/results/reranker_release_manifest.json"))
     args = parser.parse_args(argv)
@@ -118,6 +126,8 @@ def main(argv=None) -> int:
         parser.error("--model-dir is required for this stage (local immutable snapshot)")
     if args.stage == "performance" and (args.deployment_ram_bytes is None or args.deployment_ram_bytes <= 0):
         parser.error("--deployment-ram-bytes must be the positive deployment limit")
+    if not 0 <= args.queue_limit <= 99:
+        parser.error("--queue-limit must be between 0 and 99")
     if args.stage == "staging" and (args.observations is None or args.fault_observations is None):
         parser.error("--observations and --fault-observations are required")
     try:

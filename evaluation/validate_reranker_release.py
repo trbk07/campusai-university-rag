@@ -31,6 +31,7 @@ def build_manifest(args, report: dict) -> dict:
                 "model_sha256": model["model_sha256"], "tokenizer_revision": model["tokenizer_revision"],
                 "reranker_model": {"name": model["model_name"], "revision": model["model_revision"], "sha256": model["model_sha256"]},
                 "device": model["device"], "candidate_cap": 40, "rerank_cap": calibration["rerank_candidate_cap"],
+                "resource_limits": read_json(args.performance)["resource_limits"],
                 "route_policy_sha256": sha256(args.route), "route_policy": sha256(args.route),
                 "phase6_calibration_sha256": sha256(args.phase6_calibration),
                 "phase7_calibration_sha256": sha256(args.calibration),

@@ -152,7 +152,7 @@ def test_cache_key_changes_for_every_scope_dimension():
         assert build_rag_cache_key(**changed) != original
 
 
-def test_corpus_version_changes_when_bm25_manifest_changes(tmp_path):
+def test_corpus_version_changes_when_bm25_manifest_changes(tmp_path, request):
     root = tmp_path / "index"
     doc_id = "d" * 64
     first_doc = Document(doc_id, "fixture.pdf", 1, chunks=[Chunk("c1", doc_id, 1, "course prerequisite")])
@@ -160,6 +160,7 @@ def test_corpus_version_changes_when_bm25_manifest_changes(tmp_path):
     retriever = FakeRetriever([])
     retriever.index_root = root
     service = CampusAIQueryService(retriever, GroundedAnswerGenerator(None))
+    request.addfinalizer(service.close)
     first = service.corpus_version()
     second_doc = Document(doc_id, "fixture.pdf", 1, chunks=[Chunk("c1", doc_id, 1, "course tuition changed")])
     build_document_indexes(second_doc, root)

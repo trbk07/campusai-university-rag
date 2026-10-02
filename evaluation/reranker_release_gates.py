@@ -231,17 +231,16 @@ def validate(args: Namespace) -> dict:
     check(5, calibration.get("invalid_score_rate") == 0, "calibration_invalid_scores_gate")
     check(5, 0 <= num(calibration.get("timeout_rate")) <= .01
           and 0 <= num(calibration.get("fallback_rate")) <= 1
+          and calibration.get("low_score_action", "phase6") in ("phase6", "abstain")
           and math.isfinite(num(calibration.get("threshold")))
           and 0 <= num(calibration.get("margin_threshold")), "calibration_policy_domain_gate")
     try:
-        from evaluation.calibrate_reranker_scores import _quality
+        from evaluation.calibrate_reranker_scores import _quality, calibrated_outputs
         observed = calibration["calibration_observations"]
         rows = rows_at(Path(cfg["benchmark_dir"]) / "human_retrieval_dev.jsonl")
         outputs = dict(observed["baseline"])
         check(5, set(outputs) == {row["qid"] for row in rows} and set(observed["proposals"]) <= set(outputs), "calibration_pair_identity_gate")
-        for qid, proposal in observed["proposals"].items():
-            if proposal["top_score"] >= calibration["threshold"] and proposal["margin"] >= calibration["margin_threshold"]:
-                outputs[qid] = proposal["results"]
+        outputs = calibrated_outputs(outputs, observed["proposals"], calibration)
         actual = _quality(rows, outputs)
         check(5, abs(actual["answerable_recall_at_5"] - calibration["recall"]) < 1e-9
               and actual["negative_fpr"] == calibration["false_positive_rate"], "calibration_recomputed_gate")
@@ -251,6 +250,8 @@ def validate(args: Namespace) -> dict:
                 raise ValueError("invalid sensitivity artifact path")
             bind(5, trial, "artifact_sha256", file_hash(Path(cfg["sensitivity"]).parent / relative))
             trial_report = read_json(Path(cfg["sensitivity"]).parent / relative)
+            check(5, trial_report.get("low_score_action", "phase6") == calibration.get("low_score_action", "phase6"),
+                  "sensitivity_low_score_action_binding")
             for key, expected in (("status", trial_report.get("status")), ("rerank_cap", trial_report.get("rerank_candidate_cap")),
                                   ("recall", trial_report.get("recall")), ("negative_fpr", trial_report.get("false_positive_rate")),
                                   ("p95_ms", obj(trial_report.get("rerank_latency_ms")).get("p95")),
@@ -288,6 +289,12 @@ def validate(args: Namespace) -> dict:
     for split in ("test", "holdout"):
         check(6, bool(obj(quality.get(split))), f"quality_{split}_gate")
     performance, budget, capacity = reports["performance"], reports["resource_budget"], reports["capacity"]
+    limits = performance.get("resource_limits")
+    check(7, isinstance(limits, dict) and set(limits) == {"timeout_ms", "queue_limit", "failure_limit", "score_cache_size"}
+          and all(type(value) is int for value in limits.values())
+          and limits.get("timeout_ms") == 1000 and 0 <= limits.get("queue_limit", -1) <= 99
+          and limits.get("failure_limit") == 3 and limits.get("score_cache_size") == 0
+          and limits == capacity.get("resource_limits"), "capacity_resource_limits_binding")
     ram = cfg["deployment_ram_bytes"] or budget.get("deployment_ram_bytes")
     peak = num(performance.get("peak_rss_bytes"), 0)
     check(7, num(ram, 0) > 0 and peak > 0 and peak <= .75 * num(ram, 0), "deployment_ram_headroom_gate")
@@ -307,6 +314,7 @@ def validate(args: Namespace) -> dict:
           and capacity.get("queue_overflow_request_failures") == 0, "capacity_gate")
     try:
         for profile in matrix:
+            check(7, profile.get("resource_limits") == limits, "capacity_profile_limits_binding")
             actual = summarize_samples(profile["samples"])
             check(7, actual == profile.get("summary") and actual["requests"] >= 100 and actual["errors"] == 0,
                   "capacity_recomputed_gate")

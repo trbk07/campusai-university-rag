@@ -21,6 +21,7 @@ class RuntimeKey:
     device: str
     max_length: int | None = None
     snapshot_sha256: str | None = None
+    dtype: str = "float32"
 
 
 class RetrievalModelRuntime:
@@ -49,18 +50,22 @@ class RetrievalModelRuntime:
             return self._models[key]
 
     def get_offline_reranker(self, snapshot_dir: str | Path, *, device: str = "cpu",
-                             max_length: int = 512, snapshot_sha256: str | None = None) -> Any:
+                             max_length: int = 512, snapshot_sha256: str | None = None,
+                             dtype: str = "float32") -> Any:
         """Load only a local verified snapshot, with an explicit token limit."""
         path = Path(snapshot_dir).resolve()
         if not path.is_dir():
             raise FileNotFoundError("reranker snapshot missing")
-        key = RuntimeKey("reranker_offline", str(path), device, max_length, snapshot_sha256)
+        if dtype not in {"float32", "float16", "bfloat16"} or (device == "cpu" and dtype != "float32"):
+            raise ValueError("unsupported reranker precision/device")
+        key = RuntimeKey("reranker_offline", str(path), device, max_length, snapshot_sha256, dtype)
         with self._lock:
             if key not in self._models:
                 from sentence_transformers import CrossEncoder
 
                 self._models[key] = CrossEncoder(str(path), device=device,
                                                   max_length=max_length,
+                                                  model_kwargs={"torch_dtype": dtype},
                                                   local_files_only=True)
             return self._models[key]
 

@@ -15,6 +15,7 @@ from campusai.retrieval.cross_encoder_provider import (
 )
 from campusai.retrieval.runtime_provenance import runtime_description
 from evaluation.release_artifacts import require_previous_gates, sha256, source_identity
+from evaluation.reranker_model_options import add_inference_options, inference_settings
 
 
 def main() -> int:
@@ -22,6 +23,8 @@ def main() -> int:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--device", default="cpu", help="Explicit cpu, cuda or cuda:N device")
+    parser.add_argument("--dtype", choices=("float32", "float16", "bfloat16"), default="float32")
+    add_inference_options(parser)
     parser.add_argument("--timeout-ms", type=int, default=10000)
     parser.add_argument("--output", type=Path, default=Path("evaluation/results/model_snapshot_smoke.json"))
     parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
@@ -38,7 +41,7 @@ def main() -> int:
         assert_tuning_allowed(args.results_dir, route=True)
     identity = ModelIdentity(args.model_name, args.model_dir.name,
                              snapshot_sha256(args.model_dir), args.model_dir.name,
-                             device=args.device)
+                             device=args.device, dtype=args.dtype, **inference_settings(args))
     provider = OfflineCrossEncoderReranker(identity, args.model_dir,
                                            timeout_ms=args.timeout_ms)
     started = time.perf_counter()

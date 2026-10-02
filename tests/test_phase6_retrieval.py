@@ -200,12 +200,13 @@ def test_phase6_cached_trace_matches_cached_results(tmp_path):
     assert json.dumps(retriever.last_trace.to_dict(), sort_keys=True) == first_trace
 
 
-def test_phase6_runtime_scopes_arbitrary_user_uploads_without_fixture_names(tmp_path):
+def test_phase6_runtime_scopes_arbitrary_user_uploads_without_fixture_names(tmp_path, request):
     alpha = [_record("alpha-1", "user-doc-alpha", "ORBITAL101 custom laboratory safety policy")]
     beta = [_record("beta-1", "user-doc-beta", "BOTANY202 greenhouse fieldwork policy")]
     _write_index(tmp_path, "user-doc-alpha", alpha)
     _write_index(tmp_path, "user-doc-beta", beta)
     service = CampusAIQueryService(HybridRetriever(tmp_path), None, default_mode="auto")
+    request.addfinalizer(service.close)
     assert [item.doc_id for item in service.retrieve(
         "What does ORBITAL101 require?", doc_ids=["user-doc-alpha"]
     )] == ["user-doc-alpha"]

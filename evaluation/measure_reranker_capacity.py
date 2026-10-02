@@ -132,6 +132,7 @@ def main() -> int:
             # profile. The bounded worker may still be finishing it.
             provider.drain()
             part = {"profile": args.profile, "device": provider.model_identity.device,
+                    "resource_limits": provider.resource_limits,
                     "rerank_cap": cap, "concurrency": concurrency, "samples": samples,
                     "provider_metrics": provider.metrics_snapshot(),
                     "phase7_enabled_after": retriever.phase7_enabled,
@@ -177,12 +178,14 @@ def main() -> int:
               and all(row["error_type"] is None for row in reranker_only_observations))
     status = "pass" if passed else "conditional"
     write_json(args.results_dir / "reranker_performance.json", {"schema_version": 2, "phase": 7, "status": status, **bindings,
+               "resource_limits": provider.resource_limits,
                "profile": args.profile, "samples": all_samples, "summary": summary, "cold_start_ms": cold_ms,
                "warmup_ms": warm_ms, "retrieval_only": retrieval_only, "reranker_only_ms": reranker_only,
                "reranker_only_observations": reranker_only_observations,
                "peak_rss_bytes": peak[0], "cpu_utilization_percent": process.cpu_percent()})
     overflow_errors = sum(s["error"] for p in profiles for s in p["samples"] if s["reason"] == "queue_full")
     write_json(args.results_dir / "reranker_capacity.json", {"status": status, **bindings, "profiles": profiles,
+               "resource_limits": provider.resource_limits,
                "release_rerank_cap": original_policy.rerank_candidate_cap, "deployment_device": provider.model_identity.device,
                "queue_overflow_request_failures": overflow_errors})
     write_json(args.results_dir / "reranker_resource_budget.json", {"status": status, **bindings,

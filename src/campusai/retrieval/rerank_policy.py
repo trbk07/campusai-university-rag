@@ -16,6 +16,23 @@ class Phase7PolicyError(ValueError):
     pass
 
 
+def score_action(top_score: float, margin: float, threshold: float,
+                 margin_threshold: float, low_score_action: str = "phase6") -> str:
+    """A low evidence score and an ambiguous ranking are distinct decisions.
+
+    Provider faults never reach this function. Only an explicitly calibrated
+    policy may abstain on a valid low score; a low rank margin keeps Phase 6.
+    """
+    if (low_score_action not in ("phase6", "abstain")
+            or any(type(value) not in (int, float) or not math.isfinite(value)
+                   for value in (top_score, margin, threshold, margin_threshold))
+            or margin < 0 or margin_threshold < 0):
+        raise Phase7PolicyError("invalid Phase 7 score decision")
+    if top_score < threshold:
+        return low_score_action
+    return "rerank" if margin >= margin_threshold else "phase6"
+
+
 @dataclass(frozen=True)
 class Phase7Policy:
     version: str
@@ -32,6 +49,7 @@ class Phase7Policy:
     rerank_candidate_cap: int = 40
     minimum_agreement: float = 0.0
     constraint_threshold: int = 0
+    low_score_action: str = "phase6"
 
     def __post_init__(self) -> None:
         values = (self.threshold, self.margin_threshold,
@@ -40,7 +58,8 @@ class Phase7Policy:
                 or self.margin_threshold < 0 or not 0 <= self.easy_confidence_threshold <= 1
                 or self.easy_margin_threshold < 0 or self.candidate_cap != 40
                 or not 1 <= self.rerank_candidate_cap <= self.candidate_cap
-                or not 0 <= self.minimum_agreement <= 1 or self.constraint_threshold < 0):
+                or not 0 <= self.minimum_agreement <= 1 or self.constraint_threshold < 0
+                or self.low_score_action not in ("phase6", "abstain")):
             raise Phase7PolicyError("invalid Phase 7 policy values")
         for value in (self.model_identity_sha256, self.index_sha256,
                       self.phase6_calibration_sha256, self.training_split_sha256):
@@ -78,7 +97,12 @@ class Phase7Policy:
                    hashlib.sha256(source.read_bytes()).hexdigest(),
                    int(data.get("rerank_candidate_cap", 40)),
                    float(data.get("minimum_agreement", 0.0)),
-                   int(data.get("constraint_threshold", 0)))
+                   int(data.get("constraint_threshold", 0)),
+                   data.get("low_score_action", "phase6"))
+
+    def score_action(self, top_score: float, margin: float) -> str:
+        return score_action(top_score, margin, self.threshold, self.margin_threshold,
+                            self.low_score_action)
 
     def route(self, query: str, candidates: list, trace: RoutingTrace) -> tuple[bool, str]:
         if trace.route in {"exact_code", "abstain"} or trace.abstained or not candidates:
@@ -109,7 +133,13 @@ def route_features(query: str, candidates: list) -> dict[str, float]:
     agreement = sum(set((getattr(item, "retriever_ranks", None) or {})) >= {"bm25", "dense"}
                     for item in head) / max(1, len(head))
     words = query.split()
-    constraints = len(re.findall(r"\b(?:19|20|21)\d{2}\b|[\"“][^\"”]+[\"”]|[<>]=?\s*\d+", query))
+    # Numbers, comparisons and independent clauses describe query structure,
+    # without corpus names, gold labels or difficulty/template identifiers.
+    # A year alone is common in easy factual questions; compound requirements
+    # and multiple numerical conditions distinguish more demanding requests.
+    constraints = len(re.findall(r"\b\d+(?:[.,]\d+)?\b|[\"“][^\"”]+[\"”]|[<>]=?|"
+                                 r"\b(?:nếu|if|unless|và|and|hoặc|or|cả|both|mọi|every|nhiều|multiple|cùng|same)\b",
+                                 query, flags=re.I))
     total = sum(max(0.0, float(item.fusion_score or 0.0)) for item in head)
     return {"query_length": float(len(words)), "constraints": float(constraints),
             "agreement": agreement, "distinct_documents": float(len({getattr(item, "doc_id", "") for item in head})),

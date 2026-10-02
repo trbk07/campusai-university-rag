@@ -360,9 +360,10 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     (results / "retrieval_ranking_regressions.jsonl").write_text("", encoding="utf-8")
     samples = [{"hard": True, "error": False, "latency_ms": 100, "rerank_selected": True} for _ in range(100)]
     summary = summarize_samples(samples)
-    save("performance", {"samples": samples, "summary": summary, "peak_rss_bytes": 100,
+    limits = {"timeout_ms": 1000, "queue_limit": 19, "failure_limit": 3, "score_cache_size": 0}
+    save("performance", {"resource_limits": limits, "samples": samples, "summary": summary, "peak_rss_bytes": 100,
                          "cold_start_ms": 1, "warmup_ms": 1, "cpu_utilization_percent": 5})
-    save("capacity", {"release_rerank_cap": 10, "deployment_device": "cpu", "profiles": [{"rerank_cap": cap, "concurrency": n, "samples": samples, "summary": summary}
+    save("capacity", {"resource_limits": limits, "release_rerank_cap": 10, "deployment_device": "cpu", "profiles": [{"resource_limits": limits, "rerank_cap": cap, "concurrency": n, "samples": samples, "summary": summary}
                                     for cap, n in ((8, 1), (10, 1), (20, 1), (10, 5), (10, 20))], "queue_overflow_request_failures": 0})
     save("resource_budget", {"deployment_ram_bytes": 10000})
     security_cases = [{"id": str(i), "category": sorted(CATEGORIES)[i % len(CATEGORIES)],
@@ -407,6 +408,10 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     assert manifest["model_revision"] == identity.model_revision
     assert manifest["route_policy_sha256"] == sha256(args.route)
     assert manifest["gates"]["M6"]["artifact_sha256"]["retrieval_quality_comparison.json"] == sha256(args.quality)
+    calibration = json.loads(args.calibration.read_text(encoding='utf-8'))
+    write_json(args.calibration, {**calibration, 'low_score_action': 'unknown_action'})
+    assert 'calibration_policy_domain_gate' in validate(args)['errors']
+    write_json(args.calibration, calibration)
     smoke = json.loads(args.smoke.read_text(encoding="utf-8"))
     write_json(args.smoke, {**smoke, "runtime_sha256": "0"*64})
     assert "runtime_sha256_binding" in validate(args)["errors"]

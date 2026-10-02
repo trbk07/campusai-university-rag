@@ -85,6 +85,7 @@ def test_phase7_valid_opt_in_binds_model_index_and_cache_key(tmp_path, device):
     from campusai.retrieval.runtime_provenance import runtime_sha256
     release = tmp_path / "release_manifest.json"
     manifest = {"status": "pass", "score": 10.0, "errors": [],
+                "resource_limits": {"timeout_ms": 1000, "queue_limit": 2, "failure_limit": 3, "score_cache_size": 0},
                 "gates": {f"M{i}": {"status": "PASS"} for i in range(13)},
                 "runtime_sha256": runtime_sha256(), "model_identity_sha256": identity.fingerprint,
                 "index_sha256": digest(index / "manifest.json"), "device": device,
@@ -101,7 +102,7 @@ def test_phase7_valid_opt_in_binds_model_index_and_cache_key(tmp_path, device):
         assert production.phase7_enabled
     finally:
         production.phase7_provider.close()
-    for changed in ({"runtime_sha256": "0"*64}, {"score": None}, {"device": "invalid"},
+    for changed in ({"runtime_sha256": "0"*64}, {"score": None}, {"device": "invalid"}, {"resource_limits": {}},
                     {"gates": {f"M{i}": {"status": "CONDITIONAL" if i == 6 else "PASS"} for i in range(13)}}):
         release.write_text(json.dumps({**manifest, **changed}), encoding="utf-8")
         assert not build_phase7_retriever(index, calibration, dev, environ=env).phase7_enabled

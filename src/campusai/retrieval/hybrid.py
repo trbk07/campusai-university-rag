@@ -627,7 +627,16 @@ class HybridRetriever:
         if invalid:
             return disable("reranker_provenance_invalid")
         margin = ranked[0].reranker_score - ranked[1].reranker_score if len(ranked) > 1 else 0.0
-        if ranked[0].reranker_score < policy.threshold or margin < policy.margin_threshold:
+        try:
+            action = policy.score_action(ranked[0].reranker_score, margin)
+        except ValueError:
+            return disable("reranker_provenance_invalid")
+        if action == "abstain":
+            output = finish([], True, "reranker_no_evidence")
+            self.last_trace = replace(self.last_trace, abstained=True,
+                                      abstention_reason="reranker_no_evidence")
+            return output
+        if action == "phase6":
             return finish(baseline[:top_k], False, "reranker_score_or_margin_below_threshold")
         results = [replace(by_id[item.candidate_id], rank=rank,
                            reranker_score=item.reranker_score, retriever="hybrid_rerank")

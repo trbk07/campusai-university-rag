@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from html import escape
 from typing import Callable
 
@@ -32,9 +33,26 @@ def make_wsgi_app(application: CampusAIApplication) -> Callable:
             return _json_response(value, start_response)
         if path == "/api/query" and method == "POST":
             try:
-                length = min(int(environ.get("CONTENT_LENGTH") or 0), 64_000)
+                length = int(environ.get("CONTENT_LENGTH") or 0)
+                if not 0 < length <= 64_000:
+                    raise ValueError("query body size outside allowed range")
                 payload = json.loads(environ["wsgi.input"].read(length))
-                value = application.query(payload.get("question", ""))
+                if not isinstance(payload, dict):
+                    raise ValueError("query payload must be an object")
+                options = {key: payload[key] for key in ("doc_ids", "filters", "top_k", "language") if key in payload}
+                if "doc_ids" in options and (not isinstance(options["doc_ids"], list)
+                        or not options["doc_ids"] or any(not isinstance(doc, str) or not doc for doc in options["doc_ids"])):
+                    raise ValueError("invalid document scope")
+                if "filters" in options and not isinstance(options["filters"], dict):
+                    raise ValueError("invalid filters")
+                if "top_k" in options and (type(options["top_k"]) is not int or not 1 <= options["top_k"] <= 40):
+                    raise ValueError("invalid top_k")
+                if options.get("language", "vi") not in {"vi", "en"}:
+                    raise ValueError("invalid language")
+                # Assign cohort identity on the server; payload mode/id cannot
+                # force admission or bypass release policy.
+                options["request_id"] = uuid.uuid4().hex
+                value = application.query(payload.get("question", ""), **options)
                 return _json_response(value, start_response, 200 if value.get("ok") else 400)
             except (ValueError, json.JSONDecodeError):
                 return _json_response({"ok": False, "error_code": "invalid_json"}, start_response, 400)

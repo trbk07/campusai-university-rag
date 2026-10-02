@@ -6,6 +6,8 @@ import hashlib
 import json
 import re
 import threading
+from contextlib import contextmanager
+from collections.abc import Iterator
 from typing import Any
 
 from ..llm.cache import SQLiteLLMCache
@@ -70,12 +72,8 @@ class RAGAnswerCache:
 
     def __init__(self, path: str = ":memory:") -> None:
         self._store = SQLiteLLMCache(path)
-        self._locks: dict[str, threading.Lock] = {}
+        self._locks: dict[str, tuple[threading.Lock, int]] = {}
         self._guard = threading.RLock()
-
-    def _lock_for(self, key: str) -> threading.Lock:
-        with self._guard:
-            return self._locks.setdefault(key, threading.Lock())
 
     def get(self, key: str) -> GroundedAnswer | None:
         cached = self._store.get(key)
@@ -132,8 +130,24 @@ class RAGAnswerCache:
         payload = json.dumps(answer.to_dict(), ensure_ascii=False, sort_keys=True)
         self._store.put(key, payload, {"kind": "basic_rag_grounded_answer"}, 0.0)
 
-    def lock(self, key: str) -> threading.Lock:
-        return self._lock_for(key)
+    @contextmanager
+    def lock(self, key: str) -> Iterator[None]:
+        # Count holders and waiters before acquisition. A lock cannot be
+        # replaced while another request waits, and idle query keys do not
+        # accumulate for the lifetime of the service.
+        with self._guard:
+            lock, users = self._locks.get(key, (threading.Lock(), 0))
+            self._locks[key] = (lock, users + 1)
+        try:
+            with lock:
+                yield
+        finally:
+            with self._guard:
+                _, users = self._locks[key]
+                if users == 1:
+                    del self._locks[key]
+                else:
+                    self._locks[key] = (lock, users - 1)
 
     def close(self) -> None:
         self._store.close()

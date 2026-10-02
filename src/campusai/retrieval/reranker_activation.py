@@ -41,6 +41,9 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
             device=config.get("RERANKER_DEVICE", "cpu"),
             batch_size=int(config.get("RERANKER_BATCH_SIZE", "8")),
             max_length=int(config.get("RERANKER_MAX_LENGTH", "512")),
+            dtype=config.get("RERANKER_DTYPE", "float32"),
+            batch_window_ms=float(config.get("RERANKER_BATCH_WINDOW_MS", "0")),
+            max_batch_pairs=int(config.get("RERANKER_MAX_BATCH_PAIRS", "200")),
         )
         policy = Phase7Policy.from_report(
             config["RERANKER_CALIBRATION"], model_identity=identity,
@@ -69,7 +72,13 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
             timeout_ms=int(config.get("RERANKER_TIMEOUT_MS", "1000")),
             candidate_cap=candidate_cap,
             queue_limit=int(config.get("RERANKER_QUEUE_LIMIT", "2")),
+            score_cache_size=int(config.get("RERANKER_SCORE_CACHE_SIZE", "0")),
+            batch_window_ms=float(config.get("RERANKER_BATCH_WINDOW_MS", "0")),
+            max_batch_pairs=int(config.get("RERANKER_MAX_BATCH_PAIRS", "200")),
         )
+        if (config.get("RERANKER_DEPLOYMENT", "experimental") == "production"
+                and release.get("resource_limits") != provider.resource_limits):
+            raise Phase7PolicyError("production resource limits do not match measured release")
         provider.verify_snapshot()
         if config.get("RERANKER_WARMUP", "false").casefold() == "true":
             provider.warm_up()

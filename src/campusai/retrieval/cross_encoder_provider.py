@@ -6,7 +6,8 @@ must preserve their Phase 6 fused result when ``RerankerUnavailable`` occurs.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout
+from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeout
+from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass
 import hashlib
 import json
@@ -53,6 +54,8 @@ class ModelIdentity:
     max_length: int = 512
     batch_size: int = 8
     normalization: str = "raw_logit"
+    batch_window_ms: float = 0.0
+    max_batch_pairs: int = 200
 
     def __post_init__(self) -> None:
         supported_device = self.device == "cpu" or bool(re.fullmatch(r"cuda(?::[0-9]+)?", self.device))
@@ -60,9 +63,14 @@ class ModelIdentity:
                 or self.tokenizer_revision != self.model_revision
                 or len(self.model_sha256) != 64 or any(char not in "0123456789abcdef" for char in self.model_sha256)
                 or self.provider != "sentence_transformers" or not supported_device
-                or self.dtype != "float32" or not 1 <= self.batch_size <= 16
-                or not 1 <= self.max_length <= 1024 or self.normalization != "raw_logit"):
+                or self.dtype not in {"float32", "float16", "bfloat16"}
+                or (self.device == "cpu" and self.dtype != "float32")
+                or type(self.batch_size) is not int or not 1 <= self.batch_size <= (16 if self.device == "cpu" else 64)
+                or type(self.max_length) is not int or not 1 <= self.max_length <= 1024 or self.normalization != "raw_logit"):
             raise ValueError("invalid reranker model identity")
+        if (not math.isfinite(self.batch_window_ms) or not 0 <= self.batch_window_ms <= 10
+                or type(self.max_batch_pairs) is not int or not 40 <= self.max_batch_pairs <= 400):
+            raise ValueError("invalid inference batching identity")
         if any(marker in self.model_name for marker in ("\\", ":", "..")) or self.model_name.startswith("/"):
             raise ValueError("model_name must be a canonical repository ID, not a local path")
 
@@ -111,8 +119,12 @@ class OfflineCrossEncoderReranker:
     def __init__(self, model_identity: ModelIdentity, model_dir: str | Path, *,
                  timeout_ms: int = 1000, candidate_cap: int = 40,
                  queue_limit: int = 2, failure_limit: int = 3,
+                 score_cache_size: int = 0,
+                 batch_window_ms: float | None = None, max_batch_pairs: int | None = None,
                  model_loader: Callable[[], object] | None = None) -> None:
-        if not 1 <= candidate_cap <= 60 or not 1 <= timeout_ms <= 60000 or queue_limit < 0 or failure_limit < 1:
+        if (any(type(value) is not int for value in (candidate_cap, timeout_ms, queue_limit, failure_limit))
+                or not 1 <= candidate_cap <= 60 or not 1 <= timeout_ms <= 60000
+                or not 0 <= queue_limit <= 99 or failure_limit < 1):
             raise ValueError("invalid reranker resource limits")
         self.model_identity = model_identity
         self.model_name = model_identity.model_name
@@ -122,8 +134,8 @@ class OfflineCrossEncoderReranker:
         self.timeout_ms = timeout_ms
         self.candidate_cap = candidate_cap
         self.failure_limit = failure_limit
+        self.queue_limit = queue_limit
         self._permits = BoundedSemaphore(1 + queue_limit)
-        self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="phase7-reranker")
         self._submitted = self._completed = self._cancelled = self._rejected = 0
         self._pending = self._active = self._max_queue_depth = 0
         self._queue_wait_ms = self._max_queue_wait_ms = self._worker_ms = 0.0
@@ -133,24 +145,51 @@ class OfflineCrossEncoderReranker:
         self._closed = False
         self._verified = False
         self._model = None
+        if type(score_cache_size) is not int or not 0 <= score_cache_size <= 4096:
+            raise ValueError("invalid score cache size")
+        self._score_cache_size = score_cache_size
+        self._score_cache: OrderedDict[str, tuple[float, ...]] = OrderedDict()
+        self._cache_hits = 0
+        batch_window_ms = model_identity.batch_window_ms if batch_window_ms is None else batch_window_ms
+        max_batch_pairs = model_identity.max_batch_pairs if max_batch_pairs is None else max_batch_pairs
+        if (batch_window_ms != model_identity.batch_window_ms or max_batch_pairs != model_identity.max_batch_pairs
+                or not math.isfinite(batch_window_ms) or not 0 <= batch_window_ms <= 10
+                or type(max_batch_pairs) is not int or not candidate_cap <= max_batch_pairs <= 400):
+            raise ValueError("invalid inference batching limits")
+        if score_cache_size and batch_window_ms:
+            raise ValueError("batched inference uses uncached scores; enable the service answer cache instead")
+        self._batch_window_ms = batch_window_ms
+        self._max_batch_pairs = max_batch_pairs
+        self._batch_queue = deque()
+        self._batch_running = False
+        self._inference_batches = self._max_batch_requests = 0
         self._loader = model_loader or (lambda: retrieval_runtime().get_offline_reranker(
             self.model_dir, device=model_identity.device,
-            max_length=model_identity.max_length, snapshot_sha256=model_identity.model_sha256))
+            max_length=model_identity.max_length, snapshot_sha256=model_identity.model_sha256,
+            dtype=model_identity.dtype))
+        self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="phase7-reranker")
 
     @property
     def fingerprint(self) -> str:
         return self.model_identity.fingerprint
 
+    @property
+    def resource_limits(self) -> dict:
+        return {"timeout_ms": self.timeout_ms, "queue_limit": self.queue_limit,
+                "failure_limit": self.failure_limit, "score_cache_size": self._score_cache_size}
+
     def _predict(self, query: str, candidates: Sequence[RerankCandidate]) -> list[float]:
+        return self._predict_pairs([(query[:2048], item.content[:8192]) for item in candidates])
+
+    def _predict_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
         self.verify_snapshot()
         if self._model is None:
             self._model = self._loader()
         model = self._model
-        pairs = [(query[:2048], item.content[:8192]) for item in candidates]
         values = model.predict(pairs, batch_size=self.model_identity.batch_size,
                                show_progress_bar=False, activation_fn=lambda value: value)
         scores = [float(value) for value in values]
-        if len(scores) != len(candidates) or any(not math.isfinite(value) for value in scores):
+        if len(scores) != len(pairs) or any(not math.isfinite(value) for value in scores):
             raise RerankerUnavailable("invalid_model_scores")
         return scores
 
@@ -169,7 +208,82 @@ class OfflineCrossEncoderReranker:
                     "active_requests": self._active, "queue_depth": max(0, self._pending - int(self._active == 0)),
                     "max_queue_depth": self._max_queue_depth, "queue_wait_ms_total": self._queue_wait_ms,
                     "max_queue_wait_ms": self._max_queue_wait_ms, "worker_ms_total": self._worker_ms,
-                    "closed": self._closed, "failure_count": self._failures}
+                    "closed": self._closed, "failure_count": self._failures,
+                    "score_cache_hits": self._cache_hits, "score_cache_entries": len(self._score_cache),
+                    "inference_batches": self._inference_batches, "max_batch_requests": self._max_batch_requests}
+
+    def _drain_batches(self):
+        """One worker coalesces pending requests; outputs remain per-request.
+
+        Cancelled queued requests never reach the model. Running native work
+        holds admission until it actually finishes, including after timeout.
+        """
+        while True:
+            jobs = []
+            with self._idle:
+                if self._closed or not self._batch_queue:
+                    self._batch_running = False
+                    return
+                self._idle.wait(self._batch_window_ms / 1000)
+                count = 0
+                while self._batch_queue:
+                    future, query, candidates, enqueued = self._batch_queue[0]
+                    if future.cancelled():
+                        self._batch_queue.popleft()
+                        continue
+                    if count + len(candidates) > self._max_batch_pairs:
+                        break
+                    self._batch_queue.popleft()
+                    if not future.set_running_or_notify_cancel():
+                        continue
+                    if self._closed:
+                        # close() cancels queued futures outside the state lock.
+                        # Leave this future running only until cleanup below.
+                        jobs.append((future, query, candidates, enqueued))
+                        break
+                    jobs.append((future, query, candidates, enqueued))
+                    count += len(candidates)
+                self._pending -= len(jobs)
+                self._active += len(jobs)
+                now = time.perf_counter()
+                for _, _, _, enqueued in jobs:
+                    waited = (now - enqueued) * 1000
+                    self._queue_wait_ms += waited
+                    self._max_queue_wait_ms = max(self._max_queue_wait_ms, waited)
+            if not jobs:
+                continue
+            started = time.perf_counter()
+            outputs, error = [], None
+            try:
+                if self._closed:
+                    raise RerankerUnavailable("feature_disabled")
+                pairs = [(query[:2048], item.content[:8192]) for _, query, candidates, _ in jobs for item in candidates]
+                scores = self._predict_pairs(pairs)
+                offset = 0
+                for _, _, candidates, _ in jobs:
+                    outputs.append(scores[offset:offset + len(candidates)])
+                    offset += len(candidates)
+                with self._state_lock:
+                    self._inference_batches += 1
+                    self._max_batch_requests = max(self._max_batch_requests, len(jobs))
+            except Exception as exc:
+                error = exc
+            finally:
+                with self._idle:
+                    self._active -= len(jobs)
+                    self._completed += len(jobs)
+                    self._worker_ms += (time.perf_counter() - started) * 1000
+                    self._idle.notify_all()
+            for index, (future, _, _, _) in enumerate(jobs):
+                if error is not None:
+                    future.set_exception(error)
+                else:
+                    future.set_result(outputs[index])
+
+    def _score_key(self, query, candidates):
+        payload = [self.fingerprint, query,
+                   [(c.candidate_id, c.doc_id, c.chunk_id, c.page, c.content) for c in candidates]]
+        return hashlib.sha256(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
 
     def _predict_queued(self, query, candidates, enqueued_at):
         started = time.perf_counter()
@@ -180,7 +294,20 @@ class OfflineCrossEncoderReranker:
             self._queue_wait_ms += waited
             self._max_queue_wait_ms = max(self._max_queue_wait_ms, waited)
         try:
-            return self._predict(query, candidates)
+            key = self._score_key(query, candidates)
+            with self._state_lock:
+                cached = self._score_cache.get(key)
+                if cached is not None:
+                    self._score_cache.move_to_end(key)
+                    self._cache_hits += 1
+                    return list(cached)
+            scores = self._predict(query, candidates)
+            with self._state_lock:
+                if self._score_cache_size and not self._closed:
+                    self._score_cache[key] = tuple(scores)
+                    while len(self._score_cache) > self._score_cache_size:
+                        self._score_cache.popitem(last=False)
+            return scores
         finally:
             with self._state_lock:
                 self._active -= 1
@@ -198,6 +325,8 @@ class OfflineCrossEncoderReranker:
 
     def score(self, query: str, candidates: Sequence[RerankCandidate], *,
               timeout_ms: int | None = None) -> list[RerankedCandidate]:
+        if timeout_ms is not None and (type(timeout_ms) is not int or not 1 <= timeout_ms <= 60000):
+            raise ValueError("invalid inference timeout override")
         if not candidates:
             return []
         if not query.strip() or len(candidates) > self.candidate_cap:
@@ -206,7 +335,8 @@ class OfflineCrossEncoderReranker:
         if (len(ids) != len(set(ids)) or len({item.candidate_id for item in candidates}) != len(candidates)
                 or any(not item.candidate_id or not item.doc_id or not item.chunk_id
                        or isinstance(item.page, bool) or not isinstance(item.page, int) or item.page < 1
-                       or item.original_rank < 1 or not math.isfinite(item.original_rrf_score)
+                       or type(item.original_rank) is not int or item.original_rank < 1
+                       or type(item.original_rrf_score) not in (int, float) or not math.isfinite(item.original_rrf_score)
                        for item in candidates)):
             raise RerankerUnavailable("invalid_candidate_provenance")
         with self._state_lock:
@@ -220,11 +350,21 @@ class OfflineCrossEncoderReranker:
                 self._rejected += 1
                 raise RerankerUnavailable("queue_full")
             try:
-                future = self._executor.submit(self._predict_queued, query, tuple(candidates), time.perf_counter())
+                if self._batch_window_ms:
+                    future = Future()
+                    self._batch_queue.append((future, query, tuple(candidates), time.perf_counter()))
+                    if not self._batch_running:
+                        self._batch_running = True
+                        self._executor.submit(self._drain_batches)
+                else:
+                    future = self._executor.submit(self._predict_queued, query, tuple(candidates), time.perf_counter())
                 self._pending += 1
                 self._submitted += 1
                 self._max_queue_depth = max(self._max_queue_depth, max(0, self._pending - int(self._active == 0)))
             except Exception as error:
+                if self._batch_window_ms:
+                    self._batch_queue.pop()
+                    self._batch_running = False
                 self._permits.release()
                 raise RerankerUnavailable("reranker_submit_failed") from error
         future.add_done_callback(self._release_admission)
@@ -275,4 +415,8 @@ class OfflineCrossEncoderReranker:
     def close(self) -> None:
         with self._state_lock:
             self._closed = True
+            self._score_cache.clear()
+            queued = [job[0] for job in self._batch_queue]
+        for future in queued:
+            future.cancel()
         self._executor.shutdown(wait=False, cancel_futures=True)

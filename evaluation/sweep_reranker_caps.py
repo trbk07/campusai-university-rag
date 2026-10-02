@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import sys
 from evaluation.release_artifacts import read_json, require_previous_gates, sha256, write_json, assert_tuning_allowed
+from evaluation.reranker_model_options import add_inference_options, inference_cli
 
 
 def main() -> int:
@@ -13,10 +14,13 @@ def main() -> int:
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--device", default="cpu")
+    parser.add_argument("--dtype", choices=("float32", "float16", "bfloat16"), default="float32")
+    add_inference_options(parser)
     parser.add_argument("--index-dir", type=Path, default=Path(".tmp/phase6-index"))
     parser.add_argument("--dev", type=Path, default=Path("data/benchmark/human_retrieval_dev.jsonl"))
     parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
     parser.add_argument("--p95-budget-ms", type=float, default=1000)
+    parser.add_argument("--low-score-action", choices=("phase6", "abstain"), default="phase6")
     args = parser.parse_args()
     require_previous_gates("M5", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
     assert_tuning_allowed(args.results_dir)
@@ -26,10 +30,10 @@ def main() -> int:
         output = trial_dir / f"cap-{cap}.json"
         command = [sys.executable, "-m", "evaluation.calibrate_reranker_scores", "--dev", str(args.dev),
                    "--model-dir", str(args.model_dir), "--model-name", args.model_name, "--device", args.device,
-                   "--index-dir", str(args.index_dir), "--results-dir", str(args.results_dir),
+                   "--dtype", args.dtype, *inference_cli(args), "--index-dir", str(args.index_dir), "--results-dir", str(args.results_dir),
                    "--phase6-calibration", str(args.results_dir / "phase6_retrieval_calibration.json"),
                    "--route-calibration", str(args.results_dir / "hard_query_route_calibration.json"),
-                   "--rerank-cap", str(cap), "--output", str(output)]
+                   "--rerank-cap", str(cap), "--low-score-action", args.low_score_action, "--output", str(output)]
         subprocess.run(command, check=False)
         report = read_json(output)
         trials.append({"rerank_cap": cap, "status": report["status"], "recall": report["recall"],

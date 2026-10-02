@@ -69,6 +69,8 @@ class CampusAIApplication:
 
     def close(self) -> None:
         """Gracefully stop worker and cache resources."""
-        if self.jobs is not None:
-            self.jobs.shutdown(wait=True)
-        self.query_service.close()
+        try:
+            if self.jobs is not None:
+                self.jobs.shutdown(wait=True)
+        finally:
+            self.query_service.close()
