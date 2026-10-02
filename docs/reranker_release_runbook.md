@@ -108,6 +108,11 @@ provider trả Phase 6. `--evidence-policy score` và `--low-score-action` chỉ
 dùng để khảo sát; chúng không đạt M5 release. Phép đo trên câu hỏi tự nhiên cho
 thấy threshold fit trên 57 câu formal chưa chuyển tốt; xem
 [báo cáo vòng 3](phase7_loop3_report.md) trước khi chọn abstain.
+M4 release cũng dùng xác suất hard-query từ bảy đặc trưng truy xuất và cấu
+trúc câu hỏi, fit theo các nhóm paraphrase/source/template trên dev. Ngưỡng
+chọn bằng dự đoán out-of-fold và được kiểm tra lại trên model cuối; test và
+holdout chỉ được mở sau khi route artifact đã đóng băng. Query ngoài vùng đo
+được xử lý theo Phase 6. `--route-policy threshold` chỉ dành cho khảo sát.
 M7 lưu `reranker_http_end_to_end.json`: HTTP thật với LLM thật, cache tắt,
 100 request mỗi mức đồng thời 1/5/10/20, cả easy/hard/negative/scoped. Báo cáo
 giữ từng request và thời gian routing, retrieval, queue, inference, LLM,

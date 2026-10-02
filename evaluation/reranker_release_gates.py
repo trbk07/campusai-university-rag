@@ -194,7 +194,17 @@ def validate(args: Namespace) -> dict:
     check(4, route.get("calibration_split") == "dev" and route.get("holdout_used") is False
           and route.get("test_used") is False and route.get("feature_leakage_review") == "pass"
           and num(metrics.get("hard_recall"), 0) >= .95 and num(metrics.get("easy_unnecessary_rerank_rate")) <= .20, "hard_route_gate")
-    check(4, route.get("feature_allowlist") == ["confidence", "margin", "agreement", "constraints"], "route_feature_allowlist_gate")
+    from campusai.retrieval.route_probability import FEATURES as ROUTE_FEATURES
+    check(4, route.get("feature_allowlist") == list(ROUTE_FEATURES)
+          and isinstance(route.get("route_model"), dict), "route_feature_allowlist_gate")
+    try:
+        from evaluation.calibrate_route_probabilities import fit_route_probabilities
+        fitted, diagnostics, feasible = fit_route_probabilities(
+            route["samples"], rows_at(Path(cfg["benchmark_dir"]) / "human_retrieval_dev.jsonl"))
+        check(4, feasible and fitted == route.get("route_model")
+              and diagnostics == route.get("route_diagnostics"), "route_grouped_probability_recomputed_gate")
+    except (ValueError, KeyError, TypeError, OSError):
+        problems[4].append("route_grouped_probability_evidence_gate")
     bind(4, route, "training_split_sha256", obj(human.get("split_sha256")).get("dev"))
     bind(4, confusion, "route_calibration_sha256", file_hash(cfg["route"]))
     for split, hard, easy in (("dev", .95, .20), ("test", .90, .25), ("holdout", .90, .25)):
@@ -207,11 +217,18 @@ def validate(args: Namespace) -> dict:
         try:
             from evaluation.calibrate_hard_query_route import route_metrics
             actual = route_metrics(part["samples"], route["easy_confidence_threshold"], route["easy_margin_threshold"],
-                                   route.get("minimum_agreement", 0), route.get("constraint_threshold", 0))
+                                   route.get("minimum_agreement", 0), route.get("constraint_threshold", 0),
+                                   route.get("route_model"))
             check(4, all(part.get(key) == value for key, value in actual.items()), f"route_{split}_recomputed_gate")
             if split == "dev":
                 check(4, route.get("routing_metrics") == actual, "route_dev_calibration_metrics_gate")
             labels = {r["qid"]: r["difficulty"] for r in rows_at(Path(cfg["benchmark_dir"]) / f"human_retrieval_{split}.jsonl")}
+            sampled = [s["qid"] for s in part["samples"]]
+            bypass = part["bypass"]
+            check(4, len(sampled) == len(set(sampled)) and set(sampled) <= set(labels)
+                  and set(bypass) == {"exact_or_abstained", "single_candidate"}
+                  and all(type(value) is int and value >= 0 for value in bypass.values())
+                  and len(sampled) + sum(bypass.values()) == len(labels), f"route_{split}_coverage_gate")
             check(4, all(labels.get(s["qid"]) == s["difficulty"] for s in part["samples"]), f"route_{split}_labels_gate")
         except (ValueError, KeyError, TypeError, OSError):
             problems[4].append(f"route_{split}_evidence_gate")
@@ -224,6 +241,7 @@ def validate(args: Namespace) -> dict:
                           ("training_split_sha256", obj(human.get("split_sha256")).get("dev")),
                           ("model_identity_sha256", smoke.get("model_identity_sha256"))):
         bind(5, calibration, key, expected)
+    check(5, calibration.get("route_model") == route.get("route_model"), "calibration_route_model_binding_gate")
     trials = sensitivity.get("trials", [])
     check(5, isinstance(trials, list) and {8, 10, 12, 16, 20} <= {p.get("rerank_cap") for p in trials if isinstance(p, dict)}
           and sensitivity.get("calibration_split") == "dev" and sensitivity.get("test_used") is False

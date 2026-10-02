@@ -51,6 +51,7 @@ class Phase7Policy:
     constraint_threshold: int = 0
     low_score_action: str = "phase6"
     evidence_model: object | None = None
+    route_model: object | None = None
 
     def __post_init__(self) -> None:
         if self.evidence_model is not None:
@@ -61,6 +62,14 @@ class Phase7Policy:
                 object.__setattr__(self, "evidence_model", model)
             if not isinstance(model, EvidenceProbabilityModel):
                 raise Phase7PolicyError("invalid evidence probability policy")
+        if self.route_model is not None:
+            from .route_probability import RouteProbabilityModel
+            route = self.route_model
+            if isinstance(route, dict):
+                route = RouteProbabilityModel.from_dict(route)
+                object.__setattr__(self, "route_model", route)
+            if not isinstance(route, RouteProbabilityModel):
+                raise Phase7PolicyError("invalid routing probability policy")
         values = (self.threshold, self.margin_threshold,
                   self.easy_confidence_threshold, self.easy_margin_threshold)
         if (not self.version or any(not math.isfinite(value) for value in values)
@@ -107,7 +116,7 @@ class Phase7Policy:
                    int(data.get("rerank_candidate_cap", 40)),
                    float(data.get("minimum_agreement", 0.0)),
                    int(data.get("constraint_threshold", 0)),
-                   data.get("low_score_action", "phase6"), data.get("evidence_model"))
+                   data.get("low_score_action", "phase6"), data.get("evidence_model"), data.get("route_model"))
 
     def score_action(self, top_score: float, margin: float, *, features: dict | None = None) -> str:
         if self.evidence_model is not None:
@@ -122,6 +131,10 @@ class Phase7Policy:
             return False, "exact_or_abstained"
         if len(candidates) < 2:
             return False, "single_candidate"
+        if self.route_model is not None:
+            from .route_probability import route_observations
+            return ((True, "hard_probability") if self.route_model.selects(route_observations(query, candidates))
+                    else (False, "easy_or_uncertain_probability"))
         features = route_features(query, candidates) if self.minimum_agreement or self.constraint_threshold else {}
         if self.minimum_agreement and features["agreement"] < self.minimum_agreement:
             return True, "hard_retrieval_disagreement"

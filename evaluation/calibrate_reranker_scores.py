@@ -177,6 +177,10 @@ def main() -> int:
     if not rows or any(row.get("split") != "dev" for row in rows):
         raise SystemExit("reranker calibration accepts only dev rows")
     route = json.loads(args.route_calibration.read_text(encoding="utf-8"))
+    route_model = None
+    if route.get("route_model") is not None:
+        from campusai.retrieval.route_probability import RouteProbabilityModel
+        route_model = RouteProbabilityModel.from_dict(route["route_model"])
     if (route.get("calibration_split") != "dev" or route.get("holdout_used") is not False
             or route.get("training_split_sha256") != _sha(args.dev)
             or route.get("index_sha256") != _sha(args.index_dir / "manifest.json")
@@ -214,9 +218,13 @@ def main() -> int:
             fusion_margin = max(0.0, float(results[0].fusion_score or 0.0)
                                 - float(results[1].fusion_score or 0.0))
             features = route_features(row["question"], results)
-            hard = (confidence < route["easy_confidence_threshold"] or fusion_margin < route["easy_margin_threshold"]
-                    or (route.get("minimum_agreement", 0) and features["agreement"] < route["minimum_agreement"])
-                    or (route.get("constraint_threshold", 0) and features["constraints"] >= route["constraint_threshold"]))
+            if route_model is not None:
+                from campusai.retrieval.route_probability import route_observations
+                hard = route_model.selects(route_observations(row["question"], results))
+            else:
+                hard = (confidence < route["easy_confidence_threshold"] or fusion_margin < route["easy_margin_threshold"]
+                        or (route.get("minimum_agreement", 0) and features["agreement"] < route["minimum_agreement"])
+                        or (route.get("constraint_threshold", 0) and features["constraints"] >= route["constraint_threshold"]))
             if not hard:
                 continue
             eligible += 1
@@ -273,6 +281,7 @@ def main() -> int:
               "low_score_action": selected["low_score_action"],
               "evidence_policy": args.evidence_policy,
               "evidence_model": selected.get("evidence_model"),
+              "route_model": route.get("route_model"),
               "easy_confidence_threshold": route["easy_confidence_threshold"],
               "easy_margin_threshold": route["easy_margin_threshold"],
               "minimum_agreement": route.get("minimum_agreement", 0),

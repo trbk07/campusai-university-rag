@@ -13,18 +13,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.retrieval.hybrid import HybridRetriever
 from evaluation.phase6_schema import load_jsonl
-from campusai.retrieval.rerank_policy import route_features
+from campusai.retrieval.route_probability import RouteProbabilityModel, route_observations
 from evaluation.release_artifacts import (require_previous_gates, source_identity, sha256, write_json,
                                            assert_tuning_allowed, freeze_before_evaluation)
 
 
 def route_metrics(samples: list[dict], confidence_threshold: float,
                   margin_threshold: float, minimum_agreement: float = 0.0,
-                  constraint_threshold: int = 0) -> dict:
-    selected = [item for item in samples if not (
-        item["confidence"] >= confidence_threshold and item["margin"] >= margin_threshold)
-        or (minimum_agreement and item.get("agreement", 1.0) < minimum_agreement)
-        or (constraint_threshold and item.get("constraints", 0) >= constraint_threshold)]
+                  constraint_threshold: int = 0, route_model: dict | None = None) -> dict:
+    if route_model is not None:
+        model = RouteProbabilityModel.from_dict(route_model)
+        selected = [item for item in samples if model.selects(item)]
+    else:
+        selected = [item for item in samples if not (
+            item["confidence"] >= confidence_threshold and item["margin"] >= margin_threshold)
+            or (minimum_agreement and item.get("agreement", 1.0) < minimum_agreement)
+            or (constraint_threshold and item.get("constraints", 0) >= constraint_threshold)]
     hard = [item for item in samples if item["difficulty"] == "hard"]
     easy = [item for item in samples if item["difficulty"] == "easy"]
     selected_ids = {item["qid"] for item in selected}
@@ -132,9 +136,7 @@ def collect_samples(rows: list[dict], retriever, doc_ids: list[str]) -> tuple[li
             bypass["single_candidate"] += 1
             continue
         samples.append({"qid": row["qid"], "difficulty": row["difficulty"],
-                        "confidence": float(results[0].confidence_score or 0),
-                        "margin": max(0.0, float(results[0].fusion_score or 0) - float(results[1].fusion_score or 0)),
-                        **route_features(row["question"], results)})
+                        **route_observations(row["question"], results)})
     return samples, {"bypass": bypass, "deterministic": deterministic,
                      "exact_code_count": exact_count, "abstention_count": abstention_count,
                      "exact_code_rerank_rate": 0.0, "abstention_rerank_rate": 0.0}
@@ -149,6 +151,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("evaluation/results/hard_query_route_calibration.json"))
     parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
     parser.add_argument("--exploratory", action="store_true")
+    parser.add_argument("--route-policy", choices=("probability", "threshold"), default="probability")
     args = parser.parse_args()
     if not args.exploratory:
         require_previous_gates("M4", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
@@ -161,23 +164,36 @@ def main() -> int:
     if not rows or any(row.get("split") != "dev" for row in rows):
         raise SystemExit("route fitting accepts only dev rows")
     samples, bypass = collect_samples(rows, retriever, doc_ids)
-    selected, metrics, feasible = fit_feature_route(samples)
+    route_model = None
+    route_diagnostics = None
+    if args.route_policy == "probability":
+        from evaluation.calibrate_route_probabilities import fit_route_probabilities
+        route_model, route_diagnostics, feasible = fit_route_probabilities(samples, rows)
+        selected = {"easy_confidence_threshold": 1.0, "easy_margin_threshold": 1.0,
+                    "minimum_agreement": 0.0, "constraint_threshold": 0}
+        metrics = route_metrics(samples, 1.0, 1.0, route_model=route_model)
+    else:
+        selected, metrics, feasible = fit_feature_route(samples)
     smoke = json.loads((args.results_dir / "model_snapshot_smoke.json").read_text(encoding="utf-8")) if not args.exploratory else {}
-    report = {"schema_version": 1, "phase": 7, "version": "phase7-hard-route-dev-v1",
+    report = {"schema_version": 1, "phase": 7, "version": "phase7-hard-route-dev-v2" if route_model else "phase7-hard-route-dev-v1",
               "status": "pass" if feasible and not args.exploratory else "conditional", "calibration_split": "dev",
               "holdout_used": False, "test_used": False,
               **source_identity(Path(__file__).resolve().parents[1]),
               "model_identity_sha256": smoke.get("model_identity_sha256"),
               "feature_leakage_review": "pass",
-              "feature_allowlist": ["confidence", "margin", "agreement", "constraints"],
+              "feature_allowlist": ["confidence", "margin", "agreement", "constraints", "query_length",
+                                     "distinct_documents", "concentration"] if route_model else
+                                    ["confidence", "margin", "agreement", "constraints"],
               "forbidden_features": ["language", "template", "difficulty", "qid"],
               "training_split_sha256": hashlib.sha256(args.dev.read_bytes()).hexdigest(),
               "index_sha256": hashlib.sha256((args.index_dir / "manifest.json").read_bytes()).hexdigest(),
               "phase6_calibration_sha256": hashlib.sha256(args.phase6_calibration.read_bytes()).hexdigest(),
-              **selected, "routing_metrics": metrics, **bypass, "samples": samples}
+              **selected, "route_model": route_model, "route_diagnostics": route_diagnostics,
+              "routing_metrics": metrics, **bypass, "samples": samples}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     # Fit is frozen before held-out data are opened. No threshold search follows.
+    confusion = {"status": "conditional"}
     if report["status"] == "pass":
         freeze_before_evaluation(args.results_dir, {
             "route": args.output, "smoke": args.results_dir / "model_snapshot_smoke.json",
@@ -190,7 +206,7 @@ def main() -> int:
             path = args.dev if split == "dev" else args.dev.parent / f"human_retrieval_{split}.jsonl"
             split_samples, split_bypass = collect_samples(load_jsonl(path), retriever, doc_ids)
             part = route_metrics(split_samples, selected["easy_confidence_threshold"], selected["easy_margin_threshold"],
-                                 selected["minimum_agreement"], selected["constraint_threshold"])
+                                 selected["minimum_agreement"], selected["constraint_threshold"], route_model)
             part.update(split_bypass, benchmark_sha256=sha256(path), samples=split_samples)
             confusion["splits"][split] = part
             floor, ceiling = (.95, .20) if split == "dev" else (.90, .25)

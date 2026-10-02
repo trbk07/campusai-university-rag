@@ -313,13 +313,27 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     conf = {}
     for split in ("dev", "test", "holdout"):
         samples = [{"qid": row["qid"], "difficulty": row["difficulty"], "confidence": .1 if row["difficulty"] == "hard" else .9,
-                    "margin": .1, "agreement": 1, "constraints": 0} for row in rows if row["split"] == split and row["answerable"]]
-        conf[split] = {**route_metrics(samples, .5, 0), "samples": samples, "benchmark_sha256": split_hashes[split],
+                    "margin": .1, "agreement": 1, "constraints": 0, "query_length": len(row["question"].split()),
+                    "distinct_documents": 1, "concentration": .5}
+                   for row in rows if row["split"] == split and row["answerable"]]
+        conf[split] = {**route_metrics(samples, .5, 0), "samples": samples,
+                       "bypass": {"exact_or_abstained": 50 - len(samples), "single_candidate": 0},
+                       "benchmark_sha256": split_hashes[split],
                        "exact_code_rerank_rate": 0, "abstention_rerank_rate": 0, "deterministic": True}
+    from evaluation.calibrate_route_probabilities import fit_route_probabilities
+    route_model, route_diagnostics, route_feasible = fit_route_probabilities(
+        conf["dev"]["samples"], [row for row in rows if row["split"] == "dev"])
+    assert route_feasible
+    for split in conf:
+        conf[split].update(route_metrics(conf[split]["samples"], .5, 0, route_model=route_model))
     save("route", {"calibration_split": "dev", "test_used": False, "holdout_used": False, "feature_leakage_review": "pass",
-                   "feature_allowlist": ["confidence", "margin", "agreement", "constraints"],
-                   "training_split_sha256": split_hashes["dev"], "routing_metrics": route_metrics(conf["dev"]["samples"], .5, 0),
-                   "easy_confidence_threshold": .5, "easy_margin_threshold": 0})
+                   "feature_allowlist": ["confidence", "margin", "agreement", "constraints", "query_length",
+                                         "distinct_documents", "concentration"],
+                   "route_model": route_model, "route_diagnostics": route_diagnostics,
+                   "training_split_sha256": split_hashes["dev"],
+                   "routing_metrics": route_metrics(conf["dev"]["samples"], .5, 0, route_model=route_model),
+                   "easy_confidence_threshold": .5, "easy_margin_threshold": 0,
+                   "samples": conf["dev"]["samples"]})
     save("route_confusion", {"splits": conf, "route_calibration_sha256": sha256(args.route)})
     freeze_before_evaluation(results, {name: getattr(args, name) for name in ("route", "smoke", "human_manifest")}, route=True)
     gold, wrong = evidence[("doc", "c0")], evidence[("doc", "c1")]
@@ -341,6 +355,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
                          "route_calibration_sha256": sha256(args.route), "training_split_sha256": split_hashes["dev"],
                          "threshold": 0, "margin_threshold": 0, "low_score_action": "phase6",
                          "evidence_policy": "probability", "evidence_model": probability_policy["evidence_model"],
+                         "route_model": route_model,
                          "fallback_rate": 0, "timeout_rate": 0, "invalid_score_rate": 0,
                          "rerank_latency_ms": {"p95": 50}, "eligible_requests": len(proposals), "comparison": probability_comparison,
                          "calibration_observations": {"baseline": before, "proposals": proposals}})
@@ -453,6 +468,12 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     assert manifest["model_revision"] == identity.model_revision
     assert manifest["route_policy_sha256"] == sha256(args.route)
     assert manifest["gates"]["M6"]["artifact_sha256"]["retrieval_quality_comparison.json"] == sha256(args.quality)
+    route_evidence = json.loads(args.route.read_text(encoding="utf-8"))
+    altered_route = deepcopy(route_evidence)
+    altered_route["route_model"]["weights"][0] += 1
+    write_json(args.route, altered_route)
+    assert "route_grouped_probability_recomputed_gate" in validate(args)["errors"]
+    write_json(args.route, route_evidence)
     http_evidence = json.loads(args.http_end_to_end.read_text(encoding="utf-8"))
     altered_http = deepcopy(http_evidence)
     altered_http["profiles"][0]["samples"][0]["qid"] = "unknown-query"

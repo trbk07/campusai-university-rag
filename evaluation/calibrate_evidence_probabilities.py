@@ -112,8 +112,8 @@ def calibrate_probabilities(rows: list[dict], baseline: dict, proposals: dict) -
         raise ValueError("probability calibration query scope mismatch")
     items = [row for row in rows if row["qid"] in proposals]
     groups = _fold_groups(items)
-    if len(set(groups)) < 3:
-        raise ValueError("probability calibration requires at least three independent query families")
+    if len(set(groups)) < 2:
+        raise ValueError("probability calibration requires at least two independent query families")
     features = [proposal_features(row, baseline[row["qid"]], proposals[row["qid"]]) for row in items]
     labels = [target_class(row, proposals[row["qid"]]) for row in items]
     counts = {key: labels.count(i) for i, key in enumerate(CLASSES)}

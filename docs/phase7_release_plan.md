@@ -21,7 +21,7 @@ virtualenv interpreter (`.venv/Scripts/python.exe` on Windows).
 | `python -m evaluation.phase7_release human-freeze` | Reviewed `data/benchmark/human_retrieval.jsonl` | M1 |
 | `python -m evaluation.phase7_release candidate` | Frozen human splits | M2 |
 | `python -m evaluation.phase7_release model --model-dir SNAPSHOT` | Offline model directory named by immutable commit | M3 |
-| `python -m evaluation.phase7_release route` | Human dev with difficulty review | M4 |
+| `python -m evaluation.phase7_release route` | Human dev with difficulty review and grouped route calibration | M4 |
 | `python -m evaluation.phase7_release calibration --model-dir SNAPSHOT` | Dev-only cap sweep | M5 |
 | `python -m evaluation.phase7_release quality --model-dir SNAPSHOT` | Held-out paired observations | M6 |
 | `python -m evaluation.phase7_release performance --model-dir SNAPSHOT --deployment-ram-bytes LIMIT --llm-config CONFIG` | Real RAM limit and configured live LLM | M7 |
