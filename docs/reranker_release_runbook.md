@@ -73,6 +73,7 @@ $env:RERANKER_WARMUP = 'true'
 
 # M7: thay số RAM bằng limit thật của deployment. Ví dụ 16 GiB:
 .venv/Scripts/python.exe -m evaluation.measure_reranker_capacity --deployment-ram-bytes 17179869184 --profile cpu-small
+.venv/Scripts/python.exe -m evaluation.measure_phase7_http --model-dir $rerankerSnapshot --llm-config configs/default.yaml --deployment-ram-bytes 17179869184
 
 # M8: chuẩn bị >=50 case adversarial có expected behavior và đủ category.
 .venv/Scripts/python.exe -m evaluation.evaluate_reranker_security --cases data/benchmark/reranker_adversarial.jsonl
@@ -95,19 +96,25 @@ bất kỳ binding nào thì trả về Phase 6. Snapshot được xác minh tr�
 warm-up có timeout startup riêng 60 giây, request giữ budget đã cấu hình.
 
 Precision/batching khác mặc định cần truyền cùng `--dtype`, `--batch-size`,
-`--max-length`, `--batch-window-ms` và `--max-batch-pairs` cho M3/M5. M5 từ
+`--max-length`, `--input-format`, `--batch-window-ms` và `--max-batch-pairs` cho M3/M5. M5 từ
 chối identity khác M3. Khi dùng `phase7_release performance`, queue mặc định
 là 19 (20 admission slots), có thể đổi bằng `--queue-limit` trước phép đo.
 
-M5 có lựa chọn `--low-score-action abstain` khi fit và sweep trên dev. Lựa
-chọn này nằm trong calibration artifact và cache fingerprint, không phải cờ
-runtime để bỏ qua gate. Điểm bằng chứng thấp có thể trả rỗng; margin thấp
-vẫn trả Phase 6, và mọi lỗi/timeout/provenance sai vẫn fallback như trước.
-Artifact cũ hoặc không có trường này giữ hành vi `phase6`. Validator tính lại
-recall/FPR theo đúng lựa chọn đã lưu và kiểm tra các cap trial dùng cùng lựa
-chọn. Chỉ policy đạt đầy đủ ngưỡng mới được promoted. Phép đo trên câu hỏi
-tự nhiên cho thấy threshold fit trên 57 câu formal chưa chuyển tốt; xem
+M5 release dùng mô hình xác suất ba lớp (không có bằng chứng, chưa đủ, đủ), fit
+trên dev với cross-validation theo `paraphrase_group`. Ngưỡng chấp nhận và từ
+chối được chọn bằng kết quả out-of-fold, kiểm tra lại trên model cuối và tính
+lại từ raw observations ở release validator. Trạng thái chưa chắc chắn và lỗi
+provider trả Phase 6. `--evidence-policy score` và `--low-score-action` chỉ còn
+dùng để khảo sát; chúng không đạt M5 release. Phép đo trên câu hỏi tự nhiên cho
+thấy threshold fit trên 57 câu formal chưa chuyển tốt; xem
 [báo cáo vòng 3](phase7_loop3_report.md) trước khi chọn abstain.
+M7 lưu `reranker_http_end_to_end.json`: HTTP thật với LLM thật, cache tắt,
+100 request mỗi mức đồng thời 1/5/10/20, cả easy/hard/negative/scoped. Báo cáo
+giữ từng request và thời gian routing, retrieval, queue, inference, LLM,
+grounding, serialization, transport. Thiếu cấu hình hoặc khóa LLM sẽ chặn M7.
+M2 lưu độ phủ từng `difficulty`, `category`, `tag` và nhóm multi-hop,
+multi-document, table, year, semester, numeric, scoped. Validator yêu cầu đủ
+tất cả gold chunk cho từng nhóm có câu trả lời, rồi tính lại từ raw candidates.
 Manifest production ràng buộc queue, timeout, circuit limit và score cache
 đã đo; đổi các giới hạn này sau đó sẽ bị activation từ chối.
 

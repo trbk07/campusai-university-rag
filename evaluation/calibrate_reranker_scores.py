@@ -46,13 +46,25 @@ def _quality(rows: list[dict], outputs: dict[str, list]) -> dict:
                             / max(1, sum(not row["answerable"] for row in rows))}
 
 
-def calibrated_outputs(baseline: dict[str, list], proposals: dict[str, dict], policy: dict) -> dict[str, list]:
+def proposal_action(proposal: dict, policy: dict, *, row: dict | None = None, baseline: list | None = None) -> str:
+    if policy.get("evidence_model") is not None:
+        from campusai.retrieval.evidence_policy import EvidenceProbabilityModel
+        from evaluation.calibrate_evidence_probabilities import proposal_features
+        if row is None or baseline is None:
+            raise ValueError("probability replay requires raw query and retrieval observations")
+        return EvidenceProbabilityModel.from_dict(policy["evidence_model"]).action(proposal_features(row, baseline, proposal))
+    return score_action(proposal["top_score"], proposal["margin"], policy["threshold"],
+                        policy["margin_threshold"], policy.get("low_score_action", "phase6"))
+
+
+def calibrated_outputs(baseline: dict[str, list], proposals: dict[str, dict], policy: dict,
+                       *, rows: list[dict] | None = None) -> dict[str, list]:
     outputs = dict(baseline)
+    by_id = {row["qid"]: row for row in rows or []}
     for qid, proposal in proposals.items():
         if qid not in outputs:
             raise ValueError("proposal outside baseline query scope")
-        action = score_action(proposal["top_score"], proposal["margin"], policy["threshold"],
-                              policy["margin_threshold"], policy.get("low_score_action", "phase6"))
+        action = proposal_action(proposal, policy, row=by_id.get(qid), baseline=baseline[qid])
         if action == "rerank":
             outputs[qid] = proposal["results"]
         elif action == "abstain":
@@ -147,6 +159,7 @@ def main() -> int:
     parser.add_argument("--dtype", choices=("float32", "float16", "bfloat16"), default="float32")
     add_inference_options(parser)
     parser.add_argument("--rerank-cap", type=int, default=10)
+    parser.add_argument("--evidence-policy", choices=("probability", "score"), default="probability")
     parser.add_argument("--low-score-action", choices=("phase6", "abstain"), default="phase6")
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--timeout-ms", type=int, default=1000)
@@ -226,17 +239,26 @@ def main() -> int:
             reranked.extend(pool[args.rerank_cap:])
             proposals[qid] = {"results": reranked[:5],
                               "top_score": ranking[0].reranker_score,
+                              "evidence_inputs": {"ranked_candidates": [by_id[item.candidate_id].to_dict() for item in ranking],
+                                                  "scores": [item.reranker_score for item in ranking]},
                               "margin": ranking[0].reranker_score - ranking[1].reranker_score
                               if len(ranking) > 1 else 0.0}
     finally:
         provider.close()
     selected, comparison = calibrate(rows, baseline, proposals, args.low_score_action)
+    if args.evidence_policy == "probability":
+        from evaluation.calibrate_evidence_probabilities import calibrate_probabilities
+        try:
+            selected, comparison = calibrate_probabilities(rows, baseline, proposals)
+        except ValueError as error:
+            errors.append({"qid": None, "error_type": "EvidenceCalibrationError", "reason": str(error)})
+            comparison["feasible"] = False
     quality = comparison["selected"]
     score_gate = (comparison["feasible"] and quality["answerable_recall_at_5"] >= .95
                   and quality["negative_fpr"] <= .01 and not errors)
     route_gate = route.get("status") == "pass"
     report = {"schema_version": 1, "phase": 7, "mode": "hybrid_rerank",
-              "version": "phase7-rerank-dev-v2" if args.low_score_action == "abstain" else "phase7-rerank-dev-v1",
+              "version": "phase7-evidence-dev-v3" if selected.get("evidence_model") else ("phase7-rerank-dev-v2" if args.low_score_action == "abstain" else "phase7-rerank-dev-v1"),
               "status": "pass" if score_gate and route_gate and not args.exploratory else "conditional",
               "calibration_split": "dev", "holdout_used": False, "test_used": False,
               **source_identity(Path(__file__).resolve().parents[1]),
@@ -248,7 +270,9 @@ def main() -> int:
               "route_calibration_sha256": _sha(args.route_calibration),
               "threshold": selected["threshold"],
               "margin_threshold": selected["margin_threshold"],
-              "low_score_action": args.low_score_action,
+              "low_score_action": selected["low_score_action"],
+              "evidence_policy": args.evidence_policy,
+              "evidence_model": selected.get("evidence_model"),
               "easy_confidence_threshold": route["easy_confidence_threshold"],
               "easy_margin_threshold": route["easy_margin_threshold"],
               "minimum_agreement": route.get("minimum_agreement", 0),
@@ -263,10 +287,10 @@ def main() -> int:
               "routing_status": route.get("status"),
               "rerank_requests": len(proposals),
               "eligible_requests": eligible,
-              "fallback_rate": (eligible - sum(score_action(p["top_score"], p["margin"], selected["threshold"],
-                  selected["margin_threshold"], args.low_score_action) != "phase6" for p in proposals.values())) / max(1, eligible),
-              "evidence_abstention_rate": sum(score_action(p["top_score"], p["margin"], selected["threshold"],
-                  selected["margin_threshold"], args.low_score_action) == "abstain" for p in proposals.values()) / max(1, eligible),
+              "fallback_rate": (eligible - sum(proposal_action(p, selected, row=next(r for r in rows if r["qid"] == qid), baseline=baseline[qid])
+                                  != "phase6" for qid, p in proposals.items())) / max(1, eligible),
+              "evidence_abstention_rate": sum(proposal_action(p, selected, row=next(r for r in rows if r["qid"] == qid), baseline=baseline[qid])
+                                         == "abstain" for qid, p in proposals.items()) / max(1, eligible),
               "timeout_rate": sum(e["reason"] == "reranker_timeout" for e in errors) / max(1, eligible),
               "invalid_score_rate": sum(e["reason"] == "invalid_model_scores" for e in errors) / max(1, eligible),
               "rerank_latency_ms": {"p50": _percentile(latencies, .5),

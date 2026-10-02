@@ -325,12 +325,24 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     gold, wrong = evidence[("doc", "c0")], evidence[("doc", "c1")]
     subset = [row for row in rows if row["split"] == "dev"]
     before = {row["qid"]: [wrong, gold] if row["answerable"] else [] for row in subset}
-    proposals = {row["qid"]: {"top_score": 2, "margin": 1, "results": [gold, wrong]} for row in subset if row["answerable"]}
+    proposals = {}
+    for index, row in enumerate(subset):
+        negative = not row["answerable"]
+        partial = index < 5
+        scores = [-5, -6] if negative else [-2, -3] if partial else [2, 1]
+        proposals[row["qid"]] = {"top_score": scores[0], "margin": 1,
+                                  "results": [] if negative else [wrong] if partial else [gold, wrong],
+                                  "evidence_inputs": {"ranked_candidates": [wrong, gold], "scores": scores}}
+    from evaluation.calibrate_evidence_probabilities import calibrate_probabilities
+    probability_policy, probability_comparison = calibrate_probabilities(subset, before, proposals)
     save("calibration", {"calibration_split": "dev", "test_used": False, "holdout_used": False, "candidate_cap": 40,
-                         "rerank_candidate_cap": 10, "recall": 1, "false_positive_rate": 0,
+                         "rerank_candidate_cap": 10, "recall": probability_comparison["selected"]["answerable_recall_at_5"],
+                         "false_positive_rate": probability_comparison["selected"]["negative_fpr"],
                          "route_calibration_sha256": sha256(args.route), "training_split_sha256": split_hashes["dev"],
-                         "threshold": 0, "margin_threshold": 0, "fallback_rate": 0, "timeout_rate": 0, "invalid_score_rate": 0,
-                         "rerank_latency_ms": {"p95": 50}, "eligible_requests": len(proposals), "comparison": {"selected": {"mrr": 1}},
+                         "threshold": 0, "margin_threshold": 0, "low_score_action": "phase6",
+                         "evidence_policy": "probability", "evidence_model": probability_policy["evidence_model"],
+                         "fallback_rate": 0, "timeout_rate": 0, "invalid_score_rate": 0,
+                         "rerank_latency_ms": {"p95": 50}, "eligible_requests": len(proposals), "comparison": probability_comparison,
                          "calibration_observations": {"baseline": before, "proposals": proposals}})
     trials = []
     for cap in (8, 10, 12, 16, 20):
@@ -340,7 +352,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
         write_json(path, trial)
         trials.append({"rerank_cap": cap, "artifact": path.name, "artifact_sha256": sha256(path),
                        "status": "pass", "recall": 1, "negative_fpr": 0, "p95_ms": trial["rerank_latency_ms"]["p95"],
-                       "mrr": 1, "eligible_requests": len(proposals), "timeout_rate": 0})
+                       "mrr": trial["comparison"]["selected"]["mrr"], "eligible_requests": len(proposals), "timeout_rate": 0})
     save("sensitivity", {"calibration_split": "dev", "test_used": False, "holdout_used": False, "trials": trials,
                          "selected_cap": 10, "p95_budget_ms": 1000})
     bindings["calibration_sha256"] = sha256(args.calibration)
@@ -364,8 +376,41 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     save("performance", {"resource_limits": limits, "samples": samples, "summary": summary, "peak_rss_bytes": 100,
                          "cold_start_ms": 1, "warmup_ms": 1, "cpu_utilization_percent": 5})
     save("capacity", {"resource_limits": limits, "release_rerank_cap": 10, "deployment_device": "cpu", "profiles": [{"resource_limits": limits, "rerank_cap": cap, "concurrency": n, "samples": samples, "summary": summary}
-                                    for cap, n in ((8, 1), (10, 1), (20, 1), (10, 5), (10, 20))], "queue_overflow_request_failures": 0})
+                                    for cap, n in ((8, 1), (10, 1), (20, 1), (10, 5), (10, 10), (10, 20))], "queue_overflow_request_failures": 0})
     save("resource_budget", {"deployment_ram_bytes": 10000})
+    # Synthetic gate fixture: exercises recomputation and tamper detection.
+    # These rows never become release measurements or a real LLM claim.
+    from evaluation.measure_phase7_http import cohort, summarize_http_samples, workload
+    test_rows = [row for row in rows if row["split"] == "test"]
+    http_profiles = []
+    for concurrency in (1, 5, 10, 20):
+        http_samples = []
+        for i in range(100):
+            row = workload(test_rows, 100)[i]
+            positive = row["answerable"]
+            started = concurrency * 100 + i * .1
+            http_samples.append({"qid": row["qid"], "question_sha256": __import__("hashlib").sha256(row["question"].encode()).hexdigest(),
+                                 "cohort": cohort(row), "scope_doc_ids": row["doc_ids"],
+                                 "started_at": started, "finished_at": started + .1,
+                                 "client_total_ms": 100, "server_total_ms": 90,
+                                 "request_id": f"{concurrency:02x}{i:030x}", "http_status": 200,
+                                 "error": False, "error_type": None, "cache_hit": False,
+                                 "abstained": not positive, "abstention_reason": None,
+                                 "citations": [{"doc_id": "doc", "chunk_id": "c0", "page": 1}] if positive else [],
+                                 "stages_ms": {"routing": 1, "retrieval": 20, "grounding": 50,
+                                               "llm": 40 if positive else 0, "serialization": 1},
+                                 "stage_calls": {"retrieval": 1, "grounding": 1,
+                                                 "serialization": 1, "llm": int(positive)},
+                                 "retrieval_trace": {"rerank_selected": positive}})
+        http_profiles.append({"concurrency": concurrency, "requests": 100,
+                              "samples": http_samples,
+                              "summary": summarize_http_samples(http_samples, p95_budget_ms=10000)})
+    save("http_end_to_end", {"test_sha256": split_hashes["test"],
+         "llm_config_sha256": "7"*64, "llm_provider": "openai-compatible", "llm_model": "fixture-model",
+         "llm_cache_enabled": False, "answer_cache_enabled": False,
+         "profile": "threaded-wsgi-local-http", "release_rerank_cap": 10,
+         "p95_budget_ms": 10000, "deployment_ram_bytes": 10000, "peak_rss_bytes": 100,
+         "cold_start_ms": 1, "profiles": http_profiles})
     security_cases = [{"id": str(i), "category": sorted(CATEGORIES)[i % len(CATEGORIES)],
                        "expected": "abstain", "output": [], "status": "pass", "question": "negative fixture",
                        "doc_ids": ["doc"], "filters": {}, "gold_evidence": []} for i in range(50)]
@@ -408,6 +453,12 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     assert manifest["model_revision"] == identity.model_revision
     assert manifest["route_policy_sha256"] == sha256(args.route)
     assert manifest["gates"]["M6"]["artifact_sha256"]["retrieval_quality_comparison.json"] == sha256(args.quality)
+    http_evidence = json.loads(args.http_end_to_end.read_text(encoding="utf-8"))
+    altered_http = deepcopy(http_evidence)
+    altered_http["profiles"][0]["samples"][0]["qid"] = "unknown-query"
+    write_json(args.http_end_to_end, altered_http)
+    assert "http_workload_binding_gate" in validate(args)["errors"]
+    write_json(args.http_end_to_end, http_evidence)
     calibration = json.loads(args.calibration.read_text(encoding='utf-8'))
     write_json(args.calibration, {**calibration, 'low_score_action': 'unknown_action'})
     assert 'calibration_policy_domain_gate' in validate(args)['errors']

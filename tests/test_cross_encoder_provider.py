@@ -60,6 +60,33 @@ def test_phase7_provider_is_batched_singleton_and_provenance_preserving(tmp_path
         provider.close()
 
 
+def test_input_format_identity_transforms_complete_table_before_character_guard(tmp_path):
+    import json
+    (tmp_path / "config.json").write_text("{}", encoding="utf-8")
+    full = _identity(tmp_path)
+    identity = ModelIdentity(full.model_name, full.model_revision, full.model_sha256,
+                             full.tokenizer_revision, input_format="table_window")
+    assert identity.fingerprint != full.fingerprint
+    original = ('[Section: Curriculum | Page: 1]\nTable headers: Course | Credits\n\n'
+                + json.dumps({"headers": ["Course", "Credits"],
+                              "rows": [["Semester 1", ""], *[[f"Other {i} {'x' * 40}", "2"] for i in range(300)],
+                                       ["Semester 2", ""], ["Special course", "3"]]}))
+    seen = []
+    class Model:
+        def predict(self, pairs, **_kwargs):
+            seen.extend(pairs)
+            return [2.0]
+    provider = OfflineCrossEncoderReranker(identity, tmp_path, model_loader=lambda: Model())
+    try:
+        item = RerankCandidate("id", "doc", "id", 1, original, 1, 1.0)
+        provider.score("What is in semester 2?", [item])
+        assert "Special course | 3" in seen[0][1]
+        assert "Other 0" not in seen[0][1]
+        assert item.content == original
+    finally:
+        provider.close()
+
+
 def test_phase7_provider_rejects_model_mismatch_and_opens_circuit(tmp_path):
     (tmp_path / "config.json").write_text("{}", encoding="utf-8")
     identity = _identity(tmp_path)

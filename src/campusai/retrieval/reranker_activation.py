@@ -39,6 +39,7 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
             model_sha256=config["RERANKER_MODEL_SHA256"],
             tokenizer_revision=config["RERANKER_TOKENIZER_REVISION"],
             device=config.get("RERANKER_DEVICE", "cpu"),
+            input_format=config.get("RERANKER_INPUT_FORMAT", "full_chunk"),
             batch_size=int(config.get("RERANKER_BATCH_SIZE", "8")),
             max_length=int(config.get("RERANKER_MAX_LENGTH", "512")),
             dtype=config.get("RERANKER_DTYPE", "float32"),
@@ -51,7 +52,8 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
             phase6_calibration=phase6_calibration, dev_benchmark=dev_benchmark)
         if config.get("RERANKER_DEPLOYMENT", "experimental") == "production":
             release = json.loads(Path(config["RERANKER_RELEASE_MANIFEST"]).read_text(encoding="utf-8"))
-            if (release.get("status") != "pass" or release.get("score") != 10.0 or release.get("errors") != []
+            if (release.get("status") != "pass" or release.get("score") != 10.0
+                    or release.get("all_release_gates_pass") is not True or release.get("errors") != []
                     or release.get("runtime_sha256") != runtime_sha256()
                     or any(release.get("gates", {}).get(f"M{i}", {}).get("status") != "PASS" for i in range(13))
                     or release.get("model_identity_sha256") != identity.fingerprint

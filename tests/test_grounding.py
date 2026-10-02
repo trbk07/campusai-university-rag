@@ -5,6 +5,7 @@ from campusai.rag.evidence import EvidenceRegistry
 from campusai.rag.grounding import GroundedAnswerGenerator, validate_citation, validate_quote
 from campusai.rag.service import choose_query_mode
 from campusai.retrieval.hybrid import RetrievalResult
+from campusai.request_timings import capture_request
 
 
 def evidence(content="CS201 requires CS101 and 3 credits."):
@@ -37,6 +38,18 @@ class LegacyLLM:
         assert "chunk_id=c1" in prompt
         assert schema["required"]
         return self.payload
+
+
+def test_grounding_records_request_local_llm_and_citation_stages():
+    llm = LegacyLLM({"answer": "Cần hoàn thành MATH101.", "confidence": "high",
+                     "abstained": False,
+                     "citations": [{"chunk_id": "c1", "page": 3, "quote": "MATH101"}]})
+    with capture_request() as timings:
+        answer = GroundedAnswerGenerator(llm).answer("Môn tiên quyết là gì?", [legacy_evidence()])
+    assert not answer.abstained
+    assert timings["stage_calls"] == {"llm": 1, "citation_validation": 1, "grounding": 1}
+    assert timings["stages_ms"]["grounding"] >= timings["stages_ms"]["llm"]
+    assert timings["server_total_ms"] >= timings["stages_ms"]["grounding"]
 
 
 def test_grounded_answer_accepts_only_retrieved_citations():

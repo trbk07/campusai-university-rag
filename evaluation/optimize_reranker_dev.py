@@ -139,7 +139,8 @@ def main(argv=None):
     from campusai.retrieval.calibration import RetrievalPolicy
     from campusai.retrieval.cross_encoder_provider import ModelIdentity,OfflineCrossEncoderReranker,RerankCandidate,snapshot_sha256
     identity=ModelIdentity(args.model_name,args.model_dir.name,snapshot_sha256(args.model_dir),
-        args.model_dir.name,device="cuda:0",dtype=args.dtype,max_length=args.max_length,batch_size=16)
+        args.model_dir.name,device="cuda:0",dtype=args.dtype,max_length=args.max_length,batch_size=16,
+        input_format=args.input_format)
     provider=OfflineCrossEncoderReranker(identity,args.model_dir,timeout_ms=60000,score_cache_size=0,
         model_loader=probe_loader(args.model_dir,identity,args.input_format))
     retriever=HybridRetriever(args.index_dir,query_cache_size=0,
@@ -159,7 +160,7 @@ def main(argv=None):
             observations.append({"qid":row["qid"],"baseline":[item.to_dict() for item in baseline],
                 "pool":[item.to_dict() for item in pool],"scores":{item.chunk_id:item.reranker_score for item in ranking},
                 "scoring_input_sha256":{item.chunk_id:__import__("hashlib").sha256(
-                    scoring_text(item.content[:8192],args.input_format,row["question"][:2048]).encode()).hexdigest() for item in pool},
+                    scoring_text(item.content,args.input_format,row["question"][:2048])[:8192].encode()).hexdigest() for item in pool},
                 "latency_ms":(time.perf_counter()-started)*1000})
             if len(observations)%10==0:
                 print(json.dumps({"completed":len(observations),"total":len(rows)}),flush=True)

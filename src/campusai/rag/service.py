@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from threading import local
+from ..request_timings import stage, timed_stage
 from typing import Any
 
 from ..retrieval.hybrid import HybridRetriever, RetrievalResult
@@ -60,12 +62,30 @@ class CampusAIQueryService:
         self.retriever = retriever
         self.answer_generator = answer_generator
         self.cache = cache if cache is not None else RAGAnswerCache()
+        self._request_local = local()
         self.last_cache_hit = False
         self.last_retrieval: list[RetrievalResult] = []
         self.metrics = metrics or MetricsRegistry()
         self.default_mode = default_mode
         self.canary = canary
 
+    @property
+    def last_cache_hit(self):
+        return getattr(self._request_local, "cache_hit", False)
+
+    @last_cache_hit.setter
+    def last_cache_hit(self, value):
+        self._request_local.cache_hit = bool(value)
+
+    @property
+    def last_retrieval(self):
+        return getattr(self._request_local, "retrieval", [])
+
+    @last_retrieval.setter
+    def last_retrieval(self, value):
+        self._request_local.retrieval = value
+
+    @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
         """Return a stable version from the selected corpus/index manifests."""
 
@@ -93,6 +113,7 @@ class CampusAIQueryService:
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
+    @timed_stage("routing")
     def _selected_mode(self, question: str, mode: str | None, request_id: str | None = None) -> str:
         if self.canary is not None and getattr(self.retriever, "phase7_enabled", False):
             # Explicit phase7 mode must not bypass the configured canary cohort.
@@ -161,6 +182,7 @@ class CampusAIQueryService:
             return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)
 
     def _ask_uncached_or_cached(self, question, doc_ids, filters, top_k, selected_mode, language, version, key):
+        self.last_retrieval = []
         cached = self.cache.get(key)
         if cached is not None:
             self.last_cache_hit = True
@@ -173,10 +195,11 @@ class CampusAIQueryService:
             if cached is not None:
                 self.last_cache_hit = True
                 return cached
-            results = self.retriever.search(
-                retrieval_query(question), doc_ids=doc_ids, filters=filters,
-                top_k=top_k, mode=selected_mode,
-            )
+            with stage("retrieval"):
+                results = self.retriever.search(
+                    retrieval_query(question), doc_ids=doc_ids, filters=filters,
+                    top_k=top_k, mode=selected_mode,
+                )
             self.last_retrieval = list(results)
             answer = self.answer_generator.answer(question, results, language)
             self.cache.put(key, answer)

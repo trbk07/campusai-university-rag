@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from ..request_timings import stage, timed_stage
+
 from dataclasses import dataclass
 import math
 from typing import Any, Iterable
@@ -329,6 +331,7 @@ class GroundedAnswerGenerator:
             )
         return f"{instructions}\n\nQUESTION:\n{question}\n\nEVIDENCE:\n{context}"
 
+    @timed_stage("grounding")
     def answer(
         self,
         question: str,
@@ -352,10 +355,9 @@ class GroundedAnswerGenerator:
 
         by_chunk = {result.chunk_id: result for result in results}
         try:
-            payload = self.llm.generate_json(
-                self.prompt(question, results, language),
-                schema=ANSWER_SCHEMA,
-            )
+            prompt = self.prompt(question, results, language)
+            with stage("llm"):
+                payload = self.llm.generate_json(prompt, schema=ANSWER_SCHEMA)
         except LLMError:
             return _abstention("llm_error")
         if not isinstance(payload, dict) or not isinstance(payload.get("answer"), str):
@@ -415,6 +417,7 @@ class GroundedAnswerGenerator:
                                 calibrator=self.calibrator)
 
 
+@timed_stage("citation_validation")
 def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: dict[str, Any],
                      results: list[RetrievalResult], language: str,
                      calibrator: IsotonicCalibrator | None = None) -> GroundedAnswer:

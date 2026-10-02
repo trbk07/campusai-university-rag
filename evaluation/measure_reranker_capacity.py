@@ -110,7 +110,7 @@ def main() -> int:
         matrix = [(8, 1), (10, 1), (20, 1), (10, 5), (10, 20)]
         if provider.model_identity.device.startswith("cuda"):
             matrix.append((20, 5))
-        for concurrency in (1, 5, 20):
+        for concurrency in (1, 5, 10, 20):
             pair = (original_policy.rerank_candidate_cap, concurrency)
             if pair not in matrix:
                 matrix.append(pair)

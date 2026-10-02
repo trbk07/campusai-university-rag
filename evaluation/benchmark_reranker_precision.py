@@ -35,7 +35,8 @@ def worker(args):
         raise ValueError("at least three hard dev questions are required")
     identity = ModelIdentity(args.model_name, args.model_dir.name,
         snapshot_sha256(args.model_dir), args.model_dir.name, device="cuda:0", dtype=args.worker,
-        batch_size=args.batch_size, batch_window_ms=args.batch_window_ms, max_length=args.max_length)
+        batch_size=args.batch_size, batch_window_ms=args.batch_window_ms, max_length=args.max_length,
+        input_format=args.input_format)
     retriever = HybridRetriever(args.index_dir, query_cache_size=0,
         policies={"hybrid_rrf": RetrievalPolicy.from_report(args.calibration)})
     docs = json.loads((args.index_dir / "manifest.json").read_text())["documents"]

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import hashlib
 import json
 import math
@@ -50,8 +50,17 @@ class Phase7Policy:
     minimum_agreement: float = 0.0
     constraint_threshold: int = 0
     low_score_action: str = "phase6"
+    evidence_model: object | None = None
 
     def __post_init__(self) -> None:
+        if self.evidence_model is not None:
+            from .evidence_policy import EvidenceProbabilityModel
+            model = self.evidence_model
+            if isinstance(model, dict):
+                model = EvidenceProbabilityModel.from_dict(model)
+                object.__setattr__(self, "evidence_model", model)
+            if not isinstance(model, EvidenceProbabilityModel):
+                raise Phase7PolicyError("invalid evidence probability policy")
         values = (self.threshold, self.margin_threshold,
                   self.easy_confidence_threshold, self.easy_margin_threshold)
         if (not self.version or any(not math.isfinite(value) for value in values)
@@ -69,7 +78,7 @@ class Phase7Policy:
     @property
     def fingerprint(self) -> str:
         return self.artifact_sha256 or hashlib.sha256(json.dumps(
-            {key: value for key, value in self.__dict__.items() if key != "artifact_sha256"},
+            {key: value for key, value in asdict(self).items() if key != "artifact_sha256"},
             sort_keys=True, separators=(",", ":")).encode()).hexdigest()
 
     @classmethod
@@ -98,9 +107,13 @@ class Phase7Policy:
                    int(data.get("rerank_candidate_cap", 40)),
                    float(data.get("minimum_agreement", 0.0)),
                    int(data.get("constraint_threshold", 0)),
-                   data.get("low_score_action", "phase6"))
+                   data.get("low_score_action", "phase6"), data.get("evidence_model"))
 
-    def score_action(self, top_score: float, margin: float) -> str:
+    def score_action(self, top_score: float, margin: float, *, features: dict | None = None) -> str:
+        if self.evidence_model is not None:
+            if features is None:
+                raise Phase7PolicyError("probability policy requires observable features")
+            return self.evidence_model.action(features)
         return score_action(top_score, margin, self.threshold, self.margin_threshold,
                             self.low_score_action)
 

@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
+from collections import defaultdict
 from pathlib import Path
 import sys
 
@@ -18,12 +20,51 @@ from evaluation.release_artifacts import require_previous_gates, sha256, source_
 from types import SimpleNamespace
 
 
+def cohort_names(row: dict) -> list[str]:
+    """Reporting annotations are never passed to runtime routing or scoring."""
+    query = row.get("question", "")
+    gold = row.get("gold_evidence", [])
+    names = ["difficulty:" + str(row.get("difficulty", "unknown")),
+             "category:" + str(row.get("category", "unknown")),
+             "answerable:" + str(bool(row["answerable"])).lower()]
+    names += ["tag:" + tag for tag in sorted(set(row.get("tags", [])))]
+    flags = {"multi_hop": len(gold) > 1, "multi_document": len({g["doc_id"] for g in gold}) > 1,
+             "scoped": bool(row.get("doc_ids") or row.get("filters")),
+             "numeric": bool(re.search(r"\d", query)), "year": bool(re.search(r"\b20\d{2}\b", query)),
+             "semester": bool(re.search(r"\b(?:semester|term|h?c k?|h?c k?|hoc ky)\b", query, re.I)),
+             "table": "table" in row.get("tags", []) or any(g.get("table_id") for g in gold)}
+    names += ["cohort:" + key for key, value in flags.items() if value]
+    return names
+
+
+def coverage_metrics(records: list[dict]) -> dict:
+    positives = [row for row in records if row["answerable"]]
+    negatives = [row for row in records if not row["answerable"]]
+    total_gold = sum(row["gold_count"] for row in positives)
+    return {"records": len(records), "answerable": len(positives), "negative": len(negatives),
+            "candidate_recall": sum(row["gold_hits"] > 0 for row in positives) / len(positives) if positives else None,
+            "all_gold_recall": sum(row["gold_hits"] == row["gold_count"] for row in positives) / len(positives) if positives else None,
+            "evidence_recall": sum(row["gold_hits"] for row in positives) / total_gold if total_gold else None,
+            "negative_candidate_rate": sum(row["candidate_count"] > 0 for row in negatives) / len(negatives) if negatives else None}
+
+
+def coverage_errors(metrics: dict, floor: float) -> list[str]:
+    errors = []
+    # Missing one hop must not be hidden by an any-gold aggregate hit.
+    for name, part in [("overall", metrics), *metrics.get("strata", {}).items()]:
+        if part.get("answerable", 0) and (part.get("all_gold_recall") is None or part["all_gold_recall"] < floor):
+            errors.append(name + "_all_gold_recall_below_" + str(floor))
+    return errors
+
+
 def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: list[str], cap: int,
                   evidence: dict | None = None) -> dict:
     if len({row["qid"] for row in rows}) != len(rows) or set(outputs) != {row["qid"] for row in rows}:
         raise ValueError("candidate observations must pair every unique benchmark qid")
     hits = provenance_errors = scope_errors = duplicates = 0
     failures = []
+    coverage = []
+    strata = defaultdict(list)
     for row in rows:
         values = outputs[row["qid"]]
         if not isinstance(values, list) or len(values) > cap:
@@ -40,18 +81,28 @@ def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: lis
             scope_errors += item["doc_id"] not in row.get("doc_ids", doc_ids) or item["doc_id"] not in doc_ids or any(
                 str(item["metadata"].get(key, "")).casefold() != str(value).casefold()
                 for key, value in (row.get("filters") or {}).items())
-        if row["answerable"]:
-            gold = row["gold_evidence"]
-            found = any(item["doc_id"] == g["doc_id"] and item["chunk_id"] == g["chunk_id"]
-                        and (item["page"] == g["page"] if "page" in g else item["page"] in g.get("pages", [item["page"]]))
-                        for item in values for g in gold)
-            hits += found
-            if not found:
-                failures.append({"qid": row["qid"], "query": row["question"],
-                                 "expected_evidence": sorted({(g["doc_id"], g["chunk_id"]) for g in gold}),
-                                 "candidate_ids": [(item["doc_id"], item["chunk_id"]) for item in values]})
+        gold = row["gold_evidence"] if row["answerable"] else []
+        if row["answerable"] and not gold:
+            raise ValueError("answerable row must have gold evidence")
+        # Distinct gold chunks, not duplicate annotation rows, are the units.
+        unique_gold = {(g["doc_id"], g["chunk_id"], tuple(g.get("pages", [g.get("page")]))) for g in gold}
+        matched = {g for g in unique_gold if any(item["doc_id"] == g[0] and item["chunk_id"] == g[1]
+                   and (g[2] == (None,) or item["page"] in g[2]) for item in values)}
+        record = {"qid": row["qid"], "answerable": bool(row["answerable"]),
+                  "gold_count": len(unique_gold), "gold_hits": len(matched), "candidate_count": len(values)}
+        coverage.append(record)
+        for cohort in cohort_names(row):
+            strata[cohort].append(record)
+        hits += bool(matched)
+        if row["answerable"] and len(matched) < len(unique_gold):
+            failures.append({"qid": row["qid"], "query": row["question"],
+                             "expected_evidence": sorted({(g[0], g[1]) for g in unique_gold - matched}),
+                             "candidate_ids": [(item["doc_id"], item["chunk_id"]) for item in values]})
     answerable = sum(row["answerable"] for row in rows)
-    return {"records": len(rows), "answerable": answerable, "candidate_cap": cap,
+    return {**coverage_metrics(coverage),
+            "coverage_per_query": coverage,
+            "strata": {name: coverage_metrics(part) for name, part in sorted(strata.items())},
+            "records": len(rows), "answerable": answerable, "candidate_cap": cap,
             "candidate_recall": hits / answerable if answerable else 0.0,
             "candidate_misses": failures, "provenance_errors": provenance_errors,
             "scope_errors": scope_errors, "duplicate_result_sets": duplicates,
@@ -118,6 +169,9 @@ def main() -> int:
     for split in ("human_dev", "human_test", "human_holdout"):
         if not args.exploratory and report["splits"][split]["caps"]["40"]["candidate_recall"] < .95:
             errors.append(f"{split}_candidate_recall_below_0.95")
+    for split, floor in (("test", .99), ("holdout", .97), ("human_dev", .95), ("human_test", .95), ("human_holdout", .95)):
+        if split in report["splits"]:
+            errors.extend(split + ":" + error for error in coverage_errors(report["splits"][split]["caps"]["40"], floor))
     report["status"] = "pass" if not errors and not args.exploratory else "conditional"
     report["errors"] = errors
     args.output.parent.mkdir(parents=True, exist_ok=True)

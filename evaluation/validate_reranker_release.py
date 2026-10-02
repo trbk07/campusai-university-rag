@@ -18,7 +18,8 @@ from evaluation.release_artifacts import sha256, write_json
 
 def build_manifest(args, report: dict) -> dict:
     """Build the reviewable package identity only from fully passing evidence."""
-    if report.get("status") != "pass" or report.get("score") != 10.0 or report.get("through") != "M12":
+    if (report.get("status") != "pass" or report.get("score") != 10.0
+            or report.get("through") != "M12" or report.get("all_release_gates_pass") is not True):
         raise ValueError("release manifest rejected: all M0-M12 gates must PASS")
     from evaluation.release_artifacts import read_json
     if any(report.get("artifact_sha256", {}).get(name) != sha256(getattr(args, name)) for name in ARTIFACTS):

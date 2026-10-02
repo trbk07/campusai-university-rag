@@ -8,6 +8,7 @@ from html import escape
 from typing import Callable
 
 from .api import CampusAIApplication
+from .request_timings import capture_request, timed_stage
 
 
 INDEX_HTML = """<!doctype html>
@@ -19,7 +20,7 @@ INDEX_HTML = """<!doctype html>
 <script>const f=document.querySelector('#query-form'),s=document.querySelector('#status'),a=document.querySelector('#answer');f.addEventListener('submit',async e=>{e.preventDefault();s.textContent='Đang tìm bằng chứng…';a.textContent='';try{const r=await fetch('/api/query',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:new FormData(f).get('question')})});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error_code||'query_failed');a.textContent=d.answer.answer;const c=d.answer.citations||[];if(c.length)a.textContent+='\\n\\nNguồn: '+c.map(x=>`trang ${x.page}`).join(', ');s.textContent=d.answer.abstained?'Chưa đủ bằng chứng.':'Hoàn tất.'}catch(err){s.textContent='Có lỗi: '+err.message}});</script></body></html>"""
 
 
-def make_wsgi_app(application: CampusAIApplication) -> Callable:
+def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable | None = None) -> Callable:
     def app(environ, start_response):
         path = environ.get("PATH_INFO", "/")
         method = environ.get("REQUEST_METHOD", "GET").upper()
@@ -51,15 +52,34 @@ def make_wsgi_app(application: CampusAIApplication) -> Callable:
                     raise ValueError("invalid language")
                 # Assign cohort identity on the server; payload mode/id cannot
                 # force admission or bypass release policy.
-                options["request_id"] = uuid.uuid4().hex
+                options["request_id"] = environ.get("campusai.request_id") or uuid.uuid4().hex
                 value = application.query(payload.get("question", ""), **options)
                 return _json_response(value, start_response, 200 if value.get("ok") else 400)
             except (ValueError, json.JSONDecodeError):
                 return _json_response({"ok": False, "error_code": "invalid_json"}, start_response, 400)
         return _json_response({"ok": False, "error_code": "not_found"}, start_response, 404)
-    return app
+    if telemetry_hook is None:
+        return app
+
+    def measured(environ, start_response):
+        request_id = uuid.uuid4().hex
+        environ["campusai.request_id"] = request_id
+        def respond(status, headers, exc_info=None):
+            headers = headers + [("X-Request-ID", request_id)]
+            return start_response(status, headers) if exc_info is None else start_response(status, headers, exc_info)
+        with capture_request() as trace:
+            body = app(environ, respond)
+        # Hook is trusted server-side instrumentation, not a request option.
+        trace["request_id"] = request_id
+        trace["cache_hit"] = application.query_service.last_cache_hit
+        retrieval = getattr(application.query_service.retriever, "last_trace", None)
+        trace["retrieval_trace"] = retrieval.to_dict() if retrieval is not None else None
+        telemetry_hook(trace)
+        return body
+    return measured
 
 
+@timed_stage("serialization")
 def _json_response(value, start_response, status: int = 200):
     body = json.dumps(value, ensure_ascii=False).encode("utf-8")
     start_response(f"{status} {'OK' if status == 200 else 'Error'}", [("Content-Type", "application/json; charset=utf-8"), ("Content-Length", str(len(body)))])

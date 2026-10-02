@@ -48,10 +48,14 @@ def commands(args) -> list[list[str]]:
                             "--phase6-calibration", str(args.results_dir / "phase6_retrieval_calibration.json"),
                             "--output", str(args.results_dir / "hard_query_route_calibration.json"))]
         return [command("sweep_reranker_caps", *options, *model, "--dtype", args.dtype, *inference_cli(args),
-                        "--low-score-action", getattr(args, "low_score_action", "phase6"))]
+                        "--low-score-action", getattr(args, "low_score_action", "phase6"),
+                        "--evidence-policy", args.evidence_policy)]
     if args.stage == "performance":
         return [command("measure_reranker_capacity", *common, "--deployment-ram-bytes", str(args.deployment_ram_bytes),
-                        "--profile", args.profile)]
+                        "--profile", args.profile),
+                command("measure_phase7_http", *common, "--model-dir", str(args.model_dir),
+                        "--llm-config", str(args.llm_config), "--deployment-ram-bytes", str(args.deployment_ram_bytes),
+                        "--p95-budget-ms", str(args.http_p95_budget_ms))]
     if args.stage == "security":
         return [command("evaluate_reranker_security", *common, "--cases", str(args.cases))]
     if args.stage == "faults":
@@ -90,6 +94,7 @@ def measurement_environment(args) -> dict[str, str]:
                RERANKER_MODEL_SHA256=identity.model_sha256, RERANKER_TOKENIZER_REVISION=identity.tokenizer_revision,
                RERANKER_MODEL_DIR=str(args.model_dir.resolve()), RERANKER_DEVICE=identity.device,
                RERANKER_BATCH_SIZE=str(identity.batch_size), RERANKER_MAX_LENGTH=str(identity.max_length),
+               RERANKER_INPUT_FORMAT=identity.input_format,
                RERANKER_DTYPE=identity.dtype, RERANKER_SCORE_CACHE_SIZE="0",
                RERANKER_BATCH_WINDOW_MS=str(identity.batch_window_ms), RERANKER_MAX_BATCH_PAIRS=str(identity.max_batch_pairs),
                RERANKER_CANDIDATE_CAP="40", RERANKER_TIMEOUT_MS="1000", RERANKER_QUEUE_LIMIT=str(getattr(args, "queue_limit", 19)),
@@ -111,6 +116,8 @@ def main(argv=None) -> int:
     parser.add_argument("--queue-limit", type=int, default=19)
     parser.add_argument("--deployment-ram-bytes", type=int)
     parser.add_argument("--profile", default="cpu-small")
+    parser.add_argument("--llm-config", type=Path)
+    parser.add_argument("--http-p95-budget-ms", type=int, default=10000)
     parser.add_argument("--cases", type=Path, default=Path("data/benchmark/reranker_adversarial.jsonl"))
     parser.add_argument("--observations", type=Path)
     parser.add_argument("--fault-observations", type=Path)
@@ -118,6 +125,7 @@ def main(argv=None) -> int:
     parser.add_argument("--staging-requests", type=int, default=100)
     parser.add_argument("--staging-concurrency", type=int, default=1)
     parser.add_argument("--low-score-action", choices=("phase6", "abstain"), default="phase6")
+    parser.add_argument("--evidence-policy", choices=("probability", "score"), default="probability")
     parser.add_argument("--readiness-output", type=Path, default=Path(".release/reranker/readiness.json"))
     parser.add_argument("--release-manifest", type=Path, default=Path("evaluation/results/reranker_release_manifest.json"))
     args = parser.parse_args(argv)
@@ -126,6 +134,8 @@ def main(argv=None) -> int:
         parser.error("--model-dir is required for this stage (local immutable snapshot)")
     if args.stage == "performance" and (args.deployment_ram_bytes is None or args.deployment_ram_bytes <= 0):
         parser.error("--deployment-ram-bytes must be the positive deployment limit")
+    if args.stage == "performance" and (args.llm_config is None or not args.llm_config.is_file()):
+        parser.error("--llm-config is required for live end-to-end HTTP measurement")
     if not 0 <= args.queue_limit <= 99:
         parser.error("--queue-limit must be between 0 and 99")
     if args.stage == "staging" and (args.observations is None or args.fault_observations is None):

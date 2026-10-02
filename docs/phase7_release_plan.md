@@ -24,7 +24,7 @@ virtualenv interpreter (`.venv/Scripts/python.exe` on Windows).
 | `python -m evaluation.phase7_release route` | Human dev with difficulty review | M4 |
 | `python -m evaluation.phase7_release calibration --model-dir SNAPSHOT` | Dev-only cap sweep | M5 |
 | `python -m evaluation.phase7_release quality --model-dir SNAPSHOT` | Held-out paired observations | M6 |
-| `python -m evaluation.phase7_release performance --model-dir SNAPSHOT --deployment-ram-bytes LIMIT` | Real deployment RAM limit | M7 |
+| `python -m evaluation.phase7_release performance --model-dir SNAPSHOT --deployment-ram-bytes LIMIT --llm-config CONFIG` | Real RAM limit and configured live LLM | M7 |
 | `python -m evaluation.phase7_release security --model-dir SNAPSHOT --cases CASES` | >=50 adversarial cases covering all 12 categories | M8 |
 | `python -m evaluation.phase7_release faults` | Controlled runtime injection | M9 |
 | `python -m evaluation.phase7_release rollback --model-dir SNAPSHOT` | Live model and shared cache probes | M10 |

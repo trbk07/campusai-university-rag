@@ -19,14 +19,15 @@ ARTIFACTS = {
     "route_confusion": "hard_query_route_confusion.json", "calibration": "reranker_score_calibration.json",
     "sensitivity": "reranker_cap_sensitivity.json", "quality": "retrieval_quality_comparison.json",
     "performance": "reranker_performance.json", "capacity": "reranker_capacity.json",
-    "resource_budget": "reranker_resource_budget.json", "grounding": "reranker_grounding_regression.json",
+    "resource_budget": "reranker_resource_budget.json", "http_end_to_end": "reranker_http_end_to_end.json",
+    "grounding": "reranker_grounding_regression.json",
     "security": "reranker_security.json", "failure_matrix": "reranker_failure_matrix.json",
     "rollback": "reranker_rollback.json", "staging": "reranker_staging.json", "canary": "canary_observations.json",
 }
 GATE_ARTIFACTS = [
     ("baseline", "baseline_report"), ("human_review", "human_manifest"), ("candidate",),
     ("smoke", "provider_contract"), ("route", "route_confusion"), ("calibration", "sensitivity"),
-    ("quality",), ("performance", "capacity", "resource_budget"), ("grounding", "security"),
+    ("quality",), ("performance", "capacity", "resource_budget", "http_end_to_end"), ("grounding", "security"),
     ("failure_matrix",), ("rollback",), ("staging", "canary"), (),
 ]
 OWNERS = ["baseline reviewer", "human annotator and independent reviewer", "retrieval reviewer",
@@ -149,7 +150,7 @@ def validate(args: Namespace) -> dict:
         expected = obj(human.get("split_sha256")).get(split.removeprefix("human_")) if split.startswith("human_") else obj(base.get("benchmark_sha256")).get(split)
         bind(2, part, "benchmark_sha256", expected)
         try:
-            from evaluation.evaluate_candidate_coverage import audit_outputs
+            from evaluation.evaluate_candidate_coverage import audit_outputs, coverage_errors
             from evaluation.freeze_human_benchmark import frozen_evidence
             path = Path(cfg["benchmark_dir"]) / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_")
                                                  else f"phase6_retrieval_{split}.jsonl")
@@ -158,6 +159,7 @@ def validate(args: Namespace) -> dict:
             observed = {pair["qid"]: pair["candidates"] for pair in pairs}
             docs = read_json(Path(cfg["index_dir"]) / "manifest.json")["documents"]
             actual = audit_outputs(rows_at(path), observed, docs, 40, frozen_evidence(Path(cfg["index_dir"])))
+            check(2, not coverage_errors(actual, floor), f"candidate_{split}_stratified_coverage_gate")
             # JSON encodes provenance coordinate tuples as lists.
             check(2, json.loads(json.dumps(actual)) == metrics, f"candidate_{split}_recomputed_gate")
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
@@ -232,6 +234,8 @@ def validate(args: Namespace) -> dict:
     check(5, 0 <= num(calibration.get("timeout_rate")) <= .01
           and 0 <= num(calibration.get("fallback_rate")) <= 1
           and calibration.get("low_score_action", "phase6") in ("phase6", "abstain")
+          and calibration.get("evidence_policy") == "probability"
+          and isinstance(calibration.get("evidence_model"), dict)
           and math.isfinite(num(calibration.get("threshold")))
           and 0 <= num(calibration.get("margin_threshold")), "calibration_policy_domain_gate")
     try:
@@ -240,7 +244,12 @@ def validate(args: Namespace) -> dict:
         rows = rows_at(Path(cfg["benchmark_dir"]) / "human_retrieval_dev.jsonl")
         outputs = dict(observed["baseline"])
         check(5, set(outputs) == {row["qid"] for row in rows} and set(observed["proposals"]) <= set(outputs), "calibration_pair_identity_gate")
-        outputs = calibrated_outputs(outputs, observed["proposals"], calibration)
+        outputs = calibrated_outputs(outputs, observed["proposals"], calibration, rows=rows)
+        if calibration.get("evidence_model") is not None:
+            from evaluation.calibrate_evidence_probabilities import calibrate_probabilities
+            refit, diagnostics = calibrate_probabilities(rows, observed["baseline"], observed["proposals"])
+            check(5, refit["evidence_model"] == calibration["evidence_model"] and diagnostics == calibration["comparison"]
+                  and diagnostics["feasible"], "calibration_grouped_probability_recomputed_gate")
         actual = _quality(rows, outputs)
         check(5, abs(actual["answerable_recall_at_5"] - calibration["recall"]) < 1e-9
               and actual["negative_fpr"] == calibration["false_positive_rate"], "calibration_recomputed_gate")
@@ -252,6 +261,7 @@ def validate(args: Namespace) -> dict:
             trial_report = read_json(Path(cfg["sensitivity"]).parent / relative)
             check(5, trial_report.get("low_score_action", "phase6") == calibration.get("low_score_action", "phase6"),
                   "sensitivity_low_score_action_binding")
+            check(5, trial_report.get("evidence_policy", "score") == calibration.get("evidence_policy", "score"), "sensitivity_evidence_policy_binding")
             for key, expected in (("status", trial_report.get("status")), ("rerank_cap", trial_report.get("rerank_candidate_cap")),
                                   ("recall", trial_report.get("recall")), ("negative_fpr", trial_report.get("false_positive_rate")),
                                   ("p95_ms", obj(trial_report.get("rerank_latency_ms")).get("p95")),
@@ -322,7 +332,7 @@ def validate(args: Namespace) -> dict:
         serving_profiles = [p for p in matrix if p.get("rerank_cap") == release_cap]
         check(7, capacity.get("release_rerank_cap") == release_cap
               and capacity.get("deployment_device") == obj(smoke.get("model_identity")).get("device")
-              and {1, 5, 20} <= {p.get("concurrency") for p in serving_profiles}, "capacity_deployment_profile_gate")
+              and {1, 5, 10, 20} <= {p.get("concurrency") for p in serving_profiles}, "capacity_deployment_profile_gate")
         for profile in serving_profiles:
             metrics = summarize_samples(profile["samples"])
             check(7, metrics["hard_p95_ms"] <= 1000 and metrics["hard_p99_ms"] <= 2000
@@ -331,6 +341,80 @@ def validate(args: Namespace) -> dict:
             check(7, (20, 5) in {(p.get("rerank_cap"), p.get("concurrency")) for p in matrix}, "capacity_gpu_matrix_gate")
     except (ValueError, KeyError, TypeError):
         problems[7].append("capacity_evidence_gate")
+    http = reports["http_end_to_end"]
+    try:
+        import re
+        from evaluation.measure_phase7_http import CONCURRENCIES, MAX_P95_BUDGET_MS, cohort, workload, summarize_http_samples
+        from evaluation.freeze_human_benchmark import frozen_evidence
+        test_rows = rows_at(Path(cfg["benchmark_dir"]) / "human_retrieval_test.jsonl")
+        by_qid = {row["qid"]: row for row in test_rows}
+        docs = read_json(Path(cfg["index_dir"]) / "manifest.json")["documents"]
+        indexed = frozen_evidence(Path(cfg["index_dir"]))
+        bind(7, http, "test_sha256", file_hash(Path(cfg["benchmark_dir"]) / "human_retrieval_test.jsonl"))
+        check(7, http.get("llm_provider") in {"openai-compatible", "gemini"}
+              and isinstance(http.get("llm_model"), str) and bool(http["llm_model"])
+              and is_hash(http.get("llm_config_sha256"))
+              and http.get("llm_cache_enabled") is False and http.get("answer_cache_enabled") is False
+              and http.get("profile") == "threaded-wsgi-local-http", "http_live_llm_identity_gate")
+        check(7, http.get("release_rerank_cap") == calibration.get("rerank_candidate_cap")
+              and type(http.get("p95_budget_ms")) is int
+              and 0 < http["p95_budget_ms"] <= MAX_P95_BUDGET_MS,
+              "http_release_cap_and_slo_gate")
+        check(7, num(http.get("cold_start_ms"), -1) >= 0
+              and num(http.get("peak_rss_bytes"), 0) > 0
+              and http.get("deployment_ram_bytes") == ram
+              and num(http.get("peak_rss_bytes")) <= .75 * num(ram), "http_resource_gate")
+        if obj(smoke.get("model_identity")).get("device", "").startswith("cuda"):
+            check(7, num(http.get("peak_gpu_memory_bytes"), 0) > 0, "http_gpu_memory_gate")
+        profiles = http["profiles"]
+        check(7, isinstance(profiles, list) and len(profiles) == len(CONCURRENCIES)
+              and {p.get("concurrency") for p in profiles} == set(CONCURRENCIES), "http_concurrency_matrix_gate")
+        request_ids = set()
+        for profile in profiles:
+            samples = profile["samples"]
+            actual = summarize_http_samples(samples, p95_budget_ms=http["p95_budget_ms"])
+            check(7, actual == profile.get("summary") and actual["passed"]
+                  and profile.get("requests") == len(samples), "http_profile_recomputed_gate")
+            check(7, [sample["qid"] for sample in samples] ==
+                  [row["qid"] for row in workload(test_rows, profile["requests"])],
+                  "http_workload_sequence_gate")
+            check(7, actual["grounded_answers"] >= 30, "http_grounded_response_gate")
+            negatives = 0
+            false_positives = 0
+            for sample in samples:
+                row = by_qid.get(sample["qid"])
+                check(7, row is not None and sample["question_sha256"] == hashlib.sha256(row["question"].encode()).hexdigest()
+                      and sample["cohort"] == cohort(row) and sample.get("scope_doc_ids") == row.get("doc_ids"),
+                      "http_workload_binding_gate")
+                check(7, sample["http_status"] == 200 and sample["error"] is False
+                      and sample["cache_hit"] is False and isinstance(sample.get("abstained"), bool)
+                      and re.fullmatch(r"[0-9a-f]{32}", sample["request_id"])
+                      and sample["request_id"] not in request_ids
+                      and sample["finished_at"] >= sample["started_at"]
+                      and abs(sample["client_total_ms"] -
+                              (sample["finished_at"] - sample["started_at"]) * 1000) <= .01
+                      and sample["server_total_ms"] <= sample["client_total_ms"]
+                      and sample.get("abstention_reason") != "llm_error", "http_raw_success_gate")
+                request_ids.add(sample["request_id"])
+                check(7, sample["stage_calls"].get("retrieval") == 1
+                      and sample["stage_calls"].get("grounding") == 1
+                      and sample["stage_calls"].get("serialization") == 1
+                      and 0 <= sample["stage_calls"].get("llm", 0) <= 1,
+                      "http_stage_observation_gate")
+                check(7, all(c.get("doc_id") in (row.get("doc_ids") or docs)
+                             for c in sample["citations"]), "http_scope_gate")
+                check(7, sample["abstained"] or bool(sample["citations"]), "http_answer_citation_gate")
+                for citation in sample["citations"]:
+                    source = indexed.get((citation.get("doc_id"), citation.get("chunk_id")))
+                    check(7, bool(source) and citation.get("page") == source["page"],
+                          "http_citation_provenance_gate")
+                if row["answerable"] is False:
+                    negatives += 1
+                    false_positives += sample["abstained"] is False
+            check(7, negatives >= 5 and false_positives / negatives <= .01,
+                  "http_negative_grounding_gate")
+    except (ImportError, OSError, ValueError, KeyError, TypeError, AttributeError, ZeroDivisionError):
+        problems[7].append("http_end_to_end_evidence_gate")
     for key in ("cold_start_ms", "warmup_ms", "cpu_utilization_percent"):
         check(7, num(performance.get(key), -1) >= 0, f"performance_{key}_gate")
     security = reports["security"]
@@ -493,6 +577,7 @@ def validate(args: Namespace) -> dict:
     errors = sorted({error for index in range(through + 1) for error in problems[index]})
     passed = all(gates[f"M{index}"]["status"] == "PASS" for index in range(through + 1))
     return {"schema_version": 2, "phase": 7, "status": "pass" if passed else "conditional",
+            "all_release_gates_pass": passed and through == 12,
             "score": 10.0 if passed and through == 12 else None, "errors": errors, "gates": gates,
             "through": cfg["through"], **source, "working_tree_clean": not dirty, "base_release": "phase6-rc3",
             "baseline_commit": base.get("commit"), "model_identity_sha256": smoke.get("model_identity_sha256"),

@@ -587,7 +587,9 @@ class HybridRetriever:
         if not self.phase7_enabled:
             return finish(baseline[:top_k], False, "feature_disabled")
         try:
-            ranked = provider.score(query, candidates)
+            from ..request_timings import stage
+            with stage("reranker_wait"):
+                ranked = provider.score(query, candidates)
         except RerankerUnavailable as error:
             # Providers are injectable; their exception text is untrusted.
             safe_reasons = {"queue_full", "circuit_open", "reranker_timeout",
@@ -628,7 +630,12 @@ class HybridRetriever:
             return disable("reranker_provenance_invalid")
         margin = ranked[0].reranker_score - ranked[1].reranker_score if len(ranked) > 1 else 0.0
         try:
-            action = policy.score_action(ranked[0].reranker_score, margin)
+            features = None
+            if policy.evidence_model is not None:
+                from .evidence_policy import evidence_features
+                features = evidence_features(query, routing_baseline, [by_id[item.candidate_id] for item in ranked],
+                                             [item.reranker_score for item in ranked])
+            action = policy.score_action(ranked[0].reranker_score, margin, features=features)
         except ValueError:
             return disable("reranker_provenance_invalid")
         if action == "abstain":
