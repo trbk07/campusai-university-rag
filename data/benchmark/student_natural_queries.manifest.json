@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "records": 480,
+  "intents": 80,
+  "categories": {
+    "abbreviation": 68,
+    "colloquial": 54,
+    "code_switching": 70,
+    "typo": 20,
+    "lexical_mismatch": 46,
+    "unanswerable": 19,
+    "slang": 16,
+    "conditional": 23,
+    "long_noisy": 34,
+    "paraphrase": 39,
+    "implicit_intent": 16,
+    "ambiguous": 42,
+    "contextual_followup": 15,
+    "multi_hop": 18
+  },
+  "difficulty": {
+    "medium": 124,
+    "hard": 252,
+    "easy": 104
+  },
+  "answerable": 366,
+  "ambiguous": 42,
+  "splits": {
+    "dev": 156,
+    "test": 186,
+    "holdout": 138
+  },
+  "validation_errors": [],
+  "dataset_sha256": "49e88c4c0e8cc028eb1afd25d79f6840809b5de54232c8fbc54ba2720b83fb2d",
+  "spec_sha256": "dcd54b839c98b36ef7d9001c7724508b37b6e1a76aef2b213e15eac15fee32e7",
+  "corpus_manifest_sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+  "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "chunk_sha256": {
+    "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59": "ad6a3497eec9ab09ce95179ef27c26067e2343270e82b2d34f89370c92c57995",
+    "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1": "375f18491d92d0948d89a6033a5773f3e14a8fdc66154e49798f872b6f6f7c26",
+    "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13": "92931f2315523444e95e610ea3c4f26f2fe41d1536d06fdc3555e58cdec51d4c",
+    "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b": "e7d235e93e4c21dde6eaa0fc71026d5b1c826b7134f07d9692f5c7d1533370ad",
+    "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8": "73b5164f083b4f4422db8c1c9ac5257cad4fda32777f84d415b43ad6c6c2e829",
+    "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+    "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea"
+  },
+  "author_type": "ai",
+  "review_status": "not_human_reviewed",
+  "release_eligible": false,
+  "runtime_assumption": "none: upload fixture sources live only in evaluation metadata",
+  "answerability_scope": "seed corpus only; relabel against each different upload",
+  "split_policy": "all six variants of an intent stay together; supported PDF sources do not cross splits",
+  "query_policy": "raw authored inputs preserved verbatim; normalized_query is annotation only"
+}

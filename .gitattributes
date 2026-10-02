@@ -1,0 +1,4 @@
+# Keep the new portable benchmark and its checksums identical on Windows/Linux.
+/data/benchmark/student_natural_queries.spec text eol=lf
+/data/benchmark/student_natural_queries.jsonl text eol=lf
+/data/benchmark/student_natural_queries.manifest.json text eol=lf

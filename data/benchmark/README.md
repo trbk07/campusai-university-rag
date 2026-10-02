@@ -1,5 +1,47 @@
 ﻿# Benchmark annotations
 
+`student_natural_queries.jsonl` contains **480 AI-authored natural inputs across
+80 intents**, six different phrasings per intent, covering all 14 requested
+forms. The requested eight fields are supplemented with upload scope,
+conversation context, evidence coordinates and provenance. Queries refer to
+the active PDF; the application does not import this dataset or assume what
+future users upload. PDFs in `data/corpus/university` are evaluation fixtures.
+
+Use raw `query` as RAG input. `normalized_query` is an annotation; supplying it
+would hide typo/slang challenges. Pass recorded history for contextual queries,
+and `selected_text` only for cases with an explicit user selection. Never pass
+gold answers, intent or expected source to the model. The `query_input` helper
+in `evaluation.build_student_natural_benchmark` requires explicit current
+upload bindings and does not default to a global knowledge base.
+
+There are 366 supported and 114 unsupported/as-yet-unanswerable questions,
+including 42 requiring clarification. **Answerability is relative to the seed
+upload fixture.** A new PDF may contain a scholarship or credit-registration
+rule absent here: relabel before using it as a scored test on that upload.
+The seed distinguishes exam sanctions from academic warnings, and student
+awards from scholarships; it does not invent missing rules or personal results.
+
+All six variants of an intent stay together: dev 156, test 186, holdout 138.
+Supported PDF sources also stay in one split. The two-document curriculum
+comparison reserves both sources for holdout. Freeze tuning before opening
+test/holdout. These questions were authored with corpus access and describe a
+robustness study, not observed user traffic. `author_type=ai`,
+`review_status=not_human_reviewed`, `release_eligible=false`: this is not
+independently reviewed human evidence for Phase 7 M1.
+
+Rebuild with the frozen Phase 6 index available:
+
+```powershell
+.\.venv\Scripts\python.exe -m evaluation.build_student_natural_benchmark
+```
+
+`student_natural_queries.spec` is the editable source. The adjacent manifest
+records counts and PDF/index/chunk/data checksums. Rebuilding verifies PDF
+hashes before resolving evidence coordinates, without models or network calls.
+`phase7_ai_questions.tsv` and `evaluation.run_ai_reranker_study` are a separate
+159-question real-model probe. Its raw reports stay in the isolated
+`.release/reranker/studies` directory and cannot pass official release gates.
+
 `dev.jsonl` is a schema-valid 20-row university development benchmark. Its
 evidence is manually anchored to the checked-in Phase 1/2 golden fixtures
 (`golden-graduation` and `golden-prerequisites`); it is suitable for parser,

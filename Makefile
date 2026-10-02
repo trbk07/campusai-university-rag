@@ -66,3 +66,7 @@ reranker-human-freeze: phase7-human-freeze
 reranker-candidate-coverage: phase7-candidate
 reranker-route-calibration: phase7-route
 reranker-quality: phase7-quality
+
+.PHONY: student-natural-benchmark
+student-natural-benchmark:
+	$(PHASE7_PYTHON) -m evaluation.build_student_natural_benchmark

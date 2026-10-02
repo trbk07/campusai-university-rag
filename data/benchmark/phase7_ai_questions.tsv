@@ -1,0 +1,161 @@
+# AI-authored research questions. Never independent human release evidence.
+# document|chunk item indices|difficulty|tags|question|expected answer (not a human approval)
+admission|7|easy|fact|Thông báo tuyển sinh thạc sĩ đợt 2 năm 2022 của UET có đào tạo chuyên ngành An toàn thông tin không?|Có, thuộc nhóm Công nghệ thông tin.
+admission|8|medium|fact|Theo thông báo năm 2022, người tốt nghiệp loại dưới Khá cần điều kiện nghiên cứu nào để dự tuyển thạc sĩ UET?|Có công bố khoa học liên quan lĩnh vực dự tuyển theo điều kiện văn bằng.
+admission|8|easy|fact|Thí sinh thạc sĩ UET tuyển năm 2022 phải đạt ngoại ngữ đầu vào bậc mấy?|Bậc 3.
+admission|8|medium|fact|Chuẩn ngoại ngữ đầu ra thạc sĩ thay đổi thế nào đối với khóa tuyển từ năm 2022?|Đầu ra bậc 4, đầu vào bậc 3.
+admission|8|medium|fact|Bằng đại học do trường nước ngoài cấp có dùng để dự tuyển thạc sĩ UET theo thông báo 2022 được không?|Phải được công nhận theo quy định.
+admission|9|medium|fact|Theo mục ngoại ngữ của thông báo 2022, bằng đại học ngành ngoại ngữ có thể thay cho chứng chỉ không?|Có, theo các trường hợp văn bằng ngoại ngữ được nêu.
+admission|9|hard|multi_evidence|Tôi chưa có minh chứng ngoại ngữ khi nộp hồ sơ thạc sĩ UET đợt 2 năm 2022; có được bổ sung sau không, và phải bổ sung trước lúc nào?|Có thể đăng ký và bổ sung trước quyết định trúng tuyển, dự kiến tháng 11/2022.
+admission|10|easy|fact|Thông báo thạc sĩ 2022 yêu cầu gì về sức khỏe của người dự tuyển?|Đủ sức khỏe để học tập.
+admission|10|medium|fact|Người đang trong thời gian thi hành án hình sự có đáp ứng điều kiện dự tuyển ghi trong thông báo thạc sĩ 2022 không?|Không đáp ứng điều kiện về lý lịch.
+admission|13|hard|fact|Tốt nghiệp Giỏi ở trường khác, ngành phù hợp, được 10 tháng có thuộc diện xét tuyển thẳng thạc sĩ UET theo thông báo 2022 không?|Có thể thuộc diện xét tuyển thẳng, còn phải đáp ứng điều kiện ngoại ngữ và các điều kiện liên quan.
+admission|13|medium|fact|Khoảng thời gian từ tốt nghiệp tới đăng ký xét tuyển thẳng thạc sĩ trong thông báo UET năm 2022 là bao lâu?|Trong 12 tháng theo các diện nêu tại mục 2.1.
+admission|14,15|hard|multi_evidence|Theo thông báo 2022, nếu có cả giải nghiên cứu khoa học và bài báo thì điểm thưởng tích lũy tối đa khi xét tuyển thẳng là bao nhiêu?|Tối đa 0,5 điểm.
+admission|14|medium|fact|Giải nhất nghiên cứu khoa học cấp ĐHQGHN hoặc cấp Bộ được thưởng bao nhiêu điểm khi xét tuyển thẳng thạc sĩ năm 2022?|0,2 điểm.
+admission|14|medium|fact|Giải nhì nghiên cứu khoa học cấp ĐHQGHN được cộng bao nhiêu điểm theo thông báo thạc sĩ 2022?|0,15 điểm.
+admission|14|medium|fact|Giải ba nghiên cứu khoa học cấp Bộ được tính mấy điểm thưởng tuyển thẳng theo thông báo UET 2022?|0,1 điểm.
+admission|14|medium|fact|Giải khuyến khích nghiên cứu khoa học cấp ĐHQGHN được thưởng bao nhiêu theo quy định tuyển thẳng thạc sĩ 2022?|0,07 điểm.
+admission|15|medium|fact|Bài báo thuộc hệ thống ISI được tính mấy điểm thưởng trong thông báo tuyển thẳng thạc sĩ UET năm 2022?|0,3 điểm.
+admission|15|medium|fact|Một bài báo Scopus được tính bao nhiêu điểm thưởng xét tuyển thẳng theo thông báo UET 2022?|0,2 điểm.
+admission|15|medium|fact|Công bố ở hội nghị khoa học quốc tế hoặc quốc gia được tính mấy điểm thưởng theo thông báo thạc sĩ UET 2022?|0,15 điểm.
+admission|16|medium|fact|Hồ sơ xét tuyển thẳng thạc sĩ UET năm 2022 cần những minh chứng nào về học tập và ngoại ngữ?|Bằng tốt nghiệp, bảng điểm, minh chứng ngoại ngữ và các giấy tờ trong danh mục hồ sơ.
+admission|17|easy|fact|Đăng ký trực tuyến xét tuyển thẳng thạc sĩ UET đợt 2 năm 2022 kết thúc lúc nào?|17h00 ngày 30/08/2022.
+admission|17|easy|fact|Đợt 2 năm 2022 bắt đầu nhận hồ sơ tuyển thẳng thạc sĩ UET vào ngày nào?|8h00 ngày 15/07/2022.
+admission|19,20|hard|multi_evidence|Xét tuyển thẳng thạc sĩ UET đợt 2 năm 2022 diễn ra khi nào và ngày nào thông báo kết quả?|Xét từ 05/09 đến 08/09/2022, thông báo kết quả 09/09/2022.
+admission|22|medium|fact|Theo thông báo 2022, người đủ điều kiện văn bằng nhưng không thuộc diện tuyển thẳng thạc sĩ sẽ thi theo hình thức nào?|Phỏng vấn và xét hồ sơ, đồng thời đáp ứng điều kiện ngoại ngữ.
+admission|23|medium|fact|Phỏng vấn thạc sĩ UET năm 2022 đánh giá những nội dung gì ngoài hồ sơ?|Động cơ, mục đích học tập; kiến thức, nhận thức chuyên môn và hiểu biết chuyên ngành.
+admission|26|hard|fact|Người thuộc nhiều diện ưu tiên có được cộng dồn điểm ưu tiên ngoại ngữ trong thông báo thạc sĩ UET 2022 không?|Mức ưu tiên áp dụng cả người thuộc nhiều đối tượng; 10 điểm ngoại ngữ trên thang 100 nếu không được miễn.
+admission|30|easy|fact|Thông báo tuyển sinh thạc sĩ năm 2022 hướng dẫn đăng ký trực tuyến ở địa chỉ nào?|http://tssdh.vnu.edu.vn.
+admission|31|easy|fact|Lịch phỏng vấn thạc sĩ UET đợt 2 năm 2022 là ngày nào?|17/09/2022.
+admission|32|easy|fact|Lệ phí tuyển sinh thạc sĩ UET đợt 2 năm 2022 là bao nhiêu?|420.000 đồng/thí sinh.
+admission|32|hard|fact|Người đăng ký xét tuyển thẳng có phải đóng lệ phí thạc sĩ UET năm 2022 không, và có thể nộp bằng cách nào?|Có, 420.000 đồng; chuyển khoản hoặc nộp tiền mặt tại trường.
+admission|33|easy|fact|Thông báo năm 2022 ghi học phí thạc sĩ UET cho năm học 2022–2023 là bao nhiêu một năm?|30.000.000 đồng/năm học.
+admission|34|easy|fact|Thời gian đào tạo thạc sĩ trong thông báo UET đợt 2 năm 2022 là mấy năm?|2 năm, hình thức chính quy.
+admission|34|medium|fact|Thông báo 2022 dự kiến công bố kết quả thi thạc sĩ chậm nhất vào lúc nào?|Trước 17h00 ngày 30/09/2022.
+admission|35|easy|fact|Phòng nào ở UET tiếp nhận liên hệ tư vấn tuyển sinh sau đại học trong thông báo năm 2022?|Phòng Đào tạo, phòng 105-E3, 144 Xuân Thủy, Cầu Giấy, Hà Nội.
+rewards|7,20|hard|multi_evidence|Quy định khen thưởng sinh viên UET ban hành tháng 8/2023 bắt đầu áp dụng từ tháng nào?|Tháng 9/2023.
+rewards|13|easy|fact|Quy định khen thưởng UET năm 2023 áp dụng cho sinh viên hệ nào?|Sinh viên đại học hệ chính quy và các tập thể lớp sinh viên.
+rewards|15|hard|fact|Sinh viên UET có một môn dưới C+ có được danh hiệu Sinh viên Xuất sắc theo quy định 2023 không?|Không, danh hiệu yêu cầu không có học phần nào dưới C+ và các điều kiện học tập, rèn luyện.
+rewards|15|hard|fact|Theo quy định khen thưởng 2023, đạt học tập Giỏi nhưng rèn luyện Trung bình có đủ điều kiện danh hiệu Sinh viên Giỏi không?|Không, rèn luyện phải từ loại Tốt trở lên.
+rewards|15|medium|fact|Thủ khoa tốt nghiệp trong quy định UET 2023 được xác định trong phạm vi toàn trường hay từng ngành?|Điểm trung bình cao nhất theo ngành, tốt nghiệp trong thời gian chuẩn.
+rewards|15|medium|fact|Sinh viên tốt nghiệp sớm được xét Thủ khoa vào lúc nào theo quy định khen thưởng UET 2023?|Khi xét tốt nghiệp của khóa tương ứng trong thời gian chuẩn.
+rewards|15|easy|fact|Danh hiệu Thủ khoa tốt nghiệp UET được trao hình thức khen thưởng nào theo quy định 2023?|Kỷ niệm chương và giấy chứng nhận.
+rewards|15,16|hard|multi_evidence|Muốn được khen vì đóng góp tập thể lớp theo quy định UET 2023 thì ngoài điểm trung bình từ 3,0 còn cần gì?|Không có môn dưới D, rèn luyện Xuất sắc, giữ chức vụ lớp/Đoàn-Hội và có đóng góp tích cực theo quy định.
+rewards|16|hard|fact|Khóa luận đạt điểm xuất sắc nhưng tốt nghiệp muộn có được khen khóa luận xuất sắc theo quy định UET 2023 không?|Quy định yêu cầu tốt nghiệp đúng thời gian chuẩn hoặc sớm, cùng các điều kiện học tập, rèn luyện và hội đồng.
+rewards|16|easy|fact|Tập thể lớp Tiên tiến cần tỷ lệ sinh viên học tập và rèn luyện từ Khá trở lên là bao nhiêu?|Từ 70%.
+rewards|16|hard|fact|Lớp đã đạt Tiên tiến cần thêm những điều kiện gì để được danh hiệu Tập thể lớp Xuất sắc theo quy định 2023?|Ít nhất 10% sinh viên Giỏi và ít nhất một sinh viên Xuất sắc.
+rewards|18|medium|fact|Điểm xét khen sinh viên trúng tuyển xuất sắc UET năm 2023 có cộng điểm ưu tiên không?|Điểm thi cao nhất theo phương thức xét tuyển, chưa tính điểm ưu tiên.
+rewards|18|easy|fact|Sinh viên trúng tuyển xuất sắc được thưởng học phí năm nào theo quy định UET 2023?|Năm học thứ nhất.
+rewards|18|hard|fact|Sinh viên tuyển thẳng có giải quốc tế từ năm trước có đáp ứng diện khen thưởng trúng tuyển ghi trong quy định UET 2023 không?|Diện nêu yêu cầu giải quốc tế chính thức trong cùng năm tuyển sinh.
+rewards|20|medium|fact|Ai quyết định khen thưởng những thành tích đặc biệt chưa được nêu trong quy định UET 2023?|Hội đồng đề xuất, Hiệu trưởng quyết định.
+electronics|16|easy|fact|Trong chương trình điện tử viễn thông UET điều chỉnh năm 2023, tên ngành bằng tiếng Anh là gì?|Electronics and Communications Engineering Technology.
+electronics|16|easy|fact|Chương trình Công nghệ kỹ thuật điện tử viễn thông UET năm 2023 có thời gian đào tạo chuẩn bao lâu?|4 năm.
+electronics|16|easy|exact_code|Mã ngành 7510302 trong chương trình UET năm 2023 thuộc ngành nào?|Công nghệ kỹ thuật điện tử - viễn thông.
+electronics|18|medium|fact|Mục tiêu PO4 của chương trình điện tử viễn thông UET năm 2023 đề cập những năng lực hội nhập nào?|Ngoại ngữ và công nghệ thông tin.
+electronics|21|easy|fact|Chuẩn đầu ra ngoại ngữ của chương trình điện tử viễn thông UET 2023 là bậc mấy trên khung 6 bậc?|Bậc 3/6.
+electronics|22|medium|fact|Chương trình điện tử viễn thông UET 2023 có nêu cơ hội việc làm trong lĩnh vực điện tử y sinh không?|Có, trong nhóm lĩnh vực điện tử, xử lý tín hiệu và các lĩnh vực liên quan.
+electronics|22|medium|fact|Sau chương trình điện tử viễn thông UET năm 2023 có thể học tiếp các ngành cơ điện tử và tự động hóa không?|Có, các hướng đào tạo sau đại học được nêu trong chương trình.
+electronics|24,25|hard|multi_evidence|Chương trình điện tử viễn thông UET 2023 có tổng bao nhiêu tín chỉ, đã tính thể chất và quốc phòng chưa?|135 tín chỉ, chưa tính thể chất, quốc phòng-an ninh và kỹ năng bổ trợ.
+electronics|25,26|medium|fact|Khối kiến thức chung của chương trình điện tử viễn thông UET 2023 gồm mấy tín chỉ?|26 tín chỉ.
+electronics|26,27|medium|fact|Khối kiến thức theo lĩnh vực của điện tử viễn thông UET 2023 gồm mấy tín chỉ?|19 tín chỉ.
+electronics|27,28|medium|fact|Khối kiến thức theo khối ngành điện tử viễn thông UET 2023 cần mấy tín chỉ?|10 tín chỉ.
+electronics|28,29|medium|fact|Khối kiến thức theo nhóm ngành trong chương trình điện tử viễn thông UET 2023 là bao nhiêu tín chỉ?|31 tín chỉ.
+electronics|29,30|medium|fact|Khối kiến thức ngành của chương trình điện tử viễn thông UET 2023 có mấy tín chỉ?|49 tín chỉ.
+electronics|30,31|hard|multi_evidence|Trong khối ngành điện tử viễn thông UET 2023, học phần bắt buộc và lựa chọn theo định hướng có bao nhiêu tín chỉ?|Bắt buộc 18, lựa chọn 12 trên 24 tín chỉ.
+electronics|32,33|medium|fact|Khối thực tập và tốt nghiệp của điện tử viễn thông UET 2023 có bao nhiêu tín chỉ?|13 tín chỉ.
+electronics|36|easy|exact_code|Học phần PEC1008 trong chương trình điện tử viễn thông UET 2023 tên gì, mấy tín chỉ?|Kinh tế chính trị Mác-Lênin, 2 tín chỉ.
+electronics|39|easy|exact_code|HIS1001 của chương trình điện tử viễn thông UET 2023 là học phần gì?|Lịch sử Đảng Cộng sản Việt Nam, 2 tín chỉ.
+electronics|41|easy|exact_code|FLF1107 được ghi là môn ngoại ngữ nào trong chương trình điện tử viễn thông UET 2023?|Tiếng Anh B1, 5 tín chỉ.
+electronics|44|easy|exact_code|INT1009 trong chương trình điện tử viễn thông UET 2023 có bao nhiêu tín chỉ?|Tin học cơ sở, 3 tín chỉ.
+electronics|52|easy|fact|Nhập môn lập trình trong khung điện tử viễn thông UET 2023 là học phần mấy tín chỉ?|3 tín chỉ.
+electronics|55,56|hard|multi_evidence|Muốn học Cấu trúc dữ liệu và giải thuật trong chương trình điện tử viễn thông UET 2023 cần học phần tiên quyết nào và môn này mấy tín chỉ?|INT1008; học phần INT2210 có 4 tín chỉ.
+electronics|53,54|hard|multi_evidence|Tín hiệu và hệ thống của chương trình điện tử viễn thông UET 2023 có bao nhiêu giờ lý thuyết và yêu cầu môn nào trước?|45 giờ lý thuyết, tiên quyết MAT1041.
+electronics|57,58|hard|multi_evidence|Xác suất thống kê trong điện tử viễn thông UET 2023 yêu cầu học trước môn nào?|MAT1041, học phần MAT1101 có 3 tín chỉ.
+electronics|60|easy|exact_code|ELT2032 trong chương trình điện tử viễn thông UET 2023 tên tiếng Anh là gì?|Electronics Devices.
+electronics|62,63|hard|multi_evidence|Điện tử tương tự UET trong khung 2023 có phải học Kỹ thuật điện trước không?|Có, ELT2040 tiên quyết ELT2030.
+electronics|65,66|hard|multi_evidence|Thực tập điện tử tương tự của chương trình UET 2023 cần hoàn thành học phần nào trước?|ELT2040, học phần thực tập ELT3102 có 2 tín chỉ.
+electronics|67,68|hard|multi_evidence|Thực tập điện tử số UET năm 2023 có bao nhiêu tín chỉ và học phần tiên quyết nào?|2 tín chỉ, tiên quyết ELT2041.
+electronics|69,70|hard|multi_evidence|Xử lý tín hiệu số trong chương trình điện tử viễn thông UET 2023 cần học trước Tín hiệu và hệ thống không?|Có, tiên quyết ELT2035; ELT3144 có 4 tín chỉ.
+electronics|71|easy|exact_code|ELT3051 có bao nhiêu tín chỉ theo khung điện tử viễn thông UET 2023?|Kỹ thuật điều khiển, 3 tín chỉ.
+electronics|73|easy|fact|Thiết kế số và vi xử lý trong khung điện tử viễn thông UET 2023 được phân bổ bao nhiêu giờ thực hành?|15 giờ thực hành.
+electronics|75|easy|fact|Nhập môn hệ thống nhúng trong chương trình điện tử viễn thông UET 2023 có mấy tín chỉ?|3 tín chỉ.
+cs|1|easy|exact_code|PHI5001 trong hướng dẫn chương trình thạc sĩ Khoa học máy tính UET học ở kỳ nào?|Triết học, 3 tín chỉ, học kỳ 1.
+cs|1|easy|exact_code|ENG5001 của chương trình thạc sĩ Khoa học máy tính UET có bao nhiêu tín chỉ?|Tiếng Anh cơ bản, 4 tín chỉ.
+cs|2,3|hard|table|Theo hướng dẫn thạc sĩ Khoa học máy tính UET, Nhập môn trí tuệ nhân tạo nâng cao và Xử lý ngôn ngữ tự nhiên học ở những kỳ nào?|INT6146 học kỳ 1; INT6152 học kỳ 2.
+cs|2,3|hard|table|Theo hướng dẫn thạc sĩ Khoa học máy tính, phần tự chọn cần chọn bao nhiêu trên tổng số tín chỉ được liệt kê?|24 trên 60 tín chỉ.
+cs|2|easy|exact_code|INT6151 trong hướng dẫn thạc sĩ Khoa học máy tính UET là môn gì?|Học máy thống kê, 3 tín chỉ, học kỳ 1.
+cs|2|easy|exact_code|INT6009 trong hướng dẫn thạc sĩ Khoa học máy tính UET được xếp học kỳ mấy?|Các vấn đề hiện đại trong khoa học máy tính, học kỳ 2.
+mechatronics|1,2|medium|fact|Theo PDF khung chương trình cơ điện tử UET lưu trong corpus năm 2023, sinh viên cần tích lũy bao nhiêu tín chỉ?|155 tín chỉ.
+mechatronics|3|easy|fact|Khối kiến thức chung của khung cơ điện tử UET trong corpus 2023 gồm mấy tín chỉ, chưa tính những môn gì?|34 tín chỉ; chưa tính thể chất, quốc phòng-an ninh, kỹ năng bổ trợ.
+mechatronics|4|easy|fact|Khối kiến thức theo lĩnh vực của khung cơ điện tử UET trong corpus 2023 có học phần tự chọn không?|16 tín chỉ bắt buộc, tự chọn 0/0.
+mechatronics|5|easy|fact|Khối kiến thức theo khối ngành cơ điện tử UET trong corpus 2023 có mấy tín chỉ?|6 tín chỉ bắt buộc.
+mechatronics|6|easy|fact|Khối kiến thức theo nhóm ngành cơ điện tử UET trong corpus 2023 cần bao nhiêu tín chỉ?|25 tín chỉ.
+mechatronics|7|medium|fact|Khối kiến thức ngành của khung cơ điện tử UET trong corpus 2023 có tổng bao nhiêu tín chỉ?|64 tín chỉ.
+mechatronics|7|hard|fact|Trong khung cơ điện tử UET corpus 2023, phần bổ trợ phải chọn bao nhiêu trong số tín chỉ được cung cấp?|5 trên 15 tín chỉ.
+mechatronics|7|hard|fact|Phần tự chọn chuyên ngành cơ điện tử UET trong corpus 2023 yêu cầu bao nhiêu trên tổng số tín chỉ?|8 trên 17 tín chỉ.
+mechatronics|9|easy|exact_code|PHI1004 ở khung cơ điện tử UET corpus 2023 có mấy tín chỉ?|Những nguyên lý cơ bản của chủ nghĩa Mác-Lênin 1, 2 tín chỉ.
+mechatronics|10,11|hard|multi_evidence|Môn Những nguyên lý Mác-Lênin 2 của khung cơ điện tử UET corpus 2023 cần hoàn thành môn nào trước?|PHI1004, học phần PHI1005 có 3 tín chỉ.
+mechatronics|12,13|hard|multi_evidence|Tư tưởng Hồ Chí Minh trong khung cơ điện tử UET corpus 2023 có mấy tín chỉ và học phần tiên quyết gì?|2 tín chỉ, tiên quyết PHI1005.
+mechatronics|17,18|hard|multi_evidence|Tin học cơ sở 4 của khung cơ điện tử UET corpus 2023 yêu cầu môn nào trước và có mấy tín chỉ?|INT1003, học phần INT1006 có 3 tín chỉ.
+mechatronics|19|easy|fact|Tiếng Anh cơ sở 1 trong khung cơ điện tử UET corpus 2023 gồm bao nhiêu tín chỉ?|4 tín chỉ.
+mechatronics|24,25|hard|multi_evidence|Tiếng Anh cơ sở 4 của khung cơ điện tử UET corpus 2023 có bao nhiêu tín chỉ và yêu cầu học trước gì?|5 tín chỉ, tiên quyết FLF2103.
+mechatronics|26|easy|exact_code|MAT1093 trong khung cơ điện tử UET corpus 2023 là môn gì và có mấy tín chỉ?|Đại số, 4 tín chỉ.
+mechatronics|28,29|hard|multi_evidence|Giải tích 2 của cơ điện tử UET trong corpus 2023 có bao nhiêu tín chỉ và yêu cầu môn nào trước?|4 tín chỉ, tiên quyết MAT1041.
+mechatronics|31,32|hard|multi_evidence|Vật lý đại cương 2 của cơ điện tử UET trong corpus 2023 yêu cầu học trước môn nào?|EPN1095, Vật lý đại cương 1.
+mechatronics|33,34,35|hard|multi_evidence|Xác suất thống kê ứng dụng của cơ điện tử UET corpus 2023 cần hoàn thành cả Đại số và Giải tích 2 không?|Có, tiên quyết MAT1093 và MAT1042.
+mechatronics|36,37,38,39|hard|multi_evidence|Phương pháp tính trong kỹ thuật của cơ điện tử UET corpus 2023 yêu cầu các môn nào trước?|INT1006, MAT1093, MAT1042.
+mechatronics|44,45,46,47|hard|multi_evidence|Matlab và ứng dụng trong khung cơ điện tử UET corpus 2023 có mấy tín chỉ và những môn tiên quyết nào?|3 tín chỉ; INT1006, MAT1093, MAT1042.
+mechatronics|48|easy|fact|Lý thuyết điều khiển tự động trong khung cơ điện tử UET corpus 2023 có bao nhiêu giờ lý thuyết?|30 giờ lý thuyết.
+mechatronics|51|easy|fact|Sức bền vật liệu và cơ học kết cấu của cơ điện tử UET corpus 2023 có bao nhiêu tín chỉ?|4 tín chỉ.
+mechatronics|53|easy|fact|Hình họa kỹ thuật và CAD trong khung cơ điện tử UET corpus 2023 có bao nhiêu giờ thực hành?|15 giờ thực hành.
+mechatronics|56|easy|fact|Cơ sở thiết kế máy của cơ điện tử UET corpus 2023 có bao nhiêu tín chỉ?|4 tín chỉ.
+mechatronics|59,60|hard|multi_evidence|Mạng máy tính của cơ điện tử UET corpus 2023 có mấy tín chỉ và môn tiên quyết nào?|3 tín chỉ; INT1006.
+mechatronics|64|easy|exact_code|EMA2021 trong khung cơ điện tử UET corpus 2023 là học phần gì?|Linh kiện bán dẫn và vi mạch, 2 tín chỉ.
+mechatronics|73|easy|fact|Kỹ thuật đo lường và cảm biến của cơ điện tử UET corpus 2023 có mấy tín chỉ?|3 tín chỉ.
+mechatronics|75|easy|exact_code|EMA2026 trong khung cơ điện tử UET corpus 2023 có bao nhiêu giờ thực hành?|Cơ sở kỹ thuật điện, 8 giờ thực hành.
+mechatronics|77|easy|fact|Kiến trúc máy tính và mạng truyền thông công nghiệp của cơ điện tử UET corpus 2023 có bao nhiêu tín chỉ?|3 tín chỉ.
+mechatronics|80|easy|fact|Lập trình nâng cao ứng dụng trong đo lường điều khiển của cơ điện tử UET corpus 2023 có bao nhiêu giờ thực hành?|30 giờ thực hành.
+mai|42|medium|table|Theo bảng chương trình UET–MAI năm 2022, học kỳ 1 tổng cộng bao nhiêu tín chỉ?|30 tín chỉ.
+mai|42|medium|table|Trong chương trình UET–MAI năm 2022, Introduction to Aerospace Engineering ở kỳ 1 do đơn vị nào dạy?|VNU-UET, 3 tín chỉ.
+mai|42|medium|table|Theo bảng UET–MAI năm 2022, English 1 và English 2 lần lượt bao nhiêu tín chỉ?|3 và 2 tín chỉ.
+mai|42|medium|table|Học kỳ 2 của chương trình UET–MAI năm 2022 gồm bao nhiêu tín chỉ?|23 tín chỉ.
+mai|42|medium|table|Theo bảng UET–MAI năm 2022, Probability and Statistics được xếp vào học kỳ nào?|Học kỳ 3, 3 tín chỉ.
+mai|43,44|hard|multi_evidence,table|Học kỳ 4 chương trình UET–MAI năm 2022 có tổng bao nhiêu tín chỉ, và Aerodynamics 1 bao nhiêu tín chỉ?|Tổng 24, Aerodynamics 1 có 4 tín chỉ.
+mai|44|medium|table|Theo chương trình UET–MAI năm 2022, học kỳ 5 học tại MAI hay VNU-UET?|Các học phần học kỳ 5 ghi MAI.
+mai|44|medium|table|Foreign Language trong học kỳ 5 UET–MAI năm 2022 có mấy tín chỉ?|2 tín chỉ.
+mai|44|medium|table|Theo chương trình UET–MAI năm 2022, Dynamics & Flightpath Control Laboratory Workshop có mấy tín chỉ?|2 tín chỉ, học kỳ 6 tại MAI.
+mai|44|medium|table|Engineering and Manufacturing Practice II của chương trình UET–MAI năm 2022 là bao nhiêu tín chỉ?|6 tín chỉ, học kỳ 6.
+mai|45|medium|table|Trong bảng UET–MAI năm 2022, học kỳ 7 tổng bao nhiêu tín chỉ?|31 tín chỉ.
+mai|45|medium|table|Aviation Equipment Certification trong kỳ 7 UET–MAI năm 2022 có bao nhiêu tín chỉ?|3 tín chỉ.
+mai|45|medium|table|Theo bảng UET–MAI năm 2022, Final State Attestation có mấy tín chỉ và thuộc học kỳ nào?|9 tín chỉ, học kỳ 8.
+mai|45|medium|table|Pre-Graduation Practice trong chương trình UET–MAI năm 2022 có bao nhiêu tín chỉ?|6 tín chỉ.
+mai|45|hard|table|Glider Units Design trong bảng UET–MAI năm 2022 có cùng số tín chỉ ở kỳ 7 và kỳ 8 không?|Không, kỳ 7 có 5, kỳ 8 có 1 tín chỉ.
+regulation|2|easy|fact|Trích quy chế đào tạo đại học ĐHQGHN trong corpus dẫn quyết định nào và ban hành khi nào?|5115/QĐ-ĐHQGHN ngày 25/12/2014.
+admission||hard|negative,temporal|Học phí thạc sĩ UET năm học 2026–2027 là bao nhiêu theo thông báo tuyển sinh năm 2022?|Không có chứng cứ về học phí 2026–2027 trong PDF 2022.
+admission||medium|negative|Theo thông báo thạc sĩ UET 2022, nhà trường có bao nhiêu suất ký túc xá dành riêng cho học viên khóa này?|PDF không nêu số suất ký túc xá.
+admission||medium|negative|Thông báo thạc sĩ UET 2022 có lịch học buổi tối từng tuần của chuyên ngành An toàn thông tin không?|PDF không nêu thời khóa biểu tuần.
+admission||hard|negative|Thông báo thạc sĩ UET năm 2022 cho phép mọi thí sinh miễn học phí toàn khóa phải không?|Không có chứng cứ cho khẳng định miễn học phí mọi thí sinh.
+admission||medium|negative|Trong thông báo thạc sĩ UET 2022, mật khẩu tài khoản đăng ký của tôi là gì?|PDF không có mật khẩu cá nhân.
+rewards||medium|negative|Quy định khen thưởng UET năm 2023 có ghi số tiền thưởng cố định cho mỗi sinh viên Xuất sắc là 5 triệu đồng không?|Không nêu mức cố định 5 triệu.
+rewards||medium|negative|Quy định khen thưởng UET 2023 có danh sách tên và mã sinh viên nhận thưởng không?|Không có danh sách người nhận thưởng.
+rewards||medium|negative|Theo quy định khen thưởng UET năm 2023, điểm rèn luyện của sinh viên Nguyễn Văn A lớp K68 là bao nhiêu?|PDF không có điểm rèn luyện cá nhân.
+rewards||hard|negative,ambiguous|Theo quy định UET năm 2023, lớp mình chắc chắn được thưởng bao nhiêu tiền?|Chưa có dữ liệu lớp hoặc số tiền cụ thể để kết luận.
+rewards||hard|negative,ambiguous|Mình đạt danh hiệu gì theo quy định khen thưởng UET 2023?|Thiếu kết quả học tập, rèn luyện và điều kiện cá nhân.
+electronics||medium|negative|PDF chương trình điện tử viễn thông UET 2023 có mức học phí từng tín chỉ không?|Không nêu học phí tín chỉ.
+electronics||medium|negative|Chương trình điện tử viễn thông UET 2023 có nêu mức lương khởi điểm bảo đảm cho mọi sinh viên tốt nghiệp không?|Không bảo đảm mức lương.
+electronics||medium|negative|Theo chương trình điện tử viễn thông UET 2023, lịch thi cuối kỳ của lớp K68 tháng 12/2026 là gì?|Không có lịch thi cá nhân hay lịch năm 2026.
+electronics||hard|negative,temporal|Chuẩn tiếng Anh chương trình điện tử viễn thông UET áp dụng chính thức cho khóa tuyển năm 2027 là gì?|PDF 2023 không xác nhận chính sách khóa 2027.
+electronics||hard|negative,ambiguous|Trong chương trình điện tử viễn thông UET 2023, mình cần đăng ký môn nào tiếp theo?|Thiếu lịch sử học và kết quả học phần của người hỏi.
+cs||medium|negative|Hướng dẫn thạc sĩ Khoa học máy tính UET có nêu mật khẩu truy cập thư viện số của từng học viên không?|Không có mật khẩu cá nhân.
+cs||medium|negative|Theo hướng dẫn thạc sĩ Khoa học máy tính UET, ai sẽ hướng dẫn luận văn của tôi?|Không có phân công cá nhân.
+cs||hard|negative,ambiguous|Theo hướng dẫn thạc sĩ Khoa học máy tính UET, tôi đã đủ tín chỉ tốt nghiệp chưa?|Thiếu kết quả học tập cá nhân.
+mechatronics||medium|negative|Khung cơ điện tử UET corpus 2023 có cam kết mọi sinh viên được tuyển vào Samsung ngay sau tốt nghiệp không?|Không có cam kết tuyển dụng.
+mechatronics||medium|negative|Khung chương trình cơ điện tử UET corpus 2023 có số tài khoản ngân hàng để nộp học phí không?|Không có thông tin thanh toán học phí.
+mechatronics||medium|negative|Khung cơ điện tử UET corpus 2023 có ghi phòng và giờ học Matlab của lớp K68 thứ Hai tuần tới không?|Không có thời khóa biểu lớp.
+mechatronics||hard|negative,ambiguous|Theo khung cơ điện tử UET corpus 2023, tôi đã qua môn tiên quyết để học Matlab chưa?|Không có điểm học phần cá nhân.
+mai||medium|negative|Chương trình UET–MAI năm 2022 có ghi giá vé máy bay Hà Nội–Moskva cho sinh viên không?|Không có giá vé.
+mai||medium|negative|Trong bảng chương trình UET–MAI 2022, chi phí ký túc xá ở Nga mỗi tháng là bao nhiêu?|Không có chi phí ký túc xá.
+mai||hard|negative,ambiguous|Theo bảng UET–MAI năm 2022, hồ sơ visa của tôi đã được duyệt chưa?|Không có trạng thái hồ sơ visa cá nhân.
+regulation||medium|negative|Trích quy chế ĐHQGHN 2014 có mã OTP tài khoản đào tạo của tôi không?|Không có OTP cá nhân.
+regulation||hard|negative,temporal|Theo trích quy chế ĐHQGHN 2014, quy trình thi trực tuyến áp dụng riêng năm 2026 là gì?|Không có quy trình thi trực tuyến riêng năm 2026.
