@@ -1,4 +1,4 @@
-﻿from evaluation.benchmark_schema import validate_records, validate_release_records
+﻿from evaluation.benchmarks.benchmark_schema import validate_records, validate_release_records
 
 
 def row(identifier, split="test", answerable=True):

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import pytest
 
-from evaluation.build_ai_reranker_benchmark import compile_rows, main as build_main
-from evaluation.freeze_human_benchmark import validate_rows
-from evaluation.release_artifacts import sha256
-from evaluation.run_ai_reranker_study import complete_gold_coverage, validate_dataset
+from evaluation.benchmarks.build_ai_reranker_benchmark import compile_rows, main as build_main
+from evaluation.benchmarks.freeze_human_benchmark import validate_rows
+from evaluation.common.release_artifacts import sha256
+from evaluation.reranker.run_ai_reranker_study import complete_gold_coverage, validate_dataset
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-﻿from evaluation import validate_release
+﻿from evaluation.grounding import validate_grounding_release
 
 
 def test_runtime_report_rechecks_embedded_dataset_rows(monkeypatch):
@@ -8,7 +8,7 @@ def test_runtime_report_rechecks_embedded_dataset_rows(monkeypatch):
         seen["rows"] = rows
         return []
 
-    monkeypatch.setattr(validate_release, "validate_release_records", fake_validate)
+    monkeypatch.setattr(validate_grounding_release, "validate_release_records", fake_validate)
     report = {
         "mode": "runtime",
         "benchmark_sha256": "benchmark-hash",
@@ -19,7 +19,7 @@ def test_runtime_report_rechecks_embedded_dataset_rows(monkeypatch):
         "metrics": {},
     }
 
-    errors = validate_release.validate(report)
+    errors = validate_grounding_release.validate(report)
 
     assert "dataset_count_rows_mismatch" not in errors
     assert not any(error.startswith("dataset_row_") for error in errors)

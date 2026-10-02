@@ -1,7 +1,7 @@
 from argparse import Namespace
 import json
 
-from evaluation.validate_reranker_release import validate
+from evaluation.reranker.validate_reranker_release import validate
 
 
 def test_phase7_release_gate_fails_closed_when_evidence_is_missing(tmp_path):

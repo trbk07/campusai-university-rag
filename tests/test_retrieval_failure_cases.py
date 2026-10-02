@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from evaluation.retrieval_failure_cases import failure_cases
+from evaluation.retrieval.retrieval_failure_cases import failure_cases
 
 
 def test_failure_export_contains_route_ranks_scores_and_root_cause():

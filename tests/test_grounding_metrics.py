@@ -1,5 +1,5 @@
-﻿from evaluation.grounding_metrics import evaluate_grounding
-from evaluation.validate_release import validate
+﻿from evaluation.grounding.grounding_metrics import evaluate_grounding
+from evaluation.grounding.validate_grounding_release import validate
 from campusai.rag.schemas import validate_response
 from campusai.rag.calibration import IsotonicCalibrator
 from campusai.rag.confidence import score_confidence

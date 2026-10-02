@@ -195,7 +195,7 @@ flowchart LR
 | `retrieval/bm25.py`, `dense_index.py`, `fusion.py`, `hybrid.py` | nền tảng retrieval nhanh, RRF, filter theo document |
 | `retrieval/model_runtime.py` | singleton encoder/reranker, tránh cold load lặp |
 | `llm/client.py`, `cache.py`, `rate_limiter.py`, `factory.py` | provider-neutral client, cache, retry/backoff, giới hạn request |
-| `evaluation/`, `scripts/validate_benchmark.py` | khung đánh giá và kiểm tra benchmark |
+| `evaluation/`, `scripts/benchmarks/validate_benchmark_data.py` | khung đánh giá và kiểm tra benchmark |
 | Task 2 benchmark/tests | engine đánh giá parser/retrieval có thể chạy lại trên corpus đại học |
 
 ### Đối chiếu riêng với Task 1 cũ
@@ -210,7 +210,7 @@ LLM dùng chung cho CampusAI:
 - `factory.py`: giữ cấu hình provider, environment-only secret và fallback YAML;
 - `tests/test_llm*.py`, `tests/integration/test_gemini.py`: giữ làm acceptance
   contract, chỉ đổi import namespace `finrag` → `campusai`;
-- `docs/t1_acceptance.md`: giữ làm báo cáo acceptance, cập nhật tên sản phẩm;
+- `docs/llm/provider_acceptance.md`: giữ làm báo cáo acceptance, cập nhật tên sản phẩm;
 - `rag/grounding.py` mới dùng trực tiếp `generate_json` của Task 1 để trả về
   answer/citations/abstention; LLM không được bypass citation validator.
 
@@ -363,7 +363,7 @@ Detector phải trả về schema ổn định cho `institution`, `faculty/schoo
 - [ ] Validation, metadata evidence, registry, delete/TTL và security scan không còn P0/P1.
 - [ ] Acceptance report được regenerate từ code hiện tại; không được sửa tay để biến fail
   thành pass.
-- [ ] Sửa `scripts/accept_phase12.py` để acceptance dùng coverage gate thực tế; fixture
+- [ ] Sửa `scripts/ingestion/validate_ingestion.py` để acceptance dùng coverage gate thực tế; fixture
   chỉ được báo riêng cho regression, không thay thế corpus thật. Report phải có holdout
   và phải fail closed khi regression test tương ứng fail.
 
@@ -450,12 +450,12 @@ Chỉ đóng Phase 1 và Phase 2 khi tất cả lệnh sau cùng pass trong work
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe scripts\accept_phase12.py --input-dir data\corpus\university --holdout data\corpus\university\uet_admission_2025.pdf --output evaluation\phase12_acceptance.json
-.\.venv\Scripts\python.exe scripts\secret_scan.py
+.\.venv\Scripts\python.exe -m scripts.ingestion.validate_ingestion --input-dir data\corpus\university --holdout data\corpus\university\uet_admission_2025.pdf --output evaluation\results\ingestion_acceptance.json
+.\.venv\Scripts\python.exe -m scripts.dev.secret_scan
 .\.venv\Scripts\python.exe -m compileall -q src scripts tests
-.\.venv\Scripts\python.exe scripts\benchmark_t2.py --input-dir data\corpus\university --output evaluation\t2_results.json --holdout data\corpus\university\uet_admission_2025.pdf --run-docling --docling-max-pages 30 --run-models --device cpu --batch-size 2 --repeats 1 --model-text-count 8 --memory-budget-mb 8192
-.\.venv\Scripts\python.exe scripts\create_t2_table_review.py evaluation\t2_results.json --output evaluation\t2_table_review.json --complete
-.\.venv\Scripts\python.exe scripts\validate_t2.py evaluation\t2_results.json --acceptance --review evaluation\t2_table_review.json
+.\.venv\Scripts\python.exe -m scripts.ingestion.benchmark_pdf_pipeline --input-dir data\corpus\university --output evaluation\results\pdf_pipeline_benchmark.json --holdout data\corpus\university\uet_admission_2025.pdf --run-docling --docling-max-pages 30 --run-models --device cpu --batch-size 2 --repeats 1 --model-text-count 8 --memory-budget-mb 8192
+.\.venv\Scripts\python.exe -m scripts.ingestion.create_table_review evaluation\results\pdf_pipeline_benchmark.json --output evaluation\results\pdf_table_review.json --complete
+.\.venv\Scripts\python.exe -m scripts.ingestion.validate_pdf_benchmark evaluation\results\pdf_pipeline_benchmark.json --acceptance --review evaluation\results\pdf_table_review.json
 ```
 
 Acceptance report phải được tạo lại từ runtime hiện tại và phải fail closed: nếu regression
@@ -484,7 +484,7 @@ Exit criteria: câu hỏi fact có answer/evidence; câu ngoài corpus không đ
 
 Phase 4 acceptance: completed with bilingual prompts, provenance-preserving
 context/token budgets, versioned query-answer cache, deterministic abstention
-tests and offline report in `evaluation/results/phase4_basic_rag.json`.
+tests and offline report in `evaluation/results/basic_rag_report.json`.
 
 ### Phase 5 — Citation, grounding và abstention
 
@@ -616,8 +616,8 @@ Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có b
 ## 9. Phase 1/2 regenerated acceptance evidence
 
 - Full suite: 71 passed, 1 skipped (live Gemini integration requires an external secret).
-- Phase 1/2 acceptance: all 16 exit criteria are true in `evaluation/phase12_acceptance.json`.
+- Phase 1/2 acceptance: all 16 exit criteria are true in `evaluation/results/ingestion_acceptance.json`.
 - Corpus: 8 real UET/VNU PDFs with manifest SHA-256, a declared holdout, Vietnamese/English, scan/image, and mixed-layout coverage.
 - Provenance validator: fail-closed checks for chunk/document/page/page-range/table/source hash; delete and lifecycle checks pass.
-- T2 report: schema-2 extended report, Docling comparison, model benchmark and completed table review all validate with `scripts/validate_t2.py --acceptance`.
+- T2 report: schema-2 extended report, Docling comparison, model benchmark and completed table review all validate with `scripts/ingestion/validate_pdf_benchmark.py --acceptance`.
 - OCR policy: scan-only inputs use the bounded RapidOCR ONNX worker when explicitly enabled; default ingestion remains fail-closed with `review_required/ocr_required`.

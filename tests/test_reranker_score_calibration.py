@@ -1,6 +1,6 @@
 from campusai.retrieval.hybrid import RetrievalResult
-from evaluation.calibrate_reranker_scores import calibrate
-from evaluation.calibrate_reranker_scores import calibrated_outputs, _quality
+from evaluation.reranker.calibrate_reranker_scores import calibrate
+from evaluation.reranker.calibrate_reranker_scores import calibrated_outputs, _quality
 import pytest
 
 

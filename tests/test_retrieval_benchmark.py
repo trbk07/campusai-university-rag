@@ -1,10 +1,10 @@
 ﻿import json
 from pathlib import Path
 
-from evaluation.benchmark import validate_records
-from evaluation.metrics import evaluate_retrieval
+from evaluation.benchmarks.benchmark import validate_records
+from evaluation.common.metrics import evaluate_retrieval
 from campusai.retrieval.hybrid import HybridRetriever
-from evaluation.run_retrieval_benchmark import _corpus_metadata, _indexed_document_ids, _negative_metrics, _percentile, load_calibration_threshold, load_jsonl
+from evaluation.retrieval.run_retrieval_benchmark import _corpus_metadata, _indexed_document_ids, _negative_metrics, _percentile, load_calibration_threshold, load_jsonl
 
 
 def test_negative_records_may_have_empty_gold_evidence():

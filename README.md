@@ -1,285 +1,127 @@
-﻿# CampusAI
+# CampusAI
 
 CampusAI is an evidence-grounded university knowledge assistant. It ingests
-text-based PDFs such as regulations, curricula, syllabi, student handbooks and
-course catalogs, then retrieves page-level evidence for grounded answers with
-citations and abstention.
+university PDFs and produces Vietnamese or English answers with page-level
+citations and explicit abstention when evidence is missing.
 
-The product domain is university information: academic regulations, curricula,
-syllabi, student handbooks and course catalogs. Generated artifacts and
-machine-specific reports are excluded from version control.
+The runtime indexes documents uploaded by the user and scopes queries to the
+selected document IDs. `data/corpus/university/` is an evaluation fixture.
 
-## Current state
+## Setup
 
-- Package: `campusai`
-- Distribution: `campusai-evidence-rag`
-- Task 1 LLM foundation: implemented and acceptance-tested
-- Task 2 PDF ingestion/retrieval foundation: implemented and acceptance-tested
-- Production parser: PyMuPDF fast path with SHA-256 cache
-- Retrieval: BM25 + dense + RRF; explicit `hybrid_rerank` for hard queries
-- Basic RAG: bilingual grounded prompts, provenance-safe context budgets,
-  versioned query-answer cache and deterministic abstention acceptance
-- Academic metadata: language, document type, academic years and semesters
-- Dependency-free accessible demo UI and WSGI smoke server are included in
-  `src/campusai/web.py`; production deployment still needs provider wiring and
-  a managed process/storage service.
-
-The detailed product plan, reuse decisions and deployment roadmap are in
-[`plan.md`](plan.md).
-
-## What is reused from the old Tasks
-
-Task 1 is retained as the application reliability layer:
-
-- Gemini and OpenAI-compatible clients;
-- SQLite response cache and process-local single-flight protection;
-- rate limiting, bounded retry/backoff and `Retry-After` handling;
-- JSON parsing/schema validation;
-- environment-only secret loading and provider factory.
-
-Task 2 is retained as the document and retrieval layer:
-
-- PDF validation, page provenance, tables, metadata and structure-aware chunks;
-- document registry, SHA-256 deduplication and background jobs;
-- BM25, dense fallback, hybrid RRF, query cache and optional reranking;
-- evaluation scripts and measured performance artifacts.
-
-The product domain is represented consistently in metadata, benchmarks and
-retrieval examples: all production-facing examples target university documents.
-
-## Local setup
+Python 3.11–3.14 is supported. Run commands from the repository root.
 
 ```powershell
 uv sync --extra dev
 uv run pytest -q
+uv run python -m scripts.dev.secret_scan
 ```
 
-Without `uv`:
+With an existing virtual environment:
 
 ```powershell
 .venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe scripts\secret_scan.py
+.venv\Scripts\python.exe -m scripts.dev.secret_scan
 ```
 
-Optional model/feasibility dependencies are deliberately separate:
+Optional parser, embedding, and reranker dependencies:
 
 ```powershell
-uv sync --extra feasibility
+uv sync --extra dev --extra feasibility
 ```
 
-Do not commit `.env`, API keys, source PDFs, model files, generated indexes or
-cache databases.
-
-## Task 1: LLM foundation
-
-The provider-neutral client is under [`src/campusai/llm`](src/campusai/llm).
-It supports `complete`, `generate` and validated `generate_json` for Gemini and
-OpenAI-compatible endpoints. Identical prompts are cached; concurrent misses
-are single-flight. Transient HTTP/network failures are retried with bounded
-backoff, while credentials are kept out of URLs, cache keys, logs and errors.
-
-Run the offline acceptance suite:
-
-```powershell
-.venv\Scripts\python.exe -m pytest -q tests\test_llm.py tests\test_llm_acceptance.py
-.venv\Scripts\python.exe -m pytest -q --basetemp=D:\Project\.tmp\pytest-t1 -p no:cacheprovider --cov=campusai.llm --cov-fail-under=90
-```
-
-The live Gemini contract test is opt-in only:
-
-```powershell
-$env:RUN_LLM_INTEGRATION = "1"
-$env:GEMINI_API_KEY = "<new key supplied only in the environment>"
-.venv\Scripts\python.exe -m pytest -q tests\integration\test_gemini.py
-```
-
-See [`docs/t1_acceptance.md`](docs/t1_acceptance.md) for the exact acceptance
-scope and security limitations. Current Task 1 evidence is 33 focused tests,
-71 full-repository tests, and 95.01% LLM coverage. The cache is not encrypted
-at rest.
-
-## Task 2: ingestion and retrieval
-
-The default ingestion path is intentionally lightweight:
-
-1. validate size/page count and detect scan-only PDFs;
-2. extract pages with PyMuPDF;
-3. detect academic metadata;
-4. extract tables and preserve raw values;
-5. create page/heading/table chunks with provenance;
-6. persist the document by SHA-256 and build indexes separately.
-
-Docling is available as a layout/table review option. It is not the default
-web parser because cold model loading and CPU layout processing are too slow
-for interactive requests. Scan-only PDFs can use the explicit, bounded
-RapidOCR ONNX worker; without `enable_ocr=True` they stop with a clear
-`review_required/ocr_required` status.
-
-Build an index for an ingested document:
-
-```powershell
-.venv\Scripts\python.exe scripts\build_index.py --help
-.venv\Scripts\python.exe scripts\warm_retrieval.py --help
-```
-
-Use `mode=hybrid` for the normal fast path. Use `mode=hybrid_rerank` only for
-hard questions when a reranker is configured and memory is available.
-
-Validate the university seed benchmark:
-
-```powershell
-.venv\Scripts\python.exe scripts\validate_benchmark.py data\benchmark\dev.jsonl
-```
-
-The benchmark is currently a 20-question seed. Phase 8 in `plan.md` expands it
-to 100â€“300 reviewed questions with temporal, multi-hop, unanswerable and
-citation metrics.
-
-Phase 1/2 acceptance evidence is regenerated in
-[`evaluation/ingestion_acceptance.json`](evaluation/ingestion_acceptance.json).
-The release scope, hashes, commands, OCR policy, and known limitations are in
-[`docs/ingestion_release.md`](docs/ingestion_release.md).
-
-## Phase 4: Basic RAG
-
-Phase 4 provides the retrieval-to-grounded-answer flow. Context blocks retain
-document/page provenance, budgets are enforced with a conservative token
-estimate, and Vietnamese/English prompts require evidence-only JSON answers.
-Repeated questions are cached by a SHA-256 key containing corpus/index version,
-filters, retrieval mode, prompt/model version and context budget; API keys are
-never part of the key or cached answer metadata.
-
-Run the offline Phase 4 acceptance benchmark and focused tests:
-
-```powershell
-.venv\Scripts\python.exe evaluation\run_basic_rag.py
-.venv\Scripts\python.exe -m pytest -q --basetemp D:\Project\.tmp\pytest-phase4 tests\test_basic_rag.py tests\test_grounding.py
-```
-
-See [`docs/basic_rag_release.md`](docs/basic_rag_release.md) and the generated
-[`basic_rag_report.json`](evaluation/results/basic_rag_report.json). The
-benchmark builds its university fixture corpus at runtime and does not use
-`.tmp` artifacts as acceptance evidence.
-
-Optional live Gemini grounding evidence is available with
-`tests/integration/test_basic_rag_provider.py`; it requires `RUN_LLM_INTEGRATION=1`
-and a `GEMINI_API_KEY` supplied only through the environment.
-
-Run the local UI shell and operational checks:
-
-```powershell
-.venv\Scripts\python.exe scripts\serve.py
-.venv\Scripts\python.exe scripts\load_test.py --users 1 5 20
-.venv\Scripts\python.exe scripts\recovery_check.py --index-root data\index
-```
-
-The load test measures transport/application concurrency. The recovery check
-loads every index and verifies that a checksum-corrupted copy is rejected
-without mutating the live index.
-
-## Performance evidence
-
-The Task 2 benchmark engine in [`scripts/benchmark_t2.py`](scripts/benchmark_t2.py)
-records parser/model measurements for an operator-supplied university corpus.
-The useful engineering rules are:
-
-- PyMuPDF is the production default for selectable-text PDFs;
-- persisted SHA-256 cache lookup is much faster than first ingestion;
-- the normal hybrid query path does not invoke a cross-encoder;
-- encoder/reranker models are process-wide singletons when enabled;
-- reranking is a deliberate hard-query feature because its CPU memory and cold
-  load are too expensive for every web request.
-
-See [`docs/performance_ux_checklist.md`](docs/performance_ux_checklist.md) for
-the remaining web UX, observability, quota and deletion work.
-
-## Free deployment target
-
-The planned public demo uses a lightweight web frontend, background ingestion,
-free-tier object/database storage and a provider free quota with mandatory
-cache/rate limits. The free deployment must enforce small uploads, page limits,
-per-user quotas and queue limits. It is a demo environment, not an unlimited
-production SLA.
-
-The architecture and phase-by-phase deployment work are documented in
-[`plan.md`](plan.md). No API secret is required for the offline parser/retrieval
-tests.
-
-## Phase 5 production gate
-
-The source implementation is verified offline with more than 200 passing tests, including
-more than 50 deterministic citation, claim, provider-schema, prompt-injection
-and Unicode attacks. Production approval is intentionally stricter: it also
-requires an independent human annotation attestation, live-provider evidence,
-and staging recovery/rollback evidence.
-
-Use `scripts/annotation_signoff.py` for the reviewer artifact,
-`scripts/live_provider_evidence.py` for the opt-in provider run,
-`scripts/load_test.py` and `scripts/security_evidence.py` for local evidence,
-and `scripts/deployment_smoke.py`, `scripts/recovery_check.py` and
-`scripts/rollback_check.py` against immutable staging artifacts. Finally,
-`scripts/phase5_release.py` creates and validates the checksum-bound package.
-The validator returns 10.0 only when every non-compensable gate passes.
-
-See `docs/phase5_reproducibility.md`, `docs/phase5_operations.md`, and
-`docs/data_governance.md` for the clean-checkout, operations and privacy
-procedures.
-
-## Phase 6 hybrid retrieval
-
-Phase 6 adds deterministic query routing, exact-code ambiguity fallback,
-metadata filters, globally ranked BM25/dense candidates, rank-only weighted
-RRF, calibrated query-level abstention, and versioned retrieval traces. The
-13-document corpus under `data/corpus/university` is only a reproducible
-release benchmark fixture. It is never a built-in knowledge base: normal
-runtime ingestion indexes files supplied by the user, and queries are scoped
-to the uploaded `doc_ids` selected by that user.
-
-The locked RC3 evidence uses `BAAI/bge-m3` revision `1`, RRF `k=3`, weights
-`1.0/1.2`, and a 40-candidate cap. Rebuild and validate with the `phase6-*`
-Make targets above. See `docs/phase6_retrieval_release.md` and
-`docs/phase6_operations.md` for metrics, reproducibility, CPU settings, and
-the upload/index lifecycle.
+Copy `.env.example` to `.env` and supply provider credentials in the environment
+for live LLM calls. Offline tests do not require an API key. Live provider tests
+require `RUN_LLM_INTEGRATION=1` and `GEMINI_API_KEY`.
 
 ## Repository layout
 
 ```text
-src/campusai/        package code
-  ingestion/         validation, parsing, metadata, tables, chunking, jobs
-  retrieval/         BM25, dense, hybrid, fusion, reranker, model runtime
-  llm/               Task 1 provider/cache/retry foundation
-  rag/               grounded answer and citation layer
-tests/               offline and integration-contract tests
-evaluation/          benchmark metrics and Task 2 evidence
-data/benchmark/      small synthetic benchmark fixtures
-configs/             local defaults and free-web quotas
-docs/                acceptance and performance reports
+src/campusai/          application package
+  documents/          document registry
+  ingestion/          PDF parsing, OCR, tables, metadata, chunks, jobs
+  retrieval/          BM25, dense search, fusion, routing, reranking
+  llm/                provider clients, cache, retries, rate limits
+  rag/                grounded answers, claims, citations, abstention
+scripts/              operational commands, grouped by task
+  dev/                environment setup and secret scanning
+  ingestion/          corpus download, PDF acceptance and feasibility
+  benchmarks/         dataset construction, review and validation
+  retrieval/          index construction, isolation and warming
+  operations/         server, load, accessibility, security, recovery
+  release/            annotation signoff and release packaging
+evaluation/           metrics and evaluation workflows
+  common/             shared metrics and artifact bindings
+  benchmarks/         schemas, human intake and dataset freezing
+  grounding/          answer quality and grounding calibration
+  retrieval/          baseline and hybrid retrieval evaluation
+  reranker/           model, calibration, capacity, canary and release
+  release/            grounding package validation
+  results/            checked-in evaluation evidence
+tests/                offline tests, fixtures and opt-in integrations
+configs/              defaults, example records and release settings
+data/benchmark/       versioned benchmark datasets
+data/corpus/          reproducible source corpus
+docs/                 architecture, task guides, operations and planning
+plan.md               permanent project roadmap, retained by the owner
 ```
 
-## References used for design
+Naming and artifact rules are in [the contribution guide](docs/contributing.md).
 
-- [MarkItDown](https://github.com/microsoft/markitdown) for a modular converter
-  pipeline pattern and optional format dependencies;
-- [FAISS](https://github.com/facebookresearch/faiss) for future vector-index
-  scaling;
-- [LlamaIndex ingestion pipeline](https://docs.llamaindex.ai/en/stable/module_guides/loading/ingestion_pipeline/)
-  and [Haystack rankers](https://docs.haystack.deepset.ai/docs/ranker) for
-  comparison of ingestion metadata flow and reranking placement.
-- [Jmhzbmcn2/med_rag](https://github.com/Jmhzbmcn2/med_rag) for practical API,
-  source-card, context-header and retrieval-evaluation patterns.
-## Optional retrieval reranker
+## Run locally
 
-The reranker is disabled by default. Its release workflow, human review schema,
-quality/performance measurements and gradual canary controls are documented
-in [the reranker release runbook](docs/reranker_release_runbook.md). Check
-readiness with `python -m evaluation.validate_reranker_release`; a missing
-critical gate keeps the score null and prevents production activation.
+```powershell
+.venv\Scripts\python.exe -m scripts.operations.serve
+.venv\Scripts\python.exe -m scripts.retrieval.build_index --help
+.venv\Scripts\python.exe -m scripts.retrieval.warm_retrieval --help
+```
 
-Use `python -m evaluation.phase7_release STAGE` for each milestone, or the
-`phase7-baseline`, `phase7-human-freeze`, `phase7-candidate`, `phase7-model`,
-`phase7-route`, `phase7-calibration`, `phase7-quality`, `phase7-performance`,
-`phase7-security`, `phase7-faults`, `phase7-rollback`, `phase7-staging`, `phase7-staging-collect`,
-`phase7-validate`, and `phase7-release` Make targets. Pass stage options via
-`PHASE7_ARGS`; the workflow rejects missing prerequisites and checks the
-resulting milestone. [The Phase 7 plan](docs/phase7_release_plan.md) records
-the code work and the external evidence still required for 10/10.
+The demo uses a dependency-free WSGI UI. Production hosting still requires
+provider configuration and managed process/storage services.
+
+The default PDF path uses PyMuPDF and a SHA-256 cache. Docling is an optional
+layout/table review tool. Scan-only PDFs require explicit bounded OCR; otherwise
+ingestion returns a review-required status. Normal hybrid queries avoid loading
+the cross-encoder. The optional reranker is enabled explicitly for hard queries.
+
+## Evaluation and release commands
+
+Use `python -m package.module` for consistent imports on Windows and Unix.
+The Makefile selects the virtual environment's Python for the current platform.
+
+| Task | Make target | Python module |
+| --- | --- | --- |
+| Offline tests | `make test` | `pytest -q` |
+| Grounding evaluation | `make grounding-eval` | `evaluation.grounding.run_grounding_eval` |
+| Grounding report validation | `make release-validate` | `evaluation.grounding.validate_grounding_release` |
+| Grounding package validation | `make grounding-package-validate` | `scripts.release.package_grounding_release` |
+| Hybrid benchmark construction | `make hybrid-benchmark` | `scripts.benchmarks.build_hybrid_benchmark` |
+| Corpus index construction | `make hybrid-index` | `scripts.retrieval.build_corpus_index` |
+| Hybrid confidence calibration | `make hybrid-calibrate` | `evaluation.retrieval.calibrate_hybrid_confidence` |
+| Hybrid quality evaluation | `make hybrid-evaluate` | `evaluation.retrieval.evaluate_hybrid_release` |
+| Hybrid release validation | `make hybrid-validate` | `evaluation.retrieval.validate_hybrid_release` |
+| Student query dataset | `make student-natural-benchmark` | `evaluation.benchmarks.build_student_natural_benchmark` |
+| Reranker release stages | `make reranker-<stage>` | `evaluation.reranker.release_workflow <stage>` |
+
+Reranker stages are `baseline`, `human-freeze`, `candidate`, `model`, `route`,
+`calibration`, `quality`, `performance`, `security`, `faults`, `rollback`,
+`staging`, `staging-collect`, `validate`, and `release`. Pass extra options with
+`RERANKER_ARGS`. The workflow enforces prerequisites and evidence bindings.
+
+For hybrid CPU measurements, set `OMP_NUM_THREADS=1` and `MKL_NUM_THREADS=1`
+before running `make hybrid-operations`.
+
+## Documentation
+
+- [Product roadmap](plan.md) and [release hardening plan](docs/planning/release_hardening_plan.md)
+- [Provider acceptance](docs/llm/provider_acceptance.md)
+- [Ingestion release](docs/ingestion/ingestion_release.md) and [PDF feasibility](docs/ingestion/pdf_pipeline_feasibility.md)
+- [Grounding contract](docs/architecture/grounding_contract.md) and [production reproducibility](docs/grounding/production_reproducibility.md)
+- [Hybrid retrieval release](docs/retrieval/hybrid_release.md) and [hybrid operations](docs/operations/hybrid_operations.md)
+- [Reranker release runbook](docs/reranker/reranker_release_runbook.md) and [release plan](docs/reranker/release_plan.md)
+- [Data governance](docs/operations/data_governance.md)
+
+Checked-in reports retain their original measurements, hashes and release IDs.
+Source-bound release fingerprints must be regenerated after this restructuring
+from a clean, reviewed commit. The historical manifests cannot certify the
+current source tree. See [artifact rules](docs/contributing.md#evaluation-evidence).

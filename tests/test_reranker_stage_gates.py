@@ -7,13 +7,13 @@ import random
 
 import pytest
 
-from evaluation.check_reranker_faults import run_fault_checks, fixture_retriever
-from evaluation.reranker_release_gates import default_args, validate, FAILURES, PROVIDER_CASES
-from evaluation.freeze_human_benchmark import validate_rows
-from evaluation.measure_reranker_capacity import summarize_samples
-from evaluation.compare_retrieval_quality import compare_split, paired_bootstrap, quality_errors
-from evaluation.audit_canary_staging import audit_staging, ROLLBACK_REASONS
-from evaluation.canary_telemetry import summarize_window
+from evaluation.reranker.check_reranker_faults import run_fault_checks, fixture_retriever
+from evaluation.reranker.reranker_release_gates import default_args, validate, FAILURES, PROVIDER_CASES
+from evaluation.benchmarks.freeze_human_benchmark import validate_rows
+from evaluation.reranker.measure_reranker_capacity import summarize_samples
+from evaluation.retrieval.compare_retrieval_quality import compare_split, paired_bootstrap, quality_errors
+from evaluation.reranker.audit_canary_staging import audit_staging, ROLLBACK_REASONS
+from evaluation.reranker.canary_telemetry import summarize_window
 from campusai.retrieval.canary_rollout import CanaryController, rollback_retriever
 from campusai.rag.service import CampusAIQueryService
 from campusai.rag.grounding import GroundedAnswerGenerator
@@ -245,12 +245,12 @@ def test_stage_order_cannot_be_bypassed_by_scalar_pass_placeholders(tmp_path):
 
 
 def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_path, monkeypatch):
-    from evaluation import reranker_release_gates as gates
-    from evaluation.release_artifacts import sha256, write_json, freeze_before_evaluation
-    from evaluation.freeze_human_benchmark import frozen_evidence
-    from evaluation.calibrate_reranker_scores import _quality
-    from evaluation.calibrate_hard_query_route import route_metrics
-    from evaluation.evaluate_reranker_security import CATEGORIES
+    from evaluation.reranker import reranker_release_gates as gates
+    from evaluation.common.release_artifacts import sha256, write_json, freeze_before_evaluation
+    from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence
+    from evaluation.reranker.calibrate_reranker_scores import _quality
+    from evaluation.reranker.calibrate_hard_query_route import route_metrics
+    from evaluation.reranker.evaluate_reranker_security import CATEGORIES
     retriever, provider, *_ = fixture_retriever(tmp_path / "fixture")
     results, benchmark = tmp_path / "results", tmp_path / "benchmark"
     results.mkdir()
@@ -270,23 +270,23 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     for split in ("dev", "test", "holdout"):
         subset = [row for row in rows if row["split"] == split]
         jsonl(benchmark / f"human_retrieval_{split}.jsonl", subset)
-        jsonl(benchmark / f"phase6_retrieval_{split}.jsonl", [{**row, "question": " ".join("regression" + word for word in row["question"].split())} for row in subset])
+        jsonl(benchmark / f"hybrid_retrieval_{split}.jsonl", [{**row, "question": " ".join("regression" + word for word in row["question"].split())} for row in subset])
     from dataclasses import replace
     identity = replace(provider.model_identity, model_revision="e"*40, tokenizer_revision="e"*40)
     bindings = {"source_sha256": "a"*64, "runtime_sha256": "f"*64, "index_sha256": sha256(args.index_dir / "manifest.json"),
                 "phase6_calibration_sha256": sha256(args.phase6_calibration), "model_identity_sha256": identity.fingerprint}
     def save(name, data):
         write_json(getattr(args, name), {"status": "pass", **bindings, **data})
-    write_json(results / "phase6_holdout_report.json", {"fixture": True})
-    write_json(results / "phase6_performance_report.json", {"fixture": True})
+    write_json(results / "hybrid_holdout_report.json", {"fixture": True})
+    write_json(results / "hybrid_performance_report.json", {"fixture": True})
     base_metrics = {f"{split}_{kind}": ({"answerable_recall": {"5": 1}} if kind == "quality" else {"false_positive_rate": 0})
                     for split in ("test", "holdout") for kind in ("quality", "negative")}
     save("baseline_report", {"historical": base_metrics, "rerun_a": base_metrics, "rerun_b": base_metrics})
     save("baseline", {"working_tree_clean": True, "calibration_sha256": bindings["phase6_calibration_sha256"],
          "corpus_sha256": sha256(corpus), "dense_model": {"name": "fixture", "revision": "rev", "sha256": "b"*64},
-         "reference_report_sha256": sha256(results / "phase6_holdout_report.json"),
-         "rerun_report_sha256": ["c"*64, "d"*64], "performance_report_sha256": sha256(results / "phase6_performance_report.json"),
-         "benchmark_sha256": {s: sha256(benchmark / f"phase6_retrieval_{s}.jsonl") for s in ("test", "holdout")}})
+         "reference_report_sha256": sha256(results / "hybrid_holdout_report.json"),
+         "rerun_report_sha256": ["c"*64, "d"*64], "performance_report_sha256": sha256(results / "hybrid_performance_report.json"),
+         "benchmark_sha256": {s: sha256(benchmark / f"hybrid_retrieval_{s}.jsonl") for s in ("test", "holdout")}})
     evidence = frozen_evidence(args.index_dir)
     review = validate_rows(rows, evidence)
     save("human_review", {**review, "dataset_sha256": sha256(benchmark / "human_retrieval.jsonl")})
@@ -294,14 +294,14 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     save("human_manifest", {"frozen": True, "dataset_sha256": sha256(benchmark / "human_retrieval.jsonl"),
                            "review_sha256": sha256(args.human_review), "split_sha256": split_hashes})
     candidate = {}
-    from evaluation.evaluate_candidate_coverage import audit_outputs
+    from evaluation.retrieval.evaluate_candidate_coverage import audit_outputs
     from campusai.retrieval.hybrid import RetrievalResult
     gold_item = evidence[("doc", "c0")]
     raw_candidate = RetrievalResult("c0", "doc", 1, gold_item["content"], "text", 1,
                                     "hybrid_rrf", {"page_range": [1, 1]}).to_dict()
     for split in ("test", "holdout", "human_dev", "human_test", "human_holdout"):
-        digest = split_hashes[split.removeprefix("human_")] if split.startswith("human_") else sha256(benchmark / f"phase6_retrieval_{split}.jsonl")
-        source = benchmark / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_") else f"phase6_retrieval_{split}.jsonl")
+        digest = split_hashes[split.removeprefix("human_")] if split.startswith("human_") else sha256(benchmark / f"hybrid_retrieval_{split}.jsonl")
+        source = benchmark / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_") else f"hybrid_retrieval_{split}.jsonl")
         records = [json.loads(line) for line in source.read_text(encoding="utf-8").splitlines()]
         observed = {row["qid"]: [raw_candidate] if row["answerable"] else [] for row in records}
         candidate[split] = {"benchmark_sha256": digest, "caps": {"40": audit_outputs(records, observed, ["doc"], 40, evidence)}}
@@ -320,7 +320,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
                        "bypass": {"exact_or_abstained": 50 - len(samples), "single_candidate": 0},
                        "benchmark_sha256": split_hashes[split],
                        "exact_code_rerank_rate": 0, "abstention_rerank_rate": 0, "deterministic": True}
-    from evaluation.calibrate_route_probabilities import fit_route_probabilities
+    from evaluation.reranker.calibrate_route_probabilities import fit_route_probabilities
     route_model, route_diagnostics, route_feasible = fit_route_probabilities(
         conf["dev"]["samples"], [row for row in rows if row["split"] == "dev"])
     assert route_feasible
@@ -347,7 +347,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
         proposals[row["qid"]] = {"top_score": scores[0], "margin": 1,
                                   "results": [] if negative else [wrong] if partial else [gold, wrong],
                                   "evidence_inputs": {"ranked_candidates": [wrong, gold], "scores": scores}}
-    from evaluation.calibrate_evidence_probabilities import calibrate_probabilities
+    from evaluation.reranker.calibrate_evidence_probabilities import calibrate_probabilities
     probability_policy, probability_comparison = calibrate_probabilities(subset, before, proposals)
     save("calibration", {"calibration_split": "dev", "test_used": False, "holdout_used": False, "candidate_cap": 40,
                          "rerank_candidate_cap": 10, "recall": probability_comparison["selected"]["answerable_recall_at_5"],
@@ -376,7 +376,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     freeze_before_evaluation(results, {name: getattr(args, name) for name in ("route", "smoke", "human_manifest", "calibration", "sensitivity")})
     quality, hashes = {}, {}
     for split in ("test", "holdout", "human_test", "human_holdout"):
-        path = benchmark / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_") else f"phase6_retrieval_{split}.jsonl")
+        path = benchmark / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_") else f"hybrid_retrieval_{split}.jsonl")
         records = [json.loads(line) for line in path.read_text().splitlines()]
         before = {r["qid"]: [wrong, gold] if r["answerable"] else [] for r in records}
         after = {r["qid"]: [gold, wrong] if r["answerable"] else [] for r in records}
@@ -395,7 +395,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     save("resource_budget", {"deployment_ram_bytes": 10000})
     # Synthetic gate fixture: exercises recomputation and tamper detection.
     # These rows never become release measurements or a real LLM claim.
-    from evaluation.measure_phase7_http import cohort, summarize_http_samples, workload
+    from evaluation.reranker.measure_reranker_http import cohort, summarize_http_samples, workload
     test_rows = [row for row in rows if row["split"] == "test"]
     http_profiles = []
     for concurrency in (1, 5, 10, 20):
@@ -436,7 +436,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     save("security", {"cases": security_cases, "adversarial_cases": 50, "duplicate_results": 0,
                       "negative_fpr": 0, "provenance_leakage": 0, "scope_leakage": 0, "invalid_citation": 0})
     test_hashes = {}
-    for test in ("tests/test_phase5_adversarial.py", "tests/test_grounding.py", "tests/test_reranker_integration.py"):
+    for test in ("tests/test_grounding_adversarial.py", "tests/test_grounding.py", "tests/test_reranker_integration.py"):
         path = results / "grounding_test_reports" / (Path(test).stem + ".xml")
         path.parent.mkdir(exist_ok=True)
         path.write_text('<testsuites><testsuite tests="1" failures="0" errors="0" skipped="0" /></testsuites>', encoding="utf-8")
@@ -463,7 +463,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     report = validate(args)
     assert report["errors"] == []
     assert report["status"] == "pass" and report["score"] == 10.0
-    from evaluation.validate_reranker_release import build_manifest
+    from evaluation.reranker.validate_reranker_release import build_manifest
     manifest = build_manifest(args, report)
     assert manifest["model_revision"] == identity.model_revision
     assert manifest["route_policy_sha256"] == sha256(args.route)

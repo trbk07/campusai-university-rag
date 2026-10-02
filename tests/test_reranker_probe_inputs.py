@@ -1,7 +1,7 @@
 import pytest
 import json
 
-from evaluation.reranker_probe_inputs import scoring_text
+from evaluation.reranker.reranker_probe_inputs import scoring_text
 
 
 def test_input_ablation_only_removes_a_complete_generated_context_header():

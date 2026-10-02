@@ -3,8 +3,8 @@ from collections import Counter, defaultdict
 import json
 from pathlib import Path
 import pytest
-from evaluation.build_student_natural_benchmark import CATEGORIES, parse_spec, query_input, validate_rows
-from evaluation.release_artifacts import sha256
+from evaluation.benchmarks.build_student_natural_benchmark import CATEGORIES, parse_spec, query_input, validate_rows
+from evaluation.common.release_artifacts import sha256
 
 ROOT = Path(__file__).resolve().parents[1]
 DATASET = ROOT / "data/benchmark/student_natural_queries.jsonl"
@@ -74,7 +74,7 @@ def test_absent_policy_is_not_confused_with_reward_rule():
 
 
 def test_followup_without_history_is_rejected(tmp_path):
-    from evaluation.build_student_natural_benchmark import compile_dataset
+    from evaluation.benchmarks.build_student_natural_benchmark import compile_dataset
     lines = "@missing|none||hard|Clarify?|Missing context.\n" + "\n".join(
         f"contextual_followup|then what {i}?" for i in range(6))
     assert len(parse_spec(lines)) == 1

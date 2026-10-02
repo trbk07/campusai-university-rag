@@ -1,4 +1,4 @@
-from scripts.accessibility_check import check
+from scripts.operations.accessibility_check import check
 from campusai.web import INDEX_HTML
 
 

@@ -1,6 +1,6 @@
 ﻿import pytest
 
-from scripts.merge_review import merge
+from scripts.benchmarks.merge_review import merge
 
 
 def _row(identifier="r1", **overrides):

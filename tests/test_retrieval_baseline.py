@@ -1,7 +1,7 @@
 import hashlib
 import json
 
-from evaluation.freeze_retrieval_baseline import model_tree_hash, stable_metrics
+from evaluation.retrieval.freeze_retrieval_baseline import model_tree_hash, stable_metrics
 
 
 def test_phase7_baseline_ignores_runtime_latency_but_not_quality():

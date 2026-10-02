@@ -1,4 +1,4 @@
-from evaluation.calibrate_retrieval import select_threshold
+from evaluation.retrieval.calibrate_retrieval import select_threshold
 
 
 def test_calibration_runner_uses_shared_calibrator():

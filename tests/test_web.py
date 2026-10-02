@@ -52,7 +52,7 @@ def test_threaded_wsgi_http_transport_records_matching_request_id(tmp_path):
     from threading import Thread
     from urllib.request import Request, urlopen
     from wsgiref.simple_server import WSGIRequestHandler, make_server
-    from evaluation.measure_phase7_http import _ThreadedHTTPServer
+    from evaluation.reranker.measure_reranker_http import _ThreadedHTTPServer
 
     class Quiet(WSGIRequestHandler):
         def log_message(self, *_args):

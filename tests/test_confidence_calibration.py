@@ -1,8 +1,8 @@
 ﻿import pytest
 import json
 
-from evaluation.calibrate_confidence import fit_report, risk_at_coverage
-from evaluation.calibrate_confidence import _score
+from evaluation.grounding.calibrate_confidence import fit_report, risk_at_coverage
+from evaluation.grounding.calibrate_confidence import _score
 from campusai.rag.calibration import load_calibration_artifact
 
 
