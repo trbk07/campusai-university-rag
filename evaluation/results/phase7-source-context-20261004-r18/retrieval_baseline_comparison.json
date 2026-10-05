@@ -1,0 +1,368 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "base_release": "phase6-rc3",
+  "status": "pass",
+  "errors": [],
+  "historical": {
+    "benchmark_sha256": {
+      "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+      "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+    },
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model": "BAAI/bge-m3",
+    "model_revision": "1",
+    "rrf": {
+      "k": 3,
+      "bm25_weight": 1.0,
+      "dense_weight": 1.2,
+      "candidate_limit": 40
+    },
+    "test_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.6076923076923076,
+        "3": 0.8384615384615385,
+        "5": 0.8846153846153846,
+        "10": 0.8923076923076924
+      },
+      "answerable_recall": {
+        "1": 0.6752136752136753,
+        "3": 0.9316239316239316,
+        "5": 0.9829059829059829,
+        "10": 0.9914529914529915
+      },
+      "ndcg": {
+        "1": 0.6752136752136753,
+        "3": 0.8302761887667948,
+        "5": 0.8519876041309101,
+        "10": 0.8550321100036282
+      },
+      "mrr": 0.7278205128205127,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8086894586894586
+    },
+    "holdout_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.7230769230769231,
+        "3": 0.8307692307692308,
+        "5": 0.8615384615384616,
+        "10": 0.8769230769230769
+      },
+      "answerable_recall": {
+        "1": 0.8034188034188035,
+        "3": 0.9230769230769231,
+        "5": 0.9572649572649573,
+        "10": 0.9743589743589743
+      },
+      "ndcg": {
+        "1": 0.8034188034188035,
+        "3": 0.8777956136446918,
+        "5": 0.8925195985360899,
+        "10": 0.8976865190754371
+      },
+      "mrr": 0.7850641025641026,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8722934472934474
+    },
+    "test_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "holdout_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "test_auto_ranking": {
+      "recall_at_5": 0.9829059829059829,
+      "mrr": 0.8086894586894586,
+      "ndcg_at_5": 0.8519876041309101,
+      "fpr": 0.0
+    }
+  },
+  "rerun_a": {
+    "benchmark_sha256": {
+      "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+      "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+    },
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model": "BAAI/bge-m3",
+    "model_revision": "1",
+    "rrf": {
+      "k": 3,
+      "bm25_weight": 1.0,
+      "dense_weight": 1.2,
+      "candidate_limit": 40
+    },
+    "test_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.6076923076923076,
+        "3": 0.8384615384615385,
+        "5": 0.8846153846153846,
+        "10": 0.8923076923076924
+      },
+      "answerable_recall": {
+        "1": 0.6752136752136753,
+        "3": 0.9316239316239316,
+        "5": 0.9829059829059829,
+        "10": 0.9914529914529915
+      },
+      "ndcg": {
+        "1": 0.6752136752136753,
+        "3": 0.8302761887667948,
+        "5": 0.8519876041309101,
+        "10": 0.8550321100036282
+      },
+      "mrr": 0.7278205128205127,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8086894586894586
+    },
+    "holdout_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.7230769230769231,
+        "3": 0.8307692307692308,
+        "5": 0.8615384615384616,
+        "10": 0.8769230769230769
+      },
+      "answerable_recall": {
+        "1": 0.8034188034188035,
+        "3": 0.9230769230769231,
+        "5": 0.9572649572649573,
+        "10": 0.9743589743589743
+      },
+      "ndcg": {
+        "1": 0.8034188034188035,
+        "3": 0.8777956136446918,
+        "5": 0.8925195985360899,
+        "10": 0.8976865190754371
+      },
+      "mrr": 0.7850641025641026,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8722934472934474
+    },
+    "test_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "holdout_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "test_auto_ranking": {
+      "recall_at_5": 0.9829059829059829,
+      "mrr": 0.8086894586894586,
+      "ndcg_at_5": 0.8519876041309101,
+      "fpr": 0.0
+    }
+  },
+  "rerun_b": {
+    "benchmark_sha256": {
+      "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+      "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+    },
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model": "BAAI/bge-m3",
+    "model_revision": "1",
+    "rrf": {
+      "k": 3,
+      "bm25_weight": 1.0,
+      "dense_weight": 1.2,
+      "candidate_limit": 40
+    },
+    "test_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.6076923076923076,
+        "3": 0.8384615384615385,
+        "5": 0.8846153846153846,
+        "10": 0.8923076923076924
+      },
+      "answerable_recall": {
+        "1": 0.6752136752136753,
+        "3": 0.9316239316239316,
+        "5": 0.9829059829059829,
+        "10": 0.9914529914529915
+      },
+      "ndcg": {
+        "1": 0.6752136752136753,
+        "3": 0.8302761887667948,
+        "5": 0.8519876041309101,
+        "10": 0.8550321100036282
+      },
+      "mrr": 0.7278205128205127,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8086894586894586
+    },
+    "holdout_quality": {
+      "n": 130,
+      "recall": {
+        "1": 0.7230769230769231,
+        "3": 0.8307692307692308,
+        "5": 0.8615384615384616,
+        "10": 0.8769230769230769
+      },
+      "answerable_recall": {
+        "1": 0.8034188034188035,
+        "3": 0.9230769230769231,
+        "5": 0.9572649572649573,
+        "10": 0.9743589743589743
+      },
+      "ndcg": {
+        "1": 0.8034188034188035,
+        "3": 0.8777956136446918,
+        "5": 0.8925195985360899,
+        "10": 0.8976865190754371
+      },
+      "mrr": 0.7850641025641026,
+      "answerable_n": 117,
+      "mrr_answerable": 0.8722934472934474
+    },
+    "test_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "holdout_negative": {
+      "count": 13,
+      "false_positive_rate": 0.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0
+    },
+    "test_auto_ranking": {
+      "recall_at_5": 0.9829059829059829,
+      "mrr": 0.8086894586894586,
+      "ndcg_at_5": 0.8519876041309101,
+      "fpr": 0.0
+    }
+  },
+  "performance": {
+    "latency": {
+      "parse_p95_ms": 0.188,
+      "bm25_p95_ms": 5.912,
+      "dense_p95_ms": 239.812,
+      "fusion_p95_ms": 0.045,
+      "total_p95_ms": 247.767,
+      "cold_start_ms": 7664.37,
+      "warm_p50_ms": 208.683,
+      "warm_p95_ms": 247.839,
+      "warm_p99_ms": 247.839
+    },
+    "memory": {
+      "rss_before_bytes": 28192768,
+      "rss_after_load_bytes": 2126213120,
+      "peak_observed_rss_bytes": 2160394240
+    },
+    "concurrency_20": {
+      "requests": 20,
+      "p50_ms": 243.359,
+      "p95_ms": 856.038,
+      "p99_ms": 926.443,
+      "mean_ms": 377.874,
+      "wall_ms": 963.355,
+      "errors": 0
+    }
+  },
+  "rejected_baselines": [
+    {
+      "report_sha256": "55a38b6f39f105519112900258d5af2c9fa5637ac9e1d86af99893e3edb05477",
+      "metrics": {
+        "benchmark_sha256": {
+          "test": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+          "holdout": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4"
+        },
+        "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+        "calibration_sha256": "6bc38eb6f1d93bed4ea7aa9a568599938e107064016df74f7ff5d130b47fe4c1",
+        "model": "BAAI/bge-m3",
+        "model_revision": "1",
+        "rrf": {
+          "k": 3,
+          "bm25_weight": 1.0,
+          "dense_weight": 1.2,
+          "candidate_limit": 40
+        },
+        "test_quality": {
+          "n": 130,
+          "recall": {
+            "1": 0.6076923076923076,
+            "3": 0.8384615384615385,
+            "5": 0.8846153846153846,
+            "10": 0.8923076923076924
+          },
+          "answerable_recall": {
+            "1": 0.6752136752136753,
+            "3": 0.9316239316239316,
+            "5": 0.9829059829059829,
+            "10": 0.9914529914529915
+          },
+          "ndcg": {
+            "1": 0.6752136752136753,
+            "3": 0.8302761887667948,
+            "5": 0.8519876041309101,
+            "10": 0.8550321100036282
+          },
+          "mrr": 0.7278205128205127,
+          "answerable_n": 117,
+          "mrr_answerable": 0.8086894586894586
+        },
+        "holdout_quality": {
+          "n": 130,
+          "recall": {
+            "1": 0.7076923076923077,
+            "3": 0.8153846153846154,
+            "5": 0.8384615384615385,
+            "10": 0.8538461538461538
+          },
+          "answerable_recall": {
+            "1": 0.7863247863247863,
+            "3": 0.905982905982906,
+            "5": 0.9316239316239316,
+            "10": 0.9487179487179487
+          },
+          "ndcg": {
+            "1": 0.7863247863247863,
+            "3": 0.8607015965506747,
+            "5": 0.8717445852192234,
+            "10": 0.8769115057585705
+          },
+          "mrr": 0.7677564102564103,
+          "answerable_n": 117,
+          "mrr_answerable": 0.8530626780626781
+        },
+        "test_negative": {
+          "count": 13,
+          "false_positive_rate": 0.0,
+          "abstention_precision": 0.928571,
+          "abstention_recall": 1.0
+        },
+        "holdout_negative": {
+          "count": 13,
+          "false_positive_rate": 0.0,
+          "abstention_precision": 0.8125,
+          "abstention_recall": 1.0
+        },
+        "test_auto_ranking": {
+          "recall_at_5": 0.9829059829059829,
+          "mrr": 0.8086894586894586,
+          "ndcg_at_5": 0.8519876041309101,
+          "fpr": 0.0
+        }
+      },
+      "reason": "different_calibration_or_code"
+    }
+  ]
+}

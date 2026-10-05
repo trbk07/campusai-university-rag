@@ -1,0 +1,28 @@
+from urllib.request import Request, urlopen
+from pathlib import Path
+import hashlib
+import json
+from datetime import datetime, timezone
+
+root = Path('.tmp/phase7-source-expansion-20261004')
+sources = [
+ ('uet_bionanotechnology_masters_curriculum_2015.pdf','https://uet.vnu.edu.vn/wp-content/uploads/2019/05/CT%C4%90T-Th%E1%BA%A1c-s%C4%A9-ng%C3%A0nh-C%C3%B4ng-ngh%E1%BB%87-nano-sinh-h%E1%BB%8Dc.pdf'),
+ ('uet_electronics_masters_curriculum_2022.pdf','https://fet.uet.vnu.edu.vn/wp-content/uploads/2024/03/ThS.KTDT_.2022.pdf'),
+]
+result = []
+for name,url in sources:
+    path=root/name
+    assert not path.exists()
+    try:
+        with urlopen(Request(url,headers={'User-Agent':'CampusAI corpus audit/1.0'}),timeout=25) as response:
+            payload=response.read(20000001)
+            assert payload.startswith(b'%PDF-') and len(payload)<=20000000
+        path.write_bytes(payload)
+        result.append({'filename':name,'source_url':url,'sha256':hashlib.sha256(payload).hexdigest(),
+                       'bytes':len(payload),'status':'downloaded'})
+    except Exception as error:
+        result.append({'filename':name,'source_url':url,'status':'fetch_failed','error':str(error)})
+receipt={'status':'source_proposal','release_eligible':False,'downloaded_at':datetime.now(timezone.utc).isoformat(),
+         'documents':result}
+(root/'additional_download_receipt.json').write_text(json.dumps(receipt,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+print(json.dumps(receipt,ensure_ascii=False,indent=2))

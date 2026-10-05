@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "provider": "gemini",
+  "client_class": "GeminiClient",
+  "model": "gemini-3-flash-preview",
+  "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent",
+  "credential_env_name": "GEMINI_API_KEY",
+  "credential_present": true,
+  "cache_enabled": false,
+  "cached": false,
+  "prompt_sha256": "ef7e7ff96d04cdcdb9a405d5319bdc1b52adabc168eea9179dfc1352aad79231",
+  "generation_config": {
+    "temperature": 0,
+    "maxOutputTokens": 128,
+    "thinkingConfig": {
+      "thinkingLevel": "low"
+    }
+  },
+  "response_sha256": "565339bc4d33d72817b583024112eb7f5cdf3e5eef0252d6ec1b9c9a94e12bb3",
+  "response_nonempty": true,
+  "usage": {
+    "promptTokenCount": 7,
+    "candidatesTokenCount": 1,
+    "totalTokenCount": 37,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 7
+      }
+    ],
+    "thoughtsTokenCount": 29,
+    "serviceTier": "standard"
+  },
+  "usage_status": "reported",
+  "latency_ms": 1125.5282999991323,
+  "cost": null,
+  "cost_status": "not_priced_yet",
+  "observed_at": "2026-10-04T14:31:58.088558+00:00",
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "13c075912dda414827f468effa18d1167be584f6fb4d10101e51983fd981ccad",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "13c075912dda414827f468effa18d1167be584f6fb4d10101e51983fd981ccad",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "release_eligible": false,
+  "source_stable": true,
+  "checks": {
+    "live_response_received": true,
+    "not_cached": true,
+    "token_usage_available": true,
+    "key_value_excluded": false
+  }
+}

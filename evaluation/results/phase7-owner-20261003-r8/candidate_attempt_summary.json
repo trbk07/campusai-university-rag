@@ -1,0 +1,96 @@
+{
+  "recorded_at": "2026-10-03T04:06:40.877269+00:00",
+  "status": "conditional",
+  "errors": [
+    "human_dev_candidate_recall_below_0.95",
+    "human_test_candidate_recall_below_0.95",
+    "human_holdout_candidate_recall_below_0.95",
+    "holdout:category:table_filter_calculation_all_gold_recall_below_0.97",
+    "holdout:cohort:scoped_all_gold_recall_below_0.97",
+    "human_dev:overall_all_gold_recall_below_0.95",
+    "human_dev:answerable:true_all_gold_recall_below_0.95",
+    "human_dev:category:unknown_all_gold_recall_below_0.95",
+    "human_dev:cohort:contextual_all_gold_recall_below_0.95",
+    "human_dev:cohort:multi_hop_all_gold_recall_below_0.95",
+    "human_dev:cohort:numeric_all_gold_recall_below_0.95",
+    "human_dev:cohort:scoped_all_gold_recall_below_0.95",
+    "human_dev:cohort:semester_all_gold_recall_below_0.95",
+    "human_dev:cohort:table_all_gold_recall_below_0.95",
+    "human_dev:difficulty:easy_all_gold_recall_below_0.95",
+    "human_dev:difficulty:hard_all_gold_recall_below_0.95",
+    "human_dev:difficulty:medium_all_gold_recall_below_0.95",
+    "human_dev:tag:abbreviation_all_gold_recall_below_0.95",
+    "human_dev:tag:answerable_all_gold_recall_below_0.95",
+    "human_dev:tag:code_switching_all_gold_recall_below_0.95",
+    "human_dev:tag:colloquial_all_gold_recall_below_0.95",
+    "human_dev:tag:contextual_all_gold_recall_below_0.95",
+    "human_dev:tag:contextual_followup_all_gold_recall_below_0.95",
+    "human_dev:tag:course_code_all_gold_recall_below_0.95",
+    "human_dev:tag:easy_all_gold_recall_below_0.95",
+    "human_dev:tag:exact_code_all_gold_recall_below_0.95",
+    "human_dev:tag:hard_all_gold_recall_below_0.95",
+    "human_dev:tag:lexical_mismatch_all_gold_recall_below_0.95",
+    "human_dev:tag:medium_all_gold_recall_below_0.95",
+    "human_dev:tag:multi_hop_all_gold_recall_below_0.95",
+    "human_dev:tag:natural_all_gold_recall_below_0.95",
+    "human_dev:tag:paraphrase_all_gold_recall_below_0.95",
+    "human_dev:tag:table_all_gold_recall_below_0.95",
+    "human_dev:tag:typo_all_gold_recall_below_0.95",
+    "human_test:overall_all_gold_recall_below_0.95",
+    "human_test:answerable:true_all_gold_recall_below_0.95",
+    "human_test:category:unknown_all_gold_recall_below_0.95",
+    "human_test:cohort:numeric_all_gold_recall_below_0.95",
+    "human_test:cohort:scoped_all_gold_recall_below_0.95",
+    "human_test:cohort:table_all_gold_recall_below_0.95",
+    "human_test:difficulty:easy_all_gold_recall_below_0.95",
+    "human_test:difficulty:hard_all_gold_recall_below_0.95",
+    "human_test:tag:easy_all_gold_recall_below_0.95",
+    "human_test:tag:exact_code_all_gold_recall_below_0.95",
+    "human_test:tag:hard_all_gold_recall_below_0.95",
+    "human_test:tag:multi_hop_all_gold_recall_below_0.95",
+    "human_test:tag:natural_all_gold_recall_below_0.95",
+    "human_test:tag:table_all_gold_recall_below_0.95",
+    "human_holdout:overall_all_gold_recall_below_0.95",
+    "human_holdout:answerable:true_all_gold_recall_below_0.95",
+    "human_holdout:category:unknown_all_gold_recall_below_0.95",
+    "human_holdout:cohort:numeric_all_gold_recall_below_0.95",
+    "human_holdout:cohort:scoped_all_gold_recall_below_0.95",
+    "human_holdout:cohort:table_all_gold_recall_below_0.95",
+    "human_holdout:difficulty:easy_all_gold_recall_below_0.95",
+    "human_holdout:difficulty:hard_all_gold_recall_below_0.95",
+    "human_holdout:tag:easy_all_gold_recall_below_0.95",
+    "human_holdout:tag:exact_code_all_gold_recall_below_0.95",
+    "human_holdout:tag:hard_all_gold_recall_below_0.95",
+    "human_holdout:tag:multi_hop_all_gold_recall_below_0.95",
+    "human_holdout:tag:natural_all_gold_recall_below_0.95",
+    "human_holdout:tag:table_all_gold_recall_below_0.95"
+  ],
+  "raw": {
+    "path": "candidate_coverage.json",
+    "sha256": "6ae868caaef23fe381c0c7b494ca1d9ec7557b97fda9d56ef8e2cab0114eba33",
+    "bytes": 166173093
+  },
+  "splits": {
+    "test": {
+      "candidate_recall": 1.0,
+      "all_gold_recall": 1.0
+    },
+    "holdout": {
+      "candidate_recall": 0.9914529914529915,
+      "all_gold_recall": 0.9914529914529915
+    },
+    "human_dev": {
+      "candidate_recall": 0.6592592592592592,
+      "all_gold_recall": 0.6296296296296297
+    },
+    "human_test": {
+      "candidate_recall": 0.6444444444444445,
+      "all_gold_recall": 0.6444444444444445
+    },
+    "human_holdout": {
+      "candidate_recall": 0.6888888888888889,
+      "all_gold_recall": 0.6888888888888889
+    }
+  },
+  "raw_archive_policy": "Full observations retained locally; summary binds exact bytes and does not replace validator raw evidence."
+}

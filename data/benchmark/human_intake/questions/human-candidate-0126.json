@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0126",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_training_regulation_2014.pdf",
+          "sha256": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1_p1_s4_c1",
+        "doc_id": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+        "page": 1
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "exam_impersonation_first_offense_2014",
+    "qid": "human-candidate-0126",
+    "question": "thi hộ lần 1 theo bản quy chế này bị nghỉ học bao lâu",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "slang",
+      "hard",
+      "answerable"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_278",
+    "source_retrieved_at": null,
+    "source_url": "repository://Quy-chế.pdf",
+    "split": "dev",
+    "tags": [
+      "answerable",
+      "hard",
+      "natural",
+      "slang"
+    ]
+  },
+  "record_sha256": "1bed088ad8be6662594855b3bded39e5f2ee445a22ec0172b7cdc1085474e831",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

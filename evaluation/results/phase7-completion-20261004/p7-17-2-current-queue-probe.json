@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "task": "P7-17.2",
+  "status": "FAIL",
+  "release_eligible": false,
+  "scope": "isolated Python SlowModel fixture; synthetic late completion and queue pressure",
+  "started_at": "2026-10-04T14:20:18.790888+00:00",
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "81be8ec633fb51d8ab5351d745ff6838111b03b14a516d2de5fbeb2a6f002435",
+    "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "81be8ec633fb51d8ab5351d745ff6838111b03b14a516d2de5fbeb2a6f002435",
+    "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+  },
+  "source_stable": true,
+  "predict_batch_sizes": [
+    1
+  ],
+  "future_status": {
+    "queue_full_request": "queue_full",
+    "inflight_after_close": "feature_disabled",
+    "queued_after_close": "reranker_inference_failed"
+  },
+  "counters_before_close": {
+    "submitted_requests": 2,
+    "completed_requests": 0,
+    "cancelled_requests": 0,
+    "rejected_requests": 1,
+    "active_requests": 1,
+    "queue_depth": 1,
+    "max_queue_depth": 1,
+    "queue_wait_ms_total": 0.17469999875174835,
+    "max_queue_wait_ms": 0.17469999875174835,
+    "worker_ms_total": 0.0,
+    "closed": false,
+    "failure_count": 0,
+    "ready": false,
+    "model_loads": 1,
+    "inference_calls": 1,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "counters_after_close_before_release": {
+    "submitted_requests": 2,
+    "completed_requests": 0,
+    "cancelled_requests": 1,
+    "rejected_requests": 1,
+    "active_requests": 1,
+    "queue_depth": 0,
+    "max_queue_depth": 1,
+    "queue_wait_ms_total": 0.17469999875174835,
+    "max_queue_wait_ms": 0.17469999875174835,
+    "worker_ms_total": 0.0,
+    "closed": true,
+    "failure_count": 0,
+    "ready": false,
+    "model_loads": 1,
+    "inference_calls": 1,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "counters_after_drain": {
+    "submitted_requests": 2,
+    "completed_requests": 1,
+    "cancelled_requests": 1,
+    "rejected_requests": 1,
+    "active_requests": 0,
+    "queue_depth": 0,
+    "max_queue_depth": 1,
+    "queue_wait_ms_total": 0.17469999875174835,
+    "max_queue_wait_ms": 0.17469999875174835,
+    "worker_ms_total": 1.1073999994550832,
+    "closed": true,
+    "failure_count": 1,
+    "ready": false,
+    "model_loads": 1,
+    "inference_calls": 1,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "checks": {
+    "one_native_predict_entered": true,
+    "queue_full_rejected_third": true,
+    "submitted_is_two_before_close": true,
+    "rejected_is_one_before_close": true,
+    "active_and_queued_observed_before_close": true,
+    "active_and_queued_zero_after_drain": true,
+    "late_active_result_discarded": true,
+    "queued_request_cancelled": false,
+    "no_inference_after_close": true,
+    "completed_plus_cancelled_matches_submitted": true
+  },
+  "limitations": [
+    "The delayed model is a Python test double, not CUDA/native provider inference.",
+    "Does not establish target-device permit behavior, real provider recovery, or M9 acceptance."
+  ]
+}

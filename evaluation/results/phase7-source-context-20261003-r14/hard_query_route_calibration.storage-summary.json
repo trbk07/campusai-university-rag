@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "hard_query_route_calibration.json",
+    "sha256": "07a8bd5164f774c5661961713a50c6bda9d4c5cf0710479dbc63c6cb89b23b15"
+  },
+  "summary": {
+    "schema_version": 1,
+    "phase": 7,
+    "version": "phase7-hard-route-dev-v3",
+    "status": "pass",
+    "calibration_split": "dev",
+    "holdout_used": false,
+    "test_used": false,
+    "commit": "c5287fc7824380902c130acca1416ba2cd7beb0f",
+    "source_sha256": "ac7716c502bd5e27e4a7e74936605d271a969eda71abb3ccb83d4213aae6a2ea",
+    "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+    "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+    "feature_leakage_review": "pass",
+    "feature_allowlist": [
+      "operation_required",
+      "long_request"
+    ],
+    "forbidden_features": [
+      "language",
+      "template",
+      "difficulty",
+      "qid"
+    ],
+    "training_split_sha256": "dd29b2b21c7398e45a7c5c343cbdc5238ab56b4ce44e56072484e3626a0d71a3",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "easy_confidence_threshold": 1.0,
+    "easy_margin_threshold": 1.0,
+    "minimum_agreement": 0.0,
+    "constraint_threshold": 0,
+    "route_model": {
+      "version": "hard-route-logistic-v2",
+      "feature_schema": [
+        "operation_required",
+        "long_request"
+      ],
+      "means": [
+        0.6173913043478261,
+        0.13043478260869565
+      ],
+      "scales": [
+        0.4860239517385086,
+        0.3367811605397755
+      ],
+      "weights": [
+        1.6186935081200526,
+        0.39685290336354706
+      ],
+      "bias": 0.3261500707961575,
+      "threshold": 0.7783487876315528,
+      "max_standardized_distance": 8.0
+    },
+    "route_diagnostics": {
+      "fold_count": 5,
+      "regularization": 0.05,
+      "iterations_limit": 5000,
+      "out_of_fold_metrics": {
+        "eligible": 115,
+        "selected": 71,
+        "coverage": 0.6173913043478261,
+        "hard_recall": 0.9701492537313433,
+        "easy_unnecessary_rerank_rate": 0.125,
+        "selection_precision": 0.9154929577464789,
+        "false_skip_rate": 0.02985074626865669,
+        "hard_count": 67,
+        "easy_count": 48
+      },
+      "fitted_metrics": {
+        "eligible": 115,
+        "selected": 71,
+        "coverage": 0.6173913043478261,
+        "hard_recall": 0.9701492537313433,
+        "easy_unnecessary_rerank_rate": 0.125,
+        "selection_precision": 0.9154929577464789,
+        "false_skip_rate": 0.02985074626865669,
+        "hard_count": 67,
+        "easy_count": 48
+      },
+      "observations": {
+        "raw_array_reference": "/route_diagnostics/observations",
+        "records": 115
+      }
+    },
+    "routing_metrics": {
+      "eligible": 135,
+      "selected": 82,
+      "coverage": 0.6074074074074074,
+      "hard_recall": 0.9701492537313433,
+      "easy_unnecessary_rerank_rate": 0.125,
+      "selection_precision": 0.7926829268292683,
+      "false_skip_rate": 0.02985074626865669,
+      "hard_count": 67,
+      "easy_count": 48
+    },
+    "bypass": {
+      "exact_or_abstained": 58,
+      "single_candidate": 0
+    },
+    "deterministic": true,
+    "exact_code_count": 11,
+    "abstention_count": 47,
+    "exact_code_rerank_rate": 0.0,
+    "abstention_rerank_rate": 0.0,
+    "samples": {
+      "raw_array_reference": "/samples",
+      "records": 135
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/route_diagnostics/observations",
+      "records": 115
+    },
+    {
+      "json_pointer": "/samples",
+      "records": 135
+    }
+  ]
+}

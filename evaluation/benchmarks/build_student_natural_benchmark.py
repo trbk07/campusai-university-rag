@@ -124,7 +124,7 @@ def compile_dataset(spec: str, corpus: dict, index_dir: Path):
                    "difficulty": "hard" if category in {"ambiguous", "conditional", "multi_hop", "long_noisy"} else group["difficulty"],
                    "answerable": supported, "ambiguous": ambiguous,
                    "expected_source": "; ".join(source_labels) if supported else None,
-                   "expected_behavior": "answer_grounded" if supported else "ask_clarification" if ambiguous else "abstain_no_evidence",
+                   "expected_behavior": "answer_grounded" if supported else "ask_clarification" if ambiguous else "abstain",
                    "expected_answer": group["expected"], "context": context,
                    "document_context": {"uploaded_documents": scope, "scope": "selected_uploads" if supported else "seed_corpus_upload_fixture",
                                         "fixture_dependent_labels": True},

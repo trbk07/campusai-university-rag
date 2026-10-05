@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="39.961" timestamp="2026-10-05T15:31:17.704886+07:00" hostname="Bao_Kien"><testcase classname="tests.test_ocr" name="test_rapidocr_scanned_page_is_indexable_with_explicit_opt_in" time="39.836" /></testsuite></testsuites>

@@ -178,9 +178,11 @@ def test_web_assigns_server_identity_and_forwards_scope_without_mode_override():
     assert seen[0]["doc_ids"] == ["uploaded"] and seen[0]["top_k"] == 3
     assert len(seen[0]["request_id"]) == 32 and seen[0]["request_id"] != "force-cohort"
     assert "mode" not in seen[0]
-    for invalid in ({"doc_ids":[]}, {"top_k":True}, {"filters":[]}, {"language":"xx"}):
+    assert call(app, "/api/query", "POST", {"question": "tuition", "doc_ids": []})["status"].startswith("200")
+    assert seen[-1]["doc_ids"] == []  # Explicit empty scope remains empty end to end.
+    for invalid in ({"doc_ids":None}, {"top_k":True}, {"filters":[]}, {"language":"xx"}):
         assert call(app, "/api/query", "POST", {"question":"tuition", **invalid})["status"].startswith("400")
-    assert len(seen) == 1
+    assert len(seen) == 2
 
 
 def test_measurement_environment_disables_score_cache_and_binds_dtype(tmp_path, monkeypatch):
@@ -333,6 +335,43 @@ def test_evidence_policy_search_can_abstain_without_fabricating_a_passing_target
     assert report["selected"]["metrics"]["negative_fpr"] == 0.
     assert report["selected"]["metrics"]["recall5"] == 0.
     assert report["feasible"] is False
+
+
+@pytest.mark.parametrize("context_field", ["history", "selected_text"])
+def test_dev_scores_preserve_the_resolved_context_and_unaccepted_source_pool(context_field):
+    import hashlib
+    from campusai.rag.context import benchmark_retrieval_request
+    from evaluation.reranker.optimize_reranker_dev import score_observation
+    topic = "Electronics Engineering, chương trình 2022, học phần MEMS and NEMS ELT7008."
+    row = {"question": "ELT7008: môn này mấy tín chỉ trong chương trình đang chọn?",
+           "requires_context": True, "doc_ids": ["doc"]}
+    row[context_field] = ([{"role": "user", "content": topic}] if context_field == "history" else topic)
+    request = benchmark_retrieval_request(row, ["doc"])
+    assert topic in request["query"] and request["query"] != row["question"]
+    calls = []
+    class Provider:
+        model_identity = SimpleNamespace(input_format="body")
+        last_call = {"inference_started": True, "score_cache_hit": False}
+        def score(self, query, candidates):
+            calls.append((query, candidates))
+            return [SimpleNamespace(chunk_id=item.chunk_id, reranker_score=2.) for item in candidates]
+    pool = [{"doc_id": "doc", "chunk_id": "chunk", "page": 1, "rank": 1,
+             "content": "MEMS and NEMS", "fusion_score": .2}]
+    observation = score_observation(Provider(), "dev-context", request, [], pool, "body")
+    assert calls[0][0] == request["query"] and calls[0][1][0].content == pool[0]["content"]
+    assert observation["baseline"] == [] and observation["pool"] == pool
+    assert observation["scoring_query_sha256"] == hashlib.sha256(request["query"].encode()).hexdigest()
+    assert observation["actual_request"] == request and observation["scores"] == {"chunk": 2.}
+
+
+def test_dev_scoring_journals_empty_context_requests_without_a_model_call():
+    from evaluation.reranker.optimize_reranker_dev import score_observation
+    class Provider:
+        model_identity = SimpleNamespace(input_format="body")
+        def score(self, *_args):
+            raise AssertionError("empty candidate pools must not trigger inference")
+    observation = score_observation(Provider(), "clarification", {"query": ""}, [], [], "body")
+    assert observation["scores"] == {} and observation["provider_call"]["inference_started"] is False
 
 
 def test_precision_probe_measures_and_propagates_the_selected_candidate_cap(monkeypatch, tmp_path):

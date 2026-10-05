@@ -6,7 +6,7 @@ must preserve their Phase 6 fused result when ``RerankerUnavailable`` occurs.
 
 from __future__ import annotations
 
-from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError as FutureTimeout
+from concurrent.futures import CancelledError, Future, ThreadPoolExecutor, TimeoutError as FutureTimeout
 from collections import OrderedDict, deque
 from dataclasses import asdict, dataclass
 import hashlib
@@ -14,7 +14,7 @@ import json
 import math
 from pathlib import Path
 import re
-from threading import Lock, BoundedSemaphore, Condition
+from threading import Lock, BoundedSemaphore, Condition, local, get_ident
 import time
 from typing import Callable, Protocol, Sequence
 
@@ -74,7 +74,8 @@ class ModelIdentity:
                 or type(self.batch_size) is not int or not 1 <= self.batch_size <= (16 if self.device == "cpu" else 64)
                 or type(self.max_length) is not int or not 1 <= self.max_length <= 1024 or self.normalization != "raw_logit"):
             raise ValueError("invalid reranker model identity")
-        if (not math.isfinite(self.batch_window_ms) or not 0 <= self.batch_window_ms <= 10
+        if (type(self.batch_window_ms) not in (int, float) or not math.isfinite(self.batch_window_ms)
+                or not 0 <= self.batch_window_ms <= 10
                 or type(self.max_batch_pairs) is not int or not 40 <= self.max_batch_pairs <= 400):
             raise ValueError("invalid inference batching identity")
         if any(marker in self.model_name for marker in ("\\", ":", "..")) or self.model_name.startswith("/"):
@@ -127,6 +128,7 @@ class OfflineCrossEncoderReranker:
                  queue_limit: int = 2, failure_limit: int = 3,
                  score_cache_size: int = 0,
                  batch_window_ms: float | None = None, max_batch_pairs: int | None = None,
+                 require_ready: bool = False,
                  model_loader: Callable[[], object] | None = None) -> None:
         if (any(type(value) is not int for value in (candidate_cap, timeout_ms, queue_limit, failure_limit))
                 or not 1 <= candidate_cap <= 60 or not 1 <= timeout_ms <= 60000
@@ -151,6 +153,13 @@ class OfflineCrossEncoderReranker:
         self._closed = False
         self._verified = False
         self._model = None
+        self._require_ready = require_ready
+        self._ready = False
+        self._warming = False
+        self._warm_lock = Lock()
+        self._warm_owner = None
+        self._request_local = local()
+        self._model_loads = self._inference_calls = 0
         if type(score_cache_size) is not int or not 0 <= score_cache_size <= 4096:
             raise ValueError("invalid score cache size")
         self._score_cache_size = score_cache_size
@@ -169,11 +178,24 @@ class OfflineCrossEncoderReranker:
         self._batch_queue = deque()
         self._batch_running = False
         self._inference_batches = self._max_batch_requests = 0
-        self._loader = model_loader or (lambda: retrieval_runtime().get_offline_reranker(
-            self.model_dir, device=model_identity.device,
-            max_length=model_identity.max_length, snapshot_sha256=model_identity.model_sha256,
-            dtype=model_identity.dtype))
+        self._model_lease = None
+        self._loader = model_loader or self._load_shared_model
         self._executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="phase7-reranker")
+
+    def _load_shared_model(self):
+        model, self._model_lease = retrieval_runtime().acquire_offline_reranker(
+            self.model_dir, device=self.model_identity.device, max_length=self.model_identity.max_length,
+            snapshot_sha256=self.model_identity.model_sha256, dtype=self.model_identity.dtype)
+        return model
+
+    def _release_closed_model(self):
+        with self._state_lock:
+            if not self._closed or self._active or self._pending:
+                return
+            self._model = None
+            lease, self._model_lease = self._model_lease, None
+        if lease is not None:
+            retrieval_runtime().release_offline_reranker(lease)
 
     @property
     def fingerprint(self) -> str:
@@ -184,20 +206,47 @@ class OfflineCrossEncoderReranker:
         return {"timeout_ms": self.timeout_ms, "queue_limit": self.queue_limit,
                 "failure_limit": self.failure_limit, "score_cache_size": self._score_cache_size}
 
-    def _predict(self, query: str, candidates: Sequence[RerankCandidate]) -> list[float]:
-        return self._predict_pairs([(query, item.content) for item in candidates])
+    @property
+    def ready(self) -> bool:
+        with self._state_lock:
+            return self._ready and not self._closed
 
-    def _predict_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
+    @property
+    def last_call(self) -> dict:
+        return getattr(self._request_local, "last_call", {})
+
+    def _predict(self, query: str, candidates: Sequence[RerankCandidate], timing: dict) -> list[float]:
+        return self._predict_pairs([(query, item.content) for item in candidates], [timing])
+
+    def _predict_pairs(self, pairs: list[tuple[str, str]], timings: list[dict]) -> list[float]:
+        with self._state_lock:
+            if self._closed:
+                raise RerankerUnavailable("feature_disabled")
         self.verify_snapshot()
         if self._model is None:
+            if self._require_ready and not self._warming:
+                raise RerankerUnavailable("model_not_ready")
             self._model = self._loader()
+            self._model_loads += 1
         model = self._model
         # Transform complete structured tables before the character guard.
         # Source chunks returned to the generator retain all original bytes.
         pairs = [(query[:QUERY_MAX_CHARS], scoring_text(content, self.model_identity.input_format,
                   query[:QUERY_MAX_CHARS])[:CONTENT_MAX_CHARS]) for query, content in pairs]
-        values = model.predict(pairs, batch_size=self.model_identity.batch_size,
-                               show_progress_bar=False, activation_fn=lambda value: value)
+        with self._state_lock:
+            if self._closed:
+                raise RerankerUnavailable("feature_disabled")
+            self._inference_calls += 1
+        started = time.perf_counter()
+        for timing in timings:
+            timing["inference_started"] = started
+        try:
+            values = model.predict(pairs, batch_size=self.model_identity.batch_size,
+                                   show_progress_bar=False, activation_fn=lambda value: value)
+        finally:
+            finished = time.perf_counter()
+            for timing in timings:
+                timing["inference_finished"] = finished
         scores = [float(value) for value in values]
         if len(scores) != len(pairs) or any(not math.isfinite(value) for value in scores):
             raise RerankerUnavailable("invalid_model_scores")
@@ -219,6 +268,8 @@ class OfflineCrossEncoderReranker:
                     "max_queue_depth": self._max_queue_depth, "queue_wait_ms_total": self._queue_wait_ms,
                     "max_queue_wait_ms": self._max_queue_wait_ms, "worker_ms_total": self._worker_ms,
                     "closed": self._closed, "failure_count": self._failures,
+                    "ready": self._ready and not self._closed, "model_loads": self._model_loads,
+                    "inference_calls": self._inference_calls,
                     "score_cache_hits": self._cache_hits, "score_cache_entries": len(self._score_cache),
                     "inference_batches": self._inference_batches, "max_batch_requests": self._max_batch_requests}
 
@@ -258,7 +309,7 @@ class OfflineCrossEncoderReranker:
                 now = time.perf_counter()
                 for future, _, _, enqueued in jobs:
                     waited = (now - enqueued) * 1000
-                    future.phase7_timing["inference_started"] = now
+                    future.phase7_timing["worker_started"] = now
                     self._queue_wait_ms += waited
                     self._max_queue_wait_ms = max(self._max_queue_wait_ms, waited)
             if not jobs:
@@ -269,7 +320,7 @@ class OfflineCrossEncoderReranker:
                 if self._closed:
                     raise RerankerUnavailable("feature_disabled")
                 pairs = [(query, item.content) for _, query, candidates, _ in jobs for item in candidates]
-                scores = self._predict_pairs(pairs)
+                scores = self._predict_pairs(pairs, [future.phase7_timing for future, _, _, _ in jobs])
                 offset = 0
                 for _, _, candidates, _ in jobs:
                     outputs.append(scores[offset:offset + len(candidates)])
@@ -280,9 +331,6 @@ class OfflineCrossEncoderReranker:
             except Exception as exc:
                 error = exc
             finally:
-                finished = time.perf_counter()
-                for future, _, _, _ in jobs:
-                    future.phase7_timing["inference_finished"] = finished
                 with self._idle:
                     self._active -= len(jobs)
                     self._completed += len(jobs)
@@ -301,7 +349,7 @@ class OfflineCrossEncoderReranker:
 
     def _predict_queued(self, query, candidates, enqueued_at, timing):
         started = time.perf_counter()
-        timing["inference_started"] = started
+        timing["worker_started"] = started
         waited = (started - enqueued_at) * 1000
         with self._state_lock:
             self._pending -= 1
@@ -315,8 +363,9 @@ class OfflineCrossEncoderReranker:
                 if cached is not None:
                     self._score_cache.move_to_end(key)
                     self._cache_hits += 1
+                    timing["score_cache_hit"] = True
                     return list(cached)
-            scores = self._predict(query, candidates)
+            scores = self._predict(query, candidates, timing)
             with self._state_lock:
                 if self._score_cache_size and not self._closed:
                     self._score_cache[key] = tuple(scores)
@@ -324,7 +373,6 @@ class OfflineCrossEncoderReranker:
                         self._score_cache.popitem(last=False)
             return scores
         finally:
-            timing["inference_finished"] = time.perf_counter()
             with self._state_lock:
                 self._active -= 1
                 self._completed += 1
@@ -338,10 +386,12 @@ class OfflineCrossEncoderReranker:
                 self._cancelled += 1
                 self._idle.notify_all()
         self._permits.release()
+        self._release_closed_model()
 
     def score(self, query: str, candidates: Sequence[RerankCandidate], *,
               timeout_ms: int | None = None) -> list[RerankedCandidate]:
-        score_started = time.perf_counter()
+        self._request_local.last_call = {"inference_started": False, "score_cache_hit": False,
+                                        "queue_ms": 0.0, "inference_observed_ms": 0.0}
         if timeout_ms is not None and (type(timeout_ms) is not int or not 1 <= timeout_ms <= 60000):
             raise ValueError("invalid inference timeout override")
         if not candidates:
@@ -360,6 +410,9 @@ class OfflineCrossEncoderReranker:
             if self._closed:
                 self._rejected += 1
                 raise RerankerUnavailable("feature_disabled")
+            if self._require_ready and not self._ready and get_ident() != self._warm_owner:
+                self._rejected += 1
+                raise RerankerUnavailable("model_not_ready")
             if self._failures >= self.failure_limit:
                 self._rejected += 1
                 raise RerankerUnavailable("circuit_open")
@@ -393,6 +446,12 @@ class OfflineCrossEncoderReranker:
             future.cancel()
             self._record_failure()
             raise RerankerUnavailable("reranker_timeout") from error
+        except CancelledError as error:
+            with self._state_lock:
+                closed = self._closed
+            if closed:
+                raise RerankerUnavailable("feature_disabled") from error
+            raise RerankerUnavailable("reranker_cancelled") from error
         except Exception as error:
             self._record_failure()
             raise RerankerUnavailable(str(error) if isinstance(error, RerankerUnavailable)
@@ -402,11 +461,16 @@ class OfflineCrossEncoderReranker:
             # interval up to the request deadline, never a claimed cancellation.
             finished = time.perf_counter()
             inference_started = timing.get("inference_started")
-            queue_end = min(inference_started or finished, finished)
+            queue_end = min(timing.get("worker_started", finished), finished)
             record_stage("reranker_queue", (queue_end - timing["submitted"]) * 1000)
             if inference_started is not None:
                 record_stage("reranker_inference_observed",
                              (min(timing.get("inference_finished", finished), finished) - inference_started) * 1000)
+            self._request_local.last_call = {"inference_started": inference_started is not None,
+                "score_cache_hit": bool(timing.get("score_cache_hit", False)),
+                "queue_ms": (queue_end - timing["submitted"]) * 1000,
+                "inference_observed_ms": (min(timing.get("inference_finished", finished), finished) - inference_started) * 1000
+                                           if inference_started is not None else 0.0}
         with self._state_lock:
             if self._closed:
                 raise RerankerUnavailable("feature_disabled")
@@ -428,8 +492,24 @@ class OfflineCrossEncoderReranker:
 
     def warm_up(self) -> None:
         """Explicit startup probe; callers control activation on failure."""
-        self.score("model readiness probe", [RerankCandidate(
-            "warmup", "warmup", "warmup", 1, "Model readiness probe.", 1, 1.0)], timeout_ms=60000)
+        with self._warm_lock:
+            if self.ready:
+                return
+            self._warming = True
+            self._warm_owner = get_ident()
+            try:
+                self.score("model readiness probe", [RerankCandidate(
+                    "warmup", "warmup", "warmup", 1, "Model readiness probe.", 1, 1.0)], timeout_ms=60000)
+                with self._state_lock:
+                    if self._closed:
+                        raise RerankerUnavailable("feature_disabled")
+                    self._ready = True
+            except Exception:
+                self.close()
+                raise
+            finally:
+                self._warming = False
+                self._warm_owner = None
 
     def drain(self, timeout_ms: int = 60000) -> None:
         """Wait for prior inference to finish between offline capacity profiles."""
@@ -444,8 +524,11 @@ class OfflineCrossEncoderReranker:
     def close(self) -> None:
         with self._state_lock:
             self._closed = True
+            self._ready = False
             self._score_cache.clear()
             queued = [job[0] for job in self._batch_queue]
+            self._batch_queue.clear()
         for future in queued:
             future.cancel()
         self._executor.shutdown(wait=False, cancel_futures=True)
+        self._release_closed_model()

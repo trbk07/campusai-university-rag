@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "task": "P7-09",
+  "status": "REPLAY_MATCH",
+  "release_eligible": false,
+  "calibration_split": "dev",
+  "test_used": false,
+  "holdout_used": false,
+  "created_at": "2026-10-04T11:57:29Z",
+  "reference_raw": "evaluation/results/phase7-completion-20261004/p7-09-reranker-dev-raw.json",
+  "reference_sha256": "41f18f8620c5530c5c1b516c942a65f17e4fa74fc2158b5da5821e9911679879",
+  "independent_replay_raw": "evaluation/results/phase7-completion-20261004/p7-09-full-dev-reranker-raw-v2.json",
+  "independent_replay_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+  "same_dev_identity": true,
+  "same_model_identity": true,
+  "same_index_identity": true,
+  "source_stable": true,
+  "queries": 889,
+  "candidate_pool_order_mismatch_queries": 0,
+  "baseline_top5_mismatch_queries": 0,
+  "candidate_score_pairs": 18873,
+  "unequal_score_pairs": 0,
+  "max_abs_score_delta": 0.0,
+  "empty_pool_class_counts": {
+    "answerable_empty": 2,
+    "negative_empty": 357,
+    "answerable_nonempty": 493,
+    "negative_nonempty": 37
+  },
+  "judgement": "Exact replay match: all candidate pool order, baseline top-5 order and 18,873 CUDA model scores are identical. The 359 empty pools consist of 357 negative plus 2 answerable queries. This validates reproducibility; it does not satisfy P7-09 grouped-OOF, ablation, uplift, joint-feasibility, paired-answer or resources requirements."
+}

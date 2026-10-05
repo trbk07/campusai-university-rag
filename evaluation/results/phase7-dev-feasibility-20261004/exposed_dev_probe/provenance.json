@@ -1,0 +1,21 @@
+{
+  "status": "diagnostic",
+  "release_eligible": false,
+  "new_heldout_claim": false,
+  "test_used": false,
+  "holdout_used": false,
+  "records": 491,
+  "parent_dev_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+  "prior_dev_sha256": "dd29b2b21c7398e45a7c5c343cbdc5238ab56b4ce44e56072484e3626a0d71a3",
+  "prior_generation_authorization_sha256": "abf67fed07af134cc4b0a458067c09b316df1c24f44380de413be581e2a764cb",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "dataset_sha256": "606dddba8b19003cb18dc58a3717fc81565df06686169b1d20f5bdf5165ff7bb",
+  "additional_negative_records": 13,
+  "additional_connected_groups": 3,
+  "facets": {
+    "fee_waiver": 5,
+    "exam_schedule": 4,
+    "teaching_room": 4
+  },
+  "meaning": "Existing owner-directed source-proved dev questions reused to diagnose probability calibration; the frozen r18 benchmark and consumed heldout remain unchanged."
+}

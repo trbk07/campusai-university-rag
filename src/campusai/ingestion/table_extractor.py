@@ -12,7 +12,15 @@ _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 
 
 def _split_row(line: str) -> list[str]:
-    cleaned = line.strip().strip("|").strip()
+    cleaned = line.strip()
+    if "|" in cleaned:
+        # Empty pipe-delimited cells carry column positions. Dropping one
+        # shifts later values (for example, a page number into prerequisites).
+        if cleaned.startswith("|"):
+            cleaned = cleaned[1:]
+        if cleaned.endswith("|"):
+            cleaned = cleaned[:-1]
+        return [cell.strip() for cell in cleaned.split("|")]
     return [cell.strip() for cell in _COLUMN_SEPARATOR.split(cleaned) if cell.strip()]
 
 

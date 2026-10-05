@@ -1,0 +1,19 @@
+{
+  "profile": "personal_owner_source_checked_ai",
+  "owner_identity": "Trương Bảo Kiên",
+  "approval_source": "project_owner_chat_instruction",
+  "approval_statement": "t duyệt hết nên bạn cứ nhập tên tác giải là t",
+  "generation_statement": "nếu k có thì tự tạo đi, t cho phép",
+  "standing_authorization_reference": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/phase7_generation_authorization.json",
+  "delegated_decision_approval_statement": "I explicitly approve the decisions you make for this Phase and authorize you to proceed without asking me to review each item manually.",
+  "decision_analyst": "Codex AI assistant",
+  "owner_manual_row_review_claim": false,
+  "independent_human_review_claim": false,
+  "recorded_at": "2026-10-05T04:17:53.167137+00:00",
+  "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "source_bank_sha256": "2b7bf13a5af8618f2c418de52d5e75e9360feef9dc302068ea63316dd6574c6d",
+  "history_snapshot_sha256": "69774ff951d0dbbc595dc8542900ede05b7df7a6d2c3630ab8da9052a32d1e43",
+  "dev_inheritance_sha256": "14a11c97954092f1b03e3bbb58ee846667562ed9083cadd5de8a64c42306bf81",
+  "source_allocation_sha256": "7de74fb6672267e1822a4600a89bd7939d3bf7db01271453dae566b9498575d4"
+}

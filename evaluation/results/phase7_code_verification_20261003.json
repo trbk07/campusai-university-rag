@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "artifact_type": "code_verification_summary",
+  "updated_on": "2026-10-03",
+  "timezone": "Asia/Bangkok",
+  "status": "code_pass_release_conditional",
+  "source_sha256": "b5b3ffc706713e3c444ba03ab8bf2742f70806d66092958f7b7acc19e671c08",
+  "runtime_sha256": "4b4023f0976b3153f2f8113df63169f04fd92aa6b7b3ea7f589af949ce92d2fa",
+  "verification": {
+    "pytest": {
+      "status": "pass",
+      "passed": 477,
+      "failed": 0,
+      "skipped": 2,
+      "command": ".venv/Scripts/python.exe -m pytest -q --cov=src/campusai --cov-report=term --cov-report=json:.tmp/phase7-final-coverage-20261003.json --junitxml=.tmp/phase7-final-pytest-20261003.xml --basetemp=.tmp/phase7-final-pytest-20261003",
+      "skipped_reasons": [
+        "tests/integration/test_basic_rag_provider.py: set RUN_LLM_INTEGRATION=1 and GEMINI_API_KEY",
+        "tests/integration/test_gemini.py: set RUN_LLM_INTEGRATION=1 and GEMINI_API_KEY"
+      ]
+    },
+    "coverage": {
+      "percent": 89.28,
+      "required_percent": 85.0,
+      "status": "pass",
+      "statements": 5007,
+      "missed": 537
+    },
+    "compileall": {
+      "status": "pass",
+      "command": ".venv/Scripts/python.exe -m compileall -q evaluation scripts tests"
+    },
+    "secret_scan": {
+      "status": "pass",
+      "scope": "tracked files",
+      "command": ".venv/Scripts/python.exe -m scripts.dev.secret_scan"
+    },
+    "diff_check": {
+      "status": "pass",
+      "command": "git diff --check",
+      "notes": "Git emitted only configured LF/CRLF normalization warnings."
+    }
+  },
+  "release_readiness": {
+    "status": "conditional",
+    "score": null,
+    "through": "M12",
+    "all_release_gates_pass": false,
+    "working_tree_clean": false,
+    "report": "evaluation/results/phase7_readiness_20261003.json",
+    "gates": {
+      "M0": "PASS",
+      "M1": "FAIL",
+      "M2": "BLOCKED",
+      "M3": "BLOCKED",
+      "M4": "BLOCKED",
+      "M5": "BLOCKED",
+      "M6": "BLOCKED",
+      "M7": "BLOCKED",
+      "M8": "BLOCKED",
+      "M9": "BLOCKED",
+      "M10": "BLOCKED",
+      "M11": "BLOCKED",
+      "M12": "BLOCKED"
+    },
+    "supplemental_gates": {
+      "S1": "FAIL",
+      "S2": "PASS",
+      "S3": "BLOCKED",
+      "S4": "BLOCKED",
+      "S5": "BLOCKED",
+      "S6": "BLOCKED"
+    },
+    "blockers": {
+      "M1_S1": [
+        "180 existing review packets have no valid declared review role and do not bind the current review policy.",
+        "45 negative records still lack owner-confirmed document scope.",
+        "89 previously dev-exposed records must remain dev-only; 91 exposure histories are unresolved.",
+        "Historical exposure observations and source registry do not bind; old synthetic approvals are rejected."
+      ],
+      "M3_M4": [
+        "Existing source/runtime reports predate the current code and must be regenerated after M1; current source/runtime binding errors remain."
+      ],
+      "M5_M11": [
+        "Ordered release measurements and raw supplemental S3-S6 evidence are missing."
+      ],
+      "M12": [
+        "All release gates are not passing and the working tree is not clean."
+      ]
+    }
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0148",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_student_rewards_2023.pdf",
+          "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2",
+        "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+        "page": 2
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "excellent_thesis_award_conditions",
+    "qid": "human-candidate-0148",
+    "question": "mình chỉ hỏi danh hiệu khóa luận hoặc đồ án xuất sắc theo quy định, không hỏi điểm chấm riêng, sinh viên còn phải tốt nghiệp vào lúc nào và học tập rèn luyện ở mức nào mới được khen",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "long_noisy",
+      "hard",
+      "answerable"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_228",
+    "source_retrieved_at": null,
+    "source_url": "repository://6.-Quy-dinh-khen-thuong-tai-Truong-DHCN.pdf",
+    "split": "test",
+    "tags": [
+      "answerable",
+      "hard",
+      "long_noisy",
+      "natural"
+    ]
+  },
+  "record_sha256": "a09b48c82bf5baa74d0930684121c5b4102e338042b30883f68c5933bc88a1f3",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

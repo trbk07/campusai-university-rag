@@ -7,10 +7,12 @@ import math
 from pathlib import Path
 import subprocess
 
+from evaluation.common.artifact_store import resolve_artifact
+
 
 def sha256(path: str | Path) -> str:
     digest = hashlib.sha256()
-    with Path(path).open("rb") as stream:
+    with resolve_artifact(path).open("rb") as stream:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
@@ -22,7 +24,7 @@ def write_json(path: Path, value: dict) -> None:
 
 
 def read_json(path: Path) -> dict:
-    value = json.loads(path.read_text(encoding="utf-8"), parse_constant=_reject_constant, parse_float=_finite_float)
+    value = json.loads(resolve_artifact(path).read_text(encoding="utf-8"), parse_constant=_reject_constant, parse_float=_finite_float)
     if not isinstance(value, dict):
         raise ValueError("artifact must be an object")
     return value
@@ -76,18 +78,36 @@ def policy_bindings(results_dir: Path) -> dict:
 
 
 def source_identity(root: Path) -> dict:
-    # Uncommitted implementation changes cannot be represented by HEAD alone.
-    files = sorted(path for directory in ("src", "evaluation", "scripts", "configs", "tests")
-                   for path in (root / directory).rglob("*")
-                   if path.is_file() and "__pycache__" not in path.parts
-                   and "results" not in path.relative_to(root).parts)
-    files = sorted(files + [root / name for name in ("pyproject.toml", "Makefile", "requirements.txt", "uv.lock")
-                            if (root / name).is_file()])
-    digest = hashlib.sha256(json.dumps([(p.relative_to(root).as_posix(), sha256(p)) for p in files],
-                                       separators=(",", ":")).encode()).hexdigest()
+    """Identify the physical source tree and runtime used for an evaluation.
+
+    Hash inputs directly instead of trusting an older report to supply the
+    identity for the code that produced it. Generated results and datasets are
+    bound by their own artifact hashes and are excluded here.
+    """
+    root = Path(root).resolve()
+    files = set()
+    for directory in ("src", "evaluation", "scripts", "tests"):
+        base = root / directory
+        if base.is_dir():
+            files.update(path for path in base.rglob("*.py")
+                         if path.is_file() and "__pycache__" not in path.parts)
+    config_dir = root / "configs"
+    if config_dir.is_dir():
+        files.update(path for path in config_dir.rglob("*")
+                     if path.is_file() and path.suffix.lower() in {".json", ".toml", ".yaml", ".yml"}
+                     and path.name != "gemini.yaml")
+    manifests = {"pyproject.toml", "requirements.txt", "requirements-dev.txt", "uv.lock", "poetry.lock"}
+    files.update(root / name for name in manifests if (root / name).is_file())
+    source_digest = hashlib.sha256()
+    for path in sorted(files, key=lambda item: item.relative_to(root).as_posix()):
+        relative = path.relative_to(root).as_posix().encode("utf-8")
+        source_digest.update(len(relative).to_bytes(4, "big"))
+        source_digest.update(relative)
+        content_digest = hashlib.sha256(path.read_bytes()).digest()
+        source_digest.update(content_digest)
     from campusai.retrieval.runtime_provenance import runtime_sha256
     return {"commit": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip(),
-            "source_sha256": digest, "runtime_sha256": runtime_sha256()}
+            "source_sha256": source_digest.hexdigest(), "runtime_sha256": runtime_sha256()}
 
 
 def require_previous_gates(gate: str, results_dir: Path = Path("evaluation/results"), *,

@@ -7,7 +7,6 @@ paraphrases together, and both OOF and fitted-policy quality must pass M5.
 from __future__ import annotations
 
 from dataclasses import replace
-import hashlib
 import json
 
 from campusai.retrieval.evidence_policy import (
@@ -19,8 +18,10 @@ FIT_ITERATIONS = 5000
 
 
 def proposal_features(row: dict, baseline: list, proposal: dict) -> dict:
+    from campusai.rag.context import benchmark_retrieval_request
     inputs = proposal["evidence_inputs"]
-    return evidence_features(row["question"], baseline, inputs["ranked_candidates"], inputs["scores"])
+    query = benchmark_retrieval_request(row, [])['query']
+    return evidence_features(query, baseline, inputs["ranked_candidates"], inputs["scores"])
 
 
 def target_class(row: dict, proposal: dict) -> int:
@@ -76,32 +77,12 @@ def _diagnostics(labels: list[int], probabilities: list[dict | None]) -> dict:
 
 
 def _fold_groups(items: list[dict]) -> list[str]:
-    """Keep paraphrases, source families and templates out of each other's folds."""
-    parents = list(range(len(items)))
-    def find(index):
-        while parents[index] != index:
-            parents[index] = parents[parents[index]]
-            index = parents[index]
-        return index
-    def union(left, right):
-        parents[find(left)] = find(right)
-    first = {}
-    for index, row in enumerate(items):
-        for field in ("paraphrase_group", "source_group", "template_group"):
-            value = row.get(field)
-            if field == "paraphrase_group" and (not isinstance(value, str) or not value.strip()):
-                raise ValueError("probability calibration needs a paraphrase group for every scored query")
-            if isinstance(value, str) and value.strip():
-                key = (field, value.strip())
-                if key in first:
-                    union(index, first[key])
-                else:
-                    first[key] = index
-    members = {}
-    for index, row in enumerate(items):
-        members.setdefault(find(index), []).append(row["qid"])
-    names = {root: min(qids) for root, qids in members.items()}
-    return [names[find(index)] for index in range(len(items))]
+    """Use the same transitive families as freeze, exposure and held-out CIs."""
+    from evaluation.benchmarks.connected_groups import connected_groups
+    if any(not isinstance(row.get("paraphrase_group"), str) or not row["paraphrase_group"].strip() for row in items):
+        raise ValueError("probability calibration needs a paraphrase group for every scored query")
+    groups = connected_groups(items)
+    return [groups[row['qid']] for row in items]
 
 
 def calibrate_probabilities(rows: list[dict], baseline: dict, proposals: dict) -> tuple[dict, dict]:
@@ -111,7 +92,9 @@ def calibrate_probabilities(rows: list[dict], baseline: dict, proposals: dict) -
     if len({row["qid"] for row in rows}) != len(rows) or set(baseline) != {row["qid"] for row in rows} or not set(proposals) <= set(baseline):
         raise ValueError("probability calibration query scope mismatch")
     items = [row for row in rows if row["qid"] in proposals]
-    groups = _fold_groups(items)
+    # Unscored rows may connect two scored families. Do not drop those links.
+    all_groups = dict(zip((row['qid'] for row in rows), _fold_groups(rows)))
+    groups = [all_groups[row['qid']] for row in items]
     if len(set(groups)) < 2:
         raise ValueError("probability calibration requires at least two independent query families")
     features = [proposal_features(row, baseline[row["qid"]], proposals[row["qid"]]) for row in items]
@@ -119,11 +102,11 @@ def calibrate_probabilities(rows: list[dict], baseline: dict, proposals: dict) -
     counts = {key: labels.count(i) for i, key in enumerate(CLASSES)}
     if len(items) < 30 or min(counts.values()) < 5:
         raise ValueError("probability calibration needs 30 scored dev queries and five of each evidence class")
-    # Deterministic group round-robin; assigning each whole group prevents leakage.
-    ordered = sorted(set(groups), key=lambda group: hashlib.sha256(group.encode()).hexdigest())
-    fold_count = min(5, len(ordered))
-    group_fold = {group: i % fold_count for i, group in enumerate(ordered)}
-    folds = [group_fold[group] for group in groups]
+    # Conventional stratification balances scarce evidence classes while
+    # retaining entire connected families; predictions never affect folds.
+    from evaluation.common.grouped_folds import stratified_group_folds
+    folds = stratified_group_folds(groups, labels)
+    fold_count = len(set(folds))
     oof = [None] * len(items)
     for fold in range(fold_count):
         train = [i for i in range(len(items)) if folds[i] != fold]
@@ -164,6 +147,7 @@ def calibrate_probabilities(rows: list[dict], baseline: dict, proposals: dict) -
                    "out_of_fold_quality": _quality(rows, outputs_for(oof, accept, abstain)),
                    "fit": {"regularization": FIT_REGULARIZATION, "iterations_limit": FIT_ITERATIONS},
                    "classes": counts, "fold_count": fold_count,
+                   "fold_allocation": "deterministic_class_balanced_connected_groups_v1",
                    "out_of_fold": _diagnostics(labels, oof), "fitted": _diagnostics(labels, actual_probabilities),
                    "observations": [{"qid": row["qid"], "group": group, "fold": fold, "target": CLASSES[label],
                                      "features": feature, "probabilities": p}

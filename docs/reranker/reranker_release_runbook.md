@@ -1,13 +1,25 @@
 # Kiểm chứng và release reranker
 
 Validator duy nhất là `evaluation/reranker/validate_reranker_release.py`. Điểm 10.0 chỉ
-được xuất khi M0–M12 đều PASS, hash khớp và working tree sạch. `--through M0`
+được xuất khi M0–M12 và S1–S6 đều PASS, hash khớp và working tree sạch. `--through M0`
 có thể PASS nhưng `score` vẫn là `null`; đó chỉ là kiểm tra một phần.
 
-Hiện chưa có đủ artifact benchmark chuẩn (dataset, frozen split và metadata
-scope/evidence của từng record) hoặc telemetry staging để tái kiểm chứng.
+Cycle được chọn bởi `configs/phase7_release_cycle.json`. Cycle đang dùng là
+`phase7-dev-metadata-20261003-r10`, đã đo lại M0–M3/S1–S2 PASS. Cycle này sửa
+context và 14 nhãn độ khó dev có source audit; giữ nguyên test/holdout và
+lịch sử exposure của r8. Không tuyên bố heldout mới. M4 chưa có fit dev đạt
+ngưỡng; các gate tiếp theo cần phép đo cùng source/runtime/model. Gemini gọi
+mới đang báo quota 429; S2 cho phép cache, M6 answer quality phải chạy uncached.
+Telemetry staging chưa hoàn tất.
 Giữ `RERANKER_ENABLED=false`. Các fixture trong tests và kiểm tra chèn lỗi
 không phải bằng chứng quality, performance hoặc staging của deployment.
+
+Target của cycle hiện tại là **RTX 4060 local trước, public sau**. GPU interpreter
+có sẵn là `.tmp/phase7-gpu-runtime/Scripts/python.exe`; CPU `.venv` dùng kiểm thử code.
+Giữ cùng GPU interpreter/device/dtype/inference options xuyên M3–M12. Các ví dụ CPU
+bên dưới minh họa CLI; khi nghiệm thu RTX thay interpreter và `--device cuda:0
+--dtype float16` nhất quán với F1. Không ghép latency của GPU với quality identity CPU.
+Theo dõi phần đã làm và blockers ở [audit triển khai](phase7_audit_20261002.md).
 
 ## Trình tự chạy
 
@@ -20,9 +32,16 @@ release: thay đổi source sau khi đo sẽ làm các binding mất hiệu lự
 # M0: kiểm tra baseline RC3 đã freeze và các file index vật lý.
 .venv/Scripts/python.exe -m evaluation.reranker.validate_reranker_release --through M0
 
-# M1: nhập câu hỏi thật vào data/benchmark/human_retrieval.jsonl,
-# hoàn thành review độc lập và mapping frozen PDF evidence trước lệnh này.
-.venv/Scripts/python.exe -m evaluation.benchmarks.freeze_human_benchmark
+# Preflight: lỗi từng qid, negative scope và coverage của split an toàn.
+.venv/Scripts/python.exe -m scripts.phase7_release_pipeline preflight
+
+# Nạp key local đã ignore vào process environment, không in hoặc commit key.
+# M3 workflow đo snapshot/provider, thu S2 context/cache/lifecycle và validate.
+.tmp/phase7-gpu-runtime/Scripts/python.exe -m scripts.operations.with_gemini_key evaluation.reranker.release_workflow model --model-dir .tmp/models/1427fd652930e4ba29e8149678df786c240d8825 --device cuda:0 --dtype float16
+# M1/S1: dataset và audit phải được human_benchmark_intake export từ các packet
+# đã duyệt. Exposure registry phải hoàn tất và bind đúng pool/lineage/index.
+# Workflow đọc owner policy, kiểm tra audit trước freeze, rồi build S1 và validate M1.
+.venv/Scripts/python.exe -m scripts.phase7_release_pipeline human-freeze --assign-splits --review-audit data/benchmark/human_retrieval_review_audit.jsonl
 
 # M2: candidate coverage riêng, không phải ranking hoặc answer quality.
 .venv/Scripts/python.exe -m evaluation.retrieval.evaluate_candidate_coverage
@@ -31,6 +50,8 @@ release: thay đổi source sau khi đo sẽ làm các binding mất hiệu lự
 $rerankerSnapshot = 'D:/Project/.tmp/models/REPLACE_WITH_REVISION'
 .venv/Scripts/python.exe -m evaluation.reranker.check_model_snapshot --model-dir $rerankerSnapshot --device cpu
 .venv/Scripts/python.exe -m evaluation.reranker.check_reranker_faults --gate M3
+# S2: context/cache cases và lifecycle counters từ đúng runtime/index/snapshot M3.
+.venv/Scripts/python.exe -m evaluation.reranker.build_supplemental_report --gate S2 --observations evaluation/results/raw/context_lifecycle_observations.json
 
 # M4: fit trên human dev; freeze trước khi mở test/holdout để kiểm tra route.
 .venv/Scripts/python.exe -m evaluation.reranker.calibrate_hard_query_route
@@ -68,12 +89,24 @@ $env:RERANKER_CALIBRATION = 'evaluation/results/reranker_score_calibration.json'
 $env:RERANKER_TIMEOUT_MS = '1000'
 $env:RERANKER_WARMUP = 'true'
 
+# Freeze protocol answer/rubric trước khi ranking đọc held-out.
+# Rubric đã duyệt nằm trong results/raw và có gold_claim_ids cho primary qids.
+.venv/Scripts/python.exe -m evaluation.reranker.collect_paired_answers --prepare-only --llm-config configs/default.yaml --rubric evaluation/results/raw/answer_rubric.json --output evaluation/results/raw/paired_answers.json
+
 # M6: paired quality, bootstrap 10000 lần, per-query delta và regressions.
 .venv/Scripts/python.exe -m evaluation.retrieval.compare_retrieval_quality
+.venv/Scripts/python.exe -m evaluation.reranker.build_supplemental_report --gate S3
+.venv/Scripts/python.exe -m evaluation.reranker.build_supplemental_report --gate S5
+.venv/Scripts/python.exe -m evaluation.reranker.collect_paired_answers --llm-config configs/default.yaml --rubric evaluation/results/raw/answer_rubric.json --output evaluation/results/raw/paired_answers.json
+# Review outputs theo protocol bằng role project_owner hoặc independent_reviewer;
+# collector để pending và semantic decisions không được tự sinh.
+# --bindings dùng frozen smoke identity; protocol bổ sung LLM/prompt/context/rubric.
+.venv/Scripts/python.exe -m evaluation.reranker.paired_answer_quality --observations evaluation/results/raw/paired_answers.reviewed.json --rubric evaluation/results/raw/answer_rubric.json --bindings evaluation/results/model_snapshot_smoke.json
 
 # M7: thay số RAM bằng limit thật của deployment. Ví dụ 16 GiB:
 .venv/Scripts/python.exe -m evaluation.reranker.measure_reranker_capacity --deployment-ram-bytes 17179869184 --profile cpu-small
 .venv/Scripts/python.exe -m evaluation.reranker.measure_reranker_http --model-dir $rerankerSnapshot --llm-config configs/default.yaml --deployment-ram-bytes 17179869184
+.venv/Scripts/python.exe -m evaluation.reranker.build_supplemental_report --gate S6 --observations evaluation/results/raw/observability_observations.json
 
 # M8: chuẩn bị >=50 case adversarial có expected behavior và đủ category.
 .venv/Scripts/python.exe -m evaluation.reranker.evaluate_reranker_security --cases data/benchmark/reranker_adversarial.jsonl
@@ -108,8 +141,11 @@ provider trả Phase 6. `--evidence-policy score` và `--low-score-action` chỉ
 dùng để khảo sát; chúng không đạt M5 release. Phép đo trên câu hỏi tự nhiên cho
 thấy threshold fit trên 57 câu formal chưa chuyển tốt; xem
 [báo cáo vòng 3](abstention_optimization_report.md) trước khi chọn abstain.
-M4 release cũng dùng xác suất hard-query từ bảy đặc trưng truy xuất và cấu
-trúc câu hỏi, fit theo các nhóm paraphrase/source/template trên dev. Ngưỡng
+M4 release dùng xác suất hard-query từ hai đặc trưng dùng chung với serving:
+thao tác cần xử lý (`operation_required`) và câu hỏi dài (`long_request`).
+Topic từ history cung cấp chủ đề, không thêm thao tác. QID, gold, language,
+template và difficulty không đi vào feature runtime. Fit theo các nhóm
+paraphrase/source/template trên dev. Ngưỡng
 chọn bằng dự đoán out-of-fold và được kiểm tra lại trên model cuối; test và
 holdout chỉ được mở sau khi route artifact đã đóng băng. Query ngoài vùng đo
 được xử lý theo Phase 6. `--route-policy threshold` chỉ dành cho khảo sát.
@@ -123,15 +159,65 @@ tất cả gold chunk cho từng nhóm có câu trả lời, rồi tính lại t
 Manifest production ràng buộc queue, timeout, circuit limit và score cache
 đã đo; đổi các giới hạn này sau đó sẽ bị activation từ chối.
 
+`phase7_release quality-collect --rubric <file> --observations <file-mới>`
+đóng băng protocol trước ranking, đo paired retrieval, xây S3/S5 rồi gọi LLM
+thật với cache tắt. Kết quả dừng ở `pending_semantic_review`; đánh giá từng
+câu trả lời/citation theo rubric và lưu nguồn gốc đánh giá trước khi chạy
+`phase7_release quality --rubric <file> --observations <file-đã-review>` để
+xây S4 và validate M6. Dùng quyền owner self-review đã được chủ dự án cho phép;
+không tuyên bố review độc lập khi người đánh giá là assistant theo ủy quyền.
+
+`phase7_release performance` đo capacity, HTTP và S6 cùng budget đã khai báo.
+Capacity chọn hard workload bằng route runtime thực tế; tag `exact_code`
+không tự loại câu hỏi nhiều mã môn cần hybrid/rerank. Resource checkpoints
+đo RSS/PID/thời gian thật và VRAM của đúng device, lưu tại
+`raw/reranker_observability_observations.json` và bản có digest. Không điền
+resource samples giả để xây S6.
+
+Mỗi subprocess đo qua workflow có receipt riêng trong
+`raw/measurement_receipts/`: cycle, command tái chạy được, thời gian UTC thật,
+source/runtime trước và sau, input hash và hash các output thay đổi. Lỗi chạy
+vẫn được giữ; source đổi trong lúc đo làm lần chạy bị từ chối. Receipt không
+tự chứng minh quality gate PASS. Validator M12 bind byte các receipt hiện có;
+validation/packaging không tạo receipt mới sau khi đóng manifest.
+
 ## Human benchmark
+
+Current handoff: the frozen owner-approved benchmark is
+`data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10`.
+The owner's standing bulk approval is recorded by a hash-bound confirmation;
+exported record decisions and source audits are generated from that authorization.
+No additional owner confirmation is required for the already approved inputs.
+AI-created questions remain explicitly identified as commissioned AI data.
+
+The historical draft cycle is
+[phase7-release-20261003-r3](../benchmarks/phase7_review_cycles/phase7-release-20261003-r3/phase7_review_questions.draft.md).
+It contains 180 question/context/evidence records and 45 pending negative-scope
+proposals. The older group-review dossier is historical.
+Verify the generated templates before review:
+
+```powershell
+.venv/Scripts/python.exe -m scripts.benchmarks.prepare_phase7_review --verify --output-data-dir data/benchmark/phase7_review_cycles/phase7-release-20261003-r3 --output-docs-dir docs/benchmarks/phase7_review_cycles/phase7-release-20261003-r3
+```
+
+Keep per-record decisions in a separate copy; the generator refuses to overwrite existing
+drafts. Preparation has no model calls or split assignment. After actual review,
+correct affected records, bind the corrected question/index hashes and submit
+the real author/reviewer packets below. A guide approval alone is not a packet.
 
 Dùng schema mẫu tại `configs/human_benchmark_record.example.json`. Tổng ít
 nhất 150 record: 100 answerable, 20 negative, 15 hard/multi-hop, 15 exact-code,
 10 ambiguous/abstention; tag có thể overlap. Dev/test/holdout đều cần positive,
 negative, easy và hard. Các paraphrase cùng `paraphrase_group` phải ở một split.
 
-Mỗi record cần author human, reviewer độc lập, `review_status=approved`, đủ
-`review_checks`, source URL và thời gian có timezone. Positive phải có
+Mỗi record cần author human, reviewer role `project_owner` hoặc `independent_reviewer`, `review_status=approved`, đủ
+`review_checks`. Câu hỏi từ website cần source URL và thời gian có timezone;
+`question_source=direct_author` dùng nguồn gốc tác giả thật, không cần URL FAQ giả.
+`freeze_human_benchmark` tự đọc policy cạnh dataset; owner self-review không cần
+reviewer thứ hai. Với phê duyệt bulk đã có trong phiên làm việc, owner confirmation
+bind tập record được duyệt và exporter tạo audit từng record; không yêu cầu
+chủ dự án gửi lại quyết định riêng cho các record đã duyệt.
+Review packet vẫn phải bind question/index/hash và thời điểm ghi nhận có timezone. Positive phải có
 `doc_id/chunk_id/page` khớp index đã freeze. `evidence_source=frozen_pdf` bắt
 buộc; câu trả lời từ website hiện tại không được làm gold evidence. Validator
 kiểm tra lại nội dung dataset, split hash, duplicate và paraphrase gần nhau.

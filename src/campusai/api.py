@@ -34,9 +34,13 @@ class CampusAIApplication:
 
     def readiness(self) -> dict[str, Any]:
         retriever = self.query_service.retriever
-        ready = retriever.index_root.exists()
-        return {"status": "ready" if ready else "not_ready", "index_root_exists": ready,
-                "loaded_documents": len(retriever._indexes)}
+        index_exists = retriever.index_root.exists()
+        phase7_enabled = getattr(retriever, "phase7_enabled", False)
+        phase7_ready = bool(getattr(getattr(retriever, "phase7_provider", None), "ready", False))
+        ready = index_exists and (not phase7_enabled or phase7_ready)
+        return {"status": "ready" if ready else "not_ready", "index_root_exists": index_exists,
+                "loaded_documents": len(retriever._indexes), "phase7_enabled": phase7_enabled,
+                "phase7_ready": phase7_ready}
 
     def submit_ingestion(self, source_path: str, **options: Any) -> dict[str, Any]:
         if self.jobs is None:

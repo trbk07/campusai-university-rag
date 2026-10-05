@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "status": "pass",
+  "heldout_started_at": "2026-10-03T12:46:00.784142+00:00",
+  "artifact_sha256": {
+    "route": "c155d4638b108a931c4334db4cf9080114956bf7c806b3bbf2e085cb7d9ae2b1",
+    "smoke": "a936911b7005e76b423653fcbb2759d91b966f031d60044e6f6e6a1011c99e2f",
+    "human_manifest": "55ffab9f19939a7b462d99f8f3c015b47bea3b9a22a1dca064dd3d5620a61ca0"
+  }
+}

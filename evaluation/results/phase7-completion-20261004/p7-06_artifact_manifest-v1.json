@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "task": "P7-06 prompt capture provenance subtask",
+  "recorded_at": "2026-10-04T16:38:12.593851+00:00",
+  "status": "PARTIAL_VALIDATION_ONLY",
+  "release_eligible": false,
+  "artifacts": [
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-06_prompt_capture_validation.json",
+      "sha256": "5bcf326bcae327ad9b69b30b7675d91f04ad64fa2ab2a50371fc2245430422f0",
+      "bytes": 2021
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-06-prompt-capture-contract-suite.xml",
+      "sha256": "abbe8869da7a6801535e716baf53f146c6b113523121845b858e29d0625f8327",
+      "bytes": 11251
+    }
+  ],
+  "inputs": [
+    {
+      "path": "evaluation/reranker/collect_paired_answers.py",
+      "sha256": "12d946e7000fefd76019aa04022ea7e8e43653e5c8d4c066f2c66c6883e4c05f"
+    },
+    {
+      "path": "tests/test_phase7_completion_contract.py",
+      "sha256": "c7e13242255294059a4881f17926adca9f37478fd61f7bada5c320f57b7618c6"
+    },
+    {
+      "path": "docs/reranker/phase7_completion_plan_20261004.md",
+      "sha256": "edfa185369ab8cfa4942308090394d98830ce18b4c01ba061e7d193d542a21b7"
+    }
+  ],
+  "remaining_acceptance": "Full P7-06 requires live paired provider evidence, reviewed gold/claims, usage/cost receipts, and S4/S5 recomputation."
+}

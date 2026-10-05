@@ -1,0 +1,26 @@
+from pathlib import Path
+import hashlib
+import json
+import subprocess
+from evaluation.common.release_artifacts import sha256, write_json
+
+task=Path('evaluation/results/phase7-dev-inheritance-20261004')
+manifest=json.loads((task/'phase7_dev_inheritance.json').read_text(encoding='utf8'))
+exact=[]; repaired=[]
+for parent in manifest['parents']:
+    for name,digest in parent['benchmark_files'].items():
+        path=Path(parent['benchmark_dir'])/name
+        payload=path.read_bytes(); assert hashlib.sha256(payload).hexdigest()==digest
+        blob=subprocess.check_output(['git','show','f70adf0:'+path.as_posix()])
+        if hashlib.sha256(blob).hexdigest()==digest:
+            exact.append(path.as_posix())
+        else:
+            assert blob.replace(b'\r\n',b'\n')==payload.replace(b'\r\n',b'\n'),path
+            repaired.append({'path':path.as_posix(),'previous_normalized_git_sha256':hashlib.sha256(blob).hexdigest(),
+                'frozen_physical_sha256':digest,'changes':'Git newline serialization only; physical artifact bytes are unchanged.'})
+write_json(task/'parent_git_serialization_audit.json',{'schema_version':1,'status':'validated_dev_inheritance','release_eligible':False,
+    'parent_files_checked':len(exact)+len(repaired),'already_exact_git_files':len(exact),
+    'exact_byte_git_serialization_repaired':len(repaired),'records_or_approvals_changed':False,
+    'directory_rule':'data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/.gitattributes: * -text',
+    'files':repaired})
+print(json.dumps({'parent_files_checked':len(exact)+len(repaired),'physical_byte_preservation':True,'newline_only_git_repairs':len(repaired)}))

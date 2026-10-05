@@ -29,9 +29,10 @@ def cohort_names(row: dict) -> list[str]:
              "answerable:" + str(bool(row["answerable"])).lower()]
     names += ["tag:" + tag for tag in sorted(set(row.get("tags", [])))]
     flags = {"multi_hop": len(gold) > 1, "multi_document": len({g["doc_id"] for g in gold}) > 1,
-             "scoped": bool(row.get("doc_ids") or row.get("filters")),
+             "scoped": row.get("doc_ids") is not None or bool(row.get("filters")),
              "numeric": bool(re.search(r"\d", query)), "year": bool(re.search(r"\b20\d{2}\b", query)),
-             "semester": bool(re.search(r"\b(?:semester|term|h?c k?|h?c k?|hoc ky)\b", query, re.I)),
+             "semester": bool(re.search(r"\b(?:semester|term|học kỳ|học kì|hoc ky)\b", query, re.I)),
+             "contextual": bool(row.get("context") or row.get("history") or row.get("selected_text") or row.get("requires_context")),
              "table": "table" in row.get("tags", []) or any(g.get("table_id") for g in gold)}
     names += ["cohort:" + key for key, value in flags.items() if value]
     return names
@@ -113,9 +114,8 @@ def evaluate_split(rows: list[dict], retriever: HybridRetriever,
                    doc_ids: list[str], cap: int, evidence: dict | None = None) -> dict:
     outputs = {}
     for row in rows:
-        scope = row.get("doc_ids", doc_ids)
-        results = retriever.search(row["question"], doc_ids=scope,
-                                   filters=row.get("filters"), top_k=cap, mode="auto")
+        from campusai.rag.context import benchmark_retrieval_request
+        results = retriever.generate_candidates(**benchmark_retrieval_request(row, doc_ids), top_k=cap, mode="auto")
         outputs[row["qid"]] = [item.to_dict() for item in results]
     return audit_outputs(rows, outputs, doc_ids, cap, evidence)
 

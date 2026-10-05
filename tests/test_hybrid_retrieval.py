@@ -54,7 +54,7 @@ def test_phase6_router_is_deterministic(query, route):
 
 def test_phase6_router_supports_unicode_and_program_codes():
     assert detected_codes("Chương trình ĐTVT và CTĐT23") == ("ĐTVT", "CTĐT23")
-    assert choose_route("Chương trình ĐTVT và CTĐT23") == "exact_code"
+    assert choose_route("Chương trình ĐTVT và CTĐT23") == "hybrid_rrf"
     assert choose_route("học phí năm nay", filters={"program": "CNTT"}) == "filtered_hybrid_rrf"
 
 
@@ -113,6 +113,7 @@ def test_phase6_ambiguous_exact_code_falls_back_to_contextual_hybrid(tmp_path):
     results = retriever.search("CS201 greenhouse fieldwork policy", ["alpha", "beta"], mode="auto")
     assert results[0].doc_id == "beta"
     assert retriever.last_trace.fallback == "ambiguous_exact_code_hybrid_rrf"
+    assert retriever.last_trace.route == "hybrid_rrf"
     assert retriever.last_trace.dense_used
 
 
@@ -194,10 +195,15 @@ def test_phase6_cached_trace_matches_cached_results(tmp_path):
     _write_index(tmp_path, "doc", records)
     retriever = HybridRetriever(tmp_path, query_cache_size=4)
     first = retriever.search("graduation policy requirements", ["doc"], mode="auto")
-    first_trace = json.dumps(retriever.last_trace.to_dict(), sort_keys=True)
+    first_trace = retriever.last_trace.to_dict()
     second = retriever.search("graduation policy requirements", ["doc"], mode="auto")
     assert second == first
-    assert json.dumps(retriever.last_trace.to_dict(), sort_keys=True) == first_trace
+    cached_trace = retriever.last_trace.to_dict()
+    assert cached_trace["retrieval_cache_hit"] is True
+    assert not cached_trace["bm25_used"] and not cached_trace["dense_used"]
+    assert all(cached_trace["latency_ms"][name] == 0 for name in ("bm25", "dense", "fusion"))
+    for name in ("route", "candidate_count", "final_count", "abstained", "fallback", "detected_codes"):
+        assert cached_trace[name] == first_trace[name]
 
 
 def test_phase6_runtime_scopes_arbitrary_user_uploads_without_fixture_names(tmp_path, request):

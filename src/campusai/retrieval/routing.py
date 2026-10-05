@@ -7,7 +7,7 @@ import re
 from typing import Any
 
 
-COURSE_CODE_RE = re.compile(r"(?<![\w])(?:[A-ZĐ]{2,}[A-ZĐ]*[-_.]?\d{1,4}[A-Z]?|DTVT-1)(?![\w])", re.I)
+COURSE_CODE_RE = re.compile(r"(?<![\w])(?:[A-ZĐ]{2,}[A-ZĐ]*[-_.]?\d{1,5}[A-Z]?|DTVT-1)(?![\w])", re.I)
 PROGRAM_CODE_RE = re.compile(r"(?<![\w])(?:CNTT|KHMT|ĐTVT|DTVT|CTĐT\d{2}|CTDT\d{2})(?![\w])", re.I)
 
 
@@ -23,6 +23,12 @@ def detected_codes(query: str) -> tuple[str, ...]:
     return tuple(values)
 
 
+def detected_course_codes(query: str) -> tuple[str, ...]:
+    """Separate academic identifiers from program/semester shorthand."""
+    return tuple(code for code in detected_codes(query) if re.search(r"\d{2,}", code)
+                 and not re.fullmatch(r"(?:CTĐT|CTDT|HK|SEM)\d+|QH[-_.]?(?:19|20|21)\d{2}", code, re.I))
+
+
 @dataclass(frozen=True)
 class RoutingTrace:
     route: str
@@ -35,6 +41,16 @@ class RoutingTrace:
     abstention_reason: str | None = None
     fallback: str | None = None
     rerank_selected: bool = False
+    rerank_route_selected: bool = False
+    rerank_inference_started: bool = False
+    rerank_applied: bool = False
+    rerank_fallback: bool = False
+    rerank_abstained: bool = False
+    retrieval_cache_hit: bool = False
+    answer_cache_hit: bool = False
+    rerank_score_cache_hit: bool = False
+    reranker_model_identity: str | None = None
+    reranker_policy_identity: str | None = None
     rerank_reason: str | None = None
     candidate_count: int = 0
     final_count: int = 0
@@ -49,7 +65,7 @@ class RoutingTrace:
 def choose_route(query: str, *, filters: dict | None = None) -> str:
     if not isinstance(query, str) or not query.strip():
         return "abstain"
-    codes = detected_codes(query)
+    codes = detected_course_codes(query)
     if codes:
         return "exact_code"
     if filters:

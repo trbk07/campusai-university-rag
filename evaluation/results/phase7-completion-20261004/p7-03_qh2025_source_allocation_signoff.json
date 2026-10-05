@@ -1,0 +1,1333 @@
+{
+  "schema_version": 1,
+  "task": "P7-03-source-allocation-extension",
+  "recorded_at": "2026-10-05T03:35:27.951091+00:00",
+  "status": "OWNER_APPROVED_SOURCE_ALLOCATION_ONLY",
+  "release_eligible": false,
+  "benchmark_f0_frozen": false,
+  "approval_authority": "project_owner",
+  "owner_identity": "Trương Bảo Kiên",
+  "decision_analyst": "Codex AI assistant",
+  "independent_reviewer_claim": false,
+  "owner_manual_row_review_claim": false,
+  "owner_authorization_source": "explicit_project_owner_chat_instruction",
+  "owner_authorization_statement": "I explicitly approve the decisions you make for this Phase and authorize you to proceed without asking me to review each item manually.",
+  "previous_allocation_path": "evaluation/results/phase7-completion-20261004/p7-03_source_group_allocation_signoff.json",
+  "previous_allocation_sha256": "4fe7e2788cb0dfb3c7ae6ee9502497ca4bdbaee45dd336e4e0e4884431758b6c",
+  "semantic_decision_path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_semantic_exposure_decisions.json",
+  "semantic_decision_sha256": "332a786418e1ae52e102f438cadcd057717666565e38f6f904e05a31c0e8c5ca",
+  "source_evidence_archive_path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_evidence.zip",
+  "source_evidence_archive_sha256": "744bdfc344c0ab720b103436d8580358af129beb655e716e57f06c26a23a776f",
+  "eligible_source_groups": 37,
+  "assignment_counts": {
+    "holdout": 13,
+    "dev": 11,
+    "test": 13
+  },
+  "assignments": [
+    {
+      "connected_group": "family-1a6562590ef19d1045d0",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "2a30e6d222f8fced59e4da217aea8abb880f8227634a35bb845a64c01d9070f8",
+          "cells_sha256": "be70934dfb3a42d4558d2189e0458b85b6b2e1efdb9a4074c6fad4e0bfd8c20c",
+          "page": 9,
+          "table_row": 7,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "code": "INT7012",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "INT7012"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-22f8458d9843889cb837",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "7c145c167721cceb88cb929e0ff48f1a22920caa867c470a8d67e0c3465b699e",
+          "page": 8,
+          "table_row": 3,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "ELT6056",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "fb9ec815053e2deced08e9bc8dd1a33170d54bf728b7cddce958e21734b171e8",
+          "page": 8,
+          "table_row": 4,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT6056",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT6056"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-2c624232cdd221771294",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "b2456b7731378e8a2b7336b5a65f973b80f51d98e44856a5228f468b37242cae",
+          "page": 8,
+          "table_row": 11,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "ELT7011",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "ELT7011"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-31489056e0916d59fe3a",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "712d56e1cdef536d4f556d02b5988241ee6f11175d635e14cd9ecfc18a1ae268",
+          "page": 8,
+          "table_row": 12,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT7009",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "ELT7009"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-3ee4f227e99a78cd4a72",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "88301860decf2a3ee9292d8d29ba33ec3fb74418629897f1848d145e61842c34",
+          "cells_sha256": "c54651e1a75f15d9fb35fdf25213efad73c64f0abc322f832c3211c2396158c8",
+          "page": 9,
+          "table_row": 3,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "code": "INT7016",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "2a30e6d222f8fced59e4da217aea8abb880f8227634a35bb845a64c01d9070f8",
+          "cells_sha256": "89191848dca1850302596827b9aa0c4bcb7408fe1d949243918e957c81e43f57",
+          "page": 9,
+          "table_row": 6,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "code": "INT7016",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "INT7016"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-4a44dc15364204a80fe8",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "88301860decf2a3ee9292d8d29ba33ec3fb74418629897f1848d145e61842c34",
+          "cells_sha256": "38a752d1d3e0ecffac469de9bfe89f6d4fcccf1221337ad27811938a1aa8c5ef",
+          "page": 9,
+          "table_row": 1,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "code": "ELT7008",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "ELT7008"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-4fc82b26aecb47d2868c",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "88301860decf2a3ee9292d8d29ba33ec3fb74418629897f1848d145e61842c34",
+          "cells_sha256": "7b1402d283dc226f964f1110c94dcc07f1c62c96fe97ee964914133cf415a86b",
+          "page": 9,
+          "table_row": 2,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "code": "ELT7006",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "ELT7006"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-535fa30d7e25dd8a49f1",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "ecc7b3b27ea28ddf8d6867e3b58567b5761e675d35db9706b7fa3d351db946bb",
+          "cells_sha256": "4cf2c35b8ddad69c16a8d28cc000c7425fe0e8114cfff88778d8f6d8d11ded6e",
+          "page": 12,
+          "table_row": 17,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+          "code": "RBE2031",
+          "credits": 2
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE2031"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+          "page": 4,
+          "table_row": 20,
+          "code": "UET.RBE1072",
+          "name": "Toán ứng dụng trong kỹ thuật Robot Applied Mathematics for Robotics Engineering",
+          "name_lines": [
+            "Toán ứng dụng trong kỹ thuật Robot Applied Mathematics for Robotics Engineering"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 4"
+          ],
+          "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+          "cells_sha256": "63efa1ae04772cfeedfa6551a62edbb1e5bf768d8c86c168475b7434bd9d9508"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-55412f0640565adce63d",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "4299a15e754d2ff5cb3a0c904a9eb7a52cd9c1331e6629a70845cddd08b7c7a7",
+          "page": 8,
+          "table_row": 1,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "ELT6002",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "06c94fe0ada70e334154cb218ed89e202426219517f1edb103a9eeff78556de9",
+          "page": 8,
+          "table_row": 6,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT6002",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT6002"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-5f9c4ab08cac7457e911",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "b56ca7b00eebd2619c447947cefeb8a723b9e97e4f3950a73a1909da32e2b858",
+          "cells_sha256": "ad1d29b65224ac0801a0f6aba2b5167a6f86d8845e437c0446163a480e915940",
+          "page": 13,
+          "table_row": 5,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p13_t1_part2",
+          "code": "RBE3013",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3013"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 2,
+          "code": "UET.RBE3340",
+          "name": "Các cơ cấu truyền động Actuators and Power­Train",
+          "name_lines": [
+            "Các cơ cấu truyền động Actuators and Power­Train"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "63b131057dcc1c411e793ce109e95c1bde71573450e6364bf914fab2eed4ac68"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-624b60c58c9d8bfb6ff1",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "1793de2c58a1382f1d7d8b3c0cd31fd6de5bc5d2d47e1d24967141dd6d904727",
+          "page": 14,
+          "table_row": 9,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3041",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3041"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-670671cd97404156226e",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "b56ca7b00eebd2619c447947cefeb8a723b9e97e4f3950a73a1909da32e2b858",
+          "cells_sha256": "ecc279efb2dddca326a6ee215bab05dee42ab2a92b5a863877e8ea99f72ba42e",
+          "page": 13,
+          "table_row": 6,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p13_t1_part2",
+          "code": "RBE3014",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3014"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-6f4b6612125fb3a0daec",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "ecc7b3b27ea28ddf8d6867e3b58567b5761e675d35db9706b7fa3d351db946bb",
+          "cells_sha256": "b07ac091ff818dfdfc37302f85f4285573f9ef9d141aa4fd6bfc131fdd869b1b",
+          "page": 12,
+          "table_row": 12,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+          "code": "RBE2003",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE2003"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+          "page": 5,
+          "table_row": 17,
+          "code": "UET.RBE3337",
+          "name": "Động học và động lực học Kinematics and Dynamics",
+          "name_lines": [
+            "Động học và động lực học Kinematics and Dynamics"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 5"
+          ],
+          "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+          "cells_sha256": "12a510142722c60966d3d8ede1949cd24a430924045d0cd1d0b91bc3007015d0"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-76a50887d8f1c2e93017",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "e35c79203aca453c5ac1b93fd5fcac529871dfeeaa02de7f582c8435e2bf2366",
+          "cells_sha256": "49fc94b82e5f97540300188dd2c73dca63ae7228e2b2d6535c7475936b0d8f19",
+          "page": 15,
+          "table_row": 1,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p15_t1_part1",
+          "code": "INT3998",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "INT3998"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 8,
+          "code": "UET.RBE3343",
+          "name": "Tương tác người – Robot Human – Robot Interaction",
+          "name_lines": [
+            "Tương tác người – Robot Human – Robot Interaction"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.AI2015"
+          ],
+          "prerequisite_text": "UET.AI2015",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "5d538a18e403610c883220d9e7036d80351241816c1752ff0e5382c6b79ce84a"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-781dccd550134b8978fe",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "6e7742897b5395f8f2dd1b63e664b87718a83a93e071d6e2e3579c7814c166c3",
+          "page": 8,
+          "table_row": 12,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "ELT7012",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "f32be5332004da2282806ec8f366fec0efb795f29419599983bfbe981f0d4c9c",
+          "page": 8,
+          "table_row": 13,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT7012",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT7012"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-785f3ec7eb32f30b90cd",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "ecc7b3b27ea28ddf8d6867e3b58567b5761e675d35db9706b7fa3d351db946bb",
+          "cells_sha256": "ff1f0008893b52f6bc65167aa260c07cceafbbc7fda58524df14bfca89be566f",
+          "page": 12,
+          "table_row": 13,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+          "code": "RBE2004",
+          "credits": 2
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE2004"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-7a61b53701befdae0eee",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "e35c79203aca453c5ac1b93fd5fcac529871dfeeaa02de7f582c8435e2bf2366",
+          "cells_sha256": "ffa52cc231fe40526023385694d9ba944513e67a3f743fcc6f2abf154a8e08fe",
+          "page": 15,
+          "table_row": 4,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p15_t1_part1",
+          "code": "ELT3996",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "ELT3996"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 11,
+          "code": "UET.ECE3327",
+          "name": "Điện tử công suất và điều khiển Power Electronic and Control",
+          "name_lines": [
+            "Điện tử công suất và điều khiển Power Electronic and Control"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.ECE3204"
+          ],
+          "prerequisite_text": "UET.ECE3204",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "36db228d302a37fc4a577c9c2e78b936ab8e9e36ba350ae13a1e7fbf896f7eba"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-7dbd58cb8aedfa0fd2b7",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "88301860decf2a3ee9292d8d29ba33ec3fb74418629897f1848d145e61842c34",
+          "cells_sha256": "519dc8e87c93edce7ea1577ed7e34690f1e540815111e48c51b6226bc327233b",
+          "page": 9,
+          "table_row": 4,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "code": "ELT7007",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "2a30e6d222f8fced59e4da217aea8abb880f8227634a35bb845a64c01d9070f8",
+          "cells_sha256": "2a2416dddfe1d48964de23ab07e59dcff1e5913af8eb39dfaf5aca66d3146365",
+          "page": 9,
+          "table_row": 8,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "code": "ELT7007",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT7007"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-86e50149658661312a9e",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "0afa53073eb06aca90219cc0cc5d81b45e4911c3843d672ac879f16be5bb262f",
+          "page": 14,
+          "table_row": 14,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3046",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3046"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 17,
+          "code": "UET.CS3149",
+          "name": "Khoa học nhận thức Introduction to Cognitive Intelligence",
+          "name_lines": [
+            "Khoa học nhận thức Introduction to Cognitive Intelligence"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "08bcfa56e31ac1704658312132454fe8ae2f0738ed22cb9cc5b8c2e372a0632d"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-8f547fcf4893b1595fb6",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "521a47a3d4de2f423207c15e049dfc30ddb3d62ca6f0b482c8c46dd58df044bf",
+          "page": 8,
+          "table_row": 4,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "ELT6074",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "22669e17f0b14f6b1f215ecaaa77938c4558337674757af830e34f6631d2de16",
+          "page": 8,
+          "table_row": 3,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT6074",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT6074"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-9400f1b21cb527d7fa3d",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "ecc7b3b27ea28ddf8d6867e3b58567b5761e675d35db9706b7fa3d351db946bb",
+          "cells_sha256": "c1736af43958b880553079d7325821d48a683cda5de5d53e950039a9b6aa37ee",
+          "page": 12,
+          "table_row": 3,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+          "code": "INT2210",
+          "credits": 4
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "INT2210"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-9f14025af0065b30e47e",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "670586a7aa6565d8059e197c89822f491019f492292e84daec2fb7c2388c1170",
+          "page": 14,
+          "table_row": 15,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3047",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3047"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 18,
+          "code": "UET.RBE3347",
+          "name": "Giải thuật cho Robot thông minh Elements of Intelligent Robot",
+          "name_lines": [
+            "Giải thuật cho Robot thông minh Elements of Intelligent Robot"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.AI2015"
+          ],
+          "prerequisite_text": "UET.AI2015",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "51d5ccc6001139253119cab5da6ba9587899b397c4c9d26a6d077d4b23479c1c"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-a2b206bd42bf8dbaf536",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "c3de4255985b598f934735b09c92c2eafb04cfe31f5e15eac18fc9a7515a87bb",
+          "cells_sha256": "00df1fa642f8ca01aebb91492a159a2fef0258436cc1d4e845332d1cace16a32",
+          "page": 7,
+          "table_row": 14,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p7_t1",
+          "code": "ELT6005",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "007c099bb9d71d006bb2edc3e8e23d2e2a5c2a3c13b27e83248907cc793ad962",
+          "page": 8,
+          "table_row": 5,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "ELT6005",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "ELT6005"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-b17ef6d19c7a5b1ee83b",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "2946d0c1920d42f6e34e76d4ed6b5f014d5f9cf134c9d1ccfc008cac7c654c4f",
+          "cells_sha256": "e78a9d526f98b27a26f8448b3d6c1a22acb1a4fb4cb5c41eae0625a51149f155",
+          "page": 1,
+          "table_row": 9,
+          "doc_id": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d",
+          "chunk_id": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d_p1_t1",
+          "code": "EMA6122",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "EMA6122"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-b7a56873cd771f2c446d",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "b56ca7b00eebd2619c447947cefeb8a723b9e97e4f3950a73a1909da32e2b858",
+          "cells_sha256": "40c06230574abf17a7008c372e397cdef68e7ddebd17d9690f496012ec0b1594",
+          "page": 13,
+          "table_row": 4,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p13_t1_part2",
+          "code": "RBE3012",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3012"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part2",
+          "page": 5,
+          "table_row": 0,
+          "code": "UET.RBE3339",
+          "name": "Các cơ cấu chấp hành Robot Robot Manipulator",
+          "name_lines": [
+            "Các cơ cấu chấp hành Robot Robot Manipulator"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 5"
+          ],
+          "source_content_sha256": "7c282654d962adaaf0b1cc1e6745cf1342734b8e5eefca413605e1301b953137",
+          "cells_sha256": "61dcecbe2d438d97b4bc498c1a6dc58ad1bd794e36fd43bff9810491608c73d4"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-c2356069e9d1e79ca924",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "b56ca7b00eebd2619c447947cefeb8a723b9e97e4f3950a73a1909da32e2b858",
+          "cells_sha256": "8ef50c99db46892a86eba0739fcb9b9ea4d5ad2b8cf01d10e9f77198acbfb002",
+          "page": 13,
+          "table_row": 1,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p13_t1_part2",
+          "code": "RBE3017",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3017"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 4,
+          "code": "UET.RBE3338",
+          "name": "Lập trình Robot với ROS Programming robot with ROS",
+          "name_lines": [
+            "Lập trình Robot với ROS Programming robot with ROS"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.COM1050"
+          ],
+          "prerequisite_text": "UET.COM1050",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "e3902a9860333d8a3d1ff8a8d039315ecb6ae5a57dcdee467edb5938a1485d54"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-c6f3ac57944a531490cd",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "78dbbc824b8f59fea6bbf3756bdc5a7fb51bfbe0b5ebad745e7336b5f42a338c",
+          "page": 14,
+          "table_row": 13,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3045",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3045"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p7_t1",
+          "page": 7,
+          "table_row": 0,
+          "code": "UET.RBE3348",
+          "name": "Robot phân tán Special Topics in Distributed Robot",
+          "name_lines": [
+            "Robot phân tán Special Topics in Distributed Robot"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 7"
+          ],
+          "source_content_sha256": "6273bc8888c4aa23cc796daa7775d80704683ff589876eb0ae25167b83b308cb",
+          "cells_sha256": "1b09e036b0a2a3331086d2f6fb1da12452b044bbb1a0b887f34312eeb8827a6b"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-d96721e937bad1e67daa",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "3022195a19fe83bad3d98874a90849d734491e4c86bb85cd8def143a905d7567",
+          "page": 8,
+          "table_row": 6,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "INT6149",
+          "credits": 3
+        },
+        {
+          "source_content_sha256": "d0e6f8128ff33b57e79048bac928af1060d1ccd6eefeecb416db50b0535fab58",
+          "cells_sha256": "0e5237c558147451ef7996d55f97b12e366f3b8855e537427862c1d2a57899f9",
+          "page": 8,
+          "table_row": 8,
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p8_t1",
+          "code": "INT6149",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 2,
+      "unique_course_codes": [
+        "INT6149"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-e29c9c180c6279b0b02a",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "09b66bea0ac9d8b9bfd689e4cdf89a2faf7a59bc2dd1c68a8c06ad0bdc1771d0",
+          "page": 14,
+          "table_row": 12,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3044",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3044"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-e629fa6598d732768f7c",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "source_content_sha256": "2946d0c1920d42f6e34e76d4ed6b5f014d5f9cf134c9d1ccfc008cac7c654c4f",
+          "cells_sha256": "04032e499107452d434cf150ffe79e633c219bb8c1adcddb684e5ac6e1f7865e",
+          "page": 1,
+          "table_row": 8,
+          "doc_id": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d",
+          "chunk_id": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d_p1_t1",
+          "code": "EMA6121",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "EMA6121"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-e7f6c011776e8db7cd33",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "79a5fa948c2272ccea332e3ef8caed2e03f42df62f89b211a61d316321d1023d",
+          "cells_sha256": "9e2519cb63ca11082ac584545f1130827d183c6a7e251bbdac4bc663f19a13f2",
+          "page": 8,
+          "table_row": 5,
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p8_t1",
+          "code": "EMA6139",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "EMA6139"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "family-eb1e33e8a81b697b7585",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "source_content_sha256": "802a6432061e405f729cd0daef2edbe78b854beadbaa99742c3fa779d251a166",
+          "cells_sha256": "dd0fdd2a9c7a300a330f705149f21c76963ae2f644924e12fbc579f12e12666a",
+          "page": 14,
+          "table_row": 11,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p14_t1",
+          "code": "RBE3043",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE3043"
+      ],
+      "qh2025_source_additions": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 15,
+          "code": "UET.RBE3349",
+          "name": "Các thuật toán thích nghi Adaptation Algorithms",
+          "name_lines": [
+            "Các thuật toán thích nghi Adaptation Algorithms"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.RBE2114"
+          ],
+          "prerequisite_text": "UET.RBE2114",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "a033d2704a96c5e0e1d5688e0a2c55c8be58b14f88629de660a3c964be515b46"
+        }
+      ]
+    },
+    {
+      "connected_group": "family-f5ca38f748a1d6eaf726",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "source_content_sha256": "ecc7b3b27ea28ddf8d6867e3b58567b5761e675d35db9706b7fa3d351db946bb",
+          "cells_sha256": "bb3ac41032eb939196770c518f7fe343c62d1a83ae6ea9d0c9cb100d37c48f48",
+          "page": 12,
+          "table_row": 9,
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+          "code": "RBE1002",
+          "credits": 3
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "RBE1002"
+      ],
+      "qh2025_source_additions": []
+    },
+    {
+      "connected_group": "qh2025-code-7d1d8d6a3dd5b2f1",
+      "assignment": "dev",
+      "source_rows": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+          "page": 4,
+          "table_row": 8,
+          "code": "VNU1001",
+          "name": "Nhập môn công nghệ số và ứng dụng trí tuệ nhân tạo Introduction to Digital Technology and Applications of Artificial Intelligence",
+          "name_lines": [
+            "Nhập môn công nghệ số và ứng dụng trí tuệ nhân tạo Introduction to Digital Technology and Applications of Artificial Intelligence"
+          ],
+          "credits": 3,
+          "prerequisite_codes": null,
+          "prerequisite_text": "",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 4"
+          ],
+          "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+          "cells_sha256": "0351958802d616bdf2fcb4db057f915fd8479a98937884d22004744b4d727334"
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "VNU1001"
+      ],
+      "qh2025_source_additions": [],
+      "allocation_rationale": "Balance source-family allocations without reading any query-level outcomes. New subject reviewed against all available question history."
+    },
+    {
+      "connected_group": "qh2025-code-9f62e87c1c033d57",
+      "assignment": "test",
+      "source_rows": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+          "page": 5,
+          "table_row": 0,
+          "code": "UET.MAT1057",
+          "name": "Toán học rời rạc Discrete Mathematics",
+          "name_lines": [
+            "Toán học rời rạc Discrete Mathematics"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.MAT1053"
+          ],
+          "prerequisite_text": "UET.MAT1053",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 5"
+          ],
+          "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+          "cells_sha256": "8da5bbb8e352a143eadef920354e060071e35ee53869b1b0241874a26ce4af46"
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "UET.MAT1057"
+      ],
+      "qh2025_source_additions": [],
+      "allocation_rationale": "Balance source-family allocations without reading any query-level outcomes. New subject reviewed against all available question history."
+    },
+    {
+      "connected_group": "qh2025-code-4bb5b5409a5ad9bf",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+          "page": 5,
+          "table_row": 8,
+          "code": "UET.CE2020",
+          "name": "Lập trình hệ thống Systems Programming",
+          "name_lines": [
+            "Lập trình hệ thống Systems Programming"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.COM1050"
+          ],
+          "prerequisite_text": "UET.COM1050",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 5"
+          ],
+          "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+          "cells_sha256": "2bdb65be97cbe903c005dcf1e6f9fc83ef84b1c1f055ba48ce778e4a9819b44b"
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "UET.CE2020"
+      ],
+      "qh2025_source_additions": [],
+      "allocation_rationale": "Balance source-family allocations without reading any query-level outcomes. New subject reviewed against all available question history."
+    },
+    {
+      "connected_group": "qh2025-code-bdd6f5ee99379df0",
+      "assignment": "holdout",
+      "source_rows": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+          "page": 6,
+          "table_row": 13,
+          "code": "UET.RBE3346",
+          "name": "Hệ thống sản xuất tích hợp máy tính (CIM) Computer Integrated Manufacturing Systems",
+          "name_lines": [
+            "Hệ thống sản xuất tích hợp máy tính (CIM) Computer Integrated Manufacturing Systems"
+          ],
+          "credits": 3,
+          "prerequisite_codes": [
+            "UET.RBE3342"
+          ],
+          "prerequisite_text": "UET.RBE3342",
+          "columns": {
+            "code": 1,
+            "name": 2,
+            "credits": 3,
+            "prerequisites": 4
+          },
+          "headers": [
+            "STT",
+            "Mã học phần",
+            "Học phần",
+            "Số tín chỉ",
+            "Mã học phần tiên quyết",
+            "Source page 6"
+          ],
+          "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+          "cells_sha256": "ce68f586fad01207a371d1425633ac25916fa32939a6e6739a21702a84dee0c8"
+        }
+      ],
+      "source_row_count": 1,
+      "unique_course_codes": [
+        "UET.RBE3346"
+      ],
+      "qh2025_source_additions": [],
+      "allocation_rationale": "Balance source-family allocations without reading any query-level outcomes. New subject reviewed against all available question history."
+    }
+  ],
+  "limitations": [
+    "No question records or row-level gold/review audits are frozen by this source-only approval.",
+    "New question dependencies can merge families and reduce the stated maximum independent-group count; recompute before F0.",
+    "All prior 33 source-family splits are preserved; 11 recoded/newly worded rows add version evidence to existing families and zero independent groups.",
+    "15 eligible QH-2025 source rows do not by themselves establish required negative, contextual, ambiguous, temporal or hard query strata."
+  ]
+}

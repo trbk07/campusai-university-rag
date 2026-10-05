@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "reranker_lineage.json",
+    "sha256": "f3d11d96edcab5135011067d79a451f4578d1356732fcb8c694f36668e66076e"
+  },
+  "summary": {
+    "schema_version": 1,
+    "gate": "S1",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "raw": {
+      "path": "raw/lineage_observations_d916db86933615e3_fefd3a4d43272586.json",
+      "sha256": "1beeffaba244a6deaf8e134fe1ea878c9295feab1eb142bcfb2a5b429c476186"
+    },
+    "observations": {
+      "review_audit": {
+        "path": "raw/lineage_review_audit_d916db86933615e3.jsonl",
+        "sha256": "d916db86933615e3537543de416759672abe46c2a82e354ca44ca7f443bda3de"
+      },
+      "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+      "exposure_registry_source_sha256": "fefd3a4d4327258653e3a4cd52f235445189f6beb613febcb42ce334059ef82f",
+      "exposure_registry": {
+        "raw_array_reference": "/observations/exposure_registry",
+        "records": 300
+      },
+      "owner_confirmation_source_sha256": "56bd21b037ec56b97e4b4d257680104d3160de7c54bfa7247a6a387e84565ad9",
+      "generation_authorization_source_sha256": "001d47b394b3ea1ecfa02b2fb02612e6f6ae447f7130a53a4ad54fb12c2d6045"
+    },
+    "dataset_sha256": "35750081de9814a192b02085c20f2514057022ae34dc2a48433f026afcd0c151",
+    "status": "pass",
+    "errors": []
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations/exposure_registry",
+      "records": 300
+    }
+  ]
+}

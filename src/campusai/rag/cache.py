@@ -44,13 +44,14 @@ def build_rag_cache_key(
     confidence_policy_version: str = POLICY_VERSION,
     abstention_policy_version: str = ABSTENTION_POLICY_VERSION,
     schema_version: str = SCHEMA_VERSION,
+    request_context: dict | None = None,
 ) -> str:
     """Hash only canonical request semantics; never store secrets in the key."""
 
     payload = {
         "question": normalize_question(question),
         "language": language.casefold(),
-        "doc_ids": sorted(doc_ids) if doc_ids else None,
+        "doc_ids": sorted(doc_ids) if doc_ids is not None else None,
         "filters": filters or {},
         "top_k": int(top_k),
         "mode": mode,
@@ -62,6 +63,7 @@ def build_rag_cache_key(
         "schema_version": schema_version,
         "model": model or "none",
         "context_budget": context_budget,
+        "request_context": request_context or {},
     }
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(encoded.encode("utf-8")).hexdigest()

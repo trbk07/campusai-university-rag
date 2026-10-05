@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-dev-feasibility.json",
+    "sha256": "2f2851d64df70fc27cd76da1a16bff9cd2e00ef0e820999a209a9df30275c385"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "purpose": "dev-only real-model reranking feasibility and threshold/rank-fusion study",
+    "started_at": "2026-10-04T11:46:38.338236+00:00",
+    "source_stable": true,
+    "source_identity": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "f53c6854fec766b76ef35a33534e2ed1ceade6f8adc9ba025da24f95f1983533",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "model_identity": {
+      "model_name": "BAAI/bge-reranker-v2-m3",
+      "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+      "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "provider": "sentence_transformers",
+      "device": "cuda",
+      "dtype": "float32",
+      "max_length": 512,
+      "batch_size": 8,
+      "normalization": "raw_logit",
+      "batch_window_ms": 0.0,
+      "max_batch_pairs": 200,
+      "input_format": "full_chunk",
+      "input_version": "structured-input-v1"
+    },
+    "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662",
+    "model_snapshot_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+    "dev_path": "evaluation/results/phase7-completion-20261004/p7-02-dev-replay/human_retrieval_dev.jsonl",
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "dev_records": 889,
+    "answerable": 495,
+    "negative": 394,
+    "candidate_input_sha256": "7146ff031c8d2a4a837a8d71d35e44c4cc041e140f3c7c5ec52e1b5797b652a3",
+    "index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "index_manifest_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "raw_scores_path": "evaluation/results/phase7-completion-20261004/p7-09-reranker-dev-raw.json",
+    "raw_scores_sha256": "41f18f8620c5530c5c1b516c942a65f17e4fa74fc2158b5da5821e9911679879",
+    "model_scored_queries": 889,
+    "empty_candidate_queries": 359,
+    "mean_model_scoring_latency_ms": 47.54052789653373,
+    "fitted": {
+      "baseline": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "selected": {
+        "cap": 10,
+        "rank_weight": 1.0,
+        "evidence_signal": "top_logit",
+        "evidence_threshold": 6.9990787506103525,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.04040404040404041,
+          "mrr": 0.024814814814814814,
+          "ndcg5": 0.028755631596582096,
+          "negative_fpr": 0.0,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.04040404040404041
+        }
+      },
+      "feasible": false,
+      "trials": {
+        "raw_array_reference": "/fitted/trials",
+        "records": 19116
+      },
+      "selection_rule": "FPR<=1% and recall>=95%; minimize FPR, maximize recall/MRR/nDCG, then minimize cap",
+      "baseline_all_gold_coverage5": 0.9111111111111111,
+      "selected_all_gold_coverage5": 0.04040404040404041
+    },
+    "limitations": [
+      "All 889 observations are dev-only, including inherited/previously exposed questions; they cannot support held-out acceptance.",
+      "The M2 all-gold floor, route calibration, complete grouped uncertainty and semantic-review acceptance remain separate gates.",
+      "The dev Phase 6 calibration fit is recorded as FAIL; this ranking feasibility study uses candidate generation independent of the answer-acceptance threshold.",
+      "This result does not change the active r18 M2 FAIL or create a successor freeze."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/fitted/trials",
+      "records": 19116
+    }
+  ]
+}

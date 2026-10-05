@@ -1,0 +1,27 @@
+"""Copy to .tmp/restore_parent_index.py and run from repository root with an absent destination."""
+from pathlib import Path
+import hashlib
+import json
+import sys
+import zipfile
+from evaluation.common.release_artifacts import sha256, verify_index_files
+
+task=Path('evaluation/results/phase7-dev-inheritance-20261004')
+source_task=Path('evaluation/results/phase7-source-expansion-20261004')
+destination=Path(sys.argv[1]).resolve()
+assert destination.is_relative_to(Path.cwd().resolve()) and not destination.exists()
+manifest=json.loads((task/'phase7_dev_inheritance.json').read_text(encoding='utf8'))
+files=manifest['parents'][0]['index_files']
+source=json.loads((source_task/'index_archive_manifest.json').read_text(encoding='utf8'))
+archive=source_task/source['archive']
+assert sha256(archive)==source['archive_sha256']
+with zipfile.ZipFile(archive) as package:
+    for name,digest in files.items():
+        payload=(task/'source_parent_index_manifest.json').read_bytes() if name=='manifest.json' else package.read(name)
+        assert hashlib.sha256(payload).hexdigest()==digest
+        target=destination/name
+        assert target.resolve().is_relative_to(destination)
+        target.parent.mkdir(parents=True,exist_ok=True)
+        target.write_bytes(payload)
+assert verify_index_files(destination)
+print(json.dumps({'restored_parent_index_files':len(files),'index_sha256':sha256(destination/'manifest.json')}))

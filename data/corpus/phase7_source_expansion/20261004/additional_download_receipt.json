@@ -1,0 +1,21 @@
+{
+  "status": "source_proposal",
+  "release_eligible": false,
+  "downloaded_at": "2026-10-04T04:24:49.619617+00:00",
+  "documents": [
+    {
+      "filename": "uet_bionanotechnology_masters_curriculum_2015.pdf",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2019/05/CT%C4%90T-Th%E1%BA%A1c-s%C4%A9-ng%C3%A0nh-C%C3%B4ng-ngh%E1%BB%87-nano-sinh-h%E1%BB%8Dc.pdf",
+      "sha256": "90be663882058bb1909a4078ff5a8cf8e83d6156f7cbd956f13b34b88f9c4ac9",
+      "bytes": 8330085,
+      "status": "downloaded"
+    },
+    {
+      "filename": "uet_electronics_masters_curriculum_2022.pdf",
+      "source_url": "https://fet.uet.vnu.edu.vn/wp-content/uploads/2024/03/ThS.KTDT_.2022.pdf",
+      "sha256": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "bytes": 469084,
+      "status": "downloaded"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "task": "P7-06 dev gold input audit",
+  "recorded_at": "2026-10-04T16:58:26.552073+00:00",
+  "status": "SOURCE_BINDINGS_VERIFIED_CLAIM_GOLD_INCOMPLETE",
+  "release_eligible": false,
+  "artifacts": [
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-06_dev_claim_input_audit.json",
+      "sha256": "178b9ca50441d2f087c38a4caa1d6ef89c9674b1ffd8e75d8260c96370ce916d",
+      "bytes": 5746
+    }
+  ],
+  "inputs": [
+    {
+      "path": "evaluation/results/phase7-completion-20261004/audit_p7_06_dev_gold_inputs.py",
+      "sha256": "25a7ea3d0e8b60eff5535d6cd3520271472516b7724c8def11c053aef21276a4"
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_dev.jsonl",
+      "sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea"
+    },
+    {
+      "path": ".tmp/hybrid-index/manifest.json",
+      "sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38"
+    },
+    {
+      "path": "docs/reranker/phase7_completion_plan_20261004.md",
+      "sha256": "fdcf42c9c550991274c13c94c7cde099fb86be10b8f8c26dfa90f6e58c9e7ea6"
+    }
+  ],
+  "scope": "Verifies physical source chunk identity and pages; makes no claim about semantic correctness or reviewer approval."
+}

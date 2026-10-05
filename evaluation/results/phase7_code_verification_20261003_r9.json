@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "artifact_type": "code_verification_summary",
+  "cycle_id": "phase7-candidate-20261003-r9",
+  "updated_on": "2026-10-03",
+  "status": "code_pass_release_incomplete",
+  "commit": "8328a7f28089cfd08f1d71cc78c509ead69bea3b",
+  "source_sha256": "a8d78b529ce066318465656a488265e12d519a3d1a95e376496e356e8b9a393b",
+  "runtime_sha256": "ea5ed8fc18be89a71948c187c0aaf465d5c1c652d590b0c66450499b4b2dcb12",
+  "verification": {
+    "offline_suite": {
+      "counts": {
+        "tests": 550,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 548
+      },
+      "junit": {
+        "path": ".tmp/phase7-s2-offline-r9c.xml",
+        "sha256": "12d09d6a4fd2ec8ad5a32a0d52e388272d1630161816e4d194d5c3c1a1f81f70"
+      },
+      "coverage": {
+        "path": ".tmp/phase7-s2-offline-coverage-r9c.json",
+        "sha256": "13716170a734956ffdcea06284eacd3edd4874cc884f18723ff18d735aa86de2"
+      },
+      "coverage_percent": 89.29483402082106,
+      "minimum_coverage_percent": 85
+    },
+    "live_attempts": [
+      {
+        "junit": {
+          "path": ".tmp/phase7-gemini-final-r9.xml",
+          "sha256": "6a9b2bbf41d889458804e31912dafbb04bf98a10364918a163118124b187e72d"
+        },
+        "counts": {
+          "tests": 2,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 2
+        }
+      },
+      {
+        "junit": {
+          "path": ".tmp/phase7-candidate-live-full-r9.xml",
+          "sha256": "c533ccf3fc97aabd3f858bfa570c8230affa1d3a62339f127ab149e915852ffd"
+        },
+        "counts": {
+          "tests": 548,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 547
+        }
+      },
+      {
+        "junit": {
+          "path": ".tmp/phase7-candidate-live-full-r9b.xml",
+          "sha256": "8340a104c37a59909c5f51608a58289aadc78cd6a648c8ab54abe02ed2aa8917"
+        },
+        "counts": {
+          "tests": 548,
+          "failures": 1,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 547
+        }
+      },
+      {
+        "junit": {
+          "path": ".tmp/phase7-live-s2-r9.xml",
+          "sha256": "f46a69d14c9ce6d410d3655505cf7d443a48029d0b4d43f57ccefb62f81337b2"
+        },
+        "counts": {
+          "tests": 550,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 548
+        }
+      }
+    ],
+    "live_notes": "Separate real Gemini integrations passed; full live attempts retained with HTTP 503/429 failures. Last live attempt also exposed a workflow argument bug fixed before the final offline suite.",
+    "source_checks": "compileall, tracked-file secret scan and staged diff check recorded before task commit"
+  },
+  "release_readiness": {
+    "through": "M3",
+    "status": "pass",
+    "score": null,
+    "all_release_gates_pass": false,
+    "report": {
+      "path": "evaluation/results/phase7-candidate-20261003-r9/readiness.json",
+      "sha256": "49633b4380621d891eedb88eebde4fa083576aecf2839a7f050484c95431203e"
+    }
+  },
+  "measurement_runtime": "M2/M3/S2 use the pinned GPU interpreter; this code summary uses the CPU test interpreter.",
+  "benchmark_reused_unchanged": true,
+  "new_heldout_claim": false
+}

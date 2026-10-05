@@ -14,7 +14,7 @@ def test_candidate_recall_checks_gold_scope_and_provenance():
              "gold_evidence": [], "filters": {}}]
 
     class Retriever:
-        def search(self, query, **_kwargs):
+        def generate_candidates(self, query, **_kwargs):
             return [_result("a"), _result("b")] if query == "query" else []
 
     result = evaluate_split(rows, Retriever(), ["doc"], 40)
@@ -29,7 +29,7 @@ def test_candidate_recall_does_not_hide_missing_gold():
              "gold_evidence": [{"doc_id": "doc", "chunk_id": "b"}], "filters": {}}]
 
     class Retriever:
-        def search(self, *_args, **_kwargs):
+        def generate_candidates(self, *_args, **_kwargs):
             return [_result("a")]
 
     result = evaluate_split(rows, Retriever(), ["doc"], 40)

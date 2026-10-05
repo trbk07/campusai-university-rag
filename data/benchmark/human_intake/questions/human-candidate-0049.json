@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0049",
+    "context": [
+      {
+        "content": "Em đang đọc điều kiện ngoại ngữ tuyển thạc sĩ.",
+        "role": "user"
+      }
+    ],
+    "difficulty": "easy",
+    "doc_ids": [
+      "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_masters_admission_2022.pdf",
+          "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p1_s9_c1",
+        "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+        "page": 1
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "masters_foreign_language_entry_2022",
+    "qid": "human-candidate-0049",
+    "question": "vậy đầu vào cần bậc mấy",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "contextual_followup",
+      "easy",
+      "answerable",
+      "contextual"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_144",
+    "source_retrieved_at": null,
+    "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2022/07/Th%C3%B4ng-b%C3%A1o-tuy%E1%BB%83n-sinh-%C4%91%C3%A0o-t%E1%BA%A1o-b%E1%BA%ADc-Th%E1%BA%A1c-s%C4%A9-%C4%91%E1%BB%A3t-2-n%C4%83m-2022.pdf",
+    "split": "dev",
+    "tags": [
+      "answerable",
+      "contextual",
+      "contextual_followup",
+      "easy",
+      "natural"
+    ]
+  },
+  "record_sha256": "71682237c56b2c7684cefda8ff0bbcb8a072ee0ec3b1465eb57484615107cbd0",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

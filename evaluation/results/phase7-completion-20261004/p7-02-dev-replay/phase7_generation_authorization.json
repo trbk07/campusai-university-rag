@@ -1,0 +1,17 @@
+{
+  "profile": "personal_owner_source_checked_ai",
+  "owner_identity": "Trương Bảo Kiên",
+  "approval_source": "project_owner_chat_instruction",
+  "approval_statement": "t duyệt hết nên bạn cứ nhập tên tác giải là t",
+  "generation_statement": "nếu k có thì tự tạo đi, t cho phép",
+  "independent_human_review_claim": false,
+  "recorded_at": "2026-10-04T10:08:07.386741+00:00",
+  "dev_only": true,
+  "new_heldout_claim": false,
+  "index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "selection_sha256": "4d5eeacff5cd233e9b74bd086b40da2faba64b756d8f9863dd5906fe7090d1da",
+  "dev_inheritance_sha256": "20d7991cd9e754debe838cc2e2f8870f8fdcfc79695eac93b0cc7e2a54a228bc",
+  "source_bank_sha256": "f814a7a4d73f0761f66f2277fa5ad1ff6513862d1072fdc9350ab408939f6bae",
+  "history_snapshot_sha256": "beb02f2ad587869a43473fa96ced905fc4eb1dca87740df4568fbb81661cafed"
+}

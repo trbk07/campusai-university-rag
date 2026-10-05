@@ -1,0 +1,16 @@
+{
+  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12",
+  "source_cycle": "evaluation/results/phase7-dev-metadata-20261003-r10",
+  "new_heldout_claim": false,
+  "heldout_reused_unchanged": true,
+  "dev_additions": 13,
+  "split_counts": {
+    "dev": 193,
+    "test": 60,
+    "holdout": 60
+  },
+  "source_checked_ai_origin": true,
+  "independent_review_claim": false,
+  "reason": "dev-only absent curriculum fields from course facts already used in parent dev; unchanged test/holdout bytes",
+  "parent_preflight_sha256": "f1cc4b251211522d9837a16e51ff063a1469c29a53406a78ca591e9b0c80fb86"
+}

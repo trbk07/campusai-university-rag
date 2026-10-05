@@ -190,11 +190,13 @@ class CanaryWindowRecorder:
         try:
             # Labels belong to the evaluator. Only question/scope/filter are
             # sent to either retriever or the routing policy.
-            kwargs = {"doc_ids": row["doc_ids"], "filters": row.get("filters"), "top_k": 5}
+            from campusai.rag.context import benchmark_request, benchmark_retrieval_request
+            request = benchmark_request(row, [])
+            query_kwargs = {**benchmark_retrieval_request(row, []), "top_k": 5}
             before_error, route_selected = False, False
             try:
-                before = self.baseline.search(row["question"], mode="auto", **kwargs)
-                route_selected, _ = self.service.retriever.phase7_policy.route(row["question"], before, self.baseline.last_trace)
+                before = self.baseline.search(mode="auto", **query_kwargs)
+                route_selected, _ = self.service.retriever.phase7_policy.route(query_kwargs["query"], before, self.baseline.last_trace)
             except Exception:
                 before_error = True
             began = datetime.now(timezone.utc).isoformat()
@@ -202,7 +204,7 @@ class CanaryWindowRecorder:
             gauge_before = self._sample_resources()
             values, error, trace = [], False, None
             try:
-                values = self.service.retrieve(row["question"], mode="phase7", request_id=request_id, **kwargs)
+                values = self.service.retrieve(**request, top_k=5, mode="phase7", request_id=request_id)
                 trace = self.service.retriever.last_trace
             except Exception:
                 error = True

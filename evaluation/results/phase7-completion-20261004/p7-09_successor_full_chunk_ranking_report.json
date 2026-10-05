@@ -1,0 +1,1859 @@
+{
+  "dev_sha256": "baa67761d0e1706fbb1f1267bee311ac52261a01ca6a2f43c34d604b82429ee3",
+  "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+  "phase6_calibration_sha256": "ec77f5037b004b2b666e942763ef8d1254d3637fc71e7b556ff1a185bb94ad39",
+  "f0_signoff_sha256": "455fc97e22c3c468e9f30952f0b552068dc2804981ba899c96abecadb4e3ca01",
+  "candidate_raw_sha256": "5f31c32d0eb584bc0f1e24ffe7e0d54f8d26ff30b998a098926a9a8eabf8be45",
+  "candidate_source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "6f647dbb72d825cfb244aa397414b8aa08fe745532e348d853d84950b6f93835",
+    "runtime_sha256": "f2a7f53c80162da67d7ccb8286e43d155e51187a21b6c8fe501aa9b4a36aed69"
+  },
+  "scoring_source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+    "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+  },
+  "runner_sha256": "a413bac2ddd26d2cdc9a394cfb5d943cabef9f9f5911d8b1337085444dadd230",
+  "release_eligible": false,
+  "calibration_split": "dev",
+  "test_used": false,
+  "holdout_used": false,
+  "llm_called": false,
+  "model_identity": {
+    "model_name": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+    "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "provider": "sentence_transformers",
+    "device": "cuda:0",
+    "dtype": "float32",
+    "max_length": 512,
+    "batch_size": 8,
+    "normalization": "raw_logit",
+    "batch_window_ms": 0.0,
+    "max_batch_pairs": 200,
+    "input_format": "full_chunk",
+    "input_version": "structured-input-v1"
+  },
+  "model_identity_sha256": "3666c2da8046b4ae9499709d5e54678b8d1c2e08c447290a0bec93900f168055",
+  "input_format": "full_chunk",
+  "score_cache_size": 0,
+  "collection_cap": 40,
+  "measurements_real": true,
+  "status": "MEASURED_RANKING_ONLY_DEV_DIAGNOSTIC",
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+    "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+    "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+  },
+  "source_stable": true,
+  "queries": 829,
+  "baseline_by_cohort": {
+    "all_dev": {
+      "records": 829,
+      "groups": 268,
+      "metrics": {
+        "recall5": 0.9830866807610994,
+        "mrr": 0.9303030303030303,
+        "ndcg5": 0.935372631266464,
+        "negative_fpr": 0.025280898876404494,
+        "positive": 473,
+        "negative": 356,
+        "all_gold_coverage5": 0.9640591966173362
+      }
+    },
+    "consumed_parent_dev": {
+      "records": 804,
+      "groups": 257,
+      "metrics": {
+        "recall5": 0.9847494553376906,
+        "mrr": 0.9396151053013798,
+        "ndcg5": 0.9423127954377299,
+        "negative_fpr": 0.002898550724637681,
+        "positive": 459,
+        "negative": 345,
+        "all_gold_coverage5": 0.9651416122004357
+      }
+    },
+    "new_source_dev": {
+      "records": 25,
+      "groups": 11,
+      "metrics": {
+        "recall5": 0.9285714285714286,
+        "mrr": 0.625,
+        "ndcg5": 0.7078343916513864,
+        "negative_fpr": 0.7272727272727273,
+        "positive": 14,
+        "negative": 11,
+        "all_gold_coverage5": 0.9285714285714286
+      }
+    }
+  },
+  "ranking_trials": [
+    {
+      "cap": 8,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9408033826638478,
+          "mrr": 0.5461592670894997,
+          "ndcg5": 0.6374864857756667,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9238900634249472
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9411764705882353,
+          "mrr": 0.5437545388525781,
+          "ndcg5": 0.6353407980147515,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9237472766884531
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4129232633891371,
+          "ndcg5": -0.3184678870574491
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4213007690226842,
+          "ndcg5": -0.32576443714783854
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9534883720930233,
+          "mrr": 0.5548273431994363,
+          "ndcg5": 0.6465072526837717,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9365750528541226
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.954248366013072,
+          "mrr": 0.5525054466230936,
+          "ndcg5": 0.6450432432419196,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9389978213507625
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6309523809523809,
+          "ndcg5": 0.6945058479559237,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.40360578744034536,
+          "ndcg5": -0.30882385150779745
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.41198747922865875,
+          "ndcg5": -0.3154680204227944
+        },
+        "new_source_dev": {
+          "mrr": 0.00952380952380949,
+          "ndcg5": -0.018830031222934807
+        }
+      }
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9217758985200846,
+          "mrr": 0.5199788583509514,
+          "ndcg5": 0.6130334009866841,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.904862579281184
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9215686274509803,
+          "mrr": 0.5135076252723312,
+          "ndcg5": 0.6084036835309259,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.906318082788671
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.7321428571428571,
+          "ndcg5": 0.7648219947147578,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.44106507082796753,
+          "ndcg5": -0.34461050014189865
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.45349151756385975,
+          "ndcg5": -0.35435060791219986
+        },
+        "new_source_dev": {
+          "mrr": 0.17142857142857126,
+          "ndcg5": 0.08050979683315274
+        }
+      }
+    },
+    {
+      "cap": 8,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.8964059196617337,
+          "mrr": 0.49362226920366453,
+          "ndcg5": 0.5866465058660569,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.879492600422833
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8954248366013072,
+          "mrr": 0.48634713144517067,
+          "ndcg5": 0.58130456388333,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8801742919389978
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.7321428571428571,
+          "ndcg5": 0.7617858894426051,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4693962578592531,
+          "ndcg5": -0.3728205356278633
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.48239749584573177,
+          "ndcg5": -0.38310870159276766
+        },
+        "new_source_dev": {
+          "mrr": 0.17142857142857126,
+          "ndcg5": 0.07622050924277524
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9408033826638478,
+          "mrr": 0.5466878083157153,
+          "ndcg5": 0.6378433928600863,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9238900634249472
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9411764705882353,
+          "mrr": 0.5442992011619463,
+          "ndcg5": 0.6357085911540336,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9237472766884531
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4123551246117718,
+          "ndcg5": -0.31808632031870854
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.42072110368280713,
+          "ndcg5": -0.3253741281749978
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9640591966173362,
+          "mrr": 0.5551797040169133,
+          "ndcg5": 0.6487140854423192,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.945031712473573
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9651416122004357,
+          "mrr": 0.5528685548293392,
+          "ndcg5": 0.64731738680356,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9477124183006536
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6309523809523809,
+          "ndcg5": 0.6945058479559237,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4032270282554352,
+          "ndcg5": -0.30646454283788316
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4116010356687405,
+          "ndcg5": -0.31305465665160215
+        },
+        "new_source_dev": {
+          "mrr": 0.00952380952380949,
+          "ndcg5": -0.018830031222934807
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9302325581395349,
+          "mrr": 0.517477096546864,
+          "ndcg5": 0.6132249214476267,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9302832244008714,
+          "mrr": 0.5109295570079884,
+          "ndcg5": 0.6086010455745552,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9150326797385621
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.7321428571428571,
+          "ndcg5": 0.7648219947147578,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.44375426104083016,
+          "ndcg5": -0.34440574702582405
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4562352668392782,
+          "ndcg5": -0.3541411636124039
+        },
+        "new_source_dev": {
+          "mrr": 0.17142857142857126,
+          "ndcg5": 0.08050979683315274
+        }
+      }
+    },
+    {
+      "cap": 10,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9006342494714588,
+          "mrr": 0.48777307963354477,
+          "ndcg5": 0.583177147241553,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8837209302325582
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8997821350762527,
+          "mrr": 0.48042846768336966,
+          "ndcg5": 0.5778464684371779,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8845315904139434
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.7285714285714285,
+          "ndcg5": 0.7579472594707057,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.47568366032876297,
+          "ndcg5": -0.3765296014146253
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4886965258723963,
+          "ndcg5": -0.38677849729425307
+        },
+        "new_source_dev": {
+          "mrr": 0.1657142857142857,
+          "ndcg5": 0.07079744698813717
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9408033826638478,
+          "mrr": 0.5473925299506694,
+          "ndcg5": 0.6374867258609042,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9217758985200846
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9411764705882353,
+          "mrr": 0.5450254175744372,
+          "ndcg5": 0.6353410454228503,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9215686274509803
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4115976062419514,
+          "ndcg5": -0.31846763038408776
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4199482165629709,
+          "ndcg5": -0.3257641745937271
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9682875264270613,
+          "mrr": 0.5551092318534179,
+          "ndcg5": 0.6496910112414893,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9492600422832981
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9694989106753813,
+          "mrr": 0.5527959331880901,
+          "ndcg5": 0.6483241099037942,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9520697167755992
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6309523809523809,
+          "ndcg5": 0.6945058479559237,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.40330278009241727,
+          "ndcg5": -0.3054201186517197
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.41167832438072416,
+          "ndcg5": -0.3119863032289294
+        },
+        "new_source_dev": {
+          "mrr": 0.00952380952380949,
+          "ndcg5": -0.018830031222934807
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9260042283298098,
+          "mrr": 0.5105003523608175,
+          "ndcg5": 0.6065145925989611,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9069767441860465
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9259259259259259,
+          "mrr": 0.5037400145243283,
+          "ndcg5": 0.6017786489043838,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9084967320261438
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.7321428571428571,
+          "ndcg5": 0.7617858894426051,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.45125369290205286,
+          "ndcg5": -0.35157971024044166
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.46388684932565594,
+          "ndcg5": -0.36138121882889085
+        },
+        "new_source_dev": {
+          "mrr": 0.17142857142857126,
+          "ndcg5": 0.07622050924277524
+        }
+      }
+    },
+    {
+      "cap": 12,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.8837209302325582,
+          "mrr": 0.47899929527836504,
+          "ndcg5": 0.5714113351397074,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8625792811839323
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8845315904139434,
+          "mrr": 0.4718228031953522,
+          "ndcg5": 0.5667553274815476,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8649237472766884
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.7142857142857143,
+          "ndcg5": 0.7240618719322349,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.7857142857142857
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4851147640330278,
+          "ndcg5": -0.3891083445898613
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4978552382424547,
+          "ndcg5": -0.39854862395424195
+        },
+        "new_source_dev": {
+          "mrr": 0.1428571428571428,
+          "ndcg5": 0.022925532401709914
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6397852725346378,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9154334038054969
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6378051768553445,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9150326797385621
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31601027104204504
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3231491921330998
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9429175475687104,
+          "mrr": 0.5483439041578576,
+          "ndcg5": 0.639721262210813,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9281183932346723
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9433551198257081,
+          "mrr": 0.5460058097313,
+          "ndcg5": 0.6376437375655668,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9281045751633987
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4105749564426938,
+          "ndcg5": -0.3160787040084214
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.41890481895119214,
+          "ndcg5": -0.3233205145332194
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9682875264270613,
+          "mrr": 0.5581042988019732,
+          "ndcg5": 0.6516429090884377,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9492600422832981
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9694989106753813,
+          "mrr": 0.5558823529411765,
+          "ndcg5": 0.6503355427613249,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9520697167755992
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6309523809523809,
+          "ndcg5": 0.6945058479559237,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4000833270206803,
+          "ndcg5": -0.30333335902063496
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.40839355412142053,
+          "ndcg5": -0.3098517329808449
+        },
+        "new_source_dev": {
+          "mrr": 0.00952380952380949,
+          "ndcg5": -0.018830031222934807
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9090909090909091,
+          "mrr": 0.5044045102184637,
+          "ndcg5": 0.597769849581356,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8900634249471459
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9106753812636166,
+          "mrr": 0.49909222948438636,
+          "ndcg5": 0.5938355096032428,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8910675381263616
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.6785714285714286,
+          "ndcg5": 0.7267599960066402,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4578062268009999,
+          "ndcg5": -0.3609286506790399
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.46883332689260737,
+          "ndcg5": -0.36981062713110024
+        },
+        "new_source_dev": {
+          "mrr": 0.08571428571428585,
+          "ndcg5": 0.0267373337301402
+        }
+      }
+    },
+    {
+      "cap": 16,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.8710359408033826,
+          "mrr": 0.4719168428470754,
+          "ndcg5": 0.5637197051065211,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8498942917547568
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8714596949891068,
+          "mrr": 0.46561365286855483,
+          "ndcg5": 0.5593221104441484,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8518518518518519
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.6785714285714286,
+          "ndcg5": 0.7078979872514551,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.7857142857142857
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.49272782364972345,
+          "ndcg5": -0.3973314096829377
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.5044634231170537,
+          "ndcg5": -0.40643689319285103
+        },
+        "new_source_dev": {
+          "mrr": 0.08571428571428585,
+          "ndcg5": 8.984530960742809e-05
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6397852725346378,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9154334038054969
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6378051768553445,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9150326797385621
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31601027104204504
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3231491921330998
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9429175475687104,
+          "mrr": 0.5460535588442565,
+          "ndcg5": 0.6379883466455365,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9260042283298098
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9433551198257081,
+          "mrr": 0.5436456063907045,
+          "ndcg5": 0.6358579661878417,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9259259259259259
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4130368911446102,
+          "ndcg5": -0.3179313512928841
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4214167020906596,
+          "ndcg5": -0.32521560858942977
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9682875264270613,
+          "mrr": 0.5542283298097251,
+          "ndcg5": 0.6484894900392514,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9492600422832981
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9694989106753813,
+          "mrr": 0.5518881626724764,
+          "ndcg5": 0.6470859409960413,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9520697167755992
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6309523809523809,
+          "ndcg5": 0.6945058479559237,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4042496780546928,
+          "ndcg5": -0.3067046561313027
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.41264443328051936,
+          "ndcg5": -0.3133002712804591
+        },
+        "new_source_dev": {
+          "mrr": 0.00952380952380949,
+          "ndcg5": -0.018830031222934807
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9090909090909091,
+          "mrr": 0.4996124031007752,
+          "ndcg5": 0.5945643891623218,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8900634249471459
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9106753812636166,
+          "mrr": 0.49415395787944805,
+          "ndcg5": 0.5905908203474696,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8910675381263616
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.6785714285714286,
+          "ndcg5": 0.7248406810206905,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4629573517157791,
+          "ndcg5": -0.3643555848354243
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4740889593074932,
+          "ndcg5": -0.3732539521835485
+        },
+        "new_source_dev": {
+          "mrr": 0.08571428571428585,
+          "ndcg5": 0.024025802602821056
+        }
+      }
+    },
+    {
+      "cap": 20,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.864693446088795,
+          "mrr": 0.46455250176180407,
+          "ndcg5": 0.5561024192635411,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8393234672304439
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8649237472766884,
+          "mrr": 0.45838779956427017,
+          "ndcg5": 0.5516473893267677,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.840958605664488
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.6666666666666666,
+          "ndcg5": 0.702163757904897,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.7857142857142857
+        }
+      },
+      "release_cap_allowed": true,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.5006438906143473,
+          "ndcg5": -0.4054749939490996
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.5121536499594235,
+          "ndcg5": -0.4145814510875738
+        },
+        "new_source_dev": {
+          "mrr": 0.06666666666666665,
+          "ndcg5": -0.008011243609200247
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6392837974547874,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9133192389006343
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6372884062392894,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9128540305010894
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31654639436133813
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3236975987965317
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.1,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9344608879492601,
+          "mrr": 0.5509866102889359,
+          "ndcg5": 0.6397852725346378,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9154334038054969
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.934640522875817,
+          "mrr": 0.5488380537400145,
+          "ndcg5": 0.6378051768553445,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9150326797385621
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.6214285714285714,
+          "ndcg5": 0.7047041237343256,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.407734262555867,
+          "ndcg5": -0.31601027104204504
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4158905591838312,
+          "ndcg5": -0.3231491921330998
+        },
+        "new_source_dev": {
+          "mrr": -0.005714285714285672,
+          "ndcg5": -0.004422316793279646
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.25,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9429175475687104,
+          "mrr": 0.5457716701902748,
+          "ndcg5": 0.6377491348215081,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9260042283298098
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9433551198257081,
+          "mrr": 0.543355119825708,
+          "ndcg5": 0.6356114581426011,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9259259259259259
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.7078343916513864,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.9285714285714286
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4133398984925385,
+          "ndcg5": -0.3181870908944422
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4217258569385941,
+          "ndcg5": -0.3254772075472643
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": 0.0
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.5,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.9619450317124736,
+          "mrr": 0.5527836504580691,
+          "ndcg5": 0.645770716972818,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.9429175475687104
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.9629629629629629,
+          "mrr": 0.5505809731299928,
+          "ndcg5": 0.6445517471490674,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.9455337690631809
+        },
+        "new_source_dev": {
+          "recall5": 0.9285714285714286,
+          "mrr": 0.625,
+          "ndcg5": 0.6857355133372129,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.8571428571428571
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.40580259071282476,
+          "ndcg5": -0.30961127641882624
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.41403563009622446,
+          "ndcg5": -0.31598960528849074
+        },
+        "new_source_dev": {
+          "mrr": 0.0,
+          "ndcg5": -0.031220407732120092
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.75,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.8964059196617337,
+          "mrr": 0.4911205073995772,
+          "ndcg5": 0.5843207013625111,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8752642706131079
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8976034858387799,
+          "mrr": 0.48576615831517794,
+          "ndcg5": 0.5807263597686257,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8779956427015251
+        },
+        "new_source_dev": {
+          "recall5": 0.8571428571428571,
+          "mrr": 0.6666666666666666,
+          "ndcg5": 0.702163757904897,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.7857142857142857
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.4720854480721157,
+          "ndcg5": -0.3753070361152646
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.4830158055416006,
+          "ndcg5": -0.3837223026363953
+        },
+        "new_source_dev": {
+          "mrr": 0.06666666666666665,
+          "ndcg5": -0.008011243609200247
+        }
+      }
+    },
+    {
+      "cap": 40,
+      "rank_weight": 1.0,
+      "metrics_by_cohort": {
+        "all_dev": {
+          "recall5": 0.8477801268498943,
+          "mrr": 0.45422832980972516,
+          "ndcg5": 0.5444985057458113,
+          "negative_fpr": 0.025280898876404494,
+          "positive": 473,
+          "negative": 356,
+          "all_gold_coverage5": 0.8245243128964059
+        },
+        "consumed_parent_dev": {
+          "recall5": 0.8496732026143791,
+          "mrr": 0.44847494553376904,
+          "ndcg5": 0.540357460138307,
+          "negative_fpr": 0.002898550724637681,
+          "positive": 459,
+          "negative": 345,
+          "all_gold_coverage5": 0.8257080610021786
+        },
+        "new_source_dev": {
+          "recall5": 0.7857142857142857,
+          "mrr": 0.6428571428571429,
+          "ndcg5": 0.6802656438775593,
+          "negative_fpr": 0.7272727272727273,
+          "positive": 14,
+          "negative": 11,
+          "all_gold_coverage5": 0.7857142857142857
+        }
+      },
+      "release_cap_allowed": false,
+      "relative_uplift": {
+        "all_dev": {
+          "mrr": -0.5117415347322172,
+          "ndcg5": -0.4178806525388945
+        },
+        "consumed_parent_dev": {
+          "mrr": -0.5227035591451868,
+          "ndcg5": -0.4265625355460697
+        },
+        "new_source_dev": {
+          "mrr": 0.028571428571428692,
+          "ndcg5": -0.03894801962011041
+        }
+      }
+    }
+  ],
+  "raw_scores_sha256": "1cc2632a571f953b5b12b1da17d4c1bb23ab559f53afbedc3b376ded2dea4414",
+  "actual_calls_sha256": "2f58214c2d6167e79bea20eb7a753249030fe6673f0f2a9a485abf747d7ba27a",
+  "provider_statistics": {
+    "submitted_requests": 480,
+    "completed_requests": 480,
+    "cancelled_requests": 0,
+    "rejected_requests": 0,
+    "active_requests": 0,
+    "queue_depth": 0,
+    "max_queue_depth": 0,
+    "queue_wait_ms_total": 36.79849999025464,
+    "max_queue_wait_ms": 0.6763999990653247,
+    "worker_ms_total": 71869.48910000865,
+    "closed": false,
+    "failure_count": 0,
+    "ready": true,
+    "model_loads": 1,
+    "inference_calls": 480,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "elapsed_seconds": 84.72074810000049,
+  "limitations": [
+    "Same-dev ranking comparisons are exploratory, not grouped OOF or held-out acceptance.",
+    "Cap 40 collection is diagnostic only; permitted release rerank caps remain <=20.",
+    "All pools are scored independently of routing; no joint route/evidence/answer policy is claimed.",
+    "Score timings include a diagnostic cap-40 call, not a same-config serving HTTP/latency measurement.",
+    "No successor M0/M2/M4/M5/M6/S3/S4/S5 PASS is established."
+  ]
+}

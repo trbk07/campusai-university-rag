@@ -1,0 +1,670 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "task": "P7-01",
+  "status": "pass",
+  "created_at": "2026-10-03T02:31:36.612360+00:00",
+  "commit": "c7c706deabb26163527f0b9a93085e494d55830b",
+  "source_sha256": "a34a5a350e3451fe529b394dd79f5faba97d5b4191a419fab31fc76ef0d3190d",
+  "runtime_sha256": "4b4023f0976b3153f2f8113df63169f04fd92aa6b7b3ea7f589af949ce92d2fa",
+  "git_status": [
+    " M configs/human_benchmark_record.example.json",
+    " M data/benchmark/human_candidate_pool.summary.json",
+    " M docs/reranker/release_plan.md",
+    " M docs/reranker/reranker_progress.md",
+    " M docs/reranker/reranker_release_runbook.md",
+    " M evaluation/benchmarks/build_student_natural_benchmark.py",
+    " M evaluation/benchmarks/freeze_human_benchmark.py",
+    " M evaluation/benchmarks/human_benchmark_intake.py",
+    " M evaluation/common/release_artifacts.py",
+    " M evaluation/reranker/calibrate_evidence_probabilities.py",
+    " M evaluation/reranker/calibrate_hard_query_route.py",
+    " M evaluation/reranker/calibrate_reranker_scores.py",
+    " M evaluation/reranker/calibrate_route_probabilities.py",
+    " M evaluation/reranker/canary_telemetry.py",
+    " M evaluation/reranker/measure_reranker_capacity.py",
+    " M evaluation/reranker/measure_reranker_http.py",
+    " M evaluation/reranker/reranker_release_gates.py",
+    " M evaluation/reranker/validate_reranker_release.py",
+    " M evaluation/retrieval/compare_retrieval_quality.py",
+    " M evaluation/retrieval/evaluate_candidate_coverage.py",
+    " M plan.md",
+    " M src/campusai/api.py",
+    " M src/campusai/rag/cache.py",
+    " M src/campusai/rag/service.py",
+    " M src/campusai/retrieval/cross_encoder_provider.py",
+    " M src/campusai/retrieval/hybrid.py",
+    " M src/campusai/retrieval/model_runtime.py",
+    " M src/campusai/retrieval/rerank_policy.py",
+    " M src/campusai/retrieval/reranker_activation.py",
+    " M src/campusai/retrieval/routing.py",
+    " M src/campusai/web.py",
+    " M tests/test_hybrid_retrieval.py",
+    " M tests/test_reranker_activation.py",
+    " M tests/test_reranker_live_instrumentation.py",
+    " M tests/test_reranker_optimization.py",
+    " M tests/test_reranker_stage_gates.py",
+    "?? data/benchmark/human_candidate_lineage.json",
+    "?? data/benchmark/human_candidate_staging.jsonl",
+    "?? data/benchmark/human_intake/",
+    "?? data/benchmark/human_retrieval.jsonl",
+    "?? data/benchmark/human_retrieval_dev.jsonl",
+    "?? data/benchmark/human_retrieval_holdout.jsonl",
+    "?? data/benchmark/human_retrieval_test.jsonl",
+    "?? data/benchmark/phase7_exposure_registry.json",
+    "?? data/benchmark/phase7_review_bundle.manifest.json",
+    "?? data/benchmark/phase7_review_cycles/",
+    "?? data/benchmark/phase7_review_draft.json",
+    "?? data/benchmark/phase7_review_policy.json",
+    "?? docs/benchmarks/human_review_confirmation.draft.md",
+    "?? docs/benchmarks/phase7_group_review.draft.md",
+    "?? docs/benchmarks/phase7_review_cycles/",
+    "?? docs/benchmarks/phase7_review_questions.draft.md",
+    "?? docs/reranker/paired_answer_review_protocol.md",
+    "?? docs/reranker/phase7_audit_20261002.md",
+    "?? docs/reranker/phase7_task_spec.md",
+    "?? evaluation/benchmarks/connected_groups.py",
+    "?? evaluation/benchmarks/human_record_contract.py",
+    "?? evaluation/reranker/build_supplemental_report.py",
+    "?? evaluation/reranker/collect_paired_answers.py",
+    "?? evaluation/reranker/paired_answer_quality.py",
+    "?? evaluation/reranker/probe_startup_lifecycle.py",
+    "?? evaluation/reranker/supplemental_gates.py",
+    "?? evaluation/results/candidate_coverage.json",
+    "?? evaluation/results/hard_query_route_calibration.json",
+    "?? evaluation/results/hard_query_route_confusion.json",
+    "?? evaluation/results/human_benchmark_manifest.json",
+    "?? evaluation/results/human_benchmark_review.json",
+    "?? evaluation/results/model_snapshot_smoke.json",
+    "?? evaluation/results/phase7_code_verification.json",
+    "?? evaluation/results/phase7_code_verification_20261003.json",
+    "?? evaluation/results/phase7_evidence_inventory.json",
+    "?? evaluation/results/phase7_readiness_20261003.json",
+    "?? evaluation/results/phase7_startup_lifecycle_probe.json",
+    "?? evaluation/results/phase7_startup_lifecycle_raw.json",
+    "?? evaluation/results/phase7_task_ledger.json",
+    "?? evaluation/results/release_manifest.json",
+    "?? evaluation/results/reranker_context_lifecycle.json",
+    "?? evaluation/results/reranker_lineage.json",
+    "?? evaluation/results/reranker_lineage_raw.json",
+    "?? evaluation/results/reranker_lineage_review_audit.jsonl",
+    "?? evaluation/results/reranker_provider_contract.json",
+    "?? evaluation/results/reranker_route_freeze.json",
+    "?? evaluation/results/temp.json",
+    "?? scripts/benchmarks/audit_phase7_inputs.py",
+    "?? scripts/benchmarks/prepare_human_candidates.py",
+    "?? scripts/benchmarks/prepare_phase7_review.py",
+    "?? scripts/phase7_create_intake_lineage.py",
+    "?? scripts/phase7_release_pipeline.py",
+    "?? src/campusai/rag/context.py",
+    "?? test_run.py",
+    "?? test_script.py",
+    "?? tests/supplemental_fixtures.py",
+    "?? tests/test_phase7_benchmark_integrity.py",
+    "?? tests/test_phase7_completion_contract.py",
+    "?? tests/test_phase7_evidence_integrity.py",
+    "?? tests/test_phase7_review_preparation.py",
+    "?? tests/test_phase7_runtime_integrity.py"
+  ],
+  "plan_tracked": true,
+  "baseline": {
+    "gate": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "baseline reviewer",
+      "errors": [],
+      "requires": [],
+      "artifacts": [
+        "retrieval_baseline_manifest.json",
+        "retrieval_baseline_comparison.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M0"
+    },
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "physical_index_valid": true
+  },
+  "artifacts": [
+    {
+      "path": ".release/reranker/studies/ai-gpu-v1/attempt.json",
+      "sha256": "eb2838ff54b1c314153dd05d5a28c9537b0a21fc06acde414239ee8bfdf5c290",
+      "bytes": 48,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/bge-context1024-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/bge-context256-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/bge-dev-signals-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/bge1024-dev-signals-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/evidence-fusion-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-body-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-body-table-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-body-table-dev-retry1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-section-body-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-table-comparisons-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-bge-table-window-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-gte-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-gte-dev-buffers-v2/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-gte-dev-compat-v3/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-gte-dev-compat-v4/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-gte-table-window-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop2-minilm-body-table-dev/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop3-fixed-policy-natural-dev-v1/attempt.json",
+      "sha256": "4e0f3debb565062014fcf75a578f2cd63e5f2f11f6347d8f62d970a9bc016649",
+      "bytes": 2338,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/loop3-fixed-policy-natural-dev-v1/summary.json",
+      "sha256": "36c219db08ec4b436a9e455b8ca539c37d26312b1188c13bf05dd83c98e3948d",
+      "bytes": 5566,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/minilm-dev-signals-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/minilm-evidence-fusion-v1/attempt.json",
+      "sha256": "ec7ad39b5e69a641baa6f904558a6efe7e05cd8b95738f3ffb56116deef256ed",
+      "bytes": 109,
+      "classification": "research"
+    },
+    {
+      "path": ".release/reranker/studies/precision-v1/attempt.json",
+      "sha256": "8e550df60c6031a5cad091850ec8ff72a1ce5dc8186e62bad99fa4b5af83f5f3",
+      "bytes": 27,
+      "classification": "research"
+    },
+    {
+      "path": ".tmp/hybrid-index/manifest.json",
+      "sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "bytes": 4176,
+      "classification": "index"
+    },
+    {
+      "path": "data/benchmark/baseline_retrieval_dev.jsonl",
+      "sha256": "9f32ed03b0dd755362861885da6c059b0de9de4e07712d7f7ce888c1dc899c65",
+      "bytes": 169392,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+      "sha256": "b1a38f45be6ade3224a6e22e5da59755b99175ebf221102910369cd50fa5c7a7",
+      "bytes": 159345,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/baseline_retrieval_test.jsonl",
+      "sha256": "b9f92651c0c7cc8c7cfb2f7d9e9f8a97d77aff8cfb0d8f4ff64e7965ed73c7af",
+      "bytes": 164263,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/basic_rag.jsonl",
+      "sha256": "4bf94bdc0e406079060fc86580ed25a041f5cd4fd8dee8939406b12fe0d2dc5f",
+      "bytes": 6986,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/dev.jsonl",
+      "sha256": "6d3109ef459812d411c2f50c85556a5563663d384b29690b58d14036791c90f5",
+      "bytes": 5871,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/grounding_draft.jsonl",
+      "sha256": "c3b54fa4adfa82ffd9d86685edc7d244b41f280f50179c21f78f23f9837ae080",
+      "bytes": 340746,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/grounding_reviewed.jsonl",
+      "sha256": "16ff3ffb2d0c91ebeb149644175067c5a8731b79ad12392bc86a4583fa9915c3",
+      "bytes": 351040,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_candidate_pool.jsonl",
+      "sha256": "324507c978335f4c858d854b08252af59b024f979780d281d09590e02f8d6277",
+      "bytes": 269786,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_candidate_staging.jsonl",
+      "sha256": "80871032ee14b21949b7994edf18151cbc2784d22b9476e30f63baddc974a92c",
+      "bytes": 301397,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_retrieval.jsonl",
+      "sha256": "373a7a0752be7ad521e2d0826eaab218747bfbe29cf20b883e43b7b892204dd6",
+      "bytes": 338746,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_retrieval_dev.jsonl",
+      "sha256": "1eccfec316168a7a83a9718d3228a72034ad1d712f160a0a67172aa6a358dd2f",
+      "bytes": 202891,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_retrieval_holdout.jsonl",
+      "sha256": "5298e94ed29a48ebcd7319fa498835a9941fb986555c032bf1b1fa75791983c0",
+      "bytes": 68296,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/human_retrieval_test.jsonl",
+      "sha256": "12db0ecc80d33f560c7f933fbc627d0cd396b1b56461b10ff78cd415335e4dfc",
+      "bytes": 67559,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/hybrid_grounding_scoped.jsonl",
+      "sha256": "a9408c47b5280eb621a4655618d6b4f6905908110bcfede31741004dcae70c1f",
+      "bytes": 383629,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/hybrid_retrieval_dev.jsonl",
+      "sha256": "fcf7c9c78a59ec511a2f4c7302d0b570d4c2302e2374ac9ce02c13184e3f30b4",
+      "bytes": 145032,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+      "sha256": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4",
+      "bytes": 136205,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/hybrid_retrieval_test.jsonl",
+      "sha256": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+      "bytes": 141513,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/retrieval_calibration.jsonl",
+      "sha256": "fdd3114f4ce0a7e8c524391bb4d24a28b3b41921bf0594df6c96a914cb9ad980",
+      "bytes": 4899,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/retrieval_test.jsonl",
+      "sha256": "129691966dba03cddc3696b94032ffb2948ce511300560d0e2561acff5568e51",
+      "bytes": 26633,
+      "classification": "dataset"
+    },
+    {
+      "path": "data/benchmark/student_natural_queries.jsonl",
+      "sha256": "49e88c4c0e8cc028eb1afd25d79f6840809b5de54232c8fbc54ba2720b83fb2d",
+      "bytes": 610389,
+      "classification": "dataset"
+    },
+    {
+      "path": "evaluation/results/baseline_retrieval_audit.json",
+      "sha256": "d2782154f8d7733e7556c8c9e8c74543d16ba26027e49da893bc86081574cf0e",
+      "bytes": 765,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/basic_rag_report.json",
+      "sha256": "0ac7888a3edb7b5a0e43da17e2b32ba361ea08ea0a351403b712ddfae8035194",
+      "bytes": 11219,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/candidate_coverage.json",
+      "sha256": "e6c6902fc9742f254cefeed52f6479e5a70ebf17f306192f7ea78039268f25b9",
+      "bytes": 133146114,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/grounding_release_report.json",
+      "sha256": "07e557bcfafc87ed4ec7ddf559a8ef85011db012a9218e6b8f58058bd48470a1",
+      "bytes": 1100754,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hard_query_route_calibration.json",
+      "sha256": "e1b45e488cba9ddaf176a3b5a0feb2d561b65c40913b143d5184475d8e8d4b34",
+      "bytes": 31669,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hard_query_route_confusion.json",
+      "sha256": "e8dfcf85bd5e20f6cba0c9d3a01a041fba0c84b5d6f2615f8f5f69984321529f",
+      "bytes": 43723,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/human_benchmark_manifest.json",
+      "sha256": "75d387a81f5203239ce3bf86153edfef99f1daf7e72fb4a94152bcf0e0b0988b",
+      "bytes": 1131,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/human_benchmark_review.json",
+      "sha256": "17ef130fcf8abddc84e06b84373d80d9815df2a8c39ccec93404c14115d9c19d",
+      "bytes": 574,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_ablation_report.json",
+      "sha256": "200daccc9c4e03a8525d7125a3856bbe8be8143010b9e647914bbbd3f1bd8282",
+      "bytes": 1684,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_bm25_report.json",
+      "sha256": "905159c97e4e95e0418b93b0b22c5d82073e082544a2dfad2ab02de1e519d332",
+      "bytes": 6261,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_dataset_report.json",
+      "sha256": "e08a8ef050702d8451e8591de14b3533589aac9fae6faa95754d844fa72824aa",
+      "bytes": 850,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_dense_report.json",
+      "sha256": "b2850dc5254d220bbe6f0d5b3585ffac6481b85a7c5ba64107fc0e3070fc6931",
+      "bytes": 6285,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_fusion_report.json",
+      "sha256": "2bf976d45973222f6503637709aabbe1bcbf36db6201c6d0dd04bbd7c8be1e26",
+      "bytes": 6263,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_grounding_regression.json",
+      "sha256": "21be9076c3e9758578781fc58d5da17635e0a0a9b70f367bbfe5daea0fba7ec9",
+      "bytes": 1133889,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_holdout_report.json",
+      "sha256": "575c0d2272919bfb9f0adda3e8f6e4956149ca806296ea199add32dc0526c0e3",
+      "bytes": 8736,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_performance_report.json",
+      "sha256": "47336c92c77aec32babf13ed75267730b05161b87ceb423fa6eda84cb877a52d",
+      "bytes": 1947,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_rc1_remediation.json",
+      "sha256": "136df2c5216d97c97eaf395f919c0d7733f33f18f08391ef4b757c42a52af259",
+      "bytes": 1135,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_rc2_remediation.json",
+      "sha256": "ee41498e14b039b1517279bd04a26b04e19f08dae6d5d627c137f09da96e472d",
+      "bytes": 1369,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_release_manifest.json",
+      "sha256": "e1376f4baa6fcde25e18f1f44a8753c46dbd88fde331df125944b83c9568f30b",
+      "bytes": 3478,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_retrieval_calibration.json",
+      "sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+      "bytes": 874,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/hybrid_security_report.json",
+      "sha256": "f76ff0eb6e53b8b09dd8d87752d1096f952cd1493dc080f1be295e89c1475422",
+      "bytes": 3584,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/ingestion_acceptance.json",
+      "sha256": "d68322a2dbabab8c23da795861fcbbcdab5eb7e433c6789d1be83731d8ddd72c",
+      "bytes": 23171,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/model_snapshot_smoke.json",
+      "sha256": "e702ccc436c751e964c5585902b09ff35dc3c2da6deea0e6fe92d1e0d2a2203c",
+      "bytes": 2771,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/ocr_acceptance.json",
+      "sha256": "e0bdde1dde79f053c79345e68abd517528cb77fddacdc55ca77a0d495b42b91e",
+      "bytes": 509,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/pdf_pipeline_benchmark.json",
+      "sha256": "3a8aef0d7962175524bfeaff14247b6c8506e97858a21838daafc94575ecb0a4",
+      "bytes": 19204,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/pdf_table_review.json",
+      "sha256": "60325726a372bd508ea09f23c88921864e76277c53c792f6ce8017de90b60af0",
+      "bytes": 7318,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_code_verification.json",
+      "sha256": "d2472886c5aeceebf9c1bd7987b1f96c554fa3bde28c32d4fdda885d9da33415",
+      "bytes": 1860,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_code_verification_20261003.json",
+      "sha256": "b5ead746cd2062c2c36b081efcf0160b0d22d5227db3233141a4380a72c7dcec",
+      "bytes": 3150,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_readiness_20261003.json",
+      "sha256": "97795a2b275980bef2a9fa09dec912662d2ec2845469c9de9777073076273d03",
+      "bytes": 102064,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_startup_lifecycle_probe.json",
+      "sha256": "d784061c1970bf9f13bc4324681f9af067d010dcda26c647d2082628627493ea",
+      "bytes": 11727,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_startup_lifecycle_raw.json",
+      "sha256": "bfd1cda069597ec7cd08c2bc26b87bcd9e74d5973feffcfa79206e31c2a51ac0",
+      "bytes": 4172,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/phase7_task_ledger.json",
+      "sha256": "907c8ca420f73982c7b07093035de652ef5afb50982eefa790cda24365d77620",
+      "bytes": 7397,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/release_manifest.json",
+      "sha256": "592d8be40802f25f7c591224f9de9947168e5e32f8e0cb1ec806b0becd32be2a",
+      "bytes": 7538,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_context_lifecycle.json",
+      "sha256": "f69b9e7af72f91b0b58ae863dd148160acad1197b651790d0ba343e541d41955",
+      "bytes": 5115,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_lineage.json",
+      "sha256": "4c4cff4015a8c10adb5854d669aea30ded51c8b7012c39f778f6cbbb2b44b212",
+      "bytes": 38455,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_lineage_raw.json",
+      "sha256": "33e542af1a1a73733ae7384fe07d66c946560a9206ca91de4951f2b5bbd16787",
+      "bytes": 34772,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_provider_contract.json",
+      "sha256": "88ec052e65431c2d969a9015b72579c9a7ec6a9535d5ca5c6de8aa67f3a429b4",
+      "bytes": 6958,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_release_manifest.json",
+      "sha256": "592d8be40802f25f7c591224f9de9947168e5e32f8e0cb1ec806b0becd32be2a",
+      "bytes": 7538,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/reranker_route_freeze.json",
+      "sha256": "1db30894c3706a79d302844d344300906db8bd370973dac2d0efeb88013b5e6f",
+      "bytes": 410,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_acceptance.json",
+      "sha256": "27620fa270f332f429c9c9cb1355e3a81e1eb2849bb90e4e2468147ce8de82ca",
+      "bytes": 1438,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_baseline_comparison.json",
+      "sha256": "6e0484cbcedc22059365e02a6bfbb589d9da0c6c3341208e8c17f29c255e7f74",
+      "bytes": 10880,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_baseline_manifest.json",
+      "sha256": "1ff3b5082d9fc5dcf1f7f96f1e39997f45c30a4d75cd84a0d52768e9177d52ab",
+      "bytes": 1458,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_calibration.json",
+      "sha256": "5eb3753576f6d8905437557ccdeab154ace66b7d93d014eb8c7e118daa0fecb9",
+      "bytes": 1137,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_hash.json",
+      "sha256": "b3bbf170ea37f519c9b4f2a9075e3385d07dc676492d53b7cd86aabf2218c99a",
+      "bytes": 74189,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/retrieval_multilingual.json",
+      "sha256": "f14f1953f2c913a1b521da9ef9d76e4a7efe813eccd874b2aad960947781453f",
+      "bytes": 74519,
+      "classification": "versioned_report"
+    },
+    {
+      "path": "evaluation/results/temp.json",
+      "sha256": "592d8be40802f25f7c591224f9de9947168e5e32f8e0cb1ec806b0becd32be2a",
+      "bytes": 7538,
+      "classification": "versioned_report"
+    }
+  ],
+  "exposure_registry_status": "pending_complete_history_audit",
+  "runtime_target": "local RTX 4060; public acceptance deferred by project owner"
+}

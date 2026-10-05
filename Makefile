@@ -15,6 +15,16 @@ coverage:
 	$(PYTHON) -m pytest -q --cov=campusai.llm --cov-fail-under=90
 secret-scan:
 	$(PYTHON) -m scripts.dev.secret_scan
+.PHONY: storage-check storage-verify
+storage-check:
+	$(PYTHON) -m scripts.dev.check_git_artifacts
+storage-verify:
+	$(PYTHON) -m scripts.dev.manage_artifacts verify
+.PHONY: storage-check storage-verify
+storage-check:
+	$(PYTHON) -m scripts.dev.check_git_artifacts
+storage-verify:
+	$(PYTHON) -m scripts.dev.manage_artifacts verify
 baseline:
 	$(PYTHON) -m evaluation.grounding.create_grounding_baseline --benchmark data/benchmark/basic_rag.jsonl
 grounding-eval:

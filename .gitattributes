@@ -2,3 +2,34 @@
 /data/benchmark/student_natural_queries.spec text eol=lf
 /data/benchmark/student_natural_queries.jsonl text eol=lf
 /data/benchmark/student_natural_queries.manifest.json text eol=lf
+
+# Hash-bound owner evidence must retain its exact physical bytes on checkout.
+/data/benchmark/human_retrieval*.jsonl -text
+/data/benchmark/owner_confirmed_inputs/** -text
+/data/benchmark/phase7_owner_confirmation.json -text
+/data/benchmark/phase7_review_policy.json -text
+/data/benchmark/phase7_exposure_registry.json -text
+/data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/** -text
+/evaluation/results/phase7-owner-20261003-r8/** -text
+/evaluation/results/phase7_code_verification_20261003_r8.json -text
+/evaluation/results/phase7-candidate-20261003-r9/** -text
+/evaluation/results/phase7_code_verification_20261003_r9.json -text
+/data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/** -text
+/evaluation/results/phase7-dev-metadata-20261003-r10/** -text
+/evaluation/results/phase7_code_verification_20261003_r10.json -text
+/evaluation/results/phase7-source-routing-task-20261003-r11/** -text
+/evaluation/results/phase7-dev-extension-20261003-r12/** -text
+/data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/** -text
+/evaluation/results/phase7-source-decoding-20261003-r13/** -text
+/evaluation/results/phase7-source-context-20261003-r14/** -text
+# CRLF is part of archived Windows evidence, not trailing content whitespace.
+/data/benchmark/** whitespace=cr-at-eol
+/evaluation/results/** whitespace=cr-at-eol
+/evaluation/results/phase7-completion-20261004/** -text
+/data/corpus/phase7_source_expansion/** -text
+
+# Publish every hash-bound benchmark/corpus/evidence file without EOL conversion.
+# Existing frozen bindings refer to the exact working bytes, including CRLF.
+/data/benchmark/** -text
+/data/corpus/** -text
+/evaluation/results/** -text

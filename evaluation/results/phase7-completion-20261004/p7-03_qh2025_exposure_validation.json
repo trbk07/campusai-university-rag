@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "task": "P7-03-QH2025-review-artifact-validation",
+  "recorded_at": "2026-10-05T03:35:27.957646+00:00",
+  "status": "PASS",
+  "release_eligible": false,
+  "scope": "Artifact integrity and source-group allocation only; semantic judgments are attributed analyst decisions, not measured independence probabilities or benchmark gate results.",
+  "semantic_decision_path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_semantic_exposure_decisions.json",
+  "semantic_decision_sha256": "332a786418e1ae52e102f438cadcd057717666565e38f6f904e05a31c0e8c5ca",
+  "source_allocation_path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_allocation_signoff.json",
+  "source_allocation_sha256": "7de74fb6672267e1822a4600a89bd7939d3bf7db01271453dae566b9498575d4",
+  "checks": {
+    "source_binding_pass": true,
+    "restored_index_manifest_sha256_matches": true,
+    "archive_restores_exact_source_facts": true,
+    "fifty_five_unique_codes": true,
+    "every_decision_has_rationale_and_source": true,
+    "all_input_hashes_match": true,
+    "no_duplicate_source_allocation_group": true,
+    "all_previous_atomic_allocations_preserved": true,
+    "new_groups_have_no_observed_exact_code_or_full_title_history": true,
+    "known_or_uncertain_exposure_excluded": true,
+    "linked_rows_add_zero_independent_groups": true,
+    "no_fake_independent_or_manual_owner_review": true,
+    "not_misrepresented_as_benchmark_f0": true
+  },
+  "counts": {
+    "known_semantic_exposure": 26,
+    "new_reviewed_subject": 4,
+    "conservative_dev_research": 14,
+    "existing_reviewed_family": 11
+  },
+  "allocation_counts": {
+    "holdout": 13,
+    "dev": 11,
+    "test": 13
+  },
+  "benchmark_f0_frozen": false
+}

@@ -1,0 +1,35 @@
+import gzip
+import json
+from pathlib import Path
+from evaluation.common.release_artifacts import sha256, write_json
+from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence
+from evaluation.retrieval.evaluate_candidate_coverage import audit_outputs
+
+base = Path('evaluation/results/phase7-dev-candidate-link-20261004')
+comparison = json.loads((base / 'comparison.json').read_text(encoding='utf-8'))
+assert comparison['source_stable'] is True
+dataset = Path(comparison['dataset_path'])
+assert sha256(dataset) == comparison['dataset_sha256']
+rows = [json.loads(line) for line in dataset.read_text(encoding='utf-8').splitlines() if line.strip()]
+assert all(row['split'] == 'dev' for row in rows)
+evidence = frozen_evidence(Path('.tmp/hybrid-index'))
+documents = sorted({doc for doc, _ in evidence})
+parts = {}
+for label, info in comparison['parts'].items():
+    raw = base / info['raw_path']
+    assert sha256(raw) == info['raw_sha256']
+    with gzip.open(raw, 'rt', encoding='utf-8') as stream:
+        measured = json.load(stream)
+    outputs = {item['qid']: item['candidates'] for item in measured['per_query']}
+    parts[label] = {}
+    for cap in (5, 8, 10, 12, 16, 20, 40):
+        audited = audit_outputs(rows, {qid: values[:cap] for qid, values in outputs.items()},
+                                documents, cap, evidence)
+        parts[label][str(cap)] = {key: audited[key] for key in ('records', 'answerable', 'candidate_recall',
+                                                               'all_gold_recall', 'evidence_recall', 'strata')}
+result = {'schema_version': 1, 'status': 'diagnostic', 'release_eligible': False,
+          'comparison_sha256': sha256(base / 'comparison.json'), 'dataset_sha256': sha256(dataset),
+          'definition': 'Gold coverage in prefixes of recorded cap-40 candidate order; not reranker quality or separate cap measurements',
+          'parts': parts}
+write_json(base / 'prefix_coverage.json', result)
+print(json.dumps({label: {cap: info['all_gold_recall'] for cap, info in caps.items()} for label, caps in parts.items()}, indent=2))

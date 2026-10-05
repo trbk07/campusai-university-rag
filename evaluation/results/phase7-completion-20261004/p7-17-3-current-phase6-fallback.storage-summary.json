@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-17-3-current-phase6-fallback.json",
+    "sha256": "e7b74ee5da3270777aca00b91dd962191f6d4f308ef829f54f5606a3a23be069"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-17.3",
+    "status": "FAIL",
+    "release_eligible": false,
+    "scope": "real active r18 index and Phase 6 calibration; 20 dev source groups; injected transient provider timeout",
+    "recorded_at": "2026-10-04T15:16:22.726831+00:00",
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "772dbcfb95ff33916f487e048c5119a458fc9b898a1bbaaafc2272a94d54f584",
+      "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "772dbcfb95ff33916f487e048c5119a458fc9b898a1bbaaafc2272a94d54f584",
+      "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+    },
+    "source_stable": true,
+    "active_cycle": {
+      "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18",
+      "results_dir": "evaluation/results/phase7-source-context-20261004-r18",
+      "index_dir": ".tmp/hybrid-index"
+    },
+    "bindings": {
+      "dev_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+      "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+      "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662"
+    },
+    "sample_count": 20,
+    "provider_calls": 22,
+    "checks": {
+      "eligible_dev_group_sample": true,
+      "failure_reason_preserved": false,
+      "followup_provider_calls_expected": false,
+      "all_fallback_outputs_exactly_match_phase6": true,
+      "all_faults_report_transient_timeout": false,
+      "provider_calls_equal_two_per_query": false
+    },
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 20
+    },
+    "limitations": [
+      "Dev-only; the provider is a deterministic timeout test double and does not exercise CUDA/native failure recovery.",
+      "Does not establish held-out equivalence, permanent-failure shutdown, permits, rollback, or M9 acceptance.",
+      "Per-query output bodies are omitted; exact byte-semantic output hashes and equality flags are retained."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 20
+    }
+  ]
+}

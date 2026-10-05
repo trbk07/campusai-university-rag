@@ -449,7 +449,7 @@ class GeminiClient(OpenAICompatibleClient):
     def __init__(
         self,
         api_key: str,
-        model: str = "gemini-3.8-flash",
+        model: str = "gemini-3-flash-preview",
         **kwargs: Any,
     ) -> None:
         endpoint = kwargs.pop(

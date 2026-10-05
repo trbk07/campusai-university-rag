@@ -1,9 +1,12 @@
 {
+  "schema_version": 2,
   "qid": "REPLACE_WITH_UNIQUE_ID",
+  "question_source": "direct_author",
   "question": "REPLACE_WITH_A_REAL_HUMAN_QUESTION",
   "split": "dev",
   "paraphrase_group": "REPLACE_WITH_REVIEWED_GROUP_ID",
   "answerable": false,
+  "expected_behavior": "ask_clarification",
   "difficulty": "easy",
   "doc_ids": [],
   "filters": {},
@@ -14,6 +17,7 @@
   "author_type": "human",
   "author": "",
   "reviewer": "",
+  "reviewer_role": "project_owner",
   "review_status": "pending",
   "evidence_source": "frozen_pdf",
   "review_checks": {

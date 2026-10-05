@@ -28,11 +28,14 @@ def human_rows():
         rows.append({"qid": f"hn-{i}", "question": " ".join(tokens), "split": ("dev", "test", "holdout")[i % 3],
                      "paraphrase_group": f"group-{i}", "answerable": i < 120,
                      "difficulty": "hard" if i % 6 < 3 else "easy",
+                     "expected_behavior": "answer_grounded" if i < 120 else "ask_clarification" if i >= 135 else "abstain",
                      "doc_ids": ["doc"], "filters": {},
                      "gold_evidence": [{"doc_id": "doc", "chunk_id": "c0", "page": 1}] if i < 120 else [],
                      "tags": ["natural"] + (["exact_code"] if i < 18 else []) + (["ambiguous"] if i >= 135 else []),
                      "author_type": "human", "author": "annotator", "reviewer": "reviewer",
+                     "reviewer_role": "independent_reviewer",
                      "review_status": "approved", "source_url": "https://example.org/faq",
+                     "reviewed_at": "2026-09-01T12:00:00+07:00",
                      "source_retrieved_at": "2026-09-01T12:00:00+07:00", "evidence_source": "frozen_pdf",
                      "review_checks": {key: True for key in ("natural", "answerability", "evidence_sufficient", "corpus_temporal_scope", "difficulty", "no_paraphrase_leakage", "expected_behavior")}})
     return rows
@@ -255,6 +258,9 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     results, benchmark = tmp_path / "results", tmp_path / "benchmark"
     results.mkdir()
     benchmark.mkdir()
+    write_json(benchmark / "phase7_review_policy.json", {"schema_version": 1,
+               "owner_self_review_allowed": False, "owner_semantic_review_allowed": False,
+               "allow_independent_review": True, "status": "fixture"})
     corpus = tmp_path / "data/corpus/university/manifest.json"
     write_json(corpus, {"fixture": True})
     monkeypatch.setattr(gates, "ROOT", tmp_path)
@@ -289,7 +295,8 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
          "benchmark_sha256": {s: sha256(benchmark / f"hybrid_retrieval_{s}.jsonl") for s in ("test", "holdout")}})
     evidence = frozen_evidence(args.index_dir)
     review = validate_rows(rows, evidence)
-    save("human_review", {**review, "dataset_sha256": sha256(benchmark / "human_retrieval.jsonl")})
+    save("human_review", {**review, "dataset_sha256": sha256(benchmark / "human_retrieval.jsonl"),
+                           "review_policy_sha256": sha256(benchmark / "phase7_review_policy.json")})
     split_hashes = {s: sha256(benchmark / f"human_retrieval_{s}.jsonl") for s in ("dev", "test", "holdout")}
     save("human_manifest", {"frozen": True, "dataset_sha256": sha256(benchmark / "human_retrieval.jsonl"),
                            "review_sha256": sha256(args.human_review), "split_sha256": split_hashes})
@@ -316,6 +323,8 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
                     "margin": .1, "agreement": 1, "constraints": 0, "query_length": len(row["question"].split()),
                     "distinct_documents": 1, "concentration": .5}
                    for row in rows if row["split"] == split and row["answerable"]]
+        for sample in samples:
+            sample.update(operation_required=float(sample["difficulty"] == "hard"), long_request=0.)
         conf[split] = {**route_metrics(samples, .5, 0), "samples": samples,
                        "bypass": {"exact_or_abstained": 50 - len(samples), "single_candidate": 0},
                        "benchmark_sha256": split_hashes[split],
@@ -327,8 +336,7 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     for split in conf:
         conf[split].update(route_metrics(conf[split]["samples"], .5, 0, route_model=route_model))
     save("route", {"calibration_split": "dev", "test_used": False, "holdout_used": False, "feature_leakage_review": "pass",
-                   "feature_allowlist": ["confidence", "margin", "agreement", "constraints", "query_length",
-                                         "distinct_documents", "concentration"],
+                   "feature_allowlist": ["operation_required", "long_request"],
                    "route_model": route_model, "route_diagnostics": route_diagnostics,
                    "training_split_sha256": split_hashes["dev"],
                    "routing_metrics": route_metrics(conf["dev"]["samples"], .5, 0, route_model=route_model),
@@ -373,7 +381,8 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     bindings["calibration_sha256"] = sha256(args.calibration)
     bindings.update(route_calibration_sha256=sha256(args.route), training_split_sha256=split_hashes["dev"],
                     human_benchmark_sha256=sha256(benchmark / "human_retrieval.jsonl"))
-    freeze_before_evaluation(results, {name: getattr(args, name) for name in ("route", "smoke", "human_manifest", "calibration", "sensitivity")})
+    # The answer protocol will be supplied by the bound supplemental fixture
+    # before the completed policy lock is verified below.
     quality, hashes = {}, {}
     for split in ("test", "holdout", "human_test", "human_holdout"):
         path = benchmark / (f"human_retrieval_{split.removeprefix('human_')}.jsonl" if split.startswith("human_") else f"hybrid_retrieval_{split}.jsonl")
@@ -460,6 +469,10 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     staging = audit_staging({"environment": "staging", "environment_id": "fixture", "collector": "test", "windows": windows}, faults)
     save("staging", staging)
     save("canary", {"windows": windows, "staging_sha256": sha256(args.staging)})
+    from tests.supplemental_fixtures import write_supplemental_fixture
+    write_supplemental_fixture(args, rows, bindings)
+    freeze_before_evaluation(results, {name: getattr(args, name) for name in ("route", "smoke", "human_manifest", "calibration", "sensitivity")}
+                             | {"answer_protocol": results / "reranker_answer_protocol.json"})
     report = validate(args)
     assert report["errors"] == []
     assert report["status"] == "pass" and report["score"] == 10.0
@@ -468,6 +481,28 @@ def test_validator_can_pass_complete_bound_evidence_and_detect_tampering(tmp_pat
     assert manifest["model_revision"] == identity.model_revision
     assert manifest["route_policy_sha256"] == sha256(args.route)
     assert manifest["gates"]["M6"]["artifact_sha256"]["retrieval_quality_comparison.json"] == sha256(args.quality)
+    assert all(gate["status"] == "PASS" for gate in manifest["supplemental_gates"].values())
+    exposure_path = args.benchmark_dir / "phase7_exposure_registry.json"
+    exposure_bytes = exposure_path.read_bytes()
+    exposure_registry = json.loads(exposure_bytes)
+    for binding in ("lineage_sha256", "index_sha256"):
+        changed = {**exposure_registry, binding: "0" * 64}
+        exposure_path.write_text(json.dumps(changed), encoding="utf-8")
+        mismatched_exposure = validate(args)
+        assert "S1:exposure_history_registry_unbound" in mismatched_exposure["errors"]
+    exposure_path.write_bytes(exposure_bytes)
+    lineage_bytes = args.lineage.read_bytes()
+    args.lineage.unlink()
+    missing_s1 = validate(args)
+    assert missing_s1["score"] is None and missing_s1["gates"]["M1"]["status"] == "BLOCKED"
+    assert missing_s1["supplemental_gates"]["S1"]["status"] == "BLOCKED"
+    args.lineage.write_bytes(lineage_bytes)
+    context_report = json.loads(args.context.read_text(encoding="utf-8"))
+    altered_context = deepcopy(context_report)
+    altered_context["observations"]["lifecycle"]["request_loads"] = 1
+    write_json(args.context, altered_context)
+    assert "S2:missing_or_invalid_supplemental_raw" in validate(args)["errors"]
+    write_json(args.context, context_report)
     route_evidence = json.loads(args.route.read_text(encoding="utf-8"))
     altered_route = deepcopy(route_evidence)
     altered_route["route_model"]["weights"][0] += 1

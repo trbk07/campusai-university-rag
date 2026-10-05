@@ -1,0 +1,47 @@
+{
+  "schema_version": 3,
+  "phase": 7,
+  "status": "conditional",
+  "errors": [
+    "benchmark_not_frozen",
+    "insufficient_route_coverage:holdout",
+    "insufficient_route_coverage:test",
+    "insufficient_split_coverage:holdout",
+    "insufficient_split_coverage:test"
+  ],
+  "records": 180,
+  "counts": {
+    "answerable": 135,
+    "negative": 45,
+    "hard": 97,
+    "exact_code": 25,
+    "ambiguous": 20
+  },
+  "split_counts": {
+    "dev": 180
+  },
+  "review_complete": true,
+  "review_mode": "owner_self_review",
+  "independent_review_complete": false,
+  "owner_review_complete": true,
+  "dataset_sha256": "eedac4b3926155bcdd1f6efcc58a40b355835ea729a59b32516f7faa17e1c2d6",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "owner_confirmation_sha256": "aa89deb465bb77d4087e62d16030a3e90290714583d84a46f527661914300850",
+  "review_audit_sha256": "63326929ede69e8b198780bbfcbcc6178fc8e2cd0487bee5ea5ae92ef2a1cf8e",
+  "grouped_split": {
+    "groups": 59,
+    "cross_split_groups": [],
+    "split_counts": {
+      "dev": 180
+    }
+  },
+  "frozen": false,
+  "release_eligible": false,
+  "split_sha256": {
+    "dev": "eedac4b3926155bcdd1f6efcc58a40b355835ea729a59b32516f7faa17e1c2d6",
+    "test": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "holdout": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "review_sha256": "ff4493d9fe036b96010d52a8edcc914d472131c62fb6d0db7f1fe7e3c5e2e5ed"
+}

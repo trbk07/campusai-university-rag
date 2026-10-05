@@ -1,0 +1,30 @@
+{
+  "status": "source_proposal",
+  "release_eligible": false,
+  "recorded_at": "2026-10-04T06:02:05.832096+00:00",
+  "performed_by": "Codex",
+  "independent_human_review_claim": false,
+  "reviewed_previews": [
+    "telecom-page-1.png",
+    "telecom-page-4.png",
+    "telecom-page-5.png",
+    "telecom-page-6.png",
+    "telecom-page-7.png",
+    "telecom-page-8.png",
+    "telecom-page-9.png",
+    "telecom-page-10.png",
+    "mechanics-page-1.png",
+    "mechanics-page-2.png"
+  ],
+  "checks": [
+    "Explicit course/code/name/credit column roles checked against original PDF renders.",
+    "Telecommunications: 5 supplemental rows plus 29 program rows; preserve source translations and spelling.",
+    "Mechanics: 8 named coursework rows plus EMA7205 thesis, 18 credits. Uncoded elective placeholders excluded.",
+    "The mechanics URL publication year 2019 is not a stated academic cohort; academic_year stays unspecified.",
+    "Blank prerequisites remain unknown; shared course codes/aliases do not count as independent subjects."
+  ],
+  "limits": [
+    "Automatic history screening is not completed semantic exposure approval.",
+    "No new benchmark, heldout eligibility or release PASS claim."
+  ]
+}

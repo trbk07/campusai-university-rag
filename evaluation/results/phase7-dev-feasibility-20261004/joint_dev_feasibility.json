@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "status": "conditional",
+  "release_eligible": false,
+  "test_used": false,
+  "holdout_used": false,
+  "records": 491,
+  "source_sha256": "7b6191262e5f29b9a4e49bea2b236279e98a8baf9cb655ef27d4a3ac2acd69bb",
+  "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "model_identity": {
+    "model_name": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "model_sha256": "16f0018751492cd824b272a24cdde73cd061f8615f3abaab8da64c872f79ffe9",
+    "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "provider": "sentence_transformers",
+    "device": "cuda:0",
+    "dtype": "float16",
+    "max_length": 512,
+    "batch_size": 8,
+    "normalization": "raw_logit",
+    "batch_window_ms": 0.0,
+    "max_batch_pairs": 200,
+    "input_format": "body_table_window",
+    "input_version": "structured-input-v1"
+  },
+  "route_report_sha256": "d8acd62f9db244a68b59cbe552fd6a38eacffe80b896d786e43c68283bbdd0cb",
+  "probability_report_sha256": "564103dbf601ba01194fd13f58705bb7549345b42008cb6e512932221728c19b",
+  "routing_metrics": {
+    "eligible": 314,
+    "selected": 150,
+    "coverage": 0.47770700636942676,
+    "hard_recall": 0.9841269841269841,
+    "easy_unnecessary_rerank_rate": 0.08928571428571429,
+    "selection_precision": 0.8266666666666667,
+    "false_skip_rate": 0.015873015873015928,
+    "hard_count": 126,
+    "easy_count": 168
+  },
+  "routing_out_of_fold": {
+    "eligible": 294,
+    "selected": 139,
+    "coverage": 0.47278911564625853,
+    "hard_recall": 0.9841269841269841,
+    "easy_unnecessary_rerank_rate": 0.08928571428571429,
+    "selection_precision": 0.8920863309352518,
+    "false_skip_rate": 0.015873015873015928,
+    "hard_count": 126,
+    "easy_count": 168
+  },
+  "evidence_class_counts": {
+    "no_evidence": 10,
+    "partial_evidence": 15,
+    "sufficient_evidence": 125
+  },
+  "probability_feasible": true,
+  "baseline": {
+    "answerable_recall_at_5": 0.9809523809523809,
+    "mrr": 0.9151851851851853,
+    "ndcg_at_5": 0.9191161050981524,
+    "negative_fpr": 0.056818181818181816
+  },
+  "fitted_quality": {
+    "answerable_recall_at_5": 0.9809523809523809,
+    "mrr": 0.9167724867724869,
+    "ndcg_at_5": 0.9202877566741161,
+    "negative_fpr": 0.005681818181818182
+  },
+  "grouped_out_of_fold_quality": {
+    "answerable_recall_at_5": 0.9809523809523809,
+    "mrr": 0.9183597883597885,
+    "ndcg_at_5": 0.9217142628877046,
+    "negative_fpr": 0.005681818181818182
+  },
+  "fold_count": 5,
+  "errors": [],
+  "rerank_requests": 150,
+  "rerank_latency_ms": {
+    "p50": 91.53199999946082,
+    "p95": 163.1784000001062,
+    "p99": 173.28040000029432
+  },
+  "meaning": "Measured fixed cap-10 exploratory feasibility on r18 dev plus 13 audited, already exposed r12 dev-only absent-field records. All gates require new frozen source and independently eligible heldout before acceptance."
+}

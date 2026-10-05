@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "task": "P7-17.4",
+  "status": "PASS_DEV_TRANSIENT_RECOVERY",
+  "release_eligible": false,
+  "scope": "active r18 index/Phase 6 calibration, one dev query; one injected timeout followed by local provider success",
+  "recorded_at": "2026-10-04T15:19:55.937122+00:00",
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "f873092bc3ec5e2c23305dcf4aaf04b34b307f5bffd7b92593bb465de347860b",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "f873092bc3ec5e2c23305dcf4aaf04b34b307f5bffd7b92593bb465de347860b",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "source_stable": true,
+  "bindings": {
+    "dev_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+    "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662"
+  },
+  "provider_calls": 2,
+  "checks": {
+    "first_transient_timeout_falls_back_exactly_to_phase6": true,
+    "transient_timeout_does_not_disable_admission": true,
+    "next_call_recovers_and_applies_reranking": true,
+    "recovery_uses_second_provider_call": true,
+    "second_call_has_provenance_and_valid_order": true
+  },
+  "observation": {
+    "qid": "human-candidate-0001",
+    "source_group": null,
+    "question_sha256": "bd5b7ca80735edfd36c2e625a7d719c8a4c4beea06e5420ab4619cf9ce61bfc5",
+    "phase6_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "first_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "second_output_sha256": "3967bc63a3da637bd162d6d873ace74292f56525667413ef9e3474f6d70e2a20",
+    "first_reason": "reranker_timeout",
+    "second_reason": "hard_low_confidence_or_margin",
+    "first_rerank_applied": false,
+    "second_rerank_applied": true
+  },
+  "limitations": [
+    "The reranker is a local test double; no real CUDA/native provider was faulted or recovered.",
+    "Permanent-failure close/admission checks are in the linked controlled fault matrix; this report checks transient recovery only.",
+    "Does not establish M9 acceptance or target-runtime permits/resources."
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "active",
+  "results_dir": "evaluation/results/phase7-source-context-20261004-r18",
+  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18",
+  "index_dir": ".tmp/hybrid-index"
+}

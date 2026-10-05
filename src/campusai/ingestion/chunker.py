@@ -384,7 +384,7 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
         # to verify by plain substring matching.
         readable_headers = " | ".join(str(header) for header in table.headers if str(header).strip())
         table_header_line = f"Table headers: {readable_headers}" if readable_headers else "Table headers:"
-        table_budget = max(1, _MAX_CHARS - len(table_header) - 2)
+        table_budget = max(1, _MAX_CHARS - len(table_header) - len(table_header_line) - 3)
         batches = _table_row_batches(table.headers, table.rows, table_budget)
         for part, rows in enumerate(batches, start=1):
             table_chunk_id = table.table_id if len(batches) == 1 else f"{table.table_id}_part{part}"

@@ -1,0 +1,1136 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "candidate_coverage.json",
+    "sha256": "ee02700e63e19803a30461aac18bdcdd01f74a35b7208b0c798c010b066bddac"
+  },
+  "summary": {
+    "schema_version": 1,
+    "phase": 7,
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "candidate_generation": {
+      "mode": "auto",
+      "rrf_k": 3,
+      "weights": [
+        1.0,
+        1.2
+      ],
+      "release_cap": 40
+    },
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "commit": "b6672cc6731aa899dbf891450dde420ee5f7248b",
+    "source_sha256": "a5bb97b23f265c381af3968fa48156ba4d606433d1da6470cbfcbc05687af382",
+    "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+    "splits": {
+      "test": {
+        "benchmark_sha256": "a1213f80ed5f0c92ece71c20e5a63ea05673fcd31a32ce94cf24c7bd23331c1e",
+        "caps": {
+          "40": {
+            "records": 130,
+            "answerable": 117,
+            "negative": 13,
+            "candidate_recall": 1.0,
+            "all_gold_recall": 1.0,
+            "evidence_recall": 1.0,
+            "negative_candidate_rate": 0.3076923076923077,
+            "coverage_per_query": {
+              "raw_array_reference": "/splits/test/caps/40/coverage_per_query",
+              "records": 130
+            },
+            "strata": {
+              "answerable:false": {
+                "records": 13,
+                "answerable": 0,
+                "negative": 13,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "answerable:true": {
+                "records": 117,
+                "answerable": 117,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:comparison_year": {
+                "records": 12,
+                "answerable": 12,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:exact_code": {
+                "records": 20,
+                "answerable": 20,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:fact": {
+                "records": 32,
+                "answerable": 32,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:multi_document": {
+                "records": 13,
+                "answerable": 13,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:negative": {
+                "records": 13,
+                "answerable": 0,
+                "negative": 13,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "category:prerequisite": {
+                "records": 20,
+                "answerable": 20,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:table_filter_calculation": {
+                "records": 20,
+                "answerable": 20,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:numeric": {
+                "records": 129,
+                "answerable": 117,
+                "negative": 12,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.3333333333333333
+              },
+              "cohort:scoped": {
+                "records": 20,
+                "answerable": 20,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:year": {
+                "records": 13,
+                "answerable": 12,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "difficulty:easy": {
+                "records": 39,
+                "answerable": 39,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "difficulty:hard": {
+                "records": 52,
+                "answerable": 39,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "difficulty:medium": {
+                "records": 39,
+                "answerable": 39,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              }
+            },
+            "candidate_cap": 40,
+            "candidate_misses": [],
+            "provenance_errors": 0,
+            "scope_errors": 0,
+            "duplicate_result_sets": 0,
+            "per_query": {
+              "raw_array_reference": "/splits/test/caps/40/per_query",
+              "records": 130
+            }
+          }
+        }
+      },
+      "holdout": {
+        "benchmark_sha256": "b213b51de923cafbf93a043e4678f9798d45fc3ad475f223ba45b7814a6229b4",
+        "caps": {
+          "40": {
+            "records": 130,
+            "answerable": 117,
+            "negative": 13,
+            "candidate_recall": 1.0,
+            "all_gold_recall": 1.0,
+            "evidence_recall": 1.0,
+            "negative_candidate_rate": 0.3076923076923077,
+            "coverage_per_query": {
+              "raw_array_reference": "/splits/holdout/caps/40/coverage_per_query",
+              "records": 130
+            },
+            "strata": {
+              "answerable:false": {
+                "records": 13,
+                "answerable": 0,
+                "negative": 13,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "answerable:true": {
+                "records": 117,
+                "answerable": 117,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:comparison_year": {
+                "records": 14,
+                "answerable": 14,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:exact_code": {
+                "records": 19,
+                "answerable": 19,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:fact": {
+                "records": 33,
+                "answerable": 33,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:multi_document": {
+                "records": 13,
+                "answerable": 13,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:negative": {
+                "records": 13,
+                "answerable": 0,
+                "negative": 13,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "category:prerequisite": {
+                "records": 19,
+                "answerable": 19,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:table_filter_calculation": {
+                "records": 19,
+                "answerable": 19,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:numeric": {
+                "records": 129,
+                "answerable": 117,
+                "negative": 12,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.3333333333333333
+              },
+              "cohort:scoped": {
+                "records": 19,
+                "answerable": 19,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:year": {
+                "records": 15,
+                "answerable": 14,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "difficulty:easy": {
+                "records": 39,
+                "answerable": 39,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "difficulty:hard": {
+                "records": 52,
+                "answerable": 39,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.3076923076923077
+              },
+              "difficulty:medium": {
+                "records": 39,
+                "answerable": 39,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              }
+            },
+            "candidate_cap": 40,
+            "candidate_misses": [],
+            "provenance_errors": 0,
+            "scope_errors": 0,
+            "duplicate_result_sets": 0,
+            "per_query": {
+              "raw_array_reference": "/splits/holdout/caps/40/per_query",
+              "records": 130
+            }
+          }
+        }
+      },
+      "human_dev": {
+        "benchmark_sha256": "dd29b2b21c7398e45a7c5c343cbdc5238ab56b4ce44e56072484e3626a0d71a3",
+        "caps": {
+          "40": {
+            "records": 193,
+            "answerable": 135,
+            "negative": 58,
+            "candidate_recall": 1.0,
+            "all_gold_recall": 1.0,
+            "evidence_recall": 1.0,
+            "negative_candidate_rate": 0.1896551724137931,
+            "coverage_per_query": {
+              "raw_array_reference": "/splits/human_dev/caps/40/coverage_per_query",
+              "records": 193
+            },
+            "strata": {
+              "answerable:false": {
+                "records": 58,
+                "answerable": 0,
+                "negative": 58,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.1896551724137931
+              },
+              "answerable:true": {
+                "records": 135,
+                "answerable": 135,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:unknown": {
+                "records": 193,
+                "answerable": 135,
+                "negative": 58,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.1896551724137931
+              },
+              "cohort:contextual": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:multi_document": {
+                "records": 1,
+                "answerable": 1,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:multi_hop": {
+                "records": 20,
+                "answerable": 20,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:numeric": {
+                "records": 61,
+                "answerable": 40,
+                "negative": 21,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.47619047619047616
+              },
+              "cohort:scoped": {
+                "records": 193,
+                "answerable": 135,
+                "negative": 58,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.1896551724137931
+              },
+              "cohort:semester": {
+                "records": 14,
+                "answerable": 8,
+                "negative": 6,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:table": {
+                "records": 41,
+                "answerable": 28,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.6923076923076923
+              },
+              "cohort:year": {
+                "records": 1,
+                "answerable": 0,
+                "negative": 1,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "difficulty:easy": {
+                "records": 59,
+                "answerable": 59,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "difficulty:hard": {
+                "records": 102,
+                "answerable": 57,
+                "negative": 45,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.2222222222222222
+              },
+              "difficulty:medium": {
+                "records": 32,
+                "answerable": 19,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.07692307692307693
+              },
+              "tag:abbreviation": {
+                "records": 21,
+                "answerable": 16,
+                "negative": 5,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:abstention": {
+                "records": 13,
+                "answerable": 0,
+                "negative": 13,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.6923076923076923
+              },
+              "tag:ambiguous": {
+                "records": 20,
+                "answerable": 0,
+                "negative": 20,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:answerable": {
+                "records": 135,
+                "answerable": 135,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:code_switching": {
+                "records": 22,
+                "answerable": 17,
+                "negative": 5,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.2
+              },
+              "tag:colloquial": {
+                "records": 6,
+                "answerable": 5,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:conditional": {
+                "records": 4,
+                "answerable": 3,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:contextual": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:contextual_followup": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:course_code": {
+                "records": 25,
+                "answerable": 25,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:easy": {
+                "records": 59,
+                "answerable": 59,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:exact_code": {
+                "records": 38,
+                "answerable": 25,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.6923076923076923
+              },
+              "tag:hard": {
+                "records": 102,
+                "answerable": 57,
+                "negative": 45,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.2222222222222222
+              },
+              "tag:lexical_mismatch": {
+                "records": 7,
+                "answerable": 6,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:long_noisy": {
+                "records": 11,
+                "answerable": 11,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:medium": {
+                "records": 32,
+                "answerable": 19,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.07692307692307693
+              },
+              "tag:multi_hop": {
+                "records": 31,
+                "answerable": 18,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.6923076923076923
+              },
+              "tag:natural": {
+                "records": 193,
+                "answerable": 135,
+                "negative": 58,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.1896551724137931
+              },
+              "tag:negative": {
+                "records": 58,
+                "answerable": 0,
+                "negative": 58,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.1896551724137931
+              },
+              "tag:paraphrase": {
+                "records": 2,
+                "answerable": 2,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:slang": {
+                "records": 9,
+                "answerable": 8,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:table": {
+                "records": 41,
+                "answerable": 28,
+                "negative": 13,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.6923076923076923
+              },
+              "tag:typo": {
+                "records": 10,
+                "answerable": 9,
+                "negative": 1,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:unanswerable": {
+                "records": 10,
+                "answerable": 0,
+                "negative": 10,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.1
+              }
+            },
+            "candidate_cap": 40,
+            "candidate_misses": [],
+            "provenance_errors": 0,
+            "scope_errors": 0,
+            "duplicate_result_sets": 0,
+            "per_query": {
+              "raw_array_reference": "/splits/human_dev/caps/40/per_query",
+              "records": 193
+            }
+          }
+        }
+      },
+      "human_test": {
+        "benchmark_sha256": "a8371e549255c19f3bc7e27ab4dee72fe89bbbbfc1c71fb40d8349f8b1ee9f02",
+        "caps": {
+          "40": {
+            "records": 60,
+            "answerable": 45,
+            "negative": 15,
+            "candidate_recall": 1.0,
+            "all_gold_recall": 1.0,
+            "evidence_recall": 1.0,
+            "negative_candidate_rate": 0.0,
+            "coverage_per_query": {
+              "raw_array_reference": "/splits/human_test/caps/40/coverage_per_query",
+              "records": 60
+            },
+            "strata": {
+              "answerable:false": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "answerable:true": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:unknown": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:multi_hop": {
+                "records": 12,
+                "answerable": 12,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:numeric": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:scoped": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:table": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "difficulty:easy": {
+                "records": 45,
+                "answerable": 30,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "difficulty:hard": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:abstention": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:easy": {
+                "records": 45,
+                "answerable": 30,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:exact_code": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:hard": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:multi_hop": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:natural": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:negative": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:table": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              }
+            },
+            "candidate_cap": 40,
+            "candidate_misses": [],
+            "provenance_errors": 0,
+            "scope_errors": 0,
+            "duplicate_result_sets": 0,
+            "per_query": {
+              "raw_array_reference": "/splits/human_test/caps/40/per_query",
+              "records": 60
+            }
+          }
+        }
+      },
+      "human_holdout": {
+        "benchmark_sha256": "58b9b339aaa085e99bb43e2fce77ee6c05477b114dbdebbc2b1ea730aadf6146",
+        "caps": {
+          "40": {
+            "records": 60,
+            "answerable": 45,
+            "negative": 15,
+            "candidate_recall": 1.0,
+            "all_gold_recall": 1.0,
+            "evidence_recall": 1.0,
+            "negative_candidate_rate": 0.0,
+            "coverage_per_query": {
+              "raw_array_reference": "/splits/human_holdout/caps/40/coverage_per_query",
+              "records": 60
+            },
+            "strata": {
+              "answerable:false": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "answerable:true": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "category:unknown": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:multi_hop": {
+                "records": 13,
+                "answerable": 13,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "cohort:numeric": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:scoped": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "cohort:table": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "difficulty:easy": {
+                "records": 45,
+                "answerable": 30,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "difficulty:hard": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:abstention": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:easy": {
+                "records": 45,
+                "answerable": 30,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:exact_code": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:hard": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:multi_hop": {
+                "records": 15,
+                "answerable": 15,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              },
+              "tag:natural": {
+                "records": 60,
+                "answerable": 45,
+                "negative": 15,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:negative": {
+                "records": 15,
+                "answerable": 0,
+                "negative": 15,
+                "candidate_recall": null,
+                "all_gold_recall": null,
+                "evidence_recall": null,
+                "negative_candidate_rate": 0.0
+              },
+              "tag:table": {
+                "records": 45,
+                "answerable": 45,
+                "negative": 0,
+                "candidate_recall": 1.0,
+                "all_gold_recall": 1.0,
+                "evidence_recall": 1.0,
+                "negative_candidate_rate": null
+              }
+            },
+            "candidate_cap": 40,
+            "candidate_misses": [],
+            "provenance_errors": 0,
+            "scope_errors": 0,
+            "duplicate_result_sets": 0,
+            "per_query": {
+              "raw_array_reference": "/splits/human_holdout/caps/40/per_query",
+              "records": 60
+            }
+          }
+        }
+      }
+    },
+    "status": "pass",
+    "errors": []
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/splits/test/caps/40/coverage_per_query",
+      "records": 130
+    },
+    {
+      "json_pointer": "/splits/test/caps/40/per_query",
+      "records": 130
+    },
+    {
+      "json_pointer": "/splits/holdout/caps/40/coverage_per_query",
+      "records": 130
+    },
+    {
+      "json_pointer": "/splits/holdout/caps/40/per_query",
+      "records": 130
+    },
+    {
+      "json_pointer": "/splits/human_dev/caps/40/coverage_per_query",
+      "records": 193
+    },
+    {
+      "json_pointer": "/splits/human_dev/caps/40/per_query",
+      "records": 193
+    },
+    {
+      "json_pointer": "/splits/human_test/caps/40/coverage_per_query",
+      "records": 60
+    },
+    {
+      "json_pointer": "/splits/human_test/caps/40/per_query",
+      "records": 60
+    },
+    {
+      "json_pointer": "/splits/human_holdout/caps/40/coverage_per_query",
+      "records": 60
+    },
+    {
+      "json_pointer": "/splits/human_holdout/caps/40/per_query",
+      "records": 60
+    }
+  ]
+}

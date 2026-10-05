@@ -30,6 +30,7 @@ class RetrievalModelRuntime:
     def __init__(self) -> None:
         self._lock = RLock()
         self._models: dict[RuntimeKey, Any] = {}
+        self._leases: dict[RuntimeKey, int] = {}
 
     def get_encoder(self, model_name: str, device: str = "cpu") -> Any:
         key = RuntimeKey("encoder", model_name, device)
@@ -80,10 +81,30 @@ class RetrievalModelRuntime:
                 for key in self._models
             ]
 
+    def acquire_offline_reranker(self, snapshot_dir: str | Path, **options) -> tuple[Any, RuntimeKey]:
+        """Share a model while providers hold leases; final shutdown evicts it."""
+        key = RuntimeKey("reranker_offline", str(Path(snapshot_dir).resolve()), options.get("device", "cpu"),
+                         options.get("max_length", 512), options.get("snapshot_sha256"), options.get("dtype", "float32"))
+        with self._lock:
+            model = self.get_offline_reranker(snapshot_dir, **options)
+            self._leases[key] = self._leases.get(key, 0) + 1
+            return model, key
+
+    def release_offline_reranker(self, key: RuntimeKey) -> None:
+        with self._lock:
+            count = self._leases.get(key, 0)
+            if count > 1:
+                self._leases[key] = count - 1
+            elif count == 1:
+                del self._leases[key]
+                self._models.pop(key, None)
+
     def clear(self) -> None:
         """Release cached models explicitly, primarily for tests/shutdown."""
 
         with self._lock:
+            if self._leases:
+                raise RuntimeError("cannot clear models while active providers hold leases")
             self._models.clear()
 
 

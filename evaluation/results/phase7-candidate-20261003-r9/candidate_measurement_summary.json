@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "source_sha256": "a8d78b529ce066318465656a488265e12d519a3d1a95e376496e356e8b9a393b",
+  "runtime_sha256": "d87edb14ef7523fd687dcf993b7c1899a3583bcc9e7502c71c443196d8966ab5",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "raw": {
+    "path": "evaluation/results/phase7-candidate-20261003-r9/candidate_coverage.json",
+    "sha256": "6f73a1683a879a34a72dbcb35c617e7dce3785558c3c537cb131e8d8df1be7ab"
+  },
+  "raw_bytes": 192832630,
+  "note": "Large immutable measured raw is retained locally and ignored in Git; no heldout question/gold changed."
+}

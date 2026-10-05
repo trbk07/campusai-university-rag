@@ -1,0 +1,475 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09_successor_dev_baseline_report-v3.json",
+    "sha256": "ca7973f13ed090893e70e320da2b09710951b520b7ce8ea15acdddf08bf38630"
+  },
+  "summary": {
+    "dev_sha256": "baa67761d0e1706fbb1f1267bee311ac52261a01ca6a2f43c34d604b82429ee3",
+    "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+    "phase6_calibration_sha256": "ec77f5037b004b2b666e942763ef8d1254d3637fc71e7b556ff1a185bb94ad39",
+    "f0_signoff_sha256": "455fc97e22c3c468e9f30952f0b552068dc2804981ba899c96abecadb4e3ca01",
+    "runner_sha256": "1d12f578cd0ccc76b2269b1c101612fb200ef5d2efb78feba772e4769009590e",
+    "release_eligible": false,
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "status": "MEASURED_DEV_ONLY",
+    "measurements_real": true,
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+      "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+      "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+    },
+    "source_stable": true,
+    "raw_sha256": "fe39b8fc70a498a5a9dfcfcfadc677035f676691b4d6d950aa6c51e0723d0621",
+    "queries": 829,
+    "quality": {
+      "recall5": 0.985200845665962,
+      "mrr": 0.9313601127554616,
+      "ndcg5": 0.9368386490330967,
+      "negative_fpr": 0.011235955056179775,
+      "positive": 473,
+      "negative": 356,
+      "all_gold_coverage5": 0.9661733615221987
+    },
+    "coverage": {
+      "records": 829,
+      "answerable": 473,
+      "negative": 356,
+      "candidate_recall": 0.9957716701902748,
+      "all_gold_recall": 0.9957716701902748,
+      "evidence_recall": 0.996,
+      "negative_candidate_rate": 0.011235955056179775,
+      "coverage_per_query": {
+        "raw_array_reference": "/coverage/coverage_per_query",
+        "records": 829
+      },
+      "strata": {
+        "answerable:false": {
+          "records": 356,
+          "answerable": 0,
+          "negative": 356,
+          "candidate_recall": null,
+          "all_gold_recall": null,
+          "evidence_recall": null,
+          "negative_candidate_rate": 0.011235955056179775
+        },
+        "answerable:true": {
+          "records": 473,
+          "answerable": 473,
+          "negative": 0,
+          "candidate_recall": 0.9957716701902748,
+          "all_gold_recall": 0.9957716701902748,
+          "evidence_recall": 0.996,
+          "negative_candidate_rate": null
+        },
+        "category:unknown": {
+          "records": 829,
+          "answerable": 473,
+          "negative": 356,
+          "candidate_recall": 0.9957716701902748,
+          "all_gold_recall": 0.9957716701902748,
+          "evidence_recall": 0.996,
+          "negative_candidate_rate": 0.011235955056179775
+        },
+        "cohort:contextual": {
+          "records": 20,
+          "answerable": 20,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "cohort:multi_document": {
+          "records": 4,
+          "answerable": 4,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "cohort:multi_hop": {
+          "records": 23,
+          "answerable": 23,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "cohort:numeric": {
+          "records": 469,
+          "answerable": 150,
+          "negative": 319,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.009404388714733543
+        },
+        "cohort:scoped": {
+          "records": 829,
+          "answerable": 473,
+          "negative": 356,
+          "candidate_recall": 0.9957716701902748,
+          "all_gold_recall": 0.9957716701902748,
+          "evidence_recall": 0.996,
+          "negative_candidate_rate": 0.011235955056179775
+        },
+        "cohort:semester": {
+          "records": 326,
+          "answerable": 224,
+          "negative": 102,
+          "candidate_recall": 0.9910714285714286,
+          "all_gold_recall": 0.9910714285714286,
+          "evidence_recall": 0.9910714285714286,
+          "negative_candidate_rate": 0.0
+        },
+        "cohort:table": {
+          "records": 377,
+          "answerable": 366,
+          "negative": 11,
+          "candidate_recall": 0.994535519125683,
+          "all_gold_recall": 0.994535519125683,
+          "evidence_recall": 0.994579945799458,
+          "negative_candidate_rate": 0.2727272727272727
+        },
+        "cohort:year": {
+          "records": 4,
+          "answerable": 3,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "difficulty:easy": {
+          "records": 597,
+          "answerable": 286,
+          "negative": 311,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.00964630225080386
+        },
+        "difficulty:hard": {
+          "records": 200,
+          "answerable": 168,
+          "negative": 32,
+          "candidate_recall": 0.9880952380952381,
+          "all_gold_recall": 0.9880952380952381,
+          "evidence_recall": 0.9897435897435898,
+          "negative_candidate_rate": 0.0
+        },
+        "difficulty:medium": {
+          "records": 32,
+          "answerable": 19,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.07692307692307693
+        },
+        "tag:abbreviation": {
+          "records": 21,
+          "answerable": 16,
+          "negative": 5,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:abstention": {
+          "records": 311,
+          "answerable": 0,
+          "negative": 311,
+          "candidate_recall": null,
+          "all_gold_recall": null,
+          "evidence_recall": null,
+          "negative_candidate_rate": 0.00964630225080386
+        },
+        "tag:ambiguous": {
+          "records": 20,
+          "answerable": 0,
+          "negative": 20,
+          "candidate_recall": null,
+          "all_gold_recall": null,
+          "evidence_recall": null,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:answerable": {
+          "records": 135,
+          "answerable": 135,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:code_switching": {
+          "records": 22,
+          "answerable": 17,
+          "negative": 5,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:colloquial": {
+          "records": 6,
+          "answerable": 5,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:conditional": {
+          "records": 4,
+          "answerable": 3,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:contextual": {
+          "records": 20,
+          "answerable": 20,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:contextual_followup": {
+          "records": 20,
+          "answerable": 20,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:course_code": {
+          "records": 25,
+          "answerable": 25,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:curriculum": {
+          "records": 216,
+          "answerable": 216,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:easy": {
+          "records": 597,
+          "answerable": 286,
+          "negative": 311,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.00964630225080386
+        },
+        "tag:exact_code": {
+          "records": 350,
+          "answerable": 39,
+          "negative": 311,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.00964630225080386
+        },
+        "tag:hard": {
+          "records": 200,
+          "answerable": 168,
+          "negative": 32,
+          "candidate_recall": 0.9880952380952381,
+          "all_gold_recall": 0.9880952380952381,
+          "evidence_recall": 0.9897435897435898,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:lexical_mismatch": {
+          "records": 7,
+          "answerable": 6,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:long_noisy": {
+          "records": 11,
+          "answerable": 11,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:medium": {
+          "records": 32,
+          "answerable": 19,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.07692307692307693
+        },
+        "tag:multi_document": {
+          "records": 3,
+          "answerable": 3,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:multi_hop": {
+          "records": 129,
+          "answerable": 129,
+          "negative": 0,
+          "candidate_recall": 0.9844961240310077,
+          "all_gold_recall": 0.9844961240310077,
+          "evidence_recall": 0.986013986013986,
+          "negative_candidate_rate": null
+        },
+        "tag:natural": {
+          "records": 829,
+          "answerable": 473,
+          "negative": 356,
+          "candidate_recall": 0.9957716701902748,
+          "all_gold_recall": 0.9957716701902748,
+          "evidence_recall": 0.996,
+          "negative_candidate_rate": 0.011235955056179775
+        },
+        "tag:negative": {
+          "records": 356,
+          "answerable": 0,
+          "negative": 356,
+          "candidate_recall": null,
+          "all_gold_recall": null,
+          "evidence_recall": null,
+          "negative_candidate_rate": 0.011235955056179775
+        },
+        "tag:paraphrase": {
+          "records": 2,
+          "answerable": 2,
+          "negative": 0,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": null
+        },
+        "tag:slang": {
+          "records": 9,
+          "answerable": 8,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:table": {
+          "records": 377,
+          "answerable": 366,
+          "negative": 11,
+          "candidate_recall": 0.994535519125683,
+          "all_gold_recall": 0.994535519125683,
+          "evidence_recall": 0.994579945799458,
+          "negative_candidate_rate": 0.2727272727272727
+        },
+        "tag:typo": {
+          "records": 10,
+          "answerable": 9,
+          "negative": 1,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0
+        },
+        "tag:unanswerable": {
+          "records": 10,
+          "answerable": 0,
+          "negative": 10,
+          "candidate_recall": null,
+          "all_gold_recall": null,
+          "evidence_recall": null,
+          "negative_candidate_rate": 0.1
+        }
+      },
+      "candidate_cap": 40,
+      "candidate_misses": [
+        {
+          "qid": "human-p7r18-curriculum-001-combined-2",
+          "query": "The joint MAI study plan lists Algebra; what term and number of credits does it show?",
+          "expected_evidence": [
+            [
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1"
+            ]
+          ],
+          "candidate_ids": []
+        },
+        {
+          "qid": "human-p7r18-curriculum-004-combined-2",
+          "query": "The joint MAI study plan lists Chemistry; what term and number of credits does it show?",
+          "expected_evidence": [
+            [
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1"
+            ]
+          ],
+          "candidate_ids": []
+        }
+      ],
+      "provenance_errors": 0,
+      "scope_errors": 0,
+      "duplicate_result_sets": 0,
+      "per_query": {
+        "raw_array_reference": "/coverage/per_query",
+        "records": 829
+      }
+    },
+    "runtime_loaded_models": [
+      {
+        "kind": "encoder",
+        "model_name": "BAAI/bge-m3",
+        "device": "cpu"
+      },
+      {
+        "kind": "encoder",
+        "model_name": "BAAI/bge-m3",
+        "device": "cuda"
+      }
+    ],
+    "torch_num_threads": 1,
+    "elapsed_seconds": 819.6002909000017
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/coverage/coverage_per_query",
+      "records": 829
+    },
+    {
+      "json_pointer": "/coverage/per_query",
+      "records": 829
+    }
+  ]
+}

@@ -1,0 +1,613 @@
+{
+  "schema_version": 2,
+  "phase": 7,
+  "status": "conditional",
+  "all_release_gates_pass": false,
+  "score": null,
+  "errors": [
+    "S2:missing_or_invalid_supplemental_raw",
+    "S3:missing_or_invalid_supplemental_raw",
+    "S4:missing_or_invalid_supplemental_raw",
+    "S5:missing_or_invalid_supplemental_raw",
+    "S6:missing_or_invalid_supplemental_raw",
+    "benchmark_sha256_binding",
+    "calibration_evidence_gate",
+    "calibration_fallback_rate_gate",
+    "calibration_invalid_score_rate_gate",
+    "calibration_invalid_scores_gate",
+    "calibration_policy_domain_gate",
+    "calibration_report_gate",
+    "calibration_sha256_binding",
+    "calibration_timeout_rate_gate",
+    "canary_observation_gate",
+    "canary_report_gate",
+    "candidate_human_test_stratified_coverage_gate",
+    "candidate_report_gate",
+    "capacity_deployment_profile_gate",
+    "capacity_gate",
+    "capacity_report_gate",
+    "capacity_resource_limits_binding",
+    "deployment_ram_headroom_gate",
+    "failure_matrix_evidence_gate",
+    "failure_matrix_gate",
+    "failure_matrix_permanent_failure_gate",
+    "failure_matrix_report_gate",
+    "grounding_raw_report_gate",
+    "grounding_regression_gate",
+    "grounding_report_gate",
+    "hard_route_gate",
+    "http_end_to_end_evidence_gate",
+    "http_end_to_end_report_gate",
+    "http_live_llm_identity_gate",
+    "http_release_cap_and_slo_gate",
+    "http_resource_gate",
+    "human_benchmark_sha256_binding",
+    "index_sha256_binding",
+    "missing_calibration",
+    "missing_canary",
+    "missing_capacity",
+    "missing_failure_matrix",
+    "missing_grounding",
+    "missing_http_end_to_end",
+    "missing_or_invalid_heldout_freeze",
+    "missing_performance",
+    "missing_provider_contract",
+    "missing_quality",
+    "missing_resource_budget",
+    "missing_rollback",
+    "missing_route",
+    "missing_route_confusion",
+    "missing_security",
+    "missing_sensitivity",
+    "missing_smoke",
+    "missing_staging",
+    "model_determinism_gate",
+    "model_identity_sha256_binding",
+    "offline_model_gate",
+    "performance_cold_start_ms_gate",
+    "performance_cpu_utilization_percent_gate",
+    "performance_gate",
+    "performance_report_gate",
+    "performance_warmup_ms_gate",
+    "phase6_calibration_sha256_binding",
+    "provider_bounded_queue_gate",
+    "provider_candidate_set_preserved_gate",
+    "provider_contract_evidence_gate",
+    "provider_contract_gate",
+    "provider_contract_permanent_failure_gate",
+    "provider_contract_report_gate",
+    "provider_private_scores_gate",
+    "provider_singleton_loading_gate",
+    "provider_warmup_gate",
+    "quality_evidence_gate",
+    "quality_holdout_gate",
+    "quality_report_gate",
+    "quality_test_gate",
+    "release_artifact_hash_gate",
+    "release_raw_artifact_gate",
+    "release_regressions_content_gate",
+    "reranker_calibration_gate",
+    "reranker_sensitivity_gate",
+    "resource_budget_report_gate",
+    "rollback_evidence_gate",
+    "rollback_gate",
+    "rollback_report_gate",
+    "route_calibration_sha256_binding",
+    "route_confusion_report_gate",
+    "route_dev_evidence_gate",
+    "route_dev_gate",
+    "route_feature_allowlist_gate",
+    "route_grouped_probability_evidence_gate",
+    "route_holdout_evidence_gate",
+    "route_holdout_gate",
+    "route_report_gate",
+    "route_test_evidence_gate",
+    "route_test_gate",
+    "runtime_sha256_binding",
+    "security_adversarial_gate",
+    "security_evidence_gate",
+    "security_invalid_citation_gate",
+    "security_negative_gate",
+    "security_provenance_leakage_gate",
+    "security_report_gate",
+    "security_scope_leakage_gate",
+    "sensitivity_report_gate",
+    "smoke_report_gate",
+    "source_sha256_binding",
+    "staging_evidence_gate",
+    "staging_gate",
+    "staging_report_gate",
+    "staging_sha256_binding",
+    "statistical_significance_gate",
+    "test_sha256_binding",
+    "training_split_sha256_binding",
+    "working_tree_dirty"
+  ],
+  "gates": {
+    "M0": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "baseline reviewer",
+      "errors": [],
+      "requires": [],
+      "artifacts": [
+        "retrieval_baseline_manifest.json",
+        "retrieval_baseline_comparison.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M0"
+    },
+    "M1": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "human annotator and independent reviewer",
+      "errors": [],
+      "requires": [
+        "M0"
+      ],
+      "artifacts": [
+        "human_benchmark_review.json",
+        "human_benchmark_manifest.json",
+        "reranker_lineage.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M1"
+    },
+    "M2": {
+      "status": "FAIL",
+      "evidence_status": "FAIL",
+      "owner": "retrieval reviewer",
+      "errors": [
+        "candidate_human_test_stratified_coverage_gate",
+        "candidate_report_gate"
+      ],
+      "requires": [
+        "M1"
+      ],
+      "artifacts": [
+        "candidate_coverage.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M2"
+    },
+    "M3": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "runtime reviewer",
+      "errors": [
+        "S2:missing_or_invalid_supplemental_raw",
+        "index_sha256_binding",
+        "missing_provider_contract",
+        "missing_smoke",
+        "model_determinism_gate",
+        "model_identity_sha256_binding",
+        "offline_model_gate",
+        "phase6_calibration_sha256_binding",
+        "provider_bounded_queue_gate",
+        "provider_candidate_set_preserved_gate",
+        "provider_contract_evidence_gate",
+        "provider_contract_gate",
+        "provider_contract_permanent_failure_gate",
+        "provider_contract_report_gate",
+        "provider_private_scores_gate",
+        "provider_singleton_loading_gate",
+        "provider_warmup_gate",
+        "runtime_sha256_binding",
+        "smoke_report_gate",
+        "source_sha256_binding"
+      ],
+      "requires": [
+        "M2"
+      ],
+      "artifacts": [
+        "model_snapshot_smoke.json",
+        "reranker_provider_contract.json",
+        "reranker_context_lifecycle.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M3"
+    },
+    "M4": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "routing reviewer",
+      "errors": [
+        "benchmark_sha256_binding",
+        "hard_route_gate",
+        "index_sha256_binding",
+        "missing_or_invalid_heldout_freeze",
+        "missing_route",
+        "missing_route_confusion",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "route_calibration_sha256_binding",
+        "route_confusion_report_gate",
+        "route_dev_evidence_gate",
+        "route_dev_gate",
+        "route_feature_allowlist_gate",
+        "route_grouped_probability_evidence_gate",
+        "route_holdout_evidence_gate",
+        "route_holdout_gate",
+        "route_report_gate",
+        "route_test_evidence_gate",
+        "route_test_gate",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M3"
+      ],
+      "artifacts": [
+        "hard_query_route_calibration.json",
+        "hard_query_route_confusion.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M4"
+    },
+    "M5": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "calibration reviewer",
+      "errors": [
+        "calibration_evidence_gate",
+        "calibration_fallback_rate_gate",
+        "calibration_invalid_score_rate_gate",
+        "calibration_invalid_scores_gate",
+        "calibration_policy_domain_gate",
+        "calibration_report_gate",
+        "calibration_timeout_rate_gate",
+        "index_sha256_binding",
+        "missing_calibration",
+        "missing_sensitivity",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "reranker_calibration_gate",
+        "reranker_sensitivity_gate",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "sensitivity_report_gate",
+        "source_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M4"
+      ],
+      "artifacts": [
+        "reranker_score_calibration.json",
+        "reranker_cap_sensitivity.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M5"
+    },
+    "M6": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "quality reviewer",
+      "errors": [
+        "S3:missing_or_invalid_supplemental_raw",
+        "S4:missing_or_invalid_supplemental_raw",
+        "S5:missing_or_invalid_supplemental_raw",
+        "calibration_sha256_binding",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_or_invalid_heldout_freeze",
+        "missing_quality",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "quality_evidence_gate",
+        "quality_holdout_gate",
+        "quality_report_gate",
+        "quality_test_gate",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "statistical_significance_gate",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M5"
+      ],
+      "artifacts": [
+        "retrieval_quality_comparison.json",
+        "reranker_group_statistics.json",
+        "reranker_answer_quality.json",
+        "reranker_complete_evidence.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M6"
+    },
+    "M7": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "deployment owner",
+      "errors": [
+        "S6:missing_or_invalid_supplemental_raw",
+        "calibration_sha256_binding",
+        "capacity_deployment_profile_gate",
+        "capacity_gate",
+        "capacity_report_gate",
+        "capacity_resource_limits_binding",
+        "deployment_ram_headroom_gate",
+        "http_end_to_end_evidence_gate",
+        "http_end_to_end_report_gate",
+        "http_live_llm_identity_gate",
+        "http_release_cap_and_slo_gate",
+        "http_resource_gate",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_capacity",
+        "missing_http_end_to_end",
+        "missing_performance",
+        "missing_resource_budget",
+        "model_identity_sha256_binding",
+        "performance_cold_start_ms_gate",
+        "performance_cpu_utilization_percent_gate",
+        "performance_gate",
+        "performance_report_gate",
+        "performance_warmup_ms_gate",
+        "phase6_calibration_sha256_binding",
+        "resource_budget_report_gate",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "test_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M6"
+      ],
+      "artifacts": [
+        "reranker_performance.json",
+        "reranker_capacity.json",
+        "reranker_resource_budget.json",
+        "reranker_http_end_to_end.json",
+        "reranker_observability.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M7"
+    },
+    "M8": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "security and grounding reviewer",
+      "errors": [
+        "calibration_sha256_binding",
+        "grounding_raw_report_gate",
+        "grounding_regression_gate",
+        "grounding_report_gate",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_grounding",
+        "missing_security",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "security_adversarial_gate",
+        "security_evidence_gate",
+        "security_invalid_citation_gate",
+        "security_negative_gate",
+        "security_provenance_leakage_gate",
+        "security_report_gate",
+        "security_scope_leakage_gate",
+        "source_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M7"
+      ],
+      "artifacts": [
+        "reranker_grounding_regression.json",
+        "reranker_security.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M8"
+    },
+    "M9": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "runtime reviewer",
+      "errors": [
+        "calibration_sha256_binding",
+        "failure_matrix_evidence_gate",
+        "failure_matrix_gate",
+        "failure_matrix_permanent_failure_gate",
+        "failure_matrix_report_gate",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_failure_matrix",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M8"
+      ],
+      "artifacts": [
+        "reranker_failure_matrix.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M9"
+    },
+    "M10": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "operations owner",
+      "errors": [
+        "calibration_sha256_binding",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_rollback",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "rollback_evidence_gate",
+        "rollback_gate",
+        "rollback_report_gate",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M9"
+      ],
+      "artifacts": [
+        "reranker_rollback.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M10"
+    },
+    "M11": {
+      "status": "BLOCKED",
+      "evidence_status": "BLOCKED",
+      "owner": "staging owner",
+      "errors": [
+        "calibration_sha256_binding",
+        "canary_observation_gate",
+        "canary_report_gate",
+        "human_benchmark_sha256_binding",
+        "index_sha256_binding",
+        "missing_canary",
+        "missing_staging",
+        "model_identity_sha256_binding",
+        "phase6_calibration_sha256_binding",
+        "route_calibration_sha256_binding",
+        "runtime_sha256_binding",
+        "source_sha256_binding",
+        "staging_evidence_gate",
+        "staging_gate",
+        "staging_report_gate",
+        "staging_sha256_binding",
+        "training_split_sha256_binding"
+      ],
+      "requires": [
+        "M10"
+      ],
+      "artifacts": [
+        "reranker_staging.json",
+        "canary_observations.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M11"
+    },
+    "M12": {
+      "status": "BLOCKED",
+      "evidence_status": "FAIL",
+      "owner": "release owner",
+      "errors": [
+        "release_artifact_hash_gate",
+        "release_raw_artifact_gate",
+        "release_regressions_content_gate",
+        "working_tree_dirty"
+      ],
+      "requires": [
+        "M11"
+      ],
+      "artifacts": [],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M12"
+    }
+  },
+  "supplemental_gates": {
+    "S1": {
+      "status": "PASS",
+      "errors": [],
+      "required_at": "M1",
+      "artifacts": [
+        "reranker_lineage.json"
+      ]
+    },
+    "S2": {
+      "status": "BLOCKED",
+      "errors": [
+        "missing_or_invalid_supplemental_raw"
+      ],
+      "required_at": "M3",
+      "artifacts": [
+        "reranker_context_lifecycle.json"
+      ]
+    },
+    "S3": {
+      "status": "BLOCKED",
+      "errors": [
+        "missing_or_invalid_supplemental_raw"
+      ],
+      "required_at": "M6",
+      "artifacts": [
+        "reranker_group_statistics.json"
+      ]
+    },
+    "S4": {
+      "status": "BLOCKED",
+      "errors": [
+        "missing_or_invalid_supplemental_raw"
+      ],
+      "required_at": "M6",
+      "artifacts": [
+        "reranker_answer_quality.json"
+      ]
+    },
+    "S5": {
+      "status": "BLOCKED",
+      "errors": [
+        "missing_or_invalid_supplemental_raw"
+      ],
+      "required_at": "M6",
+      "artifacts": [
+        "reranker_complete_evidence.json"
+      ]
+    },
+    "S6": {
+      "status": "BLOCKED",
+      "errors": [
+        "missing_or_invalid_supplemental_raw"
+      ],
+      "required_at": "M7",
+      "artifacts": [
+        "reranker_observability.json"
+      ]
+    }
+  },
+  "through": "M12",
+  "commit": "784cb3e0a0559cc563991f2246a762caadc61654",
+  "source_sha256": "08b8730eb74169217785bb00917b936d4b546ded8fef8f821b43a852424fc2d3",
+  "runtime_sha256": "4fbe8c57a8dc2398e9c9bd00361bf0226122cf1340d44efdf84dc054e7cb3f37",
+  "working_tree_clean": false,
+  "base_release": "phase6-rc3",
+  "baseline_commit": "8e3a331838fbccaa16b4dd00381b9ed4738e958f",
+  "model_identity_sha256": null,
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "calibration_sha256": null,
+  "artifact_sha256": {
+    "baseline": "1ff3b5082d9fc5dcf1f7f96f1e39997f45c30a4d75cd84a0d52768e9177d52ab",
+    "baseline_report": "6e0484cbcedc22059365e02a6bfbb589d9da0c6c3341208e8c17f29c255e7f74",
+    "human_review": "e0d692c90ad5a920527c6dca3d84922888e14c5a15ca36e31d916272f2fac3b7",
+    "human_manifest": "2e3950b48b5d7d7864a9ef756ec99dfaa8ef3745d3ce18243d8136f74ef697d4",
+    "candidate": "f1ad872cd1eeee7c93bfb923d9a2a4223aaa4debf4675776f5be424a8e13f487",
+    "smoke": null,
+    "provider_contract": null,
+    "route": null,
+    "route_confusion": null,
+    "calibration": null,
+    "sensitivity": null,
+    "quality": null,
+    "performance": null,
+    "capacity": null,
+    "resource_budget": null,
+    "http_end_to_end": null,
+    "grounding": null,
+    "security": null,
+    "failure_matrix": null,
+    "rollback": null,
+    "staging": null,
+    "canary": null,
+    "lineage": "8f6361c004735bef6d1718b43bf82d6c69f0b73583d0757b341d4754426b3ee0",
+    "context": null,
+    "statistics": null,
+    "answers": null,
+    "evidence": null,
+    "observability": null,
+    "retrieval_quality_comparison.md": null,
+    "retrieval_ranking_regressions.jsonl": null,
+    "reranker_route_freeze.json": null,
+    "reranker_policy_freeze.json": null,
+    "reranker_answer_protocol.json": null,
+    "raw/measurement_receipts/candidate_3630499a55e64631ba3e88631e0aa9bf.json": "62e0a224bdd332431e932bc9a0bd0a6e17d37153d4631739e87f55a32ca9efa4",
+    "raw/measurement_receipts/human-freeze_282d3e5fc3f94b808e56dd3c1159d57d.json": "b5fb47e72638a5bb174030a76f628a7ca6f7a8e72a57713f3218bde6b2b71c70",
+    "raw/measurement_receipts/human-freeze_4f690a99424842828725e7281c7fe79b.json": "f2d412a1ae0f2c17ea605899dd8fe705e9d5694744795ae452979cb33254ac46",
+    "raw/measurement_receipts/human-freeze_88b9944f5737480584a0d5a5d7e129a1.json": "cfea931a288e27b029b8da78fbdba3f0f2b9b61246419258586787b655a9729e",
+    "raw/measurement_receipts/human-freeze_8bf513d9966b4e979e92b494337b403b.json": "5e45674876c617231d100a01bb136a9c0baeed1c15c62f8fb6d1ed22a3ff8e7d"
+  },
+  "deployment_ram_bytes": null
+}

@@ -21,6 +21,15 @@ CATEGORY_COUNTS = {
     "prerequisite": 60, "multi_document": 40, "comparison_year": 40,
     "negative": 40,
 }
+
+
+def category_difficulty(category: str) -> str:
+    """Describe the request's operation; its ordinal is not a difficulty feature."""
+    levels = {"fact": "easy", "exact_code": "easy", "table_filter_calculation": "medium",
+              "prerequisite": "hard", "multi_document": "hard", "comparison_year": "hard", "negative": "hard"}
+    if category not in levels:
+        raise ValueError("unsupported benchmark category")
+    return levels[category]
 CODE_RE = re.compile(r"(?<!\w)[A-ZĐ]{2,}[A-ZĐ]*[-_.]?\d{1,4}[A-Z]?(?!\w)", re.I)
 WORD_RE = re.compile(r"[\wÀ-ỹ]{3,}", re.UNICODE)
 STOP = {"các", "và", "the", "this", "that", "được", "trong", "của", "cho", "with", "from", "theo"}
@@ -226,7 +235,7 @@ def main() -> int:
                     "qid": f"phase6-{split}-{serial + 1:03d}", "split": split,
                     "question": question, "language": entry.get("language", "vi"),
                     "category": category, "query_type": "exact_code" if category == "exact_code" else "hybrid_rrf",
-                    "difficulty": ("easy", "medium", "hard")[serial % 3], "answerable": True,
+                    "difficulty": category_difficulty(category), "answerable": True,
                     "gold_evidence": [{"doc_id": selected_document.doc_id, "chunk_id": chunk.chunk_id,
                                        "pages": [chunk.page], "relevance": 1,
                                        "quote": chunk.content[:500]}],

@@ -1,0 +1,48 @@
+{
+  "dev_sha256": "baa67761d0e1706fbb1f1267bee311ac52261a01ca6a2f43c34d604b82429ee3",
+  "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+  "phase6_calibration_sha256": "ec77f5037b004b2b666e942763ef8d1254d3637fc71e7b556ff1a185bb94ad39",
+  "f0_signoff_sha256": "455fc97e22c3c468e9f30952f0b552068dc2804981ba899c96abecadb4e3ca01",
+  "candidate_raw_sha256": "f2d91e679b0ed289da12a720b2d63bb141776c924eb355faacb2bcdcfc4fab77",
+  "candidate_source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "3ede0c19fddfab15c9e1094f121c9efb71d732b618492170232751dcd340ac54",
+    "runtime_sha256": "8a7787cbcc42899b5ccd503c5d79ec147aa901d189929e34c7d878b07de61110"
+  },
+  "scoring_source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "d96550acbb1b8d56c88587aa1f3177240585c213e94a38b16a9680c27149075b",
+    "runtime_sha256": "4fbe8c57a8dc2398e9c9bd00361bf0226122cf1340d44efdf84dc054e7cb3f37"
+  },
+  "runner_sha256": "7d1f01d870550d581a58dcc7eaa490da847976dc1a760780c7e1f4f7b30bc5b4",
+  "release_eligible": false,
+  "calibration_split": "dev",
+  "test_used": false,
+  "holdout_used": false,
+  "llm_called": false,
+  "model_identity": {
+    "model_name": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+    "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "provider": "sentence_transformers",
+    "device": "cuda:0",
+    "dtype": "float32",
+    "max_length": 512,
+    "batch_size": 8,
+    "normalization": "raw_logit",
+    "batch_window_ms": 0.0,
+    "max_batch_pairs": 200,
+    "input_format": "body_table_window",
+    "input_version": "structured-input-v3"
+  },
+  "model_identity_sha256": "79ef8d95276e48222bb8f89b6b6fc3f1c68e4cfff9b408e32048e38e6a00d7d0",
+  "input_format": "body_table_window",
+  "score_cache_size": 0,
+  "collection_cap": 40,
+  "measurements_real": true,
+  "torch_num_threads": 4,
+  "status": "REGISTERED_DEV_SCORE_COLLECTION",
+  "recorded_at": "2026-10-05T05:57:38.878227+00:00",
+  "purpose": "actual context-aligned successor dev scores and ranking-only diagnostics"
+}

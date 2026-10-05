@@ -1,0 +1,17 @@
+{
+  "qid": "human-candidate-0133",
+  "reviewer": "Trương Bảo Kiên",
+  "review_status": "approved",
+  "review_checks": {
+    "natural": true,
+    "answerability": true,
+    "evidence_sufficient": true,
+    "corpus_temporal_scope": true,
+    "difficulty": true,
+    "no_paraphrase_leakage": true,
+    "expected_behavior": true
+  },
+  "reviewed_at": "2026-10-02T18:15:41.595506+00:00",
+  "record_sha256": "33bb0fd609b247d533e947dbaab3594b26cfc645951432e3075d2498b981c990",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38"
+}

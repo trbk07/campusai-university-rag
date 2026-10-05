@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-17-1-current-fault-injection.json",
+    "sha256": "13ff5a6346a006cc013ecaaa1aaf27abc83e9421e482996bb8f34645a5c32f1f"
+  },
+  "summary": {
+    "validation": {
+      "schema_version": 1,
+      "task": "P7-17.1",
+      "status": "PASS_OFFLINE_FAULT_INJECTION_SUBTASK",
+      "release_eligible": false,
+      "scope": "synthetic isolated fault harness only",
+      "command": ".venv/Scripts/python.exe -m evaluation.reranker.check_reranker_faults --exploratory --work-dir .tmp/phase7-p7-17-1-current",
+      "runner_report_status": "conditional",
+      "runner_report_sha256": "93be36f65f56b02f43e7948046df1394863b533932b00b5d19ece39091bb5aff",
+      "required_failures": {
+        "model_missing": true,
+        "model_hash_mismatch": true,
+        "calibration_missing": true,
+        "calibration_hash_mismatch": true,
+        "timeout": true,
+        "queue_full": true,
+        "invalid_score": true,
+        "wrong_candidate_id": true,
+        "wrong_doc_id": true,
+        "wrong_page": true,
+        "empty_output": true,
+        "oom": true,
+        "provider_exception": true,
+        "cache_key_mismatch": true,
+        "model_revision_mismatch": true
+      },
+      "all_required_failures_passed": true,
+      "all_harness_checks_passed": true,
+      "observation_count": 25,
+      "source_identity": {
+        "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+        "source_sha256": "9a85defa2f10c2bf508428ce71d18246a213043a92025a169170675e55fda319",
+        "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+      },
+      "recorded_at": "2026-10-04T14:12:15.923469+00:00",
+      "limitations": [
+        "Exploratory runner intentionally reports conditional because prior release gates are unavailable.",
+        "Does not prove faults/recovery on frozen provider, CUDA device, or target runtime; P7-17 overall and M9 remain blocked."
+      ]
+    },
+    "runner_report": {
+      "status": "conditional",
+      "checks": {
+        "timeout": true,
+        "queue_full": true,
+        "provider_exception": true,
+        "oom": true,
+        "model_missing": true,
+        "invalid_score": true,
+        "wrong_candidate_id": true,
+        "wrong_doc_id": true,
+        "wrong_page": true,
+        "empty_output": true,
+        "malformed_output": true,
+        "wrong_original_rank": true,
+        "infinite_score": true,
+        "calibration_missing": true,
+        "calibration_hash_mismatch": true,
+        "empty_query": true,
+        "exact_code_query": true,
+        "abstention_query": true,
+        "cache_key_mismatch": true,
+        "model_hash_mismatch": true,
+        "model_revision_mismatch": true,
+        "bounded_queue": true,
+        "singleton_loading": true,
+        "warmup": true,
+        "circuit_breaker": true,
+        "model_unavailable": true,
+        "invalid_model_hash": true,
+        "malformed_score": true,
+        "wrong_provenance": true,
+        "wrong_doc_scope": true
+      },
+      "observations": {
+        "raw_array_reference": "/runner_report/observations",
+        "records": 25
+      },
+      "evidence_type": "controlled_fault_injection",
+      "fixture_model_identity_sha256": "d0f9f356cd9364bc776dac35fd21b041bd184809f51aa2030cdd17edd2adc412",
+      "singleton_loading": true,
+      "bounded_queue": true,
+      "warmup": true,
+      "private_scores": true,
+      "candidate_set_preserved": true
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/runner_report/observations",
+      "records": 25
+    }
+  ]
+}

@@ -68,7 +68,8 @@ def fit_route_probabilities(samples: list[dict], rows: list[dict]) -> tuple[dict
             or sum(sample["difficulty"] == "easy" for sample in samples) < 10):
         raise ValueError("routing fit needs at least 30 queries and 10 per difficulty")
     sampled_rows = [by_id[sample["qid"]] for sample in samples]
-    groups = _fold_groups(sampled_rows)
+    all_groups = dict(zip((row['qid'] for row in rows), _fold_groups(rows)))
+    groups = [all_groups[row['qid']] for row in sampled_rows]
     unique = sorted(set(groups), key=lambda group: hashlib.sha256(group.encode()).hexdigest())
     if len(unique) < 2:
         raise ValueError("routing fit needs two independent query families")

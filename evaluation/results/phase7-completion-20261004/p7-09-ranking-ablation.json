@@ -1,0 +1,647 @@
+{
+  "baseline": {
+    "recall5": 0.9373737373737374,
+    "mrr": 0.552020202020202,
+    "ndcg5": 0.6399809647096392,
+    "negative_fpr": 0.09390862944162437,
+    "positive": 495,
+    "negative": 394,
+    "all_gold_coverage5": 0.9111111111111111
+  },
+  "trials": [
+    {
+      "cap": 8,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9434343434343434,
+        "mrr": 0.546969696969697,
+        "ndcg5": 0.6379104961669434,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9212121212121213
+      },
+      "delta_mrr_abs": -0.005050505050504972,
+      "delta_mrr_relative": -0.009149130832570764,
+      "delta_ndcg5_abs": -0.002070468542695769,
+      "delta_ndcg5_relative": -0.003235203321453702
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9555555555555556,
+        "mrr": 0.5521212121212121,
+        "ndcg5": 0.6448411822345292,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9373737373737374
+      },
+      "delta_mrr_abs": 0.00010101010101015717,
+      "delta_mrr_relative": 0.00018298261665151988,
+      "delta_ndcg5_abs": 0.004860217524890076,
+      "delta_ndcg5_relative": 0.007594315757649398
+    },
+    {
+      "cap": 8,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.9252525252525252,
+        "mrr": 0.5223905723905724,
+        "ndcg5": 0.6140168335249511,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9030303030303031
+      },
+      "delta_mrr_abs": -0.02962962962962956,
+      "delta_mrr_relative": -0.053674900884415865,
+      "delta_ndcg5_abs": -0.0259641311846881,
+      "delta_ndcg5_relative": -0.04057016163983578
+    },
+    {
+      "cap": 8,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8909090909090909,
+        "mrr": 0.4927946127946128,
+        "ndcg5": 0.5830630478404984,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8707070707070707
+      },
+      "delta_mrr_abs": -0.05922558922558918,
+      "delta_mrr_relative": -0.10728880756328142,
+      "delta_ndcg5_abs": -0.05691791686914072,
+      "delta_ndcg5_relative": -0.08893689032604979
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9434343434343434,
+        "mrr": 0.5478114478114479,
+        "ndcg5": 0.6385160452669474,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9212121212121213
+      },
+      "delta_mrr_abs": -0.004208754208754106,
+      "delta_mrr_relative": -0.007624275693808903,
+      "delta_ndcg5_abs": -0.001464919442691781,
+      "delta_ndcg5_relative": -0.0022890047102516846
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9656565656565657,
+        "mrr": 0.5538720538720538,
+        "ndcg5": 0.6471663641310406,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9434343434343434
+      },
+      "delta_mrr_abs": 0.0018518518518518823,
+      "delta_mrr_relative": 0.0033546813052760544,
+      "delta_ndcg5_abs": 0.007185399421401395,
+      "delta_ndcg5_relative": 0.011227520532054305
+    },
+    {
+      "cap": 10,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.9272727272727272,
+        "mrr": 0.5182491582491583,
+        "ndcg5": 0.6115193432198348,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.907070707070707
+      },
+      "delta_mrr_abs": -0.033771043771043674,
+      "delta_mrr_relative": -0.061177188167123954,
+      "delta_ndcg5_abs": -0.028461621489804356,
+      "delta_ndcg5_relative": -0.044472606310591536
+    },
+    {
+      "cap": 10,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8929292929292929,
+        "mrr": 0.48673400673400674,
+        "ndcg5": 0.5779948542436515,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8686868686868687
+      },
+      "delta_mrr_abs": -0.06528619528619523,
+      "delta_mrr_relative": -0.11826776456236647,
+      "delta_ndcg5_abs": -0.061986110465987676,
+      "delta_ndcg5_relative": -0.09685617836166567
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9434343434343434,
+        "mrr": 0.5484848484848485,
+        "ndcg5": 0.6381752301343956,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9191919191919192
+      },
+      "delta_mrr_abs": -0.0035353535353535026,
+      "delta_mrr_relative": -0.006404391582799576,
+      "delta_ndcg5_abs": -0.0018057345752435783,
+      "delta_ndcg5_relative": -0.0028215441939946516
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9696969696969697,
+        "mrr": 0.5537037037037037,
+        "ndcg5": 0.6476982452697857,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9454545454545454
+      },
+      "delta_mrr_abs": 0.0016835016835017313,
+      "delta_mrr_relative": 0.003049710277523722,
+      "delta_ndcg5_abs": 0.007717280560146533,
+      "delta_ndcg5_relative": 0.012058609530125448
+    },
+    {
+      "cap": 12,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.9191919191919192,
+        "mrr": 0.5110437710437711,
+        "ndcg5": 0.6036818056206099,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.896969696969697
+      },
+      "delta_mrr_abs": -0.04097643097643089,
+      "delta_mrr_relative": -0.07422994815492513,
+      "delta_ndcg5_abs": -0.036299159089029254,
+      "delta_ndcg5_relative": -0.05671912305313372
+    },
+    {
+      "cap": 12,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8808080808080808,
+        "mrr": 0.47909090909090907,
+        "ndcg5": 0.5684945257297706,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8525252525252526
+      },
+      "delta_mrr_abs": -0.0729292929292929,
+      "delta_mrr_relative": -0.13211344922232385,
+      "delta_ndcg5_abs": -0.07148643897986862,
+      "delta_ndcg5_relative": -0.11170088318533376
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.640460152008163,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9131313131313131
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0004791872985238088,
+      "delta_ndcg5_relative": 0.0007487524238181322
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9454545454545454,
+        "mrr": 0.5493939393939394,
+        "ndcg5": 0.6403104537576418,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9252525252525252
+      },
+      "delta_mrr_abs": -0.002626262626262532,
+      "delta_mrr_relative": -0.004757548032936701,
+      "delta_ndcg5_abs": 0.00032948904800267353,
+      "delta_ndcg5_relative": 0.0005148419502635731
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9676767676767677,
+        "mrr": 0.5561616161616162,
+        "ndcg5": 0.6491865291315169,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9454545454545454
+      },
+      "delta_mrr_abs": 0.004141414141414224,
+      "delta_mrr_relative": 0.007502287282708292,
+      "delta_ndcg5_abs": 0.009205564421877699,
+      "delta_ndcg5_relative": 0.014384122230970237
+    },
+    {
+      "cap": 16,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.9050505050505051,
+        "mrr": 0.5065319865319865,
+        "ndcg5": 0.5956600962192549,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8787878787878788
+      },
+      "delta_mrr_abs": -0.04548821548821547,
+      "delta_mrr_relative": -0.08240317169868859,
+      "delta_ndcg5_abs": -0.0443208684903843,
+      "delta_ndcg5_relative": -0.06925341679575232
+    },
+    {
+      "cap": 16,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8666666666666667,
+        "mrr": 0.4719191919191919,
+        "ndcg5": 0.5600747890149639,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8383838383838383
+      },
+      "delta_mrr_abs": -0.08010101010101006,
+      "delta_mrr_relative": -0.14510521500457452,
+      "delta_ndcg5_abs": -0.07990617569467529,
+      "delta_ndcg5_relative": -0.12485711310324503
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.640460152008163,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9131313131313131
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0004791872985238088,
+      "delta_ndcg5_relative": 0.0007487524238181322
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9454545454545454,
+        "mrr": 0.5482154882154883,
+        "ndcg5": 0.6388913389880908,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9232323232323232
+      },
+      "delta_mrr_abs": -0.0038047138047136997,
+      "delta_mrr_relative": -0.006892345227203226,
+      "delta_ndcg5_abs": -0.0010896257215483596,
+      "delta_ndcg5_relative": -0.001702590829467444
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9676767676767677,
+        "mrr": 0.5536700336700336,
+        "ndcg5": 0.6463390601581809,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9434343434343434
+      },
+      "delta_mrr_abs": 0.001649831649831679,
+      "delta_mrr_relative": 0.002988716071973216,
+      "delta_ndcg5_abs": 0.006358095448541712,
+      "delta_ndcg5_relative": 0.00993481962612184
+    },
+    {
+      "cap": 20,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.9030303030303031,
+        "mrr": 0.501986531986532,
+        "ndcg5": 0.5924233458680624,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8787878787878788
+      },
+      "delta_mrr_abs": -0.050033670033669986,
+      "delta_mrr_relative": -0.09063738944800236,
+      "delta_ndcg5_abs": -0.04755761884157672,
+      "delta_ndcg5_relative": -0.07431098964506502
+    },
+    {
+      "cap": 20,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8606060606060606,
+        "mrr": 0.4653872053872054,
+        "ndcg5": 0.5530347694280574,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8282828282828283
+      },
+      "delta_mrr_abs": -0.08663299663299656,
+      "delta_mrr_relative": -0.15693809088136615,
+      "delta_ndcg5_abs": -0.08694619528158176,
+      "delta_ndcg5_relative": -0.13585747088748093
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0,
+      "delta_ndcg5_relative": 0.0
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.1,
+      "metrics": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.640460152008163,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9131313131313131
+      },
+      "delta_mrr_abs": 0.0,
+      "delta_mrr_relative": 0.0,
+      "delta_ndcg5_abs": 0.0004791872985238088,
+      "delta_ndcg5_relative": 0.0007487524238181322
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.25,
+      "metrics": {
+        "recall5": 0.9454545454545454,
+        "mrr": 0.5469360269360269,
+        "ndcg5": 0.6381513147697077,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9232323232323232
+      },
+      "delta_mrr_abs": -0.005084175084175024,
+      "delta_mrr_relative": -0.009210125038121271,
+      "delta_ndcg5_abs": -0.0018296499399315103,
+      "delta_ndcg5_relative": -0.0028589130627684005
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.5,
+      "metrics": {
+        "recall5": 0.9616161616161616,
+        "mrr": 0.5511784511784512,
+        "ndcg5": 0.6432445247588171,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9373737373737374
+      },
+      "delta_mrr_abs": -0.0008417508417507547,
+      "delta_mrr_relative": -0.00152485513876166,
+      "delta_ndcg5_abs": 0.003263560049177938,
+      "delta_ndcg5_relative": 0.005099464248375923
+    },
+    {
+      "cap": 40,
+      "rank_weight": 0.75,
+      "metrics": {
+        "recall5": 0.8909090909090909,
+        "mrr": 0.49252525252525253,
+        "ndcg5": 0.5817566080799059,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8646464646464647
+      },
+      "delta_mrr_abs": -0.059494949494949434,
+      "delta_mrr_relative": -0.10777676120768517,
+      "delta_ndcg5_abs": -0.05822435662973324,
+      "delta_ndcg5_relative": -0.09097826316779557
+    },
+    {
+      "cap": 40,
+      "rank_weight": 1,
+      "metrics": {
+        "recall5": 0.8444444444444444,
+        "mrr": 0.4563299663299663,
+        "ndcg5": 0.5424453483219289,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.8141414141414142
+      },
+      "delta_mrr_abs": -0.09569023569023566,
+      "delta_mrr_relative": -0.1733455321744434,
+      "delta_ndcg5_abs": -0.09753561638771024,
+      "delta_ndcg5_relative": -0.15240393350130715
+    }
+  ],
+  "best_ranking_only": {
+    "cap": 16,
+    "rank_weight": 0.5,
+    "metrics": {
+      "recall5": 0.9676767676767677,
+      "mrr": 0.5561616161616162,
+      "ndcg5": 0.6491865291315169,
+      "negative_fpr": 0.09390862944162437,
+      "positive": 495,
+      "negative": 394,
+      "all_gold_coverage5": 0.9454545454545454
+    },
+    "delta_mrr_abs": 0.004141414141414224,
+    "delta_mrr_relative": 0.007502287282708292,
+    "delta_ndcg5_abs": 0.009205564421877699,
+    "delta_ndcg5_relative": 0.014384122230970237
+  },
+  "best_ranking_only_uplift_relative": {
+    "mrr": 0.007502287282708187,
+    "ndcg5": 0.014384122230970187
+  },
+  "note": "Dev-only exploratory ranking ablation without abstention; not grouped OOF, not a selected release policy, no latency/resources pairing."
+}

@@ -1,0 +1,38 @@
+"""Archive M2 exposure by identity only, without reading rankings for tuning."""
+from collections import Counter
+from datetime import datetime, timezone
+import json
+from pathlib import Path
+from evaluation.common.release_artifacts import sha256, write_json
+
+root = Path('data/benchmark/phase7_review_cycles/phase7-release-20261004-r18')
+report_path = Path('evaluation/results/phase7-source-context-20261004-r18/candidate_coverage.json')
+report = json.loads(report_path.read_text(encoding='utf-8'))
+lineage_path = root / 'human_candidate_lineage.json'
+groups = json.loads(lineage_path.read_text(encoding='utf-8'))['connected_groups']
+assert report['index_sha256'] == sha256(Path('.tmp/hybrid-index/manifest.json'))
+records = []
+datasets = []
+for split in ('dev', 'test', 'holdout'):
+    path = root / f'human_retrieval_{split}.jsonl'
+    rows = [json.loads(line) for line in path.read_text(encoding='utf-8').splitlines() if line.strip()]
+    part = report['splits']['human_' + split]
+    observations = part['caps']['40']['per_query']
+    assert part['benchmark_sha256'] == sha256(path)
+    qids = [item['qid'] for item in observations]
+    assert len(qids) == len(set(qids)) == len(rows)
+    assert set(qids) == {row['qid'] for row in rows}
+    assert all(isinstance(item['candidates'], list) for item in observations)
+    datasets.append({'path': path.as_posix(), 'sha256': sha256(path), 'split': split, 'records': len(rows)})
+    records.extend({'qid': qid, 'observed_split': split, 'connected_group': groups[qid],
+                    'status': 'known_exposed_candidate_coverage', 'heldout_eligible': False}
+                   for qid in sorted(qids))
+result = {'schema_version': 1, 'status': 'pass', 'purpose': 'successor-cycle exposure inventory, not release gate evidence',
+          'recorded_at': datetime.now(timezone.utc).isoformat(),
+          'candidate_report_path': report_path.as_posix(), 'candidate_report_sha256': sha256(report_path),
+          'candidate_report_status': report['status'], 'lineage_sha256': sha256(lineage_path),
+          'index_sha256': report['index_sha256'], 'datasets': datasets, 'records': records,
+          'counts': dict(Counter(row['observed_split'] for row in records)), 'heldout_eligible_records': 0,
+          'meaning': 'Failed M2 measurements consume observed inputs too; preserve the existing frozen dataset and use this inventory when preparing a successor.'}
+write_json(Path('evaluation/results/phase7-source-context-20261004-r18/successor_exposure_inventory.json'), result)
+print(json.dumps({key: result[key] for key in ('status', 'candidate_report_status', 'counts', 'heldout_eligible_records')}, indent=2))

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "status": "PASS_F0",
+  "release_eligible": false,
+  "row_validation": {
+    "schema_version": 3,
+    "phase": 7,
+    "status": "pass",
+    "errors": [],
+    "records": 897,
+    "counts": {
+      "answerable": 515,
+      "negative": 382,
+      "hard": 216,
+      "exact_code": 418,
+      "ambiguous": 357
+    },
+    "split_counts": {
+      "dev": 829,
+      "holdout": 33,
+      "test": 35
+    },
+    "review_complete": true,
+    "authorship_counts": {
+      "human": 180,
+      "ai": 717
+    },
+    "benchmark_profile": "personal_owner_source_checked_ai",
+    "review_mode": "owner_self_review",
+    "independent_review_complete": false,
+    "owner_review_complete": true
+  },
+  "review_errors": [],
+  "exposure_errors": [],
+  "primary_independent_groups": {
+    "test": 13,
+    "holdout": 13
+  },
+  "contextual_inputs_reviewed": 30,
+  "consumed_parent_records_dev_only": 804,
+  "dev_fold_support": {
+    "1": {
+      "absence": 121,
+      "sufficient": 118,
+      "partial": 9
+    },
+    "2": {
+      "absence": 101,
+      "sufficient": 163,
+      "partial": 4
+    },
+    "0": {
+      "absence": 134,
+      "sufficient": 192,
+      "partial": 10
+    }
+  },
+  "phase5_grounding_minima_note": "The 120/130/150 per-split minima in benchmark_schema.py apply to Phase 5 claim/answer releases, not this Phase 7 human retrieval schema. No threshold was changed.",
+  "negative_statistics_note": "Repeated missing-field proofs share document-level absence structure. 13 negative questions are not a population FPR upper-bound claim.",
+  "f1_dependencies": [
+    "honest Phase 6 successor baseline for expanded index, preserving original reports",
+    "P7-06/P7-08 real provider pilot and target measurements",
+    "P7-09 feasible dev study; F1 before heldout inference"
+  ]
+}

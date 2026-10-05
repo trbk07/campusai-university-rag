@@ -1,0 +1,155 @@
+﻿{
+    "entries":  [
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/index",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/source-index",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/source-index-v2",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/source-index-v3",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/source-index-v4",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/source-index-v5",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/store",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/store-v2",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/store-v3",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/store-v4",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-expansion-20261005/store-v5",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-qh2025-visual-qa",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-qh2025-visual-qa-v2",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-qh2025-restore-validation",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-course-parser-contract",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-table-fixes",
+                        "status":  "deleted",
+                        "reason":  "Completed pytest scratch removed after source-table regression JUnit was saved; scoped filesystem escalation resolved access restrictions."
+                    },
+                    {
+                        "path":  ".tmp/phase7-source-table-v2",
+                        "status":  "deleted",
+                        "reason":  "Completed pytest scratch removed after source-table regression JUnit was saved; scoped filesystem escalation resolved access restrictions."
+                    },
+                    {
+                        "path":  ".tmp/uet_robotics_curriculum_qh2025_validation.pdf",
+                        "sha256":  "f7868f1f9fef41b2654da07c3cb8fc8e2b710feb5db0f36334f9c4739ea0b260",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/uet-snapshot-page-1.png",
+                        "sha256":  "c5ad72c61ad51d0560f8abdcac9460d4785da3435f96608aa5987f45cd5f4369",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/uet-snapshot-page-2.png",
+                        "sha256":  "b713e2673ffbdbc784d2ff164cd2d74ee5e09c959f1bc3d8723c1f5dfda1efdc",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/uet-snapshot-page-3.png",
+                        "sha256":  "d4c0d7edbb95f4b0c841d1e151f3e5eb20851d6ac2d626174a8475ca341e3344",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/uet-snapshot-page-4.png",
+                        "sha256":  "edd4774062de7495bafe313195f7f7dd24dcc5e55c1050ff040e88d05e4f365e",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  ".tmp/uet-snapshot-page-5.png",
+                        "sha256":  "63370cfa40aeaeab5bcfab182f46c4c6c09eece890dd1bd20556f05cb21d3c9f",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  "data/corpus/phase7_source_expansion/20261005/uet_robotics_curriculum_qh2025_snapshot.pdf",
+                        "sha256":  "3540590d150d83047483d0695523a38eaf64261f8061944bb0828198c5921f01",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_binding_validation.json",
+                        "sha256":  "5a7db83c43b8829bddf5e9ef521d47070289303f4c4a6b08fc6768fc65c1d843",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    },
+                    {
+                        "path":  "evaluation/results/phase7-completion-20261004/p7-03_qh2025_history_preflight.json",
+                        "sha256":  "e688f12c0c1c43b5bbe0fa8583fc8850e5d7f3f0a0192d971fcc0bc5b0dcfaf6",
+                        "status":  "deleted",
+                        "reason":  "Superseded source diagnostics or completed scratch validation; current source/evidence archive retained."
+                    }
+                ],
+    "failed":  0,
+    "schema_version":  1,
+    "deleted":  26,
+    "recorded_at":  "2026-10-05T03:39:41.3644924Z",
+    "preserved":  [
+                      "plan.md",
+                      ".tmp/phase7-source-expansion-20261005/source-index-v6",
+                      ".tmp/phase7-source-expansion-20261005/store-v6",
+                      "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_evidence.zip",
+                      "data/corpus/phase7_source_expansion/20261005/uet_robotics_curriculum_qh2025_snapshot-v2.pdf"
+                  ],
+    "task":  "P7-03-source-expansion-cleanup"
+}

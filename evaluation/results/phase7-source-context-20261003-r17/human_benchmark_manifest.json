@@ -1,0 +1,80 @@
+{
+  "schema_version": 3,
+  "phase": 7,
+  "status": "pass",
+  "errors": [],
+  "records": 352,
+  "counts": {
+    "answerable": 264,
+    "negative": 88,
+    "hard": 132,
+    "exact_code": 197,
+    "ambiguous": 63
+  },
+  "split_counts": {
+    "dev": 212,
+    "holdout": 72,
+    "test": 68
+  },
+  "review_complete": true,
+  "authorship_counts": {
+    "human": 180,
+    "ai": 172
+  },
+  "benchmark_profile": "personal_owner_source_checked_ai",
+  "review_mode": "owner_self_review",
+  "independent_review_complete": false,
+  "owner_review_complete": true,
+  "generation_authorization_sha256": "b389f4f875f54cd7f4059f91f4b3ac6366071f3245c8b8c8b40c2f018e4ecb77",
+  "dataset_sha256": "b40877e46fd317fa80ef5262d5da572e9824a073f97f9957fdc23dc031352102",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "grouped_split": {
+    "groups": 102,
+    "cross_split_groups": [],
+    "split_counts": {
+      "dev": 212,
+      "holdout": 72,
+      "test": 68
+    }
+  },
+  "tag_counts": {
+    "ambiguous": 20,
+    "hard": 132,
+    "natural": 352,
+    "negative": 88,
+    "medium": 32,
+    "unanswerable": 10,
+    "code_switching": 22,
+    "abbreviation": 21,
+    "colloquial": 6,
+    "typo": 10,
+    "lexical_mismatch": 7,
+    "slang": 9,
+    "conditional": 4,
+    "answerable": 135,
+    "contextual": 15,
+    "contextual_followup": 15,
+    "easy": 188,
+    "table": 157,
+    "multi_hop": 61,
+    "paraphrase": 2,
+    "long_noisy": 11,
+    "course_code": 25,
+    "exact_code": 197,
+    "abstention": 43
+  },
+  "reviewer_summary": {
+    "reviewed": 352,
+    "distinct_reviewers": 1,
+    "author_reviewer_collisions": 352
+  },
+  "frozen": true,
+  "split_sha256": {
+    "dev": "2fc8da94976bba85f263011c63c6dae1fc7bd8e5f684c8a9ab5add4315687cea",
+    "test": "00f087244aa37b25ebc4fc9000fd012df092c8320370c856b9d9c41a91282175",
+    "holdout": "f2a87fc8713badbbec6f2f9f16b73a738cbb762926a8d8ab80e653595a278f4c"
+  },
+  "review_sha256": "b885beef04f2db945ab8f180ca93500b09d9706aec12c2a7cbd7f4d96366ed4e",
+  "allocation": "connected_groups_sha256_order_60_20_20_v1"
+}

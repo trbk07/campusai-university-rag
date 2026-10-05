@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "status": "validated_dev_inheritance",
+  "release_eligible": false,
+  "dev_only": true,
+  "new_heldout_claim": false,
+  "records": 817,
+  "consumed_cycle_records": 804,
+  "previous_dev_only_absence_records": 13,
+  "authorship_counts": {
+    "human": 180,
+    "ai": 637
+  },
+  "original_split_counts": {
+    "dev": 491,
+    "test": 164,
+    "holdout": 162
+  },
+  "current_split_counts": {
+    "dev": 817
+  },
+  "manifest_sha256": "2b162f463c32ad8cc7fc70eb7eae7b71b2eeec04e2a691324c9c1e069af63f4f",
+  "records_sha256": "ce95533fbc5241f0c0dd4f5c728f06ada21758972ccd1afa0a5d7464713cb6dd",
+  "audit_sha256": "46d84e57a2b2391096713c75f0527a1b250f8346ba8404f36ca90cc281fe1807",
+  "historical_authorizations_validated": 3,
+  "old_index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "new_index_sha256": "f944f088bc01f173c340f92b94b8f3f89b0f61af9fabec84a38a51440d91ac3d",
+  "next": "Integrate exact dev inheritance with fresh source-checked questions and audited connected groups; freeze and measure release gates in order."
+}

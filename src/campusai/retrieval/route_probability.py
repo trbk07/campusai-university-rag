@@ -4,20 +4,59 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 import math
+import re
+import unicodedata
 
-FEATURES = ("confidence", "margin", "agreement", "constraints", "query_length",
-            "distinct_documents", "concentration")
-VERSION = "hard-route-logistic-v1"
+FEATURES = ("operation_required", "long_request")
+VERSION = "hard-route-logistic-v3"
 
 
 def route_observations(query: str, candidates: list) -> dict[str, float]:
-    from .rerank_policy import route_features
-    values = route_features(query, candidates)
-    head = candidates[:2]
-    values["confidence"] = float(head[0].confidence_score or 0.0) if head else 0.0
-    values["margin"] = max(0.0, float(head[0].fusion_score or 0.0)
-                           - float(head[1].fusion_score or 0.0)) if len(head) == 2 else 0.0
-    return validate_observations(values)
+    """Observable operations shared by calibration and serving.
+
+    A history topic supplies a subject, rather than another requested operation.
+    Pool size, corpus names, gold, labels, language and template identities never
+    enter these features. Candidate/abstention bypass is handled by Phase7Policy.
+    """
+    from .routing import detected_course_codes
+    if not isinstance(query, str):
+        raise ValueError("routing query must be text")
+    raw = query.split("\nContext topic (untrusted user input): ", 1)[0]
+    text = "".join(c for c in unicodedata.normalize("NFD", raw.casefold())
+                   if not unicodedata.combining(c)).replace("đ", "d")
+    operations = (
+        r"\b(?:if|unless|whether|dieu kien|neu|ma|although|despite|van|con|duoc khong|co duoc|permitted|allowed|eligible|eligibility)\b|\b(?:co|duoc|can|does|is|do)\b.*\b(?:khong|ko|k|not|no|waive|mien)\b",
+        r"\b(?:waive\w*|exempt\w*|except\w*|mien|bo qua|chua|pending|later|bo sung|nop sau|submit later|thi ho|duoi|rot|failed?|bay|an 0|bi loai|f|c\+)\b",
+        r"\b(?:prerequisites?|tien quyet|hoc truoc|can qua|hoc gi truoc|truoc hay sau|before|after)\b",
+        r"\b(?:threshold|cap|maximum|minimum|limit|ceiling|floor|nguong|tran|toi da|toi thieu|muc nao|cach tinh|cong don)\b",
+        r"\b(?:compare|comparison|difference|versus|vs|so sanh|khac nhau|khac biet|doi chieu|khac)\b",
+    )
+    # "How much" asks for a quantity; it does not request multiple operations.
+    cardinality_text = re.sub(r"\bbao nhieu\b", "", text)
+    # An abbreviation joined by a slash is a name, rather than two requested
+    # outputs. Detect this spelling before case folding; explicit course-code
+    # pairs remain multiple lookups below.
+    joined_names = re.findall(r"\b[A-Z][A-Z0-9-]+/[A-Z][A-Z0-9-]+\b", raw)
+    for name in joined_names:
+        cardinality_text = cardinality_text.replace(name.casefold(), name.casefold().replace("/", " "))
+    # "Find X and report its credits" describes one lookup. Keep the
+    # conjunction when the first clause already requests a field, so
+    # "find its semester and report its credits" still requests two outputs.
+    fields = r"\b(?:credits?|semester|term|tin chi|hoc ky|hoc ki)\b"
+    def lookup_sequence(match):
+        return match.group(0) if re.search(fields, match.group("subject")) else match.group(0).rsplit("and", 1)[0]
+    cardinality_text = re.sub(
+        r"\b(?:find|locate|search|look up)\b(?P<subject>.*?)\band\s+(?=(?:report|state|give|provide|return|tell)\b)",
+        lookup_sequence, cardinality_text)
+    multiple = re.search(r"\b(?:and|both|all|two|multiple|va|voi|hai|ca|nhieu|vua|roi|xong|cung|moi)\b|[+/;]", cardinality_text)
+    multiple_fields = bool(re.search(r"\b(?:credits?|tin chi)\b", cardinality_text)
+                           and re.search(r"\b(?:semester|term|hoc ky|hoc ki)\b", cardinality_text))
+    # A single identifier's basic fields can be read in one lookup. Operations
+    # such as comparison, conditions or prerequisites still require ranking.
+    code_count = len(detected_course_codes(raw))
+    required = any(re.search(pattern, text) for pattern in operations) or code_count > 1 or (
+        bool(multiple or multiple_fields) and code_count != 1)
+    return {"operation_required": float(required), "long_request": float(len(raw.split()) >= 40)}
 
 
 def validate_observations(values: dict) -> dict[str, float]:

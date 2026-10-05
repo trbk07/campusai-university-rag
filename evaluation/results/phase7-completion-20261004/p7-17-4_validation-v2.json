@@ -1,0 +1,52 @@
+{
+  "task": "P7-17.4",
+  "status": "PASS_PERMANENT_AND_TRANSIENT_FAULT_SUBTASK",
+  "release_eligible": false,
+  "checks": {
+    "offline_matrix_all_30": true,
+    "offline_permanent_faults_close_and_stop": true,
+    "offline_transient_recovers": true,
+    "real_cuda_provider_permanent_rollback": true,
+    "phase6_preserved": true
+  },
+  "cuda_permanent_observation": {
+    "qid": "human-candidate-0001",
+    "dev_source_group": null,
+    "question_sha256": "bd5b7ca80735edfd36c2e625a7d719c8a4c4beea06e5420ab4619cf9ce61bfc5",
+    "phase6_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "fault_fallback_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "followup_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "fault_fallback_equals_phase6": true,
+    "followup_equals_phase6": true,
+    "reason": "reranker_inference_failed",
+    "provider_calls_after_warmup": 1,
+    "provider_calls_after_followup": 1,
+    "phase7_enabled_after_fault": false,
+    "provider_closed_after_fault": true,
+    "failure_count": 1
+  },
+  "evidence": [
+    {
+      "path": "p7-17-4-current-fault-matrix-raw.json",
+      "sha256": "93be36f65f56b02f43e7948046df1394863b533932b00b5d19ece39091bb5aff"
+    },
+    {
+      "path": "p7-17-4-current-transient-recovery.json",
+      "sha256": "4370cd20dc81763ec4805643208b8231604931fce93a902d4f9c4a6ab879f887"
+    },
+    {
+      "path": "p7-17-4-current-cuda-permanent-failure.json",
+      "sha256": "a889bb3aebb66f195f8177a0b570fe06b6acbe3d77ddde290c82125e3301e1b7"
+    },
+    {
+      "path": "p7-17-4_validation.json",
+      "sha256": "2e622bf214c4805a9fbcff3d52cfb631e4cf91e43ee3aca8da258a283467c51c"
+    }
+  ],
+  "limitations": [
+    "CUDA permanent failure is injected after a successful actual inference, not caused by a naturally occurring GPU fault.",
+    "Target production profile and complete M9 release validation remain outstanding."
+  ],
+  "schema_version": 1,
+  "recorded_at": "2026-10-04T15:39:01.417949+00:00"
+}

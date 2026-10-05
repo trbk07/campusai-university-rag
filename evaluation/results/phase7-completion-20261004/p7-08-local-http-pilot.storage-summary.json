@@ -1,0 +1,176 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-08-local-http-pilot.json",
+    "sha256": "f3b64d40a1c5892690a6c73896025d88f3718a2bcf9a89cc37f0293351c119bf"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-08",
+    "status": "component_diagnostic",
+    "release_eligible": false,
+    "measurement_scope": "real local loopback HTTP -> actual CUDA cross-encoder reranker; no RAG retrieval or LLM provider call",
+    "started_at": "2026-10-04T11:32:47.402591+00:00",
+    "source_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "11b1cb678e97c1015b2214e067d7804b5132cd042fb0b27e39576d14906712c4",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "11b1cb678e97c1015b2214e067d7804b5132cd042fb0b27e39576d14906712c4",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_stable": true,
+    "model_identity": {
+      "model_name": "BAAI/bge-reranker-v2-m3",
+      "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+      "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "provider": "sentence_transformers",
+      "device": "cuda",
+      "dtype": "float32",
+      "max_length": 512,
+      "batch_size": 8,
+      "normalization": "raw_logit",
+      "batch_window_ms": 0.0,
+      "max_batch_pairs": 200,
+      "input_format": "full_chunk",
+      "input_version": "structured-input-v1"
+    },
+    "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662",
+    "model_snapshot_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+    "snapshot_smoke_sha256": "d39ed04ff2db59dfa32167834810359b0482baa3247d158bcece07f08f55d694",
+    "runtime_environment": {
+      "python": "3.14.6",
+      "implementation": "CPython",
+      "system": "Windows",
+      "machine": "AMD64",
+      "dependencies": {
+        "torch": "2.14.0+cu126",
+        "sentence-transformers": "5.7.0",
+        "transformers": "5.17.0",
+        "tokenizers": "0.23.2",
+        "numpy": "2.5.3",
+        "safetensors": "0.8.0",
+        "huggingface-hub": "1.32.0",
+        "fastembed": "0.8.1",
+        "onnxruntime": "1.30.0",
+        "psutil": "7.2.2"
+      }
+    },
+    "gpu_nvidia_smi": "NVIDIA GeForce RTX 4060 Laptop GPU, 560.94, 8188 MiB",
+    "host_profile": {
+      "os": "Windows-11-10.0.26200-SP0",
+      "python": "3.14.6",
+      "logical_cpus": 20,
+      "physical_cpus": 14,
+      "physical_ram_bytes": 25480257536,
+      "vram_capacity_bytes": 8585216000,
+      "deployment_scope": "local RTX 4060 laptop; not a public server profile"
+    },
+    "http_profile": {
+      "address_scope": "127.0.0.1 loopback only",
+      "concurrency": [
+        1,
+        5,
+        10,
+        20
+      ],
+      "requests_per_concurrency": 100,
+      "candidates_per_request": 20,
+      "candidate_score_cache_enabled": false,
+      "answer_cache_enabled": false,
+      "llm_calls": 0,
+      "p95_release_budget_ms": null,
+      "profiles": {
+        "raw_array_reference": "/http_profile/profiles",
+        "records": 4
+      },
+      "request_observations": {
+        "raw_array_reference": "/http_profile/request_observations",
+        "records": 400
+      }
+    },
+    "resource_samples": {
+      "raw_array_reference": "/resource_samples",
+      "records": 83
+    },
+    "resource_peaks": {
+      "rss_bytes": 1647882240,
+      "cpu_percent": 285.4,
+      "vram_allocated_bytes": 484412416,
+      "vram_reserved_bytes": 507510784
+    },
+    "warmup": {
+      "duration_ms": 5764.416199999687,
+      "model_loads": 1,
+      "inference_calls": 1
+    },
+    "baseline_provider_metrics": {
+      "submitted_requests": 0,
+      "completed_requests": 0,
+      "cancelled_requests": 0,
+      "rejected_requests": 0,
+      "active_requests": 0,
+      "queue_depth": 0,
+      "max_queue_depth": 0,
+      "queue_wait_ms_total": 0.0,
+      "max_queue_wait_ms": 0.0,
+      "worker_ms_total": 0.0,
+      "closed": false,
+      "failure_count": 0,
+      "ready": false,
+      "model_loads": 0,
+      "inference_calls": 0,
+      "score_cache_hits": 0,
+      "score_cache_entries": 0,
+      "inference_batches": 0,
+      "max_batch_requests": 0
+    },
+    "provider_metrics_after_close": {
+      "submitted_requests": 401,
+      "completed_requests": 401,
+      "cancelled_requests": 0,
+      "rejected_requests": 0,
+      "active_requests": 0,
+      "queue_depth": 0,
+      "max_queue_depth": 19,
+      "queue_wait_ms_total": 60314.4434999831,
+      "max_queue_wait_ms": 391.17609999993874,
+      "worker_ms_total": 14171.614699989732,
+      "closed": true,
+      "failure_count": 0,
+      "ready": false,
+      "model_loads": 1,
+      "inference_calls": 401,
+      "score_cache_hits": 0,
+      "score_cache_entries": 0,
+      "inference_batches": 0,
+      "max_batch_requests": 0
+    },
+    "limitations": [
+      "Component HTTP pilot does not exercise CampusAI RAG/grounding/LLM or calibrated route policy.",
+      "Synthetic candidate text is for runtime load only; no benchmark qids or quality claims are involved.",
+      "No public host or external LLM/provider profile was available; LLM duration/cost remains unknown.",
+      "This report is not M7 or S6 evidence and cannot satisfy the Phase 7 end-to-end HTTP acceptance gate."
+    ],
+    "ended_at": "2026-10-04T11:32:47.417260+00:00"
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/http_profile/profiles",
+      "records": 4
+    },
+    {
+      "json_pointer": "/http_profile/request_observations",
+      "records": 400
+    },
+    {
+      "json_pointer": "/resource_samples",
+      "records": 83
+    }
+  ]
+}

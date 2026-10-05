@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "task": "P7-16.4",
+  "status": "PASS_OFFLINE_REGRESSION_SUBTASK",
+  "release_eligible": false,
+  "scope": "required offline grounding/citation/security contract regressions after provider shutdown bug fix",
+  "command": ".venv/Scripts/python.exe -m pytest tests/test_grounding_adversarial.py tests/test_grounding_metrics.py tests/test_reranker_integration.py tests/test_reranker_stage_gates.py tests/test_reranker_live_instrumentation.py tests/test_reranker_release_workflow.py tests/test_reranker_optimization.py --basetemp=.tmp/phase7-p7-16-current-v2 --junitxml=evaluation/results/phase7-completion-20261004/p7-16-19-offline-contract-tests-current-v2.xml -q",
+  "counts": {
+    "tests": 133,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "xml_path": "evaluation/results/phase7-completion-20261004/p7-16-19-offline-contract-tests-current-v2.xml",
+  "xml_sha256": "60f958f5f2517a245a0b9d66df72fd7d71b9616ec88ecd2248bce0ea8f5c5ae4",
+  "supersedes_validation": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-16_4_validation.json",
+    "sha256": "07586237c8c7ea8249ae7224edfe319a5a1a2c04772c47ee7b48739d4d8972b5"
+  },
+  "source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "61c4f653079cefeab0445fbea0cb675c084ddf1e339aa93b597d82887b5b2369",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "recorded_at": "2026-10-04T15:07:40.247468+00:00",
+  "limitations": [
+    "Does not include frozen successor held-out security outputs or semantic reviewer approval.",
+    "Does not establish M8 PASS or completion of P7-16."
+  ]
+}

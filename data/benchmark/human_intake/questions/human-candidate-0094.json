@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0094",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_mai_joint_curriculum_2022.pdf",
+          "sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p3_t1",
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "page": 3
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "mai_final_attestation_credits",
+    "qid": "human-candidate-0094",
+    "question": "mình đang tra đúng bảng chương trình liên kết nhé, ở cuối có mục Final State Attestation nhưng cần hai thông tin để ghi kế hoạch: học kỳ và số tín chỉ của mục đó",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "long_noisy",
+      "hard",
+      "answerable",
+      "table"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_408",
+    "source_retrieved_at": null,
+    "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2022/05/Annex-1-Joint-Curriculum-VNU-UET-MAI-update-20220127-1.pdf",
+    "split": "dev",
+    "tags": [
+      "answerable",
+      "hard",
+      "long_noisy",
+      "natural",
+      "table"
+    ]
+  },
+  "record_sha256": "48a0c4b0f15436f4bc8b426eea67d4eb9531446e227f1122e936e3df2f73d258",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

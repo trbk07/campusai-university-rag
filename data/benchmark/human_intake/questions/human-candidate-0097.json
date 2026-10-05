@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0097",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_cs_progression.pdf",
+          "sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8_p1_t1",
+        "doc_id": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+        "page": 1
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "cs_master_ai_nlp_semesters",
+    "qid": "human-candidate-0097",
+    "question": "hướng dẫn cao học khoa học máy tính xếp môn trí tuệ nhân tạo nâng cao trước hay sau môn xử lý ngôn ngữ tự nhiên",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "colloquial",
+      "hard",
+      "answerable",
+      "table"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_412",
+    "source_retrieved_at": null,
+    "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2019/06/Ti%E1%BA%BFn-tr%C3%ACnh-%C4%91%C3%A0o-t%E1%BA%A1o-CT-KHMT-chu%E1%BA%A9n.pdf",
+    "split": "holdout",
+    "tags": [
+      "answerable",
+      "colloquial",
+      "hard",
+      "natural",
+      "table"
+    ]
+  },
+  "record_sha256": "c58b82184b2325b5f314c02b6c3ce3421e318a6499fa30d6f5e2ea5af4c3078c",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

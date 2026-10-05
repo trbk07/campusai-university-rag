@@ -1,0 +1,26 @@
+"""Diagnose measured dev evidence classes without new model/heldout calls."""
+from collections import Counter
+from pathlib import Path
+import json
+from evaluation.reranker.calibrate_evidence_probabilities import target_class, calibrate_probabilities
+from evaluation.benchmarks.retrieval_schema import load_jsonl
+from evaluation.common.release_artifacts import sha256, write_json
+
+root = Path('evaluation/results/phase7-dev-feasibility-20261004')
+path = root/'cap10_score_dev_grade_scope.json'
+dev = Path('data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_dev.jsonl')
+report = json.loads(path.read_text(encoding='utf-8'))
+assert report['training_split_sha256'] == sha256(dev)
+rows = load_jsonl(dev)
+observations = report['calibration_observations']
+proposals = observations['proposals']
+result = {'status':'diagnostic', 'release_eligible':False, 'test_used':False, 'holdout_used':False,
+          'calibration_report_sha256':sha256(path), 'dev_sha256':sha256(dev),
+          'scored_classes':dict(Counter(target_class(row, proposals[row['qid']]) for row in rows if row['qid'] in proposals))}
+try:
+    policy, diagnostics = calibrate_probabilities(rows, observations['baseline'], proposals)
+    result.update(policy=policy, diagnostics=diagnostics)
+except ValueError as error:
+    result['calibration_error'] = str(error)
+write_json(root/'cap10_probability_dev_class_audit.json', result)
+print(json.dumps(result, indent=2))

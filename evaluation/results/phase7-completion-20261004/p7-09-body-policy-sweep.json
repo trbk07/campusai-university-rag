@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "task": "P7-09",
+  "status": "diagnostic",
+  "release_eligible": false,
+  "calibration_split": "dev",
+  "test_used": false,
+  "holdout_used": false,
+  "created_at": "2026-10-04T12:11:32.029968+00:00",
+  "source_stable": true,
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "bbe53ba5f3516c13a868efe9f5c05104685e8d4f3ca130c76b64b16de893a1ce",
+    "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "bbe53ba5f3516c13a868efe9f5c05104685e8d4f3ca130c76b64b16de893a1ce",
+    "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+  },
+  "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+  "base_candidate_raw_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+  "body_scores_sha256": "c72e8a6ecd2036e5fe20d2a80e7bf42cc03bde8c2e91abb7a9fb03586059402d",
+  "format": "body",
+  "trial_count": 57348,
+  "feasible_at_recall95_fpr1": false,
+  "feasible_trial_count": 0,
+  "best_fpr_le_1pct": {
+    "cap": 40,
+    "rank_weight": 0.5,
+    "evidence_signal": "peak_over_mean",
+    "evidence_threshold": 7.998028916493059,
+    "feasible": false,
+    "metrics": {
+      "recall5": 0.25656565656565655,
+      "mrr": 0.14323232323232324,
+      "ndcg5": 0.17072848053966436,
+      "negative_fpr": 0.007614213197969543,
+      "positive": 495,
+      "negative": 394,
+      "all_gold_coverage5": 0.2545454545454545
+    }
+  },
+  "best_fpr_le_1pct_by_signal": {
+    "top_logit": {
+      "cap": 8,
+      "rank_weight": 0.5,
+      "evidence_signal": "top_logit",
+      "evidence_threshold": 4.245148658752442,
+      "feasible": false,
+      "metrics": {
+        "recall5": 0.1191919191919192,
+        "mrr": 0.06592592592592593,
+        "ndcg5": 0.07921396439183502,
+        "negative_fpr": 0.007614213197969543,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.1191919191919192
+      }
+    },
+    "top_margin": {
+      "cap": 12,
+      "rank_weight": 0.75,
+      "evidence_signal": "top_margin",
+      "evidence_threshold": 3.346415281295777,
+      "feasible": false,
+      "metrics": {
+        "recall5": 0.07272727272727272,
+        "mrr": 0.06117845117845118,
+        "ndcg5": 0.06327972892684397,
+        "negative_fpr": 0.007614213197969543,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.0707070707070707
+      }
+    },
+    "peak_over_mean": {
+      "cap": 40,
+      "rank_weight": 0.5,
+      "evidence_signal": "peak_over_mean",
+      "evidence_threshold": 7.998028916493059,
+      "feasible": false,
+      "metrics": {
+        "recall5": 0.25656565656565655,
+        "mrr": 0.14323232323232324,
+        "ndcg5": 0.17072848053966436,
+        "negative_fpr": 0.007614213197969543,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.2545454545454545
+      }
+    }
+  },
+  "fpr_recall_frontier": [
+    {
+      "max_fpr": 0.0,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 9.765211312472822,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.04040404040404041,
+          "mrr": 0.02127946127946128,
+          "ndcg5": 0.0261142903141908,
+          "negative_fpr": 0.0,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.04040404040404041
+        }
+      }
+    },
+    {
+      "max_fpr": 0.005,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 8.293016220629218,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.20606060606060606,
+          "mrr": 0.12124579124579124,
+          "ndcg5": 0.14191212852538546,
+          "negative_fpr": 0.0025380710659898475,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.20404040404040405
+        }
+      }
+    },
+    {
+      "max_fpr": 0.01,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 7.998028916493059,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.25656565656565655,
+          "mrr": 0.14323232323232324,
+          "ndcg5": 0.17072848053966436,
+          "negative_fpr": 0.007614213197969543,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.2545454545454545
+        }
+      }
+    },
+    {
+      "max_fpr": 0.02,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 7.084569881996141,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.402020202020202,
+          "mrr": 0.22794612794612795,
+          "ndcg5": 0.2698560290508981,
+          "negative_fpr": 0.017766497461928935,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.397979797979798
+        }
+      }
+    },
+    {
+      "max_fpr": 0.05,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 4.948419789473217,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.6828282828282828,
+          "mrr": 0.40555555555555556,
+          "ndcg5": 0.4717521798498327,
+          "negative_fpr": 0.048223350253807105,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.6767676767676768
+        }
+      }
+    },
+    {
+      "max_fpr": 0.075,
+      "best_recall_policy": {
+        "cap": 40,
+        "rank_weight": 0.5,
+        "evidence_signal": "peak_over_mean",
+        "evidence_threshold": 3.992703345417977,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.797979797979798,
+          "mrr": 0.4881144781144781,
+          "ndcg5": 0.5600136168744466,
+          "negative_fpr": 0.07360406091370558,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.7858585858585858
+        }
+      }
+    },
+    {
+      "max_fpr": 0.1,
+      "best_recall_policy": {
+        "cap": 12,
+        "rank_weight": 0.5,
+        "evidence_signal": "top_logit",
+        "evidence_threshold": -1000000.0,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.9757575757575757,
+          "mrr": 0.6084511784511785,
+          "ndcg5": 0.692173133359078,
+          "negative_fpr": 0.09390862944162437,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.9555555555555556
+        }
+      }
+    }
+  ],
+  "feasible_trials": [],
+  "selection_rule": "FPR<=1% and recall>=95%; minimize FPR, maximize recall/MRR/nDCG, then minimize cap",
+  "limitations": [
+    "All thresholds are selected and evaluated on the same dev packet; this is exploratory and optimistic.",
+    "No grouped OOF or independent split is available until P7-03/F0 reviewer approval.",
+    "No same-config HTTP/resource profile or paired answer/LLM evaluation is included."
+  ]
+}

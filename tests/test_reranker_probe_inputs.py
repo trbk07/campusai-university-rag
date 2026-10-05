@@ -87,3 +87,47 @@ def test_unknown_requested_semester_does_not_hide_absence_or_conflicting_context
     result = scoring_text(original, 'table_window', 'Glider Units Design in semester 9?')
     assert 'Semester 7' in result and 'Semester 8' in result
     assert 'Query-focused rows' not in result
+
+
+def code_table(rows, headers=('Course code', 'Name', 'Credits', 'Prerequisites')):
+    return 'Table headers: ' + ' | '.join(headers) + '\n\n' + json.dumps({'headers': list(headers), 'rows': rows})
+
+
+def test_code_focus_keeps_digits_and_distinguishes_prerequisite_mentions():
+    rows = [[f'CS{200+i}', 'Unrelated course', '2', 'CS999'] for i in range(30)]
+    rows += [['CS999', 'Requested course', '4', 'CS201']]
+    result = scoring_text(code_table(rows), 'body_table_window', 'CS999 credits?')
+    assert 'CS999 | Requested course | 4 | CS201' in result
+    assert 'Unrelated course' not in result
+    assert 'omitted rows remain in the original source chunk' in result
+
+
+def test_code_focus_preserves_all_requested_codes_and_repeated_source_rows():
+    rows = [['CS201', 'First', '3', ''], ['CS202', 'Second', '4', ''],
+            ['CS201', 'Another semester', '5', ''], ['CS299', 'Unrelated', '2', '']]
+    result = scoring_text(code_table(rows), 'table_window', 'Compare CS201 and CS202 credits')
+    assert all(name in result for name in ('First', 'Second', 'Another semester'))
+    assert 'Unrelated' not in result
+
+
+def test_unknown_code_does_not_crop_to_a_known_course_name():
+    original = code_table([['CS201', 'Probability and Statistics', '3', ''], ['CS202', 'Physics', '4', '']])
+    result = scoring_text(original, 'table_window', 'CS999 Probability and Statistics credits?')
+    assert 'Physics' in result and 'Query-focused rows' not in result
+
+
+@pytest.mark.parametrize('code_header', ['Mã học phần', 'Mã\nhọc phần', 'Mã\u00a0học\u00a0phần'])
+def test_code_focus_handles_local_headers_dotted_ids_and_continuations(code_header):
+    original = code_table([['UET.CS201', 'Requested', '3', ''], ['', 'Continuation', '', 'Lab component'],
+                           ['UET.CS202', 'Other', '4', '']], (code_header, 'Tên', 'TC', 'Tiên quyết'))
+    result = scoring_text(original, 'body_table_window', 'UET.CS201 credits?')
+    assert 'Requested' in result and 'Continuation' in result and 'Other' not in result
+
+
+def test_input_change_invalidates_old_scoring_identities():
+    from campusai.retrieval.cross_encoder_provider import ModelIdentity
+    from campusai.retrieval.reranker_inputs import INPUT_VERSION
+    assert INPUT_VERSION == 'structured-input-v3'
+    for version in ('structured-input-v1', 'structured-input-v2'):
+        with pytest.raises(ValueError, match='input identity'):
+            ModelIdentity('BAAI/bge-reranker-v2-m3', 'rev', 'a'*64, 'rev', input_version=version)

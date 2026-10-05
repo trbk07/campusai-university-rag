@@ -1,0 +1,18 @@
+{
+  "arm_order_seed": 7,
+  "context_budget": {
+    "max_chars": 12000,
+    "max_tokens": null
+  },
+  "llm_config_sha256": "3e65b63bc55f1db57e6c0e2586aa8a7f6e7dd9588d1a54be9250e259471b64be",
+  "llm_identity": {
+    "model": "gemini-3-flash-preview",
+    "provider": "GeminiClient"
+  },
+  "prompt_sha256": "e76a3d45f42ca8013dcd4250dcd95a7e824a372b64fb12d925b3fc3b3fd2dfba",
+  "provider_repeats_per_arm": 1,
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "rubric_sha256": "7ea7bf29125aaff6b95b0cdc1074925584fb6dc46d4e5ce3e30f56911923ca6e",
+  "schema_version": 1,
+  "status": "frozen"
+}

@@ -1,0 +1,432 @@
+{
+  "active_cycle": {
+    "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18",
+    "index_dir": ".tmp/hybrid-index",
+    "results_dir": "evaluation/results/phase7-source-context-20261004-r18",
+    "schema_version": 1,
+    "status": "active"
+  },
+  "goal": "Complete Phase 7 task by task with reproducible M0-M12/S1-S6 evidence.",
+  "official_status": {
+    "M0": "PASS",
+    "M1": "PASS",
+    "M2": "FAIL",
+    "S1": "PASS",
+    "cycle": "phase7-release-20261004-r18",
+    "passed_gates": 3,
+    "score": null,
+    "total_gates": 19
+  },
+  "policy": "Notify the owner after each completed task, then continue with the next independent or unblocked work.",
+  "recorded_at": "2026-10-05T07:12:25.784651+00:00",
+  "schema_version": 1,
+  "tasks": [
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-01_evidence_inventory.json",
+        "p7-01-r18-readiness.json",
+        "raw/p7-01_git_status.txt"
+      ],
+      "id": "P7-01",
+      "outputs": [
+        "p7-01_evidence_inventory.json",
+        "baseline_restore_audit.json",
+        "p7-01_restore_output.json",
+        "p7-01-r18-readiness.json",
+        "raw/p7-01_git_status.txt"
+      ],
+      "owner_role": "release engineer",
+      "review_role": "self-review by Codex; no independent reviewer claimed",
+      "review_status": "PASS",
+      "status": "DONE"
+    },
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-02_validation.json",
+        "p7-02-focused-tests-workspace-temp.xml",
+        "p7-02-dev-replay/preflight.json"
+      ],
+      "id": "P7-02",
+      "owner_role": "data/retrieval engineer",
+      "review_role": "self-review by Codex; no independent reviewer claimed",
+      "review_status": "PASS",
+      "status": "DONE"
+    },
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-03-expanded-history-audit.json",
+        "p7-03_semantic_review_queue.json",
+        "prepare_p7_03_reviewer_packet.py",
+        "p7-03_blocker_report.json",
+        "p7-03_semantic_exposure_decisions.json",
+        "p7-03-history-similarity-preflight.json",
+        "p7-03_f0_split_proposal.json",
+        "p7-03_f0_owner_signoff.json",
+        "p7-03_f0_validation.json",
+        "p7-03_gap_report.json",
+        "p7-03_f0_signoff_addendum.json",
+        "p7-03_artifact_manifest-v3.json",
+        "p7-03_semantic_exposure_decisions-v2.json",
+        "p7-03_f0_owner_signoff-v2.json",
+        "p7-03_f0_signoff_addendum-v2.json",
+        "p7-03_artifact_manifest-v4.json",
+        "p7-03_artifact_manifest-v5.json",
+        "p7-03_active-r18_f0_scope_addendum.json",
+        "p7-03_active-r18_f0_validation.json",
+        "p7-03_active-r18_f0_freeze.json",
+        "p7-03_artifact_manifest-v7.json",
+        "p7-03_source_group_allocation_signoff.json",
+        "p7-03_source_group_capacity_validation.json",
+        "p7-03_successor_source_capacity.json",
+        "p7-03_artifact_manifest-v8.json",
+        "p7-03_artifact_manifest-v9.json",
+        "p7-03_qh2025_source_binding_validation-v3.json",
+        "p7-03_qh2025_history_preflight-v2.json",
+        "p7-03_qh2025_semantic_exposure_decisions.json",
+        "p7-03_qh2025_source_allocation_signoff.json",
+        "p7-03_qh2025_exposure_validation.json",
+        "p7-03_qh2025_source_evidence.zip",
+        "p7-03_source_table_regression_tests.xml",
+        "p7-03_artifact_manifest-v11.json",
+        "p7-03_successor_f0_validation.json",
+        "p7-03_successor_f0_owner_signoff.json"
+      ],
+      "id": "P7-03",
+      "owner_role": "data curator / exposure reviewer",
+      "review_role": "Project-owner-authorized delegated review; Codex AI analyst; cited source/history evidence; no independent reviewer claimed.",
+      "status": "DONE",
+      "review_status": "PASS_SOURCE_QUESTION_REVIEW_REGISTRY_CONTEXT_FOLDS_SUCCESSOR_F0",
+      "outputs": [
+        "p7-03_semantic_exposure_decisions.json",
+        "p7-03_f0_split_proposal.json",
+        "p7-03_f0_owner_signoff.json",
+        "p7-03_f0_validation.json",
+        "p7-03_gap_report.json",
+        "p7-03_f0_signoff_addendum.json",
+        "p7-03_artifact_manifest-v3.json",
+        "p7-03_active-r18_f0_scope_addendum.json",
+        "p7-03_active-r18_f0_validation.json",
+        "p7-03_active-r18_f0_freeze.json",
+        "p7-03_artifact_manifest-v7.json",
+        "p7-03_source_group_allocation_signoff.json",
+        "p7-03_source_group_capacity_validation.json",
+        "p7-03_successor_source_capacity.json",
+        "p7-03_artifact_manifest-v9.json",
+        "p7-03_artifact_manifest-v11.json",
+        "p7-03_successor_f0_validation.json",
+        "p7-03_successor_f0_owner_signoff.json",
+        "p7-03_successor_split_union_validation.json"
+      ],
+      "source_expansion_progress": {
+        "source_facts": 55,
+        "reviewed_source_rows": 55,
+        "new_subject_groups": 4,
+        "pre_question_group_capacity": 37,
+        "benchmark_f0_frozen": true,
+        "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-successor-20261005-r19b",
+        "new_questions": 93,
+        "inherited_dev_records": 804,
+        "primary_groups": {
+          "test": 13,
+          "holdout": 13
+        }
+      },
+      "completed_at": "2026-10-05T04:32:32.233229+00:00"
+    },
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-04_validator_gap_matrix.json",
+        "p7-04_statistics_protocol.json",
+        "p7-04-validator-tests.xml"
+      ],
+      "id": "P7-04",
+      "owner_role": "evaluation/validator engineer",
+      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "status": "DONE",
+      "review_status": "PASS_CONTRACT_REVIEW"
+    },
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-05_validation.json",
+        "p7-05-candidate-dev-expanded/candidate_coverage.json",
+        "p7-05-retrieval-tests.xml"
+      ],
+      "id": "P7-05",
+      "owner_role": "retrieval engineer",
+      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "status": "DONE",
+      "review_status": "PASS_FOR_DEV_DIAGNOSTIC"
+    },
+    {
+      "blocker": "Full source-based answer claims/rubric remain incomplete. Source-only successor dev screen confirms an incomplete/misaligned inherited gold for human-candidate-0156 and flags additional cases without approving them. Any correction requires a separately reviewed dev-only version; frozen r19b and old results remain immutable. Required internal benchmark transmission to live Gemini remains rejected by automatic approval review pending specific egress authorization.",
+      "evidence": [
+        "p7-06_blocker_report.json",
+        "p7-06-offline-contract-tests.xml",
+        "p7-06_dev_gold_claim_readiness.json",
+        "p7-06_prompt_capture_validation.json",
+        "p7-06_artifact_manifest-v1.json",
+        "p7-06-prompt-capture-contract-suite.xml",
+        "p7-06_dev_claim_input_audit.json",
+        "p7-06_dev_claim_input_manifest-v1.json",
+        "audit_p7_06_dev_gold_inputs.py",
+        "p7-06_successor_semantic_gold_source_audit-v1.json"
+      ],
+      "id": "P7-06",
+      "owner_role": "grounding/evaluation engineer",
+      "review_role": "Pending semantic human reviewer; no sign-off claimed",
+      "status": "IN_PROGRESS",
+      "review_status": "SOURCE_ONLY_DEV_GOLD_SCREEN_RECORDED; ONE_CONFIRMED_DEFECT; FULL_RUBRIC_AND_LIVE_PAIRED_REVIEW_PENDING"
+    },
+    {
+      "blocker": null,
+      "evidence": [
+        "p7-07_validation.json",
+        "p7-07-gpu-lifecycle-report-v4.json",
+        "p7-07-cuda-snapshot-smoke.json",
+        "p7-07-runtime-tests-cuda.xml"
+      ],
+      "id": "P7-07",
+      "owner_role": "runtime engineer",
+      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "status": "DONE",
+      "review_status": "PASS_TASK"
+    },
+    {
+      "blocker": "Component telemetry is measured, but live RAG/grounding/LLM application requests and S6 evidence remain missing. External transmission of internal benchmark payloads to Gemini was rejected by automatic approval review.",
+      "evidence": [
+        "p7-08_validation.json",
+        "p7-08_telemetry_protocol.json",
+        "p7-08_deployment_profile.json",
+        "p7-08-local-http-pilot.json",
+        "p7-08-recomputed.json",
+        "p7-08-telemetry-tests-cuda.xml"
+      ],
+      "id": "P7-08",
+      "owner_role": "runtime/observability engineer",
+      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "Latest actual dev baseline meets Recall/FPR thresholds, and nested route OOF meets route thresholds; native reranker ranking still has no jointly feasible uplift configuration. A source-proved inherited gold defect requires honest separately versioned dev correction/review before further label-driven optimization. Historical expanded-index baseline retention is not certified; no held-out or live joint acceptance has run.",
+      "evidence": [
+        "p7-09-dev-feasibility.json",
+        "p7-09-reranker-dev-raw.json",
+        "p7-09_run_audit.json",
+        "reproduce_p7_09_dev_feasibility.py",
+        "p7-09-ranking-ablation.json",
+        "p7-09-full-dev-feasibility-v2.json",
+        "p7-09-full-dev-reranker-raw-v2.json",
+        "reproduce_p7_09_full_dev_feasibility.py",
+        "p7-09-full-dev-replay-verification.json",
+        "p7-09-input-format-ablation-v2.json",
+        "p7-09-body-policy-sweep.json",
+        "run_p7_09_input_format_ablation.py",
+        "reproduce_p7_09_body_policy_sweep.py",
+        "p7-09-body-runtime-replay.json",
+        "p7-09-body-runtime-observations.json.gz",
+        "measure_p7_09_body_runtime.py",
+        "p7-09-dtype-batch-ablation.json",
+        "run_p7_09_dtype_batch_ablation.py",
+        "p7-09-body-probability-oof.json",
+        "calibrate_p7_09_body_probability_oof.py",
+        "p7-09-route-oof.json",
+        "p7-09-route-oof-frontier.json",
+        "reproduce_p7_09_route_oof.py",
+        "recompute_p7_09_route_oof_frontier.py",
+        "p7-09-nested-joint-oof-v2.json",
+        "run_p7_09_nested_joint_oof.py",
+        "p7-09-nested-quality-recompute.json",
+        "recompute_p7_09_nested_quality.py",
+        "p7-09-serving-cohort-route-oof.json",
+        "reproduce_p7_09_serving_cohort_route_oof.py",
+        "p7-09-candidate-ceiling.json",
+        "analyze_p7_09_candidate_ceiling.py",
+        "p7-09-route-logistic-oof.json",
+        "reproduce_p7_09_route_logistic_oof.py",
+        "p7-09-named-curriculum-pool-ablation.json",
+        "p7-09-named-pool-existing_code_rows-scores.json.gz",
+        "p7-09-named-pool-named_curriculum_rows-scores.json.gz",
+        "run_p7_09_named_curriculum_pool_ablation.py",
+        "docs/reranker/phase7_completion_plan_20261004.md",
+        "p7-09_successor_phase6_qualification_audit.json",
+        "p7-09_successor_phase6_dev_qualification.json",
+        "p7-09_successor_phase6_dev_observations.json.gz",
+        "p7-09_successor_failed_baseline_attempt.json",
+        "p7-09_successor_cleanup.json",
+        "p7-09_successor_dev_baseline_report.json",
+        "p7-09_successor_dev_baseline_raw.json.gz",
+        "p7-09_successor_dev_measurement_audit.json",
+        "p7-09_successor_candidate_ceiling_and_failures.json",
+        "p7-09_successor_body_raw_scores.json.gz",
+        "p7-09_successor_body_actual_calls.jsonl.gz",
+        "p7-09_successor_body_ranking_report.json",
+        "p7-09_successor_order_grouped_oof.json",
+        "p7-09_successor_context_scoring_tests.xml",
+        "p7-09_successor_compare_guard_diagnosis.json",
+        "p7-09_successor_scope_regression_tests.xml",
+        "p7-09_successor_dev_baseline_report-v4.json",
+        "p7-09_successor_dev_baseline_raw-v4.json.gz",
+        "p7-09_successor_route_nested_oof-v4.json",
+        "p7-09_successor_code_table_window_v3_ranking_report.json",
+        "p7-09_successor_code_table_window_v3_raw_scores.json.gz",
+        "p7-09_successor_code_table_window_v3_actual_calls.jsonl.gz",
+        "p7-09_successor_source_snapshot-input-v3.json",
+        "p7-09_successor_source_snapshot-input-v3.zip",
+        "p7-09_successor_diagnostic_reproduction.zip",
+        "p7-06_successor_semantic_gold_source_audit-v1.json"
+      ],
+      "id": "P7-09",
+      "owner_role": "retrieval/evaluation engineer",
+      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "status": "IN_PROGRESS",
+      "review_status": "ACTUAL_829_DEV_BASELINE_V4_AND_UNCACHED_INPUT_V3_SCORES_ARCHIVED; DEV_ROUTE_OOF_THRESHOLDS_MET; JOINT_FEASIBILITY_NOT_PASSED; SEMANTIC_GOLD_AUDIT_STARTED",
+      "progress": {
+        "dev_queries": 829,
+        "baseline_recall5": 0.9830866807610994,
+        "baseline_fpr": 0.025280898876404494,
+        "body_uncached_nonempty_calls": 479,
+        "score_cache_hits": 0,
+        "scope_regression_tests_passed": 118,
+        "heldout_used": false
+      }
+    },
+    {
+      "blocker": "P7-03/F0 is DONE. F1 remains blocked by an honest expanded-index Phase 6 baseline, P7-06/P7-08 real live/target evidence, and P7-09 jointly feasible dev configuration; clean source/complete physical bindings are also required.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-10",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED",
+      "review_status": "SUCCESSOR_F0_READY; F1_DEPENDENCIES_PENDING"
+    },
+    {
+      "blocker": "No frozen successor benchmark or CUDA-capable runtime/provider identity for M2/M3/S2.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-11",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "No F0-eligible groups or successor runtime for hard-route fit and held-out acceptance.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-12",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "No frozen route calibration or eligible benchmark for cap/probability sweep.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-13",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "No fresh held-out ranking packet or human-reviewed paired answers; P7-03/P7-06 remain blocked.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-14",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "No CUDA-enabled target, live HTTP/LLM workload, or approved public deployment profile for M7/S6.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json"
+      ],
+      "id": "P7-15",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "Offline adversarial contracts pass; frozen successor held-out regressions and semantic review for M8 are absent.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json",
+        "p7-16-19-offline-contract-tests.xml",
+        "p7-16-19-offline-contract-tests-current.xml",
+        "p7-16_4_validation.json",
+        "p7-16-19-offline-contract-tests-current-v2.xml",
+        "p7-16_4_validation-v2.json"
+      ],
+      "id": "P7-16",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "P7-17.1-.4 offline/dev and pinned RTX 4060 CUDA subtask validations all pass. Parent M9 remains blocked because the frozen successor/release chain and measured production target profile are unavailable; these component probes do not satisfy the full target-profile M9 gate.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json",
+        "p7-16-19-offline-contract-tests.xml",
+        "p7-17-1-current-fault-injection.json",
+        "p7-17-2-current-queue-probe-v2.json",
+        "p7-17-2-current-cuda-late-result-v2.json",
+        "p7-17-3-current-phase6-fallback-v2.json",
+        "p7-17-4_validation.json",
+        "p7-17-4-current-transient-recovery.json",
+        "p7-17-4-current-fault-matrix-raw.json",
+        "p7-17-2_validation.json",
+        "p7-17-3_validation.json",
+        "p7-17-4_validation-v2.json",
+        "p7-17-2-current-cuda-native-kernel-late.json",
+        "p7-17-4-current-cuda-permanent-failure.json",
+        "p7-17_artifact_manifest.json"
+      ],
+      "id": "P7-17",
+      "owner_role": null,
+      "review_role": "Codex self-review of offline, active-index and pinned local CUDA probes; no target-production or full M9 acceptance claim.",
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "No two-process rollback observation against a shared cache on a frozen candidate runtime for M10.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json",
+        "p7-16-19-offline-contract-tests.xml"
+      ],
+      "id": "P7-18",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "Canary contract tests pass; live staging cohorts, SLO measurements, and rollback exercise for M11 are absent.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json",
+        "p7-16-19-offline-contract-tests.xml"
+      ],
+      "id": "P7-19",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    },
+    {
+      "blocker": "Clean-checkout release reproduction depends on all passing evidence gates, which remain blocked.",
+      "evidence": [
+        "p7-16-20_acceptance_blockers.json",
+        "p7-16-19-offline-contract-tests.xml"
+      ],
+      "id": "P7-20",
+      "owner_role": null,
+      "review_role": null,
+      "status": "BLOCKED"
+    }
+  ]
+}

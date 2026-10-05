@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "task": "P7-03/F0",
+  "status": "OWNER_SIGNED_ACTIVE_R18_F0_FROZEN",
+  "f0_split_frozen": true,
+  "release_eligible": false,
+  "created_at": "2026-10-04T15:50:02.886206+00:00",
+  "cycle": {
+    "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18",
+    "results_dir": "evaluation/results/phase7-source-context-20261004-r18",
+    "index_dir": ".tmp/hybrid-index"
+  },
+  "review_mode": "project-owner-authorized delegated semantic review; Codex AI analyst",
+  "approval_authority": "project_owner",
+  "owner_identity": "Trương Bảo Kiên",
+  "owner_authorization_source": "explicit_project_owner_chat_instruction",
+  "owner_authorization_statement": "Explicit project-owner instruction in this session authorizes the assistant to complete P7-03 decisions and to use the owner's approval/sign-off where the active policy permits. This freeze binds only the validated existing r18 question bytes. The separate 33 eligible source-group proposal has no question records in r18 and is reserved outside this freeze for a later successor.",
+  "independent_review_claim": false,
+  "policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "m1_revalidation_sha256": "fd765490c1dba82ef273c5e2e4f302b68b763f71bbef54cb0a90c35c4f1a9ac2",
+  "dataset_sha256": "994e33264da3fc7392ee2dd8bba0be0207a2902cca504c1c1e1de8d0eb9679c2",
+  "candidate_pool_sha256": "bf6d38c04130de5d89925c133580406ee42a545f05e0d7ac24ea2221d8c997e8",
+  "lineage_sha256": "b6d69543ade6639730ee6ad112a91280849bf8d51b74e90abb3a5eb0f7753835",
+  "exposure_registry_sha256": "cfbc258639e74187f56590c694a1cba355fd84d3b69b1648018b90763673be5a",
+  "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+  "split_counts": {
+    "dev": {
+      "rows": 478,
+      "positive": 315,
+      "negative": 163,
+      "easy": 297,
+      "medium": 32,
+      "hard": 149,
+      "connected_groups": 161,
+      "tag_counts": {
+        "abbreviation": 21,
+        "abstention": 118,
+        "ambiguous": 20,
+        "answerable": 135,
+        "code_switching": 22,
+        "colloquial": 6,
+        "conditional": 4,
+        "contextual": 15,
+        "contextual_followup": 15,
+        "course_code": 25,
+        "curriculum": 120,
+        "easy": 297,
+        "exact_code": 143,
+        "hard": 149,
+        "lexical_mismatch": 7,
+        "long_noisy": 11,
+        "medium": 32,
+        "multi_hop": 78,
+        "natural": 478,
+        "negative": 163,
+        "paraphrase": 2,
+        "slang": 9,
+        "table": 208,
+        "typo": 10,
+        "unanswerable": 10
+      },
+      "connected_groups_all_unexposed_audited": false
+    },
+    "test": {
+      "rows": 164,
+      "positive": 84,
+      "negative": 80,
+      "easy": 136,
+      "medium": 0,
+      "hard": 28,
+      "connected_groups": 37,
+      "tag_counts": {
+        "abstention": 80,
+        "curriculum": 56,
+        "easy": 136,
+        "exact_code": 80,
+        "hard": 28,
+        "multi_hop": 28,
+        "natural": 164,
+        "negative": 80,
+        "table": 84
+      },
+      "connected_groups_all_unexposed_audited": true
+    },
+    "holdout": {
+      "rows": 162,
+      "positive": 60,
+      "negative": 102,
+      "easy": 142,
+      "medium": 0,
+      "hard": 20,
+      "connected_groups": 59,
+      "tag_counts": {
+        "abstention": 102,
+        "curriculum": 40,
+        "easy": 142,
+        "exact_code": 102,
+        "hard": 20,
+        "multi_hop": 20,
+        "natural": 162,
+        "negative": 102,
+        "table": 60
+      },
+      "connected_groups_all_unexposed_audited": true
+    }
+  },
+  "total_connected_groups": 257,
+  "cross_split_connected_groups": [],
+  "exposure_registry_validation_errors": [],
+  "checks": {
+    "active_cycle_matches_r18": true,
+    "owner_semantic_review_authorized": true,
+    "m0_revalidation_pass": true,
+    "m1_revalidation_pass": true,
+    "reviewed_rows_equal_registry_coverage": true,
+    "exposure_registry_validator_zero_errors": true,
+    "zero_cross_split_connected_groups": true,
+    "test_connected_group_floor_10": true,
+    "holdout_connected_group_floor_10": true,
+    "all_test_and_holdout_groups_have_unexposed_audits": true,
+    "preserve_release_thresholds_without_override": true
+  },
+  "candidate_source_groups_outside_f0": {
+    "decisions_path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions-v2.json",
+    "proposal_path": "evaluation/results/phase7-completion-20261004/p7-03_f0_split_proposal.json",
+    "eligible_groups": 33,
+    "proposed_groups": {
+      "dev": 10,
+      "test": 12,
+      "holdout": 11
+    },
+    "question_records_added_to_frozen_r18": 0,
+    "reason": "These reviewed new source facts are not represented by reviewed question records in r18; the sign-off avoids treating source facts as questions or altering frozen benchmark bytes."
+  },
+  "sealing_rule": "Keep test/holdout question and outcome rows out of tuning; only the source/history exposure review and metadata validation were used for F0.",
+  "inputs": [
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval.jsonl",
+      "sha256": "994e33264da3fc7392ee2dd8bba0be0207a2902cca504c1c1e1de8d0eb9679c2",
+      "bytes": 2210244
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_dev.jsonl",
+      "sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+      "bytes": 1211448
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_test.jsonl",
+      "sha256": "c03b63249cefe44e5428739753afdddca494e94c50e4d376c86c088c1870923e",
+      "bytes": 481379
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_holdout.jsonl",
+      "sha256": "1f2265489e5dd6d1e5bded56bbbba358f4f1bb63fd43a6d9c283785996159559",
+      "bytes": 517417
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_candidate_pool.jsonl",
+      "sha256": "bf6d38c04130de5d89925c133580406ee42a545f05e0d7ac24ea2221d8c997e8",
+      "bytes": 2211048
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_candidate_lineage.json",
+      "sha256": "b6d69543ade6639730ee6ad112a91280849bf8d51b74e90abb3a5eb0f7753835",
+      "bytes": 189426
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/phase7_exposure_registry.json",
+      "sha256": "cfbc258639e74187f56590c694a1cba355fd84d3b69b1648018b90763673be5a",
+      "bytes": 602032
+    },
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/phase7_review_policy.json",
+      "sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+      "bytes": 1092
+    },
+    {
+      "path": ".tmp/hybrid-index/manifest.json",
+      "sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "bytes": 4176
+    },
+    {
+      "path": "evaluation/results/phase7-source-context-20261004-r18/hybrid_retrieval_calibration.json",
+      "sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+      "bytes": 874
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_m1-current-revalidation.json",
+      "sha256": "fd765490c1dba82ef273c5e2e4f302b68b763f71bbef54cb0a90c35c4f1a9ac2",
+      "bytes": 16428
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions-v2.json",
+      "sha256": "90eeb1be91ef15f39c8a826cebd8ede61bc9bb2f0059aaade335dfe93b7700ff",
+      "bytes": 268976
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_split_proposal.json",
+      "sha256": "f38cce6d42617a5c97226b2add6c69e51899dd418dcdf3adbbfea52505a6d774",
+      "bytes": 56132
+    }
+  ],
+  "limitations": [
+    "This freezes only the active r18 question split and exposure registry; later M2/M4/M6/M8 performance gates may still fail.",
+    "The new 33-group proposal remains a separate successor intake and is not represented as frozen r18 data."
+  ]
+}

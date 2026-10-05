@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 ROOT = Path(__file__).resolve().parents[2]
+from evaluation.common.artifact_store import resolve_artifact
 REQUIRED = (
     "configs/hybrid_retrieval_release.json",
     "data/corpus/university/manifest.json",
@@ -38,11 +39,19 @@ REQUIRED = (
 
 
 def _sha(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(resolve_artifact(path).read_bytes()).hexdigest()
 
 
 def _json(relative: str) -> dict:
-    return json.loads((ROOT / relative).read_text(encoding="utf-8"))
+    return json.loads(resolve_artifact(ROOT / relative).read_text(encoding="utf-8"))
+
+
+def _available(path: Path) -> bool:
+    try:
+        resolve_artifact(path)
+        return True
+    except (OSError, ValueError):
+        return False
 
 
 def _git(*args: str) -> str:
@@ -50,7 +59,7 @@ def _git(*args: str) -> str:
 
 
 def validate(*, verify_manifest: bool = True) -> tuple[list[str], dict]:
-    errors = [f"missing:{name}" for name in REQUIRED if not (ROOT / name).is_file()]
+    errors = [f"missing:{name}" for name in REQUIRED if not _available(ROOT / name)]
     if errors:
         return errors, {}
     config = _json(REQUIRED[0])
@@ -134,7 +143,7 @@ def validate(*, verify_manifest: bool = True) -> tuple[list[str], dict]:
             errors.append("release_manifest_state")
         for name, expected in fingerprint.get("artifacts", {}).items():
             path = ROOT / name
-            if not path.is_file() or _sha(path) != expected:
+            if not _available(path) or _sha(path) != expected:
                 errors.append(f"release_manifest_checksum:{name}")
         source_commit = fingerprint.get("commit")
         if not source_commit:

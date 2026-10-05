@@ -31,7 +31,7 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
         if path in {"/health", "/live", "/ready", "/metrics"} and method == "GET":
             value = {"/health": application.health, "/live": application.liveness,
                      "/ready": application.readiness, "/metrics": application.metrics_snapshot}[path]()
-            return _json_response(value, start_response)
+            return _json_response(value, start_response, 503 if path == "/ready" and value.get("status") != "ready" else 200)
         if path == "/api/query" and method == "POST":
             try:
                 length = int(environ.get("CONTENT_LENGTH") or 0)
@@ -40,9 +40,9 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                 payload = json.loads(environ["wsgi.input"].read(length))
                 if not isinstance(payload, dict):
                     raise ValueError("query payload must be an object")
-                options = {key: payload[key] for key in ("doc_ids", "filters", "top_k", "language") if key in payload}
+                options = {key: payload[key] for key in ("doc_ids", "filters", "top_k", "language", "history", "selected_text", "requires_context") if key in payload}
                 if "doc_ids" in options and (not isinstance(options["doc_ids"], list)
-                        or not options["doc_ids"] or any(not isinstance(doc, str) or not doc for doc in options["doc_ids"])):
+                        or any(not isinstance(doc, str) or not doc for doc in options["doc_ids"])):
                     raise ValueError("invalid document scope")
                 if "filters" in options and not isinstance(options["filters"], dict):
                     raise ValueError("invalid filters")
@@ -53,6 +53,8 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                 # Assign cohort identity on the server; payload mode/id cannot
                 # force admission or bypass release policy.
                 options["request_id"] = environ.get("campusai.request_id") or uuid.uuid4().hex
+                if "campusai.authorized_doc_ids" in environ:
+                    options["authorized_doc_ids"] = environ["campusai.authorized_doc_ids"]
                 value = application.query(payload.get("question", ""), **options)
                 return _json_response(value, start_response, 200 if value.get("ok") else 400)
             except (ValueError, json.JSONDecodeError):

@@ -1,0 +1,9 @@
+{
+  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12",
+  "source_cycle": "evaluation\\results\\phase7-dev-extension-20261003-r12",
+  "heldout_reused_unchanged": true,
+  "new_heldout_claim": false,
+  "benchmark_changed": false,
+  "dataset_sha256": "c146996dc514fe4fa0c6d4c27967a9678193a4c7278f9e39b83c6249d05327b2",
+  "reason": "generic credit shorthand and JSON table cell decoding corrected; existing serialized source proof hashes retained; no route threshold tuned from heldout"
+}

@@ -1,0 +1,94 @@
+"""Check unlabelled text triples against explicit frozen table credit columns."""
+from collections import defaultdict
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import re
+
+from evaluation.benchmarks.connected_groups import connected_groups
+from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence
+from evaluation.benchmarks.owner_generation import source_course_text_facts, plain
+from evaluation.common.release_artifacts import sha256, write_json
+
+evidence = frozen_evidence(Path('.tmp/hybrid-index'))
+history = []
+datasets = []
+for path in sorted(Path('data/benchmark').rglob('*.jsonl')):
+    if 'owner_confirmed_inputs' in path.parts:
+        continue
+    datasets.append({'path': path.as_posix(), 'sha256': sha256(path)})
+    for line in path.read_text(encoding='utf-8-sig').splitlines():
+        if line.strip():
+            row = json.loads(line)
+            query = row.get('question', row.get('query', ''))
+            if query:
+                history.append(plain(query).replace(' ', ''))
+history_text = '\n'.join(history)
+proofs = defaultdict(list)
+for (doc, chunk), item in evidence.items():
+    start = item['content'].find('{"headers"')
+    if start < 0:
+        continue
+    table = json.loads(item['content'][start:])
+    top = table['headers']
+    headers = [plain(value) for value in top]
+    header_sources = [('top_headers', headers)]
+    header_sources += [(str(number), [plain(str(value)) for value in row])
+                       for number, row in enumerate(table['rows'])
+                       if any(plain(str(value)) in {'ma hoc phan', 'ma so hoc phan'} for value in row)]
+    for header_row, columns in header_sources:
+        for code_column, label in enumerate(columns):
+            if label not in {'ma hoc phan', 'ma so hoc phan'} or code_column + 2 >= len(columns):
+                continue
+            name_column, credits_column = code_column + 1, code_column + 2
+            if columns[name_column] not in {'hoc phan', 'ten hoc phan'} or columns[credits_column] != 'so tin chi':
+                continue
+            role = next((str(top[index]).strip() for index in range(min(code_column, len(top)-1), -1, -1)
+                         if str(top[index]).strip()), '')
+            for number, cells in enumerate(table['rows']):
+                if credits_column >= len(cells):
+                    continue
+                code = re.sub(r'\s+', '', str(cells[code_column])).upper()
+                credits = str(cells[credits_column]).strip()
+                name = ' '.join(str(cells[name_column]).split())
+                if not re.fullmatch(r'[A-Z]{2,5}\d{3,5}[A-Z]?', code) or not credits.isdigit():
+                    continue
+                key = (doc, code, plain(name), int(credits))
+                proof = {'doc_id': doc, 'table_chunk_id': chunk, 'page': item['page'],
+                         'table_row': number, 'header_source': header_row, 'column_role': role,
+                         'code_column': code_column, 'name_column': name_column, 'credits_column': credits_column,
+                         'source_content_sha256': hashlib.sha256(item['content'].encode()).hexdigest()}
+                if proof not in proofs[key]:
+                    proofs[key].append(proof)
+
+candidate = []
+excluded = []
+for fact in source_course_text_facts(evidence):
+    if plain(fact['code']).replace(' ', '') in history_text or plain(fact['name']).replace(' ', '') in history_text:
+        continue
+    matches = proofs.get((fact['doc_id'], fact['code'], plain(fact['name']), fact['credits']), [])
+    if not matches:
+        excluded.append({'fact': fact, 'reason': 'no_explicit_credit_column_corroboration'})
+        continue
+    candidate.append({'fact': fact, 'table_proofs': matches})
+families = connected_groups([{'qid': f'fact-{number}', 'question': '',
+                              'paraphrase_group': item['fact']['code'],
+                              'source_group': plain(item['fact']['name'])}
+                             for number, item in enumerate(candidate)])
+for number, item in enumerate(candidate):
+    item['connected_group'] = families[f'fact-{number}']
+result = {'schema_version': 1, 'status': 'diagnostic', 'release_eligible': False,
+          'recorded_at': datetime.now(timezone.utc).isoformat(),
+          'purpose': 'successor source-fact proposals with explicit table credit proof, not reviewed benchmark inputs',
+          'history_datasets': datasets, 'historical_questions': len(history),
+          'index_sha256': sha256(Path('.tmp/hybrid-index/manifest.json')),
+          'candidate_text_triples': len(candidate), 'connected_subject_groups': len(set(families.values())),
+          'excluded': excluded, 'proposals': candidate,
+          'minimum_primary_positive_groups': {'test': 10, 'holdout': 10},
+          'gap': max(0, 20 - len(set(families.values()))),
+          'limits': ['Exact name/code history checks do not establish semantic exposure eligibility.',
+                     'Current and adjusted codes for one subject, or repeated chunks, remain connected.',
+                     'No new approval, split, freeze or release PASS is created by this audit.']}
+write_json(Path('evaluation/results/phase7-dev-feasibility-20261004/successor_source_fact_audit.json'), result)
+print(json.dumps({key: result[key] for key in ('candidate_text_triples', 'connected_subject_groups', 'gap')}, indent=2))

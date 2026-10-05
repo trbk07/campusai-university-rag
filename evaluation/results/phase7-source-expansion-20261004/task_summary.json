@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "status": "source_preparation_complete",
+  "release_eligible": false,
+  "recorded_at": "2026-10-04T04:50:20.184902+00:00",
+  "original_public_pdfs_archived": 3,
+  "readable_pdfs_indexed": 2,
+  "scan_only_pdfs_excluded": 1,
+  "added_chunks": 158,
+  "expanded_index_documents": 12,
+  "expanded_index_sha256": "f944f088bc01f173c340f92b94b8f3f89b0f61af9fabec84a38a51440d91ac3d",
+  "explicit_course_rows": 95,
+  "history_question_occurrences": 27957,
+  "history_datasets": 175,
+  "proposed_connected_groups": 43,
+  "history_semantic_approval_complete": false,
+  "new_benchmark_created": false,
+  "new_heldout_or_model_scores_measured": false,
+  "restored_index_and_history_screen_match": true,
+  "original_index_and_consumed_r18_preserved": true,
+  "offline_tests": {
+    "passed": 786,
+    "skipped": 2,
+    "coverage_percent": 89.50721379051902,
+    "live_provider_acceptance": false
+  },
+  "official_release": {
+    "cycle": "phase7-release-20261004-r18",
+    "passed_gates": 3,
+    "total_gates": 19,
+    "M2": "FAIL",
+    "score": null,
+    "all_release_gates_pass": false
+  },
+  "next": "Implement strict dev-only inheritance of all 804 consumed r18 rows and 13 exposed r12 absence rows; finish semantic source/group audit; create and freeze successor benchmark before new gate measurements."
+}

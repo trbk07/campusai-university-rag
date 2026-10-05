@@ -154,6 +154,8 @@ def main() -> int:
                         default=Path("evaluation/results/hybrid_retrieval_calibration.json"))
     parser.add_argument("--route-calibration", type=Path,
                         default=Path("evaluation/results/hard_query_route_calibration.json"))
+    parser.add_argument("--evidence-dev", type=Path,
+                        help="optional source-bound dev-only evidence calibration supplement")
     parser.add_argument("--model-dir", type=Path, required=True)
     parser.add_argument("--device", default="cpu", help="Explicit cpu, cuda or cuda:N device")
     parser.add_argument("--dtype", choices=("float32", "float16", "bfloat16"), default="float32")
@@ -168,6 +170,8 @@ def main() -> int:
     parser.add_argument("--output", type=Path,
                         default=Path(".tmp/reranker-reranker-calibration-candidate.json"))
     args = parser.parse_args()
+    if args.evidence_dev and not args.exploratory:
+        parser.error("--evidence-dev is exploratory only; it is not a frozen release benchmark")
     if not args.exploratory:
         require_previous_gates("M5", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.dev.parent)
         assert_tuning_allowed(args.results_dir)
@@ -176,6 +180,10 @@ def main() -> int:
     rows = load_jsonl(args.dev)
     if not rows or any(row.get("split") != "dev" for row in rows):
         raise SystemExit("reranker calibration accepts only dev rows")
+    evidence_rows = []
+    if args.evidence_dev:
+        from evaluation.benchmarks.evidence_calibration_dev import load_validated
+        evidence_rows, evidence_manifest = load_validated(args.evidence_dev, args.dev, args.index_dir)
     route = json.loads(args.route_calibration.read_text(encoding="utf-8"))
     route_model = None
     if route.get("route_model") is not None:
@@ -201,6 +209,8 @@ def main() -> int:
     doc_ids = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
     baseline = {}
     proposals = {}
+    evidence_baseline = {}
+    evidence_proposals = {}
     latencies = []
     errors = []
     eligible = 0
@@ -208,8 +218,10 @@ def main() -> int:
         provider.warm_up()
         for row in rows:
             qid = row["qid"]
-            results = retriever.search(row["question"], doc_ids=row.get("doc_ids", doc_ids),
-                                       filters=row.get("filters"), top_k=5, mode="auto")
+            from campusai.rag.context import benchmark_retrieval_request
+            request = benchmark_retrieval_request(row, doc_ids)
+            query = request["query"]
+            results = retriever.search(**request, top_k=5, mode="auto")
             baseline[qid] = results
             trace = retriever.last_trace
             if trace.route in {"exact_code", "abstain"} or trace.abstained or len(results) < 2:
@@ -217,10 +229,10 @@ def main() -> int:
             confidence = float(results[0].confidence_score or 0.0)
             fusion_margin = max(0.0, float(results[0].fusion_score or 0.0)
                                 - float(results[1].fusion_score or 0.0))
-            features = route_features(row["question"], results)
+            features = route_features(query, results)
             if route_model is not None:
                 from campusai.retrieval.route_probability import route_observations
-                hard = route_model.selects(route_observations(row["question"], results))
+                hard = route_model.selects(route_observations(query, results))
             else:
                 hard = (confidence < route["easy_confidence_threshold"] or fusion_margin < route["easy_margin_threshold"]
                         or (route.get("minimum_agreement", 0) and features["agreement"] < route["minimum_agreement"])
@@ -228,15 +240,14 @@ def main() -> int:
             if not hard:
                 continue
             eligible += 1
-            pool = retriever.search(row["question"], doc_ids=row.get("doc_ids", doc_ids),
-                                    filters=row.get("filters"), top_k=40, mode="auto")
+            pool = retriever.generate_candidates(**request, top_k=40, mode="auto")
             candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
                                           item.page, item.content, item.rank,
                                           float(item.fusion_score or 0.0))
                           for item in pool[:args.rerank_cap]]
             started = time.perf_counter()
             try:
-                ranking = provider.score(row["question"], candidates)
+                ranking = provider.score(query, candidates)
             except Exception as error:
                 errors.append({"qid": qid, "error_type": type(error).__name__,
                                "reason": str(error) if str(error) in {"reranker_timeout", "invalid_model_scores", "queue_full", "circuit_open"} else "provider_failure"})
@@ -251,19 +262,60 @@ def main() -> int:
                                                   "scores": [item.reranker_score for item in ranking]},
                               "margin": ranking[0].reranker_score - ranking[1].reranker_score
                               if len(ranking) > 1 else 0.0}
+        # Experimental auxiliary scoring is recorded separately from the
+        # frozen primary route cohort, and cannot qualify a release.
+        for row in evidence_rows:
+            qid = row["qid"]
+            from campusai.rag.context import benchmark_retrieval_request
+            request = benchmark_retrieval_request(row, doc_ids)
+            query = request["query"]
+            results = retriever.search(**request, top_k=5, mode="auto")
+            evidence_baseline[qid] = results
+            if len(results) < 2:
+                errors.append({"qid": qid, "error_type": "EvidenceDevInsufficientCandidates",
+                               "reason": "supplemental negative requires at least two Phase 6 candidates"})
+                continue
+            pool = retriever.generate_candidates(**request, top_k=40, mode="auto")
+            candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
+                                          item.page, item.content, item.rank,
+                                          float(item.fusion_score or 0.0))
+                          for item in pool[:args.rerank_cap]]
+            started = time.perf_counter()
+            try:
+                ranking = provider.score(query, candidates)
+            except Exception as error:
+                errors.append({"qid": qid, "error_type": type(error).__name__,
+                               "reason": str(error) if str(error) in {"reranker_timeout", "invalid_model_scores", "queue_full", "circuit_open"} else "provider_failure"})
+                continue
+            latencies.append((time.perf_counter() - started) * 1000)
+            by_id = {item.chunk_id: item for item in pool}
+            reranked = [by_id[item.candidate_id] for item in ranking]
+            reranked.extend(pool[args.rerank_cap:])
+            evidence_proposals[qid] = {"results": reranked[:5],
+                "top_score": ranking[0].reranker_score,
+                "evidence_inputs": {"ranked_candidates": [by_id[item.candidate_id].to_dict() for item in ranking],
+                                    "scores": [item.reranker_score for item in ranking]},
+                "margin": ranking[0].reranker_score - ranking[1].reranker_score
+                if len(ranking) > 1 else 0.0}
     finally:
         provider.close()
     selected, comparison = calibrate(rows, baseline, proposals, args.low_score_action)
     if args.evidence_policy == "probability":
         from evaluation.reranker.calibrate_evidence_probabilities import calibrate_probabilities
         try:
-            selected, comparison = calibrate_probabilities(rows, baseline, proposals)
+            selected, comparison = calibrate_probabilities(
+                rows + evidence_rows, baseline | evidence_baseline, proposals | evidence_proposals)
         except ValueError as error:
             errors.append({"qid": None, "error_type": "EvidenceCalibrationError", "reason": str(error)})
             comparison["feasible"] = False
     quality = comparison["selected"]
+    primary_outputs = calibrated_outputs(baseline, proposals, selected, rows=rows)
+    primary_quality = _quality(rows, primary_outputs)
+    primary_baseline_quality = _quality(rows, baseline)
     score_gate = (comparison["feasible"] and quality["answerable_recall_at_5"] >= .95
-                  and quality["negative_fpr"] <= .01 and not errors)
+                  and quality["negative_fpr"] <= .01
+                  and primary_quality["answerable_recall_at_5"] >= max(.95, primary_baseline_quality["answerable_recall_at_5"] - .005)
+                  and primary_quality["negative_fpr"] <= .01 and not errors)
     route_gate = route.get("status") == "pass"
     report = {"schema_version": 1, "phase": 7, "mode": "hybrid_rerank",
               "version": "phase7-evidence-dev-v3" if selected.get("evidence_model") else ("phase7-rerank-dev-v2" if args.low_score_action == "abstain" else "phase7-rerank-dev-v1"),
@@ -275,6 +327,9 @@ def main() -> int:
               "index_sha256": _sha(args.index_dir / "manifest.json"),
               "phase6_calibration_sha256": _sha(args.phase6_calibration),
               "training_split_sha256": _sha(args.dev),
+              "evidence_calibration_dev_sha256": _sha(args.evidence_dev) if args.evidence_dev else None,
+              "evidence_calibration_manifest_sha256": _sha(args.evidence_dev.with_suffix(".manifest.json")) if args.evidence_dev else None,
+              "evidence_calibration_dev_count": len(evidence_rows),
               "route_calibration_sha256": _sha(args.route_calibration),
               "threshold": selected["threshold"],
               "margin_threshold": selected["margin_threshold"],
@@ -288,13 +343,18 @@ def main() -> int:
               "constraint_threshold": route.get("constraint_threshold", 0),
               "candidate_cap": 40, "rerank_candidate_cap": args.rerank_cap,
               "selection_rule": "hard route only; valid low scores use calibrated low_score_action; low margins and provider faults use Phase 6",
-              "positive_count": sum(row["answerable"] for row in rows),
-              "negative_count": sum(not row["answerable"] for row in rows),
+              "positive_count": sum(row["answerable"] for row in rows + evidence_rows),
+              "negative_count": sum(not row["answerable"] for row in rows + evidence_rows),
               "recall": quality["answerable_recall_at_5"],
               "false_positive_rate": quality["negative_fpr"],
               "comparison": comparison,
+              "cohorts": {"primary": {"records": len(rows), "rerank_requests": len(proposals),
+                                      "baseline": primary_baseline_quality, "selected": primary_quality},
+                          "auxiliary": {"records": len(evidence_rows), "rerank_requests": len(evidence_proposals),
+                                        "scoring_mode": "explicit_exploratory_not_route_coverage",
+                                        "connected_groups": evidence_manifest["auxiliary_connected_group_count"] if args.evidence_dev else 0}},
               "routing_status": route.get("status"),
-              "rerank_requests": len(proposals),
+              "rerank_requests": len(proposals) + len(evidence_proposals),
               "eligible_requests": eligible,
               "fallback_rate": (eligible - sum(proposal_action(p, selected, row=next(r for r in rows if r["qid"] == qid), baseline=baseline[qid])
                                   != "phase6" for qid, p in proposals.items())) / max(1, eligible),
@@ -307,14 +367,19 @@ def main() -> int:
                                      "p99": _percentile(latencies, .99)},
               "errors": errors}
     report["calibration_observations"] = {
-        "baseline": {qid: [item.to_dict() for item in values] for qid, values in baseline.items()},
+        "baseline": {qid: [item.to_dict() for item in values]
+                     for qid, values in (baseline | evidence_baseline).items()},
         "proposals": {qid: {**proposal, "results": [item.to_dict() for item in proposal["results"]]}
-                      for qid, proposal in proposals.items()}}
+                      for qid, proposal in (proposals | evidence_proposals).items()},
+        "primary_qids": [row["qid"] for row in rows],
+        "evidence_calibration_qids": [row["qid"] for row in evidence_rows],
+    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({"status": report["status"], "routing_status": report["routing_status"],
                       "baseline": comparison["baseline"], "selected": quality,
-                      "rerank_requests": len(proposals), "rerank_p95_ms": report["rerank_latency_ms"]["p95"],
+                      "cohorts": report["cohorts"],
+                      "rerank_requests": report["rerank_requests"], "rerank_p95_ms": report["rerank_latency_ms"]["p95"],
                       "errors": len(errors)}, indent=2))
     return 0 if report["status"] == "pass" else 1
 

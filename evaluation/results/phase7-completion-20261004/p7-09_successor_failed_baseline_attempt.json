@@ -1,0 +1,29 @@
+{
+    "status":  "FAILED_BEFORE_INFERENCE",
+    "release_eligible":  false,
+    "completed_observations":  0,
+    "reason":  "CalibrationError: calibration index fingerprint mismatch",
+    "original_path":  ".release/reranker/studies/phase7-successor-r19b-dev-baseline-v1/study_manifest.json",
+    "original_sha256":  "2d49520d2e07d5c06729ac1474139650086ad9829ba0e0757268e2234eeee330",
+    "original_manifest":  {
+                              "dev_sha256":  "baa67761d0e1706fbb1f1267bee311ac52261a01ca6a2f43c34d604b82429ee3",
+                              "index_sha256":  "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+                              "phase6_calibration_sha256":  "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+                              "f0_signoff_sha256":  "455fc97e22c3c468e9f30952f0b552068dc2804981ba899c96abecadb4e3ca01",
+                              "runner_sha256":  "1d12f578cd0ccc76b2269b1c101612fb200ef5d2efb78feba772e4769009590e",
+                              "release_eligible":  false,
+                              "calibration_split":  "dev",
+                              "test_used":  false,
+                              "holdout_used":  false,
+                              "recorded_at":  "2026-10-05T04:32:44.320232+00:00",
+                              "purpose":  "actual successor dev Phase 6 baseline/candidate measurement before P7-09 tuning",
+                              "candidate_cap":  40,
+                              "query_cache_size":  0,
+                              "reranker_called":  false,
+                              "llm_called":  false,
+                              "hf_network_access":  false
+                          },
+    "retained_failure_audit":  "evaluation/results/phase7-completion-20261004/p7-09_successor_phase6_qualification_audit.json",
+    "recorded_at":  "2026-10-05T05:06:18.8131871Z"
+}
+

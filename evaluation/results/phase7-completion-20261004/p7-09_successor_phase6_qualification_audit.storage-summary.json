@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09_successor_phase6_qualification_audit.json",
+    "sha256": "9d5d80e58c666c716bffa5fb3a0752e7e2cf262e765a2615626849ab9275334f"
+  },
+  "summary": {
+    "status": "MEASURED_DEV_ONLY_NOT_M0",
+    "recorded_at": "2026-10-05T04:58:17.657912+00:00",
+    "release_eligible": false,
+    "test_used": false,
+    "holdout_used": false,
+    "phase6_parameters_unchanged": true,
+    "threshold": 0.315876,
+    "historical_dev_recall5": 0.912698,
+    "successor_dev_recall5": 0.8650793650793651,
+    "recall_delta_percentage_points": -4.7618634920634895,
+    "successor_dev_fpr": 0.0,
+    "observations": {
+      "total": 140,
+      "answerable": 126,
+      "negative": 14
+    },
+    "qualification_means": "Only the existing dev threshold/FPR/drop constraints passed on the new index. This does not establish retention of historical retrieval quality or official M0 applicability.",
+    "phase7_dev_baseline_attempt_failure": {
+      "reason": "CalibrationError: calibration index fingerprint mismatch",
+      "old_index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "actual_index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+      "completed_observations": 0
+    },
+    "artifacts": [
+      {
+        "path": "evaluation/results/phase7-completion-20261004/p7-09_successor_phase6_dev_qualification.json",
+        "sha256": "ec77f5037b004b2b666e942763ef8d1254d3637fc71e7b556ff1a185bb94ad39"
+      },
+      {
+        "path": "evaluation/results/phase7-completion-20261004/p7-09_successor_phase6_dev_observations.json.gz",
+        "sha256": "716b0419db2fd7b8e12f19a538a71eea3a8eb360e46a53944de5d579b4db2be0"
+      }
+    ],
+    "next": "Measure the 829 exact F0-authorized successor dev requests using this new measured index qualification; no heldout inference."
+  },
+  "omitted_raw": []
+}

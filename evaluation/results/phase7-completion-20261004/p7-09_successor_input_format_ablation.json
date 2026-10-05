@@ -1,0 +1,272 @@
+{
+  "status": "REAL_SAME_POOL_DEV_INPUT_ABLATION_NOT_JOINT_FEASIBLE",
+  "release_eligible": false,
+  "test_used": false,
+  "holdout_used": false,
+  "same_candidate_raw": true,
+  "variants": {
+    "body_table_window": {
+      "best_exploratory": {
+        "cap": 12,
+        "rank_weight": 0.25,
+        "metrics_by_cohort": {
+          "all_dev": {
+            "recall5": 0.9471458773784355,
+            "mrr": 0.5527836504580691,
+            "ndcg5": 0.6444879273139061,
+            "negative_fpr": 0.025280898876404494,
+            "positive": 473,
+            "negative": 356,
+            "all_gold_coverage5": 0.9323467230443975
+          },
+          "consumed_parent_dev": {
+            "recall5": 0.9477124183006536,
+            "mrr": 0.5505809731299928,
+            "ndcg5": 0.642823295906362,
+            "negative_fpr": 0.002898550724637681,
+            "positive": 459,
+            "negative": 345,
+            "all_gold_coverage5": 0.9324618736383442
+          },
+          "new_source_dev": {
+            "recall5": 0.9285714285714286,
+            "mrr": 0.625,
+            "ndcg5": 0.6990640570326756,
+            "negative_fpr": 0.7272727272727273,
+            "positive": 14,
+            "negative": 11,
+            "all_gold_coverage5": 0.9285714285714286
+          }
+        },
+        "release_cap_allowed": true,
+        "relative_uplift": {
+          "all_dev": {
+            "mrr": -0.40580259071282476,
+            "ndcg5": -0.31098269740767315
+          },
+          "consumed_parent_dev": {
+            "mrr": -0.41403563009622446,
+            "ndcg5": -0.31782387014308444
+          },
+          "new_source_dev": {
+            "mrr": 0.0,
+            "ndcg5": -0.012390376509185286
+          }
+        }
+      },
+      "model_identity": {
+        "model_name": "BAAI/bge-reranker-v2-m3",
+        "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+        "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "provider": "sentence_transformers",
+        "device": "cuda:0",
+        "dtype": "float32",
+        "max_length": 512,
+        "batch_size": 8,
+        "normalization": "raw_logit",
+        "batch_window_ms": 0.0,
+        "max_batch_pairs": 200,
+        "input_format": "body_table_window",
+        "input_version": "structured-input-v1"
+      },
+      "model_identity_sha256": "6391a1cbc115fc4d48cbba626a0b99cd9649e7b7090fe61f3164a650293f0581",
+      "actual_call_statistics": {
+        "submitted_requests": 480,
+        "completed_requests": 480,
+        "cancelled_requests": 0,
+        "rejected_requests": 0,
+        "active_requests": 0,
+        "queue_depth": 0,
+        "max_queue_depth": 0,
+        "queue_wait_ms_total": 39.10320000431966,
+        "max_queue_wait_ms": 0.7260000002133893,
+        "worker_ms_total": 67987.45929999677,
+        "closed": false,
+        "failure_count": 0,
+        "ready": true,
+        "model_loads": 1,
+        "inference_calls": 480,
+        "score_cache_hits": 0,
+        "score_cache_entries": 0,
+        "inference_batches": 0,
+        "max_batch_requests": 0
+      },
+      "scores_sha256": "e599c3a9914a3d5c6d24946504be25f0f8189ae5932739aed50708fa3f1c882d",
+      "candidate_raw_sha256": "5f31c32d0eb584bc0f1e24ffe7e0d54f8d26ff30b998a098926a9a8eabf8be45",
+      "source_identity": {
+        "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+        "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+        "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+      }
+    },
+    "full_chunk": {
+      "best_exploratory": {
+        "cap": 16,
+        "rank_weight": 0.5,
+        "metrics_by_cohort": {
+          "all_dev": {
+            "recall5": 0.9682875264270613,
+            "mrr": 0.5581042988019732,
+            "ndcg5": 0.6516429090884377,
+            "negative_fpr": 0.025280898876404494,
+            "positive": 473,
+            "negative": 356,
+            "all_gold_coverage5": 0.9492600422832981
+          },
+          "consumed_parent_dev": {
+            "recall5": 0.9694989106753813,
+            "mrr": 0.5558823529411765,
+            "ndcg5": 0.6503355427613249,
+            "negative_fpr": 0.002898550724637681,
+            "positive": 459,
+            "negative": 345,
+            "all_gold_coverage5": 0.9520697167755992
+          },
+          "new_source_dev": {
+            "recall5": 0.9285714285714286,
+            "mrr": 0.6309523809523809,
+            "ndcg5": 0.6945058479559237,
+            "negative_fpr": 0.7272727272727273,
+            "positive": 14,
+            "negative": 11,
+            "all_gold_coverage5": 0.8571428571428571
+          }
+        },
+        "release_cap_allowed": true,
+        "relative_uplift": {
+          "all_dev": {
+            "mrr": -0.4000833270206803,
+            "ndcg5": -0.30333335902063496
+          },
+          "consumed_parent_dev": {
+            "mrr": -0.40839355412142053,
+            "ndcg5": -0.3098517329808449
+          },
+          "new_source_dev": {
+            "mrr": 0.00952380952380949,
+            "ndcg5": -0.018830031222934807
+          }
+        }
+      },
+      "model_identity": {
+        "model_name": "BAAI/bge-reranker-v2-m3",
+        "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+        "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "provider": "sentence_transformers",
+        "device": "cuda:0",
+        "dtype": "float32",
+        "max_length": 512,
+        "batch_size": 8,
+        "normalization": "raw_logit",
+        "batch_window_ms": 0.0,
+        "max_batch_pairs": 200,
+        "input_format": "full_chunk",
+        "input_version": "structured-input-v1"
+      },
+      "model_identity_sha256": "3666c2da8046b4ae9499709d5e54678b8d1c2e08c447290a0bec93900f168055",
+      "actual_call_statistics": {
+        "submitted_requests": 480,
+        "completed_requests": 480,
+        "cancelled_requests": 0,
+        "rejected_requests": 0,
+        "active_requests": 0,
+        "queue_depth": 0,
+        "max_queue_depth": 0,
+        "queue_wait_ms_total": 36.79849999025464,
+        "max_queue_wait_ms": 0.6763999990653247,
+        "worker_ms_total": 71869.48910000865,
+        "closed": false,
+        "failure_count": 0,
+        "ready": true,
+        "model_loads": 1,
+        "inference_calls": 480,
+        "score_cache_hits": 0,
+        "score_cache_entries": 0,
+        "inference_batches": 0,
+        "max_batch_requests": 0
+      },
+      "scores_sha256": "1cc2632a571f953b5b12b1da17d4c1bb23ab559f53afbedc3b376ded2dea4414",
+      "candidate_raw_sha256": "5f31c32d0eb584bc0f1e24ffe7e0d54f8d26ff30b998a098926a9a8eabf8be45",
+      "source_identity": {
+        "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+        "source_sha256": "470ae6c9a290398357d53d411bc6c9e5704839209d5f640d75a631b4076c92e7",
+        "runtime_sha256": "1384c9573f18f9c1a65d06fc0da789ced2675abbda08e6adc353a8dd9e920481"
+      }
+    },
+    "body": {
+      "best_exploratory": {
+        "cap": 16,
+        "rank_weight": 0.5,
+        "metrics_by_cohort": {
+          "all_dev": {
+            "recall5": 0.9725158562367865,
+            "mrr": 0.6056730091613812,
+            "ndcg5": 0.6914427367851732,
+            "negative_fpr": 0.025280898876404494,
+            "positive": 473,
+            "negative": 356,
+            "all_gold_coverage5": 0.9577167019027484
+          },
+          "consumed_parent_dev": {
+            "recall5": 0.9738562091503268,
+            "mrr": 0.6045388525780683,
+            "ndcg5": 0.6909251424597926,
+            "negative_fpr": 0.002898550724637681,
+            "positive": 459,
+            "negative": 345,
+            "all_gold_coverage5": 0.9586056644880174
+          },
+          "new_source_dev": {
+            "recall5": 0.9285714285714286,
+            "mrr": 0.6428571428571429,
+            "ndcg5": 0.7084124364530064,
+            "negative_fpr": 0.7272727272727273,
+            "positive": 14,
+            "negative": 11,
+            "all_gold_coverage5": 0.9285714285714286
+          }
+        },
+        "release_cap_allowed": true,
+        "relative_uplift": {
+          "all_dev": {
+            "mrr": -0.3489508370577987,
+            "ndcg5": -0.26078365597571274
+          },
+          "consumed_parent_dev": {
+            "mrr": -0.35661011709239865,
+            "ndcg5": -0.26677728902233666
+          },
+          "new_source_dev": {
+            "mrr": 0.028571428571428692,
+            "ndcg5": 0.0008166384799013215
+          }
+        }
+      },
+      "model_identity": {
+        "model_name": "BAAI/bge-reranker-v2-m3",
+        "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+        "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "provider": "sentence_transformers",
+        "device": "cuda:0",
+        "dtype": "float32",
+        "max_length": 512,
+        "batch_size": 8,
+        "normalization": "raw_logit",
+        "batch_window_ms": 0.0,
+        "max_batch_pairs": 200,
+        "input_format": "body",
+        "input_version": "structured-input-v1"
+      },
+      "candidate_raw_sha256": "5f31c32d0eb584bc0f1e24ffe7e0d54f8d26ff30b998a098926a9a8eabf8be45",
+      "source_identity": {
+        "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+        "source_sha256": "42d00d20cf82c552cb20386310c59c10f6f9e4cd5721fd6ce79262306ad43619",
+        "runtime_sha256": "f2a7f53c80162da67d7ccb8286e43d155e51187a21b6c8fe501aa9b4a36aed69"
+      }
+    }
+  },
+  "limitation": "Actual scores share the pre-scope-fix v2 pools and resolved inputs. Body collection preceded the routing/scope changes; format is the inference difference, but no matching serving source/route/latency or acceptance is claimed."
+}

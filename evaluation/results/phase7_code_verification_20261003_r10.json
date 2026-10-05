@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "artifact_type": "code_verification_summary",
+  "cycle_id": "phase7-dev-metadata-20261003-r10",
+  "updated_on": "2026-10-03",
+  "status": "code_pass_release_incomplete",
+  "commit": "b0c3175b067be580bbce749892e90b267e5e2933",
+  "source_sha256": "c0120eb6df963dba7aff51b4e2d892fe1436969df417dd5effc12c8e2b761be2",
+  "runtime_sha256": "cc0aecc04d9bf65f8d23c69fe5b3227383b4e6bb30ea964b233bc12c0f57cd6a",
+  "verification": {
+    "offline_suite": {
+      "counts": {
+        "tests": 598,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 2,
+        "passed": 596
+      },
+      "junit": {
+        "path": ".tmp/phase7-context-metadata-r10.xml",
+        "sha256": "630812a0ee131e6486bb3a2883f4a6c203d7de9897d42d9a66b73c9c4e21ad3a"
+      },
+      "coverage": {
+        "path": ".tmp/phase7-context-metadata-r10-coverage.json",
+        "sha256": "28bc14fda10883280f62a56af06bb98ae263846ed00702dee5c7f509b6109182"
+      },
+      "coverage_percent": 89.31582042736719,
+      "minimum_coverage_percent": 85
+    },
+    "live_attempts": [
+      {
+        "junit": {
+          "path": ".tmp/phase7-live-context-r10.xml",
+          "sha256": "e5e6ff4f503c441c8be9c13778c20991987f470d959aeac9c8be469fb0abb61f"
+        },
+        "counts": {
+          "tests": 2,
+          "failures": 2,
+          "errors": 0,
+          "skipped": 0,
+          "passed": 0
+        },
+        "failure": "Gemini provider quota HTTP429"
+      }
+    ],
+    "live_notes": "Current live calls failed quota; earlier live passes remain historical. S2 permits normal concrete-client cache; it is not an uncached M6 answer-quality measurement."
+  },
+  "release_readiness": {
+    "through": "M3",
+    "status": "pass",
+    "score": null,
+    "all_release_gates_pass": false,
+    "report": {
+      "path": "evaluation/results/phase7-dev-metadata-20261003-r10/readiness.json",
+      "sha256": "9bc1a17c167342c02061928e4ac00ab8380b3f47e0860dec51287f6e12a106cb"
+    }
+  },
+  "measurement_runtime": "M2/M3/S2 use pinned GPU interpreter; this code summary uses CPU test interpreter.",
+  "dev_revision": {
+    "corrections": 14,
+    "changed_fields": [
+      "difficulty",
+      "tags"
+    ],
+    "preflight": {
+      "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/dev_metadata_revision_preflight.json",
+      "sha256": "ea69f0a871d73601e826907d440319e437a164ffe0388d95edc87ccba5782a9c"
+    }
+  },
+  "heldout_reused_unchanged": true,
+  "new_heldout_claim": false,
+  "m4_dev_attempt": {
+    "feasible": false,
+    "heldout_opened": false,
+    "route_frozen": false,
+    "fitted": {
+      "eligible": 100,
+      "selected": 69,
+      "coverage": 0.69,
+      "hard_recall": 0.84375,
+      "easy_unnecessary_rerank_rate": 0.4166666666666667,
+      "selection_precision": 0.782608695652174,
+      "false_skip_rate": 0.15625,
+      "hard_count": 64,
+      "easy_count": 36
+    },
+    "grouped_out_of_fold": {
+      "eligible": 100,
+      "selected": 80,
+      "coverage": 0.8,
+      "hard_recall": 0.828125,
+      "easy_unnecessary_rerank_rate": 0.75,
+      "selection_precision": 0.6625,
+      "false_skip_rate": 0.171875,
+      "hard_count": 64,
+      "easy_count": 36
+    },
+    "raw": {
+      "path": "evaluation/results/phase7-dev-metadata-20261003-r10/hard_query_route_calibration.json",
+      "sha256": "db118c94b68c3e28393893375412dce2714de6b9dced2dc470e8f3f2abf69641"
+    }
+  }
+}

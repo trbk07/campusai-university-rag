@@ -229,8 +229,8 @@ def main() -> int:
                 cold_start = (time.perf_counter() - cold_start) * 1000
             def send(row):
                 started = time.perf_counter()
-                payload = {"question": row["question"], "doc_ids": row.get("doc_ids"),
-                           "filters": row.get("filters") or {}, "top_k": 5,
+                from campusai.rag.context import benchmark_request
+                payload = {**benchmark_request(row, []), "top_k": 5,
                            "language": row.get("language", "vi")}
                 if payload["doc_ids"] is None:
                     payload.pop("doc_ids")

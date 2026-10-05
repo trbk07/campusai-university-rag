@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-serving-cohort-route-oof.json",
+    "sha256": "4a490c75036d4c4892b210e5f98058dda4934acfe5be2613cfdc5ee28ded7b98"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "created_at": "2026-10-04T13:33:59.894201+00:00",
+    "source_stable": true,
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "ef6d23ff41c1a84a7ee39e668fe8c132500d80cf0f80a7e67b4837a8d8f4c5b3",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "ef6d23ff41c1a84a7ee39e668fe8c132500d80cf0f80a7e67b4837a8d8f4c5b3",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "candidate_raw_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "feature_contract": "evaluation.reranker.calibrate_hard_query_route.route_features",
+    "bypassed_records": 396,
+    "eligible_records": 493,
+    "eligible_hard_easy_records": 473,
+    "difficulty_counts": {
+      "hard": 209,
+      "easy": 264,
+      "medium": 20
+    },
+    "connected_groups_eligible": 67,
+    "fold_count": 5,
+    "outer_oof_metrics": {
+      "eligible": 473,
+      "selected": 214,
+      "coverage": 0.452431289640592,
+      "hard_recall": 0.6267942583732058,
+      "easy_unnecessary_rerank_rate": 0.3143939393939394,
+      "selection_precision": 0.6121495327102804,
+      "false_skip_rate": 0.3732057416267942,
+      "hard_count": 209,
+      "easy_count": 264
+    },
+    "folds": [
+      {
+        "fold": 0,
+        "train_records": 394,
+        "test_records": 99,
+        "train_groups": 54,
+        "test_groups": 13,
+        "config": {
+          "easy_confidence_threshold": 0.379731,
+          "easy_margin_threshold": 0.0,
+          "minimum_agreement": 0.8,
+          "constraint_threshold": 2
+        },
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 394,
+          "selected": 147,
+          "coverage": 0.3730964467005076,
+          "hard_recall": 0.6526946107784432,
+          "easy_unnecessary_rerank_rate": 0.17061611374407584,
+          "selection_precision": 0.7414965986394558,
+          "false_skip_rate": 0.34730538922155685,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 99,
+          "selected": 21,
+          "coverage": 0.21212121212121213,
+          "hard_recall": 0.4523809523809524,
+          "easy_unnecessary_rerank_rate": 0.0,
+          "selection_precision": 0.9047619047619048,
+          "false_skip_rate": 0.5476190476190477,
+          "hard_count": 42,
+          "easy_count": 53
+        }
+      },
+      {
+        "fold": 1,
+        "train_records": 394,
+        "test_records": 99,
+        "train_groups": 52,
+        "test_groups": 15,
+        "config": {
+          "easy_confidence_threshold": 0.0,
+          "easy_margin_threshold": 0.0,
+          "minimum_agreement": 0.6,
+          "constraint_threshold": 1
+        },
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 394,
+          "selected": 244,
+          "coverage": 0.6192893401015228,
+          "hard_recall": 0.9101796407185628,
+          "easy_unnecessary_rerank_rate": 0.4075829383886256,
+          "selection_precision": 0.6229508196721312,
+          "false_skip_rate": 0.08982035928143717,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 99,
+          "selected": 80,
+          "coverage": 0.8080808080808081,
+          "hard_recall": 0.7619047619047619,
+          "easy_unnecessary_rerank_rate": 0.9056603773584906,
+          "selection_precision": 0.4,
+          "false_skip_rate": 0.23809523809523814,
+          "hard_count": 42,
+          "easy_count": 53
+        }
+      },
+      {
+        "fold": 2,
+        "train_records": 394,
+        "test_records": 99,
+        "train_groups": 55,
+        "test_groups": 12,
+        "config": {
+          "easy_confidence_threshold": 0.426211,
+          "easy_margin_threshold": 0.0,
+          "minimum_agreement": 0.8,
+          "constraint_threshold": 2
+        },
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 394,
+          "selected": 154,
+          "coverage": 0.39086294416243655,
+          "hard_recall": 0.6347305389221557,
+          "easy_unnecessary_rerank_rate": 0.20853080568720378,
+          "selection_precision": 0.6883116883116883,
+          "false_skip_rate": 0.3652694610778443,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 99,
+          "selected": 46,
+          "coverage": 0.46464646464646464,
+          "hard_recall": 0.7380952380952381,
+          "easy_unnecessary_rerank_rate": 0.2641509433962264,
+          "selection_precision": 0.6739130434782609,
+          "false_skip_rate": 0.26190476190476186,
+          "hard_count": 42,
+          "easy_count": 53
+        }
+      },
+      {
+        "fold": 3,
+        "train_records": 395,
+        "test_records": 98,
+        "train_groups": 53,
+        "test_groups": 14,
+        "config": {
+          "easy_confidence_threshold": 0.400743,
+          "easy_margin_threshold": 0.0,
+          "minimum_agreement": 0.8,
+          "constraint_threshold": 2
+        },
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 395,
+          "selected": 159,
+          "coverage": 0.40253164556962023,
+          "hard_recall": 0.6766467065868264,
+          "easy_unnecessary_rerank_rate": 0.19811320754716982,
+          "selection_precision": 0.710691823899371,
+          "false_skip_rate": 0.32335329341317365,
+          "hard_count": 167,
+          "easy_count": 212
+        },
+        "test_metrics": {
+          "eligible": 98,
+          "selected": 20,
+          "coverage": 0.20408163265306123,
+          "hard_recall": 0.40476190476190477,
+          "easy_unnecessary_rerank_rate": 0.038461538461538464,
+          "selection_precision": 0.85,
+          "false_skip_rate": 0.5952380952380952,
+          "hard_count": 42,
+          "easy_count": 52
+        }
+      },
+      {
+        "fold": 4,
+        "train_records": 395,
+        "test_records": 98,
+        "train_groups": 54,
+        "test_groups": 13,
+        "config": {
+          "easy_confidence_threshold": 0.413678,
+          "easy_margin_threshold": 0.005054945054945081,
+          "minimum_agreement": 0.8,
+          "constraint_threshold": 2
+        },
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 395,
+          "selected": 153,
+          "coverage": 0.38734177215189874,
+          "hard_recall": 0.6190476190476191,
+          "easy_unnecessary_rerank_rate": 0.2037914691943128,
+          "selection_precision": 0.6797385620915033,
+          "false_skip_rate": 0.38095238095238093,
+          "hard_count": 168,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 98,
+          "selected": 52,
+          "coverage": 0.5306122448979592,
+          "hard_recall": 0.7804878048780488,
+          "easy_unnecessary_rerank_rate": 0.3584905660377358,
+          "selection_precision": 0.6153846153846154,
+          "false_skip_rate": 0.2195121951219512,
+          "hard_count": 41,
+          "easy_count": 53
+        }
+      }
+    ],
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 493
+    },
+    "limitations": [
+      "Only current dev cohort; group/F0 semantics remain pending actual reviewer sign-off.",
+      "This uses threshold feature route; it is diagnostic and not a frozen routing policy.",
+      "No held-out route or downstream full HTTP/answer acceptance is included."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 493
+    }
+  ]
+}

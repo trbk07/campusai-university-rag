@@ -3,6 +3,7 @@ from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from datetime import datetime, timezone
 from threading import Event
+import json
 import time
 
 import pytest
@@ -26,10 +27,10 @@ def test_intake_binds_distinct_review_and_export_to_exact_question_and_index(tmp
     record = {**human_rows()[0], "reviewer": "", "review_status": "pending"}
     root = tmp_path / "intake"
     packet = submit_question(root, record, retriever.index_root)
-    review = {"qid": record["qid"], "reviewer": "reviewer", "review_status": "approved",
+    review = {"qid": record["qid"], "reviewer": "reviewer", "reviewer_role": "independent_reviewer", "review_status": "approved",
               "review_checks": {key: True for key in REVIEW_CHECKS}, "reviewed_at": datetime.now(timezone.utc).isoformat(),
               "record_sha256": packet["record_sha256"], "index_sha256": packet["index_sha256"]}
-    with pytest.raises(ValueError, match="different human"):
+    with pytest.raises(ValueError, match="independent reviewer"):
         submit_review(root, {**review, "reviewer": record["author"]}, retriever.index_root)
     with pytest.raises(ValueError, match="bind"):
         submit_review(root, {**review, "record_sha256": "0" * 64}, retriever.index_root)
@@ -47,12 +48,37 @@ def test_intake_binds_distinct_review_and_export_to_exact_question_and_index(tmp
     assert not (tmp_path / "tampered.jsonl").exists()
 
 
+def test_owner_self_review_requires_configured_identity_and_keeps_role_explicit(tmp_path):
+    from evaluation.benchmarks.human_benchmark_intake import configured_owner_identity
+    retriever, _, *_ = fixture_retriever(tmp_path / "fixture")
+    record = {**human_rows()[0], "reviewer": "", "review_status": "pending"}
+    root = tmp_path / "owner-intake"
+    packet = submit_question(root, record, retriever.index_root)
+    owner = "Trương Bảo Kiên"
+    policy_path = tmp_path / "review-policy.json"
+    write_json(policy_path, {"owner_self_review_allowed": True, "owner_identity": owner})
+    assert configured_owner_identity(policy_path) == owner
+    assert configured_owner_identity(policy_path, "explicit override") == "explicit override"
+    review = {"qid": record["qid"], "reviewer": owner, "reviewer_role": "project_owner",
+              "review_status": "approved", "review_checks": {key: True for key in REVIEW_CHECKS},
+              "reviewed_at": datetime.now(timezone.utc).isoformat(),
+              "record_sha256": packet["record_sha256"], "index_sha256": packet["index_sha256"]}
+    with pytest.raises(ValueError, match="configured owner identity"):
+        submit_review(root, review, retriever.index_root)
+    submit_review(root, review, retriever.index_root, owner_identity=owner)
+    output = tmp_path / "owner-dataset.jsonl"
+    export_reviewed(root, output, retriever.index_root, owner_identity=owner)
+    final_record = json.loads(output.read_text(encoding="utf-8").splitlines()[0])
+    assert final_record["reviewer_role"] == "project_owner"
+    assert final_record["reviewer"] == owner
+
+
 def test_intake_rejects_export_timestamp_tampering_and_existing_audit(tmp_path):
     retriever, _, *_ = fixture_retriever(tmp_path / "fixture")
     root = tmp_path / "intake"
     record = {**human_rows()[0], "reviewer": "", "review_status": "pending"}
     packet = submit_question(root, record, retriever.index_root)
-    review = {"qid": record["qid"], "reviewer": "reviewer", "review_status": "approved",
+    review = {"qid": record["qid"], "reviewer": "reviewer", "reviewer_role": "independent_reviewer", "review_status": "approved",
               "review_checks": {key: True for key in REVIEW_CHECKS}, "reviewed_at": datetime.now(timezone.utc).isoformat(),
               "record_sha256": packet["record_sha256"], "index_sha256": packet["index_sha256"]}
     submit_review(root, review, retriever.index_root)
@@ -92,13 +118,14 @@ def test_queue_gauges_cancel_pending_and_discard_result_completed_after_close(tm
             release.set()
             with pytest.raises(RerankerUnavailable, match="feature_disabled"):
                 first.result(timeout=3)
-            with pytest.raises(RerankerUnavailable):
+            with pytest.raises(RerankerUnavailable, match="feature_disabled"):
                 second.result(timeout=3)
             metrics = provider.metrics_snapshot()
             assert metrics["active_requests"] == metrics["queue_depth"] == 0
             assert metrics["submitted_requests"] == 2
             assert metrics["completed_requests"] == metrics["cancelled_requests"] == 1
             assert metrics["rejected_requests"] == 1 and metrics["max_queue_depth"] == 1
+            assert metrics["failure_count"] == 0
         finally:
             release.set()
             provider.close()

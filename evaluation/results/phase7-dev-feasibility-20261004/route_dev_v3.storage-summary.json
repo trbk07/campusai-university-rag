@@ -1,0 +1,156 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "route_dev_v3.json",
+    "sha256": "e407fc43e06aea5c8950c3d0b0265a6e0fbcb1d309a796d63bda16702d704cdc"
+  },
+  "summary": {
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "training_split_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+    "bypass": {
+      "exact_or_abstained": 172,
+      "single_candidate": 0
+    },
+    "deterministic": true,
+    "exact_code_count": 11,
+    "abstention_count": 161,
+    "exact_code_rerank_rate": 0.0,
+    "abstention_rerank_rate": 0.0,
+    "schema_version": 1,
+    "status": "conditional",
+    "release_eligible": false,
+    "purpose": "query-only feature refit; archived retrieval observations reused, no new inference or heldout access",
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "version": "hard-route-logistic-v3",
+    "commit": "56bdf39211d005516165e51d3eabd2974521a43a",
+    "source_sha256": "609e965d8aefd85ea146765ff3027faf0ab0a00f29a0f5197903c225f0377790",
+    "runtime_sha256": "f499133e3506f8840aa4ab24eace2991c7e91598c421d21fe96d78f9e527205d",
+    "source_before": {
+      "commit": "56bdf39211d005516165e51d3eabd2974521a43a",
+      "source_sha256": "609e965d8aefd85ea146765ff3027faf0ab0a00f29a0f5197903c225f0377790",
+      "runtime_sha256": "f499133e3506f8840aa4ab24eace2991c7e91598c421d21fe96d78f9e527205d"
+    },
+    "source_after": {
+      "commit": "56bdf39211d005516165e51d3eabd2974521a43a",
+      "source_sha256": "609e965d8aefd85ea146765ff3027faf0ab0a00f29a0f5197903c225f0377790",
+      "runtime_sha256": "f499133e3506f8840aa4ab24eace2991c7e91598c421d21fe96d78f9e527205d"
+    },
+    "source_stable": true,
+    "model_identity_sha256": null,
+    "recorded_at": "2026-10-04T03:37:03.218811+00:00",
+    "dev_path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_dev.jsonl",
+    "observation_path": "evaluation/results/phase7-dev-feasibility-20261004/route_dev.json",
+    "observation_sha256": "74dd87c3bc6570833b9a88a34395bca5d724381a6f2ed9092d1355dc854a50a4",
+    "retrieval_observation_identity": {
+      "commit": "56bdf39211d005516165e51d3eabd2974521a43a",
+      "source_sha256": "a615a40e3303d0ac87c42704b94ae6474e7d2b83738a579a3e50b01c9065e613",
+      "runtime_sha256": "1326b0f8797ac482009cca24fa7ee295cbafc0d4c11cbfafcb58eb42b30b6aa7"
+    },
+    "easy_confidence_threshold": 1.0,
+    "easy_margin_threshold": 1.0,
+    "minimum_agreement": 0.0,
+    "constraint_threshold": 0,
+    "route_model": {
+      "version": "hard-route-logistic-v3",
+      "feature_schema": [
+        "operation_required",
+        "long_request"
+      ],
+      "means": [
+        0.458041958041958,
+        0.02097902097902098
+      ],
+      "scales": [
+        0.4982364124740864,
+        0.14331399672670828
+      ],
+      "weights": [
+        1.7321703021364765,
+        0.2133277032750274
+      ],
+      "bias": -0.42773636181723884,
+      "threshold": 0.7871101055697655,
+      "max_standardized_distance": 8.0
+    },
+    "route_diagnostics": {
+      "fold_count": 5,
+      "regularization": 0.05,
+      "iterations_limit": 5000,
+      "out_of_fold_metrics": {
+        "eligible": 286,
+        "selected": 131,
+        "coverage": 0.458041958041958,
+        "hard_recall": 0.9830508474576272,
+        "easy_unnecessary_rerank_rate": 0.08928571428571429,
+        "selection_precision": 0.8854961832061069,
+        "false_skip_rate": 0.016949152542372836,
+        "hard_count": 118,
+        "easy_count": 168
+      },
+      "fitted_metrics": {
+        "eligible": 286,
+        "selected": 131,
+        "coverage": 0.458041958041958,
+        "hard_recall": 0.9830508474576272,
+        "easy_unnecessary_rerank_rate": 0.08928571428571429,
+        "selection_precision": 0.8854961832061069,
+        "false_skip_rate": 0.016949152542372836,
+        "hard_count": 118,
+        "easy_count": 168
+      },
+      "observations": {
+        "raw_array_reference": "/route_diagnostics/observations",
+        "records": 286
+      }
+    },
+    "dev_feasible": true,
+    "routing_metrics": {
+      "eligible": 306,
+      "selected": 142,
+      "coverage": 0.46405228758169936,
+      "hard_recall": 0.9830508474576272,
+      "easy_unnecessary_rerank_rate": 0.08928571428571429,
+      "selection_precision": 0.8169014084507042,
+      "false_skip_rate": 0.016949152542372836,
+      "hard_count": 118,
+      "easy_count": 168
+    },
+    "feature_allowlist": [
+      "operation_required",
+      "long_request"
+    ],
+    "forbidden_features": [
+      "language",
+      "template",
+      "difficulty",
+      "qid"
+    ],
+    "feature_changes": {
+      "raw_array_reference": "/feature_changes",
+      "records": 85
+    },
+    "samples": {
+      "raw_array_reference": "/samples",
+      "records": 306
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/route_diagnostics/observations",
+      "records": 286
+    },
+    {
+      "json_pointer": "/feature_changes",
+      "records": 85
+    },
+    {
+      "json_pointer": "/samples",
+      "records": 306
+    }
+  ]
+}

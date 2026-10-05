@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "dev_inheritance_preparation_complete",
+  "release_eligible": false,
+  "recorded_at": "2026-10-04T05:35:52.105150+00:00",
+  "records": 817,
+  "human": 180,
+  "ai": 637,
+  "historical_authorizations": 3,
+  "dev_only": true,
+  "heldout_reassignments_rejected": 817,
+  "review_audit_errors": 0,
+  "parent_artifacts_bound": 54,
+  "original_index_files_restored": 22,
+  "git_newline_serialization_repairs": 16,
+  "physical_parent_records_changed": false,
+  "new_benchmark_frozen": false,
+  "new_questions_or_model_scores_generated": false,
+  "offline_tests": {
+    "passed": 810,
+    "skipped": 2,
+    "coverage_percent": 89.50721379051902,
+    "live_provider_acceptance": false
+  },
+  "active_release_recheck": {
+    "status": "conditional",
+    "score": null,
+    "all_release_gates_pass": false,
+    "M0": "PASS",
+    "M1": "PASS",
+    "S1": "PASS",
+    "M2": "FAIL"
+  },
+  "next": "Audit enough fresh independent source groups for novel dev and both heldout splits; integrate exact inherited provenance; freeze successor and measure all gates in order."
+}

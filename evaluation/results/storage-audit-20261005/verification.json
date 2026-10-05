@@ -1,0 +1,53 @@
+{
+  "benchmark_files_verified": 660,
+  "benchmark_changes": [],
+  "validator_equivalence": {
+    "gates": true,
+    "supplemental_gates": true,
+    "errors": true,
+    "artifact_sha256": true,
+    "status": true,
+    "score": true
+  },
+  "archived_files": 327,
+  "tracked_model_weights": 0,
+  "tracked_serialized_indexes": 0,
+  "tracked_raw_dumps_or_caches": 0,
+  "tracking_check": {
+    "status": "pass",
+    "errors": [],
+    "scope": "current Git index; history requires separate cleanup"
+  },
+  "tests": {
+    "focused-tests.xml": {
+      "tests": "68",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "24.592"
+    },
+    "phase6-storage-tests.xml": {
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.606"
+    },
+    "offline-suite.xml": {
+      "tests": "907",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "2",
+      "time": "45.874"
+    },
+    "ocr-regression.xml": {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "39.961"
+    }
+  },
+  "history_rewritten": false,
+  "remotes_changed": false
+}

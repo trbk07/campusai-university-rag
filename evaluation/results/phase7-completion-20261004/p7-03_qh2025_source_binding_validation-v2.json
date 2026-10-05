@@ -1,0 +1,1880 @@
+{
+  "schema_version": 1,
+  "task": "P7-03-QH2025-source-binding",
+  "recorded_at": "2026-10-05T03:21:33.811815+00:00",
+  "status": "FAIL",
+  "release_eligible": false,
+  "scope": "physical source binding only; this does not decide exposure or split eligibility",
+  "official_html_sha256": "780885f0d9c69b960fa2fedbd0632cf427e01e2f9528bf8832e2c99871da063f",
+  "source_index_manifest_sha256": "0be9bee64d727c25e6a8a6a0d2f07ac30b14083a612f406c1056526985cb3f57",
+  "source_index_model": "fallback-hash-256",
+  "source_index_role": "source-evidence extraction only; excluded from release model measurements",
+  "source_document": {
+    "path": "data/corpus/phase7_source_expansion/20261005/uet_robotics_curriculum_qh2025_snapshot-v2.pdf",
+    "sha256": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+    "document_count": 1
+  },
+  "pdf_page_annotations_valid": true,
+  "html_tables": 2,
+  "html_numbered_course_rows_with_code_and_credit": 55,
+  "indexed_source_course_facts": 55,
+  "unique_indexed_course_codes": 55,
+  "indexed_prerequisite_facts": 28,
+  "source_pages": {
+    "4": 16,
+    "5": 17,
+    "6": 18,
+    "7": 4
+  },
+  "mismatches": [
+    {
+      "code": "UET.AI2015",
+      "html": {
+        "source_table_row": 35,
+        "code": "UET.AI2015",
+        "name": "Trí tuệ nhân tạo cho kỹ thuật Artificial Intelligence for engineering",
+        "credits": 3,
+        "prerequisite_codes": [
+          "UET.COM1050",
+          "UET.MAT1052"
+        ]
+      },
+      "indexed": {
+        "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+        "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+        "page": 5,
+        "table_row": 12,
+        "code": "UET.AI2015",
+        "name": "Trí tuệ nhân tạo cho kỹ thuật Artificial Intelligence for engineering",
+        "name_lines": [
+          "Trí tuệ nhân tạo cho kỹ thuật Artificial Intelligence for engineering"
+        ],
+        "credits": 3,
+        "prerequisite_codes": [
+          "UET.COM1050",
+          "UET.MAT1052"
+        ],
+        "prerequisite_text": "UET.COM1050, UET.MAT1052",
+        "columns": {
+          "code": 1,
+          "name": 2,
+          "credits": 3,
+          "prerequisites": 4
+        },
+        "headers": [
+          "STT",
+          "Mã học phần",
+          "Học phần",
+          "Số tín chỉ",
+          "Mã học phần tiên quyết",
+          "Source page 5"
+        ],
+        "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+        "cells_sha256": "b66df6eda12a0ccc5c51fdca0136c7722ce62946718c6244b586c718eef14e69"
+      }
+    },
+    {
+      "code": "UET.CS3136",
+      "html": {
+        "source_table_row": 60,
+        "code": "UET.CS3136",
+        "name": "Học máy Machine Learning",
+        "credits": 3,
+        "prerequisite_codes": [
+          "UET.COM1050",
+          "UET.MAT1052"
+        ]
+      },
+      "indexed": {
+        "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+        "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+        "page": 6,
+        "table_row": 14,
+        "code": "UET.CS3136",
+        "name": "Học máy Machine Learning",
+        "name_lines": [
+          "Học máy Machine Learning"
+        ],
+        "credits": 3,
+        "prerequisite_codes": [
+          "UET.COM1050",
+          "UET.MAT1052"
+        ],
+        "prerequisite_text": "UET.COM1050, UET.MAT1052",
+        "columns": {
+          "code": 1,
+          "name": 2,
+          "credits": 3,
+          "prerequisites": 4
+        },
+        "headers": [
+          "STT",
+          "Mã học phần",
+          "Học phần",
+          "Số tín chỉ",
+          "Mã học phần tiên quyết",
+          "Source page 6"
+        ],
+        "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+        "cells_sha256": "be551ef072935b4bc51d445028545602fc2e6aedaa61d201f04f953c559c42a5"
+      }
+    },
+    {
+      "code": "UET.RBE3336",
+      "html": {
+        "source_table_row": 42,
+        "code": "UET.RBE3336",
+        "name": "Thực hành thiết kế và xây dựng Robot 2 Robot Designing and Construction Laboratory 2",
+        "credits": 2,
+        "prerequisite_codes": [
+          "UET.MTE2111",
+          "UET.RBE3335"
+        ]
+      },
+      "indexed": {
+        "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+        "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+        "page": 5,
+        "table_row": 19,
+        "code": "UET.RBE3336",
+        "name": "Thực hành thiết kế và xây dựng Robot 2 Robot Designing and Construction Laboratory 2",
+        "name_lines": [
+          "Thực hành thiết kế và xây dựng Robot 2 Robot Designing and Construction Laboratory 2"
+        ],
+        "credits": 2,
+        "prerequisite_codes": [
+          "UET.MTE2111",
+          "UET.RBE3335"
+        ],
+        "prerequisite_text": "UET.MTE2111, UET.RBE3335",
+        "columns": {
+          "code": 1,
+          "name": 2,
+          "credits": 3,
+          "prerequisites": 4
+        },
+        "headers": [
+          "STT",
+          "Mã học phần",
+          "Học phần",
+          "Số tín chỉ",
+          "Mã học phần tiên quyết",
+          "Source page 5"
+        ],
+        "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+        "cells_sha256": "c39fe02b697ac5da3000ac93f622041e72633e13a975da77125763f2927ae2ee"
+      }
+    }
+  ],
+  "facts": [
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 2,
+      "code": "PHI1006",
+      "name": "Triết học Mác Lênin Marxist­Leninist Philosophy",
+      "name_lines": [
+        "Triết học Mác Lênin Marxist­Leninist Philosophy"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "54ff81ac23dc4e0f14af68834f8a9b7310985384b725a71e7cef29ab307fa1ec"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 3,
+      "code": "PEC1008",
+      "name": "Kinh tế chính trị Mác Lênin Marxist­Leninist Political Economy",
+      "name_lines": [
+        "Kinh tế chính trị Mác Lênin Marxist­Leninist Political Economy"
+      ],
+      "credits": 2,
+      "prerequisite_codes": [
+        "PHI1006"
+      ],
+      "prerequisite_text": "PHI1006",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "cc4cf83ce33aa422ec6538139d232376d967cf87893250b234bf66ef2bfe4ccf"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 4,
+      "code": "HIS1001",
+      "name": "Lịch sử Đảng Cộng sản Việt Nam Revolutionary Guidelines of Vietnam Communist Party",
+      "name_lines": [
+        "Lịch sử Đảng Cộng sản Việt Nam Revolutionary Guidelines of Vietnam Communist Party"
+      ],
+      "credits": 2,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "e8db08c1f148c1ad9101fec2575e3ff5635684c5df20ce759e63d1283ff8a11d"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 5,
+      "code": "POL1001",
+      "name": "Tư tưởng Hồ Chí Minh Ho Chi Minh’s Ideology",
+      "name_lines": [
+        "Tư tưởng Hồ Chí Minh Ho Chi Minh’s Ideology"
+      ],
+      "credits": 2,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "4c7c60489dfa1e4a35570beae64d100451907642606ad957b55868e277140b38"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 6,
+      "code": "PHI1002",
+      "name": "Chủ nghĩa xã hội khoa học Scientific Socialism",
+      "name_lines": [
+        "Chủ nghĩa xã hội khoa học Scientific Socialism"
+      ],
+      "credits": 2,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "9db2ba30427c47a86bf3686e052bc4fd5650e65d025921025f58ecb72d01c7ef"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 7,
+      "code": "FLF1107",
+      "name": "Tiếng Anh B1 English B1",
+      "name_lines": [
+        "Tiếng Anh B1 English B1"
+      ],
+      "credits": 5,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "2cf8342f86e292fda3fe964e317b0f6e275385190e9a68ffe56098ce16e7acc4"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 8,
+      "code": "VNU1001",
+      "name": "Nhập môn công nghệ số và ứng dụng trí tuệ nhân tạo Introduction to Digital Technology and Applications of Artificial Intelligence",
+      "name_lines": [
+        "Nhập môn công nghệ số và ứng dụng trí tuệ nhân tạo Introduction to Digital Technology and Applications of Artificial Intelligence"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "0351958802d616bdf2fcb4db057f915fd8479a98937884d22004744b4d727334"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 9,
+      "code": "THL1057",
+      "name": "Nhà nước và pháp luật đại cương State and Law",
+      "name_lines": [
+        "Nhà nước và pháp luật đại cương State and Law"
+      ],
+      "credits": 2,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "11555a7b096fdce639bec30ce3b0238644a5f4cc8c514502768320e6c781df0c"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 13,
+      "code": "UET.MAT1053",
+      "name": "Đại số tuyến tính cho kỹ thuật Linear Algebra for Engineers",
+      "name_lines": [
+        "Đại số tuyến tính cho kỹ thuật Linear Algebra for Engineers"
+      ],
+      "credits": 5,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "1a1af74d5dcbd2fc00320f2097e9cb4f0aec3fd2922939ac8e92fc95fbe55b07"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 14,
+      "code": "UET.MAT1050",
+      "name": "Giải tích 1 Calculus 1 for Engineers",
+      "name_lines": [
+        "Giải tích 1 Calculus 1 for Engineers"
+      ],
+      "credits": 5,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "6ccad7bf025dc94a24f030a6eeaf3284d0933bdcdcbc7551215f4bfc854610e6"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 15,
+      "code": "UET.MAT1051",
+      "name": "Giải tích 2 Calculus 2 for Engineers",
+      "name_lines": [
+        "Giải tích 2 Calculus 2 for Engineers"
+      ],
+      "credits": 5,
+      "prerequisite_codes": [
+        "UET.MAT1050"
+      ],
+      "prerequisite_text": "UET.MAT1050",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "2d0668b063ca09de3ac764339a1705b0362e0f398edcfd601d55a0b334f33107"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 16,
+      "code": "UET.PHY1095",
+      "name": "Vật lý đại cương 1 General Physics 1",
+      "name_lines": [
+        "Vật lý đại cương 1 General Physics 1"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "e9bb1f73a95a5964d8f11f284a52d6b8d03bc13fd46b45b7fdef49a74b6d3497"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 17,
+      "code": "UET.PHY1096",
+      "name": "Vật lý đại cương 2 General Physics 2",
+      "name_lines": [
+        "Vật lý đại cương 2 General Physics 2"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.PHY1095"
+      ],
+      "prerequisite_text": "UET.PHY1095",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "96a9d2917f473d836f67a1fde14680e64f92004162b1e9df54d0f0a35f90b7bf"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 18,
+      "code": "UET.COM1050",
+      "name": "Tư duy tính toán Computational Thinking",
+      "name_lines": [
+        "Tư duy tính toán Computational Thinking"
+      ],
+      "credits": 5,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "10146e34e19bcfa55f93aefb2bc294793951ff4ee399ad734ba64f77e167b154"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 19,
+      "code": "UET.MAT1052",
+      "name": "Xác suất thống kê Probability and Statistics",
+      "name_lines": [
+        "Xác suất thống kê Probability and Statistics"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MAT1050"
+      ],
+      "prerequisite_text": "UET.MAT1050",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "a95facf03aacc238635d5521e5b501e0293845f773443fe7a472e45cc3a8a2ac"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p4_t1",
+      "page": 4,
+      "table_row": 20,
+      "code": "UET.RBE1072",
+      "name": "Toán ứng dụng trong kỹ thuật Robot Applied Mathematics for Robotics Engineering",
+      "name_lines": [
+        "Toán ứng dụng trong kỹ thuật Robot Applied Mathematics for Robotics Engineering"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 4"
+      ],
+      "source_content_sha256": "637deddc7907a5bba671e74955ba91da8519b01ecebc4f865ae53512ce9e3478",
+      "cells_sha256": "63efa1ae04772cfeedfa6551a62edbb1e5bf768d8c86c168475b7434bd9d9508"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 0,
+      "code": "UET.MAT1057",
+      "name": "Toán học rời rạc Discrete Mathematics",
+      "name_lines": [
+        "Toán học rời rạc Discrete Mathematics"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MAT1053"
+      ],
+      "prerequisite_text": "UET.MAT1053",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "8da5bbb8e352a143eadef920354e060071e35ee53869b1b0241874a26ce4af46"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 3,
+      "code": "UET.MTE2109",
+      "name": "Hình họa kỹ thuật và CAD Geometric Engineering and CAD",
+      "name_lines": [
+        "Hình họa kỹ thuật và CAD Geometric Engineering and CAD"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "c02e642137072180f3ba819887c4c3fc26e245f1c7c73174af96b45b41dafa0d"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 4,
+      "code": "UET.RBE2113",
+      "name": "Trải nghiệm và khám phá về Robot Adventures in Robotics",
+      "name_lines": [
+        "Trải nghiệm và khám phá về Robot Adventures in Robotics"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "2a39025322d009326819497ccfd3cba8005b76e304e723d9ff35a73f8a4b3f8f"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 5,
+      "code": "UET.ECE2057",
+      "name": "Tín hiệu và hệ thống Signals and Systems",
+      "name_lines": [
+        "Tín hiệu và hệ thống Signals and Systems"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MAT1050"
+      ],
+      "prerequisite_text": "UET.MAT1050",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "213bceb4d1e421b970c4fd4aedddadc47d17560b0222160f13c42600f27821c6"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 6,
+      "code": "UET.ECE3204",
+      "name": "Nguyên lý kỹ thuật điện tử Principles of Electronics Engineering",
+      "name_lines": [
+        "Nguyên lý kỹ thuật điện tử Principles of Electronics Engineering"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "130ff7eca94ba7999563628240479154c39cef15daa2bf268d879852b627ca2e"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 7,
+      "code": "UET.ECE3205",
+      "name": "Thực tập kỹ thuật điện tử Electronics Engineering Practice",
+      "name_lines": [
+        "Thực tập kỹ thuật điện tử Electronics Engineering Practice"
+      ],
+      "credits": 2,
+      "prerequisite_codes": [
+        "UET.ECE3204"
+      ],
+      "prerequisite_text": "UET.ECE3204",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "0321697a2a5146de7c6fd4b6373f1bdcc2fe6627bddef583454bf989d2e0cda4"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 8,
+      "code": "UET.CE2020",
+      "name": "Lập trình hệ thống Systems Programming",
+      "name_lines": [
+        "Lập trình hệ thống Systems Programming"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.COM1050"
+      ],
+      "prerequisite_text": "UET.COM1050",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "2bdb65be97cbe903c005dcf1e6f9fc83ef84b1c1f055ba48ce778e4a9819b44b"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 9,
+      "code": "UET.ECE2062",
+      "name": "Xử lý tín hiệu số Digital Signal Processing",
+      "name_lines": [
+        "Xử lý tín hiệu số Digital Signal Processing"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.ECE2057"
+      ],
+      "prerequisite_text": "UET.ECE2057",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "9aabc0aa8d062b1f355fca586d741c0757a29573ae2c60391321a7f2fc2078c8"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 10,
+      "code": "UET.MTE2111",
+      "name": "Lý thuyết điều khiển tự động Automatic Control Theory",
+      "name_lines": [
+        "Lý thuyết điều khiển tự động Automatic Control Theory"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.ECE2057"
+      ],
+      "prerequisite_text": "UET.ECE2057",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "581dce8cc3b9a443bc7478b3abf2a81c2813f847e2fcdcec0b049ce2a0fe8165"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 11,
+      "code": "UET.ECE4200",
+      "name": "Vi điều khiển và ứng dụng Microcontroller and Applications",
+      "name_lines": [
+        "Vi điều khiển và ứng dụng Microcontroller and Applications"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.ECE3204"
+      ],
+      "prerequisite_text": "UET.ECE3204",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "ecac0e678d63d6eabd6db3cf5bcc5f110534a80fc4d981cdb5f3a03975aa0302"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 12,
+      "code": "UET.AI2015",
+      "name": "Trí tuệ nhân tạo cho kỹ thuật Artificial Intelligence for engineering",
+      "name_lines": [
+        "Trí tuệ nhân tạo cho kỹ thuật Artificial Intelligence for engineering"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.COM1050",
+        "UET.MAT1052"
+      ],
+      "prerequisite_text": "UET.COM1050, UET.MAT1052",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "b66df6eda12a0ccc5c51fdca0136c7722ce62946718c6244b586c718eef14e69"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 13,
+      "code": "UET.RBE2114",
+      "name": "Kỹ thuật điều khiển hiện đại Modern Control Engineering",
+      "name_lines": [
+        "Kỹ thuật điều khiển hiện đại Modern Control Engineering"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MTE2111"
+      ],
+      "prerequisite_text": "UET.MTE2111",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "a326b72a887f4e02d00aaf8c0d744e1423017762429ff29b49f581af0c49c550"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 16,
+      "code": "UET.RBE3335",
+      "name": "Thực hành thiết kế và xây dựng Robot 1 Robot Designing and Construction Laboratory 1",
+      "name_lines": [
+        "Thực hành thiết kế và xây dựng Robot 1 Robot Designing and Construction Laboratory 1"
+      ],
+      "credits": 2,
+      "prerequisite_codes": [
+        "UET.MTE2109"
+      ],
+      "prerequisite_text": "UET.MTE2109",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "4dba02b11e0a499d68028e601db7b281ab0549143c62505c9ce6910f4c86dce3"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 17,
+      "code": "UET.RBE3337",
+      "name": "Động học và động lực học Kinematics and Dynamics",
+      "name_lines": [
+        "Động học và động lực học Kinematics and Dynamics"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "12a510142722c60966d3d8ede1949cd24a430924045d0cd1d0b91bc3007015d0"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 18,
+      "code": "UET.ECE3183",
+      "name": "Kỹ thuật cảm biến và đo lường Sensors and Applications",
+      "name_lines": [
+        "Kỹ thuật cảm biến và đo lường Sensors and Applications"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "3fec5893bbcc0819e63cb44c15447de5f038244bcab2f0e6af08541609a3359e"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part1",
+      "page": 5,
+      "table_row": 19,
+      "code": "UET.RBE3336",
+      "name": "Thực hành thiết kế và xây dựng Robot 2 Robot Designing and Construction Laboratory 2",
+      "name_lines": [
+        "Thực hành thiết kế và xây dựng Robot 2 Robot Designing and Construction Laboratory 2"
+      ],
+      "credits": 2,
+      "prerequisite_codes": [
+        "UET.MTE2111",
+        "UET.RBE3335"
+      ],
+      "prerequisite_text": "UET.MTE2111, UET.RBE3335",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "c4f5d034103e2e25f618e3f4b6c6fffc8eab6a12c93829f9be2e5583d4caf5f1",
+      "cells_sha256": "c39fe02b697ac5da3000ac93f622041e72633e13a975da77125763f2927ae2ee"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p5_t1_part2",
+      "page": 5,
+      "table_row": 0,
+      "code": "UET.RBE3339",
+      "name": "Các cơ cấu chấp hành Robot Robot Manipulator",
+      "name_lines": [
+        "Các cơ cấu chấp hành Robot Robot Manipulator"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 5"
+      ],
+      "source_content_sha256": "7c282654d962adaaf0b1cc1e6745cf1342734b8e5eefca413605e1301b953137",
+      "cells_sha256": "61dcecbe2d438d97b4bc498c1a6dc58ad1bd794e36fd43bff9810491608c73d4"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 0,
+      "code": "UET.RBE3342",
+      "name": "Các phương pháp mô hình hóa Robot Robot modeling methods",
+      "name_lines": [
+        "Các phương pháp mô hình hóa Robot Robot modeling methods"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MTE2109"
+      ],
+      "prerequisite_text": "UET.MTE2109",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "40e6aea2ef8014310c014a323b4e1da490f5a531aded856df3de5cd6f7047335"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 1,
+      "code": "UET.MTE3318",
+      "name": "Sức bền vật liệu và Cơ học kết cấu Strength of Materials and Structural Mechanics",
+      "name_lines": [
+        "Sức bền vật liệu và Cơ học kết cấu Strength of Materials and Structural Mechanics"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.RBE3337"
+      ],
+      "prerequisite_text": "UET.RBE3337",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "6073b786fa081771b426bf9afa4d8328f71d9e1f4eb806ee72918ce07d899e6c"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 2,
+      "code": "UET.RBE3340",
+      "name": "Các cơ cấu truyền động Actuators and Power­Train",
+      "name_lines": [
+        "Các cơ cấu truyền động Actuators and Power­Train"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "63b131057dcc1c411e793ce109e95c1bde71573450e6364bf914fab2eed4ac68"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 3,
+      "code": "UET.RBE3341",
+      "name": "Điều khiển logic và PLC Logic Control and PLC",
+      "name_lines": [
+        "Điều khiển logic và PLC Logic Control and PLC"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.MTE2111"
+      ],
+      "prerequisite_text": "UET.MTE2111",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "a3b6c4fd8b49fcc4879b9625ec334a344c531ddc6a960e94b0e8cd163265e47b"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 4,
+      "code": "UET.RBE3338",
+      "name": "Lập trình Robot với ROS Programming robot with ROS",
+      "name_lines": [
+        "Lập trình Robot với ROS Programming robot with ROS"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.COM1050"
+      ],
+      "prerequisite_text": "UET.COM1050",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "e3902a9860333d8a3d1ff8a8d039315ecb6ae5a57dcdee467edb5938a1485d54"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 5,
+      "code": "UET.RBE3344",
+      "name": "Đồ án môn học – RBE Course Project – RBE",
+      "name_lines": [
+        "Đồ án môn học – RBE Course Project – RBE"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "c2f9d595f8fa8ab09d0f6e1f9a32e00a6ed864dd567cfa5ce13abc30c724cabc"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 6,
+      "code": "UET.RBE3350",
+      "name": "Thị giác Robot Robot Vision",
+      "name_lines": [
+        "Thị giác Robot Robot Vision"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.AI2015"
+      ],
+      "prerequisite_text": "UET.AI2015",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "3a62abcdb7b86aa668a67e815472b310b38404f6cc115df1d3b7d9f4d943ef3b"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 8,
+      "code": "UET.RBE3343",
+      "name": "Tương tác người – Robot Human – Robot Interaction",
+      "name_lines": [
+        "Tương tác người – Robot Human – Robot Interaction"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.AI2015"
+      ],
+      "prerequisite_text": "UET.AI2015",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "5d538a18e403610c883220d9e7036d80351241816c1752ff0e5382c6b79ce84a"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 9,
+      "code": "UET.RBE3351",
+      "name": "Các vấn đề hiện đại trong tự động hóa công nghiệp Advanced Topics in Industrial Automation",
+      "name_lines": [
+        "Các vấn đề hiện đại trong tự động hóa công nghiệp Advanced Topics in Industrial Automation"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "a5b6cadf6456249e15abf7c059177f9a975bcf07e543acafaaf62fa3385e2394"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 10,
+      "code": "UET.RBE3352",
+      "name": "DCS và SCADA DCS and SCADA",
+      "name_lines": [
+        "DCS và SCADA DCS and SCADA"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.RBE3341"
+      ],
+      "prerequisite_text": "UET.RBE3341",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "f309c48bb20937f52290788637692a3e302ccd3fa167fdad8fc051c76b12c772"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 11,
+      "code": "UET.ECE3327",
+      "name": "Điện tử công suất và điều khiển Power Electronic and Control",
+      "name_lines": [
+        "Điện tử công suất và điều khiển Power Electronic and Control"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.ECE3204"
+      ],
+      "prerequisite_text": "UET.ECE3204",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "36db228d302a37fc4a577c9c2e78b936ab8e9e36ba350ae13a1e7fbf896f7eba"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 12,
+      "code": "UET.RBE3345",
+      "name": "Mạng truyền thông công nghiệp Industrial Communication Networks",
+      "name_lines": [
+        "Mạng truyền thông công nghiệp Industrial Communication Networks"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.RBE3341"
+      ],
+      "prerequisite_text": "UET.RBE3341",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "506c8c7c1bacf73f8329b67712efeb8f2d4d24263d56da4bd1ae1048c119d007"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 13,
+      "code": "UET.RBE3346",
+      "name": "Hệ thống sản xuất tích hợp máy tính (CIM) Computer Integrated Manufacturing Systems",
+      "name_lines": [
+        "Hệ thống sản xuất tích hợp máy tính (CIM) Computer Integrated Manufacturing Systems"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.RBE3342"
+      ],
+      "prerequisite_text": "UET.RBE3342",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "ce68f586fad01207a371d1425633ac25916fa32939a6e6739a21702a84dee0c8"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 14,
+      "code": "UET.CS3136",
+      "name": "Học máy Machine Learning",
+      "name_lines": [
+        "Học máy Machine Learning"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.COM1050",
+        "UET.MAT1052"
+      ],
+      "prerequisite_text": "UET.COM1050, UET.MAT1052",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "be551ef072935b4bc51d445028545602fc2e6aedaa61d201f04f953c559c42a5"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 15,
+      "code": "UET.RBE3349",
+      "name": "Các thuật toán thích nghi Adaptation Algorithms",
+      "name_lines": [
+        "Các thuật toán thích nghi Adaptation Algorithms"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.RBE2114"
+      ],
+      "prerequisite_text": "UET.RBE2114",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "a033d2704a96c5e0e1d5688e0a2c55c8be58b14f88629de660a3c964be515b46"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 16,
+      "code": "UET.RBE3353",
+      "name": "Các vấn đề hiện đại trong hệ thống Robot thông minh Advanced Topics in Intelligent Robotic Systems",
+      "name_lines": [
+        "Các vấn đề hiện đại trong hệ thống Robot thông minh Advanced Topics in Intelligent Robotic Systems"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "aa84bb5f7ae8dd711c4502512d9825b23e8ca1e52505879ccc2de5fd2da41a37"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 17,
+      "code": "UET.CS3149",
+      "name": "Khoa học nhận thức Introduction to Cognitive Intelligence",
+      "name_lines": [
+        "Khoa học nhận thức Introduction to Cognitive Intelligence"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "08bcfa56e31ac1704658312132454fe8ae2f0738ed22cb9cc5b8c2e372a0632d"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p6_t1",
+      "page": 6,
+      "table_row": 18,
+      "code": "UET.RBE3347",
+      "name": "Giải thuật cho Robot thông minh Elements of Intelligent Robot",
+      "name_lines": [
+        "Giải thuật cho Robot thông minh Elements of Intelligent Robot"
+      ],
+      "credits": 3,
+      "prerequisite_codes": [
+        "UET.AI2015"
+      ],
+      "prerequisite_text": "UET.AI2015",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 6"
+      ],
+      "source_content_sha256": "7276999f01ebb45a11c5135955195be61fbaaafcb8aa31e165c67f477d7a46ea",
+      "cells_sha256": "51d5ccc6001139253119cab5da6ba9587899b397c4c9d26a6d077d4b23479c1c"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p7_t1",
+      "page": 7,
+      "table_row": 0,
+      "code": "UET.RBE3348",
+      "name": "Robot phân tán Special Topics in Distributed Robot",
+      "name_lines": [
+        "Robot phân tán Special Topics in Distributed Robot"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 7"
+      ],
+      "source_content_sha256": "6273bc8888c4aa23cc796daa7775d80704683ff589876eb0ae25167b83b308cb",
+      "cells_sha256": "1b09e036b0a2a3331086d2f6fb1da12452b044bbb1a0b887f34312eeb8827a6b"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p7_t1",
+      "page": 7,
+      "table_row": 5,
+      "code": "UET.RBE4051",
+      "name": "Đồ án tốt nghiệp – RBE Graduation Thesis – RBE",
+      "name_lines": [
+        "Đồ án tốt nghiệp – RBE Graduation Thesis – RBE"
+      ],
+      "credits": 10,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 7"
+      ],
+      "source_content_sha256": "6273bc8888c4aa23cc796daa7775d80704683ff589876eb0ae25167b83b308cb",
+      "cells_sha256": "df828b56d3af821e4fa2d8fc0f687cdc56893b75d9e402dfefa7116d818c0017"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p7_t1",
+      "page": 7,
+      "table_row": 6,
+      "code": "UET.RBE4052",
+      "name": "Thực tập tốt nghiệp – RBE Graduation Internship – RBE",
+      "name_lines": [
+        "Thực tập tốt nghiệp – RBE Graduation Internship – RBE"
+      ],
+      "credits": 3,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 7"
+      ],
+      "source_content_sha256": "6273bc8888c4aa23cc796daa7775d80704683ff589876eb0ae25167b83b308cb",
+      "cells_sha256": "c310f6ac12cb2ca82d6c514c666c4551dc0193efdfc32960a64c9dd65fa22bc0"
+    },
+    {
+      "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p7_t1",
+      "page": 7,
+      "table_row": 7,
+      "code": "UET.RBE4053",
+      "name": "Dự án tốt nghiệp – RBE Capstone Project – RBE",
+      "name_lines": [
+        "Dự án tốt nghiệp – RBE Capstone Project – RBE"
+      ],
+      "credits": 4,
+      "prerequisite_codes": null,
+      "prerequisite_text": "",
+      "columns": {
+        "code": 1,
+        "name": 2,
+        "credits": 3,
+        "prerequisites": 4
+      },
+      "headers": [
+        "STT",
+        "Mã học phần",
+        "Học phần",
+        "Số tín chỉ",
+        "Mã học phần tiên quyết",
+        "Source page 7"
+      ],
+      "source_content_sha256": "6273bc8888c4aa23cc796daa7775d80704683ff589876eb0ae25167b83b308cb",
+      "cells_sha256": "cfd7b7c1ca9d1aa31ebf550b85765da3caf63d3e7b6bbf336adee327f4ce9e1d"
+    }
+  ]
+}

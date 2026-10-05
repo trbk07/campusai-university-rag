@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-full-dev-feasibility-v2.json",
+    "sha256": "62651043014d73c8d5a1afa57d6930ebb9334624786bb2ab652f52e14cdb4ea8"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "purpose": "full-packet dev feasibility using actual Phase 7 candidate generation and frozen CUDA reranker",
+    "source_stable": true,
+    "source_identity": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "03d6d2eb77ed07684035b792bad3252e953d0b42ce41a42d10d5fa0532d331c8",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "model_identity": {
+      "model_name": "BAAI/bge-reranker-v2-m3",
+      "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+      "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "provider": "sentence_transformers",
+      "device": "cuda",
+      "dtype": "float32",
+      "max_length": 512,
+      "batch_size": 8,
+      "normalization": "raw_logit",
+      "batch_window_ms": 0.0,
+      "max_batch_pairs": 200,
+      "input_format": "full_chunk",
+      "input_version": "structured-input-v1"
+    },
+    "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662",
+    "model_snapshot_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+    "dev_path": "evaluation/results/phase7-completion-20261004/p7-02-dev-replay/human_retrieval_dev.jsonl",
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "dev_records": 889,
+    "answerable": 495,
+    "negative": 394,
+    "candidate_generation": "HybridRetriever.generate_candidates(mode=auto, top_k=40), named curriculum linkage enabled, Phase 6 acceptance threshold bypassed per P7-05 candidate coverage contract",
+    "candidate_input_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "index_manifest_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "raw_scores_path": "evaluation/results/phase7-completion-20261004/p7-09-full-dev-reranker-raw-v2.json",
+    "raw_scores_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "queries_scored": 889,
+    "candidate_counts": {
+      "total": 18873,
+      "empty_queries": 359,
+      "mean_per_query": 21.22947131608549,
+      "max_per_query": 40
+    },
+    "baseline": {
+      "recall5": 0.9373737373737374,
+      "mrr": 0.552020202020202,
+      "ndcg5": 0.6399809647096392,
+      "negative_fpr": 0.09390862944162437,
+      "positive": 495,
+      "negative": 394,
+      "all_gold_coverage5": 0.9111111111111111
+    },
+    "scoring_latency_ms": {
+      "mean": 63.89123610796927,
+      "p95": 140.7749000009062,
+      "scope": "provider score call only; does not include retrieval, HTTP, RAG or LLM"
+    },
+    "fitted": {
+      "baseline": {
+        "recall5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437,
+        "positive": 495,
+        "negative": 394,
+        "all_gold_coverage5": 0.9111111111111111
+      },
+      "selected": {
+        "cap": 10,
+        "rank_weight": 1.0,
+        "evidence_signal": "top_logit",
+        "evidence_threshold": 6.9990787506103525,
+        "feasible": false,
+        "metrics": {
+          "recall5": 0.04040404040404041,
+          "mrr": 0.024814814814814814,
+          "ndcg5": 0.028755631596582096,
+          "negative_fpr": 0.0,
+          "positive": 495,
+          "negative": 394,
+          "all_gold_coverage5": 0.04040404040404041
+        }
+      },
+      "feasible": false,
+      "trials": {
+        "raw_array_reference": "/fitted/trials",
+        "records": 19116
+      },
+      "selection_rule": "FPR<=1% and recall>=95%; minimize FPR, maximize recall/MRR/nDCG, then minimize cap"
+    },
+    "limitations": [
+      "All observations are dev-only; no test or holdout was used.",
+      "Named table-linkage P7-05 candidate generation bypasses acceptance thresholds and is candidate evidence, not answer acceptance.",
+      "Expanded-index Phase 6 calibration fit status is FAIL; its report has no accepted threshold.",
+      "No grouped OOF, full route/input/table/dtype/batch ablations, paired answer/LLM outcomes, or same-config resource/HTTP measurements are established.",
+      "This diagnostic does not alter official r18 M2 FAIL or establish release readiness."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/fitted/trials",
+      "records": 19116
+    }
+  ]
+}

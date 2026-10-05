@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "task": "P7-03.5/6-capacity",
+  "recorded_at": "2026-10-04T16:00:23.123919+00:00",
+  "status": "GROUP_ALLOCATION_VALID_STRATA_AND_SUCCESSOR_QUESTION_CAPACITY_INCOMPLETE",
+  "release_eligible": false,
+  "source_index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+  "restored_source_facts": 339,
+  "eligible_groups": 33,
+  "eligible_source_rows": 41,
+  "by_split": {
+    "dev": {
+      "independent_groups": 10,
+      "groups_with_one_course_code": 10,
+      "unique_course_codes": 10
+    },
+    "test": {
+      "independent_groups": 12,
+      "groups_with_one_course_code": 12,
+      "unique_course_codes": 12
+    },
+    "holdout": {
+      "independent_groups": 11,
+      "groups_with_one_course_code": 11,
+      "unique_course_codes": 11
+    }
+  },
+  "group_allocation_checks": {
+    "restored_index_hash_matches_review": true,
+    "all_eligible_group_bindings_resolve_to_restored_source_rows": true,
+    "eligible_group_total_is_33": true,
+    "test_group_floor_10": true,
+    "holdout_group_floor_10": true,
+    "assignment_counts_match_proposal": true,
+    "every_group_has_one_atomic_split": true
+  },
+  "missing_split_evidence": {
+    "generated_successor_question_records": {
+      "dev": 0,
+      "test": 0,
+      "holdout": 0
+    },
+    "ambiguous_test": 0,
+    "ambiguous_holdout": 0,
+    "contextual_test": 0,
+    "contextual_holdout": 0,
+    "scoped_year_semester_test_holdout": "not supported by reviewed source facts",
+    "hard_multi_hop_source_groups": {
+      "test": 0,
+      "holdout": 0
+    }
+  },
+  "interpretation": "The source groups satisfy only the minimum count of fresh atomic groups in the proposed test and holdout allocations. They are not benchmark records. Pairing two course-code groups to create a multi-hop sum makes one connected evaluation unit; repeated paraphrases remain one unit. The source snapshot has no source-backed temporal or contextual material, so those strata require additional source groups or an explicit pre-F0 exclusion approved under project policy with quotas rebalanced. No threshold is waived here.",
+  "inputs": [
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions-v2.json",
+      "sha256": "90eeb1be91ef15f39c8a826cebd8ede61bc9bb2f0059aaade335dfe93b7700ff"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_split_proposal.json",
+      "sha256": "f38cce6d42617a5c97226b2add6c69e51899dd418dcdf3adbbfea52505a6d774"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/source_course_facts_final.json",
+      "sha256": "df2f2dba62e4242aac21bd6fff2824449262015f2ba61de0ca88c9e6c5c851c1"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/index_archive_manifest.json",
+      "sha256": "719cccbb48dabe20e0501018a279c7c6c249afce0f217272324a740352db4a6f"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/expanded_index.zip",
+      "sha256": "fcf31861b9460e6e74fe7177cda9043865dffaf85f680d1a680008bb2a5f63ac"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/reproduction/restore_and_verify_index.py.txt",
+      "sha256": "4fe9e251a6592cb4afa0549b11dedf744c6ffbfba91d0bb7d19b4add4288d18c"
+    }
+  ],
+  "restoration": {
+    "method": "archive_restore_and_verify",
+    "archive_path": "evaluation/results/phase7-successor-source-20261004b/expanded_index.zip",
+    "archive_sha256": "fcf31861b9460e6e74fe7177cda9043865dffaf85f680d1a680008bb2a5f63ac",
+    "archive_manifest_path": "evaluation/results/phase7-successor-source-20261004b/index_archive_manifest.json",
+    "archive_manifest_sha256": "719cccbb48dabe20e0501018a279c7c6c249afce0f217272324a740352db4a6f",
+    "restore_script_path": "evaluation/results/phase7-successor-source-20261004b/reproduction/restore_and_verify_index.py.txt",
+    "restore_script_sha256": "4fe9e251a6592cb4afa0549b11dedf744c6ffbfba91d0bb7d19b4add4288d18c",
+    "restored_index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "restored_files_verified": 30,
+    "meaning": "The physical index was restored and independently hash-verified for the P7-03 source-row binding check. Recreate it at an absent workspace path with the archived script before repeating that check."
+  }
+}

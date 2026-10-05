@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "status": "validated_dev_source_packet",
+  "release_eligible": false,
+  "dev_only": true,
+  "new_heldout_claim": false,
+  "index_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+  "records": 889,
+  "inherited_records": 817,
+  "new_source_records": 72,
+  "selected_course_codes": [
+    "ELT6003",
+    "ELT6004",
+    "EMA6120",
+    "MAT6281",
+    "RBE2001",
+    "RBE3015"
+  ],
+  "selected_course_families": 3,
+  "selected_document_ids": [
+    "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+    "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d",
+    "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+    "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e"
+  ],
+  "new_answerability_counts": {
+    "true": 36,
+    "false": 36
+  },
+  "history_question_occurrences": 29591,
+  "history_datasets": 179,
+  "review_errors": [],
+  "row_errors": [],
+  "dev_only_split_reassignments_rejected": 144,
+  "dev_only_validation": {
+    "schema_version": 3,
+    "phase": 7,
+    "status": "conditional",
+    "errors": [
+      "insufficient_route_coverage:holdout",
+      "insufficient_route_coverage:test",
+      "insufficient_split_coverage:holdout",
+      "insufficient_split_coverage:test"
+    ],
+    "records": 889,
+    "counts": {
+      "answerable": 495,
+      "negative": 394,
+      "hard": 258,
+      "exact_code": 374,
+      "ambiguous": 369
+    },
+    "split_counts": {
+      "dev": 889
+    },
+    "review_complete": true,
+    "authorship_counts": {
+      "ai": 709,
+      "human": 180
+    },
+    "benchmark_profile": "personal_owner_source_checked_ai",
+    "review_mode": "owner_self_review",
+    "independent_review_complete": false,
+    "owner_review_complete": true
+  },
+  "source_bank_sha256": "f814a7a4d73f0761f66f2277fa5ad1ff6513862d1072fdc9350ab408939f6bae",
+  "generation_authorization_sha256": "e43a74a6af6a77535c750826ecb38dad048b3adcc0b01c1f5aaaa3bb19965c03",
+  "meaning": "New source subjects are explicitly consumed for dev. No benchmark freeze, novel heldout approval or model scores."
+}

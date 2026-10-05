@@ -1,0 +1,26 @@
+"""Read the actual dev probe outcome, including grouped OOF quality."""
+from pathlib import Path
+import json
+from evaluation.common.release_artifacts import write_json, sha256
+
+root = Path('evaluation/results/phase7-dev-feasibility-20261004')
+probability_path = root/'cap10_probability_exposed_dev_probe.json'
+route_path = root/'route_exposed_dev_probe.json'
+probability = json.loads(probability_path.read_text(encoding='utf-8'))
+route = json.loads(route_path.read_text(encoding='utf-8'))
+comparison = probability['comparison']
+summary = {'schema_version':1, 'status':'conditional', 'release_eligible':False,
+           'test_used':False, 'holdout_used':False, 'records':491,
+           'source_sha256':probability['source_sha256'], 'runtime_sha256':probability['runtime_sha256'],
+           'index_sha256':probability['index_sha256'], 'model_identity':probability['model_identity'],
+           'route_report_sha256':sha256(route_path), 'probability_report_sha256':sha256(probability_path),
+           'routing_metrics':route['routing_metrics'],
+           'routing_out_of_fold':route['route_diagnostics']['out_of_fold_metrics'],
+           'evidence_class_counts':comparison.get('classes'), 'probability_feasible':comparison['feasible'],
+           'baseline':comparison['baseline'], 'fitted_quality':comparison['selected'],
+           'grouped_out_of_fold_quality':comparison.get('out_of_fold_quality'),
+           'fold_count':comparison.get('fold_count'), 'errors':probability['errors'],
+           'rerank_requests':probability['rerank_requests'], 'rerank_latency_ms':probability['rerank_latency_ms'],
+           'meaning':'Measured fixed cap-10 exploratory feasibility on r18 dev plus 13 audited, already exposed r12 dev-only absent-field records. All gates require new frozen source and independently eligible heldout before acceptance.'}
+write_json(root/'joint_dev_feasibility.json', summary)
+print(json.dumps(summary, indent=2))

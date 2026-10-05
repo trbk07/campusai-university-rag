@@ -1,0 +1,43 @@
+from collections import Counter
+import gzip
+import json
+import shutil
+from pathlib import Path
+from evaluation.retrieval.compare_retrieval_quality import query_metrics
+from evaluation.common.release_artifacts import sha256, write_json
+
+root = Path('evaluation/results/phase7-dev-feasibility-20261004')
+report_path = root / 'cap10_score_dev.json'
+report = json.loads(report_path.read_text(encoding='utf-8'))
+dev = Path('data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval_dev.jsonl')
+assert sha256(dev) == report['training_split_sha256']
+rows = [json.loads(line) for line in dev.read_text(encoding='utf-8').splitlines() if line.strip()]
+observations = report['calibration_observations']
+baseline, proposals = observations['baseline'], observations['proposals']
+counts = Counter()
+unselected_misses = []
+for row in rows:
+    if not row['answerable']:
+        continue
+    before = bool(query_metrics(row, baseline[row['qid']])['recall5'])
+    proposed = proposals.get(row['qid'])
+    after = bool(query_metrics(row, proposed['results'])['recall5']) if proposed else before
+    key = row.get('source_validation', {}).get('kind', 'owner')
+    counts['positive'] += 1
+    counts['baseline_hits'] += before
+    counts['all_proposals_hits'] += after
+    counts['oracle_baseline_or_proposal_hits'] += before or after
+    if not before and not proposed:
+        counts['unselected_misses'] += 1
+        counts['unselected_misses:' + row['difficulty']] += 1
+        counts['unselected_misses:' + key] += 1
+        unselected_misses.append({'qid': row['qid'], 'difficulty': row['difficulty'], 'kind': key})
+result = {'schema_version': 1, 'status': 'diagnostic', 'release_eligible': False,
+          'calibration_report_sha256': sha256(report_path), 'dataset_sha256': sha256(dev),
+          'counts': dict(counts), 'unselected_misses': unselected_misses,
+          'oracle_recall_ceiling': counts['oracle_baseline_or_proposal_hits'] / counts['positive'],
+          'meaning': 'Unattainable diagnostic upper bound by choosing the correct one of measured baseline/proposal outputs per query; gold is used only to diagnose, never in runtime policy.'}
+write_json(root / 'cap10_dev_diagnostic.json', result)
+print(json.dumps({key: result[key] for key in ('counts', 'oracle_recall_ceiling')}, indent=2))
+with report_path.open('rb') as source, gzip.open(root / 'cap10_score_dev.json.gz', 'wb') as target:
+    shutil.copyfileobj(source, target)

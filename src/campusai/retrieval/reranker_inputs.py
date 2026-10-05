@@ -7,7 +7,7 @@ import math
 import unicodedata
 from collections import Counter
 
-INPUT_VERSION = "structured-input-v1"
+INPUT_VERSION = "structured-input-v3"
 QUERY_MAX_CHARS = 2048
 CONTENT_MAX_CHARS = 8192
 
@@ -101,24 +101,33 @@ def render_table(body, query, focus):
                     selected.update(range(start,end))
             chosen = sorted(selected)
         elif not targets:
-            words = [set(re.findall(r"[a-z]{3,}",_plain(" ".join(row)))) for row in rows]
-            counts = Counter(word for tokens in words for word in tokens)
-            query_words = set(re.findall(r"[a-z]{3,}",_plain(query)))
-            scores = [sum(math.log(1+len(rows)/(1+counts[word])) for word in tokens & query_words) for tokens in words]
-            best = max(range(len(rows)),key=lambda index:(scores[index],-index))
-            # A single generic institution/subject token cannot trigger a crop.
-            if len(words[best]&query_words)>=2 and scores[best]>=2:
-                # Repeated subjects may be the object of a comparison. Keep
-                # every equally supported occurrence and its section heading.
-                selected = set()
-                for index,score in enumerate(scores):
-                    if score != scores[best]:
-                        continue
-                    selected.update(range(max(0,index-3),min(len(rows),index+4)))
+            code_rows = _course_code_rows(headers, rows, query)
+            if code_rows:
+                selected = set(code_rows)
+                for index in code_rows:
                     earlier = [heading for heading,_ in headings if heading<=index]
                     if earlier:
                         selected.add(earlier[-1])
                 chosen = sorted(selected)
+            elif code_rows is None:
+                words = [set(re.findall(r"[a-z]{3,}",_plain(" ".join(row)))) for row in rows]
+                counts = Counter(word for tokens in words for word in tokens)
+                query_words = set(re.findall(r"[a-z]{3,}",_plain(query)))
+                scores = [sum(math.log(1+len(rows)/(1+counts[word])) for word in tokens & query_words) for tokens in words]
+                best = max(range(len(rows)),key=lambda index:(scores[index],-index))
+                # A single generic subject token cannot trigger a crop.
+                if len(words[best]&query_words)>=2 and scores[best]>=2:
+                    # Repeated subjects may be the object of a comparison.
+                    # Keep every supported occurrence and section heading.
+                    selected = set()
+                    for index,score in enumerate(scores):
+                        if score != scores[best]:
+                            continue
+                        selected.update(range(max(0,index-3),min(len(rows),index+4)))
+                        earlier = [heading for heading,_ in headings if heading<=index]
+                        if earlier:
+                            selected.add(earlier[-1])
+                    chosen = sorted(selected)
     lines = ["Columns: "+" | ".join(headers)]
     if len(chosen)<len(rows):
         lines.append("Query-focused rows; omitted rows remain in the original source chunk.")
@@ -126,5 +135,37 @@ def render_table(body, query, focus):
         lines.append("Original extracted table payload is truncated.")
     lines.extend(" | ".join(" ".join(cell.split()) for cell in rows[index]).strip(" |") for index in chosen)
     return "\n".join(lines)
+
+
+def _course_code_rows(headers, rows, query):
+    """Focus exact identifiers in course columns, keeping prerequisites distinct.
+
+    None means the table/query has no usable identifier field. An empty list
+    means an explicitly requested identifier is missing: preserve the full
+    table instead of replacing it with a fuzzy name match.
+    """
+    from .routing import detected_course_codes
+    requested = set(detected_course_codes(query))
+    aliases = {'code', 'course code', 'subject code', 'ma hoc phan', 'ma mon hoc', 'ma mon', 'ma hp'}
+    names = [' '.join(_plain(name).split()).strip(' :') for name in headers]
+    if any(re.search(r'\b(?:hoc phan|courses?|subjects?)\b', name) for name in names):
+        aliases.add('ma so')
+    columns = [i for i, name in enumerate(names) if name in aliases]
+    if not requested or not columns:
+        return None
+    matched = [i for i, row in enumerate(rows) if any(
+        requested.intersection(detected_course_codes(row[column]))
+        for column in columns if column < len(row))]
+    # A blank-code continuation may contain another part of the same physical
+    # source row. Retain it until the next explicit course code/section.
+    selected = set(matched)
+    for index in matched:
+        cursor = index + 1
+        while cursor < len(rows) and not any(rows[cursor][column].strip() for column in columns if column < len(rows[cursor])):
+            if sum(bool(cell.strip()) for cell in rows[cursor]) == 1:
+                break
+            selected.add(cursor)
+            cursor += 1
+    return sorted(selected)
 
 

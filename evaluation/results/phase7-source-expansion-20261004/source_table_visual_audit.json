@@ -1,0 +1,33 @@
+{
+  "status": "source_proposal",
+  "release_eligible": false,
+  "recorded_at": "2026-10-04T04:42:59.965799+00:00",
+  "performed_by": "Codex",
+  "independent_human_review_claim": false,
+  "reviewed_previews": [
+    "uet_robotics_curriculum_2020-page-1.png",
+    "uet_robotics_curriculum_2020-page-11.png",
+    "uet_robotics_curriculum_2020-page-12.png",
+    "uet_robotics_curriculum_2020-page-13.png",
+    "uet_robotics_curriculum_2020-page-14.png",
+    "uet_robotics_curriculum_2020-page-15.png",
+    "uet_robotics_curriculum_2020-page-16.png",
+    "uet_electronics_masters_curriculum_2022-page-1.png",
+    "uet_electronics_masters_curriculum_2022-page-6.png",
+    "uet_electronics_masters_curriculum_2022-page-7.png",
+    "uet_electronics_masters_curriculum_2022-page-8.png",
+    "uet_electronics_masters_curriculum_2022-page-9.png"
+  ],
+  "checks": [
+    "Explicit course/code/name/credit columns corroborated against PDF table renderings.",
+    "Bilingual wrapped names and sparse column layouts are preserved; credits are not read from contact-hour columns.",
+    "Merged credit cells in electronics page 9 carry 3 for the listed elective rows, consistent with ingestion serialization.",
+    "Blank prerequisite cells are not evidence of no prerequisite."
+  ],
+  "limits": [
+    "Robot page 13 table fragmentation drops some original course rows from table serialization; only the 61 actually extracted rows are proposed.",
+    "Nano biology is scan-only with no indexed chunks; no facts proposed.",
+    "Physics PDF TLS hostname mismatch was retained as a download failure; TLS checks were not disabled.",
+    "Semantic history audit and owner-directed benchmark creation are still pending; no heldout eligibility or PASS release claim."
+  ]
+}

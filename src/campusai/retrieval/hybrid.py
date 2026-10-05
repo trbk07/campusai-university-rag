@@ -20,11 +20,11 @@ from .calibration import CalibrationError, RetrievalPolicy
 from .confidence import LEGACY_CONFIDENCE_MODEL
 from .contracts import RETRIEVAL_MODES, RETRIEVAL_SCHEMA_VERSION, validate_filters
 from .dense_index import IndexNotFoundError
-from .routing import RoutingTrace, choose_route, detected_codes
+from .routing import RoutingTrace, choose_route, detected_codes, detected_course_codes
 from .negative import negative_query_reason
 from .rerank_policy import Phase7Policy
 from .cross_encoder_provider import RerankCandidate, RerankerProvider, RerankerUnavailable
-from .tokenizer_vi import normalize_retrieval_query, normalized_tokens, retrieval_text
+from .tokenizer_vi import normalize_retrieval_query, normalized_tokens, retrieval_text, corpus_typo_expansion, source_body
 
 
 @dataclass(frozen=True)
@@ -107,6 +107,7 @@ class HybridRetriever:
                                or self.candidate_limit != 40):
             raise ValueError("Phase 7 requires the frozen Phase 6 candidate-generation settings")
         self._indexes: dict[str, tuple[BM25Index, DenseIndex | None]] = {}
+        self._body_indexes: dict[str, BM25Index] = {}
         self._index_generations: dict[str, tuple] = {}
         self._postings: dict[str, dict[str, dict[str, set[str]]]] = {}
         self._query_cache: OrderedDict[tuple, list[RetrievalResult]] = OrderedDict()
@@ -132,6 +133,9 @@ class HybridRetriever:
         except IndexNotFoundError:
             dense = None
         self._indexes[doc_id] = (bm25, dense)
+        self._body_indexes[doc_id] = BM25Index([
+            {'chunk_id': item['chunk_id'], 'content': source_body(item)} for item in bm25.items
+        ], bm25.language)
         postings: dict[str, dict[str, set[str]]] = {}
         for item in bm25.items:
             item_id = item["chunk_id"]
@@ -155,6 +159,7 @@ class HybridRetriever:
 
     def remove_document(self, doc_id: str) -> None:
         self._indexes.pop(doc_id, None)
+        self._body_indexes.pop(doc_id, None)
         self._postings.pop(doc_id, None)
         self._index_generations.pop(doc_id, None)
         self._query_cache.clear()
@@ -185,7 +190,7 @@ class HybridRetriever:
                 records[chunk_id] = item
         return records
 
-    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None) -> list[RetrievalResult]:
+    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None, *, _candidate_generation: bool = False) -> list[RetrievalResult]:
         if mode == "phase7":
             return self.search_phase7(query, doc_ids=doc_ids, filters=filters,
                                       top_k=top_k, score_threshold=score_threshold)
@@ -230,7 +235,7 @@ class HybridRetriever:
         # remain consistent.
         if policy is None and effective_mode == "exact_code":
             policy = self.policies.get("hybrid_rrf")
-        if policy is not None:
+        if policy is not None and not _candidate_generation:
             score_threshold = max(score_threshold or 0.0, policy.threshold)
         confidence_model = policy.confidence_model if policy is not None else LEGACY_CONFIDENCE_MODEL
         self._ensure_loaded(doc_ids)
@@ -255,6 +260,7 @@ class HybridRetriever:
             self.rerank_candidate_limit,
             self.candidate_limit,
             self.rrf_weights,
+            _candidate_generation,
             getattr(self.reranker, "model_name", None),
         )
         if self.query_cache_size:
@@ -262,9 +268,15 @@ class HybridRetriever:
                 cached = self._query_cache.get(cache_key)
                 if cached is not None:
                     self._query_cache.move_to_end(cache_key)
-                    self.last_trace = self._trace_cache.get(cache_key, self.last_trace)
+                    trace = self._trace_cache.get(cache_key, self.last_trace)
+                    self.last_trace = replace(trace, retrieval_cache_hit=True,
+                        bm25_used=False, dense_used=False,
+                        latency_ms={"parse": round(parse_ms, 3), "bm25": 0.0, "dense": 0.0,
+                                    "fusion": 0.0, "total": round((time.perf_counter() - total_started) * 1000, 3)})
                     return list(cached)
         search_query = normalize_retrieval_query(query)
+        vocabulary = {term for doc_id in doc_ids for term in self._indexes[doc_id][0].document_frequency}
+        search_query = corpus_typo_expansion(search_query, vocabulary)
         requested_years = set(re.findall(r"\b(?:19|20|21)\d{2}\b", query))
         if requested_years and not any(
             self._postings[doc_id].get("mentioned_year", {}).get(year)
@@ -294,32 +306,54 @@ class HybridRetriever:
         records = self._records(doc_ids, eligible_ids)
         if eligible_ids is None:
             eligible_ids = set(records)
-        primary_code = codes[0] if codes else None
+        from .source_scope import unsupported_source_reason
+        unsupported = unsupported_source_reason(query, records)
+        if unsupported:
+            self.last_trace = RoutingTrace(
+                route='abstain', detected_codes=codes, filters_applied=bool(normalized_filters),
+                abstained=True, abstention_reason='unsupported_selected_source', fallback=unsupported,
+                latency_ms={'parse': round(parse_ms, 3), 'total': round((time.perf_counter()-total_started)*1000, 3)})
+            return []
+        from .table_links import table_acronym_expansion
+        search_query = table_acronym_expansion(search_query, records)
+        # Program abbreviations and semester labels describe context. They
+        # must not turn a natural course-name request into an exact lookup.
+        course_codes = detected_course_codes(query)
+        code_patterns = [re.compile(r"(?<![\w])" + r"\s*".join(re.escape(c) for c in code)
+                                    + r"(?![\w])", re.I) for code in course_codes]
         exact_candidate_ids = {
             item_id for item_id, item in records.items()
-            if item_id in eligible_ids and primary_code
-            and re.search(rf"(?<![\w]){re.escape(primary_code)}(?![\w])", retrieval_text(item), re.I)
+            if item_id in eligible_ids
+            and any(pattern.search(source_body(item))
+                    or (_candidate_generation and pattern.search(retrieval_text(item)))
+                    for pattern in code_patterns)
         }
+        # A candidate pool can retain metadata-linked source context for the
+        # reranker. Answer lookup requires the actual source-body code. The
+        # common scope guard above still rejects codes absent from the sources.
         exact_candidate_documents = {records[item_id].get("doc_id") for item_id in exact_candidate_ids}
         exact_fast_path = (
-            effective_mode == "exact_code" and len(codes) == 1
+            effective_mode == "exact_code" and len(course_codes) == 1
             and len(exact_candidate_documents) == 1 and 0 < len(exact_candidate_ids) <= top_k
         )
         route_fallback = None
-        if effective_mode == "exact_code" and exact_candidate_ids and not exact_fast_path:
+        if effective_mode == "exact_code" and (not course_codes or (exact_candidate_ids and not exact_fast_path)):
             # Multiple codes, documents, or more candidates than can safely be
             # returned are ambiguous. Preserve the exact candidate list as an
             # additional ranker, but let BM25+dense resolve the surrounding
             # context instead of choosing a document arbitrarily.
             effective_mode = "hybrid_rrf"
-            route_fallback = "ambiguous_exact_code_hybrid_rrf"
-        bm25_ranked, dense_ranked = [], []
+            route_fallback = "ambiguous_exact_code_hybrid_rrf" if course_codes else "context_code_hybrid_rrf"
+            route = effective_mode
+        bm25_ranked, body_ranked, dense_ranked = [], [], []
         dense_query_vectors: dict[tuple[str, str], list[float]] = {}
         bm25_started = time.perf_counter()
         for doc_id in doc_ids:
             bm25, dense = self._indexes[doc_id]
             candidate_top_k = min(self.candidate_limit, max(top_k * 3, 10))
             bm25_ranked.extend(bm25.search(search_query, top_k=candidate_top_k, eligible_ids=eligible_ids))
+            body_ranked.extend(self._body_indexes[doc_id].search(search_query, top_k=candidate_top_k,
+                                                               eligible_ids=eligible_ids))
         bm25_ms = (time.perf_counter() - bm25_started) * 1000
         dense_started = time.perf_counter()
         for doc_id in doc_ids:
@@ -346,9 +380,16 @@ class HybridRetriever:
         # would silently make filesystem/doc-id order a ranking signal. Apply
         # filters first, then globally rank and cap each candidate list.
         bm25_ranked = sorted(bm25_ranked, key=lambda pair: (-pair[1], pair[0]))[: self.candidate_limit]
+        body_ranked = sorted(body_ranked, key=lambda pair: (-pair[1], pair[0]))[: self.candidate_limit]
         dense_ranked = sorted(dense_ranked, key=lambda pair: (-pair[1], pair[0]))[: self.candidate_limit]
         fallback_reason = route_fallback
         fusion_started = time.perf_counter()
+        from .table_links import linked_table_sources, semester_table_sources
+        semester_ids = semester_table_sources(query, records)
+        linked_ids = list(dict.fromkeys([
+            *semester_ids, *linked_table_sources(search_query, records, self.candidate_limit,
+                                                include_named_curriculum=True,
+                                                named_exact_only=not _candidate_generation)]))[:self.candidate_limit]
         if effective_mode == "exact_code":
             if not exact_candidate_ids:
                 self.last_trace = RoutingTrace(route=route, detected_codes=codes, filters_applied=bool(normalized_filters),
@@ -380,14 +421,48 @@ class HybridRetriever:
             if route_fallback and exact_candidate_ids:
                 exact_ranked = sorted(
                     ((item_id, dict(bm25_ranked).get(item_id, 0.0)) for item_id in exact_candidate_ids),
-                    key=lambda pair: (-pair[1], pair[0]),
+                    key=lambda pair: (0 if len(code_patterns) == 1 and
+                                      code_patterns[0].match(source_body(records[pair[0]]).strip()) else 1,
+                                      -pair[1], pair[0]),
                 )
                 available.append(exact_ranked)
+                weights.append(1.0)
+            if body_ranked:
+                available.append(body_ranked)
+                weights.append(1.0)
+            if linked_ids:
+                available.append([(item_id, 1.0) for item_id in linked_ids])
                 weights.append(1.0)
             ranked = reciprocal_rank_fusion(available, self.rrf_k, min(self.candidate_limit, top_k * 3), weights)
             label = "hybrid_rrf" if effective_mode == "hybrid_rrf" else "hybrid"
         fusion_ms = (time.perf_counter() - fusion_started) * 1000
         ranked = [(item_id, score) for item_id, score in ranked if item_id in records]
+        if semester_ids:
+            # A named semester in a source table is a stronger anchor than a
+            # document-wide metadata header copied onto unrelated chunks.
+            semester_order = {item_id: rank for rank, item_id in enumerate(semester_ids)}
+            ranked.sort(key=lambda pair: (0 if pair[0] in semester_order else 1,
+                                         semester_order.get(pair[0], 0), -pair[1], pair[0]))
+        if not _candidate_generation and not course_codes:
+            # A complete name in an actual subject column identifies a course
+            # more precisely than repeated document headers or generic prose.
+            # Preserve fusion scores and provenance; this stays a cheap lookup.
+            from .table_links import named_table_sources
+            named_ids = set(named_table_sources(search_query, records))
+            ranked.sort(key=lambda pair: (0 if pair[0] in named_ids else 1,
+                                         0 if pair[0] in semester_ids else 1, -pair[1], pair[0]))
+        if len(course_codes) == 1 and exact_candidate_ids:
+            code_pattern = code_patterns[0]
+            def course_identity_priority(pair):
+                item_id, score = pair
+                item = records[item_id]
+                # A primary course heading/body identifies the course itself;
+                # mentions in prerequisite columns are supporting evidence.
+                body = source_body(item)
+                primary = bool(code_pattern.match(body.strip()))
+                return (0 if primary else 1 if item_id in exact_candidate_ids else 2,
+                        -score, item_id)
+            ranked.sort(key=course_identity_priority)
         if requested_pages:
             # An explicit page constraint is stronger than a small fusion
             # score difference: prefer that page, while preserving score order
@@ -408,6 +483,8 @@ class HybridRetriever:
         dense_scores = dict(dense_ranked)
         bm25_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(bm25_ranked, 1)}
         dense_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(dense_ranked, 1)}
+        body_ranks = {item_id: rank for rank, (item_id, _score) in enumerate(body_ranked, 1)}
+        link_ranks = {item_id: rank for rank, item_id in enumerate(linked_ids, 1)}
         query_terms = {token for token in normalized_tokens(search_query) if len(token) >= 3}
         confidence_scores: dict[str, float] = {}
         confidence_features: dict[str, dict[str, float]] = {}
@@ -435,8 +512,11 @@ class HybridRetriever:
         elif route_fallback:
             confidence_scores.update({item_id: max(.8, confidence_scores.get(item_id, 0.0))
                                       for item_id in exact_candidate_ids})
+        if semester_ids:
+            confidence_scores.update({item_id: max(.8, confidence_scores.get(item_id, 0.0))
+                                      for item_id in semester_ids if item_id in confidence_scores})
         abstention_reason = None
-        if score_threshold is not None and not (self.reranker is not None and effective_mode in {"rerank", "hybrid_rerank"}):
+        if score_threshold is not None and not _candidate_generation and not (self.reranker is not None and effective_mode in {"rerank", "hybrid_rerank"}):
             if effective_mode in {"hybrid", "hybrid_rrf"}:
                 # Confidence is an abstention decision for the query, not a
                 # second ranker. Once at least one candidate establishes that
@@ -496,8 +576,8 @@ class HybridRetriever:
                 fusion_score=float(score_by_id[item_id]) if label in {"hybrid", "hybrid_rrf"} else None,
                 confidence_score=confidence_scores.get(item_id),
                 confidence_features=confidence_features.get(item_id),
-                retriever_ranks={name: values[item_id] for name, values in (("bm25", bm25_ranks), ("dense", dense_ranks)) if item_id in values},
-                retriever_sources=tuple(name for name, values in (("bm25", bm25_ranks), ("dense", dense_ranks)) if item_id in values),
+                retriever_ranks={name: values[item_id] for name, values in (("bm25", bm25_ranks), ("body_bm25", body_ranks), ("dense", dense_ranks), ("table_link", link_ranks)) if item_id in values},
+                retriever_sources=tuple(name for name, values in (("bm25", bm25_ranks), ("body_bm25", body_ranks), ("dense", dense_ranks), ("table_link", link_ranks)) if item_id in values),
                 deduplicated=item_id in bm25_ranks and item_id in dense_ranks,
             )
             for rank, (item_id, _score) in enumerate(ranked, 1)
@@ -508,7 +588,7 @@ class HybridRetriever:
             filters_applied=bool(normalized_filters), bm25_used=bool(bm25_ranked), dense_used=bool(dense_ranked),
             abstained=not results, abstention_reason=(abstention_reason or "no_candidate") if not results else None,
             fallback=fallback_reason,
-            candidate_count=len(set(item_id for item_id, _ in bm25_ranked + dense_ranked)), final_count=len(results),
+            candidate_count=len(set([*(item_id for item_id, _ in bm25_ranked + body_ranked + dense_ranked), *linked_ids])), final_count=len(results),
             latency_ms={"parse": round(parse_ms, 3), "bm25": round(bm25_ms, 3),
                         "dense": round(dense_ms, 3), "fusion": round(fusion_ms, 3),
                         "total": round((time.perf_counter()-total_started)*1000, 3)},
@@ -522,6 +602,21 @@ class HybridRetriever:
                     old_key, _ = self._query_cache.popitem(last=False)
                     self._trace_cache.pop(old_key, None)
         return results
+
+    def generate_candidates(self, query: str, doc_ids: list[str] | None = None,
+                            filters: dict | None = None, top_k: int = 40,
+                            mode: str = "auto") -> list[RetrievalResult]:
+        """Retrieve a bounded source pool before the answer acceptance decision.
+
+        Document/filter scope, empty/contextual requests and explicit negative
+        guards remain enforced. A confidence threshold decides final answers;
+        applying it here would prevent a reranker from examining source evidence.
+        """
+        if mode != "auto":
+            raise ValueError("candidate generation uses the runtime auto route")
+        return self.search(query, doc_ids=doc_ids, filters=filters,
+                           top_k=min(top_k, self.candidate_limit), mode=mode,
+                           _candidate_generation=True)
 
     @property
     def phase7_cache_fingerprint(self) -> str:
@@ -541,14 +636,25 @@ class HybridRetriever:
         baseline = self.search(query, doc_ids=doc_ids, filters=filters,
                                top_k=top_k, mode="auto", score_threshold=score_threshold)
         trace = self.last_trace
+        route_selected = inference_attempted = False
 
         def finish(values: list[RetrievalResult], selected: bool, reason: str) -> list[RetrievalResult]:
             latency = dict(trace.latency_ms or {})
+            call = getattr(provider, "last_call", {}) if inference_attempted else {}
+            latency["reranker_queue"] = round(call.get("queue_ms", 0.0), 3)
+            latency["reranker_inference_observed"] = round(call.get("inference_observed_ms", 0.0), 3)
             latency["reranker"] = round(max(0.0, (time.perf_counter() - started) * 1000
                                              - latency.get("total", 0.0)), 3)
             latency["total"] = round((time.perf_counter() - started) * 1000, 3)
             self.last_trace = replace(trace, rerank_selected=selected,
-                                      rerank_reason=reason, final_count=len(values), latency_ms=latency)
+                                      rerank_reason=reason, final_count=len(values), latency_ms=latency,
+                                      rerank_route_selected=route_selected,
+                                      rerank_inference_started=bool(call.get("inference_started", False)),
+                                      rerank_score_cache_hit=bool(call.get("score_cache_hit", False)),
+                                      rerank_applied=selected and bool(values), rerank_fallback=route_selected and not selected,
+                                      rerank_abstained=selected and not values and reason == "reranker_no_evidence",
+                                      reranker_model_identity=provider.model_identity.fingerprint if provider else None,
+                                      reranker_policy_identity=policy.fingerprint if policy else None)
             return values
 
         def disable(reason: str):
@@ -558,6 +664,8 @@ class HybridRetriever:
 
         if not self.phase7_enabled or policy is None or provider is None:
             return finish(baseline[:top_k], False, "feature_disabled")
+        if getattr(provider, "ready", True) is False:
+            return finish(baseline[:top_k], False, "model_not_ready")
         manifest = self.index_root / "manifest.json"
         phase6 = self.policies.get("hybrid_rrf")
         phase6_source = Path(phase6.source) if phase6 is not None else None
@@ -574,10 +682,11 @@ class HybridRetriever:
                                            top_k=5, mode="auto", score_threshold=score_threshold)
             routing_trace = self.last_trace
         selected, reason = policy.route(query, routing_baseline, routing_trace)
+        route_selected = selected
         if not selected:
             return finish(baseline[:top_k], False, reason)
-        pool = self.search(query, doc_ids=doc_ids, filters=filters,
-                           top_k=policy.candidate_cap, mode="auto", score_threshold=score_threshold)
+        pool = self.generate_candidates(query, doc_ids=doc_ids, filters=filters,
+                                        top_k=policy.candidate_cap, mode="auto")
         if not pool:
             return finish(baseline[:top_k], False, "empty_candidate_pool")
         candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
@@ -588,6 +697,7 @@ class HybridRetriever:
             return finish(baseline[:top_k], False, "feature_disabled")
         try:
             from ..request_timings import stage
+            inference_attempted = True
             with stage("reranker_wait"):
                 ranked = provider.score(query, candidates)
         except RerankerUnavailable as error:

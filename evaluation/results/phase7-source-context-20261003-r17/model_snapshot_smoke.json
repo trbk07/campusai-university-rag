@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "status": "pass",
+  "deterministic": true,
+  "max_score_delta": 0.0,
+  "commit": "f7fffb562f44bd8b682d2950140be7650b1b5179",
+  "source_sha256": "aabac461999962f226529c5a2eedcaaee1bfefcce3f41f31190c1d17b094e397",
+  "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+  "model_identity": {
+    "model_name": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "model_sha256": "16f0018751492cd824b272a24cdde73cd061f8615f3abaab8da64c872f79ffe9",
+    "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "provider": "sentence_transformers",
+    "device": "cuda:0",
+    "dtype": "float16",
+    "max_length": 512,
+    "batch_size": 8,
+    "normalization": "raw_logit",
+    "batch_window_ms": 0.0,
+    "max_batch_pairs": 200,
+    "input_format": "full_chunk",
+    "input_version": "structured-input-v1"
+  },
+  "runtime_environment": {
+    "python": "3.14.6",
+    "implementation": "CPython",
+    "system": "Windows",
+    "machine": "AMD64",
+    "dependencies": {
+      "torch": "2.14.0+cu126",
+      "sentence-transformers": "5.7.0",
+      "transformers": "5.17.0",
+      "tokenizers": "0.23.2",
+      "numpy": "2.5.3",
+      "safetensors": "0.8.0",
+      "huggingface-hub": "1.32.0",
+      "fastembed": "0.8.1",
+      "onnxruntime": "1.30.0",
+      "psutil": "7.2.2"
+    }
+  },
+  "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+  "model_files_sha256": {
+    ".cache/huggingface/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+    ".cache/huggingface/CACHEDIR.TAG": "e8893e2dcb3f4545ef67a0a5b7b769113d38eef1aa61c7c7ba14659b02af955f",
+    ".cache/huggingface/download/config.json.metadata": "d65d103cae18019eee3e102d6db56d4a30e97da7b556078f87a906f4dd7819ab",
+    ".cache/huggingface/download/model.safetensors.metadata": "365836923b857f17becadf99897b10512334652623247445cdc1c80d8edc6d2f",
+    ".cache/huggingface/download/sentencepiece.bpe.model.metadata": "25b9194d46f92b525c509e4ad42015bf30719814b09fddb0345b75cd4eed2034",
+    ".cache/huggingface/download/special_tokens_map.json.metadata": "77f3fc4b5111059f7e72c32d8e78dfcea93767c467aec5b31444006f194a8f3f",
+    ".cache/huggingface/download/tokenizer.json.metadata": "5d41e96ffb813b785d0e15dbac1e07c0bc55a71144dc7b8167d19bc38dd9b5d1",
+    ".cache/huggingface/download/tokenizer_config.json.metadata": "d85c148d441af44b6a3390da16ded9f6efc75f21af4cb86ec08e2872041c2a9b",
+    ".cache/huggingface/trees/1427fd652930e4ba29e8149678df786c240d8825.json": "4c7de19739751718edceb36123a8271e2519f36ea08fdd51a78e6e9b2c202817",
+    "config.json": "cc2cfe51aa3fd759d21d21acf5dfd6994aa67a3c9210636d22e143699d336c77",
+    "model.safetensors": "5daeca2481a76b5976a2bdc32f0a78532b6716da4f8cd3ff59460ef8d2f359b4",
+    "sentencepiece.bpe.model": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+    "special_tokens_map.json": "378eb3bf733eb16e65792d7e3fda5b8a4631387ca04d2015199c4d4f22ae554d",
+    "tokenizer.json": "62c24cdc13d4c9952d63718d6c9fa4c287974249e16b7ade6d5a85e7bbb75626",
+    "tokenizer_config.json": "e7fbfbfa6347b4e414c1cee50d142e2c2f9a895dad68b068ae83a8b564c3837e"
+  },
+  "latency_ms": {
+    "first_request": 41571.737,
+    "warm_2_candidates": 5.897,
+    "warm_batch_candidates": {
+      "10": 17.123,
+      "20": 22.106,
+      "40": 39.524
+    }
+  },
+  "ranking": [
+    {
+      "candidate_id": "a",
+      "reranker_score": -1.775390625,
+      "final_rank": 1
+    },
+    {
+      "candidate_id": "b",
+      "reranker_score": -4.41015625,
+      "final_rank": 2
+    }
+  ]
+}

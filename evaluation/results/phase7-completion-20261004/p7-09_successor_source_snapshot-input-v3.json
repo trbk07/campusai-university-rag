@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-05T07:07:10.478787+00:00",
+  "source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "d96550acbb1b8d56c88587aa1f3177240585c213e94a38b16a9680c27149075b",
+    "runtime_sha256": "4fbe8c57a8dc2398e9c9bd00361bf0226122cf1340d44efdf84dc054e7cb3f37"
+  },
+  "files": 337,
+  "archive_sha256": "a418952eb7477225f75408231884670ddaade5ba50449707b28c58b6eff5fdbf",
+  "secret_config_excluded": "configs/gemini.yaml",
+  "purpose": "Exact source/config/dependency bytes used for actual structured-input-v3 offline dev scores; not F1 or release acceptance."
+}

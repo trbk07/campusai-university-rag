@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "task": "P7-17.4",
+  "status": "PASS_CUDA_PROVIDER_PERMANENT_FAULT",
+  "release_eligible": false,
+  "scope": "real pinned RTX 4060 CrossEncoder provider and active r18 index; controlled permanent exception injected after actual CUDA predict",
+  "recorded_at": "2026-10-04T15:37:59.674462+00:00",
+  "source_identity_before": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "b7f412975dab84b8b486ec745e03d3ac03b141f46475d0df4514b14ad7676c25",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "source_identity_after": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "b7f412975dab84b8b486ec745e03d3ac03b141f46475d0df4514b14ad7676c25",
+    "runtime_sha256": "50cf03d179767619b1258493f905fcb152fd1b8c1edd7cc4124565d67c1f781a"
+  },
+  "active_cycle": {
+    "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18",
+    "results_dir": "evaluation/results/phase7-source-context-20261004-r18",
+    "index_dir": ".tmp/hybrid-index"
+  },
+  "bindings": {
+    "dev_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+    "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model_identity": {
+      "model_name": "BAAI/bge-reranker-v2-m3",
+      "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "model_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b",
+      "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+      "provider": "sentence_transformers",
+      "device": "cuda",
+      "dtype": "float32",
+      "max_length": 512,
+      "batch_size": 8,
+      "normalization": "raw_logit",
+      "batch_window_ms": 0.0,
+      "max_batch_pairs": 200,
+      "input_format": "full_chunk",
+      "input_version": "structured-input-v1"
+    }
+  },
+  "inference_calls_after_warmup": 1,
+  "injected_cuda_predict_batches": [
+    40
+  ],
+  "observation": {
+    "qid": "human-candidate-0001",
+    "dev_source_group": null,
+    "question_sha256": "bd5b7ca80735edfd36c2e625a7d719c8a4c4beea06e5420ab4619cf9ce61bfc5",
+    "phase6_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "fault_fallback_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "followup_output_sha256": "a03b3f0f24be0dc1e204d73283fa5bbfdd498aae720ec298ba7b51393b85a061",
+    "fault_fallback_equals_phase6": true,
+    "followup_equals_phase6": true,
+    "reason": "reranker_inference_failed",
+    "provider_calls_after_warmup": 1,
+    "provider_calls_after_followup": 1,
+    "phase7_enabled_after_fault": false,
+    "provider_closed_after_fault": true,
+    "failure_count": 1
+  },
+  "final_metrics": {
+    "submitted_requests": 2,
+    "completed_requests": 2,
+    "cancelled_requests": 0,
+    "rejected_requests": 0,
+    "active_requests": 0,
+    "queue_depth": 0,
+    "max_queue_depth": 0,
+    "queue_wait_ms_total": 0.9987000012188219,
+    "max_queue_wait_ms": 0.9196999999403488,
+    "worker_ms_total": 909.5354999990377,
+    "closed": true,
+    "failure_count": 1,
+    "ready": false,
+    "model_loads": 1,
+    "inference_calls": 2,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "checks": {
+    "warmup_used_real_cuda_provider": true,
+    "fault_followed_real_cuda_inference": true,
+    "fault_triggered_permanent_shutdown": true,
+    "followup_started_zero_new_inference": true,
+    "phase6_output_preserved": true,
+    "failure_recorded_once": true,
+    "all_active_work_drained": true
+  },
+  "limitations": [
+    "The CUDA model/provider and index are real; a controlled MemoryError is injected after successful model inference to exercise the permanent-fault transition.",
+    "Does not exercise a naturally occurring CUDA OOM/driver fault, production HTTP process, or complete M9 target profile."
+  ]
+}

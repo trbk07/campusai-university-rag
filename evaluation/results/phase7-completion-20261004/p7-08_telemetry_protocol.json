@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "protocol_id": "phase7-runtime-observability-v1",
+  "status": "COMPONENT_PROTOCOL_VERIFIED",
+  "release_eligible": false,
+  "event_model": {
+    "request_identity": "unique request_id bound across client and server raw records",
+    "events": ["route_selected", "inference_attempted", "inference_completed", "ranking_applied", "policy_abstention", "phase6_fallback", "provider_failure"],
+    "durations": "monotonic milliseconds for queue, inference, grounding, llm, serialization, server total, client total/transport",
+    "timestamps": "RFC3339/ISO UTC with explicit timezone for resource samples",
+    "request_fields": ["request_id", "pid", "http_status", "reason_code", "cache_hit", "scope_identity", "model_identity", "started_monotonic_seconds", "finished_monotonic_seconds"],
+    "counters": ["accepted", "rejected", "timed_out", "failed", "completed", "in_flight", "successful_completions", "queue_depth"],
+    "resources": ["process RSS bytes", "process CPU percent", "CUDA allocated bytes", "CUDA reserved bytes", "GPU capacity bytes", "queue depth", "active requests"],
+    "sampling_interval_ms": 100,
+    "secret_policy": "never record API keys, authorization headers, or raw environment values"
+  },
+  "workload": {
+    "profiles": [1, 5, 10, 20],
+    "minimum_diagnostic_requests_per_profile": 100,
+    "release_end_to_end_path": "HTTP -> CampusAI retrieval/rerank -> grounding -> live uncached LLM -> citation validation -> response",
+    "release_candidate_cap": 40,
+    "release_http_p95_budget_ms": 10000,
+    "throughput": "successful HTTP completions / measured monotonic wall duration; failed/queued/timeouts are not successful throughput"
+  },
+  "current_validation": {
+    "raw_pilot": "p7-08-local-http-pilot.json",
+    "recompute": "p7-08-recomputed.json",
+    "raw_requests": 400,
+    "unique_request_ids": 400,
+    "resource_samples": 83,
+    "route_selected": 400,
+    "inference_attempted": 400,
+    "inference_completed": 400,
+    "ranking_applied": 400,
+    "http_errors": 0,
+    "cache_hits": 0,
+    "llm_calls": 0,
+    "component_metrics_recomputed": true
+  },
+  "acceptance_boundary": "Component pilot verifies real loopback transport and CUDA inference instrumentation only. Do not emit S6 PASS or M7 PASS until the full RAG/grounding/live-LLM endpoint run produces bound raw observations and matching capacity/HTTP reports."
+}

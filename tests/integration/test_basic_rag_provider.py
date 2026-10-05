@@ -19,7 +19,7 @@ pytestmark = pytest.mark.skipif(
 def test_live_gemini_grounded_answer_has_valid_fixture_citation(tmp_path):
     client = GeminiClient(
         os.environ["GEMINI_API_KEY"],
-        model=os.getenv("PHASE4_LLM_MODEL", "gemini-3.8-flash"),
+        model=os.getenv("PHASE4_LLM_MODEL", "gemini-3-flash-preview"),
         cache=SQLiteLLMCache(str(tmp_path / "phase4-live.sqlite")),
         max_retries=1,
     )

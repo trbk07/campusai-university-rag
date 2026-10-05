@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "reranker_provider_contract.json",
+    "sha256": "e37b345becb87251e02f09eeec9dd6edc9101b74c1eea1683e801e937d0f3bc0"
+  },
+  "summary": {
+    "status": "pass",
+    "checks": {
+      "timeout": true,
+      "queue_full": true,
+      "provider_exception": true,
+      "oom": true,
+      "model_missing": true,
+      "invalid_score": true,
+      "wrong_candidate_id": true,
+      "wrong_doc_id": true,
+      "wrong_page": true,
+      "empty_output": true,
+      "malformed_output": true,
+      "wrong_original_rank": true,
+      "infinite_score": true,
+      "calibration_missing": true,
+      "calibration_hash_mismatch": true,
+      "empty_query": true,
+      "exact_code_query": true,
+      "abstention_query": true,
+      "cache_key_mismatch": true,
+      "model_hash_mismatch": true,
+      "model_revision_mismatch": true,
+      "bounded_queue": true,
+      "singleton_loading": true,
+      "warmup": true,
+      "circuit_breaker": true,
+      "model_unavailable": true,
+      "invalid_model_hash": true,
+      "malformed_score": true,
+      "wrong_provenance": true,
+      "wrong_doc_scope": true
+    },
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 25
+    },
+    "evidence_type": "controlled_fault_injection",
+    "fixture_model_identity_sha256": "d0f9f356cd9364bc776dac35fd21b041bd184809f51aa2030cdd17edd2adc412",
+    "singleton_loading": true,
+    "bounded_queue": true,
+    "warmup": true,
+    "private_scores": true,
+    "candidate_set_preserved": true,
+    "commit": "8328a7f28089cfd08f1d71cc78c509ead69bea3b",
+    "source_sha256": "a8d78b529ce066318465656a488265e12d519a3d1a95e376496e356e8b9a393b",
+    "runtime_sha256": "d87edb14ef7523fd687dcf993b7c1899a3583bcc9e7502c71c443196d8966ab5",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e"
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 25
+    }
+  ]
+}

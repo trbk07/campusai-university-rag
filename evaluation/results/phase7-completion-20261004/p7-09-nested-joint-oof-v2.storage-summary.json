@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-nested-joint-oof-v2.json",
+    "sha256": "594e5ea9a5d71dd6eb6dda3c7e1ec7676a559ab00607bb9815b1aceaf91146e5"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "created_at": "2026-10-04T13:22:47.312255+00:00",
+    "source_stable": true,
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "e87a496fb89e9b5dd819da98552cf6f08425c64c47411610ce39e9683e352561",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "e87a496fb89e9b5dd819da98552cf6f08425c64c47411610ce39e9683e352561",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "candidate_raw_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "format_score_hashes": {
+      "full_chunk": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+      "body": "c72e8a6ecd2036e5fe20d2a80e7bf42cc03bde8c2e91abb7a9fb03586059402d",
+      "section_body": "a1ccc0d9e38c8d3c5e7b608071ab76cd6d6b7423e1bea9ade69248bcdaa6307d",
+      "table_text": "e3728451df8ec0914897e019d8c0bad30475b8a0a8dcae647d772eba85b6e19b",
+      "table_window": "19bc269d30a656e9159886bc827ba69fa271a42170d2faafafee8d5e9769b0e7",
+      "body_table_window": "83a25ba172ba26539a82a08195f28e5e4a564a89052f4c31a8b04282516372ff"
+    },
+    "group_count": 262,
+    "outer_fold_count": 5,
+    "outer_split_method": "stratified_group_folds over connected_groups; evidence-presence class used only for allocation",
+    "group_assignment_sha256": "2984a44b2dd27a97cf588fb8c6a1195cf8ff847eb1b930e1acff3ed53690ce3b",
+    "baseline": {
+      "recall5": 0.9373737373737374,
+      "mrr": 0.552020202020202,
+      "ndcg5": 0.6399809647096392,
+      "negative_fpr": 0.09390862944162437,
+      "positive": 495,
+      "negative": 394,
+      "all_gold_coverage5": 0.9111111111111111
+    },
+    "nested_group_oof": {
+      "recall5": 0.9393939393939394,
+      "mrr": 0.5601010101010101,
+      "ndcg5": 0.6468903019382097,
+      "negative_fpr": 0.09390862944162437,
+      "positive": 495,
+      "negative": 394,
+      "all_gold_coverage5": 0.9151515151515152
+    },
+    "relative_uplift": {
+      "mrr": 0.014638609332113584,
+      "ndcg5": 0.010796160525970322
+    },
+    "paired_group_bootstrap": {
+      "resamples": 10000,
+      "seed": 7,
+      "metrics": {
+        "mrr": {
+          "bootstrap_resamples": 10000,
+          "seed": 7,
+          "paired_n": 495,
+          "independent_groups": 65,
+          "sampling_unit": "connected_group",
+          "mean_delta": 0.00808080808080808,
+          "ci95": [
+            0.0016129032258064518,
+            0.01599872773536896
+          ],
+          "significant": true,
+          "win_tie_loss": {
+            "win": 12,
+            "tie": 477,
+            "loss": 6
+          }
+        },
+        "ndcg5": {
+          "bootstrap_resamples": 10000,
+          "seed": 7,
+          "paired_n": 495,
+          "independent_groups": 65,
+          "sampling_unit": "connected_group",
+          "mean_delta": 0.0069093372285705945,
+          "ci95": [
+            0.0015905474843019762,
+            0.013787300868981032
+          ],
+          "significant": true,
+          "win_tie_loss": {
+            "win": 13,
+            "tie": 475,
+            "loss": 7
+          }
+        },
+        "recall5": {
+          "bootstrap_resamples": 10000,
+          "seed": 7,
+          "paired_n": 495,
+          "independent_groups": 65,
+          "sampling_unit": "connected_group",
+          "mean_delta": 0.00202020202020202,
+          "ci95": [
+            0.0,
+            0.007281553398058253
+          ],
+          "significant": false,
+          "win_tie_loss": {
+            "win": 1,
+            "tie": 494,
+            "loss": 0
+          }
+        },
+        "all_gold_recall5": {
+          "bootstrap_resamples": 10000,
+          "seed": 7,
+          "paired_n": 495,
+          "independent_groups": 65,
+          "sampling_unit": "connected_group",
+          "mean_delta": 0.00404040404040404,
+          "ci95": [
+            0.0,
+            0.011441647597254004
+          ],
+          "significant": false,
+          "win_tie_loss": {
+            "win": 2,
+            "tie": 493,
+            "loss": 0
+          }
+        },
+        "evidence_recall5": {
+          "bootstrap_resamples": 10000,
+          "seed": 7,
+          "paired_n": 495,
+          "independent_groups": 65,
+          "sampling_unit": "connected_group",
+          "mean_delta": 0.0030303030303030303,
+          "ci95": [
+            0.0,
+            0.008951406649616368
+          ],
+          "significant": false,
+          "win_tie_loss": {
+            "win": 2,
+            "tie": 493,
+            "loss": 0
+          }
+        }
+      }
+    },
+    "oof_predictions": {
+      "raw_array_reference": "/oof_predictions",
+      "records": 889
+    },
+    "folds": {
+      "raw_array_reference": "/folds",
+      "records": 5
+    },
+    "limitations": [
+      "This is dev-only nested OOF; the 889-row packet and connected group semantics still require P7-03/F0 review.",
+      "Source/runtime/index and model/input identities are diagnostic; no successor freeze exists.",
+      "No paired answer/LLM, full application HTTP, or same-config end-to-end resource evidence is included.",
+      "Thresholds and config selection are nested within these dev folds but this does not replace held-out M4/M5/M6 or M8/S4/S5 acceptance."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/oof_predictions",
+      "records": 889
+    },
+    {
+      "json_pointer": "/folds",
+      "records": 5
+    }
+  ]
+}

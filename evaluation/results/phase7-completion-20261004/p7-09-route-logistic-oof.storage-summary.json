@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-route-logistic-oof.json",
+    "sha256": "2f28477cf05112728b8f0fe38e49426d1a161d49aa16f3097dbc3ad4cf598eb1"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "created_at": "2026-10-04T13:37:34.163173+00:00",
+    "source_stable": true,
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "2f49d36101ff3a9021201a8a274786c2e53f9ac2373eaed0f54f2a8dcdd3dff0",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "2f49d36101ff3a9021201a8a274786c2e53f9ac2373eaed0f54f2a8dcdd3dff0",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "candidate_raw_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "feature_allowlist": [
+      "confidence",
+      "margin",
+      "agreement",
+      "constraints",
+      "query_length",
+      "distinct_documents",
+      "concentration"
+    ],
+    "forbidden_features": [
+      "difficulty",
+      "qid",
+      "group",
+      "answerability",
+      "gold",
+      "template",
+      "language"
+    ],
+    "eligible_cohort": "hybrid_rrf with >=2 results and hard/easy difficulty",
+    "rows": 473,
+    "groups": 58,
+    "fold_count": 5,
+    "outer_oof_metrics": {
+      "eligible": 473,
+      "selected": 227,
+      "hard_recall": 0.8038277511961722,
+      "easy_unnecessary_rerank_rate": 0.22348484848484848,
+      "selection_precision": 0.7400881057268722,
+      "hard_count": 209,
+      "easy_count": 264
+    },
+    "folds": [
+      {
+        "fold": 0,
+        "train_count": 378,
+        "test_count": 95,
+        "train_groups": 48,
+        "test_groups": 10,
+        "threshold": 0.40741905272518486,
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 378,
+          "selected": 179,
+          "hard_recall": 0.8263473053892215,
+          "easy_unnecessary_rerank_rate": 0.1943127962085308,
+          "selection_precision": 0.770949720670391,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 95,
+          "selected": 54,
+          "hard_recall": 0.8571428571428571,
+          "easy_unnecessary_rerank_rate": 0.33962264150943394,
+          "selection_precision": 0.6666666666666666,
+          "hard_count": 42,
+          "easy_count": 53
+        },
+        "model_coefficients": {
+          "confidence": 0.28676960224107095,
+          "margin": -0.19207402101582796,
+          "agreement": -0.1433435733873478,
+          "constraints": 1.809744438006263,
+          "query_length": 1.4465002027721048,
+          "distinct_documents": 0.5643239090503323,
+          "concentration": 0.4292944073295495
+        },
+        "model_intercept": 0.4006544531763283
+      },
+      {
+        "fold": 1,
+        "train_count": 378,
+        "test_count": 95,
+        "train_groups": 48,
+        "test_groups": 10,
+        "threshold": 0.46493054938176,
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 378,
+          "selected": 172,
+          "hard_recall": 0.7844311377245509,
+          "easy_unnecessary_rerank_rate": 0.1943127962085308,
+          "selection_precision": 0.7616279069767442,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 95,
+          "selected": 59,
+          "hard_recall": 1.0,
+          "easy_unnecessary_rerank_rate": 0.32075471698113206,
+          "selection_precision": 0.711864406779661,
+          "hard_count": 42,
+          "easy_count": 53
+        },
+        "model_coefficients": {
+          "confidence": 0.28335601719943126,
+          "margin": -0.15505259797693682,
+          "agreement": -0.13417762575010272,
+          "constraints": 1.5041021314110625,
+          "query_length": 1.6054499975912868,
+          "distinct_documents": 0.6272303549143448,
+          "concentration": 0.6525056266031491
+        },
+        "model_intercept": 0.39715284665258976
+      },
+      {
+        "fold": 2,
+        "train_count": 378,
+        "test_count": 95,
+        "train_groups": 45,
+        "test_groups": 13,
+        "threshold": 0.42008424905846525,
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 378,
+          "selected": 185,
+          "hard_recall": 0.8562874251497006,
+          "easy_unnecessary_rerank_rate": 0.1990521327014218,
+          "selection_precision": 0.772972972972973,
+          "hard_count": 167,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 95,
+          "selected": 24,
+          "hard_recall": 0.5476190476190477,
+          "easy_unnecessary_rerank_rate": 0.018867924528301886,
+          "selection_precision": 0.9583333333333334,
+          "hard_count": 42,
+          "easy_count": 53
+        },
+        "model_coefficients": {
+          "confidence": 0.2642902514025498,
+          "margin": -0.25645942767307833,
+          "agreement": -0.3053339281755416,
+          "constraints": 1.762744652296307,
+          "query_length": 1.6923753584785182,
+          "distinct_documents": 0.6743144261311182,
+          "concentration": 0.7270400487148754
+        },
+        "model_intercept": 0.41603990275730535
+      },
+      {
+        "fold": 3,
+        "train_count": 379,
+        "test_count": 94,
+        "train_groups": 46,
+        "test_groups": 12,
+        "threshold": 0.42903839665702553,
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 379,
+          "selected": 177,
+          "hard_recall": 0.8035714285714286,
+          "easy_unnecessary_rerank_rate": 0.1990521327014218,
+          "selection_precision": 0.7627118644067796,
+          "hard_count": 168,
+          "easy_count": 211
+        },
+        "test_metrics": {
+          "eligible": 94,
+          "selected": 59,
+          "hard_recall": 0.926829268292683,
+          "easy_unnecessary_rerank_rate": 0.39622641509433965,
+          "selection_precision": 0.6440677966101694,
+          "hard_count": 41,
+          "easy_count": 53
+        },
+        "model_coefficients": {
+          "confidence": 0.4408966324524522,
+          "margin": -0.20404739525382112,
+          "agreement": -0.11065136741916308,
+          "constraints": 1.8245771333925647,
+          "query_length": 1.623253612500066,
+          "distinct_documents": 0.2705750760058008,
+          "concentration": 0.6009966528107294
+        },
+        "model_intercept": 0.403907866942276
+      },
+      {
+        "fold": 4,
+        "train_count": 379,
+        "test_count": 94,
+        "train_groups": 45,
+        "test_groups": 13,
+        "threshold": 0.4276752666574118,
+        "train_feasible": false,
+        "train_metrics": {
+          "eligible": 379,
+          "selected": 180,
+          "hard_recall": 0.8263473053892215,
+          "easy_unnecessary_rerank_rate": 0.19811320754716982,
+          "selection_precision": 0.7666666666666667,
+          "hard_count": 167,
+          "easy_count": 212
+        },
+        "test_metrics": {
+          "eligible": 94,
+          "selected": 31,
+          "hard_recall": 0.6904761904761905,
+          "easy_unnecessary_rerank_rate": 0.038461538461538464,
+          "selection_precision": 0.9354838709677419,
+          "hard_count": 42,
+          "easy_count": 52
+        },
+        "model_coefficients": {
+          "confidence": 0.2698970134483601,
+          "margin": -0.3282428167133804,
+          "agreement": -0.26170712063570845,
+          "constraints": 1.2794834709017282,
+          "query_length": 1.4223840050006353,
+          "distinct_documents": 0.6899993088640757,
+          "concentration": 0.6472219270502957
+        },
+        "model_intercept": 0.2000261010642836
+      }
+    ],
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 473
+    },
+    "limitations": [
+      "Dev-only and provisional pending P7-03/F0 group and exposure review.",
+      "Logistic route does not include a reranker or evidence acceptance decision.",
+      "Does not establish held-out route acceptance or M4/M5."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 473
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+from pathlib import Path
+import json
+import shutil
+from datetime import datetime, timezone
+import pymupdf
+from campusai.ingestion.pipeline import ingest_document
+from campusai.retrieval.index_builder import chunk_records, build_document_indexes
+from campusai.retrieval.model_runtime import retrieval_runtime
+from evaluation.benchmarks.source_course_rows import source_course_rows
+from evaluation.common.release_artifacts import sha256, verify_index_files, source_identity, write_json
+
+root=Path('.tmp/phase7-successor-source-20261004b')
+previous=Path('.tmp/phase7-source-expansion-20261004/index')
+index=root/'index'; assert not index.exists()
+before=source_identity(Path.cwd())
+original_files={p.relative_to(previous).as_posix():sha256(p) for p in previous.rglob('*') if p.is_file()}
+shutil.copytree(previous,index)
+documents=[]
+for receipt in ('download_receipt.json','mechanics_download_receipt.json'):
+    entry=json.loads((root/receipt).read_text(encoding='utf8'))['documents'][0]
+    path=root/entry['filename']; assert sha256(path)==entry['sha256']
+    with pymupdf.open(path) as pdf:
+        chars=[len(page.get_text()) for page in pdf]
+        if receipt.startswith('mechanics'):
+            for page in pdf: page.get_pixmap(matrix=pymupdf.Matrix(1.3,1.3)).save(root/f'mechanics-page-{page.number+1}.png')
+    document=ingest_document(path,store_dir=root/'store',enable_ocr=False)
+    assert document.status=='succeeded' and document.chunks
+    document.metadata.update(document_type='curriculum',language='vi-en',institution='VNU-UET',
+        source_sha256=entry['sha256'],source_url=entry['source_url'],
+        academic_year='2022' if receipt=='download_receipt.json' else 'unspecified',
+        publication_year='2024' if receipt=='download_receipt.json' else '2019')
+    for chunk in document.chunks: chunk.metadata.update(document.metadata)
+    records=chunk_records(document)
+    write_json(root/(path.stem+'-records.json'),{'records':records})
+    facts=source_course_rows({(r['doc_id'],r['chunk_id']):r for r in records})
+    build_document_indexes(document,index,dense_model='BAAI/bge-m3',device='cuda',batch_size=8)
+    documents.append({**entry,'status':document.status,'doc_id':document.doc_id,'pages':len(chars),
+        'text_characters_by_page':chars,'chunks':len(records),'tables':sum(r['content_type']=='table' for r in records),
+        'explicit_course_rows':len(facts),'academic_year':document.metadata['academic_year']})
+assert all(sha256(previous/name)==digest for name,digest in original_files.items())
+assert all(sha256(index/name)==digest for name,digest in original_files.items() if name!='manifest.json')
+assert verify_index_files(index)
+encoder=retrieval_runtime().get_encoder('BAAI/bge-m3','cuda')
+revision=encoder._first_module().auto_model.config._commit_hash
+after=source_identity(Path.cwd()); assert before==after
+write_json(root/'source_manifest.json',{'schema_version':1,'status':'source_proposal','release_eligible':False,'documents':documents})
+write_json(root/'index_build_receipt.json',{'schema_version':1,'status':'source_proposal','release_eligible':False,
+    'built_at':datetime.now(timezone.utc).isoformat(),'previous_index_sha256':original_files['manifest.json'],
+    'index_sha256':sha256(index/'manifest.json'),'documents':len(json.loads((index/'manifest.json').read_text())['documents']),
+    'added_documents':documents,'original_documents_unchanged':True,'physical_index_verified':True,
+    'physical_model_revision':revision,'model_name':'BAAI/bge-m3','device':'cuda','batch_size':8,
+    'source_before':before,'source_after':after})
+print(json.dumps({'documents':len(json.loads((index/'manifest.json').read_text())['documents']),
+    'new_documents':documents,'index_sha256':sha256(index/'manifest.json')},ensure_ascii=False,indent=2))

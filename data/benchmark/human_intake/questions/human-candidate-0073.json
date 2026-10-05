@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0073",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_mechatronics_curriculum_2023.pdf",
+          "sha256": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_s29_c1",
+        "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+        "page": 3
+      },
+      {
+        "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_s30_c1",
+        "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+        "page": 3
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "mechatronics_calculus2_prerequisite",
+    "qid": "human-candidate-0073",
+    "question": "Giải tích 2 cơ điện tử trong file bao nhiêu tín, học trước gì",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "multi_hop",
+      "hard",
+      "answerable",
+      "multi-hop"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_367",
+    "source_retrieved_at": null,
+    "source_url": "repository://QĐ.1586_Ban-hành-CTĐT-CNKT-Cơ-điện-tử-CLCTT23.pdf",
+    "split": "dev",
+    "tags": [
+      "answerable",
+      "hard",
+      "multi_hop",
+      "natural"
+    ]
+  },
+  "record_sha256": "633d62a6c9ac029640e4db44e662e898a9fff7c1aa665a1e86bb79e2985c3dc6",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

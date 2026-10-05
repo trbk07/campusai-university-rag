@@ -5,13 +5,16 @@ from __future__ import annotations
 import hashlib
 import json
 import re
-from threading import local
+from collections import OrderedDict
+from threading import local, RLock
 from ..request_timings import stage, timed_stage
 from typing import Any
 
 from ..retrieval.hybrid import HybridRetriever, RetrievalResult
+from ..retrieval.routing import RoutingTrace
 from .cache import RAGAnswerCache, build_rag_cache_key
 from .grounding import GroundedAnswer, GroundedAnswerGenerator
+from .context import resolve_query, authorized_scope
 from ..observability import MetricsRegistry
 from ..retrieval.canary_rollout import CanaryController, rollback_retriever
 
@@ -63,6 +66,8 @@ class CampusAIQueryService:
         self.answer_generator = answer_generator
         self.cache = cache if cache is not None else RAGAnswerCache()
         self._request_local = local()
+        self._corpus_identity_lock = RLock()
+        self._corpus_file_hashes = OrderedDict()
         self.last_cache_hit = False
         self.last_retrieval: list[RetrievalResult] = []
         self.metrics = metrics or MetricsRegistry()
@@ -87,11 +92,11 @@ class CampusAIQueryService:
 
     @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
-        """Return a stable version from the selected corpus/index manifests."""
+        """Bind answer reuse to the physical indexes in the selected scope."""
 
-        selected = sorted(doc_ids or [
+        selected = sorted(doc_ids if doc_ids is not None else [
             path.name for path in self.retriever.index_root.iterdir()
-            if path.is_dir() and (path / "dense.json").is_file()
+            if path.is_dir() and (path / "bm25.json").is_file()
         ]) if self.retriever.index_root.exists() else []
         manifest_path = self.retriever.index_root / "manifest.json"
         payload: list[dict[str, Any]] = []
@@ -110,8 +115,40 @@ class CampusAIQueryService:
                     payload.append({"document_id": doc_id, "manifest": data.get("manifest", {})})
                 except (OSError, json.JSONDecodeError):
                     payload.append({"document_id": doc_id, "missing": True})
+        # Corpus manifests describe their intended generation. Bind both
+        # actual indexes as well, so a repaired/replaced file or a BM25-only
+        # document cannot reuse an answer grounded in older bytes.
+        payload = {"manifests": payload, "indexes": [
+            {"document_id": doc_id,
+             "bm25_sha256": self._corpus_file_sha256(self.retriever.index_root / doc_id / "bm25.json"),
+             "dense_sha256": self._corpus_file_sha256(self.retriever.index_root / doc_id / "dense.json")}
+            for doc_id in selected]}
         encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return "sha256:" + hashlib.sha256(encoded.encode("utf-8")).hexdigest()
+
+    def _corpus_file_sha256(self, path) -> str | None:
+        """Memoize verified bytes by file generation, with bounded memory."""
+        with self._corpus_identity_lock:
+            try:
+                info = path.stat()
+                generation = (info.st_mtime_ns, info.st_ctime_ns, info.st_size)
+                cached = self._corpus_file_hashes.get(path)
+                if cached is not None and cached[0] == generation:
+                    self._corpus_file_hashes.move_to_end(path)
+                    return cached[1]
+                digest = hashlib.sha256()
+                with path.open("rb") as source:
+                    for block in iter(lambda: source.read(1024 * 1024), b""):
+                        digest.update(block)
+                value = digest.hexdigest()
+                self._corpus_file_hashes[path] = (generation, value)
+                self._corpus_file_hashes.move_to_end(path)
+                while len(self._corpus_file_hashes) > 256:
+                    self._corpus_file_hashes.popitem(last=False)
+                return value
+            except OSError:
+                self._corpus_file_hashes.pop(path, None)
+                return None
 
     @timed_stage("routing")
     def _selected_mode(self, question: str, mode: str | None, request_id: str | None = None) -> str:
@@ -137,7 +174,18 @@ class CampusAIQueryService:
         top_k: int = 5,
         mode: str | None = None,
         request_id: str | None = None,
+        history: list[dict] | None = None,
+        selected_text: str | None = None,
+        requires_context: bool = False,
+        authorized_doc_ids: list[str] | None = None,
     ) -> list[RetrievalResult]:
+        doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
+        resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
+        self._request_local.context_trace = resolved.cache_context()
+        if resolved.needs_clarification:
+            self.retriever.last_trace = RoutingTrace(route="abstain", abstained=True, abstention_reason="ambiguous_question")
+            return []
+        question = resolved.resolved
         selected_mode = self._selected_mode(question, mode, request_id)
         return self.retriever.search(
             question,
@@ -157,7 +205,21 @@ class CampusAIQueryService:
         language: str = "vi",
         corpus_version: str | None = None,
         request_id: str | None = None,
+        history: list[dict] | None = None,
+        selected_text: str | None = None,
+        requires_context: bool = False,
+        authorized_doc_ids: list[str] | None = None,
     ) -> GroundedAnswer:
+        doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
+        resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
+        self._request_local.context_trace = {"raw_question": resolved.raw, **resolved.cache_context()}
+        if resolved.needs_clarification:
+            self.last_cache_hit, self.last_retrieval = False, []
+            self.retriever.last_trace = RoutingTrace(route="abstain", abstained=True, abstention_reason="ambiguous_question")
+            return GroundedAnswer("Bạn đang hỏi về môn học hoặc chương trình nào?" if language == "vi"
+                                  else "Which course or program are you referring to?", (), "low", True,
+                                  reason="ambiguous_question", evidence_status="ambiguous")
+        question = resolved.resolved
         selected_mode = self._selected_mode(question, mode, request_id)
         version = corpus_version or self.corpus_version(doc_ids)
         budget = {
@@ -177,6 +239,7 @@ class CampusAIQueryService:
             corpus_version=version,
             model=getattr(self.answer_generator.llm, "model", None) or getattr(self.answer_generator.llm, "model_name", None),
             context_budget=budget,
+            request_context=resolved.cache_context(),
         )
         with self.metrics.observe("rag.ask"):
             return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)
@@ -185,16 +248,14 @@ class CampusAIQueryService:
         self.last_retrieval = []
         cached = self.cache.get(key)
         if cached is not None:
-            self.last_cache_hit = True
-            return cached
+            return self._cached_answer(cached, selected_mode)
         self.last_cache_hit = False
         # Re-check under the key lock so concurrent identical requests make
         # only one retrieval/LLM call when they share a service instance.
         with self.cache.lock(key):
             cached = self.cache.get(key)
             if cached is not None:
-                self.last_cache_hit = True
-                return cached
+                return self._cached_answer(cached, selected_mode)
             with stage("retrieval"):
                 results = self.retriever.search(
                     retrieval_query(question), doc_ids=doc_ids, filters=filters,
@@ -202,8 +263,26 @@ class CampusAIQueryService:
                 )
             self.last_retrieval = list(results)
             answer = self.answer_generator.answer(question, results, language)
-            self.cache.put(key, answer)
+            trace = getattr(self.retriever, "last_trace", None)
+            # A temporary provider fault must not pin its Phase 6 fallback
+            # answer in the active Phase 7 cache after the provider recovers.
+            transient_fallback = selected_mode == "phase7" and getattr(trace, "rerank_reason", None) in {
+                "queue_full", "reranker_timeout", "model_not_ready", "reranker_unavailable",
+                "reranker_submit_failed", "reranker_drain_failed"}
+            if not transient_fallback:
+                self.cache.put(key, answer)
             return answer
+
+    def _cached_answer(self, answer: GroundedAnswer, selected_mode: str) -> GroundedAnswer:
+        self.last_cache_hit = True
+        # This request performed no routing features, retrieval or inference.
+        # Never attach a previous request's worker trace to a cache response.
+        self.retriever.last_trace = RoutingTrace(route=selected_mode,
+            answer_cache_hit=True, abstained=answer.abstained, abstention_reason=answer.reason,
+            latency_ms={"parse": 0.0, "bm25": 0.0, "dense": 0.0, "fusion": 0.0,
+                        "reranker": 0.0, "reranker_queue": 0.0,
+                        "reranker_inference_observed": 0.0, "total": 0.0})
+        return answer
 
     def close(self) -> None:
         try:

@@ -1,0 +1,12 @@
+{
+  "source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "3ede0c19fddfab15c9e1094f121c9efb71d732b618492170232751dcd340ac54",
+    "runtime_sha256": "8a7787cbcc42899b5ccd503c5d79ec147aa901d189929e34c7d878b07de61110"
+  },
+  "snapshot_sha256": "c99792f3d504099967c025bd41f4005c07876801edfa936abffa6c54e65ef22e",
+  "files": 337,
+  "secret_config_excluded": "configs/gemini.yaml",
+  "torch_num_threads": 4,
+  "purpose": "Exact source/config/dependency inputs used for actual v4 dev baseline; not M0/F1."
+}

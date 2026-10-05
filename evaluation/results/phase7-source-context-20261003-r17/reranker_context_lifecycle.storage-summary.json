@@ -1,0 +1,1479 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "reranker_context_lifecycle.json",
+    "sha256": "9dd99e0f3b11aa2d5588d6b8edfedbfed6b2a22c09969289f469bc0620eca16c"
+  },
+  "summary": {
+    "schema_version": 1,
+    "gate": "S2",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "source_sha256": "aabac461999962f226529c5a2eedcaaee1bfefcce3f41f31190c1d17b094e397",
+    "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+    "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+    "raw": {
+      "path": "raw/context_lifecycle_observations_rebound_f7fffb5.json",
+      "sha256": "69cf4519af6c3be43b368eecb93178a524f1059246a6e6cc724bdded5ff89f78"
+    },
+    "observations": {
+      "schema_version": 2,
+      "evidence_type": "physical_dev_context_lifecycle",
+      "measured_at": "2026-10-03T12:11:29.225039+00:00",
+      "commit": "f7fffb562f44bd8b682d2950140be7650b1b5179",
+      "source_sha256": "aabac461999962f226529c5a2eedcaaee1bfefcce3f41f31190c1d17b094e397",
+      "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+      "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "dev_sha256": "2fc8da94976bba85f263011c63c6dae1fc7bd8e5f684c8a9ab5add4315687cea",
+      "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+      "model_identity": {
+        "model_name": "BAAI/bge-reranker-v2-m3",
+        "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "model_sha256": "16f0018751492cd824b272a24cdde73cd061f8615f3abaab8da64c872f79ffe9",
+        "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "provider": "sentence_transformers",
+        "device": "cuda:0",
+        "dtype": "float16",
+        "max_length": 512,
+        "batch_size": 8,
+        "normalization": "raw_logit",
+        "batch_window_ms": 0.0,
+        "max_batch_pairs": 200,
+        "input_format": "full_chunk",
+        "input_version": "structured-input-v1"
+      },
+      "llm_config_sha256": "815f3e29fdfb3ca0b426d6b4376e52f19b87790eb84caf67652553ab7c9e97c7",
+      "llm_model": "gemini-3-flash-preview",
+      "llm_failures": [],
+      "context_cases": {
+        "raw_array_reference": "/observations/context_cases",
+        "records": 7
+      },
+      "cache_probes": [
+        {
+          "case": "history",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [
+                [
+                  "user",
+                  "thế hôm nào em phải đi phỏng vấn"
+                ]
+              ],
+              "selected_text": null,
+              "resolved": "what about it? context topic (untrusted user input): thế hôm nào em phải đi phỏng vấn",
+              "needs_clarification": false
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [
+                [
+                  "user",
+                  "phải đóng mấy tiền vậy"
+                ]
+              ],
+              "selected_text": null,
+              "resolved": "what about it? context topic (untrusted user input): phải đóng mấy tiền vậy",
+              "needs_clarification": false
+            }
+          },
+          "keys": [
+            "627f30a4505a39193d9e333b52df0cccc4395f7ffe99ef3f3fb0829159012385",
+            "142083803facd0339957a7b1eb6d271bbc7f7642b212202968fdfd153add1def"
+          ]
+        },
+        {
+          "case": "selection",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [],
+              "selected_text": "thế hôm nào em phải đi phỏng vấn",
+              "resolved": "how many credits? context topic (untrusted user input): thế hôm nào em phải đi phỏng vấn",
+              "needs_clarification": false
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [],
+              "selected_text": "phải đóng mấy tiền vậy",
+              "resolved": "how many credits? context topic (untrusted user input): phải đóng mấy tiền vậy",
+              "needs_clarification": false
+            }
+          },
+          "keys": [
+            "be8ea6f8488558c247e9c792cc78dc2268ea811031f575e2138f5f82a390f2e3",
+            "c83fc5578df0e5dfef1a45e6253e6648b5a99c59fd5746912e9ed5c4220760e0"
+          ]
+        },
+        {
+          "case": "scope",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8a3bd2dfff03b210cb8b031960da386f257444aca3df89786398d2340ef8df05",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            }
+          },
+          "keys": [
+            "d2c6e0c1cce527ffbe2dec6e185549ef6d2d3243f79d4c28742e5a99c651738c",
+            "ee25ac1cf338bdb5d1140dea9a4f82668e6b1bcaa7e7d49bbeb33fc4afa633f2"
+          ]
+        }
+      ],
+      "lifecycle_proof": {
+        "before": {
+          "submitted_requests": 0,
+          "completed_requests": 0,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.0,
+          "max_queue_wait_ms": 0.0,
+          "worker_ms_total": 0.0,
+          "closed": false,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "qid": "human-candidate-0051",
+        "candidate_coordinates": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s14_c1",
+            "page": 2,
+            "content_sha256": "a47b224553788f70db5b479e337bd84651e0688e9d44ec2ec8e53a0ab20e0c9b"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s10_c1",
+            "page": 2,
+            "content_sha256": "f7ee459c99e2b2d3232ff2c364f1005e4c0ed4449d9ac854ec3d64a344063660"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p4_s23_c1",
+            "page": 4,
+            "content_sha256": "9611ef0aba55ae7c167cbbd87f2a19de930e824bc70c7b949d369bab4d11ef86"
+          }
+        ],
+        "cold_rejection": "model_not_ready",
+        "after_warm": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.610199997026939,
+          "max_queue_wait_ms": 0.610199997026939,
+          "worker_ms_total": 2959.5742000019527,
+          "closed": false,
+          "failure_count": 0,
+          "ready": true,
+          "model_loads": 1,
+          "inference_calls": 1,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "rankings": {
+          "raw_array_reference": "/observations/lifecycle_proof/rankings",
+          "records": 3
+        },
+        "after_requests": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.9988999954657629,
+          "max_queue_wait_ms": 0.610199997026939,
+          "worker_ms_total": 3044.3477000080748,
+          "closed": false,
+          "failure_count": 0,
+          "ready": true,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "before_closed_request": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.9988999954657629,
+          "max_queue_wait_ms": 0.610199997026939,
+          "worker_ms_total": 3044.3477000080748,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "closed_rejection": "feature_disabled",
+        "after_closed_request": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 2,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.9988999954657629,
+          "max_queue_wait_ms": 0.610199997026939,
+          "worker_ms_total": 3044.3477000080748,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "after_drain": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 2,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.9988999954657629,
+          "max_queue_wait_ms": 0.610199997026939,
+          "worker_ms_total": 3044.3477000080748,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "warm_failure_type": "RerankerUnavailable",
+        "before_failed_request": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.5157999985385686,
+          "max_queue_wait_ms": 0.5157999985385686,
+          "worker_ms_total": 0.16540000069653615,
+          "closed": true,
+          "failure_count": 1,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "baseline_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "warm_failure_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "warm_failure_trace": {
+          "route": "hybrid_rrf",
+          "detected_codes": [],
+          "exact_match": false,
+          "filters_applied": false,
+          "bm25_used": true,
+          "dense_used": true,
+          "abstained": false,
+          "abstention_reason": null,
+          "fallback": null,
+          "rerank_selected": false,
+          "rerank_route_selected": false,
+          "rerank_inference_started": false,
+          "rerank_applied": false,
+          "rerank_fallback": false,
+          "rerank_abstained": false,
+          "retrieval_cache_hit": false,
+          "answer_cache_hit": false,
+          "rerank_score_cache_hit": false,
+          "reranker_model_identity": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+          "reranker_policy_identity": "3afd816020c4d692008762578f9e18321044b929479f16a8156d770d6ffc56e1",
+          "rerank_reason": "model_not_ready",
+          "candidate_count": 23,
+          "final_count": 5,
+          "latency_ms": {
+            "parse": 0.025,
+            "bm25": 1.176,
+            "dense": 110.175,
+            "fusion": 1.038,
+            "total": 368.494,
+            "reranker_queue": 0.0,
+            "reranker_inference_observed": 0.0,
+            "reranker": 0.085
+          }
+        },
+        "after_failed_request": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.5157999985385686,
+          "max_queue_wait_ms": 0.5157999985385686,
+          "worker_ms_total": 0.16540000069653615,
+          "closed": true,
+          "failure_count": 1,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        }
+      },
+      "lifecycle": {
+        "startup_loads": 1,
+        "request_loads": 0,
+        "request_inference_calls": 3,
+        "closed_new_inference": 0,
+        "warm_failure_new_inference": 0,
+        "pending_after_drain": 0,
+        "active_after_drain": 0,
+        "warm_failure_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "baseline_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ]
+      },
+      "binding_replay": {
+        "kind": "verified_metadata_only_rebind",
+        "original_measurement": {
+          "commit": "b79543764fc7551729503129b650f66a3b77b4f6",
+          "source_sha256": "41e763a5eaf5bfe9d8b9cd2dba18fa687ba505a91a3a9448b24c41ddf8e55720",
+          "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+          "dev_sha256": "fc6f42657a8d977447f1233aea0c0fe10831dbea8e4e7b75080300e8e7c2dc95",
+          "raw_sha256": "e6321d83ada3d6b9461e1be2033b1e28240f771d2a48e1cc49baa8188138d5e5"
+        },
+        "target_binding": {
+          "commit": "618a6ef0b62390574937dcd1a197208b8fe96b08",
+          "source_sha256": "4f6fbafa82b22cb00d28832c7cb71120bbbb4e81937098a034bfbfb8590d061f",
+          "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+          "dev_sha256": "2fc8da94976bba85f263011c63c6dae1fc7bd8e5f684c8a9ab5add4315687cea"
+        },
+        "verification": {
+          "dev_qid_order_identical": true,
+          "changed_dev_fields": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "changed_dev_rows": 180,
+          "only_allowed_metadata_fields_changed": true,
+          "s2_prompt_qids_identical": true,
+          "s2_prompt_text_identical": true,
+          "lifecycle_qid_identical": true,
+          "test_bytes_identical": true,
+          "holdout_bytes_identical": true,
+          "index_sha256_identical": true,
+          "model_identity_sha256_identical": true,
+          "runtime_sha256_identical": true,
+          "live_responses_reused_without_modification": true,
+          "additional_gemini_calls": 0,
+          "source_commit_changed_paths": [
+            "evaluation/reranker/optimize_reranker_dev.py",
+            "plan.md"
+          ]
+        },
+        "changed_dev_qids": {
+          "human-candidate-0001": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0002": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0003": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0004": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0005": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0006": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0007": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0008": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0009": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0010": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0011": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0012": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0013": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0014": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0015": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0016": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0017": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0018": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0019": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0020": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0021": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0022": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0023": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0024": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0025": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0026": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0027": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0028": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0029": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0030": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0031": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0032": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0033": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0034": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0035": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0036": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0037": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0038": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0039": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0040": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0041": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0042": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0043": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0044": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0045": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0046": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0047": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0048": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0049": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0050": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0051": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0052": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0053": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0054": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0055": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0056": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0057": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0058": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0059": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0060": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0061": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0062": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0063": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0064": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0065": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0066": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0067": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0068": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0069": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0070": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0071": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0072": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0073": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0074": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0075": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0076": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0077": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0078": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0079": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0080": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0081": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0082": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0083": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0084": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0085": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0086": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0087": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0088": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0089": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0090": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0091": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0092": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0093": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0094": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0095": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0096": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0097": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0098": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0099": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0100": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0101": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0102": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0103": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0104": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0105": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0106": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0107": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0108": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0109": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0110": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0111": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0112": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0113": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0114": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0115": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0116": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0117": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0118": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0119": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0120": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0121": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0122": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0123": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0124": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0125": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0126": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0127": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0128": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0129": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0130": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0131": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0132": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0133": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0134": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0135": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0136": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0137": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0138": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0139": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0140": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0141": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0142": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0143": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0144": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0145": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0146": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0147": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0148": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0149": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0150": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0151": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0152": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0153": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0154": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0155": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0156": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0157": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0158": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0159": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0160": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0161": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0162": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0163": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0164": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0165": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0166": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0167": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0168": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0169": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0170": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0171": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0172": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0173": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0174": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0175": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0176": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0177": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0178": [
+            "difficulty",
+            "owner_confirmation_sha256",
+            "reviewed_at",
+            "tags"
+          ],
+          "human-candidate-0179": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ],
+          "human-candidate-0180": [
+            "owner_confirmation_sha256",
+            "reviewed_at"
+          ]
+        }
+      }
+    },
+    "status": "pass",
+    "errors": [],
+    "source_rebind": {
+      "schema_version": 1,
+      "prior_raw_sha256": "3853298b99c1c8942d4968687f6a23026653d37dd4cb15d40eb5b6f785e1f0a6",
+      "prior_commit": "618a6ef0b62390574937dcd1a197208b8fe96b08",
+      "prior_source_sha256": "4f6fbafa82b22cb00d28832c7cb71120bbbb4e81937098a034bfbfb8590d061f",
+      "target_commit": "f7fffb562f44bd8b682d2950140be7650b1b5179",
+      "target_source_sha256": "aabac461999962f226529c5a2eedcaaee1bfefcce3f41f31190c1d17b094e397",
+      "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+      "metadata_fields_changed": [
+        "commit",
+        "source_sha256"
+      ],
+      "gemini_calls_added": 0,
+      "observation_payload_unchanged": true
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations/context_cases",
+      "records": 7
+    },
+    {
+      "json_pointer": "/observations/lifecycle_proof/rankings",
+      "records": 3
+    }
+  ]
+}

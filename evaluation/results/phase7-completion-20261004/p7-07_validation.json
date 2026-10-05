@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "P7-07",
+  "status": "DONE",
+  "release_eligible": false,
+  "review": "Self-review by Codex; no independent reviewer claimed.",
+  "runtime": {
+    "device": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "driver": "560.94",
+    "torch": "2.14.0+cu126",
+    "cuda": "12.6",
+    "python": "3.14.6",
+    "model": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662",
+    "snapshot_sha256": "23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b"
+  },
+  "gpu_lifecycle_probe": {
+    "artifact": "p7-07-gpu-lifecycle-report-v4.json",
+    "status": "PASS",
+    "providers_concurrent": 4,
+    "physical_model_loads_for_concurrent_startup": 1,
+    "all_providers_ready": true,
+    "cold_request_rejected_before_warm": true,
+    "startup_ms": 5759.02,
+    "first_request_after_warm_ms": 15.86,
+    "request_path_additional_model_loads": 0,
+    "bad_snapshot_hash_rejected_before_load": true,
+    "model_objects_garbage_collected_after_close": true,
+    "runtime_cache_empty_after_close": true,
+    "cuda_allocator_plateau_across_repeated_start_stop": true,
+    "live_cuda_tensors_after_cleanup": 0,
+    "cuda_allocator_bytes_after_shutdown": 34078720,
+    "cuda_memory_note": "34 MiB stable process CUDA allocator/context residue after first initialization; no live CUDA tensors or model objects, no runtime cache entries, and no growth after repeated start/stop."
+  },
+  "validation": {
+    "runtime_test_command": ".venv/Scripts/python.exe -m pytest tests/test_phase7_completion_contract.py tests/test_phase7_runtime_integrity.py tests/test_reranker_optimization.py tests/test_reranker_activation.py tests/test_reranker_integration.py tests/test_cross_encoder_provider.py tests/test_reranker_live_instrumentation.py --basetemp=.tmp/phase7-p7-07-cuda-pytest --junitxml=evaluation/results/phase7-completion-20261004/p7-07-runtime-tests-cuda.xml -q",
+    "runtime_tests": "117 passed with CUDA PyTorch installed",
+    "snapshot_smoke": "Deterministic CUDA smoke passed with max score delta 0; command used --exploratory so the report is conditional and does not close M3.",
+    "source_identity_stable": true
+  },
+  "artifacts": [
+    "p7-07-gpu-lifecycle-replay.py",
+    "p7-07-gpu-lifecycle-report-v4.json",
+    "p7-07-cuda-snapshot-smoke.json",
+    "p7-07-runtime-tests-cuda.xml"
+  ],
+  "release_limitations": [
+    "The CUDA PyTorch wheel was installed in the ignored project-local .venv only; uv.lock and application source are unchanged. Recreate with official torch 2.14.0+cu126 wheel for the same GPU profile.",
+    "M3 formal gate remains sequenced behind M2 and requires a fresh release-cycle smoke bound to its frozen source/runtime/index/model identity.",
+    "Live fault, staging, public deployment and LLM lifecycle evidence belong to later P7 tasks."
+  ]
+}

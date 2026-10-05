@@ -56,6 +56,7 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
                     or release.get("all_release_gates_pass") is not True or release.get("errors") != []
                     or release.get("runtime_sha256") != runtime_sha256()
                     or any(release.get("gates", {}).get(f"M{i}", {}).get("status") != "PASS" for i in range(13))
+                    or any(release.get("supplemental_gates", {}).get(f"S{i}", {}).get("status") != "PASS" for i in range(1, 7))
                     or release.get("model_identity_sha256") != identity.fingerprint
                     or release.get("index_sha256") != policy.index_sha256
                     or release.get("device") != identity.device
@@ -77,19 +78,19 @@ def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Pat
             score_cache_size=int(config.get("RERANKER_SCORE_CACHE_SIZE", "0")),
             batch_window_ms=float(config.get("RERANKER_BATCH_WINDOW_MS", "0")),
             max_batch_pairs=int(config.get("RERANKER_MAX_BATCH_PAIRS", "200")),
+            require_ready=True,
         )
         if (config.get("RERANKER_DEPLOYMENT", "experimental") == "production"
                 and release.get("resource_limits") != provider.resource_limits):
             raise Phase7PolicyError("production resource limits do not match measured release")
         provider.verify_snapshot()
-        if config.get("RERANKER_WARMUP", "false").casefold() == "true":
-            provider.warm_up()
+        provider.warm_up()
         retriever = HybridRetriever(index_root, phase7_provider=provider,
                                     phase7_policy=policy, phase7_enabled=True, **base_kwargs)
         log.info("phase7_activation_enabled model=%s policy=%s",
                  identity.fingerprint, policy.fingerprint)
         return retriever
-    except (KeyError, ValueError, OSError, TypeError, AttributeError, Phase7PolicyError, RerankerUnavailable) as error:
+    except Exception as error:
         if provider is not None:
             provider.close()
         # Deliberately log only the reason type; exception text may contain a

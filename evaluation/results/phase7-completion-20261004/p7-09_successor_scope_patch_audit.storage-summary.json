@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09_successor_scope_patch_audit.json",
+    "sha256": "0d68c61d0c9e22a9823f649a91768fc431f15598323856d77635340ad6edd849"
+  },
+  "summary": {
+    "status": "ACTUAL_FROZEN_SOURCE_SCOPE_REPLAY_NOT_RANKING",
+    "test_used": false,
+    "holdout_used": false,
+    "release_eligible": false,
+    "model_called": false,
+    "dev_sha256": "baa67761d0e1706fbb1f1267bee311ac52261a01ca6a2f43c34d604b82429ee3",
+    "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+    "scope_code_sha256": "e6599db98936c9ab651f657c60107fa779ec9634da457aca0274cb4982aed73e",
+    "routing_code_sha256": "167ad805552e035dc8719f08765cf4d6b003b4fb166872a787c7c4a91b613b7a",
+    "records": 25,
+    "false_blocks_on_annotated_positives": 0,
+    "negative_source_guard_count": 7,
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 25
+    },
+    "limitation": "This checks only the scope predicate against actual frozen source chunks; full candidate/ranking/performance remeasurement remains separate."
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 25
+    }
+  ]
+}

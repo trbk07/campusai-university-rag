@@ -1,0 +1,285 @@
+{
+  "schema_version": 1,
+  "task": "P7-03",
+  "status": "IN_PROGRESS_SOURCE_EXPANSION_REVIEW_PASS_QUESTION_F0_PENDING",
+  "created_at": "2026-10-05T03:41:36.134180+00:00",
+  "release_eligible": false,
+  "supersedes_manifest": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-03_artifact_manifest-v9.json",
+    "sha256": "6d22ece66ae097c4f4ce0ac0cfe7de19143a23bac6172198299671c1c61173aa"
+  },
+  "artifacts": [
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_freeze.json",
+      "sha256": "c38078d5521e2810d87510299198ed8574335ccb7a40e88bdec923dd88622831",
+      "bytes": 8507
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_scope_addendum.json",
+      "sha256": "866ff8606a144bb30acd62298381e893726277209d15dfff8bcea3cb599d870d",
+      "bytes": 3135
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_validation.json",
+      "sha256": "1e0e5fcc65f9aad45da155af5e4f2712c982196c6da8ae82ef45b0cbf218ae08",
+      "bytes": 1113
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_owner_signoff-v2.json",
+      "sha256": "b6cc0cb3b7f236b67baf60595f5c0100f2d740a57d7320467f4d8cb3d4f546e0",
+      "bytes": 42957
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_owner_signoff.json",
+      "sha256": "5f8ed31f73c21be4fa07e153ba53addb80f7c23a7390497206cc889ef6b61a8b",
+      "bytes": 42676
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_signoff_addendum-v2.json",
+      "sha256": "c6a87f816ebe19a0090b2577a17f033785141b68b42002fa2cf295db541b4ba7",
+      "bytes": 3009
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_signoff_addendum.json",
+      "sha256": "9d0663f032388ea0f46cc0f59d4d0c92e5df31a4dd3e094e3350eb59905437e5",
+      "bytes": 2279
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_split_proposal.json",
+      "sha256": "f38cce6d42617a5c97226b2add6c69e51899dd418dcdf3adbbfea52505a6d774",
+      "bytes": 56132
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_validation.json",
+      "sha256": "3b95ab8f6a0986123de1e2ec57fabc3452d1e78638012396d306e7ae0c34deb7",
+      "bytes": 42378
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_gap_report.json",
+      "sha256": "1a3b3155368d63af2952c1310e9dab8d5015b0aa463b3178120b5ff1b2a3a60a",
+      "bytes": 5589
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions-v2.json",
+      "sha256": "90eeb1be91ef15f39c8a826cebd8ede61bc9bb2f0059aaade335dfe93b7700ff",
+      "bytes": 268976
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions.json",
+      "sha256": "c9b74b243f1456d8560ff3f50b3f3af0f46621b329df42b132a0addea3d21e5c",
+      "bytes": 213267
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_source_group_allocation_signoff.json",
+      "sha256": "4fe7e2788cb0dfb3c7ae6ee9502497ca4bdbaee45dd336e4e0e4884431758b6c",
+      "bytes": 31131
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_source_group_capacity_validation.json",
+      "sha256": "1c955bb3dc5c8c29e684c78938fbd7116fef077f0854ec2ff3f1c88ae840e44b",
+      "bytes": 969
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_successor_source_capacity.json",
+      "sha256": "a3b188dc7b8feca5affaf99d483adc86d65a28ecc36aabd8c43fe56de8969ffc",
+      "bytes": 4442
+    },
+    {
+      "path": "data/corpus/phase7_source_expansion/20261005/source_manifest.json",
+      "sha256": "936463bce391aba1162fd174c7b5be1a8258a35d757e2922c8138e9b2a30f471",
+      "bytes": 7953
+    },
+    {
+      "path": "data/corpus/phase7_source_expansion/20261005/uet_robotics_curriculum_qh2025_source.html",
+      "sha256": "780885f0d9c69b960fa2fedbd0632cf427e01e2f9528bf8832e2c99871da063f",
+      "bytes": 129531
+    },
+    {
+      "path": "data/corpus/phase7_source_expansion/20261005/uet_robotics_curriculum_qh2025_snapshot-v2.pdf",
+      "sha256": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "bytes": 1218646
+    },
+    {
+      "path": "data/corpus/phase7_source_expansion/20261005/create_official_page_pdf_snapshot.py",
+      "sha256": "8dc56f07bd596a2a96fcf8a767971e4584687b0051bbe481d6f5b57974ff005f",
+      "bytes": 11606
+    },
+    {
+      "path": "data/corpus/phase7_source_expansion/20261005/build_source_evidence_index.py",
+      "sha256": "af32fb0d5addb6ea92d07ce0430065910c96d76810e5ce4502c633829d06c70e",
+      "bytes": 2512
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/audit_p7_03_qh2025_source_binding.py",
+      "sha256": "5fe4fb6828635ec602069757a17e6f4abce94349389fc7ce17ff9de43f932231",
+      "bytes": 6997
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/audit_p7_03_qh2025_history.py",
+      "sha256": "4ae3cad8c4c437352ea060aead7167c2218aca3a80744628c281830afe3a7a46",
+      "bytes": 9282
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_binding_validation-v2.json",
+      "sha256": "bdc504716de869727a544437a88b36c374e7143d8924324592bd404c80658cee",
+      "bytes": 66055
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_binding_validation-v3.json",
+      "sha256": "ea37ccdf4482dad2e2cbfdb3714e615f18283636a7273fcf1609346df4e69c5c",
+      "bytes": 61321
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_history_preflight-v2.json",
+      "sha256": "75fb3aa725b6d2e2d3e3f0a606e7eb7ddcc524c6525e9e2806e869b352678d96",
+      "bytes": 411980
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_semantic_exposure_decisions.json",
+      "sha256": "332a786418e1ae52e102f438cadcd057717666565e38f6f904e05a31c0e8c5ca",
+      "bytes": 338687
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_allocation_signoff.json",
+      "sha256": "7de74fb6672267e1822a4600a89bd7939d3bf7db01271453dae566b9498575d4",
+      "bytes": 51982
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_exposure_validation.json",
+      "sha256": "83c2cb558c727e9eec3a5eb8fcadadbf328a67b40e29d5fb18f85825e285adf3",
+      "bytes": 1779
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_source_evidence.zip",
+      "sha256": "744bdfc344c0ab720b103436d8580358af129beb655e716e57f06c26a23a776f",
+      "bytes": 69533
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_qh2025_cleanup.json",
+      "sha256": "8d69c406f9cc2fccf9b110e37eafa4b0ac3d19551b7a38a7e638bbf33757f5f9",
+      "bytes": 9994
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_source_table_regression_tests.xml",
+      "sha256": "ba635b4d4ab183039d9cde213e9b1bb2e30550253fa0f4996d9b75a9bf18010a",
+      "bytes": 13702
+    },
+    {
+      "path": "evaluation/benchmarks/source_course_rows.py",
+      "sha256": "46486407d474b1f92194cd57e2a36bc4ca4e6e1917dabc59bbdea194884f93a6",
+      "bytes": 4238
+    },
+    {
+      "path": "src/campusai/ingestion/chunker.py",
+      "sha256": "cf89eb1586737c899910b26bee0c38f7df73985e4faa5af217bb60e615674435",
+      "bytes": 19356
+    },
+    {
+      "path": "src/campusai/ingestion/table_extractor.py",
+      "sha256": "4e112e10f97bfdfdae97c6af7372a1f6cca10b8895b8e4578a57c9cbd940673f",
+      "bytes": 5387
+    },
+    {
+      "path": "tests/test_ingestion_acceptance.py",
+      "sha256": "44e63ef9b87955dda4227c2a7a2342afc2ab3fbdfed04a1191aa164a3ac1bbd6",
+      "bytes": 10475
+    },
+    {
+      "path": "tests/test_source_course_rows.py",
+      "sha256": "b1be17954505c6f633712241c499ce1ceda4c663ff54b3ef11f4926dfbdd2851",
+      "bytes": 3353
+    }
+  ],
+  "inputs": [
+    {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/phase7_review_policy.json",
+      "sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03-history-similarity-preflight.json",
+      "sha256": "dacfd7f12e5f1b8eeb66a6efce226a5c6b93cf23d2c45bd07995705c36177abc"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_freeze.json",
+      "sha256": "c38078d5521e2810d87510299198ed8574335ccb7a40e88bdec923dd88622831"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_validation.json",
+      "sha256": "1e0e5fcc65f9aad45da155af5e4f2712c982196c6da8ae82ef45b0cbf218ae08"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_owner_signoff-v2.json",
+      "sha256": "b6cc0cb3b7f236b67baf60595f5c0100f2d740a57d7320467f4d8cb3d4f546e0"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_f0_signoff_addendum-v2.json",
+      "sha256": "c6a87f816ebe19a0090b2577a17f033785141b68b42002fa2cf295db541b4ba7"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_gap_report.json",
+      "sha256": "1a3b3155368d63af2952c1310e9dab8d5015b0aa463b3178120b5ff1b2a3a60a"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_m1-current-revalidation.json",
+      "sha256": "fd765490c1dba82ef273c5e2e4f302b68b763f71bbef54cb0a90c35c4f1a9ac2"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_exposure_decisions-v2.json",
+      "sha256": "90eeb1be91ef15f39c8a826cebd8ede61bc9bb2f0059aaade335dfe93b7700ff"
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-03_semantic_review_queue.json",
+      "sha256": "3b4cf483a839ea52a8d65d1ee534fcc594b7da6914569d50fc3297d50ab2d47a"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/expanded_index.zip",
+      "sha256": "fcf31861b9460e6e74fe7177cda9043865dffaf85f680d1a680008bb2a5f63ac"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/index_archive_manifest.json",
+      "sha256": "719cccbb48dabe20e0501018a279c7c6c249afce0f217272324a740352db4a6f"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/reproduction/restore_and_verify_index.py.txt",
+      "sha256": "4fe9e251a6592cb4afa0549b11dedf744c6ffbfba91d0bb7d19b4add4288d18c"
+    },
+    {
+      "path": "evaluation/results/phase7-successor-source-20261004b/source_course_facts_final.json",
+      "sha256": "df2f2dba62e4242aac21bd6fff2824449262015f2ba61de0ca88c9e6c5c851c1"
+    }
+  ],
+  "current_source_identity": {
+    "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+    "source_sha256": "65beb9537c492b2cc3c1b6074a64a9432949109115b188634e36bad720b0a450",
+    "runtime_sha256": "9c89c74532466ff6d57cc108a4b6eda37bbfeb05423e4b5ce58dd12479e88813"
+  },
+  "source_rows_validated": 55,
+  "additional_subject_groups": 4,
+  "maximum_source_groups_before_question_dependencies": 37,
+  "source_only_allocation_counts": {
+    "dev": 11,
+    "test": 13,
+    "holdout": 13
+  },
+  "benchmark_f0_frozen": false,
+  "task_done": false,
+  "current_results": {
+    "physical_source_binding": "PASS",
+    "source_archive_restore": "PASS",
+    "source_exposure_artifact_validation": "PASS",
+    "seven_page_visual_qa": "PASS",
+    "source_regression_tests": {
+      "passed": 88,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "obsolete_items_deleted": 26
+  },
+  "historical_diagnostic_note": "The retained source-binding v2 FAIL was a strict whitespace comparison issue, not a release/model gate result; v3 passes on the same PDF/index after exact code whitespace normalization.",
+  "next_required_work": [
+    "Construct successor question records with exact evidence and document scopes, including negatives/contextual/ambiguous and temporal cases backed by actual sources.",
+    "Review row-level gold and labels under the authorized provenance policy; recompute question dependencies, group unions and all split/fold quotas.",
+    "Freeze the actual successor F0/dev eligibility; source-only allocation approval does not satisfy F0."
+  ]
+}

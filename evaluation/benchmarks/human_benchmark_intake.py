@@ -1,4 +1,4 @@
-"""Human-authored question intake and independently submitted review packets.
+"""Human-authored question intake and role-declared review packets.
 
 This CLI never creates questions or approvals. It validates, binds and exports
 the packets explicitly supplied by authors and reviewers.
@@ -12,11 +12,25 @@ import json
 from pathlib import Path
 import re
 
-from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence, validate_rows
+from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence, validate_rows, PLACEHOLDER_IDENTITIES
+from evaluation.benchmarks.human_record_contract import REVIEWER_ROLES
 from evaluation.common.release_artifacts import read_json, sha256, write_json
 
 REVIEW_CHECKS = ("natural", "answerability", "evidence_sufficient", "corpus_temporal_scope",
                  "difficulty", "no_paraphrase_leakage", "expected_behavior")
+
+
+def configured_owner_identity(policy_path: Path, explicit: str | None = None) -> str | None:
+    if explicit is not None:
+        return explicit
+    try:
+        policy = read_json(policy_path)
+    except (OSError, ValueError, TypeError):
+        return None
+    identity = policy.get("owner_identity")
+    if policy.get("owner_self_review_allowed") is True and isinstance(identity, str) and identity.strip():
+        return identity
+    return None
 
 
 def digest_record(record: dict) -> str:
@@ -34,14 +48,16 @@ def submit_question(root: Path, record: dict, index_dir: Path) -> dict:
     if record.get("author_type") != "human" or not isinstance(record.get("author"), str) or not record["author"].strip():
         raise ValueError("explicit human author provenance required")
     if record.get("review_status") == "approved" or record.get("reviewer"):
-        raise ValueError("author packet must not include an independent approval")
+        raise ValueError("author packet must not include a reviewer approval")
     record = {**record, "review_status": "pending", "reviewer": "", "review_checks": {key: False for key in REVIEW_CHECKS}}
+    record.pop("reviewer_role", None)
     path = packet_path(root, "questions", record.get("qid"))
     # Check schema and frozen evidence without inventing a reviewer. Coverage
     # and review gates apply to the completed export, not to a single intake.
     report = validate_rows([record], frozen_evidence(index_dir))
     row_errors = [e for e in report["errors"] if e.startswith("row_")
-                  and not e.endswith(("independent_human_review_required", "incomplete_review_checks", "missing_expected_behavior"))]
+                  and not e.endswith(("independent_human_review_required", "owner_review_identity_mismatch",
+                                      "human_authorship_and_approval_required", "incomplete_review_checks"))]
     if row_errors:
         raise ValueError("invalid author packet: " + ", ".join(row_errors))
     packet = {"schema_version": 1, "record": record, "record_sha256": digest_record(record),
@@ -54,9 +70,9 @@ def submit_question(root: Path, record: dict, index_dir: Path) -> dict:
     return packet
 
 
-def submit_review(root: Path, review: dict, index_dir: Path) -> dict:
+def submit_review(root: Path, review: dict, index_dir: Path, *, owner_identity: str | None = None) -> dict:
     question = read_json(packet_path(root, "questions", review.get("qid")))
-    validate_review(question, review, index_dir)
+    validate_review(question, review, index_dir, owner_identity=owner_identity)
     path = packet_path(root, "reviews", review["qid"])
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as stream:
@@ -65,14 +81,28 @@ def submit_review(root: Path, review: dict, index_dir: Path) -> dict:
     return review
 
 
-def validate_review(question: dict, review: dict, index_dir: Path) -> None:
+def validate_review(question: dict, review: dict, index_dir: Path, *, owner_identity: str | None = None) -> None:
+    # An unchanged manifest cannot authorize approval after physical evidence
+    # files changed. Submission and export already load this verified snapshot;
+    # a separately submitted reviewer packet needs the same check.
+    frozen_evidence(index_dir)
     record = question["record"]
     if review.get("qid") != record["qid"]:
         raise ValueError("review question ID mismatch")
     reviewer = review.get("reviewer")
-    if (not isinstance(reviewer, str) or not reviewer.strip()
-            or reviewer.strip().casefold() == record["author"].strip().casefold()):
-        raise ValueError("reviewer must be a different human from the author")
+    role = review.get("reviewer_role")
+    if role not in REVIEWER_ROLES or not isinstance(reviewer, str) or not reviewer.strip():
+        raise ValueError("reviewer identity and role must be explicit")
+    if reviewer.strip().casefold() in PLACEHOLDER_IDENTITIES:
+        raise ValueError("placeholder reviewer identity is not allowed")
+    if role == "independent_reviewer":
+        author = record.get("author")
+        if (not isinstance(author, str) or not author.strip()
+                or reviewer.strip().casefold() == author.strip().casefold()):
+            raise ValueError("independent reviewer must differ from a valid author identity")
+    if role == "project_owner" and (not isinstance(owner_identity, str) or not owner_identity.strip()
+                                     or reviewer.strip().casefold() != owner_identity.strip().casefold()):
+        raise ValueError("project owner self-review requires the configured owner identity")
     if (digest_record(record) != question["record_sha256"] or review.get("record_sha256") != question["record_sha256"]
             or question["index_sha256"] != sha256(index_dir / "manifest.json")
             or review.get("index_sha256") != question["index_sha256"]):
@@ -84,7 +114,7 @@ def validate_review(question: dict, review: dict, index_dir: Path) -> None:
     if not isinstance(checks, dict) or any(type(checks.get(key)) is not bool for key in REVIEW_CHECKS):
         raise ValueError("every review check requires an explicit boolean decision")
     if status == "approved" and not all(checks[key] for key in REVIEW_CHECKS):
-        raise ValueError("approval requires every independent review check")
+        raise ValueError("approval requires every per-record review check")
     reviewed_at = review.get("reviewed_at")
     try:
         stamp = datetime.fromisoformat(reviewed_at.replace("Z", "+00:00"))
@@ -95,7 +125,7 @@ def validate_review(question: dict, review: dict, index_dir: Path) -> None:
         raise ValueError("review timestamp must have a timezone and follow submission") from error
 
 
-def export_reviewed(root: Path, output: Path, index_dir: Path) -> dict:
+def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity: str | None = None) -> dict:
     records, audit = [], []
     index_hash = sha256(index_dir / "manifest.json")
     for path in sorted((root / "questions").glob("*.json")):
@@ -103,24 +133,24 @@ def export_reviewed(root: Path, output: Path, index_dir: Path) -> dict:
         record = question["record"]
         review_path = packet_path(root, "reviews", record["qid"])
         if not review_path.exists():
-            raise ValueError(f"independent review missing: {record['qid']}")
+            raise ValueError(f"review packet missing: {record['qid']}")
         review = read_json(review_path)
-        validate_review(question, review, index_dir)
+        validate_review(question, review, index_dir, owner_identity=owner_identity)
         if (question["record_sha256"] != digest_record(record) or review["record_sha256"] != question["record_sha256"]
                 or review["index_sha256"] != index_hash or question["index_sha256"] != index_hash):
             raise ValueError("question/evidence changed after review")
         if review["review_status"] != "approved":
             continue
-        final = {**record, **{key: review[key] for key in ("reviewer", "review_status", "review_checks")},
+        final = {**record, **{key: review[key] for key in ("reviewer", "reviewer_role", "review_status", "review_checks")},
                  "reviewed_at": review["reviewed_at"]}
         records.append(final)
         audit.append({"qid": record["qid"], "question_packet": question, "review_packet": review,
                       "exported_record_sha256": digest_record(final)})
     if not records:
-        raise ValueError("no independently approved questions to export")
+        raise ValueError("no approved questions to export")
     # A second validation also catches tampered reviewer/check fields. A partial
     # export is useful for collection but cannot bypass M1's coverage gates.
-    report = validate_rows(records, frozen_evidence(index_dir))
+    report = validate_rows(records, frozen_evidence(index_dir), owner_identity=owner_identity)
     row_errors = [e for e in report["errors"] if e.startswith("row_")]
     if row_errors:
         raise ValueError("reviewed export rejected: " + ", ".join(row_errors))
@@ -145,15 +175,24 @@ def main(argv=None) -> int:
     parser.add_argument("--qid")
     parser.add_argument("--doc-id")
     parser.add_argument("--chunk-id")
+    parser.add_argument("--owner-identity", help="required to submit/export project_owner self-review packets")
+    parser.add_argument("--review-policy", type=Path, default=Path("data/benchmark/phase7_review_policy.json"),
+                        help="owner identity policy used when --owner-identity is omitted")
     parser.add_argument("--output", type=Path, default=Path("data/benchmark/human_retrieval.jsonl"))
     args = parser.parse_args(argv)
+    owner_identity = configured_owner_identity(args.review_policy, args.owner_identity)
     try:
         if args.action in {"submit", "review"}:
             if not args.packet:
                 parser.error("--packet is required (author/reviewer submitted JSON)")
-            result = (submit_question if args.action == "submit" else submit_review)(args.intake_dir, read_json(args.packet), args.index_dir)
+            if args.action == "submit":
+                result = submit_question(args.intake_dir, read_json(args.packet), args.index_dir)
+            else:
+                result = submit_review(args.intake_dir, read_json(args.packet), args.index_dir,
+                                       owner_identity=owner_identity)
         elif args.action == "export":
-            result = export_reviewed(args.intake_dir, args.output, args.index_dir)
+            result = export_reviewed(args.intake_dir, args.output, args.index_dir,
+                                     owner_identity=owner_identity)
         elif args.action == "inspect":
             result = read_json(packet_path(args.intake_dir, "questions", args.qid))
         else:

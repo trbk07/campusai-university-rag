@@ -7,6 +7,7 @@ or release PASS evidence. Test/holdout input and output overwrite are rejected.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
@@ -17,6 +18,35 @@ import time
 from evaluation.retrieval.compare_retrieval_quality import query_metrics
 from evaluation.common.release_artifacts import sha256, source_identity, write_json
 from evaluation.reranker.reranker_probe_inputs import FORMATS, probe_loader, scoring_text
+from campusai.retrieval.reranker_inputs import QUERY_MAX_CHARS, CONTENT_MAX_CHARS
+
+
+def score_observation(provider, qid, request, baseline, pool, input_format):
+    """Use the same resolved query and candidate content as serving inference."""
+    from campusai.retrieval.cross_encoder_provider import RerankCandidate
+    query = request["query"]
+    if provider.model_identity.input_format != input_format:
+        raise ValueError("scoring input differs from provider identity")
+    if len({item["chunk_id"] for item in pool}) != len(pool):
+        raise ValueError("duplicate candidate provenance")
+    candidates = [RerankCandidate(item["chunk_id"], item["doc_id"], item["chunk_id"],
+        item["page"], item["content"], item["rank"], float(item.get("fusion_score") or 0.0))
+        for item in pool]
+    started = time.perf_counter()
+    ranking = provider.score(query, candidates) if candidates else []
+    latency_ms = (time.perf_counter() - started) * 1000
+    scores = {item.chunk_id: item.reranker_score for item in ranking}
+    if (len(ranking) != len(pool) or set(scores) != {item["chunk_id"] for item in pool}
+            or any(type(score) not in (int, float) or not math.isfinite(score) for score in scores.values())):
+        raise ValueError("invalid measured model scores")
+    return {"qid": qid, "actual_request": request, "baseline": baseline, "pool": pool,
+        "scores": scores, "resolved_query_sha256": hashlib.sha256(query.encode()).hexdigest(),
+        "scoring_query_sha256": hashlib.sha256(query[:QUERY_MAX_CHARS].encode()).hexdigest(),
+        "scoring_input_sha256": {item["chunk_id"]: hashlib.sha256(
+            scoring_text(item["content"], input_format, query[:QUERY_MAX_CHARS])[:CONTENT_MAX_CHARS].encode()
+            ).hexdigest() for item in pool}, "latency_ms": latency_ms,
+        "provider_call": dict(provider.last_call) if candidates else
+                         {"inference_started": False, "score_cache_hit": False}}
 
 
 def rank_fusion(items, scores, weight, cap):
@@ -53,9 +83,11 @@ def summarize(rows, outputs):
             {(r["doc_id"],r["chunk_id"]) for r in outputs[row["qid"]][:5]} for row in positive)}
 
 
-def fit(rows, observations, evidence_signals=("top_logit",)):
+def fit(rows, observations, evidence_signals=("top_logit",), rank_weights=(0., .1, .25, .5, .75, 1.)):
     if not evidence_signals or set(evidence_signals) - {"top_logit", "top_margin", "peak_over_mean"}:
         raise ValueError("unsupported evidence signals")
+    if not rank_weights or any(type(value) not in (int, float) or not 0 <= value <= 1 for value in rank_weights):
+        raise ValueError("rank weights must be a nonempty set between zero and one")
     if any(row.get("split") != "dev" for row in rows):
         raise ValueError("policy fitting accepts only dev rows")
     if (len({row["qid"] for row in rows}) != len(rows)
@@ -67,7 +99,7 @@ def fit(rows, observations, evidence_signals=("top_logit",)):
     trials = []
     for cap in (8,10,12,16,20,40):
         proposals = {weight: {o["qid"]:rank_fusion(o["pool"],o["scores"],weight,cap)[:5]
-                     for o in observations} for weight in (0.,.1,.25,.5,.75,1.)}
+                     for o in observations} for weight in sorted(set(rank_weights))}
         sorted_scores = {o["qid"]:sorted((o["scores"][item["chunk_id"]] for item in o["pool"][:cap]), reverse=True)
                          for o in observations}
         for signal in evidence_signals:
@@ -106,6 +138,7 @@ def main(argv=None):
     parser.add_argument("--input-format",choices=FORMATS,default="full_chunk")
     parser.add_argument("--raw-scores",type=Path,help="Replay a prior dev-only raw score artifact without model calls")
     parser.add_argument("--evidence-signals",nargs="+",choices=("top_logit","top_margin","peak_over_mean"),default=["top_logit"])
+    parser.add_argument("--rank-weights",nargs="+",type=float,default=[0.,.1,.25,.5,.75,1.])
     args=parser.parse_args(argv)
     root=Path(__file__).resolve().parents[2]
     if not args.output.resolve().is_relative_to(root/".release/reranker/studies"):
@@ -129,7 +162,7 @@ def main(argv=None):
             "dev_sha256":sha256(args.dev), "index_sha256":raw["index_sha256"],
             "phase6_calibration_sha256":raw["phase6_calibration_sha256"],
             "status":"conditional","release_eligible":False,"test_used":False,"holdout_used":False,
-            "calibration_split":"dev", **fit(rows,raw["observations"],args.evidence_signals)}
+            "calibration_split":"dev", **fit(rows,raw["observations"],args.evidence_signals,args.rank_weights)}
         report["input_format"] = raw.get("input_format", "full_chunk")
         write_json(args.output/"dev_optimization.json",report)
         print(json.dumps({k:report[k] for k in ("status","baseline","selected","feasible")}),flush=True)
@@ -137,7 +170,9 @@ def main(argv=None):
     os.environ.update(HF_HUB_OFFLINE="1",TRANSFORMERS_OFFLINE="1")
     from campusai.retrieval.hybrid import HybridRetriever
     from campusai.retrieval.calibration import RetrievalPolicy
-    from campusai.retrieval.cross_encoder_provider import ModelIdentity,OfflineCrossEncoderReranker,RerankCandidate,snapshot_sha256
+    from campusai.retrieval.cross_encoder_provider import ModelIdentity,OfflineCrossEncoderReranker,snapshot_sha256
+    from campusai.rag.context import benchmark_retrieval_request
+    index_documents = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
     identity=ModelIdentity(args.model_name,args.model_dir.name,snapshot_sha256(args.model_dir),
         args.model_dir.name,device="cuda:0",dtype=args.dtype,max_length=args.max_length,batch_size=16,
         input_format=args.input_format)
@@ -151,22 +186,16 @@ def main(argv=None):
     try:
         provider.warm_up()
         for row in rows:
-            baseline=retriever.search(row["question"],row["doc_ids"],filters=row.get("filters"),mode="auto",top_k=5)
-            pool=retriever.search(row["question"],row["doc_ids"],filters=row.get("filters"),mode="auto",top_k=40)
-            candidates=[RerankCandidate(item.chunk_id,item.doc_id,item.chunk_id,item.page,item.content,
-                item.rank,float(item.fusion_score or 0)) for item in pool]
-            started=time.perf_counter()
-            ranking=provider.score(row["question"],candidates)
-            observations.append({"qid":row["qid"],"baseline":[item.to_dict() for item in baseline],
-                "pool":[item.to_dict() for item in pool],"scores":{item.chunk_id:item.reranker_score for item in ranking},
-                "scoring_input_sha256":{item.chunk_id:__import__("hashlib").sha256(
-                    scoring_text(item.content,args.input_format,row["question"][:2048])[:8192].encode()).hexdigest() for item in pool},
-                "latency_ms":(time.perf_counter()-started)*1000})
+            request = benchmark_retrieval_request(row, index_documents)
+            baseline=retriever.search(**request,mode="auto",top_k=5)
+            pool=retriever.generate_candidates(**request,mode="auto",top_k=40)
+            observations.append(score_observation(provider, row["qid"], request,
+                [item.to_dict() for item in baseline], [item.to_dict() for item in pool], args.input_format))
             if len(observations)%10==0:
                 print(json.dumps({"completed":len(observations),"total":len(rows)}),flush=True)
         write_json(args.output/"raw_dev.json",{**bindings,"observations":observations,"release_eligible":False})
         report={**bindings,"status":"conditional","release_eligible":False,"test_used":False,"holdout_used":False,
-            "calibration_split":"dev",**fit(rows,observations,args.evidence_signals)}
+            "calibration_split":"dev",**fit(rows,observations,args.evidence_signals,args.rank_weights)}
         write_json(args.output/"dev_optimization.json",report)
         print(json.dumps({k:report[k] for k in ("status","baseline","selected","feasible")}),flush=True)
     finally:

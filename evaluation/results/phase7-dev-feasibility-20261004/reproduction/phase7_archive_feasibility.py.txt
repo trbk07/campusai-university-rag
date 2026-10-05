@@ -1,0 +1,63 @@
+"""Archive exact raw bytes and diagnostics for the conditional dev study."""
+from pathlib import Path
+import gzip
+import shutil
+import zipfile
+from campusai.retrieval.runtime_provenance import runtime_description
+from evaluation.common.release_artifacts import source_identity
+from evaluation.common.release_artifacts import sha256, write_json
+from datetime import datetime, timezone
+
+root = Path('evaluation/results/phase7-dev-feasibility-20261004')
+archives = []
+for path in sorted(root.glob('cap10_*dev*.json')):
+    if 'calibration_observations' not in path.read_text(encoding='utf-8')[:500000] and path.stat().st_size < 1000000:
+        continue
+    if path.stat().st_size < 1000000:
+        continue
+    archive = path.with_suffix('.json.gz')
+    with path.open('rb') as source, gzip.GzipFile(filename=str(archive), mode='wb', mtime=0) as target:
+        shutil.copyfileobj(source, target)
+    with gzip.open(archive, 'rb') as stream:
+        import hashlib
+        restored = hashlib.file_digest(stream, 'sha256').hexdigest()
+    assert restored == sha256(path)
+    archives.append({'archive':archive.name, 'archive_sha256':sha256(archive),
+                     'restored_path':path.name, 'restored_sha256':restored,
+                     'restored_bytes':path.stat().st_size})
+scripts = root/'reproduction'
+scripts.mkdir(exist_ok=True)
+for name in ('phase7_successor_source_proof_audit.py', 'phase7_cap_dev_diagnostic.py',
+             'phase7_prepare_exposed_dev_probe.py', 'phase7_replay_dev_probability.py',
+             'phase7_feasibility_summary.py',
+             'phase7_archive_feasibility.py'):
+    shutil.copyfile(Path('.tmp')/name, scripts/(name+'.txt'))
+checks = root/'verification'
+checks.mkdir(exist_ok=True)
+for name in ('phase7-grade-scope-pass-20261004.xml', 'phase7-dev-feasibility-full-20261004.xml',
+             'phase7-dev-feasibility-full-coverage-20261004.json'):
+    shutil.copyfile(Path('.tmp')/name, checks/name)
+workspace = Path.cwd()
+source_files = set()
+for directory in ('src', 'evaluation', 'scripts', 'tests'):
+    source_files.update(path for path in (workspace/directory).rglob('*.py')
+                        if '__pycache__' not in path.parts and path.is_file())
+source_files.update(path for path in (workspace/'configs').rglob('*')
+                    if path.is_file() and path.suffix.lower() in {'.json','.toml','.yaml','.yml'}
+                    and path.name != 'gemini.yaml')
+source_files.update(workspace/name for name in ('pyproject.toml','requirements.txt','requirements-dev.txt','uv.lock','poetry.lock')
+                    if (workspace/name).is_file())
+identity = source_identity(workspace)
+assert identity['source_sha256'] == '7b6191262e5f29b9a4e49bea2b236279e98a8baf9cb655ef27d4a3ac2acd69bb'
+snapshot = root/'measured_source.zip'
+with zipfile.ZipFile(snapshot, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+    for path in sorted(source_files):
+        archive.writestr(path.relative_to(workspace).as_posix(), path.read_bytes())
+write_json(root/'measured_source_manifest.json', {**identity, 'runtime':runtime_description(),
+           'snapshot':snapshot.name, 'snapshot_sha256':sha256(snapshot),
+           'files':{path.relative_to(workspace).as_posix():sha256(path) for path in sorted(source_files)},
+           'meaning':'Exact physical source used by final grade-scope and 491-row probe. Historical conditional worktree snapshot includes pre-existing dirty helper source; not a clean release source or acceptance manifest. Local credential config is excluded.'})
+write_json(root/'archive_manifest.json', {'schema_version':1, 'status':'diagnostic',
+            'release_eligible':False, 'archived_at':datetime.now(timezone.utc).isoformat(),
+            'compression':'gzip of exact binary original; zero mtime', 'archives':archives})
+print({'archives':len(archives), 'restored_bytes_verified':sum(item['restored_bytes'] for item in archives)})

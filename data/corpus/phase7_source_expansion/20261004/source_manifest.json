@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "source_proposal",
+  "release_eligible": false,
+  "documents": [
+    {
+      "filename": "uet_robotics_curriculum_2020.pdf",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2018/04/KT-Robot-150TC.pdf",
+      "final_url": "https://uet.vnu.edu.vn/wp-content/uploads/2018/04/KT-Robot-150TC.pdf",
+      "status": "succeeded",
+      "bytes": 823108,
+      "sha256": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "pages": 16,
+      "chunks": 120,
+      "tables": 8,
+      "explicit_course_rows": 61,
+      "text_characters_by_page": [
+        1549,
+        2060,
+        2148,
+        2526,
+        2360,
+        1557,
+        1505,
+        2118,
+        432,
+        1036,
+        1474,
+        1525,
+        1448,
+        1491,
+        1503,
+        950
+      ]
+    },
+    {
+      "filename": "uet_bionanotechnology_masters_curriculum_2015.pdf",
+      "source_url": "https://uet.vnu.edu.vn/wp-content/uploads/2019/05/CT%C4%90T-Th%E1%BA%A1c-s%C4%A9-ng%C3%A0nh-C%C3%B4ng-ngh%E1%BB%87-nano-sinh-h%E1%BB%8Dc.pdf",
+      "sha256": "90be663882058bb1909a4078ff5a8cf8e83d6156f7cbd956f13b34b88f9c4ac9",
+      "bytes": 8330085,
+      "status": "review_required",
+      "doc_id": "90be663882058bb1909a4078ff5a8cf8e83d6156f7cbd956f13b34b88f9c4ac9",
+      "pages": 12,
+      "chunks": 0,
+      "tables": 0,
+      "explicit_course_rows": 0,
+      "text_characters_by_page": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "filename": "uet_electronics_masters_curriculum_2022.pdf",
+      "source_url": "https://fet.uet.vnu.edu.vn/wp-content/uploads/2024/03/ThS.KTDT_.2022.pdf",
+      "sha256": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "bytes": 469084,
+      "status": "succeeded",
+      "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "pages": 9,
+      "chunks": 38,
+      "tables": 5,
+      "explicit_course_rows": 34,
+      "text_characters_by_page": [
+        2244,
+        1039,
+        2128,
+        2962,
+        2551,
+        2416,
+        1227,
+        1291,
+        1125
+      ]
+    }
+  ],
+  "meaning": "Original public university PDFs, retaining document years, not a claim that these curricula are current in 2026. Only two text-readable documents are indexed; scan-only Nano biology document is excluded.",
+  "download_receipts": [
+    "download_receipt.json",
+    "additional_download_receipt.json"
+  ]
+}

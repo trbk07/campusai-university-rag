@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "P7-17.4",
+  "status": "PASS_OFFLINE_FAULT_SUBTASK",
+  "release_eligible": false,
+  "scope": "permanent fault shutdown, transient recovery, Phase 6 fallback, and queue-drain offline evidence",
+  "recorded_at": "2026-10-04T15:20:57.873761+00:00",
+  "checks": {
+    "all_30_fault_matrix_checks_pass": true,
+    "permanent_faults_disable_phase7": true,
+    "permanent_faults_close_provider": true,
+    "permanent_faults_have_zero_followup_inference": true,
+    "permanent_faults_preserve_phase6": true,
+    "transient_provider_recovers": true,
+    "phase6_fallback_matches_exactly_on_dev_groups": true,
+    "queue_shutdown_counters_reconcile": true
+  },
+  "permanent_cases": [
+    "provider_exception",
+    "oom",
+    "model_missing",
+    "invalid_score",
+    "wrong_candidate_id",
+    "wrong_doc_id",
+    "wrong_page",
+    "empty_output",
+    "malformed_output",
+    "wrong_original_rank",
+    "infinite_score"
+  ],
+  "permanent_case_count": 11,
+  "fault_matrix_raw": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-17-4-current-fault-matrix-raw.json",
+    "sha256": "93be36f65f56b02f43e7948046df1394863b533932b00b5d19ece39091bb5aff"
+  },
+  "transient_recovery": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-17-4-current-transient-recovery.json",
+    "sha256": "4370cd20dc81763ec4805643208b8231604931fce93a902d4f9c4a6ab879f887"
+  },
+  "phase6_fallback": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-17-3-current-phase6-fallback-v2.json",
+    "sha256": "c0ebdecd079b8700bbf71c1790783321369226f5faadc15939f033b15d68f57f"
+  },
+  "queue_probe": {
+    "path": "evaluation/results/phase7-completion-20261004/p7-17-2-current-queue-probe-v2.json",
+    "sha256": "cd3b8df4d3ce135c1b5726a1f50e716465c45df157e17e9989618c98d1338726"
+  },
+  "limitations": [
+    "The full fault matrix uses controlled Python test doubles; active-index probes still use test-double reranker providers.",
+    "No permanent or transient fault has yet been induced in the real CUDA/native provider on its target runtime.",
+    "Does not establish M9/P7-17 completion, target device permits, or resource leak limits."
+  ]
+}

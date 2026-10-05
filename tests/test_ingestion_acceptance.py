@@ -157,6 +157,43 @@ def test_oversized_table_cell_keeps_json_valid():
     assert table_chunk.content.startswith("[Page: 1]")
 
 
+def test_table_batch_budget_preserves_rows_beyond_the_readable_header():
+    diagnostics = {}
+    headers = ["Course code", "Course name and learning outcomes " + ("detail " * 40), "Credits"]
+    rows = [[f"UET.RBE{number:04d}", f"Course {number}", "3"] for number in range(1, 31)]
+    table = Table("doc_p1_t1", "doc", [1], headers, rows)
+    chunks = make_chunks([{"page": 1, "text": "Course catalog"}], "doc",
+                         {"institution": "University " + ("context " * 24)}, [table], diagnostics)
+    table_chunks = [chunk for chunk in chunks if chunk.content_type == "table"]
+    preserved = []
+    for chunk in table_chunks:
+        payload = json.loads(chunk.content.split("\n\n", 1)[1])
+        assert not payload.get("truncated")
+        preserved.extend(payload["rows"])
+    assert preserved == rows
+    assert not diagnostics.get("oversized_table_cells")
+
+
+def test_pipe_table_keeps_blank_prerequisite_cell_before_page_column():
+    pages = [{"page": 4, "text": (
+        "| Course code | Course name | Credits | Prerequisites | Source page |\n"
+        "| UET.MAT1050 | Calculus 1 | 5 | | 4 |\n"
+        "| UET.MAT1051 | Calculus 2 | 5 | UET.MAT1050 | 4 |"
+    )}]
+    tables = extract_tables(pages, "curriculum")
+    assert len(tables) == 1
+    assert tables[0].rows == [
+        ["UET.MAT1050", "Calculus 1", "5", "", "4"],
+        ["UET.MAT1051", "Calculus 2", "5", "UET.MAT1050", "4"],
+    ]
+    chunks = make_chunks(pages, "curriculum", {}, tables)
+    rows = []
+    for chunk in chunks:
+        if chunk.content_type == "table":
+            rows.extend(json.loads(chunk.content.split("\n\n", 1)[1])["rows"])
+    assert rows == tables[0].rows
+
+
 def test_document_index_artifacts_can_be_removed(tmp_path):
     doc_id = "a" * 64
     chunk = Chunk("chunk-1", doc_id, 1, "prerequisite course", metadata={})

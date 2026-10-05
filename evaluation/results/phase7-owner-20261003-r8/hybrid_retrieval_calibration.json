@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "phase": 6,
+  "mode": "hybrid_rrf",
+  "calibration_split": "dev",
+  "holdout_used": false,
+  "benchmark_sha256": "fcf7c9c78a59ec511a2f4c7302d0b570d4c2302e2374ac9ce02c13184e3f30b4",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "model": "BAAI/bge-m3",
+  "model_revision": "1",
+  "rrf": {
+    "k": 3,
+    "bm25_weight": 1.0,
+    "dense_weight": 1.2,
+    "candidate_limit": 40
+  },
+  "constraints": {
+    "max_false_positive_rate": 0.05,
+    "max_answerable_recall_drop": 0.02
+  },
+  "baseline_answerable_recall_at_5": 0.912698,
+  "result": {
+    "threshold": 0.315876,
+    "answerable_recall_at_5": 0.912698,
+    "false_positive_rate": 0.0,
+    "recall_drop": 0.0
+  },
+  "status": "pass",
+  "population": {
+    "total": 140,
+    "answerable": 126,
+    "negative": 14
+  }
+}

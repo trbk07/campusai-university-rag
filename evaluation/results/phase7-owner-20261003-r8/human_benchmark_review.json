@@ -1,0 +1,72 @@
+{
+  "schema_version": 3,
+  "phase": 7,
+  "status": "pass",
+  "errors": [],
+  "records": 300,
+  "counts": {
+    "answerable": 225,
+    "negative": 75,
+    "hard": 127,
+    "exact_code": 145,
+    "ambiguous": 50
+  },
+  "split_counts": {
+    "dev": 180,
+    "holdout": 60,
+    "test": 60
+  },
+  "review_complete": true,
+  "authorship_counts": {
+    "human": 180,
+    "ai": 120
+  },
+  "benchmark_profile": "personal_owner_source_checked_ai",
+  "review_mode": "owner_self_review",
+  "independent_review_complete": false,
+  "owner_review_complete": true,
+  "generation_authorization_sha256": "001d47b394b3ea1ecfa02b2fb02612e6f6ae447f7130a53a4ad54fb12c2d6045",
+  "dataset_sha256": "4657b3595e1439b0e1cf7bad2538af7d75164c60c97682d3dbd77be52e9866f4",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "review_policy_sha256": "1a246d47254277cd5c875dee2a60d04f2f30897ee72ac5c9435e4db4a55518ab",
+  "grouped_split": {
+    "groups": 89,
+    "cross_split_groups": [],
+    "split_counts": {
+      "dev": 180,
+      "holdout": 60,
+      "test": 60
+    }
+  },
+  "tag_counts": {
+    "ambiguous": 20,
+    "hard": 127,
+    "natural": 300,
+    "negative": 75,
+    "medium": 38,
+    "unanswerable": 10,
+    "code_switching": 22,
+    "abbreviation": 21,
+    "colloquial": 6,
+    "typo": 10,
+    "lexical_mismatch": 7,
+    "slang": 9,
+    "conditional": 4,
+    "answerable": 135,
+    "contextual": 15,
+    "contextual_followup": 15,
+    "easy": 135,
+    "table": 118,
+    "multi_hop": 48,
+    "paraphrase": 2,
+    "long_noisy": 11,
+    "course_code": 25,
+    "exact_code": 145,
+    "abstention": 30
+  },
+  "reviewer_summary": {
+    "reviewed": 300,
+    "distinct_reviewers": 1,
+    "author_reviewer_collisions": 300
+  }
+}

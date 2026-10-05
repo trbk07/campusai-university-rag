@@ -1,0 +1,8 @@
+{
+  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10",
+  "source_cycle": "evaluation/results/phase7-candidate-20261003-r9",
+  "new_heldout_claim": false,
+  "heldout_reused_unchanged": true,
+  "dev_metadata_revision": true,
+  "reason": "context resolution fixed; legacy ordinal dev difficulty corrected by replayable source audit; no question, gold or scope changes"
+}

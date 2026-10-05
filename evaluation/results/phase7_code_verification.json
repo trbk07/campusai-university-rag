@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "phase": 7,
+  "status": "pass_code_verification",
+  "release_eligible": false,
+  "verified_at": "2026-10-02T16:40:46.607816+00:00",
+  "commit": "c7c706deabb26163527f0b9a93085e494d55830b",
+  "source_sha256": "fb836e1f29564d0888abe5cdabe5bc3952c3d28926639ca46a6d0c3872efc1ec",
+  "runtime_sha256": "5f16cec7d58f2765a4c81ce3619aa8e674a0bcb7fcc2c9d1feb99b4c3736887c",
+  "tests": {
+    "tests": 415,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "passed": 413
+  },
+  "coverage_percent": 89.0725806451613,
+  "coverage_floor_percent": 85,
+  "checks": {
+    "compile": "PASS",
+    "diff": "PASS",
+    "tracked_untracked_secret_scan": "PASS",
+    "candidate_regeneration_verify": "PASS"
+  },
+  "command": ".venv/Scripts/python.exe -m pytest --basetemp .tmp/phase7-verified-suite-temp --junitxml .tmp/phase7-verified-tests.xml --cov=campusai --cov-report=json:.tmp/phase7-verified-coverage.json --cov-report=term:skip-covered -q",
+  "raw": [
+    {
+      "path": ".tmp/phase7-verified-tests.xml",
+      "sha256": "903a482acd8a0414ac80c14cebcc6ec2a05c6d4c70af330874232fc5e9af7ade"
+    },
+    {
+      "path": ".tmp/phase7-verified-coverage.json",
+      "sha256": "7eda990b7942feb042f7cc91e0ec6816a9ba02c3ae4841febd9f3c5dfa9aeef8"
+    },
+    {
+      "path": ".tmp/phase7-verified-readiness.json",
+      "sha256": "208c59eabb8b68a88abacd835beeb07540d9353f41d60860fa88c1f34b987554"
+    }
+  ],
+  "release_verdict": {
+    "status": "conditional",
+    "score": null,
+    "all_release_gates_pass": false
+  },
+  "live_test_skip_reason": "RUN_LLM_INTEGRATION/GEMINI_API_KEY not configured; no live evidence claimed",
+  "gpu_probe": {
+    "path": "evaluation/results/phase7_startup_lifecycle_verified.json",
+    "sha256": "96a1e50aabb697adc15841c810d06fe29afa6ec6c1fcd6e945253c94846dd969"
+  }
+}

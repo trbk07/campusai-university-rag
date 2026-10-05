@@ -12,7 +12,7 @@ pytestmark = pytest.mark.skipif(
 def test_gemini_cache_contract(tmp_path):
     client = GeminiClient(
         os.environ["GEMINI_API_KEY"],
-        model="gemini-3.8-flash",
+        model=os.getenv("PHASE7_LLM_MODEL", "gemini-3-flash-preview"),
         cache=SQLiteLLMCache(str(tmp_path / "llm.sqlite")),
         max_retries=1,
     )

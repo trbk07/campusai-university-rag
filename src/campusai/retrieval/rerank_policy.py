@@ -72,16 +72,20 @@ class Phase7Policy:
                 raise Phase7PolicyError("invalid routing probability policy")
         values = (self.threshold, self.margin_threshold,
                   self.easy_confidence_threshold, self.easy_margin_threshold)
-        if (not self.version or any(not math.isfinite(value) for value in values)
+        if (not isinstance(self.version, str) or not self.version.strip()
+                or any(type(value) not in (int, float) or not math.isfinite(value) for value in values)
                 or self.margin_threshold < 0 or not 0 <= self.easy_confidence_threshold <= 1
-                or self.easy_margin_threshold < 0 or self.candidate_cap != 40
+                or self.easy_margin_threshold < 0 or type(self.candidate_cap) is not int or self.candidate_cap != 40
+                or type(self.rerank_candidate_cap) is not int
                 or not 1 <= self.rerank_candidate_cap <= self.candidate_cap
-                or not 0 <= self.minimum_agreement <= 1 or self.constraint_threshold < 0
+                or type(self.minimum_agreement) not in (int, float) or not math.isfinite(self.minimum_agreement)
+                or not 0 <= self.minimum_agreement <= 1
+                or type(self.constraint_threshold) is not int or self.constraint_threshold < 0
                 or self.low_score_action not in ("phase6", "abstain")):
             raise Phase7PolicyError("invalid Phase 7 policy values")
         for value in (self.model_identity_sha256, self.index_sha256,
                       self.phase6_calibration_sha256, self.training_split_sha256):
-            if len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
+            if not isinstance(value, str) or len(value) != 64 or any(char not in "0123456789abcdef" for char in value):
                 raise Phase7PolicyError("missing or invalid Phase 7 policy checksum")
 
     @property
@@ -108,14 +112,14 @@ class Phase7Policy:
         }
         if any(data.get(key) != value for key, value in expected.items()):
             raise Phase7PolicyError("Phase 7 calibration provenance mismatch")
-        return cls(str(data["version"]), *[expected[key] for key in expected],
-                   float(data["threshold"]), float(data["margin_threshold"]),
-                   float(data["easy_confidence_threshold"]), float(data["easy_margin_threshold"]),
-                   int(data.get("candidate_cap", 40)),
+        return cls(data["version"], *[expected[key] for key in expected],
+                   data["threshold"], data["margin_threshold"],
+                   data["easy_confidence_threshold"], data["easy_margin_threshold"],
+                   data.get("candidate_cap", 40),
                    hashlib.sha256(source.read_bytes()).hexdigest(),
-                   int(data.get("rerank_candidate_cap", 40)),
-                   float(data.get("minimum_agreement", 0.0)),
-                   int(data.get("constraint_threshold", 0)),
+                   data.get("rerank_candidate_cap", 40),
+                   data.get("minimum_agreement", 0.0),
+                   data.get("constraint_threshold", 0),
                    data.get("low_score_action", "phase6"), data.get("evidence_model"), data.get("route_model"))
 
     def score_action(self, top_score: float, margin: float, *, features: dict | None = None) -> str:

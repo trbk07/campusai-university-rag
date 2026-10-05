@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 
 from evaluation.common.release_artifacts import sha256, source_identity, verify_index_files, read_json
+from evaluation.common.artifact_store import artifact_paths
+from evaluation.reranker.supplemental_gates import SUPPLEMENTAL, validate_supplemental
 
 ROOT = Path(__file__).resolve().parents[2]
 ARTIFACTS = {
@@ -42,9 +44,12 @@ PROVIDER_CASES = {"model_unavailable", "invalid_model_hash", "timeout", "queue_f
 
 
 def default_args(results_dir: Path = Path("evaluation/results")) -> Namespace:
-    return Namespace(**{name: results_dir / filename for name, filename in ARTIFACTS.items()},
+    paths = {name: results_dir / filename for name, filename in ARTIFACTS.items()}
+    paths.update({name: results_dir / filename for _, name, filename in SUPPLEMENTAL.values()})
+    return Namespace(**paths,
                      index_dir=Path(".tmp/hybrid-index"), benchmark_dir=Path("data/benchmark"),
                      phase6_calibration=results_dir / "hybrid_retrieval_calibration.json",
+                     answer_protocol=results_dir / "reranker_answer_protocol.json",
                      deployment_ram_bytes=None, through="M12")
 
 
@@ -63,14 +68,15 @@ def is_hash(value) -> bool:
 def file_hash(path) -> str | None:
     try:
         return sha256(path)
-    except OSError:
+    except (OSError, ValueError):
         return None
 
 
 def validate(args: Namespace) -> dict:
     cfg = {**vars(default_args()), **vars(args)}
     reports, missing, invalid = {}, set(), set()
-    for name in ARTIFACTS:
+    supplemental_names = {name for _, name, _ in SUPPLEMENTAL.values()}
+    for name in (*ARTIFACTS, *supplemental_names):
         path = Path(cfg[name])
         try:
             data = read_json(path)
@@ -121,17 +127,35 @@ def validate(args: Namespace) -> dict:
     bind(1, review, "dataset_sha256", file_hash(dataset))
     bind(1, human, "index_sha256", base.get("index_sha256"))
     bind(1, human, "review_sha256", file_hash(cfg["human_review"]))
-    check(1, human.get("frozen") is True and review.get("independent_review_complete") is True, "human_review_gate")
+    policy_path = Path(cfg["benchmark_dir"]) / "phase7_review_policy.json"
+    try:
+        review_policy = read_json(policy_path)
+        owner_identity = review_policy.get("owner_identity") if review_policy.get("owner_self_review_allowed") is True else None
+    except (OSError, ValueError, TypeError):
+        review_policy, owner_identity = {}, None
+    check(1, human.get("frozen") is True and review.get("review_complete") is True
+          and review.get("review_mode") in {"owner_self_review", "independent_review", "mixed_review"}
+          and review.get("review_policy_sha256") == file_hash(policy_path), "human_review_gate")
     def rows_at(path):
         return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
     try:
         from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence, validate_rows
+        from evaluation.benchmarks.owner_generation import load_generation
+        authorization, generated = load_generation(Path(cfg["benchmark_dir"]), Path(cfg["index_dir"]))
         rows = rows_at(dataset)
         regression = [row for split in ("dev", "test", "holdout")
                       for row in rows_at(Path(cfg["benchmark_dir"]) / f"hybrid_retrieval_{split}.jsonl")]
-        actual = validate_rows(rows, frozen_evidence(Path(cfg["index_dir"])), regression)
+        actual = validate_rows(rows, frozen_evidence(Path(cfg["index_dir"])), regression,
+                               owner_identity=owner_identity, generated_records=generated)
+        if authorization:
+            check(1, review.get("generation_authorization_sha256") == file_hash(
+                Path(cfg["benchmark_dir"]) / "phase7_generation_authorization.json")
+                  and review.get("benchmark_profile") == actual["benchmark_profile"]
+                  and review.get("authorship_counts") == actual["authorship_counts"], "personal_generation_binding")
         check(1, actual["status"] == "pass" and review.get("counts") == actual["counts"]
-              and review.get("records") == actual["records"], "human_dataset_content_gate")
+              and review.get("records") == actual["records"]
+              and review.get("review_complete") == actual["review_complete"]
+              and review.get("review_mode") == actual["review_mode"], "human_dataset_content_gate")
         for split in ("dev", "test", "holdout"):
             check(1, rows_at(Path(cfg["benchmark_dir"]) / f"human_retrieval_{split}.jsonl")
                   == [row for row in rows if row.get("split") == split], f"human_{split}_content_gate")
@@ -180,7 +204,14 @@ def validate(args: Namespace) -> dict:
         if cfg.get("model_dir") is not None:
             from campusai.retrieval.cross_encoder_provider import snapshot_sha256
             snapshot = Path(cfg["model_dir"])
-            check(3, snapshot.name == identity.model_revision and snapshot_sha256(snapshot) == identity.model_sha256,
+            physical_files = {}
+            for path in snapshot.rglob("*"):
+                if path.is_symlink():
+                    raise ValueError("model snapshot must not contain symlinks")
+                if path.is_file():
+                    physical_files[path.relative_to(snapshot).as_posix()] = hashlib.sha256(path.read_bytes()).hexdigest()
+            check(3, snapshot.name == identity.model_revision
+                  and physical_files == files and snapshot_sha256(snapshot) == identity.model_sha256,
                   "model_physical_snapshot_gate")
     except (KeyError, TypeError, ValueError, AttributeError, OSError, RuntimeError):
         problems[3].append("offline_model_gate")
@@ -547,7 +578,8 @@ def validate(args: Namespace) -> dict:
                 bind(gate, report, "human_benchmark_sha256", human.get("dataset_sha256"))
     for gate, filename, names in (
             (4, "reranker_route_freeze.json", ("route", "smoke", "human_manifest")),
-            (6, "reranker_policy_freeze.json", ("route", "smoke", "human_manifest", "calibration", "sensitivity"))):
+            (6, "reranker_policy_freeze.json", ("route", "smoke", "human_manifest", "calibration", "sensitivity",
+                                                  "answer_protocol"))):
         try:
             lock = read_json(Path(cfg["route" if gate == 4 else "quality"]).parent / filename)
             check(gate, lock.get("artifact_sha256") == {name: file_hash(cfg[name]) for name in names}, "heldout_freeze_binding_gate")
@@ -561,9 +593,10 @@ def validate(args: Namespace) -> dict:
         dirty = True
     check(12, not dirty, "working_tree_dirty")
     hashes = {name: file_hash(cfg[name]) for name in ARTIFACTS}
+    hashes.update({name: file_hash(cfg[name]) for _, name, _ in SUPPLEMENTAL.values()})
     check(12, all(is_hash(value) for value in hashes.values()), "release_artifact_hash_gate")
     sidecars = ("retrieval_quality_comparison.md", "retrieval_ranking_regressions.jsonl",
-                "reranker_route_freeze.json", "reranker_policy_freeze.json")
+                "reranker_route_freeze.json", "reranker_policy_freeze.json", "reranker_answer_protocol.json")
     directory = Path(cfg["quality"]).parent
     for filename in sidecars:
         hashes[filename] = file_hash(directory / filename)
@@ -581,22 +614,38 @@ def validate(args: Namespace) -> dict:
             hashes[trial["artifact"]] = file_hash(Path(cfg["sensitivity"]).parent / trial["artifact"])
     for test, digest in obj(reports["grounding"].get("test_reports_sha256")).items():
         hashes["grounding_test_reports/" + Path(test).stem + ".xml"] = digest
+    # Receipts retain successful and failed attempts. Bind their physical bytes
+    # in the final package; execution success is separate from gate acceptance.
+    for path in artifact_paths(directory / 'raw/measurement_receipts', '*.json'):
+        hashes[path.relative_to(directory).as_posix()] = file_hash(path)
+    supplemental = validate_supplemental(cfg, reports)
     gates, prior_failed = {}, False
     for index in range(13):
         absent = any(name in missing for name in GATE_ARTIFACTS[index])
+        stage_supplemental = {key: value for key, value in supplemental.items()
+                              if value["required_at"] == f"M{index}"}
+        for gate_name, gate_report in stage_supplemental.items():
+            if gate_report["status"] == "BLOCKED":
+                absent = True
+            if gate_report["status"] != "PASS":
+                problems[index].extend(f"{gate_name}:{error}" for error in gate_report["errors"])
         evidence_status = "BLOCKED" if absent else "FAIL" if problems[index] else "PASS"
         status = "BLOCKED" if prior_failed else evidence_status
         gates[f"M{index}"] = {"status": status, "evidence_status": evidence_status, "owner": OWNERS[index],
                              "errors": sorted(set(problems[index])), "requires": [f"M{index-1}"] if index else [],
-                             "artifacts": [ARTIFACTS[name] for name in GATE_ARTIFACTS[index]],
+                             "artifacts": ([ARTIFACTS[name] for name in GATE_ARTIFACTS[index]]
+                                           + [filename for stage, _, filename in SUPPLEMENTAL.values()
+                                              if stage == index]),
                              "verify_command": f"python -m evaluation.reranker.validate_reranker_release --through M{index}"}
         prior_failed |= status != "PASS"
     through = int(cfg["through"][1:])
     errors = sorted({error for index in range(through + 1) for error in problems[index]})
     passed = all(gates[f"M{index}"]["status"] == "PASS" for index in range(through + 1))
+
     return {"schema_version": 2, "phase": 7, "status": "pass" if passed else "conditional",
             "all_release_gates_pass": passed and through == 12,
             "score": 10.0 if passed and through == 12 else None, "errors": errors, "gates": gates,
+            "supplemental_gates": supplemental,
             "through": cfg["through"], **source, "working_tree_clean": not dirty, "base_release": "phase6-rc3",
             "baseline_commit": base.get("commit"), "model_identity_sha256": smoke.get("model_identity_sha256"),
             "index_sha256": base.get("index_sha256"), "calibration_sha256": file_hash(cfg["calibration"]),

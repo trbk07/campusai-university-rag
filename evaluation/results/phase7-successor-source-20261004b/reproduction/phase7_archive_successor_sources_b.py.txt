@@ -1,0 +1,38 @@
+from pathlib import Path
+import shutil
+import json
+from evaluation.common.release_artifacts import sha256, write_json
+from scripts.benchmarks.audit_phase7_source_proposals import audit
+
+previous=Path('data/corpus/phase7_source_expansion/20261004')
+build=Path('.tmp/phase7-successor-source-20261004b')
+destination=Path('data/corpus/phase7_source_expansion/20261004b')
+results=Path('evaluation/results/phase7-successor-source-20261004b')
+assert not destination.exists() and not results.exists()
+destination.mkdir(parents=True); results.mkdir(parents=True)
+old=json.loads((previous/'source_manifest.json').read_text(encoding='utf8'))
+new=json.loads((build/'source_manifest.json').read_text(encoding='utf8'))
+for parent, entries in ((previous,old['documents']),(build,new['documents'])):
+    for entry in entries:
+        source=parent/entry['filename']
+        assert sha256(source)==entry['sha256']
+        shutil.copyfile(source,destination/entry['filename'])
+write_json(destination/'source_manifest.json',{
+    'schema_version':1,'status':'source_proposal','release_eligible':False,
+    'documents':old['documents']+new['documents'],
+    'meaning':'Original public UET PDFs. Document/cohort years differ from URL publication years; no current-2026 curriculum claim. The scan-only Nano biology PDF remains excluded.',
+    'previous_manifest_sha256':sha256(previous/'source_manifest.json'),
+    'added_manifest_sha256':sha256(build/'source_manifest.json'),
+})
+for name in ('download_receipt.json','mechanics_download_receipt.json','index_build_receipt.json'):
+    shutil.copyfile(build/name,results/name)
+for source in sorted(build.glob('*-records.json')):
+    shutil.copyfile(source,results/source.name)
+for source in sorted(build.glob('mechanics-page-*.png')):
+    shutil.copyfile(source,results/source.name)
+for source in sorted(build.glob('telecom-page-*.png')):
+    shutil.copyfile(source,results/source.name)
+report=audit(build/'index',destination/'source_manifest.json',
+    [Path('data/benchmark'),Path('evaluation/results')],results/'source_history_screen.json')
+print(json.dumps({k:report[k] for k in ('explicit_course_rows','proposed_rows','proposed_connected_groups','history_question_occurrences','index_sha256')},indent=2))
+print(json.dumps([{'code':f['code'],'name':f['name'],'doc_id':f['doc_id'],'group':f['connected_group']} for f in report['proposals']],ensure_ascii=False,indent=2))

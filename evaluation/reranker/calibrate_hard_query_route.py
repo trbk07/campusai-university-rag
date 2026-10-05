@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.retrieval.hybrid import HybridRetriever
 from evaluation.benchmarks.retrieval_schema import load_jsonl
-from campusai.retrieval.route_probability import RouteProbabilityModel, route_observations
+from campusai.retrieval.route_probability import FEATURES, RouteProbabilityModel, route_observations
 from evaluation.common.release_artifacts import (require_previous_gates, source_identity, sha256, write_json,
                                            assert_tuning_allowed, freeze_before_evaluation)
 
@@ -122,10 +122,12 @@ def collect_samples(rows: list[dict], retriever, doc_ids: list[str]) -> tuple[li
     deterministic = True
     exact_count = abstention_count = 0
     for row in rows:
-        kwargs = {"doc_ids": row.get("doc_ids", doc_ids), "filters": row.get("filters"), "top_k": 5, "mode": "auto"}
-        results = retriever.search(row["question"], **kwargs)
+        from campusai.rag.context import benchmark_retrieval_request
+        request = benchmark_retrieval_request(row, doc_ids)
+        kwargs = {**request, "top_k": 5, "mode": "auto"}
+        results = retriever.search(**kwargs)
         trace = retriever.last_trace
-        again = retriever.search(row["question"], **kwargs)
+        again = retriever.search(**kwargs)
         deterministic &= [item.to_dict() for item in results] == [item.to_dict() for item in again]
         exact_count += trace.route == "exact_code"
         abstention_count += trace.abstained
@@ -135,8 +137,15 @@ def collect_samples(rows: list[dict], retriever, doc_ids: list[str]) -> tuple[li
         if len(results) < 2:
             bypass["single_candidate"] += 1
             continue
+        # Keep the optional threshold diagnostic usable. These retrieval
+        # measurements are not inputs to the compact probability model.
+        from campusai.retrieval.rerank_policy import route_features
+        retrieval = route_features(request["query"], results)
+        retrieval.update(confidence=float(results[0].confidence_score or 0.),
+                         margin=max(0., float(results[0].fusion_score or 0.) - float(results[1].fusion_score or 0.)))
         samples.append({"qid": row["qid"], "difficulty": row["difficulty"],
-                        **route_observations(row["question"], results)})
+                        **retrieval,
+                        **route_observations(request["query"], results)})
     return samples, {"bypass": bypass, "deterministic": deterministic,
                      "exact_code_count": exact_count, "abstention_count": abstention_count,
                      "exact_code_rerank_rate": 0.0, "abstention_rerank_rate": 0.0}
@@ -175,14 +184,13 @@ def main() -> int:
     else:
         selected, metrics, feasible = fit_feature_route(samples)
     smoke = json.loads((args.results_dir / "model_snapshot_smoke.json").read_text(encoding="utf-8")) if not args.exploratory else {}
-    report = {"schema_version": 1, "phase": 7, "version": "phase7-hard-route-dev-v2" if route_model else "phase7-hard-route-dev-v1",
+    report = {"schema_version": 1, "phase": 7, "version": "phase7-hard-route-dev-v3" if route_model else "phase7-hard-route-dev-v1",
               "status": "pass" if feasible and not args.exploratory else "conditional", "calibration_split": "dev",
               "holdout_used": False, "test_used": False,
               **source_identity(Path(__file__).resolve().parents[2]),
               "model_identity_sha256": smoke.get("model_identity_sha256"),
               "feature_leakage_review": "pass",
-              "feature_allowlist": ["confidence", "margin", "agreement", "constraints", "query_length",
-                                     "distinct_documents", "concentration"] if route_model else
+              "feature_allowlist": list(FEATURES) if route_model else
                                     ["confidence", "margin", "agreement", "constraints"],
               "forbidden_features": ["language", "template", "difficulty", "qid"],
               "training_split_sha256": hashlib.sha256(args.dev.read_bytes()).hexdigest(),

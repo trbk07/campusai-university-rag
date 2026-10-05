@@ -1,0 +1,47 @@
+from pathlib import Path
+from datetime import datetime, timezone
+import json
+import shutil
+import sys
+from evaluation.benchmarks.dev_inheritance import load_dev_inheritance, rows_at, inheritance_review_error
+from evaluation.benchmarks.owner_generation import generated_audit
+from evaluation.benchmarks.freeze_human_benchmark import frozen_evidence, validate_rows
+from evaluation.reranker.supplemental_gates import review_audit_errors
+from evaluation.common.release_artifacts import read_json, sha256, source_identity, write_json
+
+task=Path('evaluation/results/phase7-dev-inheritance-20261004')
+suffix=sys.argv[1] if len(sys.argv)>1 else ''
+child=Path('.tmp/phase7-dev-inheritance-loader-check-20261004'+suffix)
+assert not child.exists()
+child.mkdir()
+shutil.copyfile(task/'phase7_dev_inheritance.json',child/'phase7_dev_inheritance.json')
+policy=read_json(Path('data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/phase7_review_policy.json'))
+index=Path('.tmp/phase7-source-expansion-20261004/index')
+before=source_identity(Path.cwd())
+declaration={'owner_identity':policy['owner_identity'],'dev_inheritance_sha256':sha256(child/'phase7_dev_inheritance.json')}
+bundle=load_dev_inheritance(child,index,policy,declaration)
+assert list(bundle['rows'].values())==rows_at(task/'inherited_dev_records.jsonl')
+auth={**declaration,'_validated_dev_inheritance':bundle}
+audit=generated_audit(auth,bundle['rows'])
+assert audit==rows_at(task/'inherited_review_audit.jsonl')
+errors=review_audit_errors(list(bundle['rows'].values()),audit,index,
+    owner_identity=policy['owner_identity'],generation_authorization=auth,generated_records=bundle['rows'])
+assert not errors
+rejected=0
+for item in audit:
+    row={**bundle['rows'][item['qid']],'split':'holdout'}
+    assert inheritance_review_error(row,item,auth)
+    rejected+=1
+validation=validate_rows(list(bundle['rows'].values()),frozen_evidence(index),
+    owner_identity=policy['owner_identity'],generated_records=bundle['rows'])
+assert not any(error.startswith('row_') for error in validation['errors'])
+assert set(validation['errors'])=={'insufficient_split_coverage:test','insufficient_split_coverage:holdout',
+                                  'insufficient_route_coverage:test','insufficient_route_coverage:holdout'}
+after=source_identity(Path.cwd())
+assert before==after
+write_json(task/('loader_integration'+suffix+'.json'),{'schema_version':1,'status':'validated_dev_inheritance','release_eligible':False,
+    'recorded_at':datetime.now(timezone.utc).isoformat(),'records_reconstructed_exactly':len(bundle['rows']),
+    'review_audit_errors':errors,'heldout_reassignments_rejected':rejected,'source_before':before,'source_after':after,
+    'validation':validation,'meaning':'Actual loader and audit replay of prepared historical inputs; intentionally dev-only, not a complete successor benchmark or release freeze.'})
+print(json.dumps({'records_reconstructed_exactly':len(bundle['rows']),'heldout_reassignments_rejected':rejected,
+    'review_audit_errors':errors,'conditional_benchmark_errors':validation['errors']}))

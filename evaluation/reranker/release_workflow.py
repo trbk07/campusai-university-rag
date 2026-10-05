@@ -2,18 +2,20 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from pathlib import Path
 import subprocess
 import sys
 
 from evaluation.common.release_artifacts import read_json, require_previous_gates
+from evaluation.common.measurement_receipt import run_recorded
 from evaluation.reranker.reranker_release_gates import default_args, validate
 from evaluation.reranker.reranker_model_options import add_inference_options, inference_cli
 
 STAGES = {
     "baseline": "M0", "human-freeze": "M1", "candidate": "M2", "model": "M3",
-    "route": "M4", "calibration": "M5", "quality": "M6", "performance": "M7",
+    "route": "M4", "calibration": "M5", "quality-collect": "M6", "quality": "M6", "performance": "M7",
     "security": "M8", "faults": "M9", "rollback": "M10", "staging": "M11", "staging-collect": "M11",
     "validate": "M12", "release": "M12",
 }
@@ -23,7 +25,7 @@ def commands(args) -> list[list[str]]:
     common = ["--results-dir", str(args.results_dir), "--index-dir", str(args.index_dir),
               "--benchmark-dir", str(args.benchmark_dir)]
     model = ["--model-dir", str(args.model_dir), "--model-name", args.model_name, "--device", args.device]
-    simple = {"candidate": "evaluate_candidate_coverage", "quality": "compare_retrieval_quality",
+    simple = {"candidate": "evaluate_candidate_coverage",
               "rollback": "verify_reranker_rollback"}
     def command(module, *options):
         package = "benchmarks" if module == "freeze_human_benchmark" else (
@@ -36,12 +38,25 @@ def commands(args) -> list[list[str]]:
     if args.stage in simple:
         return [command(simple[args.stage], *common)]
     if args.stage == "human-freeze":
+        options = ["--review-policy", str(args.benchmark_dir / "phase7_review_policy.json"),
+                   "--exposure-registry", str(args.benchmark_dir / "phase7_exposure_registry.json")]
+        if getattr(args, "owner_identity", None):
+            options += ["--owner-identity", args.owner_identity]
+        if getattr(args, "assign_splits", False):
+            options += ["--assign-splits"]
+        audit = getattr(args, "review_audit", None) or args.benchmark_dir / "human_retrieval_review_audit.jsonl"
         return [command("freeze_human_benchmark", "--dataset", str(args.benchmark_dir / "human_retrieval.jsonl"),
                         "--regression-dir", str(args.benchmark_dir), "--index-dir", str(args.index_dir),
-                        "--output-dir", str(args.results_dir))]
+                        "--output-dir", str(args.results_dir), *options),
+                command("build_supplemental_report", *common, "--gate", "S1", "--review-audit", str(audit))]
     if args.stage == "model":
         return [command("check_model_snapshot", *common, *model, "--dtype", args.dtype, *inference_cli(args), "--output", str(args.results_dir / "model_snapshot_smoke.json")),
-                command("check_reranker_faults", *common, "--gate", "M3")]
+                command("check_reranker_faults", *common, "--gate", "M3"),
+                command("collect_context_lifecycle", *common, "--model-dir", str(args.model_dir),
+                        "--llm-config", str(getattr(args, "llm_config", None) or Path("configs/default.yaml")),
+                        "--output", str(args.results_dir / "raw/context_lifecycle_observations.json")),
+                command("build_supplemental_report", *common, "--gate", "S2",
+                        "--observations", str(args.results_dir / "raw/context_lifecycle_observations.json"))]
     if args.stage in {"route", "calibration"}:
         options = ["--results-dir", str(args.results_dir), "--index-dir", str(args.index_dir),
                    "--dev", str(args.benchmark_dir / "human_retrieval_dev.jsonl")]
@@ -52,12 +67,28 @@ def commands(args) -> list[list[str]]:
         return [command("sweep_reranker_caps", *options, *model, "--dtype", args.dtype, *inference_cli(args),
                         "--low-score-action", getattr(args, "low_score_action", "phase6"),
                         "--evidence-policy", args.evidence_policy)]
+    if args.stage == "quality-collect":
+        collect = [*common, "--llm-config", str(args.llm_config), "--rubric", str(args.rubric),
+                   "--output", str(args.observations)]
+        return [command("collect_paired_answers", *collect, "--prepare-only"),
+                command("compare_retrieval_quality", *common),
+                command("build_supplemental_report", *common, "--gate", "S3"),
+                command("build_supplemental_report", *common, "--gate", "S5"),
+                command("collect_paired_answers", *collect)]
+    if args.stage == "quality":
+        return [command("paired_answer_quality", "--observations", str(args.observations),
+                        "--rubric", str(args.rubric), "--bindings", str(args.results_dir / "model_snapshot_smoke.json"),
+                        "--review-policy", str(args.benchmark_dir / "phase7_review_policy.json"),
+                        "--output", str(args.results_dir / "reranker_answer_quality.json"))]
     if args.stage == "performance":
         return [command("measure_reranker_capacity", *common, "--deployment-ram-bytes", str(args.deployment_ram_bytes),
-                        "--profile", args.profile),
+                        "--profile", args.profile, "--environment-id", args.environment_id,
+                        "--http-p95-budget-ms", str(args.http_p95_budget_ms)),
                 command("measure_reranker_http", *common, "--model-dir", str(args.model_dir),
                         "--llm-config", str(args.llm_config), "--deployment-ram-bytes", str(args.deployment_ram_bytes),
-                        "--p95-budget-ms", str(args.http_p95_budget_ms))]
+                        "--p95-budget-ms", str(args.http_p95_budget_ms)),
+                command("build_supplemental_report", *common, "--gate", "S6", "--observations",
+                        str(args.results_dir / "raw/reranker_observability_observations.json"))]
     if args.stage == "security":
         return [command("evaluate_reranker_security", *common, "--cases", str(args.cases))]
     if args.stage == "faults":
@@ -105,11 +136,16 @@ def measurement_environment(args) -> dict[str, str]:
 
 
 def main(argv=None) -> int:
+    from evaluation.reranker.active_cycle import active_cycle
+    cycle = active_cycle()
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("stage", choices=STAGES)
-    parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
-    parser.add_argument("--index-dir", type=Path, default=Path(".tmp/hybrid-index"))
-    parser.add_argument("--benchmark-dir", type=Path, default=Path("data/benchmark"))
+    parser.add_argument("--results-dir", type=Path, default=cycle["results_dir"])
+    parser.add_argument("--index-dir", type=Path, default=cycle["index_dir"])
+    parser.add_argument("--benchmark-dir", type=Path, default=cycle["benchmark_dir"])
+    parser.add_argument("--owner-identity", help="explicit project owner identity; otherwise use the review policy")
+    parser.add_argument("--review-audit", type=Path, help="actual intake export audit for M1/S1")
+    parser.add_argument("--assign-splits", action="store_true", help="assign reviewed groups using the exposure registry")
     parser.add_argument("--model-dir", type=Path)
     parser.add_argument("--model-name", default="BAAI/bge-reranker-v2-m3")
     parser.add_argument("--device", default="cpu")
@@ -119,6 +155,7 @@ def main(argv=None) -> int:
     parser.add_argument("--deployment-ram-bytes", type=int)
     parser.add_argument("--profile", default="cpu-small")
     parser.add_argument("--llm-config", type=Path)
+    parser.add_argument("--rubric", type=Path, help="source-checked semantic rubric frozen before quality collection")
     parser.add_argument("--http-p95-budget-ms", type=int, default=10000)
     parser.add_argument("--cases", type=Path, default=Path("data/benchmark/reranker_adversarial.jsonl"))
     parser.add_argument("--observations", type=Path)
@@ -131,26 +168,65 @@ def main(argv=None) -> int:
     parser.add_argument("--readiness-output", type=Path, default=Path(".release/reranker/readiness.json"))
     parser.add_argument("--release-manifest", type=Path, default=Path("evaluation/results/reranker_release_manifest.json"))
     args = parser.parse_args(argv)
-    measured = {"quality", "performance", "security", "rollback"}
+    if args.stage == "human-freeze":
+        audit = args.review_audit or args.benchmark_dir / "human_retrieval_review_audit.jsonl"
+        if not audit.is_file():
+            parser.error("M1/S1 requires the actual --review-audit from human_benchmark_intake export")
+    measured = {"quality", "quality-collect", "performance", "security", "rollback"}
     if args.stage in measured | {"model", "calibration", "release", "staging-collect"} and args.model_dir is None:
         parser.error("--model-dir is required for this stage (local immutable snapshot)")
     if args.stage == "performance" and (args.deployment_ram_bytes is None or args.deployment_ram_bytes <= 0):
         parser.error("--deployment-ram-bytes must be the positive deployment limit")
     if args.stage == "performance" and (args.llm_config is None or not args.llm_config.is_file()):
         parser.error("--llm-config is required for live end-to-end HTTP measurement")
+    if args.stage in {"quality", "quality-collect"}:
+        if args.rubric is None or not args.rubric.is_file() or args.observations is None:
+            parser.error("--rubric and --observations are required for paired quality evidence")
+        if args.stage == "quality-collect" and (args.llm_config is None or not args.llm_config.is_file()):
+            parser.error("--llm-config is required for uncached paired answer collection")
+        if args.stage == "quality-collect" and args.observations.exists():
+            parser.error("retain existing paired outputs; select an absent --observations path")
+        if args.stage == "quality" and not args.observations.is_file():
+            parser.error("--observations must contain reviewed paired outputs")
     if not 0 <= args.queue_limit <= 99:
         parser.error("--queue-limit must be between 0 and 99")
     if args.stage == "staging" and (args.observations is None or args.fault_observations is None):
         parser.error("--observations and --fault-observations are required")
     try:
+        if args.stage == "human-freeze":
+            from evaluation.benchmarks.human_benchmark_intake import configured_owner_identity
+            from evaluation.reranker.supplemental_gates import review_audit_errors
+            rows = [json.loads(line) for line in (args.benchmark_dir / "human_retrieval.jsonl").read_text(
+                encoding="utf-8").splitlines() if line.strip()]
+            audit_rows = [json.loads(line) for line in audit.read_text(encoding="utf-8").splitlines() if line.strip()]
+            owner = configured_owner_identity(args.benchmark_dir / "phase7_review_policy.json", args.owner_identity)
+            confirmation, sources = None, None
+            if any(item.get("review_evidence_kind") == "owner_dataset_confirmation" for item in audit_rows):
+                from evaluation.benchmarks.owner_review import load_confirmation
+                confirmation, sources = load_confirmation(args.benchmark_dir)
+            from evaluation.benchmarks.owner_generation import load_generation
+            authorization, generated = load_generation(args.benchmark_dir, args.index_dir)
+            audit_errors = review_audit_errors(rows, audit_rows, args.index_dir, owner_identity=owner,
+                                              owner_confirmation=confirmation, confirmed_sources=sources,
+                                              generation_authorization=authorization, generated_records=generated)
+            if audit_errors:
+                raise ValueError("M1/S1 review audit rejected before freeze: " + ", ".join(audit_errors))
         if args.stage not in {"baseline", "validate"}:
             require_previous_gates(STAGES[args.stage], args.results_dir,
                                    index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
         env = measurement_environment(args) if args.stage in measured else dict(os.environ)
         for command in commands(args):
-            run = subprocess.run(command, env=env, check=False)
+            if args.stage in {'validate', 'release'}:
+                run = subprocess.run(command, env=env, check=False)
+            else:
+                run = run_recorded(command, env=env, results_dir=args.results_dir,
+                                   cycle_id=args.results_dir.name, stage=args.stage)
             if run.returncode:
                 return run.returncode
+        if args.stage == "quality-collect":
+            print(json.dumps({"status": "pending_semantic_review", "observations": str(args.observations),
+                              "all_release_gates_pass": False}))
+            return 0
         if args.stage not in {"baseline", "validate", "release"}:
             check = default_args(args.results_dir)
             check.index_dir, check.benchmark_dir, check.through = args.index_dir, args.benchmark_dir, STAGES[args.stage]

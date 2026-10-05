@@ -4,6 +4,8 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
+from datetime import datetime, timezone
+import hashlib
 import json
 import math
 from pathlib import Path
@@ -39,6 +41,45 @@ def summarize_samples(samples: list[dict]) -> dict:
             "errors": sum(s["error"] for s in samples)}
 
 
+FAILED_REASONS = {"queue_full", "circuit_open", "reranker_timeout", "request_exception",
+                  "reranker_oom", "reranker_unavailable", "reranker_inference_failed",
+                  "invalid_model_scores", "model_not_ready", "feature_disabled"}
+
+
+def successful_throughput(samples: list[dict], duration_seconds: float) -> float:
+    if type(duration_seconds) not in (int, float) or not math.isfinite(duration_seconds) or duration_seconds <= 0:
+        raise ValueError("throughput requires actual positive wall-clock duration")
+    if not samples or any(type(sample.get("error")) is not bool for sample in samples):
+        raise ValueError("throughput requires completed request observations")
+    return sum(not sample["error"] and sample.get("reason") not in FAILED_REASONS for sample in samples) / duration_seconds
+
+
+def select_hard_workload(rows: list[dict], retriever, docs: list[str]) -> tuple[list[dict], list[dict]]:
+    """Use the physical Phase 6 route, rather than a benchmark's exact-code tag."""
+    from campusai.rag.context import benchmark_retrieval_request
+    selected, probes = [], []
+    for row in rows:
+        if row["answerable"] is not True or row["difficulty"] != "hard":
+            continue
+        results = retriever.search(**benchmark_retrieval_request(row, docs), top_k=5, mode="auto")
+        trace = retriever.last_trace
+        eligible = not trace.abstained and trace.route not in {"exact_code", "abstain"} and len(results) >= 2
+        probes.append({"qid": row["qid"], "route": trace.route, "abstained": trace.abstained,
+                       "candidates": len(results), "eligible": eligible})
+        if eligible:
+            selected.append(row)
+    return selected, probes
+
+
+def resource_sample(process, device: str) -> dict:
+    sample = {"at": datetime.now(timezone.utc).isoformat(), "pid": process.pid,
+              "rss_bytes": process.memory_info().rss}
+    if device.startswith("cuda"):
+        import torch
+        sample["vram_allocated_bytes"] = torch.cuda.memory_allocated(device)
+    return sample
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--index-dir", type=Path, default=Path(".tmp/hybrid-index"))
@@ -47,9 +88,13 @@ def main() -> int:
     parser.add_argument("--deployment-ram-bytes", type=int, required=True)
     parser.add_argument("--requests", type=int, default=120)
     parser.add_argument("--profile", default="cpu-small")
+    parser.add_argument("--environment-id", default="local-capacity")
+    parser.add_argument("--http-p95-budget-ms", type=int, default=10000)
     args = parser.parse_args()
     if args.requests < 100 or args.deployment_ram_bytes <= 0:
         raise ValueError(">=100 requests and a positive deployment RAM limit required")
+    if not args.environment_id or not 0 < args.http_p95_budget_ms <= 10000:
+        raise ValueError("deployment identity and an HTTP budget up to 10000ms required")
     require_previous_gates("M7", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
     import psutil
     from campusai.retrieval.reranker_activation import build_phase7_retriever
@@ -70,7 +115,7 @@ def main() -> int:
     provider = retriever.phase7_provider
     docs = json.loads((args.index_dir / "manifest.json").read_text(encoding="utf-8"))["documents"]
     rows = [json.loads(line) for line in (args.benchmark_dir / "human_retrieval_test.jsonl").read_text(encoding="utf-8").splitlines() if line.strip()]
-    hard_rows = [row for row in rows if row["answerable"] and row["difficulty"] == "hard" and "exact_code" not in row["tags"]]
+    hard_rows, workload_probes = select_hard_workload(rows, retriever, docs)
     if not hard_rows:
         raise ValueError("no hard workload")
     process = psutil.Process()
@@ -88,21 +133,23 @@ def main() -> int:
         error = False
         selected = False
         try:
-            retriever.search(row["question"], row.get("doc_ids", docs), filters=row.get("filters"), top_k=5, mode=mode)
+            from campusai.rag.context import benchmark_retrieval_request
+            retriever.search(**benchmark_retrieval_request(row, docs), top_k=5, mode=mode)
             trace = retriever.last_trace
             reason = trace.rerank_reason
             selected = trace.rerank_selected
             timings = trace.latency_ms or {}
-            fallback = mode == "phase7" and not trace.rerank_selected and reason not in {"easy_confident", "exact_or_abstained", "single_candidate"}
+            fallback = mode == "phase7" and trace.rerank_fallback
         except Exception:
             error, reason, timings, fallback = True, "request_exception", {}, False
         return {"qid": row["qid"], "hard": row["difficulty"] == "hard", "error": error,
                 "latency_ms": (time.perf_counter() - begin) * 1000, "reason": reason,
                 "fallback": fallback, "rerank_selected": selected, "timings_ms": timings}
-    profiles, all_samples = [], []
+    profiles, all_samples, resources = [], [], []
     try:
         warm_started = time.perf_counter()
         provider.warm_up()
+        resources.append(resource_sample(process, provider.model_identity.device))
         cold_ms = (time.perf_counter() - started) * 1000
         search(hard_rows[0])
         warm_ms = (time.perf_counter() - warm_started) * 1000
@@ -126,14 +173,18 @@ def main() -> int:
             retriever.phase7_policy = replace(original_policy, rerank_candidate_cap=cap)
             provider.reset_circuit()
             workload = [hard_rows[i % len(hard_rows)] for i in range(args.requests)]
+            profile_started = time.perf_counter()
             with ThreadPoolExecutor(max_workers=concurrency) as workers:
                 samples = list(workers.map(search, workload))
+            duration_seconds = time.perf_counter() - profile_started
             # Don't let a timed-out native inference contaminate the next
             # profile. The bounded worker may still be finishing it.
             provider.drain()
             part = {"profile": args.profile, "device": provider.model_identity.device,
                     "resource_limits": provider.resource_limits,
                     "rerank_cap": cap, "concurrency": concurrency, "samples": samples,
+                    "duration_seconds": duration_seconds,
+                    "successful_throughput_rps": successful_throughput(samples, duration_seconds),
                     "provider_metrics": provider.metrics_snapshot(),
                     "phase7_enabled_after": retriever.phase7_enabled,
                     "summary": summarize_samples(samples)}
@@ -147,6 +198,7 @@ def main() -> int:
         candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id, item.page, item.content,
                                       item.rank, float(item.fusion_score or 0)) for item in pool[:original_policy.rerank_candidate_cap]]
         provider.drain()
+        resources.append(resource_sample(process, provider.model_identity.device))
         provider.close()
         diagnostic = activate()
         provider = diagnostic.phase7_provider
@@ -185,11 +237,19 @@ def main() -> int:
                "peak_rss_bytes": peak[0], "cpu_utilization_percent": process.cpu_percent()})
     overflow_errors = sum(s["error"] for p in profiles for s in p["samples"] if s["reason"] == "queue_full")
     write_json(args.results_dir / "reranker_capacity.json", {"status": status, **bindings, "profiles": profiles,
+               "workload_route_probes": workload_probes,
                "resource_limits": provider.resource_limits,
                "release_rerank_cap": original_policy.rerank_candidate_cap, "deployment_device": provider.model_identity.device,
                "queue_overflow_request_failures": overflow_errors})
     write_json(args.results_dir / "reranker_resource_budget.json", {"status": status, **bindings,
                "deployment_ram_bytes": args.deployment_ram_bytes, "peak_rss_bytes": peak[0], "ram_fraction": peak[0] / args.deployment_ram_bytes})
+    observations = {"environment_id": args.environment_id, "device": provider.model_identity.device,
+                    "http_p95_budget_ms": args.http_p95_budget_ms, "resource_samples": resources,
+                    "collector": "physical_capacity_process_checkpoints", **bindings}
+    raw_dir = args.results_dir / "raw"
+    digest = hashlib.sha256(json.dumps(observations, sort_keys=True).encode()).hexdigest()
+    write_json(raw_dir / ("reranker_observability_observations_" + digest[:16] + ".json"), observations)
+    write_json(raw_dir / "reranker_observability_observations.json", observations)
     print(json.dumps({"status": status, "summary": summary, "peak_rss_bytes": peak[0]}, indent=2))
     return 0 if passed else 1
 

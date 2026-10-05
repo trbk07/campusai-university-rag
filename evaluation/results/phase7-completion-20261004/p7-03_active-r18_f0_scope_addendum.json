@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "task": "P7-03/F0-scope-clarification",
+  "recorded_at": "2026-10-04T15:52:02.993398+00:00",
+  "status": "ACTIVE_R18_SPLIT_SEALED_FOR_AUDIT; SUCCESSOR_F0_NOT_COMPLETE",
+  "release_eligible": false,
+  "interpretation": "The linked active-r18 freeze artifact seals the exact already-reviewed r18 row, split, exposure-registry, and M0/M1 validation bytes. It is an audit freeze of that historical cycle only. It does not complete the P7-03 successor F0 deliverable or authorize release; no successor question records were generated from the separate source-group proposal.",
+  "freeze_path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_freeze.json",
+  "freeze_sha256": "c38078d5521e2810d87510299198ed8574335ccb7a40e88bdec923dd88622831",
+  "freeze_validation_path": "evaluation/results/phase7-completion-20261004/p7-03_active-r18_f0_validation.json",
+  "freeze_validation_sha256": "1e0e5fcc65f9aad45da155af5e4f2712c982196c6da8ae82ef45b0cbf218ae08",
+  "release_eligibility": false,
+  "current_open_p7_03_requirements": {
+    "reviewed_new_question_records_from_source_groups": {
+      "dev": 0,
+      "test": 0,
+      "holdout": 0
+    },
+    "unresolved_strata": {
+      "ambiguous_test": 0,
+      "ambiguous_holdout": 0,
+      "contextual_test": 0,
+      "contextual_holdout": 0,
+      "scoped_year_semester_test_holdout": "not evidenced in active split tags; inspect source-backed item availability before release freeze",
+      "new_source_group_strata": "not generated; no records from the 42 reviewed source groups are allocated in this active dataset"
+    },
+    "m2_current_status": "FAIL",
+    "m2_current_detail": {
+      "status": "FAIL",
+      "evidence_status": "FAIL",
+      "owner": "retrieval reviewer",
+      "errors": [
+        "candidate_human_test_stratified_coverage_gate",
+        "candidate_report_gate"
+      ],
+      "requires": [
+        "M1"
+      ],
+      "artifacts": [
+        "candidate_coverage.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M2"
+    },
+    "source_gap_report_path": "evaluation/results/phase7-completion-20261004/p7-03_gap_report.json",
+    "source_gap_report_sha256": "1a3b3155368d63af2952c1310e9dab8d5015b0aa463b3178120b5ff1b2a3a60a",
+    "successor_exposure_registry_and_signed_f0_manifest": "not yet produced"
+  },
+  "completed_scope": {
+    "owner_authorized_semantic_decisions_for_53_rows_42_groups": true,
+    "active_r18_exposure_registry_and_split_validation": true,
+    "active_r18_m0_m1_revalidation_pass": true,
+    "active_r18_split_freeze_checks_pass": true,
+    "independent_reviewer_claimed": false
+  },
+  "owner_authorization": "The project owner authorized P7-03 review and owner sign-off where policy allows; this is not represented as independent reviewer approval.",
+  "next_action": "Generate and review source-backed question records against the fresh groups and all required split strata, validate the successor registry/lineage/labels, then freeze that successor before exposing held-out outcomes."
+}

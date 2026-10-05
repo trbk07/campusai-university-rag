@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "hard_query_route_confusion.json",
+    "sha256": "5daf5a7459b3cb401a3c0bd2466003e16c50e5f9daf123780c7eec9f3f522dd7"
+  },
+  "summary": {
+    "status": "pass",
+    "source_sha256": "4f6fbafa82b22cb00d28832c7cb71120bbbb4e81937098a034bfbfb8590d061f",
+    "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "phase6_calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+    "route_calibration_sha256": "c155d4638b108a931c4334db4cf9080114956bf7c806b3bbf2e085cb7d9ae2b1",
+    "splits": {
+      "dev": {
+        "eligible": 135,
+        "selected": 81,
+        "coverage": 0.6,
+        "hard_recall": 0.9696969696969697,
+        "easy_unnecessary_rerank_rate": 0.12244897959183673,
+        "selection_precision": 0.7901234567901234,
+        "false_skip_rate": 0.030303030303030276,
+        "hard_count": 66,
+        "easy_count": 49,
+        "bypass": {
+          "exact_or_abstained": 77,
+          "single_candidate": 0
+        },
+        "deterministic": true,
+        "exact_code_count": 26,
+        "abstention_count": 51,
+        "exact_code_rerank_rate": 0.0,
+        "abstention_rerank_rate": 0.0,
+        "benchmark_sha256": "2fc8da94976bba85f263011c63c6dae1fc7bd8e5f684c8a9ab5add4315687cea",
+        "samples": {
+          "raw_array_reference": "/splits/dev/samples",
+          "records": 135
+        }
+      },
+      "test": {
+        "eligible": 20,
+        "selected": 17,
+        "coverage": 0.85,
+        "hard_recall": 1.0,
+        "easy_unnecessary_rerank_rate": 0.0,
+        "selection_precision": 1.0,
+        "false_skip_rate": 0.0,
+        "hard_count": 17,
+        "easy_count": 3,
+        "bypass": {
+          "exact_or_abstained": 48,
+          "single_candidate": 0
+        },
+        "deterministic": true,
+        "exact_code_count": 31,
+        "abstention_count": 17,
+        "exact_code_rerank_rate": 0.0,
+        "abstention_rerank_rate": 0.0,
+        "benchmark_sha256": "00f087244aa37b25ebc4fc9000fd012df092c8320370c856b9d9c41a91282175",
+        "samples": [
+          {
+            "qid": "human-ownerfresh-003-3",
+            "difficulty": "hard",
+            "query_length": 44.0,
+            "constraints": 3.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.3603088361452674,
+            "confidence": 0.8,
+            "margin": 0.05999999999999983,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-004-3",
+            "difficulty": "hard",
+            "query_length": 40.0,
+            "constraints": 1.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.3603088361452674,
+            "confidence": 0.8,
+            "margin": 0.09999999999999987,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-005-3",
+            "difficulty": "hard",
+            "query_length": 40.0,
+            "constraints": 3.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.33539896505462213,
+            "confidence": 0.8,
+            "margin": 0.30714285714285716,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-007-3",
+            "difficulty": "hard",
+            "query_length": 39.0,
+            "constraints": 3.0,
+            "agreement": 0.6,
+            "distinct_documents": 1.0,
+            "concentration": 0.3692063148007659,
+            "confidence": 0.8,
+            "margin": 0.5041666666666668,
+            "operation_required": 1.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-010-3",
+            "difficulty": "hard",
+            "query_length": 53.0,
+            "constraints": 5.0,
+            "agreement": 0.4,
+            "distinct_documents": 1.0,
+            "concentration": 0.4026330428333024,
+            "confidence": 0.8,
+            "margin": 0.3583333333333334,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-013-3",
+            "difficulty": "hard",
+            "query_length": 46.0,
+            "constraints": 3.0,
+            "agreement": 0.4,
+            "distinct_documents": 1.0,
+            "concentration": 0.3129397602190949,
+            "confidence": 0.8,
+            "margin": 0.37809523809523804,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-016-1",
+            "difficulty": "easy",
+            "query_length": 17.0,
+            "constraints": 2.0,
+            "agreement": 0.2,
+            "distinct_documents": 1.0,
+            "concentration": 0.5457002286743815,
+            "confidence": 0.8,
+            "margin": 0.8785714285714286,
+            "operation_required": 0.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-016-3",
+            "difficulty": "hard",
+            "query_length": 39.0,
+            "constraints": 5.0,
+            "agreement": 0.8,
+            "distinct_documents": 1.0,
+            "concentration": 0.24346040961652576,
+            "confidence": 0.8,
+            "margin": 0.044805194805194515,
+            "operation_required": 1.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-020-1",
+            "difficulty": "easy",
+            "query_length": 19.0,
+            "constraints": 2.0,
+            "agreement": 0.6,
+            "distinct_documents": 1.0,
+            "concentration": 0.4216329029801152,
+            "confidence": 0.8,
+            "margin": 1.0166666666666668,
+            "operation_required": 0.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-020-3",
+            "difficulty": "hard",
+            "query_length": 41.0,
+            "constraints": 5.0,
+            "agreement": 0.6,
+            "distinct_documents": 1.0,
+            "concentration": 0.27556970528300395,
+            "confidence": 0.8,
+            "margin": 0.28880952380952385,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-022-3",
+            "difficulty": "hard",
+            "query_length": 45.0,
+            "constraints": 3.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.24105360742434287,
+            "confidence": 0.8,
+            "margin": 0.030476190476190324,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-023-3",
+            "difficulty": "hard",
+            "query_length": 41.0,
+            "constraints": 2.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.23220916433793978,
+            "confidence": 0.8,
+            "margin": 0.06047619047619057,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-025-3",
+            "difficulty": "hard",
+            "query_length": 42.0,
+            "constraints": 2.0,
+            "agreement": 0.8,
+            "distinct_documents": 1.0,
+            "concentration": 0.30701754385964913,
+            "confidence": 0.8,
+            "margin": 0.43333333333333335,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-026-3",
+            "difficulty": "hard",
+            "query_length": 43.0,
+            "constraints": 3.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.289520716662689,
+            "confidence": 0.8,
+            "margin": 0.050000000000000044,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-028-3",
+            "difficulty": "hard",
+            "query_length": 40.0,
+            "constraints": 1.0,
+            "agreement": 0.8,
+            "distinct_documents": 1.0,
+            "concentration": 0.32888597258676,
+            "confidence": 0.8,
+            "margin": 0.30666666666666664,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-030-3",
+            "difficulty": "hard",
+            "query_length": 36.0,
+            "constraints": 1.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.32267013807379585,
+            "confidence": 0.8,
+            "margin": 0.2742424242424242,
+            "operation_required": 1.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-031-3",
+            "difficulty": "hard",
+            "query_length": 44.0,
+            "constraints": 2.0,
+            "agreement": 0.8,
+            "distinct_documents": 1.0,
+            "concentration": 0.3147162711770619,
+            "confidence": 0.8,
+            "margin": 0.4076923076923078,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          },
+          {
+            "qid": "human-ownerfresh-036-1",
+            "difficulty": "easy",
+            "query_length": 15.0,
+            "constraints": 0.0,
+            "agreement": 0.2,
+            "distinct_documents": 1.0,
+            "concentration": 0.43544388782729954,
+            "confidence": 0.8,
+            "margin": 1.0166666666666668,
+            "operation_required": 0.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-036-3",
+            "difficulty": "hard",
+            "query_length": 36.0,
+            "constraints": 1.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.2901716244136385,
+            "confidence": 0.8,
+            "margin": 0.27142857142857146,
+            "operation_required": 1.0,
+            "long_request": 0.0
+          },
+          {
+            "qid": "human-ownerfresh-039-3",
+            "difficulty": "hard",
+            "query_length": 43.0,
+            "constraints": 3.0,
+            "agreement": 1.0,
+            "distinct_documents": 1.0,
+            "concentration": 0.2938661276529581,
+            "confidence": 0.8,
+            "margin": 0.3604761904761904,
+            "operation_required": 1.0,
+            "long_request": 1.0
+          }
+        ]
+      },
+      "holdout": {
+        "eligible": 25,
+        "selected": 18,
+        "coverage": 0.72,
+        "hard_recall": 1.0,
+        "easy_unnecessary_rerank_rate": 0.0,
+        "selection_precision": 1.0,
+        "false_skip_rate": 0.0,
+        "hard_count": 18,
+        "easy_count": 7,
+        "bypass": {
+          "exact_or_abstained": 47,
+          "single_candidate": 0
+        },
+        "deterministic": true,
+        "exact_code_count": 29,
+        "abstention_count": 18,
+        "exact_code_rerank_rate": 0.0,
+        "abstention_rerank_rate": 0.0,
+        "benchmark_sha256": "f2a87fc8713badbbec6f2f9f16b73a738cbb762926a8d8ab80e653595a278f4c",
+        "samples": {
+          "raw_array_reference": "/splits/holdout/samples",
+          "records": 25
+        }
+      }
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/splits/dev/samples",
+      "records": 135
+    },
+    {
+      "json_pointer": "/splits/holdout/samples",
+      "records": 25
+    }
+  ]
+}

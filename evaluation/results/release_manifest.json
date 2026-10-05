@@ -1,0 +1,250 @@
+{
+  "schema_version": 2,
+  "phase": 7,
+  "status": "pass",
+  "all_release_gates_pass": true,
+  "score": 10.0,
+  "errors": [],
+  "gates": {
+    "M0": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "baseline reviewer",
+      "errors": [],
+      "requires": [],
+      "artifacts": [
+        "retrieval_baseline_manifest.json",
+        "retrieval_baseline_comparison.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M0"
+    },
+    "M1": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "human annotator and independent reviewer",
+      "errors": [],
+      "requires": [
+        "M0"
+      ],
+      "artifacts": [
+        "human_benchmark_review.json",
+        "human_benchmark_manifest.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M1"
+    },
+    "M2": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "retrieval reviewer",
+      "errors": [],
+      "requires": [
+        "M1"
+      ],
+      "artifacts": [
+        "candidate_coverage.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M2"
+    },
+    "M3": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "runtime reviewer",
+      "errors": [],
+      "requires": [
+        "M2"
+      ],
+      "artifacts": [
+        "model_snapshot_smoke.json",
+        "reranker_provider_contract.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M3"
+    },
+    "M4": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "routing reviewer",
+      "errors": [],
+      "requires": [
+        "M3"
+      ],
+      "artifacts": [
+        "hard_query_route_calibration.json",
+        "hard_query_route_confusion.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M4"
+    },
+    "M5": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "calibration reviewer",
+      "errors": [],
+      "requires": [
+        "M4"
+      ],
+      "artifacts": [
+        "reranker_score_calibration.json",
+        "reranker_cap_sensitivity.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M5"
+    },
+    "M6": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "quality reviewer",
+      "errors": [],
+      "requires": [
+        "M5"
+      ],
+      "artifacts": [
+        "retrieval_quality_comparison.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M6"
+    },
+    "M7": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "deployment owner",
+      "errors": [],
+      "requires": [
+        "M6"
+      ],
+      "artifacts": [
+        "reranker_performance.json",
+        "reranker_capacity.json",
+        "reranker_resource_budget.json",
+        "reranker_http_end_to_end.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M7"
+    },
+    "M8": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "security and grounding reviewer",
+      "errors": [],
+      "requires": [
+        "M7"
+      ],
+      "artifacts": [
+        "reranker_grounding_regression.json",
+        "reranker_security.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M8"
+    },
+    "M9": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "runtime reviewer",
+      "errors": [],
+      "requires": [
+        "M8"
+      ],
+      "artifacts": [
+        "reranker_failure_matrix.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M9"
+    },
+    "M10": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "operations owner",
+      "errors": [],
+      "requires": [
+        "M9"
+      ],
+      "artifacts": [
+        "reranker_rollback.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M10"
+    },
+    "M11": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "staging owner",
+      "errors": [],
+      "requires": [
+        "M10"
+      ],
+      "artifacts": [
+        "reranker_staging.json",
+        "canary_observations.json"
+      ],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M11"
+    },
+    "M12": {
+      "status": "PASS",
+      "evidence_status": "PASS",
+      "owner": "release owner",
+      "errors": [],
+      "requires": [
+        "M11"
+      ],
+      "artifacts": [],
+      "verify_command": "python -m evaluation.reranker.validate_reranker_release --through M12"
+    }
+  },
+  "supplemental_gates": {
+    "S1": {
+      "status": "PASS",
+      "errors": []
+    },
+    "S2": {
+      "status": "PASS",
+      "errors": []
+    },
+    "S3": {
+      "status": "PASS",
+      "errors": []
+    },
+    "S4": {
+      "status": "PASS",
+      "errors": []
+    },
+    "S5": {
+      "status": "PASS",
+      "errors": []
+    },
+    "S6": {
+      "status": "PASS",
+      "errors": []
+    }
+  },
+  "through": "M12",
+  "commit": "c7c706deabb26163527f0b9a93085e494d55830b",
+  "source_sha256": "0e779e2f9e8675b9771c9b789959acd340bdcd4c5b5a0d9cbd18fa4e97c59d2b",
+  "runtime_sha256": "99317879e7724801e885ad35862fd2d13e044f1465c1ac610758d37b4d9122d4",
+  "working_tree_clean": true,
+  "base_release": "phase6-rc3",
+  "baseline_commit": "8e3a331838fbccaa16b4dd00381b9ed4738e958f",
+  "model_identity_sha256": "06af023a0aff77df0b89580d2b122b7a8aecb9898146e16a5194fc9e92eec662",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "calibration_sha256": null,
+  "artifact_sha256": {
+    "baseline": "1ff3b5082d9fc5dcf1f7f96f1e39997f45c30a4d75cd84a0d52768e9177d52ab",
+    "baseline_report": "6e0484cbcedc22059365e02a6bfbb589d9da0c6c3341208e8c17f29c255e7f74",
+    "human_review": "17ef130fcf8abddc84e06b84373d80d9815df2a8c39ccec93404c14115d9c19d",
+    "human_manifest": "75d387a81f5203239ce3bf86153edfef99f1daf7e72fb4a94152bcf0e0b0988b",
+    "candidate": "e6c6902fc9742f254cefeed52f6479e5a70ebf17f306192f7ea78039268f25b9",
+    "smoke": "e702ccc436c751e964c5585902b09ff35dc3c2da6deea0e6fe92d1e0d2a2203c",
+    "provider_contract": "88ec052e65431c2d969a9015b72579c9a7ec6a9535d5ca5c6de8aa67f3a429b4",
+    "route": "e1b45e488cba9ddaf176a3b5a0feb2d561b65c40913b143d5184475d8e8d4b34",
+    "route_confusion": "e8dfcf85bd5e20f6cba0c9d3a01a041fba0c84b5d6f2615f8f5f69984321529f",
+    "calibration": null,
+    "sensitivity": null,
+    "quality": null,
+    "performance": null,
+    "capacity": null,
+    "resource_budget": null,
+    "http_end_to_end": null,
+    "grounding": null,
+    "security": null,
+    "failure_matrix": null,
+    "rollback": null,
+    "staging": null,
+    "canary": null,
+    "retrieval_quality_comparison.md": null,
+    "retrieval_ranking_regressions.jsonl": null,
+    "reranker_route_freeze.json": "1db30894c3706a79d302844d344300906db8bd370973dac2d0efeb88013b5e6f",
+    "reranker_policy_freeze.json": null
+  },
+  "deployment_ram_bytes": null
+}

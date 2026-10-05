@@ -1,0 +1,352 @@
+{
+  "schema_version": 1,
+  "status": "diagnostic",
+  "release_eligible": false,
+  "calibration_report_sha256": "ed9c5c492385623465d41e427bbc007bca9b3423e870d78e72900ceb341cc363",
+  "dataset_sha256": "65eeac93f9f0367d8b6744d1df50807cc84a2cf6709ee47ca7fd109928e76bea",
+  "counts": {
+    "positive": 315,
+    "baseline_hits": 211,
+    "all_proposals_hits": 240,
+    "oracle_baseline_or_proposal_hits": 248,
+    "unselected_misses": 66,
+    "unselected_misses:easy": 66,
+    "unselected_misses:owner": 4,
+    "unselected_misses:curriculum_credits": 32,
+    "unselected_misses:curriculum_semester": 30
+  },
+  "unselected_misses": [
+    {
+      "qid": "human-candidate-0160",
+      "difficulty": "easy",
+      "kind": "owner"
+    },
+    {
+      "qid": "human-candidate-0165",
+      "difficulty": "easy",
+      "kind": "owner"
+    },
+    {
+      "qid": "human-candidate-0177",
+      "difficulty": "easy",
+      "kind": "owner"
+    },
+    {
+      "qid": "human-candidate-0178",
+      "difficulty": "easy",
+      "kind": "owner"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-002-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-003-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-003-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-003-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-003-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-003-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-006-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-007-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-008-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-010-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-010-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-010-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-011-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-011-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-011-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-011-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-013-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-013-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-015-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-015-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-015-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-015-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-015-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-016-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-016-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-016-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-018-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-credits-2",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-semester-2",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-021-semester-3",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    },
+    {
+      "qid": "human-p7r18-curriculum-024-credits-1",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-024-credits-3",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-024-credits-4",
+      "difficulty": "easy",
+      "kind": "curriculum_credits"
+    },
+    {
+      "qid": "human-p7r18-curriculum-024-semester-1",
+      "difficulty": "easy",
+      "kind": "curriculum_semester"
+    }
+  ],
+  "oracle_recall_ceiling": 0.7873015873015873,
+  "meaning": "Unattainable diagnostic upper bound by choosing the correct one of measured baseline/proposal outputs per query; gold is used only to diagnose, never in runtime policy."
+}

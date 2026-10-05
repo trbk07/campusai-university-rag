@@ -1,0 +1,24 @@
+{
+  "status": "source_proposal",
+  "release_eligible": false,
+  "archives": [
+    {
+      "archive": "uet_bionanotechnology_masters_curriculum_2015-records.json.gz",
+      "sha256": "7498d2eaa772a08211bdbd1fe024e8adbe559ed4ae99eca05620ce49b470d955",
+      "restored_sha256": "c226f7db47b65db8f5dc35f171b2ef4e1d03ce228e10589182a47637461a477a",
+      "bytes": 23
+    },
+    {
+      "archive": "uet_electronics_masters_curriculum_2022-records.json.gz",
+      "sha256": "d3fc6019651bb84bca01c2d6d3304719f8fffa0d0173282211f84ad50739ca04",
+      "restored_sha256": "6bbc33d24fa1e66b29768fd284ee3d85e4b1dfa731baaf9b0ec7b950ac1a1b87",
+      "bytes": 392231
+    },
+    {
+      "archive": "uet_robotics_curriculum_2020-records.json.gz",
+      "sha256": "88eb78107a75f86cbba2d497df25c4218bd31c4ebf87691ff609146fe4b94bfa",
+      "restored_sha256": "be7f8d38f0eb21d1e34347c0ea3000f752706ae1de05708e049aeda192bce023",
+      "bytes": 1233255
+    }
+  ]
+}

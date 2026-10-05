@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "task": "P7-08",
+  "status": "PASS_COMPONENT_RECOMPUTE",
+  "release_eligible": false,
+  "source_report_sha256": "f3b64d40a1c5892690a6c73896025d88f3718a2bcf9a89cc37f0293351c119bf",
+  "request_count": 400,
+  "profile_count": 4,
+  "resource_sample_count": 83,
+  "recomputed_profiles": [
+    {
+      "concurrency": 1,
+      "requests": 100,
+      "successful": 100,
+      "p50_ms": 21.11970000078145,
+      "p95_ms": 42.9731999993237,
+      "p99_ms": 49.368199999662465,
+      "successful_rps": 39.45670951874707,
+      "errors": 0
+    },
+    {
+      "concurrency": 5,
+      "requests": 100,
+      "successful": 100,
+      "p50_ms": 108.79019999993034,
+      "p95_ms": 128.76150000010966,
+      "p99_ms": 133.35639999968407,
+      "successful_rps": 44.89482131053912,
+      "errors": 0
+    },
+    {
+      "concurrency": 10,
+      "requests": 100,
+      "successful": 100,
+      "p50_ms": 204.59739999932935,
+      "p95_ms": 247.02660000002652,
+      "p99_ms": 251.21839999883377,
+      "successful_rps": 47.39505632593944,
+      "errors": 0
+    },
+    {
+      "concurrency": 20,
+      "requests": 100,
+      "successful": 100,
+      "p50_ms": 402.1675000003597,
+      "p95_ms": 410.8123000005435,
+      "p99_ms": 423.3418999992864,
+      "successful_rps": 49.32375650125419,
+      "errors": 0
+    }
+  ],
+  "resource_errors": [],
+  "server_stage_outcomes": {
+    "route_selected": 400,
+    "inference_attempted": 400,
+    "inference_completed": 400,
+    "ranking_applied": 400
+  },
+  "provider_totals": {
+    "submitted_requests": 401,
+    "completed_requests": 401,
+    "cancelled_requests": 0,
+    "rejected_requests": 0,
+    "active_requests": 0,
+    "queue_depth": 0,
+    "max_queue_depth": 19,
+    "queue_wait_ms_total": 60314.4434999831,
+    "max_queue_wait_ms": 391.17609999993874,
+    "worker_ms_total": 14171.614699989732,
+    "closed": true,
+    "failure_count": 0,
+    "ready": false,
+    "model_loads": 1,
+    "inference_calls": 401,
+    "score_cache_hits": 0,
+    "score_cache_entries": 0,
+    "inference_batches": 0,
+    "max_batch_requests": 0
+  },
+  "errors": [],
+  "limitations": [
+    "Component HTTP pilot does not exercise CampusAI RAG/grounding/LLM or calibrated route policy.",
+    "Synthetic candidate text is for runtime load only; no benchmark qids or quality claims are involved.",
+    "No public host or external LLM/provider profile was available; LLM duration/cost remains unknown.",
+    "This report is not M7 or S6 evidence and cannot satisfy the Phase 7 end-to-end HTTP acceptance gate."
+  ],
+  "recomputed_at": "2026-10-04T11:36:00.517068+00:00"
+}

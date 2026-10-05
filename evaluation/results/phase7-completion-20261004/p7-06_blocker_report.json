@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task": "P7-06",
+  "status": "BLOCKED",
+  "release_eligible": false,
+  "review": "Offline contract self-review by Codex; no semantic human reviewer claimed.",
+  "existing_protocol": "docs/reranker/paired_answer_review_protocol.md",
+  "validation": {
+    "command": ".venv/Scripts/python.exe -m pytest tests/test_grounding_metrics.py tests/test_grounding_release_contract.py tests/test_llm.py tests/test_llm_acceptance.py --basetemp=.tmp/phase7-p7-06-pytest --junitxml=evaluation/results/phase7-completion-20261004/p7-06-offline-contract-tests.xml -q",
+    "result": "47 passed",
+    "coverage": ["claim/citation metric denominator behavior", "physical support and all-hop rubric semantics", "provider/cache/retry/error contracts", "safe failed-provider accounting"]
+  },
+  "blockers": [
+    "P7-03 has no semantic exposure reviewer sign-off or frozen fresh groups; P7-06's gold claims/evidence cannot be finalized for successor acceptance.",
+    "No uncached live paired Phase 6/7 answer pilot or attributable token/cost usage receipt was collected.",
+    "No human reviewer has checked each generated factual claim and citation; offline tests and prior owner self-review cannot substitute for this step."
+  ],
+  "next_required_evidence": ["approved successor rubric/source/gold binding", "uncached paired dev calls with same prompt/model/provider/context budget", "raw per-request provider and usage/cost data or explicit unknown usage", "real reviewer-attributed claim/citation checks and recomputed S4/S5 report"],
+  "artifacts": ["p7-06-offline-contract-tests.xml"]
+}

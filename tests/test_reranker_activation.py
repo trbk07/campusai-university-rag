@@ -39,7 +39,13 @@ def test_phase7_production_cannot_activate_without_a_complete_release_manifest(t
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
-def test_phase7_valid_opt_in_binds_model_index_and_cache_key(tmp_path, device):
+def test_phase7_valid_opt_in_binds_model_index_and_cache_key(tmp_path, device, monkeypatch):
+    from campusai.retrieval.model_runtime import retrieval_runtime
+    class Model:
+        def predict(self, pairs, **kwargs):
+            return [0.0] * len(pairs)
+    # The snapshot below is an artificial fixture, not an installed model.
+    monkeypatch.setattr(retrieval_runtime(), "get_offline_reranker", lambda *args, **kwargs: Model())
     index = tmp_path / "index"
     index.mkdir()
     (index / "manifest.json").write_text('{"documents":[]}', encoding="utf-8")
@@ -87,6 +93,7 @@ def test_phase7_valid_opt_in_binds_model_index_and_cache_key(tmp_path, device):
     manifest = {"status": "pass", "score": 10.0, "all_release_gates_pass": True, "errors": [],
                 "resource_limits": {"timeout_ms": 1000, "queue_limit": 2, "failure_limit": 3, "score_cache_size": 0},
                 "gates": {f"M{i}": {"status": "PASS"} for i in range(13)},
+                "supplemental_gates": {f"S{i}": {"status": "PASS"} for i in range(1, 7)},
                 "runtime_sha256": runtime_sha256(), "model_identity_sha256": identity.fingerprint,
                 "index_sha256": digest(index / "manifest.json"), "device": device,
                 "candidate_cap": 40, "rerank_cap": 10, "phase6_calibration_sha256": digest(calibration),

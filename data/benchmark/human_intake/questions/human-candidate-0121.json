@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "record": {
+    "ambiguous": false,
+    "answerable": true,
+    "author": "LEGION",
+    "author_type": "human",
+    "candidate_id": "candidate-0121",
+    "context": [],
+    "difficulty": "hard",
+    "doc_ids": [
+      "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b"
+    ],
+    "document_context": {
+      "scope": "selected_uploads",
+      "uploaded_documents": [
+        {
+          "document_ref": "frozen_source",
+          "fixture_file": "uet_student_rewards_2023.pdf",
+          "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b"
+        }
+      ]
+    },
+    "evidence_source": "frozen_pdf",
+    "expected_behavior": "answer_grounded",
+    "filters": {},
+    "gold_evidence": [
+      {
+        "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1",
+        "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+        "page": 2
+      }
+    ],
+    "is_example": false,
+    "paraphrase_group": "excellent_student_no_low_grade",
+    "qid": "human-candidate-0121",
+    "question": "có một môn dưới C+ là bay danh hiệu sv xuất sắc à",
+    "question_source": "direct_author",
+    "raw_review_status": "independently_reviewed",
+    "raw_tags": [
+      "natural",
+      "slang",
+      "hard",
+      "answerable"
+    ],
+    "release_eligible": true,
+    "requires_human_rewrite": false,
+    "review_checks": {
+      "natural": false,
+      "answerability": false,
+      "evidence_sufficient": false,
+      "corpus_temporal_scope": false,
+      "difficulty": false,
+      "no_paraphrase_leakage": false,
+      "expected_behavior": false
+    },
+    "review_status": "pending",
+    "reviewer": "",
+    "schema_version": 2,
+    "selected_text": null,
+    "source_record_id": "q_188",
+    "source_retrieved_at": null,
+    "source_url": "repository://6.-Quy-dinh-khen-thuong-tai-Truong-DHCN.pdf",
+    "split": "dev",
+    "tags": [
+      "answerable",
+      "hard",
+      "natural",
+      "slang"
+    ]
+  },
+  "record_sha256": "38e2d7a91cd27a6ff6a84c00f334840146c24507575fd0f33863413f2d841806",
+  "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+  "submitted_at": "2026-10-02T00:00:00.595506+00:00"
+}

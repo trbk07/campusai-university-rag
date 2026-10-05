@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "task": "P7-03",
+  "status": "BLOCKED",
+  "release_eligible": false,
+  "review_status": "Pending real semantic exposure reviewer; no sign-off claimed.",
+  "audit_artifact": "p7-03-expanded-history-audit.json",
+  "audit_scope": {
+    "index_manifest_sha256": "40a3e711298fdb66cdd906b19ad84ab9565dd43badfed7caed4eef81a671bec6",
+    "explicit_course_rows": 138,
+    "candidate_rows_after_literal_history_screen": 53,
+    "connected_groups_after_literal_history_screen": 42,
+    "new_dev_records_in_history": 72,
+    "historical_question_occurrences_scanned": 31513,
+    "six_course_codes_consumed_by_dev": ["RBE2001", "RBE3015", "ELT6003", "ELT6004", "MAT6281", "EMA6120"]
+  },
+  "blockers": [
+    "The 53 remaining proposal rows / 42 connected groups have not completed semantic similarity and lineage review across complete exposure history.",
+    "No actual reviewer sign-off exists for connected-family rationale or fresh held-out eligibility.",
+    "No F0 test/holdout group assignment is approved; group count alone does not establish independent fresh samples or class/stratum quotas."
+  ],
+  "next_required_evidence": [
+    "Reviewer-attributed semantic exposure decisions for every proposed group, with cited source/history evidence and connected-family rationale.",
+    "Fresh source-backed independent groups sufficient for at least 10 eligible groups in each primary held-out split and all M1/M2/M4/S3/S4 strata.",
+    "Validated dev/test/holdout split manifest with zero cross-split connected groups, zero unresolved exposure, and a signed F0 freeze."
+  ],
+  "policy": "Keep all known-exposed groups in dev/research. Do not promote dev-only records, change gold to fit retrieval, or claim freshness based on lexical non-match."
+}

@@ -7,6 +7,16 @@ citations and explicit abstention when evidence is missing.
 The runtime indexes documents uploaded by the user and scopes queries to the
 selected document IDs. `data/corpus/university/` is an evaluation fixture.
 
+## Evaluation artifact storage
+
+Git keeps benchmark/gold references, summaries and hash manifests. Historical
+raw observations, corpus PDFs, models and indexes live in ignored local/external
+storage. A clean clone needs the artifact bundle for historical recomputation;
+missing evidence fails release validation. See [artifact storage and restore
+commands](docs/operations/artifact_storage.md) and the [2026-10-05 size/history
+audit](docs/operations/storage_audit_20261005.md). Run `make storage-check` before
+committing and `make storage-verify` before release.
+
 ## Setup
 
 Python 3.11–3.14 is supported. Run commands from the repository root.
@@ -57,11 +67,12 @@ evaluation/           metrics and evaluation workflows
   retrieval/          baseline and hybrid retrieval evaluation
   reranker/           model, calibration, capacity, canary and release
   release/            grounding package validation
-  results/            checked-in evaluation evidence
+  artifacts/          raw artifact catalog and runtime manifests
+  results/            canonical summaries and historical manifests
 tests/                offline tests, fixtures and opt-in integrations
 configs/              defaults, example records and release settings
 data/benchmark/       versioned benchmark datasets
-data/corpus/          reproducible source corpus
+data/corpus/          source metadata; ignored local corpus PDFs
 docs/                 architecture, task guides, operations and planning
 plan.md               permanent project roadmap, retained by the owner
 ```

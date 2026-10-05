@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "p7-09-body-probability-oof.json",
+    "sha256": "f82fa9b64682d0bf890bd7934146af41bcfe72f7ac9795197b532aa092ba247d"
+  },
+  "summary": {
+    "schema_version": 1,
+    "task": "P7-09",
+    "status": "diagnostic",
+    "release_eligible": false,
+    "calibration_split": "dev",
+    "test_used": false,
+    "holdout_used": false,
+    "created_at": "2026-10-04T12:35:17.532859+00:00",
+    "source_stable": true,
+    "source_identity_before": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "9d1723cca6f5eebb37a799eb92e648085bdd1ea0bd62f4fe13fbb18a5d183edd",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "source_identity_after": {
+      "commit": "9588931b776916b365430fddfe91cfdd251e54ca",
+      "source_sha256": "9d1723cca6f5eebb37a799eb92e648085bdd1ea0bd62f4fe13fbb18a5d183edd",
+      "runtime_sha256": "54a7a3d74fc074230fa422ed02c6cdf8302e3ff6f482ff0cd94b2f220e196c3f"
+    },
+    "dev_sha256": "b3aea8070374a8044f649d166cd17b299f6dd1bb5bd1953199e7846d88d5f9a4",
+    "candidate_raw_sha256": "154ece4b52c5f795f44ca2bbf0a2881ccca4ce660d2f170d326df381b58b9690",
+    "body_score_raw_sha256": "c72e8a6ecd2036e5fe20d2a80e7bf42cc03bde8c2e91abb7a9fb03586059402d",
+    "config_selection_note": "body format and cap16/rank_weight0.5 were selected on the full same dev packet; OOF evidence-probability scores are grouped, but the overall config comparison is exploratory and not nested OOF.",
+    "ranking_policy": {
+      "input_format": "body",
+      "cap": 16,
+      "rank_weight": 0.5
+    },
+    "rows": 889,
+    "scored_rows": 530,
+    "unscored_rows": 359,
+    "evidence_class_counts": {
+      "no_evidence": 37,
+      "partial_evidence": 22,
+      "sufficient_evidence": 471
+    },
+    "connected_group_count_scored": 68,
+    "selected_probability_policy": {
+      "threshold": 0.0,
+      "margin_threshold": 0.0,
+      "low_score_action": "phase6",
+      "evidence_model": {
+        "version": "evidence-softmax-v1",
+        "feature_schema": [
+          "top_logit",
+          "score_margin",
+          "score_std",
+          "top_lexical_overlap",
+          "top_confidence",
+          "retriever_agreement",
+          "query_length",
+          "constraints",
+          "candidate_count",
+          "distinct_documents",
+          "table_fraction",
+          "top_original_rank"
+        ],
+        "classes": [
+          "no_evidence",
+          "partial_evidence",
+          "sufficient_evidence"
+        ],
+        "means": [
+          0.9803611743158468,
+          1.3532291291738456,
+          2.567153151963401,
+          0.3495725353343956,
+          0.5462265018867924,
+          0.8932075471698119,
+          16.662264150943397,
+          1.0716981132075472,
+          14.950943396226416,
+          1.0320754716981133,
+          0.2419950411223996,
+          3.2867924528301886
+        ],
+        "scales": [
+          2.7634248178362495,
+          1.2815360208132531,
+          0.8865582580037586,
+          0.1433990586380353,
+          0.17895109709155926,
+          0.2671320328262973,
+          7.617574675067125,
+          1.1437075359252853,
+          3.3151238709608895,
+          0.20583340479727447,
+          0.1018462141310174,
+          3.0752841706920417
+        ],
+        "weights": [
+          [
+            0.03283817391904896,
+            0.16140770327780377,
+            -0.030766204111776246,
+            -0.2027147674047649,
+            -0.026832054515782314,
+            0.006910207985185438,
+            0.31453351697730375,
+            0.24910949682248631,
+            -0.047386154561422325,
+            0.2717172297202078,
+            -0.11353800438057528,
+            -0.18364135583489616
+          ],
+          [
+            0.0230446355955217,
+            -0.11207918510613574,
+            -0.054300078439591226,
+            0.023608344706547532,
+            0.06836633502591173,
+            -0.1767728532610511,
+            0.00026444150758813,
+            -0.028326346587504284,
+            0.16587537412445122,
+            0.053815410385274653,
+            0.10472740361204148,
+            0.25562068213670863
+          ],
+          [
+            -0.055882809514570586,
+            -0.04932851817166808,
+            0.08506628255136756,
+            0.17910642269821733,
+            -0.04153428051012944,
+            0.1698626452758657,
+            -0.31479795848489206,
+            -0.2207831502349821,
+            -0.11848921956302887,
+            -0.32553264010548255,
+            0.008810600768533789,
+            -0.07197932630181252
+          ]
+        ],
+        "biases": [
+          -0.7805690267851393,
+          -0.8252540092969007,
+          1.60582303608204
+        ],
+        "accept_probability": 0.9,
+        "abstain_probability": 0.95,
+        "max_standardized_distance": 8.0
+      }
+    },
+    "comparison": {
+      "baseline": {
+        "answerable_recall_at_5": 0.9373737373737374,
+        "mrr": 0.552020202020202,
+        "ndcg_at_5": 0.6399809647096392,
+        "negative_fpr": 0.09390862944162437
+      },
+      "selected": {
+        "answerable_recall_at_5": 0.9515151515151515,
+        "mrr": 0.5856565656565657,
+        "ndcg_at_5": 0.6684476799479486,
+        "negative_fpr": 0.09137055837563451
+      },
+      "feasible": false,
+      "out_of_fold_quality": {
+        "answerable_recall_at_5": 0.9454545454545454,
+        "mrr": 0.5862626262626263,
+        "ndcg_at_5": 0.667369327534191,
+        "negative_fpr": 0.09137055837563451
+      },
+      "fit": {
+        "regularization": 0.05,
+        "iterations_limit": 5000
+      },
+      "classes": {
+        "no_evidence": 37,
+        "partial_evidence": 22,
+        "sufficient_evidence": 471
+      },
+      "fold_count": 5,
+      "fold_allocation": "deterministic_class_balanced_connected_groups_v1",
+      "out_of_fold": {
+        "records": 530,
+        "scored": 529,
+        "out_of_domain": 1,
+        "log_loss": 0.32195240274672177,
+        "brier": 0.15595275581158008
+      },
+      "fitted": {
+        "records": 530,
+        "scored": 529,
+        "out_of_domain": 1,
+        "log_loss": 0.2693905751589242,
+        "brier": 0.12342302630652265
+      },
+      "observations": {
+        "raw_array_reference": "/comparison/observations",
+        "records": 530
+      }
+    },
+    "limitations": [
+      "The group schema has not received P7-03 semantic exposure/F0 approval.",
+      "Ranking config was selected on the full dev packet, so this does not establish unbiased joint config OOF.",
+      "No paired answer/LLM or same-config application HTTP/resource evidence is included.",
+      "This cannot change official r18 M2 FAIL or establish release gates."
+    ]
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/comparison/observations",
+      "records": 530
+    }
+  ]
+}

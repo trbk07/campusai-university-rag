@@ -5,6 +5,7 @@ import shutil
 import pytest
 
 from evaluation.retrieval import validate_hybrid_release as release
+from evaluation.common.artifact_store import resolve_artifact
 
 
 @pytest.fixture
@@ -13,7 +14,7 @@ def evidence_root(tmp_path, monkeypatch):
     for relative in release.REQUIRED:
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source / relative, target)
+        shutil.copyfile(resolve_artifact(source / relative), target)
     fingerprint = tmp_path / 'evaluation/results/hybrid_release_manifest.json'
     shutil.copyfile(source / fingerprint.relative_to(tmp_path), fingerprint)
     monkeypatch.setattr(release, 'ROOT', tmp_path)

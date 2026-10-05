@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
+from collections import Counter, defaultdict
+from copy import deepcopy
+from functools import lru_cache
 import json
 import math
 from pathlib import Path
@@ -10,6 +12,7 @@ import random
 import statistics
 
 from evaluation.common.release_artifacts import require_previous_gates, sha256, source_identity, write_json, policy_bindings
+from evaluation.benchmarks.connected_groups import connected_groups
 
 
 def _relevant(item: dict, gold: list[dict]) -> bool:
@@ -23,8 +26,13 @@ def _relevant(item: dict, gold: list[dict]) -> bool:
 def query_metrics(row: dict, results: list[dict]) -> dict:
     gold = row["gold_evidence"]
     relevant = [_relevant(item, gold) for item in results]
+    gold_keys = {(item["doc_id"], item["chunk_id"]) for item in gold}
+    found = {k: {(item.get("doc_id"), item.get("chunk_id")) for item in results[:k]
+                 if _relevant(item, gold)} for k in (1, 3, 5, 10)}
     ideal = sum(1 / math.log2(rank + 2) for rank in range(min(5, len(gold))))
     return {**{f"recall{k}": float(any(relevant[:k])) for k in (1, 3, 5, 10)},
+            **{f"all_gold_recall{k}": float(bool(gold_keys) and gold_keys <= found[k]) for k in (1, 3, 5, 10)},
+            **{f"evidence_recall{k}": len(found[k] & gold_keys) / len(gold_keys) if gold_keys else 0.0 for k in (1, 3, 5, 10)},
             "mrr": next((1 / rank for rank, hit in enumerate(relevant, 1) if hit), 0.0),
             "ndcg5": sum(float(hit) / math.log2(rank + 2) for rank, hit in enumerate(relevant[:5]))
                      / ideal if ideal else 0.0,
@@ -32,14 +40,34 @@ def query_metrics(row: dict, results: list[dict]) -> dict:
             "abstained": not bool(results)}
 
 
-def paired_bootstrap(deltas: list[float], *, resamples: int = 10000, seed: int = 7) -> dict:
+def paired_bootstrap(deltas: list[float], *, resamples: int = 10000, seed: int = 7,
+                     groups: list[str] | None = None) -> dict:
     if not deltas or resamples < 10000 or any(not math.isfinite(value) for value in deltas):
         raise ValueError("paired bootstrap needs finite paired observations and >=10000 resamples")
+    if groups is not None and (len(groups) != len(deltas) or any(not isinstance(group, str) or not group for group in groups)):
+        raise ValueError("bootstrap groups must align with paired observations")
+    # Release validation replays identical paired cohorts several times. Cache
+    # only immutable inputs and copy the small result so callers cannot mutate
+    # another report's statistics. Changed raw observations get a new key.
+    return deepcopy(_bootstrap(tuple(deltas), resamples, seed, tuple(groups) if groups is not None else None))
+
+
+@lru_cache(maxsize=256)
+def _bootstrap(deltas: tuple[float, ...], resamples: int, seed: int, groups: tuple[str, ...] | None) -> dict:
+    grouped = {}
+    for index, value in enumerate(deltas):
+        grouped.setdefault(groups[index] if groups is not None else str(index), []).append(value)
+    clusters = [(sum(group), len(group)) for _, group in sorted(grouped.items())]
     rng = random.Random(seed)
     n = len(deltas)
-    samples = sorted(sum(deltas[rng.randrange(n)] for _ in range(n)) / n for _ in range(resamples))
+    samples = []
+    for _ in range(resamples):
+        draw = [clusters[rng.randrange(len(clusters))] for _ in clusters]
+        samples.append(sum(total for total, _ in draw) / sum(count for _, count in draw))
+    samples.sort()
     lower, upper = samples[int(.025 * resamples)], samples[min(resamples - 1, int(.975 * resamples))]
     return {"bootstrap_resamples": resamples, "seed": seed, "paired_n": n,
+            "independent_groups": len(clusters), "sampling_unit": "connected_group" if groups is not None else "query",
             "mean_delta": statistics.mean(deltas), "ci95": [lower, upper],
             "significant": lower > 0 or upper < 0,
             "win_tie_loss": {"win": sum(value > 1e-12 for value in deltas),
@@ -58,6 +86,9 @@ def compare_split(rows: list[dict], baseline: dict[str, list[dict]],
     if not positive or not negative:
         raise ValueError("held-out comparison requires positive and negative records")
     per_query = []
+    families = connected_groups(rows)
+    metric_keys = ("recall1", "recall3", "recall5", "recall10", "mrr", "ndcg5",
+                   "all_gold_recall5", "evidence_recall5")
     violations = Counter({"provenance_leakage": 0, "scope_leakage": 0, "invalid_citation": 0,
                           "duplicate_results": 0})
     for row in rows:
@@ -78,17 +109,27 @@ def compare_split(rows: list[dict], baseline: dict[str, list[dict]],
                     for key, value in (row.get("filters") or {}).items())
         base_metrics, rerank_metrics = query_metrics(row, before), query_metrics(row, after)
         delta = {key: rerank_metrics[key] - base_metrics[key]
-                 for key in ("recall1", "recall3", "recall5", "recall10", "mrr", "ndcg5")}
+                 for key in metric_keys}
         per_query.append({"qid": qid, "answerable": row["answerable"], "question": row["question"],
+                          "gold_count": len({(item["doc_id"], item["chunk_id"]) for item in row["gold_evidence"]}),
                           "difficulty": row.get("difficulty"),
+                          "connected_group": families[qid], "tags": row.get("tags", []),
                           "baseline": base_metrics, "phase7": rerank_metrics, "delta": delta,
                           "baseline_evidence": before, "phase7_evidence": after})
     aggregate = {}
     for name in ("baseline", "phase7"):
         metrics = {key: statistics.mean(item[name][key] for item in per_query if item["answerable"])
-                   for key in ("recall1", "recall3", "recall5", "recall10", "mrr", "ndcg5", "evidence_precision")}
+                   for key in (*metric_keys, "evidence_precision")}
         metrics["negative_fpr"] = sum(bool((baseline if name == "baseline" else reranked)[row["qid"]])
                                        for row in negative) / len(negative)
+        total_gold = sum(item["gold_count"] for item in per_query if item["answerable"])
+        metrics["evidence_recall5"] = sum(item[name]["evidence_recall5"] * item["gold_count"]
+                                          for item in per_query if item["answerable"]) / total_gold if total_gold else 0.0
+        false_positives = sum(bool((baseline if name == "baseline" else reranked)[row["qid"]]) for row in negative)
+        independent_negative = len({families[row["qid"]] for row in negative})
+        metrics["negative_fpr_counts"] = {"numerator": false_positives, "denominator": len(negative),
+                                         "independent_negative_groups": independent_negative,
+                                         "one_sided95_upper_if_zero_errors": 1 - .05 ** (1 / independent_negative) if not false_positives else None}
         abstained = [item for item in per_query if item[name]["abstained"]]
         correct = sum(not item["answerable"] for item in abstained)
         metrics["abstention_precision"] = correct / len(abstained) if abstained else 0.0
@@ -96,18 +137,47 @@ def compare_split(rows: list[dict], baseline: dict[str, list[dict]],
         aggregate[name] = metrics
     base, current = aggregate["baseline"], aggregate["phase7"]
     stats = {metric: paired_bootstrap([item["delta"][metric] for item in per_query if item["answerable"]],
-                                     seed=seed) for metric in ("mrr", "ndcg5", "recall5")}
+                                     seed=seed, groups=[item["connected_group"] for item in per_query if item["answerable"]])
+             for metric in ("mrr", "ndcg5", "recall5", "all_gold_recall5", "evidence_recall5")}
     relative = lambda metric: (current[metric] - base[metric]) / base[metric] if base[metric] else 0.0
-    hard = [item for item in per_query if item["answerable"] and item["difficulty"] == "hard"]
-    hard_metrics = {"paired_n": len(hard)}
-    if hard:
-        hard_metrics.update({name: {metric: statistics.mean(item[name][metric] for item in hard)
-                                     for metric in ("recall5", "mrr", "ndcg5")}
-                             for name in ("baseline", "phase7")})
-        hard_metrics["paired_statistics"] = {metric: paired_bootstrap([item["delta"][metric] for item in hard], seed=seed)
-                                              for metric in ("recall5", "mrr", "ndcg5")}
+    # Overlapping strata often contain the same qids; reuse their deterministic
+    # bootstrap rather than recomputing identical distributions.
+    subset_cache = {}
+    def summarize_subset(items):
+        key = tuple(sorted(item['qid'] for item in items))
+        if key in subset_cache:
+            return subset_cache[key]
+        positives = [item for item in items if item['answerable']]
+        negatives = [item for item in items if not item['answerable']]
+        subset = {'records': len(items), 'paired_n': len(positives), 'negative': len(negatives),
+                  'independent_groups': len({item['connected_group'] for item in positives}),
+                  'sufficient_groups_for_primary_inference': len({item['connected_group'] for item in positives}) >= 10}
+        for name in ('baseline', 'phase7'):
+            subset[name] = {metric: statistics.mean(item[name][metric] for item in positives) if positives else None
+                            for metric in ('recall5', 'mrr', 'ndcg5', 'all_gold_recall5', 'evidence_recall5')}
+            total_gold = sum(item['gold_count'] for item in positives)
+            subset[name]['evidence_recall5'] = (sum(item[name]['evidence_recall5'] * item['gold_count'] for item in positives)
+                                                 / total_gold if total_gold else None)
+            subset[name]['negative_fpr'] = (sum(not item[name]['abstained'] for item in negatives) / len(negatives)
+                                            if negatives else None)
+        subset['paired_statistics'] = {metric: paired_bootstrap([item['delta'][metric] for item in positives], seed=seed,
+                                         groups=[item['connected_group'] for item in positives])
+                                       for metric in ('recall5', 'mrr', 'ndcg5', 'all_gold_recall5', 'evidence_recall5')} if positives else {}
+        subset_cache[key] = subset
+        return subset
+    from evaluation.retrieval.evaluate_candidate_coverage import cohort_names
+    strata_items = defaultdict(list)
+    for row, item in zip(rows, per_query):
+        for cohort in cohort_names(row):
+            strata_items[cohort].append(item)
+    hard_metrics = summarize_subset([item for item in per_query if item['answerable'] and item['difficulty'] == 'hard'])
     return {"records": len(rows), "answerable": len(positive), "negative": len(negative), **aggregate,
+            "metric_definitions": {"recall": "query hit rate (at least one gold)",
+                                   "all_gold_recall": "query rate with every required gold",
+                                   "evidence_recall": "total unique gold hits / total unique gold; paired CI uses per-query fractions"},
+            "independent_groups": len(set(families.values())),
             "hard_queries": hard_metrics,
+            "strata": {name: summarize_subset(items) for name, items in sorted(strata_items.items())},
             "mrr_improvement_relative": relative("mrr"), "ndcg5_improvement_relative": relative("ndcg5"),
             "recall5_drop_absolute": base["recall5"] - current["recall5"],
             "negative_fpr": current["negative_fpr"], **dict(violations),
@@ -146,7 +216,7 @@ def main() -> int:
     freeze_before_evaluation(args.results_dir, {
         key: args.results_dir / ARTIFACTS[key]
         for key in ("route", "calibration", "smoke", "human_manifest", "sensitivity")
-    })
+    } | {"answer_protocol": args.results_dir / "reranker_answer_protocol.json"})
     from campusai.retrieval.reranker_activation import build_phase7_retriever
     from campusai.retrieval.hybrid import HybridRetriever
     from campusai.retrieval.calibration import RetrievalPolicy
@@ -174,9 +244,10 @@ def main() -> int:
             rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
             before, after = {}, {}
             for row in rows:
-                kwargs = {"doc_ids": row.get("doc_ids", docs), "filters": row.get("filters"), "top_k": 10}
-                before[row["qid"]] = [item.to_dict() for item in baseline.search(row["question"], mode="auto", **kwargs)]
-                after[row["qid"]] = [item.to_dict() for item in retriever.search(row["question"], mode="phase7", **kwargs)]
+                from campusai.rag.context import benchmark_retrieval_request
+                kwargs = {**benchmark_retrieval_request(row, docs), "top_k": 10}
+                before[row["qid"]] = [item.to_dict() for item in baseline.search(mode="auto", **kwargs)]
+                after[row["qid"]] = [item.to_dict() for item in retriever.search(mode="phase7", **kwargs)]
             report[split] = compare_split(rows, before, after, evidence, docs, seed=args.seed)
             report["benchmark_sha256"][split] = sha256(path)
     finally:

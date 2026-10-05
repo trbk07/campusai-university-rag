@@ -1,0 +1,673 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "reranker_context_lifecycle.json",
+    "sha256": "97ae9160097c3d05813ed69dcb83744cd3e45f5a24d0b6449fbe24a4d710733b"
+  },
+  "summary": {
+    "schema_version": 1,
+    "gate": "S2",
+    "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "source_sha256": "a5bb97b23f265c381af3968fa48156ba4d606433d1da6470cbfcbc05687af382",
+    "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+    "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+    "raw": {
+      "path": "raw/context_lifecycle_observations.json",
+      "sha256": "d292b4173d3f5a01ed85218f4c41d88b8dc5cb32bfeb909f10394f53715036c6"
+    },
+    "observations": {
+      "schema_version": 2,
+      "evidence_type": "physical_dev_context_lifecycle",
+      "measured_at": "2026-10-03T11:05:18.661854+00:00",
+      "commit": "b6672cc6731aa899dbf891450dde420ee5f7248b",
+      "source_sha256": "a5bb97b23f265c381af3968fa48156ba4d606433d1da6470cbfcbc05687af382",
+      "runtime_sha256": "82cc3a73c6f926ab8902324436f45c033411bd716941b6bfbbf8d566494b0839",
+      "index_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "dev_sha256": "dd29b2b21c7398e45a7c5c343cbdc5238ab56b4ce44e56072484e3626a0d71a3",
+      "model_identity_sha256": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+      "model_identity": {
+        "model_name": "BAAI/bge-reranker-v2-m3",
+        "model_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "model_sha256": "16f0018751492cd824b272a24cdde73cd061f8615f3abaab8da64c872f79ffe9",
+        "tokenizer_revision": "1427fd652930e4ba29e8149678df786c240d8825",
+        "provider": "sentence_transformers",
+        "device": "cuda:0",
+        "dtype": "float16",
+        "max_length": 512,
+        "batch_size": 8,
+        "normalization": "raw_logit",
+        "batch_window_ms": 0.0,
+        "max_batch_pairs": 200,
+        "input_format": "full_chunk",
+        "input_version": "structured-input-v1"
+      },
+      "llm_config_sha256": "3e65b63bc55f1db57e6c0e2586aa8a7f6e7dd9588d1a54be9250e259471b64be",
+      "llm_model": "gemini-3-flash-preview",
+      "llm_failures": [],
+      "context_cases": {
+        "raw_array_reference": "/observations/context_cases",
+        "records": 7
+      },
+      "cache_probes": [
+        {
+          "case": "history",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [
+                [
+                  "user",
+                  "thế hôm nào em phải đi phỏng vấn"
+                ]
+              ],
+              "selected_text": null,
+              "resolved": "what about it? context topic (untrusted user input): thế hôm nào em phải đi phỏng vấn",
+              "needs_clarification": false
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [
+                [
+                  "user",
+                  "phải đóng mấy tiền vậy"
+                ]
+              ],
+              "selected_text": null,
+              "resolved": "what about it? context topic (untrusted user input): phải đóng mấy tiền vậy",
+              "needs_clarification": false
+            }
+          },
+          "keys": [
+            "627f30a4505a39193d9e333b52df0cccc4395f7ffe99ef3f3fb0829159012385",
+            "142083803facd0339957a7b1eb6d271bbc7f7642b212202968fdfd153add1def"
+          ]
+        },
+        {
+          "case": "selection",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [],
+              "selected_text": "thế hôm nào em phải đi phỏng vấn",
+              "resolved": "how many credits? context topic (untrusted user input): thế hôm nào em phải đi phỏng vấn",
+              "needs_clarification": false
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            },
+            "request_context": {
+              "version": "request-context-v2",
+              "history": [],
+              "selected_text": "phải đóng mấy tiền vậy",
+              "resolved": "how many credits? context topic (untrusted user input): phải đóng mấy tiền vậy",
+              "needs_clarification": false
+            }
+          },
+          "keys": [
+            "be8ea6f8488558c247e9c792cc78dc2268ea811031f575e2138f5f82a390f2e3",
+            "c83fc5578df0e5dfef1a45e6253e6648b5a99c59fd5746912e9ed5c4220760e0"
+          ]
+        },
+        {
+          "case": "scope",
+          "before": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [
+              "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+              "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+              "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+              "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+              "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+              "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+              "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+              "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+              "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79"
+            ],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8e68dd2e5e78cd9754da2c893beb9f555d0262463e578b2f0643ad1fd20dcd55",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            }
+          },
+          "after": {
+            "question": "What about it?",
+            "language": "en",
+            "doc_ids": [],
+            "filters": {},
+            "top_k": 5,
+            "mode": "auto",
+            "corpus_version": "sha256:8a3bd2dfff03b210cb8b031960da386f257444aca3df89786398d2340ef8df05",
+            "model": "gemini-3-flash-preview",
+            "context_budget": {
+              "max_chars": 12000,
+              "max_tokens": null,
+              "min_retrieval_score": null
+            }
+          },
+          "keys": [
+            "d2c6e0c1cce527ffbe2dec6e185549ef6d2d3243f79d4c28742e5a99c651738c",
+            "ee25ac1cf338bdb5d1140dea9a4f82668e6b1bcaa7e7d49bbeb33fc4afa633f2"
+          ]
+        }
+      ],
+      "lifecycle_proof": {
+        "before": {
+          "submitted_requests": 0,
+          "completed_requests": 0,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.0,
+          "max_queue_wait_ms": 0.0,
+          "worker_ms_total": 0.0,
+          "closed": false,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "qid": "human-candidate-0051",
+        "candidate_coordinates": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s14_c1",
+            "page": 2,
+            "content_sha256": "a47b224553788f70db5b479e337bd84651e0688e9d44ec2ec8e53a0ab20e0c9b"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s10_c1",
+            "page": 2,
+            "content_sha256": "f7ee459c99e2b2d3232ff2c364f1005e4c0ed4449d9ac854ec3d64a344063660"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p4_s23_c1",
+            "page": 4,
+            "content_sha256": "9611ef0aba55ae7c167cbbd87f2a19de930e824bc70c7b949d369bab4d11ef86"
+          }
+        ],
+        "cold_rejection": "model_not_ready",
+        "after_warm": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.654800001939293,
+          "max_queue_wait_ms": 0.654800001939293,
+          "worker_ms_total": 2979.9774999992223,
+          "closed": false,
+          "failure_count": 0,
+          "ready": true,
+          "model_loads": 1,
+          "inference_calls": 1,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "rankings": {
+          "raw_array_reference": "/observations/lifecycle_proof/rankings",
+          "records": 3
+        },
+        "after_requests": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.7285000028787181,
+          "max_queue_wait_ms": 0.654800001939293,
+          "worker_ms_total": 3063.6025000058,
+          "closed": false,
+          "failure_count": 0,
+          "ready": true,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "before_closed_request": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 1,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.7285000028787181,
+          "max_queue_wait_ms": 0.654800001939293,
+          "worker_ms_total": 3063.6025000058,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "closed_rejection": "feature_disabled",
+        "after_closed_request": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 2,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.7285000028787181,
+          "max_queue_wait_ms": 0.654800001939293,
+          "worker_ms_total": 3063.6025000058,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "after_drain": {
+          "submitted_requests": 4,
+          "completed_requests": 4,
+          "cancelled_requests": 0,
+          "rejected_requests": 2,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.7285000028787181,
+          "max_queue_wait_ms": 0.654800001939293,
+          "worker_ms_total": 3063.6025000058,
+          "closed": true,
+          "failure_count": 0,
+          "ready": false,
+          "model_loads": 1,
+          "inference_calls": 4,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "warm_failure_type": "RerankerUnavailable",
+        "before_failed_request": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.5661999966832809,
+          "max_queue_wait_ms": 0.5661999966832809,
+          "worker_ms_total": 0.1610000035725534,
+          "closed": true,
+          "failure_count": 1,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        },
+        "baseline_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "warm_failure_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "warm_failure_trace": {
+          "route": "hybrid_rrf",
+          "detected_codes": [],
+          "exact_match": false,
+          "filters_applied": false,
+          "bm25_used": true,
+          "dense_used": true,
+          "abstained": false,
+          "abstention_reason": null,
+          "fallback": null,
+          "rerank_selected": false,
+          "rerank_route_selected": false,
+          "rerank_inference_started": false,
+          "rerank_applied": false,
+          "rerank_fallback": false,
+          "rerank_abstained": false,
+          "retrieval_cache_hit": false,
+          "answer_cache_hit": false,
+          "rerank_score_cache_hit": false,
+          "reranker_model_identity": "05f7d1cd2bd8618524cf04c9b40fdc7c88ee007c3e9523e3f7eebe2e6e2ede3e",
+          "reranker_policy_identity": "15b9fee126113bb43a2eb73d7d9d3602b77212c4f40525cff87724f63cc97089",
+          "rerank_reason": "model_not_ready",
+          "candidate_count": 23,
+          "final_count": 5,
+          "latency_ms": {
+            "parse": 0.022,
+            "bm25": 1.159,
+            "dense": 101.757,
+            "fusion": 1.044,
+            "total": 344.02,
+            "reranker_queue": 0.0,
+            "reranker_inference_observed": 0.0,
+            "reranker": 0.088
+          }
+        },
+        "after_failed_request": {
+          "submitted_requests": 1,
+          "completed_requests": 1,
+          "cancelled_requests": 0,
+          "rejected_requests": 0,
+          "active_requests": 0,
+          "queue_depth": 0,
+          "max_queue_depth": 0,
+          "queue_wait_ms_total": 0.5661999966832809,
+          "max_queue_wait_ms": 0.5661999966832809,
+          "worker_ms_total": 0.1610000035725534,
+          "closed": true,
+          "failure_count": 1,
+          "ready": false,
+          "model_loads": 0,
+          "inference_calls": 0,
+          "score_cache_hits": 0,
+          "score_cache_entries": 0,
+          "inference_batches": 0,
+          "max_batch_requests": 0
+        }
+      },
+      "lifecycle": {
+        "startup_loads": 1,
+        "request_loads": 0,
+        "request_inference_calls": 3,
+        "closed_new_inference": 0,
+        "warm_failure_new_inference": 0,
+        "pending_after_drain": 0,
+        "active_after_drain": 0,
+        "warm_failure_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ],
+        "baseline_phase6": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s16_c1",
+            "page": 3,
+            "content_sha256": "1c00a701774765052c4d2f991d78799920cb7a1661075d516dcd88fbd43078e7"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s31_c1",
+            "page": 5,
+            "content_sha256": "6cf1a5513726dd697693811d904ca2bc77f8d09a4e740cc1b2efdad35638d916"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p3_s18_c1",
+            "page": 3,
+            "content_sha256": "23eb68abd116fd33cb8146bb3467531bd32342b85eac22aaf58bdb96dfe326fb"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p5_s33_c1",
+            "page": 5,
+            "content_sha256": "60e363712ac4725c5f9b6273767386750f53c8c731e0afe4021494d33bdcaebc"
+          },
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "chunk_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59_p2_s11_c1",
+            "page": 2,
+            "content_sha256": "047adeba31b528436535ae954723a0e3dbd5cede76c5890f3368467c24b6f240"
+          }
+        ]
+      }
+    },
+    "status": "pass",
+    "errors": []
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations/context_cases",
+      "records": 7
+    },
+    {
+      "json_pointer": "/observations/lifecycle_proof/rankings",
+      "records": 3
+    }
+  ]
+}

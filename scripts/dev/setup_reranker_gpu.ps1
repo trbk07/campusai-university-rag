@@ -26,7 +26,7 @@ $taskDependencies = @(
     ($taskDependencies -join "`n") + "`n",
     [Text.UTF8Encoding]::new($false)
 )
-& $taskGpuPython -m pip install --no-deps --index-url "https://download.pytorch.org/whl/$CudaChannel" --cache-dir (Join-Path $taskRoot '.tmp/pip-cache') "torch==$TorchVersion"
+& $taskGpuPython -m pip install --no-deps --no-cache-dir --index-url "https://download.pytorch.org/whl/$CudaChannel" "torch==$TorchVersion"
 if ($LASTEXITCODE -ne 0) { throw 'CUDA wheel installation failed.' }
 & $taskGpuPython -c "import torch; assert torch.cuda.is_available(), 'CUDA unavailable'; print({'torch':torch.__version__,'cuda':torch.version.cuda,'gpu':torch.cuda.get_device_name(0)})"
 if ($LASTEXITCODE -ne 0) { throw 'GPU activation failed; the CPU .venv remains usable.' }
