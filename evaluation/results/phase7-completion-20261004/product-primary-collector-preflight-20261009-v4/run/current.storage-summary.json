@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "current.json",
+    "sha256": "d9bf9530f5afa22d9d95e50ac5b0e1ab709c9bc76923654fe783720dcfa9dbc3"
+  },
+  "summary": {
+    "mode": "live",
+    "arm": "current",
+    "pid": 22496,
+    "observations": [],
+    "external_provider_calls": 0,
+    "quality_accepted": false,
+    "status": "HARNESS_FAILURE_STOPPED",
+    "offline_synthetic_limiter_disabled": false,
+    "error_type": "OSError"
+  },
+  "omitted_raw": []
+}

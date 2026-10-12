@@ -59,6 +59,25 @@ def test_unspecified_proof_document_retains_topic_and_versions_the_cache():
     resolved = resolve_query(request, history=[{'role': 'user', 'content': topic}])
     assert resolved.contextual and not resolved.needs_clarification
     assert topic in resolved.resolved and 'untrusted user input' in resolved.resolved
-    assert resolved.cache_context()['version'] == 'request-context-v3'
+    assert resolved.cache_context()['version'] == 'request-context-v4'
     assistant_only = resolve_query(request, history=[{'role': 'assistant', 'content': topic}])
     assert assistant_only.needs_clarification
+
+
+@pytest.mark.parametrize('course', ['Applied physics', 'Chemistry', 'Algebra', 'Computing', 'Linear systems'])
+def test_explicit_subject_before_same_utterance_it_needs_no_history(course):
+    question = f'The joint study plan lists {course}; what term and number of credits does it show?'
+    resolved = resolve_query(question)
+    assert not resolved.needs_clarification and not resolved.contextual
+    assert resolved.resolved == question
+    other = resolve_query(question, history=[{'role': 'user', 'content': 'Unrelated previous topic'}])
+    assert other.resolved == question
+    assert resolve_query(question, requires_context=True).needs_clarification
+
+
+@pytest.mark.parametrize('question', ['What credits does it show?', 'What about that course?',
+    'The plan lists it; what credits does it show?',
+    'The plan lists that course; what credits does it show?',
+    'The plan lists some course; what credits does it show?'])
+def test_pronoun_or_unspecified_object_is_not_an_invented_local_topic(question):
+    assert resolve_query(question).needs_clarification

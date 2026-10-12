@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "product-dev-quality-live-20261008-v3.json",
+    "sha256": "75db69da2f92acf5473ed37d72fbe8702017bfcf93a31d1d18829bb7a0573ae7"
+  },
+  "summary": {
+    "schema_version": 1,
+    "status": "PROVIDER_FAILURE_STOPPED",
+    "packet_sha256": "7285d79fda96eb847f32d71a42de7b1c5e3bd88e662337ad32b90557a794b44a",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "ae3d41077e255e0dea91c809636569e6e467260d523a6acbd3cf873fa281f42d",
+      "runtime_sha256": "a1ba0d0d1482b2cc67a17ce70f441134c9230799b2baf6cf992bb5b4f61e06a5"
+    },
+    "observations": {
+      "raw_array_reference": "/observations",
+      "records": 1
+    },
+    "release_eligible": false,
+    "answer_cache_enabled": false,
+    "llm_cache_enabled": false,
+    "max_retries": 0,
+    "test_or_holdout_read": false,
+    "source_identity_after": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "ae3d41077e255e0dea91c809636569e6e467260d523a6acbd3cf873fa281f42d",
+      "runtime_sha256": "a1ba0d0d1482b2cc67a17ce70f441134c9230799b2baf6cf992bb5b4f61e06a5"
+    }
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/observations",
+      "records": 1
+    }
+  ]
+}

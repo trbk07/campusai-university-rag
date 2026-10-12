@@ -8,6 +8,7 @@ without duplicating business rules.
 
 from __future__ import annotations
 
+import hashlib
 from typing import Any
 
 from .ingestion.jobs import IngestionJobManager
@@ -34,13 +35,24 @@ class CampusAIApplication:
 
     def readiness(self) -> dict[str, Any]:
         retriever = self.query_service.retriever
-        index_exists = retriever.index_root.exists()
+        index_exists = retriever.index_root.is_dir()
+        policies = getattr(retriever, "policies", {})
+        expected_indexes = {policy.index_sha256 for policy in policies.values() if policy.index_sha256}
+        calibration_matches_index = True
+        if expected_indexes:
+            try:
+                fingerprint = hashlib.sha256((retriever.index_root / "manifest.json").read_bytes()).hexdigest()
+                calibration_matches_index = expected_indexes == {fingerprint}
+            except OSError:
+                calibration_matches_index = False
+        llm_configured = getattr(getattr(self.query_service, "answer_generator", None), "llm", None) is not None
         phase7_enabled = getattr(retriever, "phase7_enabled", False)
         phase7_ready = bool(getattr(getattr(retriever, "phase7_provider", None), "ready", False))
-        ready = index_exists and (not phase7_enabled or phase7_ready)
+        ready = index_exists and calibration_matches_index and llm_configured and (not phase7_enabled or phase7_ready)
         return {"status": "ready" if ready else "not_ready", "index_root_exists": index_exists,
                 "loaded_documents": len(retriever._indexes), "phase7_enabled": phase7_enabled,
-                "phase7_ready": phase7_ready}
+                "phase7_ready": phase7_ready, "llm_configured": llm_configured,
+                "calibration_matches_index": calibration_matches_index}
 
     def submit_ingestion(self, source_path: str, **options: Any) -> dict[str, Any]:
         if self.jobs is None:

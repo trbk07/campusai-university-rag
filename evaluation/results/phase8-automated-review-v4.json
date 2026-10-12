@@ -1,0 +1,1128 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "status": "AUTOMATED_REVIEW_COMPLETE",
+  "reviewer": "Codex — Automated AI Review",
+  "review_mode": "owner_delegated_ai",
+  "reviewed_at": "2026-10-11T09:23:35+07:00",
+  "timezone": "Asia/Bangkok",
+  "authorization": {
+    "source": "direct user instruction in this conversation, 2026-10-11",
+    "scope": "Review all 30 supplemental Phase 8 v4 questions, decide Accept/Reject with reasons, save Markdown and validate; no human impersonation."
+  },
+  "method": "Source-first AI assessment: all 8 original PDF pages visually inspected, full source text and indexed evidence checked, v3/v4 diff inspected. Mechanical validator is not a second semantic reviewer.",
+  "independent_human_review": false,
+  "independent_second_model_review": false,
+  "benchmark_version": "phase8-r18-plus-temporal-and-factual-review-draft-v4",
+  "benchmark": {
+    "path": "evaluation/phase8/benchmark_candidate_v4.jsonl",
+    "sha256": "9309fb0eb1defd15da946cba9cd657dd82bf0bd98c924adb0d3012193aa1166c"
+  },
+  "previous_benchmark": {
+    "path": "evaluation/phase8/benchmark_candidate_v3.jsonl",
+    "sha256": "b51e5c5adb6680716378e98448515309edd0ad7635edbdf791b7b5c550f72113"
+  },
+  "review_packet": {
+    "path": "evaluation/phase8/benchmark_owner_review_v4.md",
+    "sha256": "558df72d528ab9e0c157029403397df3329ff64673ed31ba26c3b66e5ac97aac"
+  },
+  "original_review_packet_sha256": "85dcc85cad9035ae83027cc80ede6a4f48c07692ca2607772ab60a07026e35be",
+  "corpus_manifest": {
+    "path": "data/corpus/university/manifest.json",
+    "sha256": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c"
+  },
+  "sources": [
+    {
+      "path": "data/corpus/university/uet_program_adjustments_2021.pdf",
+      "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "index_path": ".tmp/hybrid-index/fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79/dense.json",
+      "index_sha256": "4cc27c9700967afaed4d2fd02b332c893f04a783b69b3e214342e5c8f10b9ed0",
+      "pages_visually_reviewed": 3
+    },
+    {
+      "path": "data/corpus/university/uet_training_regulation_2014.pdf",
+      "sha256": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+      "index_path": ".tmp/hybrid-index/3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1/dense.json",
+      "index_sha256": "86b6b1fcaeec4ec269a199f3a93898daed05dc39230131581d0cfa7aa39493a9",
+      "pages_visually_reviewed": 1
+    },
+    {
+      "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+      "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+      "index_path": ".tmp/hybrid-index/7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b/dense.json",
+      "index_sha256": "ec62a96a88c3715a907183fd6d037260d8bddf4fd4341802b194a730e3c2aeee",
+      "pages_visually_reviewed": 4
+    }
+  ],
+  "counts": {
+    "reviewed": 30,
+    "accept": 28,
+    "reject": 2,
+    "pending": 0
+  },
+  "officially_approved": false,
+  "human_signed": false,
+  "frozen": false,
+  "candidate_disposition": "REJECT_CANDIDATE_PENDING_REPAIR",
+  "human_approval_status": "NOT_PROVIDED",
+  "human_signature_required_for_this_automated_review": false,
+  "human_signature_policy_basis": "docs/phase8_evaluation.md distinguishes owner-delegated AI from independent human review; the user explicitly delegates this Phase 8 review. No human signature is invented. A separate mandatory-human gate would remain PENDING_HUMAN_APPROVAL.",
+  "provider_calls": 0,
+  "fresh_validation": false,
+  "decisions": [
+    {
+      "qid": "p8-temporal-2021-adjustment-01",
+      "benchmark_row_sha256": "f87ba15c8ea7e89ab4a9f54625955e300646ce35c46f24f444a0184cda071a8c",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 1: cột hiện hành ghi ELT3213, cột điều chỉnh ghi ELT3067; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3067 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 1",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 1: cột hiện hành ghi ELT3213, cột điều chỉnh ghi ELT3067; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3067 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 1, PDF trang 1; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ ELT3213 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ ELT3213 được cho; mã trả lời ELT3067 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-02",
+      "benchmark_row_sha256": "5d6a9dc24550a6ceabf70b453f54fabb1383427805b1a031307430d538b6fbae",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 2: cột hiện hành ghi ELT3214, cột điều chỉnh ghi ELT3062; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3062 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 2",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 2: cột hiện hành ghi ELT3214, cột điều chỉnh ghi ELT3062; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3062 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 2, PDF trang 1; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ ELT3214 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ ELT3214 được cho; mã trả lời ELT3062 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-03",
+      "benchmark_row_sha256": "9dd2450c082d85bcf375d4e8011bd5f8e486cac2a380bf5338f92a48653c14c4",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 3: cột hiện hành ghi ELT3215, cột điều chỉnh ghi ELT3163; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3163 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 3",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 3: cột hiện hành ghi ELT3215, cột điều chỉnh ghi ELT3163; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3163 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 3, PDF trang 1; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ ELT3215 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ ELT3215 được cho; mã trả lời ELT3163 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04a",
+      "benchmark_row_sha256": "cacb2795bccfe0042be6e3593bbae2053d1662f74f76d40a39a7c198242d1cde",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 1, mục I dòng 4: ô mã cũ trống, mã bổ sung INT4050, Khóa luận tốt nghiệp 7 tín chỉ. Cột CTĐT bên phải xác nhận CNTT định hướng thị trường Nhật Bản. Không diễn giải ô trống thành một mã cũ giả.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 4, cột CTĐT",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 1, mục I dòng 4: ô mã cũ trống, mã bổ sung INT4050, Khóa luận tốt nghiệp 7 tín chỉ. Cột CTĐT bên phải xác nhận CNTT định hướng thị trường Nhật Bản. Không diễn giải ô trống thành một mã cũ giả."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục I, dòng 4, cột CTĐT, PDF trang 1; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1 và trang gốc. Cột CTĐT chỉ thấy đầy đủ trong PDF, không có trong quote bảng rút gọn; đã kiểm tra trực quan."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Câu hỏi nói bổ sung mã và nêu chương trình Nhật Bản, phân biệt với nhóm Mạng máy tính phía trên."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Tên học phần/chương trình không chứa INT4050; cần tra dòng 4."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04",
+      "benchmark_row_sha256": "c5d19559208a67d87767c559b4bcf67d962c15ac46cc4cce8c2ef10be255167a",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 1: cột hiện hành ghi RBE1003, cột điều chỉnh ghi RBE1001; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE1001 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 1",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 1, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 1: cột hiện hành ghi RBE1003, cột điều chỉnh ghi RBE1001; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE1001 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 1, PDF trang 1; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ RBE1003 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ RBE1003 được cho; mã trả lời RBE1001 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "PASS",
+          "reason": "Đã đối chiếu v3 và PDF gốc: chỉ question thay đổi, gold/claims/evidence giữ nguyên. V4 hỏi mã mới RBE1001 thay vì đòi cả cặp mã; mã cũ RBE1003 được nêu làm điều kiện. Đây là sửa lệch phạm vi câu hỏi/đáp án, không hợp thức hóa gold sai."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-05",
+      "benchmark_row_sha256": "ff4e41db6dfa026a6874a8df9cfdc76a953e87f9925d5e5d35230eea058deffb",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 2: cột hiện hành ghi RBE2023, cột điều chỉnh ghi RBE2021; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE2021 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 2",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 2: cột hiện hành ghi RBE2023, cột điều chỉnh ghi RBE2021; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE2021 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 2, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ RBE2023 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ RBE2023 được cho; mã trả lời RBE2021 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-06",
+      "benchmark_row_sha256": "db0e8f166fd32f3756e6adf3ceb959553a112827ba5aca6c40d4a0c3f364a8ef",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 3: cột hiện hành ghi RBE2024, cột điều chỉnh ghi RBE2022; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE2022 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 3",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 3: cột hiện hành ghi RBE2024, cột điều chỉnh ghi RBE2022; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE2022 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 3, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ RBE2024 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ RBE2024 được cho; mã trả lời RBE2022 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-07",
+      "benchmark_row_sha256": "4122e1ed7fb267c3306c5600783b37979715558b3d0d6f58bd20e5568cb18ba9",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 4: cột hiện hành ghi RBE3023, cột điều chỉnh ghi RBE3021; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3021 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 4",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 4: cột hiện hành ghi RBE3023, cột điều chỉnh ghi RBE3021; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3021 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 4, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ RBE3023 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026.Hai dấu hai chấm hơi cứng nhưng không làm thay đổi đối tượng hoặc gây hai cách hiểu."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ RBE3023 được cho; mã trả lời RBE3021 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-08",
+      "benchmark_row_sha256": "15d4a282c34a6ae034ee7260c62149625ec124c7e6cc3b1201f6b01472a046d1",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 5: cột hiện hành ghi RBE3024, cột điều chỉnh ghi RBE3022; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3022 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 5",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 5: cột hiện hành ghi RBE3024, cột điều chỉnh ghi RBE3022; cùng học phần và cùng 2 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3022 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 5, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ RBE3024 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ RBE3024 được cho; mã trả lời RBE3022 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-09",
+      "benchmark_row_sha256": "f41faa085dcc11b429bfa4782b9a1787eee2eb2b3a0b1103880cd7a84ed51a14",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 6: cột hiện hành ghi REB3016, cột điều chỉnh ghi RBE3016; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3016 đúng chiều đối chiếu.REB3016 là chữ in trong cột cũ, không tự sửa thành RBE3016 trước khi so sánh.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 6",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 6: cột hiện hành ghi REB3016, cột điều chỉnh ghi RBE3016; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold RBE3016 đúng chiều đối chiếu.REB3016 là chữ in trong cột cũ, không tự sửa thành RBE3016 trước khi so sánh."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 6, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ REB3016 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ REB3016 được cho; mã trả lời RBE3016 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "PASS",
+          "reason": "Đã đối chiếu v3 và PDF gốc: chỉ question thay đổi, gold/claims/evidence giữ nguyên. V4 hỏi mã mới RBE3016 thay vì đòi cả cặp mã; mã cũ REB3016 được nêu làm điều kiện. Đây là sửa lệch phạm vi câu hỏi/đáp án, không hợp thức hóa gold sai."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-10",
+      "benchmark_row_sha256": "bca74be019ae9466627da39994a835e2ff28e22e8ba3c01c441eeb041b50b780",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 9: cột hiện hành ghi ELT3212E, cột điều chỉnh ghi ELT3046E; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3046E đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 9",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 9: cột hiện hành ghi ELT3212E, cột điều chỉnh ghi ELT3046E; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3046E đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 9, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ ELT3212E và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ ELT3212E được cho; mã trả lời ELT3046E không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-11",
+      "benchmark_row_sha256": "8e8d9b962250d90551f1aa739428cdf8e9153dd1d1a492b297df7d734ec1738e",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 10: cột hiện hành ghi ELT3214E, cột điều chỉnh ghi ELT3062E; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3062E đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 10",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 10: cột hiện hành ghi ELT3214E, cột điều chỉnh ghi ELT3062E; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold ELT3062E đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục II, dòng 10, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ ELT3214E và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ ELT3214E được cho; mã trả lời ELT3062E không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-12",
+      "benchmark_row_sha256": "6e9c2e55de2404c038ab2422b268aa9d5889427c5ba94b330937ae4edd52457b",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 1: cột hiện hành ghi AER1002, cột điều chỉnh ghi AER1001; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER1001 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 1",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 2, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 1: cột hiện hành ghi AER1002, cột điều chỉnh ghi AER1001; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER1001 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 1, PDF trang 2; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER1002 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER1002 được cho; mã trả lời AER1001 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-13",
+      "benchmark_row_sha256": "980fb100a1c8788e54601850bda1fe23e12f870949e3e74c04c730749c62f62f",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 2: cột hiện hành ghi AER2002, cột điều chỉnh ghi EMA2008; cùng học phần và cùng 4 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA2008 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 2",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 2: cột hiện hành ghi AER2002, cột điều chỉnh ghi EMA2008; cùng học phần và cùng 4 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA2008 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 2, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER2002 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER2002 được cho; mã trả lời EMA2008 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-14",
+      "benchmark_row_sha256": "55ca9075300e2ee866d15c209e9de41de6ab3166958e56e95a50a189b2e813cd",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 3: cột hiện hành ghi AER2009, cột điều chỉnh ghi AER2005; cùng học phần và cùng 4 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER2005 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 3",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 3: cột hiện hành ghi AER2009, cột điều chỉnh ghi AER2005; cùng học phần và cùng 4 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER2005 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 3, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER2009 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER2009 được cho; mã trả lời AER2005 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "PASS",
+          "reason": "Đã đối chiếu v3 và PDF gốc: chỉ question thay đổi, gold/claims/evidence giữ nguyên. V4 hỏi mã mới AER2005 thay vì đòi cả cặp mã; mã cũ AER2009 được nêu làm điều kiện. Đây là sửa lệch phạm vi câu hỏi/đáp án, không hợp thức hóa gold sai."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-15",
+      "benchmark_row_sha256": "25ef21af5a1417bbf99f3915f9a4d9da2e62ee3a0375ec4537886d90e9db552e",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 4: cột hiện hành ghi AER2006, cột điều chỉnh ghi EMA2032; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA2032 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 4",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 4: cột hiện hành ghi AER2006, cột điều chỉnh ghi EMA2032; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA2032 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 4, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER2006 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER2006 được cho; mã trả lời EMA2032 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-16",
+      "benchmark_row_sha256": "3891b52cba21f6087d3e2ec2ac4918c7af99fc34390bdcaeba5f4e9587f9e2e0",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 5: cột hiện hành ghi AER3039, cột điều chỉnh ghi AER3003; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER3003 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 5",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 5: cột hiện hành ghi AER3039, cột điều chỉnh ghi AER3003; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold AER3003 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 5, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER3039 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER3039 được cho; mã trả lời AER3003 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-17",
+      "benchmark_row_sha256": "c95621526aab12c53debcc56f2823bb542197d4b261eb55905c69ca02db4d429",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 6: cột hiện hành ghi AER3040, cột điều chỉnh ghi EMA3048; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3048 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 6",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 6: cột hiện hành ghi AER3040, cột điều chỉnh ghi EMA3048; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3048 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 6, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER3040 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER3040 được cho; mã trả lời EMA3048 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-18",
+      "benchmark_row_sha256": "1fb8138eeb58f16eed5dfa89c0d63fdfed8c1f737cfb9a760581a9f97e16d479",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 7: cột hiện hành ghi AER3037, cột điều chỉnh ghi EMA3014; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3014 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 7",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 7: cột hiện hành ghi AER3037, cột điều chỉnh ghi EMA3014; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3014 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 7, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER3037 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER3037 được cho; mã trả lời EMA3014 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu hỏi không thuộc bốn câu thay đổi ở v4; vẫn được review từ nguồn gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-19",
+      "benchmark_row_sha256": "f538da2f15e9f793a84a86f7df3ccb0028477920571db62631b5cca515461d62",
+      "decision": "Accept",
+      "rationale": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 8: cột hiện hành ghi AER3041, cột điều chỉnh ghi EMA3064; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3064 đúng chiều đối chiếu.",
+      "source_locator": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 8",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "PDF gốc trang 3, QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 8: cột hiện hành ghi AER3041, cột điều chỉnh ghi EMA3064; cùng học phần và cùng 3 tín chỉ. Câu hỏi yêu cầu mã điều chỉnh, nên gold EMA3064 đúng chiều đối chiếu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "QĐ 641/QĐ-ĐT ngày 27/08/2021, mục III, dòng 8, PDF trang 3; đã đối chiếu quote trong chunk fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Tên học phần, mã cũ AER3041 và mốc đính chính 2021 xác định dòng cần tra; không hỏi mã đang có hiệu lực năm 2026."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Chỉ mã cũ AER3041 được cho; mã trả lời EMA3064 không có trong câu hỏi. Không nhầm mã E với mã không E."
+        },
+        "v4_revision_integrity": {
+          "status": "PASS",
+          "reason": "Đã đối chiếu v3 và PDF gốc: chỉ question thay đổi, gold/claims/evidence giữ nguyên. V4 hỏi mã mới EMA3064 thay vì đòi cả cặp mã; mã cũ AER3041 được nêu làm điều kiện. Đây là sửa lệch phạm vi câu hỏi/đáp án, không hợp thức hóa gold sai."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-awards-effective-date",
+      "benchmark_row_sha256": "fccbc3fb73223bb2ad5442d2a457c556073330b7785442db1eece0948f1dd905",
+      "decision": "Accept",
+      "rationale": "Điều 2 phân biệt ngày có hiệu lực (ngày ký 15/08/2023) với tháng áp dụng (09/2023). Câu hỏi hỏi tháng áp dụng nên gold 09/2023 đúng; không được chấm 08/2023 là đáp án tương đương.",
+      "source_locator": "Quyết định 798/QĐ-ĐHCN, Điều 2",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 2 phân biệt ngày có hiệu lực (ngày ký 15/08/2023) với tháng áp dụng (09/2023). Câu hỏi hỏi tháng áp dụng nên gold 09/2023 đúng; không được chấm 08/2023 là đáp án tương đương."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quyết định 798/QĐ-ĐHCN, Điều 2, PDF trang 1; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p1_s8_c1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Câu hỏi ghi năm 2023 và hỏi tháng/năm áp dụng, phân biệt rõ với ngày ký."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split test, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Câu hỏi chỉ cho năm văn bản, không cho tháng 09; vẫn cần đọc Điều 2."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-valedictorian-average",
+      "benchmark_row_sha256": "6386ec246262f4427aca85b70af313cfbf8724ad9cbb1851ef8e953ddffdf627",
+      "decision": "Reject",
+      "rationale": "Gold “Trong ngành học” đúng theo Điều 3, nhưng câu hỏi đã nêu “Thủ khoa ngành học”. Chính tên danh hiệu làm lộ phạm vi đang hỏi; câu này không đo đáng tin cậy việc tra cứu evidence. Reject do answer leakage, không phải do nguồn sai.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 3",
+      "pdf_page": 2,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Đáp án khớp nội dung điều khoản gốc; Reject vì thiết kế câu hỏi tiết lộ đáp án, không phải vì gold sai."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 3, PDF trang 2; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Ngữ pháp rõ nhưng cách hỏi phạm vi ngay sau tên danh hiệu mang tính lặp lại."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "FAIL",
+          "reason": "Cụm “ngành học” trong tên danh hiệu tiết lộ nội dung đáp án “Trong ngành học”."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": [
+        "ngành học"
+      ]
+    },
+    {
+      "qid": "p8-fact-excellent-student-floor",
+      "benchmark_row_sha256": "77e2ad9a3079955e7fea0a764edff7e69e2b911099a34c0cf336b8aecc57af5d",
+      "decision": "Accept",
+      "rationale": "Điều 4 ghi không có học phần nào dưới C+. Gold C+ là ngưỡng từng học phần, không nhầm với xếp loại học tập/rèn luyện Xuất sắc hoặc điểm GPA.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 4",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 4 ghi không có học phần nào dưới C+. Gold C+ là ngưỡng từng học phần, không nhầm với xếp loại học tập/rèn luyện Xuất sắc hoặc điểm GPA."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 4, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Câu hỏi xác định danh hiệu và điều kiện điểm thấp nhất của từng học phần."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split test, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Tên danh hiệu Xuất sắc không cho biết ngưỡng C+; ngưỡng không có trong câu hỏi."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-good-student-conduct",
+      "benchmark_row_sha256": "2923e968b32748b7c76d55ec9df7a47ed3779ea8aecd6220fbcdcb426224e8e7",
+      "decision": "Accept",
+      "rationale": "Điều 5 tách học tập loại Giỏi trở lên và rèn luyện loại Tốt trở lên. Gold Tốt trở lên đúng cho rèn luyện; câu hỏi không yêu cầu liệt kê mọi điều kiện của danh hiệu.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 5",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 5 tách học tập loại Giỏi trở lên và rèn luyện loại Tốt trở lên. Gold Tốt trở lên đúng cho rèn luyện; câu hỏi không yêu cầu liệt kê mọi điều kiện của danh hiệu."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 5, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Chỉ rõ kết quả rèn luyện, tránh nhầm với kết quả học tập loại Giỏi."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Câu hỏi nêu danh hiệu Giỏi nhưng không nêu mức rèn luyện Tốt."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-collective-contribution-gpa",
+      "benchmark_row_sha256": "b45d8465ba8a37e4f11d53a009eaa27ed4bafe0aca4d68e38052bb08dc5c5378",
+      "decision": "Accept",
+      "rationale": "Điều 6 ghi kết quả học tập trong năm học/toàn khóa từ 3.0 trở lên. Gold giữ cả ngưỡng và chiều bất đẳng thức; các điều kiện khác không bị trình bày như đã được thỏa mãn.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 6",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 6 ghi kết quả học tập trong năm học/toàn khóa từ 3.0 trở lên. Gold giữ cả ngưỡng và chiều bất đẳng thức; các điều kiện khác không bị trình bày như đã được thỏa mãn."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 6, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Hỏi riêng điểm trung bình tối thiểu, không suy diễn đây là điều kiện đủ duy nhất."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split test, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Số 3.0 không xuất hiện trong câu hỏi."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-thesis-excellence-result",
+      "benchmark_row_sha256": "4dadda9064c1e9584c20c5dc37a029c8db7c2addbed2679f3f616150b8312ca7",
+      "decision": "Reject",
+      "rationale": "Điều 7 thực sự yêu cầu Hội đồng công nhận kết quả Xuất sắc, nhưng câu hỏi đã ghi “danh hiệu Xuất sắc” và chỉ đòi trả lại mức “Xuất sắc”. Có thể lặp từ trong câu hỏi mà không dùng tài liệu; Reject do answer leakage, không đổi gold để cứu câu hỏi.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 7",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Đáp án khớp nội dung điều khoản gốc; Reject vì thiết kế câu hỏi tiết lộ đáp án, không phải vì gold sai."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 7, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Câu hỏi dễ hiểu nhưng yêu cầu lặp mức xếp loại đã có trong tên danh hiệu."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "FAIL",
+          "reason": "Đáp án “Xuất sắc” xuất hiện nguyên văn trong câu hỏi."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": [
+        "Xuất sắc"
+      ]
+    },
+    {
+      "qid": "p8-fact-collective-advanced-share",
+      "benchmark_row_sha256": "c9ed0eba2e846de735547592f9b6c8cf747cae9157812cda39edb379458c33c6",
+      "decision": "Accept",
+      "rationale": "Điều 8 về Tập thể Tiên tiến ghi “Có 70% sinh viên đạt kết quả học tập và rèn luyện loại Khá trở lên”. Gold 70% là tỷ lệ điều kiện; “tối thiểu” diễn đạt ngưỡng đạt tiêu chuẩn, không bổ sung một mức khác.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 8",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 8 về Tập thể Tiên tiến ghi “Có 70% sinh viên đạt kết quả học tập và rèn luyện loại Khá trở lên”. Gold 70% là tỷ lệ điều kiện; “tối thiểu” diễn đạt ngưỡng đạt tiêu chuẩn, không bổ sung một mức khác."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 8, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Hỏi tỷ lệ sinh viên đạt đồng thời học tập và rèn luyện Khá trở lên; không nhầm tỷ lệ Giỏi tại Điều 9."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Câu hỏi không chứa tỷ lệ 70%."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-collective-excellent-share",
+      "benchmark_row_sha256": "3ea4aba250e8f9638b1742c3008559de92cce25af43e4d401fe3beeb000bb415",
+      "decision": "Accept",
+      "rationale": "Điều 9 ghi có từ 10% sinh viên trở lên đạt danh hiệu Sinh viên Giỏi; gold 10% đúng ngưỡng hỏi. Không nhầm với 70% tại Điều 8 hoặc điều kiện có sinh viên Xuất sắc.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 9",
+      "pdf_page": 3,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 9 ghi có từ 10% sinh viên trở lên đạt danh hiệu Sinh viên Giỏi; gold 10% đúng ngưỡng hỏi. Không nhầm với 70% tại Điều 8 hoặc điều kiện có sinh viên Xuất sắc."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 9, PDF trang 3; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2 và trang gốc. page=2 là trang đầu chunk kéo dài [2,3]; điều khoản trả lời thực tế nằm trang 3."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Nêu rõ tập thể Xuất sắc và tỷ lệ sinh viên Giỏi cần hỏi."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split holdout, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Hai tên danh hiệu chỉ xác định đối tượng; không tiết lộ tỷ lệ 10%."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-entrance-award-amount",
+      "benchmark_row_sha256": "8b12c384f2430b6dd679965d4f12c9a0a7b5767acbeb0b2b67adfc497b4c48a4",
+      "decision": "Accept",
+      "rationale": "Điều 10 quy định phần thưởng bằng học phí năm học đầu tiên trong khóa học. Gold trả lời khoảng thời gian, không bịa số tiền; câu hỏi điều kiện hóa việc đã đạt tiêu chí tuyển sinh.",
+      "source_locator": "Quy định kèm QĐ 798, Điều 10",
+      "pdf_page": 4,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điều 10 quy định phần thưởng bằng học phí năm học đầu tiên trong khóa học. Gold trả lời khoảng thời gian, không bịa số tiền; câu hỏi điều kiện hóa việc đã đạt tiêu chí tuyển sinh."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Quy định kèm QĐ 798, Điều 10, PDF trang 4; đã đối chiếu quote trong chunk 7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p4_s18_c1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Hỏi thời gian học phí tương đương nên không cần suy ra mức học phí bằng tiền."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split test, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Khoảng thời gian năm học đầu tiên không được cho trong câu hỏi."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    },
+    {
+      "qid": "p8-fact-exam-warning-deduction",
+      "benchmark_row_sha256": "595e83fe455efa2e935c4a86fc9f598073b74ff757fa132a55223083bcbe89ff",
+      "decision": "Accept",
+      "rationale": "Điểm (a) khiển trách trừ 25% số điểm bài thi học phần; điểm (b) cảnh cáo mới trừ 50%. Gold 25% khớp đúng mức kỷ luật đã nêu, không cần suy diễn tái phạm.",
+      "source_locator": "Trích Quy chế 5115/QĐ-ĐHQGHN (2014), Điều 32.4(a)",
+      "pdf_page": 1,
+      "criteria": {
+        "question_answer_correctness": {
+          "status": "PASS",
+          "reason": "Điểm (a) khiển trách trừ 25% số điểm bài thi học phần; điểm (b) cảnh cáo mới trừ 50%. Gold 25% khớp đúng mức kỷ luật đã nêu, không cần suy diễn tái phạm."
+        },
+        "evidence_support": {
+          "status": "PASS",
+          "reason": "Trích Quy chế 5115/QĐ-ĐHQGHN (2014), Điều 32.4(a), PDF trang 1; đã đối chiếu quote trong chunk 3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1_p1_s4_c1 và trang gốc. Trang/điều khoản hỗ trợ đúng giá trị trả lời."
+        },
+        "clarity": {
+          "status": "PASS",
+          "reason": "Nêu rõ đã bị khiển trách; phân biệt với cảnh cáo. Thiếu từ lần đầu trong mô tả lỗi không đổi mức kỷ luật đã xác định."
+        },
+        "schema_and_corpus": {
+          "status": "PASS",
+          "reason": "Schema v1, split test, answer_grounded, claim/evidence thống nhất; PDF SHA-256 thuộc corpus manifest. Câu hỏi xác định chủ đề/điều khoản có trong corpus."
+        },
+        "no_answer_leakage": {
+          "status": "PASS",
+          "reason": "Câu hỏi không chứa 25% hay 50%."
+        },
+        "v4_revision_integrity": {
+          "status": "NOT_APPLICABLE",
+          "reason": "Câu factual không thay đổi giữa v3 và v4; đã đối chiếu điều khoản gốc."
+        }
+      },
+      "leakage_spans": []
+    }
+  ]
+}

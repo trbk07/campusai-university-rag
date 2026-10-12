@@ -9,6 +9,7 @@ import json
 from pathlib import Path
 import random
 import time
+import urllib.error
 
 from evaluation.benchmarks.human_benchmark_intake import digest_record
 from evaluation.common.release_artifacts import (read_json, sha256, source_identity, write_json,
@@ -46,13 +47,45 @@ def recording_generate(original_generate, calls: list[dict]):
             response = original_generate(prompt, **options)
         except Exception as error:
             call.update(provider_status="failed", provider_error_type=type(error).__name__,
-                        latency_ms=(time.perf_counter() - started) * 1000)
+                        latency_ms=(time.perf_counter() - started) * 1000,
+                        **provider_failure_classification(error))
             raise
         call.update(provider_status="completed", usage=response.usage or None,
                     usage_status="reported" if response.usage else "unknown",
-                    latency_ms=response.latency_ms, cached=response.cached)
+                    latency_ms=response.latency_ms, cached=response.cached,
+                    response_text=response.text,
+                    response_text_sha256=hashlib.sha256(response.text.encode("utf-8")).hexdigest(),
+                    finish_reason=getattr(response, "finish_reason", None))
         return response
     return wrapped
+
+
+def provider_failure_classification(error: Exception) -> dict:
+    """Keep diagnostic categories/status, never URLs or exception messages."""
+    current = error
+    origin, status = "unknown", None
+    for _ in range(6):
+        if isinstance(current, urllib.error.HTTPError):
+            origin, status = "http", current.code
+            break
+        if isinstance(current, TimeoutError):
+            origin = "timeout"
+            break
+        if isinstance(current, urllib.error.URLError):
+            origin = "network"
+            reason = getattr(current, "reason", None)
+            if isinstance(reason, TimeoutError):
+                origin = "timeout"
+            elif type(reason).__name__ in {"SSLError", "SSLCertVerificationError"}:
+                origin = "tls"
+            elif type(reason).__name__ == "gaierror":
+                origin = "dns"
+            break
+        cause = getattr(current, "__cause__", None)
+        if cause is None or cause is current:
+            break
+        current = cause
+    return {"provider_failure_origin": origin, "provider_http_status": status}
 
 
 def failed_attempt_record(*, split: str, row: dict, arm: str, request: dict,

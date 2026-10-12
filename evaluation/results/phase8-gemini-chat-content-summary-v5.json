@@ -1,0 +1,903 @@
+{
+  "schema_version": 1,
+  "reviewed_at": "2026-10-12T04:21:04.400102+00:00",
+  "status": "AUTOMATED_CHAT_CONTENT_REVIEW_COMPLETE",
+  "scope": "142 planned generation cases of frozen 300-case v5 regression benchmark; 158 local cases excluded from this summary.",
+  "provenance": "Owner-mediated batched Gemini Chat, requested 3.8 Flash; actual model and generation parameters unverified; historically exposed regression, not fresh validation.",
+  "counts": {
+    "generation_cases": 142,
+    "unique_responses": 142,
+    "content_accepted": 142,
+    "content_rejected": 0,
+    "missing": 0,
+    "raw_schema_valid": 14,
+    "raw_schema_invalid": 128,
+    "schema_valid_after_disclosed_normalization": 142,
+    "normalization_applied": 128,
+    "gold_annotation_mismatches": 43,
+    "quote_helper_discrepancies": 7,
+    "unresolved_truncated_records": 0,
+    "local_cases_not_evaluated_here": 158,
+    "api_outputs_added": 0,
+    "api_calls": 0
+  },
+  "acceptance": {
+    "chat_content_collection_complete": true,
+    "chat_content_review_complete": true,
+    "raw_format_gate_pass": false,
+    "automated_frozen_gold_scoring_gate_pass": false,
+    "end_to_end_product_baseline_pass": false,
+    "phase8_pass": false
+  },
+  "limitations": [
+    "Content acceptance uses question-aligned structured expected_claims and source; 43 derived annotations need correction.",
+    "Seven newline-cell source quotes match decoded source rows but fail existing helper, recorded separately.",
+    "All generation cases are answerable; this summary cannot establish unanswerable-query abstention or false-positive rates.",
+    "Raw format failures may originate in output or copying/rendering; no origin is asserted.",
+    "Manual Chat does not measure application latency, resource use or provider/API reliability."
+  ],
+  "bindings": {
+    "evaluation/results/phase8-product-preflight-v5.json": "f8f1e1dcca18834da903b992fd91382b2f061f2a185deb7f9a08b450bac7d3ff",
+    "evaluation/phase8/benchmark_candidate_v5.jsonl": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d",
+    "evaluation/results/phase8-gemini-chat-case-001-review.json": "0f630d10467da04f75168e3b05d3c945756fd7994a2826a5271c68611ca7cc9a",
+    "evaluation/results/phase8-gemini-chat-batch-002-review.json": "9215ce6f090643b77b99e914c212c725f128743590341e1d27d398af7f878f71",
+    "evaluation/results/phase8-gemini-chat-batch-003-review.json": "16fd39a73fd4eee928ca398fcb28a3840c129819b395f3d47a438dd9d08aa591",
+    "evaluation/results/phase8-gemini-chat-batch-004-review.json": "d29fc5585c7acecaccd35531b985d1e7245338ca5762b53ca345c14cbb5b6da6",
+    "evaluation/results/phase8-gemini-chat-final-4-review.json": "7f41b0d02987ece2039cd6597befeb36abaac64651c5b0ec7cbdbabe7088f4de",
+    "evaluation/results/phase8-gemini-chat-responses-v5.jsonl": "e3c39d7e7d2e8e86ef8799c8d4cb97412346d98256ee4b72243bc6f9049ebc48"
+  },
+  "cases": [
+    {
+      "qid": "human-p7r18-curriculum-001-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-case-001-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-01",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-valedictorian-average",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-02",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-excellent-student-floor",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-03",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-good-student-conduct",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04a",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-collective-contribution-gpa",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-thesis-excellence-result",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-05",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-collective-advanced-share",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-06",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-collective-excellent-share",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-07",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-entrance-award-amount",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-08",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-fact-exam-warning-deduction",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-09",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-10",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-11",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-12",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-13",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-14",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-15",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-16",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-002-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-17",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-18",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-19",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-003-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-credits-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-credits-3",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-credits-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "review_path": "evaluation/results/phase8-gemini-chat-batch-004-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-4",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-final-4-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-credits-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-final-4-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-1",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-final-4-review.json"
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-2",
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": true,
+      "review_path": "evaluation/results/phase8-gemini-chat-final-4-review.json"
+    }
+  ]
+}

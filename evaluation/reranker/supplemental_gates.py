@@ -52,7 +52,8 @@ def review_audit_errors(rows: list[dict], audit: list[dict], index_dir: Path,
                         owner_confirmation: dict | None = None,
                         confirmed_sources: list[dict] | None = None,
                         generation_authorization: dict | None = None,
-                        generated_records: dict[str, dict] | None = None) -> list[str]:
+                        generated_records: dict[str, dict] | None = None,
+                        delegation=None) -> list[str]:
     """Check intake packets before freeze and again against published canonical bytes."""
     from evaluation.benchmarks.human_benchmark_intake import digest_record, validate_review
     if (not isinstance(audit, list) or any(not isinstance(item, dict) for item in audit)
@@ -112,12 +113,16 @@ def review_audit_errors(rows: list[dict], audit: list[dict], index_dir: Path,
             continue
         try:
             question, review = item["question_packet"], item["review_packet"]
-            validate_review(question, review, index_dir, owner_identity=owner_identity)
+            validate_review(question, review, index_dir, owner_identity=owner_identity,
+                            delegation=delegation)
             if review["review_status"] != "approved":
                 raise ValueError("canonical record is not approved")
             expected = {**question["record"], **{key: review[key] for key in
                                                 ("reviewer", "reviewer_role", "review_status", "review_checks")},
                         "reviewed_at": review["reviewed_at"]}
+            if review['reviewer_role'] == 'owner_delegated_ai':
+                from evaluation.benchmarks.delegated_review import DELEGATED_FIELDS
+                expected.update({key: review[key] for key in DELEGATED_FIELDS})
             # Split allocation must preserve every reviewed semantic field.
             exported = {**expected, "split": question["record"]["split"]}
             expected["split"] = row["split"]
@@ -157,10 +162,13 @@ def lineage_errors(report: dict, cfg: dict) -> list[str]:
     dev_auth = benchmark/'phase7_dev_generation_authorization.json'
     if dev_auth.exists() and raw.get('dev_generation_authorization_source_sha256') != sha256(dev_auth):
         confirmation_errors.append('dev_generation_authorization_observation_binding')
+    from evaluation.benchmarks.delegated_review import load_delegation
+    delegation = load_delegation(policy, root=Path(__file__).resolve().parents[2],
+                                 index_sha256=sha256(Path(cfg['index_dir']) / 'manifest.json'), scope='dataset')
     errors = confirmation_errors + review_audit_errors(
         rows, audit, Path(cfg["index_dir"]), owner_identity=owner_identity,
         owner_confirmation=confirmation, confirmed_sources=sources,
-        generation_authorization=authorization, generated_records=generated)
+        generation_authorization=authorization, generated_records=generated, delegation=delegation)
     if (not policy or raw.get("review_policy_sha256") != sha256(policy_path)
             or policy.get("allow_independent_review") is not True):
         errors.append("review_policy_missing_or_unbound")
@@ -366,9 +374,11 @@ def answer_errors(report: dict, cfg: dict) -> list[str]:
             or report.get("review_policy_sha256") != sha256(policy_path)):
         protocol_errors.append("answer_review_policy_binding")
     from evaluation.benchmarks.human_record_contract import review_role_error
+    from evaluation.benchmarks.delegated_review import load_delegation
+    delegation = load_delegation(policy, root=Path(__file__).resolve().parents[2],
+                                 index_sha256=sha256(Path(cfg['index_dir']) / 'manifest.json'), scope='semantic')
     if (rubric.get("status") != "approved"
-            or review_role_error({"reviewer": rubric.get("reviewer"), "reviewer_role": rubric.get("reviewer_role"),
-                                  "author": rubric.get("author")}, owner_identity)):
+            or review_role_error(rubric, owner_identity, delegation=delegation, scope='semantic')):
         return ["answer_rubric_review_required"]
     records = {}
     for split in PRIMARY_SPLITS:
@@ -421,7 +431,8 @@ def answer_errors(report: dict, cfg: dict) -> list[str]:
             or not raw.get("llm_identity", {}).get("model") or raw.get("live_provider") is not True
             or not report.get("prompt_sha256") or not report.get("context_budget")):
         errors.append("answer_llm_prompt_context_binding")
-    actual = evaluate_answer_observations(raw["observations"], owner_identity=owner_identity)
+    actual = evaluate_answer_observations(raw["observations"], owner_identity=owner_identity,
+                                        delegation=delegation)
     if actual != report["metrics"]:
         errors.append("answer_metrics_changed")
     return errors + answer_quality_errors(actual)

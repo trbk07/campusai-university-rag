@@ -10,6 +10,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 
 from evaluation.benchmarks.freeze_human_benchmark import PLACEHOLDER_IDENTITIES
@@ -22,7 +23,8 @@ def answer_digest(answer: dict) -> str:
                                     separators=(",", ":"), allow_nan=False).encode()).hexdigest()
 
 
-def evaluate_answer_observations(observations: list[dict], *, owner_identity: str | None = None) -> dict:
+def evaluate_answer_observations(observations: list[dict], *, owner_identity: str | None = None,
+                                 delegation=None) -> dict:
     from campusai.rag.schemas import validate_release_response
     if not observations or len({(row["split"], row["qid"], row["arm"]) for row in observations}) != len(observations):
         raise ValueError("unique paired answer observations required")
@@ -38,8 +40,8 @@ def evaluate_answer_observations(observations: list[dict], *, owner_identity: st
         review = row["review"]
         reviewer = str(review.get("reviewer", "")).strip().casefold()
         role = review.get("reviewer_role")
-        role_error = review_role_error({"reviewer": review.get("reviewer"), "reviewer_role": role,
-                                        "author": row.get("author")}, owner_identity)
+        role_error = review_role_error({**review, 'author': row.get('author')},
+                                      owner_identity, delegation=delegation, scope='semantic')
         if (not valid or review.get("status") != "approved" or reviewer in PLACEHOLDER_IDENTITIES
                 or role_error is not None
                 or review.get("answer_sha256") != answer_digest(row["answer"])
@@ -116,6 +118,7 @@ def evaluate_answer_observations(observations: list[dict], *, owner_identity: st
                    "gold_claim_coverage": ratio(sum(len(row["review"]["covered_gold_claim_ids"]) for row in positive), gold_total)}
         result.setdefault(split, {})[arm] = metrics
     review_mode = ("mixed_review" if len(reviewer_roles) > 1 else
+                   'owner_delegated_ai_review' if reviewer_roles == {'owner_delegated_ai'} else
                    "owner_self_review" if reviewer_roles == {"project_owner"} else
                    "independent_review" if reviewer_roles == {"independent_reviewer"} else None)
     result["review_summary"] = {"review_mode": review_mode,
@@ -144,6 +147,47 @@ def answer_quality_errors(metrics: dict) -> list[str]:
     return errors
 
 
+def product_answer_quality_errors(metrics: dict) -> list[str]:
+    """Apply the stricter frozen product floors to reviewed paired metrics.
+
+    This is the numeric answer gate, not source/provenance, group/sample,
+    leakage, live-provider or whole C7-03 acceptance. Those require their own
+    bound evidence. Historical reranker thresholds remain unchanged.
+    """
+    policy = read_json(Path(__file__).resolve().parents[2] / 'configs/grounding_release.json')
+    if policy.get('thresholds_frozen') is not True:
+        return ['product_thresholds_not_frozen']
+    thresholds = policy['thresholds']
+    floors = {
+        'citation_precision': max(.99, thresholds['citation_precision_min']),
+        'groundedness': max(.99, thresholds['grounded_claim_precision_min']),
+        'citation_recall': max(.98, thresholds['citation_recall_min'],
+                               thresholds['citation_completeness_min']),
+        'gold_claim_coverage': max(.95, thresholds['grounded_claim_recall_min']),
+    }
+    errors = []
+    for split in ('human_test', 'human_holdout'):
+        try:
+            for arm in ('baseline', 'phase7'):
+                for name in ('accuracy', 'answer_fpr', *floors):
+                    ratio = metrics[split][arm][name]
+                    numerator, denominator, value = (ratio[k] for k in
+                                                     ('numerator', 'denominator', 'value'))
+                    if (type(numerator) is not int or type(denominator) is not int
+                            or not 0 <= numerator <= denominator or denominator <= 0
+                            or type(value) not in (int, float) or not math.isfinite(value)
+                            or abs(value - numerator / denominator) > 1e-12):
+                        raise ValueError('invalid ratio')
+            for name, minimum in floors.items():
+                if metrics[split]['phase7'][name]['value'] < minimum:
+                    errors.append(f'{split}:product_{name}_floor')
+        except (KeyError, TypeError, ValueError, OverflowError):
+            errors.append(split + ':missing_product_answer_evidence')
+    if not any(error.endswith(':missing_product_answer_evidence') for error in errors):
+        errors.extend(answer_quality_errors(metrics))
+    return errors
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--observations", type=Path, required=True)
@@ -164,7 +208,11 @@ def main(argv=None) -> int:
         if (review_policy.get("allow_independent_review") is not True
                 or raw.get("review_policy_sha256") != sha256(args.review_policy)):
             raise ValueError("semantic review policy binding required")
-        metrics = evaluate_answer_observations(raw["observations"], owner_identity=owner_identity)
+        from evaluation.benchmarks.delegated_review import load_delegation
+        delegation = load_delegation(review_policy, root=Path(__file__).resolve().parents[2],
+                                     index_sha256=raw['index_sha256'], scope='semantic')
+        metrics = evaluate_answer_observations(raw["observations"], owner_identity=owner_identity,
+                                             delegation=delegation)
         errors = answer_quality_errors(metrics)
     except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
         metrics, errors = {}, [str(error)]

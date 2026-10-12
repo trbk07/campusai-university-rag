@@ -40,6 +40,58 @@ def _response(payload):
     return response
 
 
+def test_factory_sends_frozen_gemini_generation_settings_with_schema(tmp_path, monkeypatch):
+    config = tmp_path / "llm.json"
+    config.write_text(json.dumps({"llm": {
+        "provider": "gemini", "model": "gemini-3.8-flash", "cache_path": ":memory:",
+        "requests_per_minute": 0, "max_retries": 0,
+        "generation_config": {"temperature": 1, "maxOutputTokens": 4096,
+                              "thinkingConfig": {"thinkingLevel": "low"}},
+    }}), encoding="utf8")
+    sent = []
+
+    def transport(request, **_kwargs):
+        sent.append(json.loads(request.data))
+        return _response({"candidates": [{"content": {"parts": [{"text": '{"answer":"ok"}'}]}}]})
+
+    monkeypatch.setattr("urllib.request.urlopen", transport)
+    client = create_llm(config, {"GEMINI_API_KEY": "synthetic-key"})
+    schema = {"type": "object", "properties": {"answer": {"type": "string"}}}
+    try:
+        assert client.generate_json("q", schema=schema) == {"answer": "ok"}
+        assert client.generate_json("q", schema=schema, generationConfig={"temperature": .5}) == {"answer": "ok"}
+        for body in sent:
+            settings = body["generationConfig"]
+            assert settings["maxOutputTokens"] == 4096
+            assert settings["thinkingConfig"] == {"thinkingLevel": "low"}
+            assert settings["responseMimeType"] == "application/json"
+            assert "responseSchema" in settings
+        assert [body["generationConfig"]["temperature"] for body in sent] == [1, .5]
+    finally:
+        client.close()
+
+
+@pytest.mark.parametrize("settings", [[1], {"temperature": float("nan")}])
+def test_factory_rejects_non_json_generation_settings_before_opening_cache(monkeypatch, settings):
+    monkeypatch.setattr("campusai.llm.factory._read_config", lambda _path: {
+        "llm": {"provider": "gemini", "model": "model", "generation_config": settings}})
+    def no_cache(_path):
+        raise AssertionError("invalid config must not allocate a cache")
+    monkeypatch.setattr("campusai.llm.factory.SQLiteLLMCache", no_cache)
+    with pytest.raises(ValueError, match="generation_config"):
+        create_llm("unused", {"GEMINI_API_KEY": "synthetic-key"})
+
+
+def test_client_shutdown_releases_owned_cache_once():
+    from types import SimpleNamespace
+
+    closed = []
+    client = GeminiClient("synthetic-key", cache=SimpleNamespace(close=lambda: closed.append(True)))
+    client.close()
+    client.close()
+    assert closed == [True]
+
+
 def test_memory_cache_persists_between_operations():
     cache = SQLiteLLMCache(":memory:")
     cache.put("key", "value", {"total": 2}, 4.5)

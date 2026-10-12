@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "status": "source_context_reviewed_dev_only",
+  "reviewed_at": "2026-10-07T09:48:50+00:00",
+  "analyst": "Codex AI assistant",
+  "owner_manual_row_review_claim": false,
+  "independent_human_review_claim": false,
+  "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+  "dev_sha256": "4e3ad9dc8dd2040a43f5e930c6b3a39d442f7044a9f3d191e8efd8a0b962f1b3",
+  "authorization_path": "data/benchmark/phase7_review_cycles/phase7-successor-20261005-r19b/phase7_generation_authorization.json",
+  "authorization_sha256": "37b40a9e3b2ef84c9f775dc242ef7caa0d11d7c848443b72cebf4fbc1b0ba6ce",
+  "method": "Read all 45 dev questions and their empty conversation/context. Inspect frozen source passages matched by normalized academic-policy terms and relevant admission/curriculum scope. Distinguish missing referents, personal data, absence of requested policy, and unrelated near matches. Term scans aid attributable semantic decisions; zero term hits are not an exhaustive semantic absence theorem. No answers or held-out records used for these decisions.",
+  "groups": [
+    {"qids": [1,2,3,4,5,6], "category": "missing_subject", "expected_behavior": "clarify_or_abstain", "reason": "Credit quantity has no named course, programme, semester or graduation target; empty context cannot resolve the referent. Do not guess one of the different source credit totals."},
+    {"qids": [7,8,9,10,11,12], "category": "missing_policy", "expected_behavior": "clarify_or_abstain", "reason": "Second-year status alone does not identify which rule or entitlement is requested. No previous conversation supplies that rule."},
+    {"qids": [13,14,15,16,17,18], "category": "missing_personal_case", "expected_behavior": "clarify_or_abstain", "reason": "Eligibility/consequences are unspecified: neither a target policy nor the personal facts needed to apply it are supplied."},
+    {"qids": [19,20], "category": "missing_certificate_details", "expected_behavior": "clarify_or_abstain", "reason": "No certificate type, score, date, issuer or target programme is supplied. The master's admission recognition tables do not establish this person's eligibility."},
+    {"qids": [21,31,36,41,42,43], "category": "scholarship_gpa_policy_absent", "expected_behavior": "abstain", "reason": "The indexed materials do not state the requested scholarship GPA or financial-support threshold. Master's admission GPA 3.2 and graduation valedictorian ranking are different policies; neither is scholarship eligibility."},
+    {"qids": [22,32,37,44,45], "category": "scholarship_failed_course_policy_absent", "expected_behavior": "abstain", "reason": "No source states how an F/failed course affects academic encouragement scholarship. Examination sanctions and valedictorian awards do not supply this scholarship rule."},
+    {"qids": [23,38], "category": "academic_warning_gpa_policy_absent", "expected_behavior": "abstain", "reason": "No source establishes a GPA threshold for academic warning; admissions GPA and curriculum GPA inclusion/exclusion notes are unrelated."},
+    {"qids": [24,33,39], "category": "academic_warning_failed_courses_policy_absent", "expected_behavior": "abstain", "reason": "No source establishes academic warning from two failed courses in one semester. Examination misconduct consequences are not an academic-warning progression policy."},
+    {"qids": [25], "category": "grade_replacement_policy_absent", "expected_behavior": "abstain", "reason": "Curriculum notes specify which components enter GPA, but do not say whether retaking a course replaces the old grade or counts both attempts."},
+    {"qids": [26], "category": "universal_2025_english_policy_absent", "expected_behavior": "abstain", "reason": "Master's admission conditions and programme-specific language outcomes are scoped rules. They cannot establish a single English standard applying to every 2025 intake programme."},
+    {"qids": [27], "category": "graduation_minimum_gpa_absent", "expected_behavior": "abstain", "reason": "The sources mention credit completion, GPA component exclusions, valedictorian selection and master's admission GPA. None states the requested minimum whole-course GPA for graduation."},
+    {"qids": [28,29,30], "category": "personal_marks_missing", "expected_behavior": "clarify_or_abstain", "reason": "The scoped files are general curricula, admissions, award and examination documents, not this person's transcript or marks. The query supplies no personal grade data."},
+    {"qids": [34,40], "category": "minimum_registration_credits_absent", "expected_behavior": "abstain", "reason": "A partnership curriculum's planned Credits per semester totals are a study schedule, not the minimum number a student may register. No source states the requested registration minimum."},
+    {"qids": [35], "category": "gpa_failed_course_registration_cap_absent", "expected_behavior": "abstain", "reason": "No source gives a registration eligibility/cap rule for GPA 2.1 with one F. Scheduled semester totals cannot be used to authorize registration for 20 credits."}
+  ]
+}

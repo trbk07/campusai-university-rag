@@ -95,7 +95,7 @@ def source_identity(root: Path) -> dict:
     if config_dir.is_dir():
         files.update(path for path in config_dir.rglob("*")
                      if path.is_file() and path.suffix.lower() in {".json", ".toml", ".yaml", ".yml"}
-                     and path.name != "gemini.yaml")
+                     and path.name not in {"gemini.yaml", "key.yaml"})
     manifests = {"pyproject.toml", "requirements.txt", "requirements-dev.txt", "uv.lock", "poetry.lock"}
     files.update(root / name for name in manifests if (root / name).is_file())
     source_digest = hashlib.sha256()

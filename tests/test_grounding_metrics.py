@@ -60,7 +60,8 @@ def test_public_schema_rejects_internal_version_and_hides_source_hash():
     answer = GroundedAnswer(
         answer="ok", confidence="high",
         citations=(__import__("campusai.rag.grounding", fromlist=["Citation"]).Citation(
-            "c1", "doc", 1, source_hash="secret"),),
+            "c1", "doc", 1, quote="ok", source_name="Curriculum", page_range=(1, 1), source_hash="secret"),),
+        claims=(__import__("campusai.rag.claims", fromlist=["Claim"]).Claim("1", "ok", citation_ids=("c1",)),),
     )
     public = answer.to_public_dict()
     assert "source_hash" not in public["citations"][0]

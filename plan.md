@@ -1,4 +1,10 @@
+Phase 7 — phạm vi hiện hành 08/10/2026: **hoàn thiện chất lượng sản phẩm qua C7-01–C7-06; dừng qualification/bật optional reranker**. Yêu cầu 20/20 task và 19/19 gate được owner thay thế bằng phạm vi tinh gọn; giữ nguyên kiểm tra core quality, source/citation/scope, abstention, security, fallback và hiệu năng cấu hình bàn giao. Xem [kế hoạch hiện hành](#phase-7--hoàn-thiện-chất-lượng-sản-phẩm-phạm-vi-tinh-gọn) và [ledger](evaluation/results/phase7-completion-20261004/completion_task_ledger.json). Các checkpoint/goal cũ dưới đây được giữ làm lịch sử, không phải backlog hiện tại.
+
+Historical Phase 7 goal 2026-10-08 (superseded by the owner-authorized product scope below): 20/20 tasks DONE and 19/19 M0–M12/S1–S6 PASS. Current verified progress remains 6/20 tasks and 3/19 gates; no new PASS is claimed. The prior owner-approved RELEASE-BLOCKED outcome and failed candidate remain historical evidence, not completion of this goal. At that checkpoint, the next item was the P7-09 baseline/comparator admission audit; that work is now deferred. Preserve thresholds, original baseline bytes, consumed locks and fresh heldout protection. One active work item, one candidate; no equivalent sweep or automatic provider continuation. Current execution state: [task ledger](evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
+
 # CampusAI — Evidence-Grounded University Knowledge Assistant
+
+Phase 7 continuation (2026-10-07): 6/20 tasks DONE; historical r18 remains M0/M1/S1 PASS and M2 FAIL (3/19). The second specifically authorized eight-prompt Gemini pilot completed all eight calls with zero provider failures; original answer accuracy was 75% and citation precision 87.5%. Grounding repairs replay all four positive pairs at 100% accuracy/citation precision using captured final responses and no new calls; this is a local diagnostic, not final-policy acceptance. Deterministic source-headed credit sums pass 110 tests and four real-source component cases. Actual source-context BGE inference and independent audit are complete; nested MRR uplift is -0.01887%, below +3%, so it is not promoted. Verified GTE inference on the same 829 dev rows is complete: OOF MRR -0.09435%, independent audit PASS, no promotion. A fresh 12-prompt final-policy pilot with two multihop and two local negative controls is locked; the owner authorized it, but the first two unique attempts failed (second HTTP503); ten prompts remain unattempted and no retry was made. Two clean exact-source CPU4 historical reruns match every stable quality metric; the second fails the original 500ms p95 limit. Current routing limits even perfect cap20 ranking to +2.1323% MRR, so a nested utility-router study is running before further model tuning. Both eight-call permissions are exhausted. Fresh heldout stays closed and F1 is not frozen. See [continuation evidence and reproduction](docs/reranker/phase7_resume_20261007.md).
 
 GitHub publication preparation (2026-10-05): publish the current storage-migrated source tree as one commit descending from the existing CampusAI `main` (`c7c706deabb26163527f0b9a93085e494d55830b`), preserving the published remote history. The 23 unpublished Phase 7 commits and storage migration are retained locally on an archive branch and in an ignored Git bundle; heavy unpublished raw blobs must not be sent to GitHub. Historical evidence hashes and ancestry gates remain unchanged. Publication checkout QA identified EOL conversion in benchmark/corpus/evidence files; broad byte-preserving `.gitattributes` rules retain their original frozen bytes in clean clones. See `evaluation/results/storage-audit-20261005/publication-preparation.json` for the parent and retained history reference.
 
@@ -512,281 +518,257 @@ Exit criteria: citation precision và abstention precision được đo tự đ�
 
 Exit criteria: hybrid thắng từng retriever đơn trên Recall@k mà p95 vẫn phù hợp free CPU.
 
-### Phase 7 — Reranker
+<a id="phase-7--reranker-release-qualification"></a>
+<a id="phase-7--reranker"></a>
+### Phase 7 — Hoàn thiện chất lượng sản phẩm, phạm vi tinh gọn
 
-Kế hoạch hoàn thành cập nhật ngày 04/10/2026, dựa trên trạng thái r18 và gói dev nguồn mới: [Phase 7 — kế hoạch từng task với chuẩn đầu ra 10/10](docs/reranker/phase7_completion_plan_20261004.md). Tài liệu này bổ sung thứ tự thực thi và tiêu chí bàn giao cho P7-01–P7-20; không thay thế evidence nghiệm thu hoặc tự nâng trạng thái gate.
+**Quyết định hiện hành — 08/10/2026:** theo yêu cầu trực tiếp của owner, thay mục tiêu **20 task DONE/19 gate PASS** bằng **6 hạng mục chất lượng sản phẩm C7-01–C7-06**. Dừng nghiệm thu/bật optional reranker trong phase này. Luồng truy xuất và hỏi đáp hiện có tiếp tục phục vụ; `RERANKER_ENABLED=false`. Giữ các sửa lỗi nguồn, bảng, context, citation, cache và fallback đã có giá trị. Đây là thay phạm vi, không phải hạ ngưỡng hoặc đổi tên gate FAIL thành PASS.
 
+**Mục tiêu mới:** bàn giao luồng CampusAI hiện có trả lời đúng bằng chứng, đúng tài liệu/trang/phạm vi, từ chối khi thiếu nguồn, cache/fallback an toàn, chạy ổn trên cấu hình thực đo và có thể tái hiện. Không còn yêu cầu chứng minh reranker tăng MRR/nDCG 3% để hoàn thành Phase 7 hiện tại. Tính năng chưa chứng minh lợi ích được để tắt thay vì kéo dài nghiên cứu.
 
-Historical release candidate (superseded by r18): benchmark `phase7-release-20261003-r11`, results `phase7-source-context-20261003-r17`; see `configs/phase7_release_cycle.json`. M0-M3 and S1-S2 PASS on current source `aabac461`; M3 was physically remeasured on the pinned CUDA model, with deterministic score delta 0.0 and provider fault contract PASS. The S2 response observations were preserved byte-for-byte apart from the source/commit binding metadata; no Gemini calls were added. See [the M3/S2 current-source receipt](docs/benchmarks/phase7_m3_source_rebind.md). M4 now FAILS: its pre-existing immutable route freeze binds the prior M3 smoke artifact and source `618a6ef`; replacing M3 evidence invalidates that exact freeze. Do not rerun or rewrite the consumed test/holdout lock. The independent S2 source-range audit is documented [here](docs/benchmarks/phase7_s2_rebind_audit.md). M5 remains blocked pending M4; the prior calibration attempt measured only two primary no-evidence queries and primary negative FPR 3.77% (required <=1%). The auxiliary integrity task is complete: full-document source proofs, owner/AI provenance, common-template connected grouping, explicit exploratory-only loading and separate primary metrics. Four of the original eight records lack the conservative whole-document absence proof; the corrected four-record bank forms one connected group. Actual cap-8 inference yields classes 6/14/65, primary Recall@5 96.23%, primary FPR 3.77%, combined/OOF FPR 10.53%, no inference errors; this is not M5 PASS. Related checks: 80 passed. Raw failed experiments, source snapshot delta and checksums are archived in [the task summary](evaluation/results/phase7-source-context-20261003-r17/dev_auxiliary_integrity_task/task_summary.json). Runtime evidence schema changes remain pending specific permission after automatic approval review rejected their serving blast radius. No M6/M7 measurement has started on r17. Prior r15 M6 failure remains retained and unretuned; its consumed machine heldout bytes are not fresh. No 10/10 score is claimed.
+#### 7.1 Những phần bỏ khỏi Phase 7 hiện tại
 
+| Phần cũ | Quyết định và lý do |
+|---|---|
+| P7-09: nghiên cứu model/input, BGE/GTE, router/forest/learned ranking, tìm uplift +3% | **DEFERRED** toàn bộ nhánh tối ưu reranker. Chưa được bật, chưa chứng minh lợi ích; không cần cho luồng sản phẩm hiện có. |
+| P7-12/13: fit/freeze hard routing, sweep 8/10/12/16/20, probability calibration riêng reranker | **DEFERRED** cùng tính năng reranker; không thêm router hoặc chạy lại sweep. |
+| Phần reranker của P7-10/11/14: F1/F2/F3, provider GPU qualification, paired Phase6/7 ranking và bootstrap chứng minh uplift | **DEFERRED**. Thay bằng một snapshot/protocol sản phẩm, kiểm tra retrieval và answer thực tế; không chạy hai arm chỉ để đánh giá reranker đang tắt. |
+| P7-15: nhiều profile/cap/concurrency 1/5/10/20 và đo trên nhiều runtime | **THU GỌN** về đúng cấu hình bàn giao và tải sử dụng dự kiến, khóa trước chạy. Giữ HTTP/LLM thật và resource/error budgets; không suy local PASS thành public PASS. |
+| P7-18/19: rollback reranker hai process, canary 0/1/5/10/25%, 15 windows/1.500 requests, tám rollout exercises | **DEFERRED** với reranker. Giữ restart/cache/fallback của sản phẩm; kiểm tra nhiều worker nếu cấu hình thực tế dùng nhiều worker. Không bỏ nghiệm thu deployment trước khi nhận traffic tương ứng. |
+| P7-01–04, phần source/schema của 05, lifecycle của 07, fault components đã kiểm chứng | **TÁI SỬ DỤNG** evidence phù hợp identity. Không review lại toàn corpus, tạo thêm nguồn/benchmark, lặp inventory/archive hay chạy lại tests đã đạt khi không có thay đổi liên quan. |
+| Nhánh source/gold expansion, credit-sum study, storage/history cleanup, UI/framework/vector DB mới | **NGOÀI PHẠM VI**. Chỉ sửa lỗi sản phẩm được tái hiện bằng dev/source proof; không mở chương trình nghiên cứu mới. |
 
-Cycle lịch sử `phase7-dev-extension-20261003-r12` (đã được thay bởi candidate ở trên). Task dev evidence đã
-hoàn thành: thêm 13 câu source-checked vào dev (193 dev, 60 test, 60 holdout),
-giữ nguyên byte test/holdout, ghi rõ AI origin và phê duyệt của owner. M1/S1 đã
-freeze/đo lại PASS. Chia fold cân bằng lớp và giữ connected groups đã sửa việc
-dồn nhóm âm hiếm vào cùng fold. Replay dev đạt Recall@5 96,30%, FPR 0% ở cả
-OOF và fitted; chưa phải M5 PASS vì cần đo mới và đủ năm cap. Full suite trên
-source của task r12: **687 passed, 2 skipped, coverage 89,31%**. M2 của r12 FAIL ở
-fact stratum, dù aggregate holdout Recall@40 đạt 98,29%; cần sửa đọc nội dung
-bảng và đo cycle mới trước M3/S2, M4 và M5. Hai skip là integration opt-in; hai test đó đã chạy
-thật PASS khi đổi model Gemini. Evidence và cả lần calibration FAIL được giữ ở
-[task dev r12](evaluation/results/phase7-dev-extension-20261003-r12/dev_extension_task_summary.json).
+Giữ code, validator M0–M12/S1–S6, locks, raw failures và historical baseline để audit. **19 gate cũ vẫn bắt buộc trước bất kỳ lần bật reranker production nào trong tương lai**; không sửa activation guard hoặc tạo manifest PASS để bỏ qua chúng. Cycle r18 vẫn có **3/19 PASS, M2 FAIL**; không tự chuyển thành thành tích của phạm vi mới.
 
-Task lớn trước đã sửa routing theo thao tác thật của câu hỏi, retrieval từ nội dung
-gốc/bảng học kỳ, orchestration M6/M7/S6 và measurement receipts đã hoàn thành.
-Router dev đo lại trên source ổn định đạt hard recall 96,55% và easy unnecessary
-12,50%, cả fitted và grouped OOF; không phải M4 PASS.
-Retrieval dev khảo sát đã tăng Recall@5 từ 76,30% lên 95,56%; lượt này còn FPR
-8,89%, đang đo tiếp calibration sau sửa guard điểm cá nhân. Full suite mới nhất
-**655 passed, 2 skipped, coverage 89,31%**. M5 probe đạt Recall@5 96,30% nhưng
-fit bị từ chối vì chỉ có 4 mẫu lớp no-evidence trong các query được score.
-Task tiếp theo bổ sung dev source-checked cho đủ lớp evidence. Raw các lần đo,
-JUnit, coverage và receipt được giữ ở
-[task r11](evaluation/results/phase7-source-routing-task-20261003-r11/task_summary.json).
-Source đã đổi,
-vì vậy bindings r10 dưới đây là evidence của commit `7529608`, cần đo lại trước
-release. Chưa freeze route/mở heldout M4. Đang làm task dev evidence extension
-r12: dùng 13 cặp course facts đã được nhắc trong dev, không đọc heldout để tạo
-dữ liệu calibration còn thiếu. Gemini đã đổi sang `gemini-3-flash-preview`
-bằng probe HTTP200 và **2 live integration PASS**. File key cục bộ đã chuẩn
-hóa từ dòng `api_key` mới do owner cung cấp; không ghi key vào báo cáo hay Git.
-[Provider evidence r12](evaluation/results/phase7-dev-extension-20261003-r12/provider_switch_verification.json).
+#### 7.2 Sáu hạng mục bắt buộc
 
-Cycle lịch sử `phase7-dev-metadata-20261003-r10` tại commit `7529608` đã đo lại **M0–M3/S1–S2 PASS**:
-sửa thiếu topic và followup có history, sửa 14 nhãn difficulty dev gán theo
-ordinal bằng source audit có thể replay. Snapshot gốc và allocation dev trước
-sửa được hash-bind; câu hỏi/gold/scope và byte test/holdout được giữ nguyên.
-Full suite **596 passed, 2 skipped, coverage 89,32%**. Hai integration Gemini
-mới FAIL quota HTTP 429; S2 cho phép cache của client Gemini, chưa thay phép đo
-answer quality uncached. M4 chưa có grouped dev fit feasible, chưa freeze route
-hay mở heldout cho M4. Hiện đã đạt 6/19 gate; chưa có điểm release 10/10.
+| ID | Công việc và bằng chứng cần có | Điều kiện hoàn thành |
+|---|---|---|
+| **C7-01** | Baseline/source/index/calibration inventory, snapshot cấu hình sản phẩm, flag và namespace cache; chỉ một target acceptance. Bảo toàn baseline 10 documents và index 15 documents hiện có. | Hash/physical files hợp lệ; reranker mặc định tắt và production guard còn nguyên; khai báo đúng corpus/runtime/model sẽ bàn giao. Baseline lịch sử không tự nghiệm thu index/source mới. |
+| **C7-02** | Sửa lỗi retrieval/context/scope có source proof; kiểm tra mã môn/tên môn/bảng/số liệu/nhiều hop/selected text/doc-year-program scope, budget và cache. | Recall@5 test ≥98%, holdout ≥95%; candidate all-gold coverage human ≥95% theo overall/strata; không hồi quy retrieval/evidence trên baseline tương thích; provenance/scope/duplicate/invalid citation = 0. Thiếu mẫu/gold hợp lệ là thiếu evidence, không PASS. |
+| **C7-03** | Một final-policy answer-quality protocol và packet: rubric/claims/source coordinates khóa trước outputs, LLM thật uncached, review theo đúng role, raw/prompt/context/usage/cost và failures. | Citation precision và groundedness ≥98% trên từng primary split; answer FPR ≤1%; accuracy/citation recall không giảm quá 0,5 điểm % so baseline tương thích; citation precision/all-gold/hard-multihop coverage không giảm, mọi claim multi-hop có đủ hop support. Báo denominator/group/CI và false abstention. Không có baseline phù hợp thì chưa được tuyên bố không hồi quy. |
+| **C7-04** | Security/grounding regression, cache isolation, lỗi provider/index/malformed evidence, timeout, restart và fallback của cấu hình thực dùng. Tái sử dụng fault evidence đủ identity. | Giữ ≥50 adversarial cases/12 categories và required regressions; zero provenance/scope/citation leak; lỗi được kiểm soát, cache không trả nhầm nguồn/version, restart/fallback hoạt động. Bỏ GPU fault probes chỉ phục vụ reranker tắt. |
+| **C7-05** | Đo HTTP end-to-end có LLM thật trên **một profile** bàn giao; khóa workload, concurrency dự kiến, timeout/error/resource budget trước đo; raw stages/usage đầy đủ. | HTTP p95 ≤10 s; timeout ≤0,5%; RSS ≤75% RAM; không error regression hoặc lỗi chưa giải thích. Không bỏ cold/warm hay cache-on/off ảnh hưởng người dùng. Thiếu quota, số mẫu hoặc target evidence thì giữ BLOCKED; không dùng fake LLM để chứng minh live latency. |
+| **C7-06** | Một handoff có source/config snapshot, raw/checksums, commands tái hiện, known limitations, restart/fallback instructions và cleanup có kiểm tra bindings. | C7-01–05 đều đạt; full suite không fail, coverage ≥85%, required live integrations chạy thật, secret/diff checks đạt. Không đòi bundle/approval/report trùng nhau; dùng artifact store hiện có. Không nhận là reranker release hoặc 19/19 PASS. |
 
-Trạng thái hiện tại ngày **03/10/2026: chưa hoàn thành acceptance**: cycle
-`phase7-owner-20261003-r8` đã **M0/M1/S1 PASS**. Chủ dự án Trương Bảo Kiên đã duyệt
-toàn bộ đầu vào, cho phép tạo dữ liệu còn thiếu và yêu cầu ghi tên tác giả là mình.
-180 câu gốc đã xác minh exposure từ report thật và được giữ ở dev. 120 câu mới
-được tạo từ bảng học phần trong index vật lý, chia test/holdout 60/60, 15 nhóm
-source-fact riêng mỗi split. Nguồn gốc AI vẫn khai báo rõ dưới tên tác giả/owner.
-Profile `personal_owner_source_checked_ai` không tuyên bố review human độc lập.
-[Evidence r8](evaluation/results/phase7-owner-20261003-r8/human_benchmark_manifest.json)
-đã freeze. Run r8 M2 FAIL được giữ lại; cycle `phase7-candidate-20261003-r9`
-đã M2 PASS trên GPU: Recall@40 và all-gold recall test/holdout đều 1,0.
-Sửa retrieval theo dev, giữ nguyên test/holdout. Full offline suite 548 passed,
-2 skipped, coverage 89,29%; hai integration Gemini thật PASS riêng. Hai lần full
-live suite có một lỗi HTTP 503 mỗi lần, chưa được tính là full suite PASS.
-M3/S2 đã PASS trong validator trên cùng identity GPU, task lớn commit `b0c3175`.
-M4 fit đầu tiên chỉ trên dev chưa feasible: hard recall 97,59% nhưng easy rerank
-thừa 76,67%; grouped OOF hard recall 93,98% và easy rerank thừa 90,00%.
-Chưa freeze route, chưa mở test/holdout cho M4. Các thử nghiệm feature/decision tree
-trên dev chưa đạt đồng thời 95% hard recall và ≤20% easy rerank thừa; giữ raw và
-tiếp tục cải thiện router/context. Chưa tuyên bố 10/10.
-Key local `configs/gemini.yaml` được ignore; lệnh release dùng active cycle selector.
-Các gate answer/citation/HTTP cần cấu hình LLM thật.
+Các ngưỡng trên là mức tối thiểu của Phase 7. Với cùng metric và population, ngưỡng sản phẩm đã khóa trong `configs/grounding_release.json` nghiêm hơn thì dùng ngưỡng nghiêm hơn (citation precision/grounded claim precision ≥99%, citation recall/completeness ≥98%, coordinate validity 100%, zero unsupported/contradicted claim leakage và schema-invalid outputs). Thay phạm vi không cho phép hạ ngưỡng, giảm mẫu bắt buộc hay dùng pilot dev thay nghiệm thu primary.
 
-Trạng thái lịch sử trước khi xử lý owner approval/exposure/fresh cycle: validator trả
-`score=null`, **M0 PASS, M1 FAIL, M2–M12 BLOCKED; S1 FAIL, S2 PASS, S3–S6 BLOCKED**.
-Full suite: **480 passed, 0 failed, 2 live-LLM tests skipped, coverage 89,28%** (yêu cầu 85%).
-Compile, diff check và secret scan PASS. Probe BGE FP16 thật trên RTX 4060 PASS startup,
-singleton, determinism và shutdown; đây là dev diagnostic, chưa thay M3/M7.
-Điểm audit 5,5/10 và kết quả 385 tests/88,85% trước phiên này là historical.
-Không suy điểm nghiệm thu từ số tests hoặc tự nâng điểm khi còn thiếu gates.
+Quality thresholds cốt lõi ở trên được giữ từ kế hoạch cũ; không dùng việc bỏ nghiên cứu reranker để lược bỏ answer/citation/negative, bằng chứng nhiều hop, scope, security hoặc kiểm tra vận hành thật. Nếu metric không đạt thì sửa đúng lỗi đó, không bỏ case/strata để làm đẹp số.
 
-Cập nhật từ chủ dự án ngày **02/10/2026**: các query trong candidate pool do chủ dự án
-tự viết theo cách hỏi human-natural và đã kiểm chứng. Dùng bộ hiện có làm đầu vào;
-không yêu cầu viết lại hoặc mặc định xem chúng là AI-authored chỉ vì trùng bộ khác.
-Cần đồng bộ metadata/lineage, chuẩn hóa schema, kiểm tra exposure và freeze splits.
-Chủ dự án xác nhận review là nhóm nghiên cứu cùng soạn/thảo luận/đồng thuận; chưa có
-hồ sơ xác nhận riêng. Chủ dự án **Trương Bảo Kiên** đã
-[duyệt bản xác nhận qua chat](docs/benchmarks/human_review_confirmation.draft.md)
-ngày 02/10/2026; review/scope/exposure phục vụ nghiệm thu vẫn cần artifacts riêng.
-Hồ sơ cũ để nhóm review được giữ làm lịch sử. Theo chỉ đạo 03/10, chủ dự án có thể
-tự duyệt; cycle mới ghi tường minh `owner_self_review` và để mọi record pending cho
-đến khi có quyết định thực. Scope 10 PDF cho 45 negative chỉ là đề xuất cần owner
-kiểm chứng; 91 exposure histories vẫn pending. Không coi duyệt policy/hồ sơ là duyệt
-nhãn/gold.
-Target nghiệm thu là **local RTX 4060 trước, public sau**. Chuẩn hóa giữ nguyên bytes
-180 câu gốc: 59 connected groups, 155 overlap văn bản, 89 đã exposure dev được xác minh,
-91 còn pending history audit và 45 negative cần explicit document scope.
-Không dùng overlap để suy authorship; không tự đổi nhóm đã exposure thành held-out.
-Code đã tích hợp S1–S6, context/scope/cache, mandatory warm-up/readiness/lifecycle,
-trace/throughput, all-gold recall, group bootstrap và paired live answer harness.
-Luồng resume M1/S1 đã tự đọc owner policy, kiểm tra audit trước freeze và build S1
-trước validation M1. `scripts.phase7_release_pipeline preflight` liệt kê lỗi theo
-qid và split proposal an toàn. [Input diagnostic r6](evaluation/results/phase7_review_inputs_20261003_r6.json)
-xác nhận 180 review chưa hợp lệ, 45 scope negative chưa duyệt và 91 history chưa rõ;
-với bằng chứng hiện có, toàn bộ 180 câu phải ở dev, chưa có coverage test/holdout độc lập.
-Chi tiết và evidence: [audit triển khai](docs/reranker/phase7_audit_20261002.md),
-[verification](evaluation/results/phase7_code_verification_20261003_r5.json),
-[readiness report](evaluation/results/phase7_readiness_20261003_r5.json) và
-[task ledger](evaluation/results/phase7_task_ledger.json).
+#### 7.3 Protocol và thứ tự làm
 
-Kế hoạch thực hiện chi tiết, đầu ra, owner, lệnh và cách xử lý khi gate fail nằm tại
-[`docs/reranker/release_plan.md`](docs/reranker/release_plan.md).
-Checklist từng bước **P7-01.1–P7-20.6**, file cần sửa/bàn giao, dependencies,
-chuẩn metric, freeze protocol và Definition of Done nằm tại
-[`đặc tả thực thi Phase 7`](docs/reranker/phase7_task_spec.md).
-Các lệnh đo vận hành xem [release runbook](docs/reranker/reranker_release_runbook.md).
-`plan.md` tiếp tục là roadmap gốc và phải được giữ, theo dõi trong Git.
+1. **C7-01 → C7-02:** chốt inventory/current serving identity; tận dụng 829 dev observations và source facts hiện có. Sửa từng lỗi tái hiện được; không model/router sweep, không thêm corpus. Regression suite sau thay đổi liên quan; không lặp full suite khi chỉ đổi docs.
+2. **C7-03:** chuẩn bị rubric/packet offline. Tái sử dụng F0 đã review và ≥10 independent groups/split. Owner ngày 09/10 đã duyệt nghiệm thu lặp bộ 35 test/33 holdout hiện có sau khi công khai exposure do sửa lỗi; bộ này không được nhận là fresh. Giữ nguyên source rubric/gold/ngưỡng; không tune theo outputs nghiệm thu. Yêu cầu fresh mặc định vẫn áp dụng cho mọi qualification mới ngoài lần nghiệm thu lặp đã duyệt này. Một snapshot final source/index/prompt/model/params trước mở acceptance. Thu quality qua HTTP và ghi stages/resources ngay từ đầu để cùng raw có thể phục vụ C7-05 nếu đúng identity/workload; không gọi LLM lại chỉ để tạo report trùng. Exposure/failed outputs luôn được lưu. Không tự retry/continuation provider packet cũ đã bị chặn. Nếu cần thu baseline mới, chỉ paired phần cần chứng minh không hồi quy, không thu reranker arm.
+3. **C7-04/05:** dùng đúng final configuration và expected load. Target khởi đầu **local, một process** theo lựa chọn local trước đã có; public hoặc nhiều worker phải được đo riêng trước bàn giao/tăng traffic trên target đó. Không thay model/index/prompt giữa quality và performance rồi ghép report.
+4. **C7-06:** chạy một lượt final checks, đối soát evidence, giữ source/config/tests/baseline/raw audit cần tái hiện, xóa đúng temporary files không còn bindings. Report cũ khác identity chỉ là history.
 
-#### Phạm vi và điều kiện đóng phase
+**Giới hạn công việc:** một owner, một active item, một serving configuration; chỉ mở lại measurement khi source/runtime/data liên quan đổi hoặc có failure cần xử lý. Không thêm phase/framework/feature để giải thích metric yếu. Hạng mục chưa đo live vẫn BLOCKED, không tự DONE bằng unit tests.
 
-- Sinh tối đa 40 candidate từ Phase 6; chỉ rerank subset đã calibration thuộc
-  **8/10/12/16/20**, trên route hard và worker hữu hạn.
-- Warm model một lần lúc startup; readiness chặn request Phase 7 trước khi warm thành công.
-- Provider lỗi/timeout/thiếu tài nguyên trả chính xác Phase 6; abstention vì thiếu
-  bằng chứng là policy riêng, phải được calibration và đánh giá.
-- Trace phân biệt route selected, inference thực sự chạy, rerank được áp dụng,
-  fallback/abstention, queue/inference/end-to-end latency và model/policy identity.
-- Human benchmark có nguồn gốc; mỗi record được duyệt bởi owner hoặc reviewer độc lập
-  có role khai báo rõ (không gọi owner review là độc lập), scope/evidence hợp lệ, split
-  đóng băng và không tái dùng dữ liệu đã tune làm held-out mới.
-- Đo ranking, answer/citation, tải và staging trên đúng source/runtime/model đã freeze.
-- Chỉ đóng khi M0–M12 đều PASS, working tree sạch, mọi binding khớp và validator trả
-  `status=pass`, `score=10.0`, `all_release_gates_pass=true`; các gate bổ sung trong
-  kế hoạch chi tiết cũng phải có evidence. Không bật production khi còn thiếu gate.
-- Chuẩn bổ sung S1–S6 phải được tích hợp vào validator/manifest trước final source
-  freeze: lineage/leakage, context/readiness, group statistics, semantic answer/citation,
-  đủ evidence multi-hop và trace/deployment. Mục tiêu citation precision/groundedness
-  ≥98%, answer accuracy/citation recall giảm tối đa 0,5 điểm %; all-gold@5 không giảm.
-  `Recall@k` hiện là hit ít nhất một gold, không thay cho kiểm tra đủ mọi hop.
+#### 7.4 Lộ trình thực thi để chốt Phase 7
 
-#### Backlog Phase 7 theo thứ tự thực hiện
+Mục tiêu tiến độ là hoàn tất đúng C7-01–C7-06 trên một cấu hình local một process. Đi theo thứ tự dưới đây; mỗi bước tạo một bộ bằng chứng gắn với cùng source/config identity. Không mở nhánh reranker, benchmark mới, model/router sweep, nhiều runtime profile hay nhiều vòng provider chỉ để tạo thêm manifest. Nếu provider chưa sẵn sàng, dừng tại C7-03 và báo blocker cụ thể thay vì tiêu thời gian/phí vào các lượt lặp không có thông tin mới.
 
-| Task / checklist chi tiết | Ưu tiên | Công việc | Đầu ra / chuẩn hoàn tất | Trạng thái |
-|---|---|---|---|---|
-| [P7-01](docs/reranker/phase7_task_spec.md#p7-01) | P0 | Audit, bảo toàn baseline | Inventory/exposure registry; M0 kiểm chứng trên index vật lý | DONE audit ban đầu; history gaps ghi rõ |
-| [P7-02](docs/reranker/phase7_task_spec.md#p7-02) | P0 | Chuẩn hóa candidate/schema/summary | Stable qid, correction log, summary hash đúng và tái sinh deterministic | DONE staging; regeneration/verify PASS |
-| [P7-03](docs/reranker/phase7_task_spec.md#p7-03) | P0 | Tiếp nhận benchmark, đối chiếu review/gold/scope | Owner review và origin khai báo, source validation, split/family coverage | DONE r8: 180 human dev + 120 owner-directed AI test/holdout; M1/S1 PASS |
-| [P7-04](docs/reranker/phase7_task_spec.md#p7-04) | P0 | Validator/leakage/splits/group statistics | Tamper/leakage fail closed; exposure-aware splits; canonical/split/review hashes khớp; supplemental gates tích hợp | REVIEW: code và tamper tests PASS; chưa F1 |
-| [P7-05](docs/reranker/phase7_task_spec.md#p7-05) | P0 | Context/selection/scope/cache contract | Adapters và tests không context/scope leakage, clarification đúng | REVIEW: runtime/adapters/tests PASS; chờ pilot |
-| [P7-06](docs/reranker/phase7_task_spec.md#p7-06) | P0 | Paired answer/citation harness và rubric | Raw claims/reviews, recomputable metrics, frozen S4/S5; dev pilot pass | REVIEW: harness/semantic tests PASS; thiếu live pilot/review |
-| [P7-07](docs/reranker/phase7_task_spec.md#p7-07) | P0 | Mandatory warm-up/readiness/lifecycle | Zero request-path load, singleton/process, warm fail giữ Phase 6, không rò resources | REVIEW: unit + real RTX probe PASS; chờ bound M3/S2 |
-| [P7-08](docs/reranker/phase7_task_spec.md#p7-08) | P1 | Trace/resources/errors/throughput | Raw stages/PID/RSS/VRAM/counters reconcile; successful throughput đúng | REVIEW: instrumentation/tests PASS; thiếu full workload |
-| [P7-09](docs/reranker/phase7_task_spec.md#p7-09) | P0 | Joint dev feasibility | Một config cùng đạt route/quality/FPR/latency; decision record và failed attempts | BLOCKED F0/dev eligibility; study cũ chưa joint PASS |
-| [P7-10](docs/reranker/phase7_task_spec.md#p7-10) | P0 | Freeze source/runtime/data | F1 identities, canonical/splits/review manifests; M0/M1 PASS | BLOCKED P7-03/P7-09/F1 |
-| [P7-11](docs/reranker/phase7_task_spec.md#p7-11) | P0 | Coverage + model/provider contract | Coverage/smoke/provider reports; M2/M3 PASS, all-gold strata đạt | BLOCKED M1/S1 |
-| [P7-12](docs/reranker/phase7_task_spec.md#p7-12) | P0 | Fit/freeze routing | Calibration/confusion/F2 lock; M4 PASS, zero feature leakage | BLOCKED M3/S2 |
-| [P7-13](docs/reranker/phase7_task_spec.md#p7-13) | P0 | Five-cap sweep/evidence calibration | Five raw trials, selected policy/refit; M5 PASS, dev-only | BLOCKED M4 |
-| [P7-14](docs/reranker/phase7_task_spec.md#p7-14) | P0 | Paired held-out ranking/answer/citation | F3 lock, quality/regression/answer/review reports; M6 + S3–S5 PASS | BLOCKED M5/rubric/live LLM |
-| [P7-15](docs/reranker/phase7_task_spec.md#p7-15) | P0 | Capacity/resources + live HTTP/LLM | Capacity/performance/resource/HTTP raw reports; M7 + S6 PASS đúng target | BLOCKED M6/S3–S5/live LLM |
-| [P7-16](docs/reranker/phase7_task_spec.md#p7-16) | P1 | Adversarial/grounding regression | ≥50 cases/12 nhóm và required XML không skip/fail; M8 PASS | BLOCKED M7/S6 |
-| [P7-17](docs/reranker/phase7_task_spec.md#p7-17) | P1 | Controlled faults/recovery | Failure matrix + follow-up calls/permits; exact Phase 6 fallback, M9 PASS | BLOCKED M8 |
-| [P7-18](docs/reranker/phase7_task_spec.md#p7-18) | P1 | Rollback hai process/shared cache | Two-PID probes, namespace/index hashes, ≤300s/zero new inference; M10 PASS | BLOCKED M9 |
-| [P7-19](docs/reranker/phase7_task_spec.md#p7-19) | P0 | Staging canary/auto-rollback | ≥15 windows/1.500 requests + tám fault exercises; M11 + S6 PASS | BLOCKED M10; target local staging |
-| [P7-20](docs/reranker/phase7_task_spec.md#p7-20) | P0 | Release bundle/reproduction/handoff | Clean-checkout evidence, archive/manifest/runbook; M12 + S1–S6 PASS, score 10.0 | BLOCKED evidence/clean-checkout/live tests |
+| Bước | Làm gì | Điều kiện để đi tiếp |
+|---|---|---|
+| **0. Khóa phạm vi** | Dùng ledger làm trạng thái thực thi; xác nhận `RERANKER_ENABLED=false`, local một process, runtime hiện hành và các ngưỡng ở 7.2. Giữ C7-02 DONE nếu binding không đổi. | Không đổi target/profile giữa các phép đo; mọi sai khác identity được xử trước khi nghiệm thu. |
+| **1. C7-01 — snapshot cuối** | Tạo đúng một snapshot source/index/config/model/prompt/runtime/cache/calibration; kiểm tra baseline, hash, secret scan và serving guard. Không đọc/in key ra log. | Snapshot hợp lệ, khóa đủ binding; profile không còn thay đổi dự kiến. |
+| **2. C7-04 — runtime/security** | Chạy bộ regression tập trung trên profile đã khóa: lỗi 503 và Retry-After dài, timeout/deadline, malformed output, cache isolation, restart/fallback, secret/public-claim leaks. Chỉ chạy lại ca liên quan khi có sửa. | Tất cả required checks pass, không lỗi provenance/scope/citation hoặc lộ secret/claim; cập nhật evidence cùng snapshot. |
+| **3. C7-03 — chất lượng answer thật** | Trước khi chuẩn bị packet, kiểm tra key/provider readiness và preflight cục bộ một lần. Review source/rubric/gold đã khóa; tái dùng bộ 35 test/33 holdout đã được duyệt cho lần nghiệm thu lặp, ghi rõ không fresh. Tạo một packet gắn snapshot và chạy một đợt primary theo giới hạn được duyệt; lưu mọi output, lỗi, usage và exposure. | Đạt toàn bộ threshold C7-03 trên từng split/stratum với denominator/CI. Nếu provider trả 503/timeout hoặc key lỗi, đóng lượt, giữ raw, không chạy lại packet trong lúc nguyên nhân chưa đổi; chỉ tiếp tục sau khi provider sẵn sàng và có identity/authorization phù hợp. Không tạo packet phiên bản mới chỉ để đổi số phiên bản. |
+| **4. C7-05 — hiệu năng** | Chỉ sau C7-03 PASS, chạy một workload đã khóa trên đúng profile, ghi HTTP/LLM stages, cold/warm, cache và RSS; dùng output/raw quality cùng identity nếu đủ điều kiện, không gọi LLM lại để nhân đôi acceptance. | HTTP p95 ≤10 giây, timeout ≤0,5%, RSS ≤75% RAM; không có regression/lỗi chưa giải thích. |
+| **5. C7-06 — integration và đóng hồ sơ** | Chạy hai live integration bắt buộc sau khi primary pass; sau đó chạy một full offline suite, coverage, secret/diff/artifact-binding checks. Tạo handoff ngắn gồm lệnh tái hiện, cấu hình, giới hạn và fallback; cập nhật ledger một lần. | C7-01–05 có evidence PASS cùng identity; full suite không fail, coverage ≥85%, integrations thật pass, cleanup không xóa artifact còn binding. Đánh dấu 6/6 DONE chỉ khi từng điều kiện đạt. |
 
-Luồng thực hiện: **P7-01–09 (dữ liệu và code/dev) → freeze P7-10 → P7-11–20
-(acceptance tuần tự)**. Thu dữ liệu/review và sửa runtime có thể tiến hành độc lập;
-các gate chính thức phải chạy đúng thứ tự. REVIEW ở trên nghĩa là code đã kiểm thử,
-chưa đạt đủ evidence nghiệm thu của task; P7-10–20 đang BLOCKED dependency và chưa chạy.
-Trước P7-09 phải chốt group/split proposal và dev eligibility; final dataset freeze ở
-P7-10. M2/M4 có đọc held-out để nghiệm thu riêng: ghi exposure, không dùng kết quả
-theo qid để tune cap/model/policy ở các task sau. Tiếp theo chủ dự án ghi quyết định
-review từng record trong [cycle P7-03](docs/benchmarks/phase7_review_cycles/phase7-release-20261003-r3/phase7_review_questions.draft.md),
-đối chiếu scope/exposure rồi chốt F0 và đo joint dev feasibility P7-09.
-Sau mỗi task, cập nhật trạng thái, evidence path và lỗi còn mở trong roadmap này và
-[báo cáo tiến độ](docs/reranker/reranker_progress.md).
+**Quy tắc tiết kiệm thời gian:** không chạy lại full suite sau mỗi sửa nhỏ; dùng targeted tests rồi một lần full suite cuối. Không chạy performance/integration khi primary chưa đạt. Không nâng retry/call budget để vượt provider overload; giới hạn retry và deadline của profile là một phần của chất lượng sản phẩm. Nếu provider vẫn unavailable sau lần readiness check, giữ C7-03/05/06 chưa DONE và báo đúng blocker — không giả PASS.
+
+#### 7.5 Trạng thái và định nghĩa hoàn tất mới
+
+**Checkpoint 10/10/2026 - 3/6 items DONE (50%); Phase 7 incomplete.** C7-01 snapshot v15 and C7-02 retrieval/context rebound use source `6003f0fc?`; C7-04 passes 60/60 faults; full offline suite is 1,312 passed, 2 live skips, 90.60% coverage. V30 stopped on sandbox `URLError`; v31 stopped on HTTP 400 `API_KEY_INVALID` using key1. Owner approved v32 for key2, but the runner passed the entire `key_2=...` line rather than its value; Gemini returned HTTP 400 `INVALID_ARGUMENT / API_KEY_INVALID`, with 0 accepted answers, no retry, and a terminal v32 budget. This does not establish whether key2 itself is valid. V33 is prepared with only the key value selected locally and the exact same prompt bodies, population, rubric, gold, thresholds, source identity, model and Free Tier limits; its budget has not been initialized and it has sent 0 requests. The v33 manifest needs exact authorization, and shard 1 must wait until the next Pacific quota date. See [v33 manifest](evaluation/results/phase7-completion-20261004/product-primary-retry-manifest-20261010-v33.json), [v32 shard 1 summary](evaluation/results/phase7-completion-20261004/product-primary-live-20261010-v32-parent/shard-01/summary.json), [v31 shard 1 summary](evaluation/results/phase7-completion-20261004/product-primary-live-20261010-v31-parent/shard-01/summary.json), and [v30 summary](evaluation/results/phase7-completion-20261004/product-primary-live-20261010-v30-parent/shard-01/summary.json). C7-05 and live C7-06 remain gated on complete primary review.
+
+**Checkpoint 09/10/2026 — 3/6 items DONE (50%); Phase 7 incomplete.** C7-01 is rebound to current source/runtime/config/cache/index/calibration in [snapshot v12](evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261009-v12.json). C7-02 remains DONE. C7-04 passes 60 offline fault/restart cases across 12 categories and 96 focused regression tests on the current profile. The current full offline suite passes 1,305 tests, skips two opt-in live integrations, and reports 90.59% coverage. C7-03 is blocked because two metadata-only requests returned HTTP 400 `INVALID_ARGUMENT` (`API key not valid`); no benchmark data or generation tokens were sent. Replace the key in ignored `configs/key.yaml`, then perform one readiness check before preparing a single source-bound primary packet. Do not execute stale v25 or mint packets while the key is invalid. C7-05 and the live portion of C7-06 wait for C7-03 PASS. See [readiness result](evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009.json), [current full-suite report](evaluation/results/phase7-completion-20261004/product-c7-final-offline-tests-20261009-v1.xml), [coverage](evaluation/results/phase7-completion-20261004/product-c7-final-coverage-20261009-v1.json), and [ledger](evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
+
+| Hạng mục | Trạng thái | Bằng chứng / phần còn lại |
+|---|---|---|
+| C7-01 | DONE | [Snapshot v15](evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261010-v15.json) binds current source/runtime, product profile, indexes, calibration and cache identity; source `6003f0fc?` / runtime `2ac74741?`. |
+| C7-02 | DONE | [Current-identity rebound](evaluation/results/phase7-completion-20261004/product-c7-02-rebind-20261010-v2.json): all 136 baseline/current requests, provider bodies and retrieval evidence byte-match v28; prior Recall@5/all-gold/FPR/scope metrics remain bound. |
+| C7-03 | BLOCKED - V33 AUTHORIZATION / QUOTA WINDOW | [V33 bundle](evaluation/results/phase7-completion-20261004/product-primary-retry-manifest-20261010-v33.json), SHA-256 `482de5afde5bfbc4013ea24c2715977453ae98bd14b3cc20cd1f1ac12538ba75`; 68 planned POSTs + 1 global HTTP 503 retry (69 max), shards 14/13/13/14/14, at most 1 shard per Pacific date. Same frozen inputs as v32; corrected runner selects only key_2 value. 0 requests; awaits exact authorization and next Pacific quota date. Free Tier only; billing off. |
+| C7-04 | DONE | [Current-identity fault/restart v2](evaluation/results/phase7-completion-20261004/product-runtime-faults-finalprofile-20261010-shards-v2/summary.json): 60/60 cases across 12 categories and two processes; no provider calls. |
+| C7-05 | BLOCKED ? UPSTREAM C7-03 | Run the single frozen performance workload only after a complete primary source review passes; no performance calls were started. |
+| C7-06 | IN PROGRESS | [Current-identity full suite v4](evaluation/results/phase7-completion-20261004/product-c7-final-offline-tests-20261010-v4.xml): 1,312 passed, 2 live opt-in skips; [coverage](evaluation/results/phase7-completion-20261004/product-c7-final-coverage-20261010-v4.json): 90.60%. Secret scan passed. Live integrations and final reconciliation still wait on C7-03/C7-05. |
+
+- Security remediation (09/10/2026, historical checkpoint): removed the embedded credential from ignored `configs/gemini.yaml`; the scanner now checks that file as well as tracked files. At that checkpoint, focused LLM/key tests passed 43 cases and the full offline suite passed 1,295 with 2 live skips and 90.57% coverage. The credential has since been replaced by the owner and metadata readiness v2 returned HTTP 200 for Gemini 3.8 Flash; this metadata check sent no project prompt and does not prove answer quality. See `evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009-v2.json`. Any live packet must bind the current identity in snapshot v13.
+- **Nguyên nhân 503 đã xác minh:** [request schema tổng hợp owner duyệt](evaluation/results/phase7-completion-20261004/product-schema-diagnostic-result-20261009.json) trả `503 UNAVAILABLE`, provider báo model đang high demand; 1 request, 0 retry, không tài liệu/câu hỏi dự án/test/holdout. Không có dấu hiệu cần key mới. Không kết luận schema sai hoặc provider availability đã được sửa.
+- **Hai lỗi sản phẩm đã sửa trước đó:** lỗi provider nay thông báo đúng dịch vụ gặp lỗi theo ngôn ngữ yêu cầu; public abstention loại claims/citations bị từ chối, giữ diagnostics nội bộ. [Finding trước sửa](evaluation/results/phase7-completion-20261004/product-security-independent-finding-20261009.json) giữ 10 raw cases đã lộ claims dù harness ghi PASS. [Report sửa lỗi](evaluation/results/phase7-completion-20261004/product-http503-resolution-20261009.json) và [full suite tại thời điểm sửa](evaluation/results/phase7-completion-20261004/product-final-offline-tests-20261009-v2.xml) giữ làm history; nghiệm thu runtime hiện hành dùng bảng trên.
+- **V6 đã tiêu thụ đúng phê duyệt owner:** SHA-256 `e070dbbfedc788598855aed5ed70fcc89efa194dec294837933d6aae7443cc37`; đủ 8 case dev/6 call thành công, 0 retry, 15.460 token được provider báo; source/config ổn định, không mở/gửi test/holdout trong lần chạy v6. [Source review](evaluation/results/phase7-completion-20261004/product-dev-quality-source-review-20261009-v6.json) đã đạt dev; chưa thay primary acceptance hoặc performance PASS. Giữ raw/failure history trong artifact store; v5 đã rút và mọi packet đã tiêu thụ không được rerun. Owner đã duyệt phương pháp nghiệm thu lặp và toàn bộ manifest v2; lượt tiếp theo ghi riêng dưới đây, không gộp với dev v6.
+- **Chuẩn bị nghiệm thu offline (09/10):** adapter comparator cách ly đã qua cả 8 case dev (398 source files đúng archive, cùng tọa độ/request, 6 call giả lập, 0 call ngoài). [Workload hiệu năng khóa trước đo](evaluation/results/phase7-completion-20261004/product-performance-workload-20261009.json): đúng 100 HTTP requests, 54 LLM calls dự kiến, cân bằng course-code/table/multi-hop; 18 cold/off + 18 warm/off + 18 cache-on miss + 36 cache hits + 10 negatives. Collector/resource sampler đã qua preflight runtime mới; còn exact egress approval và nghiệm thu LLM thật, không phải performance PASS.
+
+- **Primary exposure được ghi rõ:** [rubric gốc](evaluation/results/phase7-completion-20261004/product-primary-source-rubric-20261009.json) giữ nguyên 35 test/33 holdout, 13 groups/split, 74 claims, 42 dòng nguồn duy nhất/5 PDF gốc. Phép đo retrieval đầu tiên đạt; sau đó phát hiện 16 câu so sánh bị chặn sai trước provider. Lỗi tổng quát được tái hiện bằng hai nguồn độc lập cùng ghi “3 credits and 30 study hours”, sửa bằng regression fixtures; không thay gold/threshold/ranking/model. [Finding](evaluation/results/phase7-completion-20261004/product-primary-preprovider-finding-20261009.json) và raw trước/sau giữ nguyên. Bộ 68 câu không còn được nhận là fresh sau sửa; câu hỏi lựa chọn phương pháp nghiệm thu đã gửi owner, owner đã duyệt ngoại lệ nghiệm thu lặp này tại mục 7.3, không nhận là fresh.
+- **Manifest v4 đã được owner duyệt và đóng đúng giới hạn:** [Phê duyệt](evaluation/results/phase7-completion-20261004/product-acceptance-owner-authorization-20261009-v4.json), [execution](evaluation/results/phase7-completion-20261004/product-acceptance-execution-20261009-v4.json). Primary v7 gửi1POST đúngpayload, GeminiHTTP503, dừng cả đợt; performancev5/integrationv5 chưa chạy, không continuation. Tổng2attemptstừphêduyệttoànbộv2,0successfuloutputs; usage/cost của request lỗi chưa xác định.
+- **Hoàn tất Phase 7 tinh gọn** chỉ khi C7-01–06 đủ bằng chứng trên cấu hình bàn giao, known limitations rõ và reranker vẫn tắt. Báo cáo owner trước khi mở rộng; không giả 20/20 hoặc 19/19 PASS. Raw trước/sau sửa được lưu nguyên byte trong artifact store, giữ baseline và failure history; chỉ dọn temporary DB không còn bindings.
+
+- **Sửa collector trước egress:** [Regression và raw trước/sau](evaluation/results/phase7-completion-20261004/product-primary-collector-fault-fix-20261009.json) tái hiện việc mất observation khi HTTP timeout sau provider; nay giữ attempt, UTC timestamp, mã HTTP 503 và timing, dừng không retry. 25 test collector PASS, full suite 1.240 PASS/2 live SKIP, runtime/payload/ngưỡng/workload không đổi. [Manifest v1 đã rút trước gửi](evaluation/results/phase7-completion-20261004/product-acceptance-egress-withdrawal-20261009-v1.json); [manifest v2](evaluation/results/phase7-completion-20261004/product-acceptance-egress-bundle-20261009-v2.json) chỉ cập nhật binding collector, sau đó đã được duyệt và dừng trước egress; giữ receipt/failure history. Không phát sinh API call trong lần sửa này.
+
+- **Owner đã duyệt tiếp tục (09/10):** [Phê duyệt toàn bộ manifest v2](evaluation/results/phase7-completion-20261004/product-acceptance-owner-authorization-20261009-v2.json): nghiệm thu lặp 68 câu với exposure công khai, nguyên gold/ngưỡng; tối đa 124 call theo đúng giới hạn manifest. Chạy primary trước, review nguồn rồi performance/integration; dừng cả đợt khi provider/HTTP/transport/harness lỗi, không retry/resume.
+
+- **Thực thi phê duyệt và sửa triệt để collector (09/10):** [Lượt manifest v2](evaluation/results/phase7-completion-20261004/product-acceptance-execution-20261009-v2.json) dừng ở parent đọc file worker rỗng, 0 API calls. [Sửa parent](evaluation/results/phase7-completion-20261004/product-primary-parent-fix-20261009.json) nay có 27 test collector PASS và rehearsal đủ 136 HTTP observations/68 provider responses giả lập trên hai worker source cách ly, 0 egress, không tính latency/quality PASS. Source-only replacement giữ nguyên payload/trần được thực thi theo phê duyệt toàn bộ đang có; [lượt thật](evaluation/results/phase7-completion-20261004/product-acceptance-execution-20261009-v3.json) gặp HTTP503 ở call đầu tiên, dừng cả đợt, 1 attempt/0 successful outputs/0 retry, không chạy performance/integration. Manifest v4 sau đó đã được owner duyệt và thực thi, cũng gặp503 ởcallđầu; xem checkpoint mới dưới đây. Giữ ngưỡng/source/model/workload. Không nhận lỗi provider là câu trả lời negative đúng hoặc PASS.
+
+- **Proposal503 trước sửa — lịch sử, đã thay bằng bản sửa bên dưới:** [Proposal giới hạn](evaluation/results/phase7-completion-20261004/product-provider503-resilience-proposal-20261009.json) chỉ là phương án chưa executable/chưa cấp quyền egress: retry chỉ503 tối đa1lần/request, tối đa3extraattempts/toànđợt;127callmới/tổng129gồm2đãlỗi. Giữ toàn bộ payload/model/gold/ngưỡng; lỗi và backoff phải nằm trong raw/HTTPtiming. [Google](https://ai.google.dev/gemini-api/docs/troubleshooting) khuyến nghị bounded backoff cho503. Owner chọn chuẩn bị/test phương án này hoặc giữ0retry/chờprovider; chưa sửa activeconfig, không tự lặp thêm đợt124call0retry.
+- **Kiểm tra hành vi trước sửa retry (09/10) — lịch sử:** [9 tình huống transport giả lập](evaluation/results/phase7-completion-20261004/product-provider503-offline-characterization-20261009.json) đều đúng hành vi hiện có, 0 API calls, source/config không đổi. Bật `max_retries=1` nguyên trạng sẽ retry cả429/500/timeout nên chưa đáp ứng phương án chỉ503. Nếu owner chọn retry, cần guard503 riêng, ngân sách3extraattempts chung xuyên các worker/packet và deadline quan sát đủ hai attempt/backoff; toàn bộ chờ vẫn tính vào HTTP latency. Không dùng thử nghiệm này làm live quality/performance PASS.
+
+- **503 và nghiệm thu thật (09/10):** v6 sent3attempts/1success, output false-abstain from spacing bug; fixed with synthetic regression. Fullsuite1.292PASS/2liveSKIP/90,57%, currentsecurityPASS. Owner-approved v7 stopped after7attempts/4HTTP503; owner-approved v8 stopped after4attempts/2HTTP503 on baseline INT7016 after its one retry. V8 retained2correct current positives, but only1/68 paired question complete. Combined cycle16attempts/6successes. Performance/integration did not run; no full quality PASS. Raw/budgets archived. Each consumed bundle cannot resume; key works, new exact approval required after provider recovery.
 
 ### Phase 8 — Evaluation và benchmark
 
-Tối thiểu 100–300 câu hỏi do người tạo và review, phân phối:
+Git publication 2026-10-12: source, configuration without credentials, regression
+tests, benchmark references and compact evidence are included. Large Phase 7/8
+payloads are hash-catalogued in the ignored local artifact store; restore them
+for historical audit as described in `docs/operations/artifact_storage.md`.
+Publication does not change evaluation completion or release gate status.
 
-- 30% fact/definition;
-- 20% table/filter/calculation;
-- 20% prerequisite/multi-hop;
-- 15% temporal/comparison;
-- 15% unanswerable/ambiguous/adversarial.
+**Trạng thái mới nhất 12/10/2026: nội dung và regression ứng dụng DONE; Phase 8 IN PROGRESS.** Đã DONE 4/5 bước (**80% theo số bước đã đóng**); sáu nhóm đo hoàn tất trong phạm vi công bố. **Đã đo Gemini thật:** [lượt runtime](evaluation/results/phase8-live-runtime-20261012/measurement.json) có 4 POST, 3 HTTP 200/JSON gốc hợp schema và 1 HTTP 503; dừng đúng lỗi đầu, không retry/đổi key. Workload live **3/18 thành công (16,67%)**, chưa đủ mẫu để đóng bước hiệu năng/format. [Baseline nội dung](evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json) vẫn có **300/300 phản hồi ứng dụng: 145 output Chat + 155 nhánh local thật**; AI source review chấp nhận **145/145 đáp án**, negative abstention đúng **155/155**, **0 câu thiếu, 0 false abstention**. Chỉ Free Tier theo khai báo owner, không bật billing hoặc phương án trả phí. Không thay đổi kết luận release Phase 7.
 
-Đo Recall@3/5/10, MRR hoặc nDCG, answer exact/semantic, citation precision/recall, groundedness, abstention precision/recall, p50/p95 end-to-end, peak RAM và cache hit. Có ablation: BM25-only, dense-only, hybrid, hybrid+rerank, có/không metadata filter.
+**Phương thức hiện hành theo owner:** dùng **Gemini Chat 3.8 Flash** cho kiểm chứng nội dung thay vì tiếp tục gọi API/key. Codex xuất file gộp nhiều câu; owner gửi file trên Gemini Chat rồi chuyển nguyên output về để chấm. Mỗi câu giữ riêng qid/prompt/evidence/schema, không kèm gold; tên model thực tế ghi theo giao diện, không tự nhận đã xác minh. Không có API/job nền tự chạy cho bước này. Các kết quả và giới hạn API dưới đây là lịch sử, không phải yêu cầu chờ reset để tiếp tục kiểm chứng nội dung.
 
-Exit criteria: có report versioned; mọi tối ưu sau đó phải không làm xấu answer/citation metrics.
+**Điều chỉnh theo owner 12/10:** chia câu chưa hoàn thành theo `key_2 → key_3 → key_1`, dùng chung checkpoint; sáu attempt/key trong cùng trần 18 attempt/ngày tổng cộng, giữ trần 160 cả đợt. Không gửi lại câu đã có output hợp lệ, không chuyển key để retry 503. Profile sản phẩm tắt retry tự động và dùng cooldown lưu trên đĩa, chung giữa key/process: 60–300 giây hoặc lâu hơn theo `Retry-After`; sau cooldown chỉ một truy vấn thật thử phục hồi. Dừng shard nghiệm thu ở lỗi đầu như cũ. Binding runtime mới phải được kiểm tra bằng preflight offline tương đương payload trong [amendment v5](evaluation/results/phase8-product-credential-amendment-v5.json), giữ nguyên manifest/budget/lịch sử đã gửi; không tạo thêm vòng duyệt bundle.
+
+**Kết quả sửa 503 — lịch sử:** [111/111 test PASS](evaluation/results/phase8-reliability-final-tests.xml). [Preflight reliability](evaluation/results/phase8-product-preflight-v5-reliability.json) đối chiếu 300/300 request/evidence và 142/142 body Gemini khớp bản đã duyệt; source/config mới được ràng buộc trong amendment. Tại mốc đó execution có 1 attempt lỗi/0 output; mốc mới nhất bên dưới là 2 attempt lỗi/0 output. Lịch chạy API tiếp theo đã được thay bằng kiểm chứng Gemini Chat theo owner. Đây là hoàn tất sửa cơ chế chống gọi lãng phí, chưa phải PASS baseline/Phase 8.
+
+**Tiếp tục nghiệm thu — kết quả lúc 09:46 ngày 12/10:** owner đã duyệt [proposal chạy ngay](evaluation/results/phase8-now-availability-authorization-v5.json), dùng phần ngân sách còn lại trong ngày, ưu tiên key_3 → key_2 → key_1; tổng vẫn ≤18/ngày và ≤160 cả đợt. [Tests availability](evaluation/results/phase8-availability-final-tests.xml): 21 PASS; [preflight hiện hành](evaluation/results/phase8-product-preflight-v5-availability.json) giữ nguyên 300 request/evidence và 142 body đã duyệt. Request thật bằng **key_3 trả HTTP 503**, dừng sau đúng một POST mới; không gọi key khác, không retry, không có output hợp lệ. Tổng execution hiện **2 attempt lỗi / 0 output**, còn 158 attempt cả đợt. Proposal chạy ngay đã đóng sau lỗi; chưa xác định được quota/auth của key_3, key_1 chưa kiểm tra. Tiến trình hẹn 14:00 cũ đã hủy để tránh chạy trùng; [trạng thái](evaluation/results/phase8-next-shard-status-v5.json) `cancelled_before_run`, không có lượt chạy nền còn chờ.
+
+**Kiểm chứng nội dung qua Gemini Chat — IN PROGRESS:** owner chọn dùng Gemini Chat cho các lượt kiểm chứng nội dung tiếp theo; mỗi lượt Codex cung cấp file chứa đúng prompt/evidence/schema cùng prompt hướng dẫn, không kèm gold answer, rồi chấm output owner gửi về. [Câu đầu tiên](evaluation/phase8/gemini_chat_pending_case_v5.md) đã [review và lưu kết quả](evaluation/results/phase8-gemini-chat-case-001-review.json): **1 câu chấm / 1 câu đúng nội dung**, citation/page/quote khớp evidence và gold; **JSON gốc không hợp lệ** vì thiếu escape trong quote. Bản sửa cú pháp được lưu riêng và schema PASS, không coi là JSON gốc đã PASS. Đây là tiến độ kiểm chứng nội dung riêng, chưa đủ toàn benchmark. Không thay cho output WSGI/API, không cộng vào 0/300 baseline hiện hành, không dùng làm latency/resource/reliability PASS. Không tự gọi API cho bước kiểm chứng nội dung thay thế này.
+
+**Chuẩn bị Chat — DONE:** đã xuất 141 câu sau pilot thành **[batch 002: 60 câu](evaluation/phase8/gemini_chat_batch_002_v5.md) + [batch 003: 60 câu](evaluation/phase8/gemini_chat_batch_003_v5.md) + [batch 004: 21 câu](evaluation/phase8/gemini_chat_batch_004_v5.md)**. Batch 002 thay bản chuẩn bị 5 câu trước đó và đã được review ở cập nhật bên dưới. Hướng dẫn/schema và evidence trùng nhau chỉ lưu một lần mỗi file; mỗi qid tham chiếu đúng evidence riêng. [Validation](evaluation/results/phase8-gemini-chat-batches-validation-v5.json) xác nhận dựng lại **141/141 prompt khớp nguyên văn và SHA-256**, schema giữ nguyên, qid duy nhất, không kèm gold/key. Output dùng JSONL, mỗi dòng một qid/response để giữ dòng hoàn chỉnh nếu bị cắt. Không tính việc xuất file là review hoàn tất, không mặc định PASS; số tin nhắn thực tế phụ thuộc độ đầy đủ của output. 158 câu local cần đánh giá riêng.
+
+**Kết quả file 1 — batch 002, 12/10:** đã [lưu và review 60/60 câu](evaluation/phase8/gemini_chat_batch_002_review_v5.md), không thiếu/trùng/qid lạ; **60 đúng nội dung theo câu hỏi, expected_claims và nguồn**. Raw JSON: **10 hợp lệ / 50 lỗi escape quote**; giữ nguyên raw và lưu bản sửa escape riêng, 60/60 bản normalized hợp schema, không nhận raw đã PASS. Citation có 54/60 qua helper hiện tại; 6 quote bảng có xuống dòng trong ô khớp nguyên các ô nguồn nhưng helper từ chối, ghi discrepancy riêng. Phát hiện **8 gold_claims nói về tín chỉ trong khi câu hỏi hỏi học kỳ**; expected_claims và bảng nguồn xác lập được học kỳ, không tự đổi benchmark/gold/ngưỡng. Các lỗi annotation/validator cần xử lý trước automated benchmark gate, chưa nhận PASS chính thức. Checkpoint hiện **61/142 đã review (42,96%)**, 81 chưa review; nội dung chấp nhận 61, raw JSON hợp lệ 10/61, không gọi API. **Tiếp theo gửi batch 003 (file 2, 60 câu)**, sau đó batch 004 (21 câu); không yêu cầu chạy lại 60 đáp án đúng chỉ để khắc phục lỗi copy/escape.
+
+**Kết quả file 2 — batch 003, cập nhật mới nhất 12/10:** [review](evaluation/phase8/gemini_chat_batch_003_review_v5.md) xác nhận **56 câu hoàn chỉnh đều đúng nội dung**, 1 câu bị cắt giữa claim/citation và 3 câu chưa có output; không nhận câu bị cắt là đã chấm xong. Cả 56 dòng hoàn chỉnh lỗi escape quote ở raw, bản normalized giữ nguyên nội dung và hợp schema; không tự tính raw format PASS. Thêm 20 gold annotation hỏi học kỳ nhưng ghi tín chỉ và 1 discrepancy quote xuống dòng; cộng dồn **28 annotation / 7 discrepancy validator** đang mở, benchmark/gold/ngưỡng giữ nguyên. [Checkpoint](evaluation/results/phase8-gemini-chat-progress-v5.json): **117/142 đã review (82,39%)**, 117 nội dung chấp nhận, raw JSON 10 hợp lệ / 107 lỗi, còn **25 câu**. Đã gộp **4 câu chưa hoàn tất của file 2 + 21 câu file 3** vào [một file còn lại 25 câu](evaluation/phase8/gemini_chat_remaining_v5.md), khôi phục đúng 25/25 prompt và schema gốc, không xuất lại câu đã hoàn tất. Dùng file này thay cho file 3 cũ; không gửi cả hai để tránh chạy trùng. Chưa PASS toàn Phase 8, chưa xử lý xong 158 câu local hoặc đo hiệu năng toàn ứng dụng; không gọi API.
+
+**Kết quả file 3 — batch 004, cập nhật mới nhất 12/10:** [review](evaluation/phase8/gemini_chat_batch_004_review_v5.md) xác nhận nhận đúng file 3 gốc **21/21 câu**, không phải file gộp 25 câu; **21 nội dung và citation hợp lệ**. Cả 21 raw dòng lỗi escape quote, lưu raw và normalized riêng, 21/21 normalized hợp schema; không tính raw format PASS. Thêm 12 lỗi annotation học kỳ/tín chỉ, cộng dồn **40 gold annotation / 7 discrepancy validator** chưa xử lý, benchmark/ngưỡng giữ nguyên. [Checkpoint hiện hành](evaluation/results/phase8-gemini-chat-progress-v5.json): **138/142 đã review (97,18%)**, 138 nội dung chấp nhận, raw JSON 10 hợp lệ / 128 lỗi; chỉ còn **4 câu chưa hoàn tất từ file 2**. [File cuối 4 câu](evaluation/phase8/gemini_chat_final_4_v5.md) khôi phục đúng 4/4 prompt/schema, không lặp qid đã chấm. Dùng file này thay file gộp 25 câu cũ; không gửi lại file 3. Đây là tiến độ review nhánh model, chưa PASS Phase 8; 158 câu local, số đo runtime và lỗi bộ chấm vẫn phải xử lý. Không gọi API.
+
+**Gemini Chat — DONE 100% thu/review nội dung, cập nhật cuối 12/10:** [4 câu cuối](evaluation/results/phase8-gemini-chat-final-4-review.json) đều đúng nội dung, raw JSON/schema/citation **4/4 PASS**, không sửa output. [Báo cáo tổng hợp](evaluation/results/phase8-gemini-chat-content-summary-v5.json) kiểm tra đủ **142/142 qid cần model, 142 nội dung chấp nhận, 0 thiếu, 0 trùng**; không còn cần owner gửi thêm output Chat cho lượt này. [Output tổng hợp](evaluation/results/phase8-gemini-chat-responses-v5.jsonl) có provenance Chat và đánh dấu từng normalization, tách khỏi predictions API. Toàn đợt raw schema **14 hợp lệ / 128 lỗi escape**, sau normalization công khai 142/142 hợp schema; không tự chuyển raw thành PASS. Vẫn còn **43 lỗi gold annotation học kỳ/tín chỉ + 7 discrepancy validator quote xuống dòng**, 158 câu local và số đo runtime/resource cần xử lý trước exit. Đây là DONE phần Chat, **chưa phải Phase 8 PASS**; benchmark/gold/ngưỡng không đổi, không gọi API, không xác nhận danh tính model thực tế khi chưa có nhãn giao diện.
+
+**Benchmark hiện hành:** [v5](evaluation/phase8/benchmark_candidate_v5.jsonl) đã [freeze cho regression](evaluation/results/phase8-benchmark-freeze-v5.json): 300 câu (140 test/160 holdout), 117 connected groups, không giao group giữa split; đủ năm loại câu hỏi. V5 chỉ sửa hai câu bị review v4 Reject vì lộ đáp án; giữ nguyên gold/evidence/qid/split. Hai câu đã được review lại, tổng **30 Accept / 0 Reject / 0 Pending**. 270 câu lịch sử giữ provenance review cũ; không nhận là được review mới. Các lỗi gold annotation phát hiện trong Chat review được ghi riêng, cần xử lý trước gate chấm tự động; mốc DONE review 30 câu bổ sung không đóng các lỗi annotation mới phát hiện. 20 câu temporal đều thuộc holdout; dữ liệu đã exposure, không phải fresh validation.
+
+| Bước | Trạng thái | Hoàn thành | Bằng chứng / phần còn lại |
+|---|---|---|---|
+| 1. Chuẩn bị benchmark và bộ đo | DONE | 100% | Benchmark v5 đủ 300 câu, đủ loại; kiểm tra group/split, schema và source provenance đạt. Bộ đo/collector đã có tests PASS. |
+| 2. Review và freeze benchmark | DONE — AUTOMATED_REVIEW_COMPLETE | 100% | [Review v5](evaluation/phase8/benchmark_review_v5.md), [freeze](evaluation/results/phase8-benchmark-freeze-v5.json): 30/30 câu bổ sung Accept; 270 câu lịch sử giữ review provenance cũ. [Tests review/successor](evaluation/results/phase8-review-successor-tests.xml): 22 PASS. Không phải chữ ký con người hoặc OFFICIALLY_APPROVED. |
+| 3. Thu câu trả lời và đo baseline | DONE — phạm vi Chat + WSGI replay | 100% (300/300; model 145, local 155) | [Execution](evaluation/results/phase8-chat-replay-complete-20261012/execution.json), [predictions](evaluation/results/phase8-chat-replay-complete-20261012/predictions.jsonl): request/prompt/schema được đối chiếu, mạng bị chặn, 0 provider request; không còn câu thiếu. Không nhận replay là live generation hoặc cộng vào API execution cũ. |
+| 4. Chấm chất lượng và hiệu năng | IN PROGRESS | 6/7 nhóm hoàn tất; workload live 3/18 thành công (16,67%) | [Quality nội dung](evaluation/results/phase8-chat-replay-complete-20261012/quality.json), [AI review](evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json) và [đo runtime thật](evaluation/results/phase8-live-runtime-20261012/measurement.json): 4 request WSGI có provider thật, 3 raw JSON/schema PASS, request 4 HTTP 503. Warm p50/p95/p99 8,641/11,176/11,176 giây trên 3 warm request gồm lỗi; không tính quota pacing. Mẫu ít và lượt chưa hoàn tất, không đủ để PASS reliability/performance. |
+| 5. Review baseline và kết luận exit | DONE — AUTOMATED_BASELINE_REVIEW_COMPLETE | 100% báo cáo hiện hành; exit chưa đạt | [Review nội dung](evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json): content/local regression PASS. [Review đo thật](evaluation/results/phase8-live-runtime-20261012/measurement-review.json): bindings, nguồn, raw format, spacing/budget và 19 tests PASS; workload chưa hoàn tất vì HTTP 503. Không hạ ngưỡng, không mở ablation/phase sau. |
+
+**Chi tiết phần đã hoàn tất trong bước 3–4:**
+
+| Hạng mục | Trạng thái | Hoàn thành | Bằng chứng / tiêu chí |
+|---|---|---|---|
+| Chuẩn bị preflight và manifest nghiệm thu | DONE | 100% | [Manifest v5](evaluation/results/phase8-product-run-v5.json) đã được owner duyệt; 142 prompt, 1.137.060 ký tự; trần 160 attempt cả đợt, 18/ngày tổng cộng. |
+| Collector checkpoint và bộ chấm offline | DONE | 100% | [Tests collector/scorer](evaluation/results/phase8-collector-final-tests.xml): 15 PASS; giữ kết quả, kiểm tra binding, không gửi lại câu đã hoàn thành. DONE phần công cụ; chưa phải đã chấm đủ sản phẩm. |
+| Thu và review nội dung nhánh model qua Gemini Chat | DONE | 100% (145/145 qid) | [Summary sau sửa](evaluation/results/phase8-gemini-chat-content-summary-post-fix-20261012.json), [output có provenance](evaluation/results/phase8-gemini-chat-responses-post-fix-20261012.jsonl): 145 nội dung chấp nhận, không thiếu/trùng; ba output bổ sung raw/schema/source PASS. 128 lỗi escape lịch sử vẫn ghi riêng, không coi normalized là raw PASS. |
+| Đo latency/format bằng Gemini thật qua ứng dụng | IN PROGRESS — lượt hiện tại đã dừng | 3/18 request thành công (16,67%); đã dùng 4 attempt | [Manifest workload](evaluation/results/phase8-live-runtime-20261012/manifest.json), [execution](evaluation/results/phase8-live-runtime-20261012/execution.json), [measurement](evaluation/results/phase8-live-runtime-20261012/measurement.json): key_2, Gemini 3.8 Flash xác nhận bằng modelVersion; cold có startup 62,477 giây, request đầu 5,869 giây, 503 fallback 8,641 giây. Format gốc 3/3 hợp lệ là kết quả trên output nhận được; khả dụng 3/4 attempt, không loại lỗi khỏi denominator. Không resume lượt đã dừng, không tạo vòng manifest/version để gọi tiếp. |
+| Sửa cơ chế tránh gọi lãng phí khi HTTP 503 | DONE | 100% phạm vi sửa và kiểm thử offline | Cooldown bền vững, không retry tự động, chỉ một request thử phục hồi; [tests reliability](evaluation/results/phase8-reliability-final-tests.xml): 111 PASS. Không bảo đảm dịch vụ Google hết 503. |
+| Phân bổ key và xác minh runtime sau sửa | DONE | 100% phần triển khai/validation | [Amendment v5](evaluation/results/phase8-product-credential-amendment-v5.json): phân bổ key_2 → key_3 → key_1, giữ trần chung; 300/300 request/evidence và 142/142 body Gemini khớp bản đã duyệt. Chưa xác minh key_3/key_1 bằng provider trong lượt này. |
+| Đo và tái lập retrieval từ preflight sản phẩm | DONE | 100% (300/300 bản ghi) | [Report retrieval](evaluation/results/phase8-product-preflight-retrieval-v5.json): R@5 142/145, MRR 0.899080, FPR 0/155; đủ denominator, split metrics, group-bootstrap CI và đối chiếu doc/chunk. Phạm vi preflight, chưa thay baseline end-to-end. |
+
+**Cách tính tiến độ hiện hành:** 80% = 4/5 bước đã DONE trong phạm vi công bố; không phải tỷ lệ gate PASS hoặc ước lượng thời gian còn lại. Bước 4 có 6/7 nhóm hoàn tất; nhóm runtime thật đã có quan sát nhưng workload chưa hoàn tất vì HTTP 503 (3/18 thành công). Nội dung và regression ứng dụng đã hoàn tất **300/300**: 145 output Chat đã lưu và 155 nhánh local thật. Lượt live mới có provenance riêng, không cộng vào 300 predictions replay hay sửa lịch sử API v5. Raw Chat **17/145 hợp lệ**, 128 lỗi escape vẫn giữ nguyên và đánh dấu trong bản normalized; sau normalization 145/145 hợp schema. Ba output API mới đều raw/schema hợp lệ, không cần normalization. Các mục lịch sử ở trên ghi tiến độ tại thời điểm đó.
+
+[Local diagnostic v3](evaluation/results/phase8-local-branch-preflight-diagnostic-v3.json) ghi 158 phản hồi local: schema 158/158, FPR 0/155, nhưng 3/3 câu answerable bị abstain. Đây là lát cắt chẩn đoán, không thay cho baseline toàn sản phẩm; latency lát cắt không được gọi là cold/warm end-to-end.
+
+[Retrieval từ preflight sản phẩm v5](evaluation/results/phase8-product-preflight-retrieval-v5.json) đã được chấm và tái lập từ 300 bản ghi đã lưu, không chạy lại inference/API: R@1 120/145, R@3 141/145, R@5 142/145, MRR 0.899080, retrieval FPR 0/155. Có denominator, group-bootstrap CI, split metrics và đối chiếu doc/chunk 300/300. Đây là đường WSGI/profile sản phẩm, khác runner retrieval có calibration trong báo cáo v4 lịch sử; không nhận chênh lệch điểm là cải thiện thuật toán. Chưa thay cho output answer/citation/grounding thật hoặc latency/resource end-to-end.
+
+**Hoàn tất xử lý và review baseline ngày 12/10:** đã sửa 43 annotation học kỳ trong [overlay đối chiếu nguồn](evaluation/results/phase8-chat-replay-final-20261012/annotation-corrections.json), giữ nguyên frozen v5; sửa validator cho exact JSON-array quote có xuống dòng, không nối dòng nguồn khác. Qua WSGI phát hiện 71 false abstention của output Chat đúng; sửa kiểm chứng cột Discipline/Credits theo đúng tên môn và nhận diện ngữ nghĩa tối thiểu `từ …% … trở lên`, giữ nguyên số/ngưỡng. [Baseline trước sửa](evaluation/results/phase8-chat-replay-baseline-20261012/baseline-review.json) được giữ để audit; lượt cuối **0/142 false model abstention**, 173 claim công bố được runtime support. Không đổi prompt/output/rubric để lấy điểm.
+
+**Kết quả mới nhất sau nhận ba output bổ sung:** semantic correctness theo AI review **145/145 (100%)**; false abstention **0/145**, FPR **0/155**; schema internal/public **300/300**; citation có quote/toạ độ nguồn hợp lệ **145/145**, **178/178 claim công bố được runtime support**. Exact-gold citation precision và recall cùng **144/145 (99,31%)**: 1 citation nguồn đúng nhưng chỉ vào text chunk thay vì table chunk được gold nêu, không tự sửa gold để tăng điểm. Exact-answer substring **23/30**, code temporal **20/20**; đây là proxy, tách khỏi chấm ngữ nghĩa AI. Grounding lexical precision **80/178**, recall **80/145**, unmatched/unsupported proxy **97/178** được lưu nguyên; khác biệt ngôn ngữ và độ rộng gold khiến đây không phải tỷ lệ lỗi ngữ nghĩa thực tế. Review AI không phải nhãn hay chữ ký con người.
+
+**Runtime đo được trong replay hiện hành:** cold gồm khởi động **33.131,608 ms**, warm p50/p95/p99 **20,186 / 174,397 / 238,578 ms**; peak working set **2.558.656.512 byte**, index **33.644.261 byte**. Model output trả tức thời từ file: đây là xử lý WSGI local, **không phải latency Gemini thật**; chỉ có 1 cold sample, CI cold không ước lượng được. Không nhận biến động giữa các lượt replay là cải thiện hiệu năng provider. [Tests tích hợp output và regression liên quan](evaluation/results/phase8-chat-complete-tests-20261012.xml): **142 PASS**; kiểm tra bindings/cohort, context, grounding, tín chỉ và bộ chấm. Các bộ test trước đó giữ nguyên để audit, có phần giao nhau.
+
+**Việc còn lại để đạt exit nguyên bản:** hoàn tất workload latency/format live khi provider hoạt động ổn định; hiện đã có số đo thật nhưng chỉ 3 output thành công trước HTTP 503. Không suy 3/3 JSON hợp lệ thành độ tin cậy production 100%, không suy p95 từ 3 warm request thành SLO đã được xác lập. **Không cần thêm output Chat; không còn false abstention cần sửa trong benchmark này.** Lượt đo ngày 12/10 theo yêu cầu owner dùng tối đa 18 POST, dừng sau 4; không retry/đổi key/bật billing hoặc tự gọi lại lượt đã dừng. Chênh exact-gold citation và proxy lexical vẫn công khai, không chỉnh benchmark hoặc hạ ngưỡng. Bằng chứng và lệnh xem lại trong [Phase 8 evaluation](docs/phase8_evaluation.md).
+
+**Validation benchmark/checkpoint sau tích hợp:** [48/48 PASS](evaluation/results/phase8-benchmark-validation-20261012.xml); source/evidence, freeze history, checkpoint và replay input contracts được kiểm tra lại. Các thư mục pytest tạm của lượt này được xóa sau kiểm tra binding; giữ raw Chat, source, test, cấu hình, frozen benchmark và cả baseline trước sửa để audit.
+
+**Follow-up mới nhất — sửa ba false abstention, 12/10:** DONE phần triển khai và kiểm thử. Hai câu tự nêu tên môn trong cùng câu trước “it” không còn bị nhầm là follow-up thiếu chủ đề; vẫn yêu cầu context cho đại từ chưa có đối tượng và tôn trọng `requires_context`. Bộ kiểm tra mâu thuẫn giữ số hiệu quyết định làm identity, không coi ngày của ba quyết định khác nhau là ba giá trị mâu thuẫn của cùng một quyết định; cùng số hiệu nhưng ngày/số tiền khác nhau vẫn bị chặn. Cache version tăng `request-context-v4` / `grounding-v4`. [Tests sửa](evaluation/results/phase8-remaining-fix-tests-20261012.xml): **259 PASS**; [regression ứng dụng/benchmark](evaluation/results/phase8-followup-regression-20261012.xml): **42 PASS**.
+
+[Preflight sau sửa](evaluation/results/phase8-post-fix-preflight-20261012.json) chạy đủ 300 request qua WSGI, chặn mạng, 0 provider request. [Validation](evaluation/results/phase8-post-fix-chat-followup-validation-20261012.json) xác nhận **142/142 prompt/schema/request/evidence đã có giữ nguyên**, **155/155 câu negative vẫn abstain local và public response không đổi**; đúng ba câu false abstention đã đi tới ranh giới gọi model. Preflight chỉ kiểm tra routing; output thật đã được owner gửi từ Chat và review riêng bên dưới.
+
+**DONE — thu/review nội dung sau sửa: 145/145 (100%), không còn output thiếu.** Đã nhận ba output của [file gộp](evaluation/phase8/gemini_chat_followup_3_20261012.md), [lưu raw](evaluation/results/phase8-gemini-chat-followup-3-raw-20261012.jsonl) và [review](evaluation/results/phase8-gemini-chat-followup-3-review-20261012.json): Chemistry Semester 1/3 tín chỉ, Algebra Semester 1/4 tín chỉ, quy định khen thưởng áp dụng từ 09/2023; **3 Accept, 0 Reject, 3/3 raw/schema/source PASS**, không sửa nội dung hoặc escape. Ghép với 142 output cũ không thay đổi rồi chạy đủ 300 request trên routing mới. [Review ứng dụng](evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json) xác nhận **content_and_local_regression_pass=true**, weak answerable cases rỗng, 0 provider request. Đây là **AUTOMATED_REVIEW_COMPLETE**, không phải **OFFICIALLY_APPROVED** hay live API latency PASS. Giữ baseline trước sửa và raw failures để audit; chỉ dọn file pytest tạm không có binding.
+
+**Đo thật theo yêu cầu owner — 12/10, 14:34–14:35 Bangkok:** chuẩn bị một workload cố định 18 câu từ đúng payload đã duyệt, một câu/connected group; trần 119.242 ký tự prompt/18.432 output token, timeout 15 giây, spacing ≥30 giây, không retry. [19 tests PASS](evaluation/results/phase8-live-runtime-recheck-20261012.xml) kiểm tra budget, chống gửi lặp, đo fallback và raw format không sửa chữa. Ba POST đầu HTTP 200, finishReason STOP, modelVersion `gemini-3.8-flash`; POST thứ tư HTTP 503, ứng dụng trả fallback hợp schema trong 8,641 giây. **Lỗi provider vẫn còn**, không nhận là đã fix hết HTTP 503. Peak working set 2.531.639.296 byte; timing qua WSGI tới provider, không bao gồm browser/TCP transit hoặc chờ quota giữa các request. Lưu raw final text, usage, timing và failure; không đụng lịch sử API/replay cũ hoặc key. Lượt hữu hạn này đã đóng sau lỗi, không resume dù collector tổng quát lưu nhãn `waiting_next_pacific_day`.
+
+**Giới hạn thời gian của phương án API cũ:** 142 lượt gọi dự kiến với trần 18/ngày từng cần tối thiểu 8 ngày Pacific nếu không lỗi; lịch này không áp dụng cho workflow Gemini Chat hiện hành. Manifest/egress/API execution cũ được giữ để audit, không tự chạy hoặc thay lịch theo workflow Chat. Không bật billing, không in secret. `plan.md` vẫn được Git theo dõi.
+
+**Exit:** benchmark versioned, reproducible, 100–300 câu đã review và đủ loại; có baseline sản phẩm thật cùng đo latency/resource; mọi metric được định nghĩa, thiếu số đo phải nêu rõ; baseline được review trước ablation. Mỗi ablation cần hypothesis và không làm xấu citation/grounding.
+
 
 ### Phase 9 — Temporal RAG
 
-- version document theo academic year/effective date;
-- query “hiện hành”, “năm 2025”, “khác gì” phải chọn đúng version;
-- citation hiển thị ngày hiệu lực và trạng thái superseded;
-- không merge hai phiên bản nếu user không yêu cầu comparison.
+**Mục tiêu:** trả lời đúng phiên bản theo academic year/effective date.
+
+- Tách document version, effective date, superseded state và comparison request.
+- Không merge phiên bản nếu user không yêu cầu comparison.
+- Test hiện hành, năm cụ thể, thay đổi giữa hai năm và citation ngày hiệu lực.
+
+**Dependency:** Phase 8 benchmark PASS. **Exit:** temporal cases đạt threshold và citation hiển thị version/date đúng.
 
 ### Phase 10 — Multi-document và multi-hop
 
-- evidence set có `doc_id` và role cho từng hop;
-- truy vấn course → prerequisite → rule → answer;
-- tách retrieval của từng document rồi mới fusion khi cần;
-- đánh giá contamination giữa các chương trình.
+**Mục tiêu:** nối nhiều mảnh bằng chứng mà vẫn giữ provenance.
+
+- Evidence graph tối thiểu gồm `doc_id`, role, hop và source range.
+- Retrieval từng document rồi fusion khi cần; không để một document không liên quan dẫn answer.
+- Đo prerequisite, course→rule, curriculum→credit và negative cross-program.
+
+**Dependency:** Phase 8 PASS; Phase 9 chỉ là prerequisite khi query có temporal scope. **Exit:** paired multihop benchmark đạt quality/grounding/abstention threshold.
 
 ### Phase 11 — Knowledge Graph (deferred)
 
-Chỉ làm khi Phase 8 cho thấy lỗi còn lại chủ yếu là quan hệ entity, không phải retrieval/citation. Schema dự kiến: `Course`, `Program`, `Prerequisite`, `Semester`, `Regulation`, `EffectiveDate`. Không xây graph trước benchmark.
+Chỉ mở nếu Phase 8–10 chứng minh lỗi còn lại chủ yếu là entity relationship và không giải quyết được bằng retrieval + multi-hop. Trước khi mở phải có problem statement, expected gate improvement và bounded prototype. Không xây graph như mục tiêu mặc định.
 
-### Phase 12 — Web app
+### Phase 12 — Web app MVP
 
-- dashboard tài liệu: upload, loại tài liệu, version, trạng thái, lỗi;
-- progress job và nút retry/review;
-- chat với source cards, page preview, copy citation;
-- filter program/year/semester;
-- feedback citation đúng/sai;
-- giới hạn file, user, concurrency và câu hỏi/phút.
+Chỉ bắt đầu sau khi core answer/retrieval contract ổn định. Phạm vi duy nhất: upload → validation → background job → ready status → chat → source cards/page preview → feedback. Không thêm tính năng workflow khi citation/abstention contract chưa ổn định.
 
-### Phase 13 — Deploy free
+**Exit:** smoke test end-to-end, quota/rate-limit, error states và source citation hoạt động trên corpus MVP.
 
-MVP public nên tách:
+### Phase 13 — Deployment
 
-- **Streamlit Community Cloud** cho UI/demo nhẹ;
-- storage/database free-tier cho metadata và PDF nhỏ;
-- worker CPU riêng hoặc Hugging Face Space nếu cần process dài;
-- LLM provider free quota với cache bắt buộc;
-- không tải BGE-m3/reranker nặng trong Streamlit request path.
+- Chọn một deployment profile trước: UI, worker, storage, metadata và LLM adapter.
+- Không tải model nặng trong request path; dùng queue, cache, rate limit và bounded concurrency.
+- Ghi rõ giới hạn free tier; không tuyên bố SLA nếu chưa đo.
 
-Nếu chỉ dùng một service để demo, chấp nhận giới hạn: tài liệu nhỏ, một worker, queue ngắn, không đảm bảo SLA. Tài liệu lớn và OCR không nên chạy đồng bộ trong web request.
+**Exit:** deploy reproducible, secrets ngoài Git, smoke/health/readiness pass và rollback được.
 
-### Phase 14 — Production polish
+### Phase 14 — Production hardening
 
-- structured logs, request/job id, stage timings;
-- health/readiness check và graceful shutdown;
-- secret từ platform environment, không commit API key;
-- xóa file theo TTL, privacy notice, export/delete user data;
-- smoke test sau deploy, rollback image, backup manifest;
-- README deploy một lệnh và public demo URL.
+Chỉ làm sau MVP deploy: structured logs/request ID, monitoring, TTL/privacy/delete, backup manifest, dependency update policy, incident runbook, canary và public documentation.
 
-## 6. Hạ tầng free được chọn
+**Exit:** operational checklist được owner duyệt; mọi thay đổi có rollback và evidence.
 
-| Nhu cầu | Lựa chọn MVP | Giới hạn cần chấp nhận |
-|---|---|---|
-| UI | Streamlit Community Cloud | tài nguyên khoảng 2 core/2.7 GB RAM/50 GB; phù hợp demo nhẹ |
-| Worker/model nặng | Hugging Face Spaces CPU hoặc Space phù hợp | cold start và quota; GPU free không mặc định đảm bảo |
-| File | local ephemeral cho demo hoặc Cloudflare R2 | free tier có quota; cần TTL và giới hạn upload |
-| Metadata | Supabase Postgres | free project có quota; không lưu embedding khổng lồ vô hạn |
-| LLM | free-tier provider, mặc định Gemini-compatible adapter | RPM/TPM/RPD thay đổi; phải cache và rate-limit |
-| Vector | file index trong artifact/storage | rebuild theo corpus version; FAISS khi scale |
+## 6. Hạ tầng và quy tắc chung sau Phase 7
 
-Các giới hạn trên phải được kiểm tra lại lúc deploy vì free-tier thay đổi theo thời gian. Không hứa “miễn phí vô hạn” hay SLA production.
+- Một runtime acceptance và một artifact store chính; runtime/cache dư chỉ giữ nếu receipt còn tham chiếu.
+- Source, tests, canonical summaries, manifests và evidence hash-bound phải giữ. Cache/materialization không được tham chiếu có thể dọn sau audit binding.
+- Không commit API key, raw provider secret, model weights hoặc serialized index vào Git.
+- Mỗi phase có một owner, một Definition of Done và một exit decision; không bắt đầu phase sau nếu exit chưa được ghi nhận.
 
-## 7. Thứ tự việc phải làm ngay
+## 7. Thứ tự thực hiện chính thức
 
-1. Hoàn tất import/namespace scan và chạy toàn bộ test sau rename.
-2. Thêm test academic metadata và test table schema mới.
-3. Thêm `answer/grounding/citation` module, chưa cần UI.
-4. Tạo corpus university nhỏ có bản 2025/2026 và 20–30 câu hỏi vàng.
-5. Kết nối answer pipeline với `HybridRetriever` ở mode fast.
-6. Đo baseline answer/citation/latency; sau đó mới bật reranker.
-7. Tạo web app tối thiểu upload → job → chat → citation.
-8. Deploy demo free; giới hạn quota trước khi chia sẻ public.
-9. Mở rộng benchmark lên 100–300 câu hỏi và tạo evaluation dashboard.
+1. Hoàn tất P7-06 và ra Decision A.
+2. Hoàn tất P7-09/M2 và ra Decision B.
+3. Nếu feasible, chạy P7-10–P7-20 tuần tự; nếu không, đóng Phase 7 RELEASE-BLOCKED.
+4. Chỉ sau Phase 7 exit mới mở Phase 8 benchmark.
+5. Phase 9–14 mở tuần tự theo dependency; không chạy song song các phase có cùng dữ liệu/runtime.
+6. Mỗi phase mở rộng chỉ sau core exit và phải có budget thời gian riêng.
 
-## 8. Nguồn tham khảo kỹ thuật
+Owner authorization (2026-10-10): Phase 8 evaluation preparation may proceed in
+parallel while Phase 7 remains open. This does not change Phase 7's release
+status or mark Phase 8 passed; Phase 9 and later dependencies still require
+their documented exit gates. See [Phase 8 evaluation](docs/phase8_evaluation.md)
+for the bounded scope, benchmark candidate and outstanding exit evidence.
 
-- [Microsoft MarkItDown](https://github.com/microsoft/markitdown): tham khảo mô hình converter pipeline và optional dependencies; không dùng thay parser layout chính.
-- [FAISS](https://github.com/facebookresearch/faiss): tham khảo dense similarity search và lựa chọn index khi corpus lớn.
-- [LlamaIndex ingestion](https://docs.llamaindex.ai/en/stable/module_guides/loading/ingestion_pipeline/): tham khảo pipeline loader → transformations → index/store và metadata lineage.
-- [Haystack ranker](https://docs.haystack.deepset.ai/docs/ranker): tham khảo vị trí reranker sau retriever và trade-off latency.
-- [Jmhzbmcn2/med_rag](https://github.com/Jmhzbmcn2/med_rag): tham khảo API chat/health,
-  source cards (`title`, `section`, `text`, `score`), giới hạn input, fallback khi
-  reranker lỗi, context header cho chunk và metric retrieval theo loại tài liệu.
-- [Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-overview): tham khảo hardware/deployment options.
-- [Streamlit Community Cloud](https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app): tham khảo giới hạn tài nguyên khi chọn route free.
+## 8. Tài liệu tham chiếu kỹ thuật
 
-Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có benchmark và provenance riêng thay vì sao chép nguyên framework.
+- [Phase 7 task specification](docs/reranker/phase7_task_spec.md)
+- [Phase 7 completion plan](docs/reranker/phase7_completion_plan_20261004.md)
+- [Reranker release runbook](docs/reranker/reranker_release_runbook.md)
+- [Artifact storage architecture](docs/operations/artifact_storage.md)
+- [Storage audit](docs/operations/storage_audit_20261005.md)
 ## 9. Phase 1/2 regenerated acceptance evidence
 
 - Full suite: 71 passed, 1 skipped (live Gemini integration requires an external secret).
@@ -798,6 +780,8 @@ Các repo trên là nguồn học pattern. CampusAI giữ code path nhỏ, có b
 
 
 ## Phase 7 benchmark preparation update — 2026-10-04
+
+**Nhật ký qualification lịch sử:** toàn bộ checkpoint dưới đây mô tả phạm vi reranker cũ và các lần đo tại thời điểm ghi. Các mục tiêu 20/20–19/19, next actions và trạng thái “active” trong nhật ký không còn là backlog Phase 7 hiện hành; ưu tiên mục 7.1–7.4 và `active_tasks` trong ledger. Giữ nguyên raw failures/locks để audit, không chuyển các ghi chép này thành PASS của phạm vi tinh gọn.
 
 Historical r17 status before the r18 measurement: **6/19 release gates PASS (31.6%)**; no final score is available while M4?M12 and S3?S6 remain unresolved. M0?M3 and S1?S2 passed in the prior validated cycle; M4 failed because its frozen route evidence was bound to older source/data, so that consumed lock remains unchanged.
 
@@ -814,7 +798,7 @@ Active r18 status after this measurement: M0, M1 and S1 PASS (3/19 = 15.8%); M2 
 
 ### Phase 7 dev candidate study — 2026-10-04
 
-The active goal requires M0–M12 and S1–S6 PASS, validator `status=pass`,
+The historical qualification goal required M0–M12 and S1–S6 PASS, validator `status=pass`,
 `score=10.0`, `all_release_gates_pass=true`, and physical source/runtime/model/index/calibration
 bindings. The gate count is still **3/19**; the following research does not promote M2.
 
@@ -1027,3 +1011,14 @@ P7-17.3/.4 offline component update (2026-10-04): exact Phase 6 fallback matched
 
 
 P7-17.2?.4 local/CUDA subtask completion (2026-10-04): pinned CrossEncoder inference on RTX 4060 and a controlled CUDA kernel completed after close with active/queued callers; permits/counters reconciled after drain and no post-close inference began. On the active r18 index, 20 dev groups preserved exact Phase 6 fallback under 22 timeout injections; permanent and transient fault subtests passed, including a controlled permanent fault after real CUDA inference that closed the provider and preserved Phase 6. Validations: `evaluation/results/phase7-completion-20261004/p7-17-2_validation.json`, `p7-17-3_validation.json`, `p7-17-4_validation-v2.json`; manifest: `p7-17_artifact_manifest.json`. P7-17/M9 remains BLOCKED until the frozen release chain and measured production target profile are available.
+<!-- Phase 7 execution update 2026-10-07: 6/20 tasks DONE; no successor gate PASS claimed. -->
+Phase 7 đang xử lý P7-06/P7-09: truy xuất dev sau sửa bảng đạt Recall@5 98,52%; ba kiểm chứng ranking độc lập PASS nhưng các cấu hình reranker đã thử chưa đạt uplift 3%. Packet pilot sửa lỗi mới đã được người dùng cho phép; hai arm đầu trả lời không abstain, toàn bộ kết quả vẫn cần đối soát và review. Lệnh kiểm tra bị chặn bởi hạn mức automatic approval review; không chạy lại pilot hoặc thêm call trước khi đọc raw hiện có. Chi tiết và thứ tự tiếp tục: [handoff](evaluation/results/phase7-completion-20261004/p7-06-09-direct-execution-handoff-20261007.json). Giữ `plan.md` tracked ở root.
+
+<!-- Phase 7 authoritative checkpoint 2026-10-08 -->
+Phase 7 core checkpoint 2026-10-08 (current): 6/20 tasks DONE; active r18 M0/M1/S1 PASS and M2 FAIL (3/19). Full offline regression: 1086 passed, 2 opt-in live tests skipped; fixed a hardware-dependent CUDA unit test. Current 829-dev remeasurement is complete. One existing fitted candidate was replayed without training, selection, new inference or provider calls: original F0-dev MRR +0.03822% and nDCG@5 +0.14820%, both below the unchanged +3% target, with zero provenance/scope/citation/duplicate violations. Stable pilot has one failed call and 11 unattempted; automatic approval review rejected continuation before execution. Expanded historical regression still fails the 98%/95% recall floors. F1 and successor primary test/holdout remain closed. Owner approved RELEASE-BLOCKED (direct reply: ?t duy?t?): the qualification cycle is closed, Phase 6 is retained and the tested candidate branch is stopped. This does not mark the remaining 14 tasks or failed release gates PASS. See [core blocker report](evaluation/results/phase7-completion-20261004/p7-core-blocker-report-20261008.json) and [task ledger](evaluation/results/phase7-completion-20261004/completion_task_ledger.json). No new model/router/gold/storage study, pilot continuation or phase expansion is authorized by this closure.
+
+<!-- Phase 7 full qualification reopened 2026-10-08 -->
+Historical Phase 7 goal 2026-10-08 (superseded by the owner-authorized product scope below): 20/20 tasks DONE and 19/19 M0–M12/S1–S6 PASS. Current verified progress remains 6/20 tasks and 3/19 gates; no new PASS is claimed. The prior owner-approved RELEASE-BLOCKED outcome and failed candidate remain historical evidence, not completion of this goal. At that checkpoint, the next item was the P7-09 baseline/comparator admission audit; that work is now deferred. Preserve thresholds, original baseline bytes, consumed locks and fresh heldout protection. One active work item, one candidate; no equivalent sweep or automatic provider continuation. Current execution state: [task ledger](evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
+
+<!-- Owner-requested med_rag adoption 2026-10-08 -->
+Applied two bounded patterns from the owner-provided med_rag repository: final serialized-context budgeting with source/provenance separation, and opt-in document-versus-evidence retrieval diagnostics. Offline suite: 1093 passed, 2 opt-in live tests skipped. Replay of the exact recorded 829 F0-dev inputs reduced serialized context characters by 7.98% with the same 2291 evidence blocks. Of 473 answerable dev rows, 16 lack complete gold evidence in top-5 despite finding the gold documents; the candidate pool recovers all 16. Two rows still lack gold-document retrieval. No new inference/provider calls, primary heldout reads, ranking uplift or release PASS is claimed. Progress stays 6/20 tasks and 3/19 gates. Implementation, primary-source links and reproduction evidence: [med_rag adoption](docs/reranker/med_rag_adoption_20261008.md). This diagnosis informs the existing P7-09 baseline/comparator admission work; it does not reopen promotion of the previously rejected candidate.

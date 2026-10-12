@@ -11,13 +11,17 @@ INPUT_VERSION = "structured-input-v3"
 QUERY_MAX_CHARS = 2048
 CONTENT_MAX_CHARS = 8192
 
-FORMATS = ("full_chunk", "body", "section_body", "table_text", "table_window", "body_table_window")
+FORMATS = ("full_chunk", "body", "section_body", "table_text", "table_window", "body_table_window", "source_context")
 _KEYS = {"Document type", "Academic years", "Semester", "Institution", "Program", "Section", "Page", "Pages"}
 
 
 def scoring_text(text: str, input_format: str, query: str = "") -> str:
     if input_format not in FORMATS:
         raise ValueError("unsupported reranker input format")
+    if input_format == 'source_context':
+        # Neighbor text is attached by the request-scoped context adapter.
+        # Tables retain the existing exact row/semester window transform.
+        input_format = 'body_table_window'
     if input_format == "full_chunk":
         return text
     table_format = input_format.startswith("table_") or input_format == "body_table_window"

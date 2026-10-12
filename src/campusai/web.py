@@ -8,6 +8,7 @@ from html import escape
 from typing import Callable
 
 from .api import CampusAIApplication
+from .retrieval.calibration import CalibrationError
 from .request_timings import capture_request, timed_stage
 
 
@@ -17,7 +18,7 @@ INDEX_HTML = """<!doctype html>
 <body><header><h1>CampusAI</h1><p>Trợ lý tri thức đại học có dẫn nguồn.</p></header><main>
 <form id="query-form"><label for="question">Câu hỏi</label><textarea id="question" name="question" required aria-describedby="hint"></textarea><small id="hint">Chỉ nhận câu trả lời có bằng chứng trong tài liệu đã lập chỉ mục.</small><button type="submit">Hỏi</button></form>
 <p id="status" class="status" role="status" aria-live="polite"></p><section aria-labelledby="answer-title"><h2 id="answer-title">Trả lời</h2><div id="answer" class="answer">Chưa có câu trả lời.</div></section></main>
-<script>const f=document.querySelector('#query-form'),s=document.querySelector('#status'),a=document.querySelector('#answer');f.addEventListener('submit',async e=>{e.preventDefault();s.textContent='Đang tìm bằng chứng…';a.textContent='';try{const r=await fetch('/api/query',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:new FormData(f).get('question')})});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error_code||'query_failed');a.textContent=d.answer.answer;const c=d.answer.citations||[];if(c.length)a.textContent+='\\n\\nNguồn: '+c.map(x=>`trang ${x.page}`).join(', ');s.textContent=d.answer.abstained?'Chưa đủ bằng chứng.':'Hoàn tất.'}catch(err){s.textContent='Có lỗi: '+err.message}});</script></body></html>"""
+<script>const f=document.querySelector('#query-form'),s=document.querySelector('#status'),a=document.querySelector('#answer');f.addEventListener('submit',async e=>{e.preventDefault();s.textContent='Đang tìm bằng chứng…';a.textContent='';try{const signal=typeof AbortSignal!=='undefined'&&typeof AbortSignal.timeout==='function'?AbortSignal.timeout(45000):undefined;const r=await fetch('/api/query',{signal,method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({question:new FormData(f).get('question')})});const d=await r.json();if(!r.ok||!d.ok)throw Error(d.error_code||'query_failed');a.textContent=d.answer.answer;const c=d.answer.citations||[];if(c.length)a.textContent+='\\n\\nNguồn: '+c.map(x=>`trang ${x.page}`).join(', ');if(d.answer.abstention_reason==='provider_abstention')s.textContent='D\u1ecbch v\u1ee5 tr\u1ea3 l\u1eddi t\u1ea1m th\u1eddi qu\u00e1 t\u1ea3i; h\u00e3y th\u1eed l\u1ea1i sau.';else s.textContent=d.answer.abstained?'Chưa đủ bằng chứng.':'Hoàn tất.'}catch(err){s.textContent=err.name==='TimeoutError'||err.name==='AbortError'?'Y\u00eau c\u1ea7u qu\u00e1 l\u00e2u; h\u00e3y th\u1eed l\u1ea1i sau.':'Có lỗi: '+err.message}});</script></body></html>"""
 
 
 def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable | None = None) -> Callable:
@@ -48,15 +49,20 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                     raise ValueError("invalid filters")
                 if "top_k" in options and (type(options["top_k"]) is not int or not 1 <= options["top_k"] <= 40):
                     raise ValueError("invalid top_k")
-                if options.get("language", "vi") not in {"vi", "en"}:
+                if not isinstance(options.get("language", "vi"), str) or options.get("language", "vi") not in {"vi", "en"}:
                     raise ValueError("invalid language")
                 # Assign cohort identity on the server; payload mode/id cannot
                 # force admission or bypass release policy.
                 options["request_id"] = environ.get("campusai.request_id") or uuid.uuid4().hex
                 if "campusai.authorized_doc_ids" in environ:
                     options["authorized_doc_ids"] = environ["campusai.authorized_doc_ids"]
+            except (ValueError, json.JSONDecodeError):
+                return _json_response({"ok": False, "error_code": "invalid_json"}, start_response, 400)
+            try:
                 value = application.query(payload.get("question", ""), **options)
                 return _json_response(value, start_response, 200 if value.get("ok") else 400)
+            except (CalibrationError, OSError, json.JSONDecodeError):
+                return _json_response({"ok": False, "error_code": "retrieval_not_ready"}, start_response, 503)
             except (ValueError, json.JSONDecodeError):
                 return _json_response({"ok": False, "error_code": "invalid_json"}, start_response, 400)
         return _json_response({"ok": False, "error_code": "not_found"}, start_response, 404)
@@ -64,6 +70,9 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
         return app
 
     def measured(environ, start_response):
+        reset = getattr(application.query_service, "reset_request_state", None)
+        if reset is not None:
+            reset()
         request_id = uuid.uuid4().hex
         environ["campusai.request_id"] = request_id
         def respond(status, headers, exc_info=None):

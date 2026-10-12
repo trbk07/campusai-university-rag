@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "version": "phase8-reviewed-regression-v5",
+  "status": "FROZEN_FOR_REGRESSION_EVALUATION",
+  "frozen": true,
+  "officially_approved": false,
+  "product_baseline_pass": false,
+  "phase8_pass": false,
+  "fresh_validation": false,
+  "human_signature_added": false,
+  "authority": "Owner explicitly delegated Phase 8 review to Codex; goal authorizes finalizing the reviewed benchmark. This is an evaluation freeze, not human or release approval.",
+  "benchmark": {
+    "path": "evaluation/phase8/benchmark_candidate_v5.jsonl",
+    "sha256": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d"
+  },
+  "review": {
+    "path": "evaluation/results/phase8-automated-review-v5.json",
+    "sha256": "9bf89d4431a0e4d66030a23da5c66759686dd1ac9dd16a35d0c1d2bb223f4407"
+  },
+  "review_packet": {
+    "path": "evaluation/phase8/benchmark_review_v5.md",
+    "sha256": "082ed186d8adec257baeedd83fb07e26530b630f02cea9f8d85f45ec50224403"
+  },
+  "review_validation": {
+    "status": "PASS",
+    "reviewed": 30,
+    "accept": 30,
+    "reject": 0,
+    "changed_questions": [
+      "p8-fact-thesis-excellence-result",
+      "p8-fact-valedictorian-average"
+    ],
+    "accepted_provenance_pass": 30,
+    "benchmark": {
+      "path": "evaluation/phase8/benchmark_candidate_v5.jsonl",
+      "sha256": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d"
+    },
+    "review": {
+      "path": "evaluation/results/phase8-automated-review-v5.json",
+      "sha256": "9bf89d4431a0e4d66030a23da5c66759686dd1ac9dd16a35d0c1d2bb223f4407"
+    },
+    "provider_calls": 0
+  },
+  "rows": 300,
+  "split_counts": {
+    "test": 140,
+    "holdout": 160
+  },
+  "connected_groups": 117,
+  "largest_group": 22,
+  "cross_split_groups": 0,
+  "supplemental_review_mode": "owner_delegated_ai",
+  "historical_review_manifest": {
+    "path": "evaluation/results/phase7-source-context-20261004-r18/human_benchmark_manifest.json",
+    "sha256": "2e3950b48b5d7d7864a9ef756ec99dfaa8ef3745d3ce18243d8136f74ef697d4"
+  },
+  "historical_dataset": {
+    "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval.jsonl",
+    "sha256": "994e33264da3fc7392ee2dd8bba0be0207a2902cca504c1c1e1de8d0eb9679c2"
+  },
+  "historical_review_mode": "owner_self_review",
+  "historical_rows": 270,
+  "supplemental_rows": 30,
+  "limitations": [
+    "Historically exposed regression population; not fresh validation.",
+    "All 20 temporal questions are in holdout.",
+    "AI review is not independent human review; no human signature is created."
+  ],
+  "frozen_at": "2026-10-11T02:29:30+00:00"
+}

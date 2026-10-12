@@ -1,8 +1,12 @@
 # Phase 7 — Kế hoạch hoàn thành từng task với chuẩn đầu ra 10/10
 
+> **Phạm vi hiện hành 08/10/2026:** owner đã thay Phase 7 bằng sáu hạng mục chất lượng sản phẩm C7-01–C7-06 trong [plan.md](../../plan.md#phase-7--hoàn-thiện-chất-lượng-sản-phẩm-phạm-vi-tinh-gọn). Optional reranker giữ tắt; các task/19 gate trong tài liệu này là hợp đồng qualification được hoãn, vẫn phải đạt trước khi bật reranker production. Không dùng các checkpoint cũ bên dưới làm mục tiêu 20/20–19/19 hiện hành. Trạng thái mới nằm ở `active_tasks` của [ledger](../../evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
+
+C?p nh?t tr?ng t?m 08/10/2026: **RELEASE-BLOCKED ?? ???c owner duy?t ("t duy?t"); cycle ?? ??ng, 6/20 task DONE**. P7-06 b? ch?n egress sau m?t stable-provider failure; P7-09 ?? c? audit m?t candidate, MRR +0,03822% v? nDCG +0,14820% tr?n dev F0 g?c, d??i +3%. Full offline suite: 1086 passed, 2 live tests skipped. Gi? Phase 6, d?ng nh?nh candidate ?? th?. Kh?ng m? th?m sweep, pilot, F1 ho?c primary heldout; c?c task/gate ch?a ??t v?n gi? tr?ng th?i BLOCKED/FAIL. B?o c?o c? metric, hash, impact v? quy?t ??nh ?? xu?t: [core blocker report](../../evaluation/results/phase7-completion-20261004/p7-core-blocker-report-20261008.json). C?c snapshot c? b?n d??i ???c gi? ?? audit; tr?ng th?i hi?n h?nh ??c t? b?o c?o n?y v? ledger.
+
 Ngày lập: **04/10/2026**, múi giờ **Asia/Bangkok**. Đây là kế hoạch thực thi dựa trên repository tại thời điểm đọc, **không phải báo cáo nghiệm thu mới**. Không chạy benchmark, gọi LLM, sửa runtime hoặc freeze dữ liệu trong lần lập kế hoạch này.
 
-Roadmap gốc: [`plan.md`](../../plan.md#phase-7--reranker). Kế hoạch này bổ sung trạng thái và thứ tự xử lý hiện tại cho [đặc tả P7-01–P7-20](phase7_task_spec.md); giữ nguyên các ID để đối chiếu backlog. Các ngưỡng thực thi lấy từ [validator M0–M12](../../evaluation/reranker/reranker_release_gates.py) và [validator S1–S6](../../evaluation/reranker/supplemental_gates.py). [Runbook](reranker_release_runbook.md) cung cấp CLI, nhưng phần mô tả cycle r10 trong runbook đã cũ: cycle hiện hành phải đọc từ [selector](../../configs/phase7_release_cycle.json).
+Roadmap gốc: [`plan.md`](../../plan.md#phase-7--reranker-release-qualification). Kế hoạch này bổ sung trạng thái và thứ tự xử lý hiện tại cho [đặc tả P7-01–P7-20](phase7_task_spec.md); giữ nguyên các ID để đối chiếu backlog. Các ngưỡng thực thi lấy từ [validator M0–M12](../../evaluation/reranker/reranker_release_gates.py) và [validator S1–S6](../../evaluation/reranker/supplemental_gates.py). [Runbook](reranker_release_runbook.md) cung cấp CLI, nhưng phần mô tả cycle r10 trong runbook đã cũ: cycle hiện hành phải đọc từ [selector](../../configs/phase7_release_cycle.json).
 
 ## 1. Đích đến và trạng thái xuất phát
 
@@ -188,6 +192,8 @@ P7-03 completion update 2026-10-05: successor F0 is now complete and owner-autho
 
 ### P7-06 — Hoàn thiện rubric và pilot answer/citation với LLM thật
 
+Continuation 2026-10-07: all eight second-pilot calls completed (zero provider failures), but original live accuracy 75% and citation precision 87.5% fail. Quote/credit repairs give 100% on four positive pairs in a local replay with zero new calls; no fresh final-policy PASS is inferred. Deterministic source credit sums pass 110 tests and four component cases. A new locked packet has 12 provider prompts from six positives (including two source-reviewed multi-hop questions), plus two actual empty-retrieval negative controls that do not call the provider. Contract suite: 25 PASS. Exact 12-prompt permission is granted. Six unique calls failed (provider error, four HTTP503, timeout); six unattempted remain, no retry. A stable gemini-3.8-flash packet preserves the exact twelve prompts and awaits separate authorization. Previous two eight-call authorizations are exhausted. Full P7-06 remains IN_PROGRESS. [Current handoff](../../evaluation/results/phase7-completion-20261004/p7-06-09-direct-execution-handoff-20261007.json).
+
 **P0 · Owner: grounding/evaluation engineer + semantic reviewer · Phụ thuộc: P7-03/04/05 · 1–2 ngày + review/quota.**
 
 - [ ] P7-06.1 Khóa gold claims, evidence sets/hop support, citation coordinates và rubric từ source, trước xem outputs; phép cộng tín chỉ qua deterministic path.
@@ -224,6 +230,8 @@ P7-06.2 instrumentation update 2026-10-04: the paired collector now archives the
 **Bàn giao:** telemetry schema/protocol, raw pilot/resource observations, recompute report và deployment profile. **Chuẩn đạt:** counters khớp raw, duration≥0, resource đúng device/PID; đủ dữ liệu để S6 enforce. **Kiểm chứng:** sampler/measurement/HTTP/canary semantic tests. **Khi fail:** sửa collectors trước F1, không ghép số đo khác target.
 
 ### P7-09 — Joint dev feasibility và chứng minh triển vọng uplift
+
+Continuation 2026-10-07: actual source-context BGE and separately verified GTE GPU studies are complete on the same 829 reviewed dev inputs. Independent comparator audits PASS with zero provenance/scope/citation/duplicate errors. Nested MRR uplifts are -0.01887% (BGE source-context) and -0.09435% (GTE window); both fail +3%. Finite-grid gold-aware ceilings remain below +3%; neither policy is promoted. Historical M0 reruns now use a clean worktree at the exact Phase 6 commit and only consumed historical primary sets; successor primary sets stay closed. Baseline/index compatibility and jointly feasible final policy remain required before F1. [BGE evidence](../../evaluation/results/phase7-completion-20261004/p7-09-source-context-bge-dev-20261007.json); [GTE evidence](../../evaluation/results/phase7-completion-20261004/p7-09-gte-dev-20261007.json).
 
 **P0 · Owner: retrieval/evaluation engineer · Phụ thuộc: P7-03–08 + F0 · 3–6 ngày/study.** Đây là checkpoint kỹ thuật chính trước tiêu thụ held-out mới.
 
@@ -466,3 +474,7 @@ git status --short
 - [ ] `plan.md` vẫn ở repository root và tracked; roadmap/progress trỏ đúng successor evidence và ghi rõ measured deployment scope.
 
 Nếu còn một mục chưa đạt, Phase 7 tiếp tục ở trạng thái chưa hoàn thành; ledger phải nêu gate/task còn thiếu và hành động cụ thể tiếp theo.
+
+
+<!-- Phase 7 authoritative checkpoint 2026-10-08 -->
+Phase 7: 6/20 tasks DONE; active r18 gates 3/19 PASS (M0/M1/S1), M2 FAIL. Historical M0 separately PASS: two exact-source CPU8 reruns and unmodified validator on the original index. Current expanded single-CUDA-encoder baseline: test p95 243.162 ms and exact-code 100%, but generated test/holdout Recall@5 97.44%/94.02% FAIL unchanged 98%/95% floors. All raw measurements/source snapshots archived. Preview pilot: six unique failed calls, six unattempted remain, zero retry; a separately locked stable-model packet awaits exact authorization. The 829-dev metrics recorded before the latest retrieval fixes are historical study metrics and need remeasurement. F1 is not frozen; successor primary test/holdout stay closed. See [task ledger](../../evaluation/results/phase7-completion-20261004/completion_task_ledger.json) and [current handoff](../../evaluation/results/phase7-completion-20261004/p7-06-09-direct-execution-handoff-20261007.json). Keep plan.md tracked at root.

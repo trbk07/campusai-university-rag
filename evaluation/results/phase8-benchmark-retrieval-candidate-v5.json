@@ -1,0 +1,1009 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "status": "retrieval_baseline_measured_phase8_incomplete",
+  "gate_eligible": false,
+  "benchmark": {
+    "path": "D:/Project/evaluation/phase8/benchmark_candidate_v4.jsonl",
+    "source_sha256": "9309fb0eb1defd15da946cba9cd657dd82bf0bd98c924adb0d3012193aa1166c",
+    "review_manifest_path": null,
+    "review_manifest_sha256": null,
+    "review_status": "pending",
+    "review_mode": "owner_review_pending",
+    "version": "phase8-reviewed-candidate-v4",
+    "selected_ids_sha256": "2e36cfdb7f605b8f57a99d20ea33a619b95e977dcff69e4d35d5f0a2deac2796",
+    "selected_ids": [
+      "human-p7r18-curriculum-001-combined-1",
+      "human-p7r18-curriculum-001-combined-2",
+      "human-p7r18-curriculum-001-combined-4",
+      "human-p7r18-curriculum-001-credits-1",
+      "human-p7r18-curriculum-001-credits-2",
+      "human-p7r18-curriculum-001-credits-3",
+      "human-p7r18-curriculum-001-semester-1",
+      "human-p7r18-curriculum-001-semester-4",
+      "human-p7r18-curriculum-004-combined-1",
+      "human-p7r18-curriculum-004-combined-2",
+      "human-p7r18-curriculum-004-combined-3",
+      "human-p7r18-curriculum-004-credits-1",
+      "human-p7r18-curriculum-004-credits-2",
+      "human-p7r18-curriculum-004-credits-4",
+      "human-p7r18-curriculum-004-semester-1",
+      "human-p7r18-curriculum-004-semester-2",
+      "human-p7r18-curriculum-004-semester-3",
+      "human-p7r18-curriculum-004-semester-4",
+      "human-p7r18-curriculum-005-combined-1",
+      "human-p7r18-curriculum-005-combined-2",
+      "human-p7r18-curriculum-005-combined-3",
+      "human-p7r18-curriculum-005-credits-1",
+      "human-p7r18-curriculum-005-credits-2",
+      "human-p7r18-curriculum-005-credits-4",
+      "human-p7r18-curriculum-005-semester-1",
+      "human-p7r18-curriculum-005-semester-2",
+      "human-p7r18-curriculum-005-semester-3",
+      "human-p7r18-curriculum-005-semester-4",
+      "human-p7r18-curriculum-009-combined-2",
+      "human-p7r18-curriculum-009-combined-4",
+      "human-p7r18-curriculum-009-credits-1",
+      "human-p7r18-curriculum-009-credits-2",
+      "human-p7r18-curriculum-009-credits-4",
+      "human-p7r18-curriculum-009-semester-1",
+      "human-p7r18-curriculum-009-semester-2",
+      "human-p7r18-curriculum-009-semester-3",
+      "human-p7r18-curriculum-009-semester-4",
+      "human-p7r18-curriculum-012-combined-1",
+      "human-p7r18-curriculum-012-combined-2",
+      "human-p7r18-curriculum-012-combined-3",
+      "human-p7r18-curriculum-012-combined-4",
+      "human-p7r18-curriculum-012-credits-1",
+      "human-p7r18-curriculum-012-credits-3",
+      "human-p7r18-curriculum-012-credits-4",
+      "human-p7r18-curriculum-012-semester-1",
+      "human-p7r18-curriculum-012-semester-3",
+      "human-p7r18-curriculum-012-semester-4",
+      "human-p7r18-curriculum-017-combined-2",
+      "human-p7r18-curriculum-017-combined-4",
+      "human-p7r18-curriculum-017-credits-1",
+      "human-p7r18-curriculum-017-credits-3",
+      "human-p7r18-curriculum-017-credits-4",
+      "human-p7r18-curriculum-017-semester-1",
+      "human-p7r18-curriculum-017-semester-2",
+      "human-p7r18-curriculum-017-semester-3",
+      "human-p7r18-curriculum-017-semester-4",
+      "human-p7r18-curriculum-019-combined-1",
+      "human-p7r18-curriculum-019-credits-1",
+      "human-p7r18-curriculum-019-credits-2",
+      "human-p7r18-curriculum-019-credits-3",
+      "human-p7r18-curriculum-019-credits-4",
+      "human-p7r18-curriculum-019-semester-1",
+      "human-p7r18-curriculum-019-semester-2",
+      "human-p7r18-curriculum-019-semester-3",
+      "human-p7r18-curriculum-019-semester-4",
+      "human-p7r18-curriculum-020-combined-1",
+      "human-p7r18-curriculum-020-combined-2",
+      "human-p7r18-curriculum-020-combined-3",
+      "human-p7r18-curriculum-020-combined-4",
+      "human-p7r18-curriculum-020-credits-1",
+      "human-p7r18-curriculum-020-credits-3",
+      "human-p7r18-curriculum-020-semester-1",
+      "human-p7r18-curriculum-020-semester-2",
+      "human-p7r18-curriculum-020-semester-3",
+      "human-p7r18-curriculum-020-semester-4",
+      "human-p7r18-curriculum-023-combined-1",
+      "human-p7r18-curriculum-023-combined-2",
+      "human-p7r18-curriculum-023-combined-3",
+      "human-p7r18-curriculum-023-combined-4",
+      "human-p7r18-curriculum-023-credits-1",
+      "human-p7r18-curriculum-023-credits-2",
+      "human-p7r18-curriculum-023-credits-3",
+      "human-p7r18-curriculum-023-credits-4",
+      "human-p7r18-curriculum-023-semester-1",
+      "human-p7r18-curriculum-023-semester-2",
+      "human-p7r18-curriculum-023-semester-3",
+      "human-p7r18-curriculum-023-semester-4",
+      "human-p7r18-curriculum-025-combined-3",
+      "human-p7r18-curriculum-025-credits-1",
+      "human-p7r18-curriculum-025-credits-2",
+      "human-p7r18-curriculum-025-credits-3",
+      "human-p7r18-curriculum-025-credits-4",
+      "human-p7r18-curriculum-025-semester-1",
+      "human-p7r18-curriculum-025-semester-2",
+      "human-p7r18-curriculum-025-semester-3",
+      "human-p7r18-curriculum-025-semester-4",
+      "human-p7r18-curriculum-026-combined-1",
+      "human-p7r18-curriculum-026-combined-2",
+      "human-p7r18-curriculum-026-combined-3",
+      "human-p7r18-curriculum-026-combined-4",
+      "human-p7r18-curriculum-026-credits-1",
+      "human-p7r18-curriculum-026-credits-2",
+      "human-p7r18-curriculum-026-credits-3",
+      "human-p7r18-curriculum-026-semester-1",
+      "human-p7r18-curriculum-026-semester-2",
+      "human-p7r18-curriculum-026-semester-3",
+      "human-p7r18-curriculum-026-semester-4",
+      "human-p7r18-curriculum-027-combined-2",
+      "human-p7r18-curriculum-027-combined-3",
+      "human-p7r18-curriculum-027-credits-1",
+      "human-p7r18-curriculum-027-credits-2",
+      "human-p7r18-curriculum-027-credits-3",
+      "human-p7r18-curriculum-027-credits-4",
+      "human-p7r18-curriculum-027-semester-2",
+      "human-p7r18-curriculum-027-semester-4",
+      "human-p7r18-negative-0003",
+      "human-p7r18-negative-0004",
+      "human-p7r18-negative-0005",
+      "human-p7r18-negative-0009",
+      "human-p7r18-negative-0010",
+      "human-p7r18-negative-0011",
+      "human-p7r18-negative-0015",
+      "human-p7r18-negative-0017",
+      "human-p7r18-negative-0019",
+      "human-p7r18-negative-0021",
+      "human-p7r18-negative-0022",
+      "human-p7r18-negative-0023",
+      "human-p7r18-negative-0025",
+      "human-p7r18-negative-0031",
+      "human-p7r18-negative-0033",
+      "human-p7r18-negative-0034",
+      "human-p7r18-negative-0035",
+      "human-p7r18-negative-0036",
+      "human-p7r18-negative-0039",
+      "human-p7r18-negative-0040",
+      "human-p7r18-negative-0041",
+      "human-p7r18-negative-0045",
+      "human-p7r18-negative-0046",
+      "human-p7r18-negative-0047",
+      "human-p7r18-negative-0048",
+      "human-p7r18-negative-0051",
+      "human-p7r18-negative-0053",
+      "human-p7r18-negative-0054",
+      "human-p7r18-negative-0057",
+      "human-p7r18-negative-0058",
+      "human-p7r18-negative-0059",
+      "human-p7r18-negative-0061",
+      "human-p7r18-negative-0062",
+      "human-p7r18-negative-0063",
+      "human-p7r18-negative-0064",
+      "human-p7r18-negative-0066",
+      "human-p7r18-negative-0067",
+      "human-p7r18-negative-0069",
+      "human-p7r18-negative-0070",
+      "human-p7r18-negative-0071",
+      "human-p7r18-negative-0074",
+      "human-p7r18-negative-0075",
+      "human-p7r18-negative-0076",
+      "human-p7r18-negative-0077",
+      "human-p7r18-negative-0078",
+      "human-p7r18-negative-0081",
+      "human-p7r18-negative-0083",
+      "human-p7r18-negative-0088",
+      "human-p7r18-negative-0089",
+      "human-p7r18-negative-0090",
+      "human-p7r18-negative-0093",
+      "human-p7r18-negative-0094",
+      "human-p7r18-negative-0096",
+      "human-p7r18-negative-0097",
+      "human-p7r18-negative-0099",
+      "human-p7r18-negative-0102",
+      "human-p7r18-negative-0105",
+      "human-p7r18-negative-0106",
+      "human-p7r18-negative-0107",
+      "human-p7r18-negative-0111",
+      "human-p7r18-negative-0117",
+      "human-p7r18-negative-0118",
+      "human-p7r18-negative-0120",
+      "human-p7r18-negative-0124",
+      "human-p7r18-negative-0126",
+      "human-p7r18-negative-0129",
+      "human-p7r18-negative-0130",
+      "human-p7r18-negative-0131",
+      "human-p7r18-negative-0132",
+      "human-p7r18-negative-0136",
+      "human-p7r18-negative-0137",
+      "human-p7r18-negative-0141",
+      "human-p7r18-negative-0142",
+      "human-p7r18-negative-0143",
+      "human-p7r18-negative-0145",
+      "human-p7r18-negative-0146",
+      "human-p7r18-negative-0149",
+      "human-p7r18-negative-0150",
+      "human-p7r18-negative-0153",
+      "human-p7r18-negative-0154",
+      "human-p7r18-negative-0155",
+      "human-p7r18-negative-0157",
+      "human-p7r18-negative-0159",
+      "human-p7r18-negative-0161",
+      "human-p7r18-negative-0165",
+      "human-p7r18-negative-0166",
+      "human-p7r18-negative-0167",
+      "human-p7r18-negative-0168",
+      "human-p7r18-negative-0170",
+      "human-p7r18-negative-0171",
+      "human-p7r18-negative-0172",
+      "human-p7r18-negative-0173",
+      "human-p7r18-negative-0174",
+      "human-p7r18-negative-0175",
+      "human-p7r18-negative-0177",
+      "human-p7r18-negative-0178",
+      "human-p7r18-negative-0179",
+      "human-p7r18-negative-0180",
+      "human-p7r18-negative-0186",
+      "human-p7r18-negative-0189",
+      "human-p7r18-negative-0190",
+      "human-p7r18-negative-0191",
+      "human-p7r18-negative-0195",
+      "human-p7r18-negative-0196",
+      "human-p7r18-negative-0197",
+      "human-p7r18-negative-0201",
+      "human-p7r18-negative-0202",
+      "human-p7r18-negative-0205",
+      "human-p7r18-negative-0206",
+      "human-p7r18-negative-0207",
+      "human-p7r18-negative-0208",
+      "human-p7r18-negative-0209",
+      "human-p7r18-negative-0211",
+      "human-p7r18-negative-0213",
+      "human-p7r18-negative-0214",
+      "human-p7r18-negative-0215",
+      "human-p7r18-negative-0216",
+      "human-p7r18-negative-0219",
+      "human-p7r18-negative-0222",
+      "human-p7r18-negative-0226",
+      "human-p7r18-negative-0227",
+      "human-p7r18-negative-0231",
+      "human-p7r18-negative-0241",
+      "human-p7r18-negative-0242",
+      "human-p7r18-negative-0243",
+      "human-p7r18-negative-0244",
+      "human-p7r18-negative-0250",
+      "human-p7r18-negative-0251",
+      "human-p7r18-negative-0253",
+      "human-p7r18-negative-0255",
+      "human-p7r18-negative-0257",
+      "human-p7r18-negative-0259",
+      "human-p7r18-negative-0262",
+      "human-p7r18-negative-0263",
+      "human-p7r18-negative-0265",
+      "human-p7r18-negative-0267",
+      "human-p7r18-negative-0270",
+      "human-p7r18-negative-0273",
+      "human-p7r18-negative-0275",
+      "human-p7r18-negative-0278",
+      "human-p7r18-negative-0279",
+      "human-p7r18-negative-0280",
+      "human-p7r18-negative-0282",
+      "human-p7r18-negative-0283",
+      "human-p7r18-negative-0285",
+      "human-p7r18-negative-0286",
+      "human-p7r18-negative-0287",
+      "human-p7r18-negative-0288",
+      "human-p7r18-negative-0290",
+      "human-p7r18-negative-0292",
+      "human-p7r18-negative-0293",
+      "human-p7r18-negative-0295",
+      "human-p7r18-negative-0297",
+      "human-p7r18-negative-0298",
+      "human-p7r18-negative-0299",
+      "p8-fact-awards-effective-date",
+      "p8-fact-collective-advanced-share",
+      "p8-fact-collective-contribution-gpa",
+      "p8-fact-collective-excellent-share",
+      "p8-fact-entrance-award-amount",
+      "p8-fact-exam-warning-deduction",
+      "p8-fact-excellent-student-floor",
+      "p8-fact-good-student-conduct",
+      "p8-fact-thesis-excellence-result",
+      "p8-fact-valedictorian-average",
+      "p8-temporal-2021-adjustment-01",
+      "p8-temporal-2021-adjustment-02",
+      "p8-temporal-2021-adjustment-03",
+      "p8-temporal-2021-adjustment-04",
+      "p8-temporal-2021-adjustment-04a",
+      "p8-temporal-2021-adjustment-05",
+      "p8-temporal-2021-adjustment-06",
+      "p8-temporal-2021-adjustment-07",
+      "p8-temporal-2021-adjustment-08",
+      "p8-temporal-2021-adjustment-09",
+      "p8-temporal-2021-adjustment-10",
+      "p8-temporal-2021-adjustment-11",
+      "p8-temporal-2021-adjustment-12",
+      "p8-temporal-2021-adjustment-13",
+      "p8-temporal-2021-adjustment-14",
+      "p8-temporal-2021-adjustment-15",
+      "p8-temporal-2021-adjustment-16",
+      "p8-temporal-2021-adjustment-17",
+      "p8-temporal-2021-adjustment-18",
+      "p8-temporal-2021-adjustment-19"
+    ],
+    "split_counts": {
+      "holdout": 160,
+      "test": 140
+    },
+    "connected_groups": 117,
+    "largest_connected_group": 22,
+    "tag_counts": {
+      "abstention": 155,
+      "comparison": 19,
+      "curriculum": 102,
+      "easy": 237,
+      "exact_code": 155,
+      "fact": 10,
+      "hard": 33,
+      "multi_hop": 33,
+      "natural": 270,
+      "negative": 155,
+      "single_hop": 10,
+      "table": 135,
+      "temporal": 20
+    },
+    "source_review_mode": "pending_owner_review",
+    "source_owner_review_complete": false,
+    "source_independent_review_complete": false,
+    "prior_phase7_exposure": true,
+    "fresh_validation": false
+  },
+  "runtime": {
+    "python": "3.14.6 (main, Jun 23 2026, 15:20:04) [MSC v.1944 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "calibration_sha256": "5f52fd0563d10ed891bdf0872f0a44dba6b694dc7765b63d42ad596b3df881de",
+    "model": "BAAI/bge-m3",
+    "model_revision": "1",
+    "document_count": 10,
+    "index_size_bytes": 33644261
+  },
+  "retrieval": {
+    "mode": "auto",
+    "records": 300,
+    "answerable_denominator": 145,
+    "unanswerable_denominator": 155,
+    "recall_at_k": {
+      "1": {
+        "value": 0.373333,
+        "numerator": 112.0,
+        "denominator": 300
+      },
+      "3": {
+        "value": 0.436667,
+        "numerator": 131.0,
+        "denominator": 300
+      },
+      "5": {
+        "value": 0.44,
+        "numerator": 132.0,
+        "denominator": 300
+      },
+      "10": {
+        "value": 0.44,
+        "numerator": 132.0,
+        "denominator": 300
+      }
+    },
+    "answerable_recall_at_k": {
+      "1": {
+        "value": 0.772414,
+        "numerator": 112.0,
+        "denominator": 145
+      },
+      "3": {
+        "value": 0.903448,
+        "numerator": 131.0,
+        "denominator": 145
+      },
+      "5": {
+        "value": 0.910345,
+        "numerator": 132.0,
+        "denominator": 145
+      },
+      "10": {
+        "value": 0.910345,
+        "numerator": 132.0,
+        "denominator": 145
+      }
+    },
+    "answerable_mrr": {
+      "value": 0.838161,
+      "numerator": 121.533333,
+      "denominator": 145
+    },
+    "unanswerable_false_positive_rate": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 155
+    },
+    "unanswerable_abstention_rate": {
+      "value": 1.0,
+      "numerator": 155,
+      "denominator": 155
+    },
+    "latency_ms": {
+      "cold": 24913.598,
+      "p50": 29.693,
+      "p95": 366.573,
+      "p99": 409.66,
+      "measured_requests": 300,
+      "total_wall_ms": 72377.004
+    },
+    "tag_metrics": {
+      "abstention": {
+        "records": 155,
+        "answerable": 0,
+        "unanswerable": 155,
+        "answerable_recall_at_5": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_answerable"
+        },
+        "negative_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured"
+        },
+        "negative_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured"
+        }
+      },
+      "comparison": {
+        "records": 19,
+        "answerable": 19,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 1.0,
+          "numerator": 19.0,
+          "denominator": 19,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "curriculum": {
+        "records": 102,
+        "answerable": 102,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 0.931373,
+          "numerator": 95.0,
+          "denominator": 102,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "easy": {
+        "records": 237,
+        "answerable": 82,
+        "unanswerable": 155,
+        "answerable_recall_at_5": {
+          "value": 0.926829,
+          "numerator": 76.0,
+          "denominator": 82,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured"
+        },
+        "negative_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured"
+        }
+      },
+      "exact_code": {
+        "records": 155,
+        "answerable": 0,
+        "unanswerable": 155,
+        "answerable_recall_at_5": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_answerable"
+        },
+        "negative_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured"
+        },
+        "negative_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured"
+        }
+      },
+      "fact": {
+        "records": 10,
+        "answerable": 10,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 1.0,
+          "numerator": 10.0,
+          "denominator": 10,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "hard": {
+        "records": 33,
+        "answerable": 33,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 0.818182,
+          "numerator": 27.0,
+          "denominator": 33,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "multi_hop": {
+        "records": 33,
+        "answerable": 33,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 0.818182,
+          "numerator": 27.0,
+          "denominator": 33,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "natural": {
+        "records": 270,
+        "answerable": 115,
+        "unanswerable": 155,
+        "answerable_recall_at_5": {
+          "value": 0.895652,
+          "numerator": 103.0,
+          "denominator": 115,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured"
+        },
+        "negative_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured"
+        }
+      },
+      "negative": {
+        "records": 155,
+        "answerable": 0,
+        "unanswerable": 155,
+        "answerable_recall_at_5": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_answerable"
+        },
+        "negative_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured"
+        },
+        "negative_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured"
+        }
+      },
+      "single_hop": {
+        "records": 10,
+        "answerable": 10,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 1.0,
+          "numerator": 10.0,
+          "denominator": 10,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "table": {
+        "records": 135,
+        "answerable": 135,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 0.903704,
+          "numerator": 122.0,
+          "denominator": 135,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      },
+      "temporal": {
+        "records": 20,
+        "answerable": 20,
+        "unanswerable": 0,
+        "answerable_recall_at_5": {
+          "value": 0.95,
+          "numerator": 19.0,
+          "denominator": 20,
+          "status": "measured"
+        },
+        "negative_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        },
+        "negative_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_zero_unanswerable"
+        }
+      }
+    },
+    "split_metrics": {
+      "holdout": {
+        "records": 160,
+        "answerable_denominator": 73,
+        "unanswerable_denominator": 87,
+        "recall_at_k": {
+          "1": {
+            "value": 0.33125,
+            "numerator": 53,
+            "denominator": 160,
+            "population": "all holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "3": {
+            "value": 0.44375,
+            "numerator": 71,
+            "denominator": 160,
+            "population": "all holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "5": {
+            "value": 0.45,
+            "numerator": 72,
+            "denominator": 160,
+            "population": "all holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "10": {
+            "value": 0.45,
+            "numerator": 72,
+            "denominator": 160,
+            "population": "all holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          }
+        },
+        "answerable_recall_at_k": {
+          "1": {
+            "value": 0.726027,
+            "numerator": 53,
+            "denominator": 73,
+            "population": "answerable holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "3": {
+            "value": 0.972603,
+            "numerator": 71,
+            "denominator": 73,
+            "population": "answerable holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "5": {
+            "value": 0.986301,
+            "numerator": 72,
+            "denominator": 73,
+            "population": "answerable holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "10": {
+            "value": 0.986301,
+            "numerator": 72,
+            "denominator": 73,
+            "population": "answerable holdout queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          }
+        },
+        "answerable_mrr": {
+          "value": 0.849772,
+          "numerator": 62.033333,
+          "denominator": 73,
+          "population": "answerable holdout queries",
+          "aggregation": "micro mean reciprocal rank over answerable queries",
+          "status": "measured"
+        },
+        "unanswerable_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 87,
+          "population": "unanswerable holdout queries",
+          "aggregation": "micro fraction with at least one retrieved result",
+          "status": "measured"
+        },
+        "unanswerable_abstention_rate": {
+          "value": 1.0,
+          "numerator": 87,
+          "denominator": 87,
+          "population": "unanswerable holdout queries",
+          "aggregation": "micro fraction with no retrieved result",
+          "status": "measured"
+        },
+        "group_bootstrap_ci95": {
+          "answerable_recall_at_5": {
+            "status": "measured",
+            "groups": 30,
+            "iterations": 5000,
+            "seed": 20261010,
+            "ci95": [
+              0.946429,
+              1.0
+            ]
+          },
+          "answerable_mrr": {
+            "status": "measured",
+            "groups": 30,
+            "iterations": 5000,
+            "seed": 20261010,
+            "ci95": [
+              0.683761,
+              0.920952
+            ]
+          }
+        }
+      },
+      "test": {
+        "records": 140,
+        "answerable_denominator": 72,
+        "unanswerable_denominator": 68,
+        "recall_at_k": {
+          "1": {
+            "value": 0.421429,
+            "numerator": 59,
+            "denominator": 140,
+            "population": "all test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "3": {
+            "value": 0.428571,
+            "numerator": 60,
+            "denominator": 140,
+            "population": "all test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "5": {
+            "value": 0.428571,
+            "numerator": 60,
+            "denominator": 140,
+            "population": "all test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "10": {
+            "value": 0.428571,
+            "numerator": 60,
+            "denominator": 140,
+            "population": "all test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          }
+        },
+        "answerable_recall_at_k": {
+          "1": {
+            "value": 0.819444,
+            "numerator": 59,
+            "denominator": 72,
+            "population": "answerable test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "3": {
+            "value": 0.833333,
+            "numerator": 60,
+            "denominator": 72,
+            "population": "answerable test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "5": {
+            "value": 0.833333,
+            "numerator": 60,
+            "denominator": 72,
+            "population": "answerable test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          },
+          "10": {
+            "value": 0.833333,
+            "numerator": 60,
+            "denominator": 72,
+            "population": "answerable test queries",
+            "aggregation": "micro mean of per-query evidence-hit indicator",
+            "status": "measured"
+          }
+        },
+        "answerable_mrr": {
+          "value": 0.826389,
+          "numerator": 59.5,
+          "denominator": 72,
+          "population": "answerable test queries",
+          "aggregation": "micro mean reciprocal rank over answerable queries",
+          "status": "measured"
+        },
+        "unanswerable_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 68,
+          "population": "unanswerable test queries",
+          "aggregation": "micro fraction with at least one retrieved result",
+          "status": "measured"
+        },
+        "unanswerable_abstention_rate": {
+          "value": 1.0,
+          "numerator": 68,
+          "denominator": 68,
+          "population": "unanswerable test queries",
+          "aggregation": "micro fraction with no retrieved result",
+          "status": "measured"
+        },
+        "group_bootstrap_ci95": {
+          "answerable_recall_at_5": {
+            "status": "measured",
+            "groups": 10,
+            "iterations": 5000,
+            "seed": 20261010,
+            "ci95": [
+              0.5875,
+              1.0
+            ]
+          },
+          "answerable_mrr": {
+            "status": "measured",
+            "groups": 10,
+            "iterations": 5000,
+            "seed": 20261010,
+            "ci95": [
+              0.575,
+              1.0
+            ]
+          }
+        }
+      }
+    },
+    "group_bootstrap_ci95": {
+      "answerable_recall_at_5": {
+        "status": "measured",
+        "groups": 40,
+        "iterations": 5000,
+        "seed": 20261010,
+        "ci95": [
+          0.773973,
+          1.0
+        ]
+      },
+      "answerable_mrr": {
+        "status": "measured",
+        "groups": 40,
+        "iterations": 5000,
+        "seed": 20261010,
+        "ci95": [
+          0.693333,
+          0.936738
+        ]
+      }
+    },
+    "schema_invalid_rate": 0.0,
+    "provenance_loss_rate": 0.0,
+    "filter_leakage": 0
+  },
+  "resources": {
+    "rss_before_bytes": 41656320,
+    "rss_after_bytes": 2507526144,
+    "peak_working_set_bytes": 2510516224,
+    "peak_working_set_status": "measured"
+  },
+  "exposure": {
+    "prior_phase7_exposure": true,
+    "fresh_validation": false
+  },
+  "phase8_exit_blockers": [
+    "answer_citation_groundedness_and_abstention_quality_not_measured_by_retrieval_runner",
+    "benchmark_owner_review_pending",
+    "provider_exposure_logs_not_audited",
+    "benchmark_is_historical_or_previously_indexed_regression_only"
+  ]
+}

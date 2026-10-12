@@ -1,4 +1,4 @@
-# Evidence storage for Phase 6/7
+# Evidence storage for Phase 6/7/8
 
 Git contains source, configs, reviewed benchmark JSONL and gold references,
 canonical summaries, regression cases, manifests and hash bindings.
@@ -47,6 +47,15 @@ outside the checkout. The root must contain `objects/`. Copying Git alone is
 insufficient to recompute historical raw observations; validators reject their
 absence. Live LLM/staging observations are restorable from recorded bytes, not
 claimed to be deterministically reproducible by running a provider again.
+
+The 2026-10-12 publication also catalogs Phase 7 intermediate runs and Phase 8
+full preflights, predictions, Chat prompt packets and runtime execution records.
+Their original files remain local and Git-ignored. Current compact metrics,
+review decisions, benchmark versions used by regression tests and source remain
+in Git. Restore referenced files before running historical evidence-dependent
+tests or collectors; `restore` copies exact bytes without contacting Gemini.
+Neither a missing blob nor a compact summary counts as a passing gate. The
+Phase 8 live cohort remains incomplete after three successes and HTTP 503.
 
 ```powershell
 # Verify every raw object without materializing gigabytes into the checkout.

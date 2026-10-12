@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "status": "APPROVED_EXACT_MANIFEST",
+  "recorded_at": "2026-10-12T01:34:14.647390+00:00",
+  "manifest": {
+    "path": "evaluation/results/phase8-product-run-v5.json",
+    "sha256": "bd8ba46ad319ec185cb5c6e2bbc36d5f986bcb5ce4c34a59ed266d1b9ccbaabd"
+  },
+  "command_started": false,
+  "provider_attempts": 0,
+  "predictions": 0,
+  "automatic_review_rejection": "Benchmark prompts and potentially non-public retrieved project evidence would be sent to Google Gemini. Broad Phase 8/Free Tier authorization does not explicitly authorize this payload and destination.",
+  "next_action": "No immediate retry or credential failover. The same-day availability proposal is closed after HTTP 503; delayed dispatcher was cancelled. Provider recovery remains unverified. Original future daily continuation requires its normal source/budget/day checks.",
+  "owner_approval": {
+    "received_at": "2026-10-12T01:44:16.998773+00:00",
+    "source": "Explicit user response to pending Phase 8 v5 approval question in this conversation",
+    "decision": "Approved exact manifest and all stated limits",
+    "manifest_sha256": "bd8ba46ad319ec185cb5c6e2bbc36d5f986bcb5ce4c34a59ed266d1b9ccbaabd",
+    "scope": "142 planned prompts; 160 attempts lifetime; 18 attempts per Pacific day; key_2; Free Tier only; no billing; no key/model changes; daily checkpoint continuation within lifetime caps."
+  },
+  "execution_observation": {
+    "checked_at": "2026-10-12T02:48:45.747749+00:00",
+    "status": "waiting_next_pacific_day",
+    "attempts": 2,
+    "outputs": 0,
+    "last_http_status": 503,
+    "last_credential": "key_3",
+    "remaining_total_attempts": 158,
+    "same_day_proposal_closed": true,
+    "delayed_dispatcher_status": "cancelled_before_run"
+  },
+  "reliability_amendment": {
+    "path": "evaluation/results/phase8-product-credential-amendment-v5.json",
+    "sha256": "8cbb3a1f802c2508705f532b3f5002072bf3b3dee9a6882243383b2cb8ebf1b4",
+    "source": "Explicit owner instructions for multi-key allocation and 503 fix; original limits retained"
+  }
+}

@@ -90,6 +90,12 @@ class CampusAIQueryService:
     def last_retrieval(self, value):
         self._request_local.retrieval = value
 
+    def reset_request_state(self) -> None:
+        """Discard the worker's previous request before any validation can fail."""
+        self.last_cache_hit = False
+        self.last_retrieval = []
+        self.retriever.last_trace = None
+
     @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
         """Bind answer reuse to the physical indexes in the selected scope."""
@@ -179,6 +185,7 @@ class CampusAIQueryService:
         requires_context: bool = False,
         authorized_doc_ids: list[str] | None = None,
     ) -> list[RetrievalResult]:
+        self.reset_request_state()
         doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
         resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
         self._request_local.context_trace = resolved.cache_context()
@@ -210,6 +217,7 @@ class CampusAIQueryService:
         requires_context: bool = False,
         authorized_doc_ids: list[str] | None = None,
     ) -> GroundedAnswer:
+        self.reset_request_state()
         doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
         resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
         self._request_local.context_trace = {"raw_question": resolved.raw, **resolved.cache_context()}
@@ -227,6 +235,9 @@ class CampusAIQueryService:
             "max_tokens": self.answer_generator.max_context_tokens,
             "min_retrieval_score": self.answer_generator.min_retrieval_score,
         }
+        generation_config = getattr(self.answer_generator.llm, "generation_config", None)
+        if generation_config:
+            budget["llm_generation_config"] = generation_config
         if selected_mode == "phase7":
             budget["phase7_retrieval_fingerprint"] = self.retriever.phase7_cache_fingerprint
         key = build_rag_cache_key(

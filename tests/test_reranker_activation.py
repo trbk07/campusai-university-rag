@@ -17,6 +17,16 @@ def test_phase7_feature_flag_defaults_to_phase6(tmp_path):
     assert retriever.phase7_activation_reason == "feature_disabled"
 
 
+def test_disabled_reranker_preserves_the_declared_dense_serving_device(tmp_path):
+    calibration = tmp_path / "phase6.json"
+    calibration.write_text(json.dumps({"mode": "hybrid_rrf", "result": {"threshold": .1}}), encoding="utf8")
+    retriever = build_phase7_retriever(tmp_path / "index", calibration, tmp_path / "dev.jsonl",
+                                      environ={}, dense_device="cuda")
+    assert retriever.phase7_enabled is False
+    assert retriever.phase7_provider is None
+    assert retriever.dense_device == "cuda"
+
+
 def test_phase7_invalid_activation_falls_back_without_loading_model(tmp_path, caplog):
     calibration = tmp_path / "phase6.json"
     calibration.write_text(json.dumps({"mode": "hybrid_rrf", "result": {"threshold": .1}}),

@@ -83,11 +83,15 @@ duplicate concurrent calls within one process. SQLite's timeout/WAL settings
 provide safe file-backed operation across cache instances; a distributed
 multi-process lock is outside T1 scope.
 
-Run the repository's lightweight tracked-file secret scan with:
+Run the repository's lightweight secret scan with:
 
 ```powershell
 python -m scripts.dev.secret_scan
 ```
+
+The scan checks tracked files and the ignored local `configs/gemini.yaml`
+credential file. Keep that file environment-only (`api_key_env`) so a local
+credential cannot bypass the release check merely because Git ignores it.
 
 ## Live contract test
 

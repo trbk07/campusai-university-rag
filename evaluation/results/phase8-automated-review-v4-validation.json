@@ -1,0 +1,229 @@
+{
+  "status": "PASS",
+  "scope": "review completeness and mechanical provenance; not release approval",
+  "review_report_sha256": "7b1cccc7cd5cf92eeb2b8f3d5dc14b7ceff8af1debc5bb124177c5f3c4364560",
+  "review_packet_sha256": "558df72d528ab9e0c157029403397df3329ff64673ed31ba26c3b66e5ac97aac",
+  "benchmark_sha256": "9309fb0eb1defd15da946cba9cd657dd82bf0bd98c924adb0d3012193aa1166c",
+  "counts": {
+    "reviewed": 30,
+    "accept": 28,
+    "reject": 2,
+    "pending": 0
+  },
+  "accepted_provenance_pass": 28,
+  "v4_revision_integrity": "PASS",
+  "officially_approved": false,
+  "provider_calls": 0,
+  "rows": [
+    {
+      "qid": "p8-temporal-2021-adjustment-01",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-02",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-03",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04a",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-04",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p1_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-05",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-06",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-07",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-08",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-09",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-10",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-11",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-12",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p2_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-13",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-14",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-15",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-16",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-17",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-18",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-19",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1"
+    },
+    {
+      "qid": "p8-fact-awards-effective-date",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p1_s8_c1"
+    },
+    {
+      "qid": "p8-fact-valedictorian-average",
+      "decision": "Reject",
+      "provenance": "PASS",
+      "pdf_page": 2,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1"
+    },
+    {
+      "qid": "p8-fact-excellent-student-floor",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1"
+    },
+    {
+      "qid": "p8-fact-good-student-conduct",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1"
+    },
+    {
+      "qid": "p8-fact-collective-contribution-gpa",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c1"
+    },
+    {
+      "qid": "p8-fact-thesis-excellence-result",
+      "decision": "Reject",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2"
+    },
+    {
+      "qid": "p8-fact-collective-advanced-share",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2"
+    },
+    {
+      "qid": "p8-fact-collective-excellent-share",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 3,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p2_s16_c2"
+    },
+    {
+      "qid": "p8-fact-entrance-award-amount",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 4,
+      "chunk_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b_p4_s18_c1"
+    },
+    {
+      "qid": "p8-fact-exam-warning-deduction",
+      "decision": "Accept",
+      "provenance": "PASS",
+      "pdf_page": 1,
+      "chunk_id": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1_p1_s4_c1"
+    }
+  ]
+}

@@ -7,7 +7,7 @@ EXPECTED_BEHAVIORS = frozenset({
     "abstain",
     "ask_clarification",
 })
-REVIEWER_ROLES = frozenset({"independent_reviewer", "project_owner"})
+REVIEWER_ROLES = frozenset({"independent_reviewer", "project_owner", "owner_delegated_ai"})
 
 
 def expected_behavior_error(row: dict) -> str | None:
@@ -24,12 +24,16 @@ def expected_behavior_error(row: dict) -> str | None:
         return "unanswerable_requires_abstain_or_clarification"
     return None
 
-def review_role_error(row: dict, owner_identity: str | None = None) -> str | None:
+def review_role_error(row: dict, owner_identity: str | None = None, *,
+                      delegation=None, scope: str = 'dataset') -> str | None:
     role = row.get("reviewer_role")
     reviewer = row.get("reviewer")
     author = row.get("author")
     if role not in REVIEWER_ROLES or not isinstance(reviewer, str) or not reviewer.strip():
         return "independent_human_review_required"
+    if role == 'owner_delegated_ai':
+        from .delegated_review import delegated_role_error
+        return delegated_role_error(row, delegation, scope)
     if role == "independent_reviewer":
         if isinstance(author, str) and reviewer.strip().casefold() == author.strip().casefold():
             return "independent_human_review_required"

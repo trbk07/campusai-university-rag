@@ -29,10 +29,28 @@ from evaluation.retrieval.compare_retrieval_quality import query_metrics
 ROOT = Path(__file__).resolve().parents[2]
 
 
+def qualification_scope(index: Path, original: dict, scope_index: Path | None):
+    """Preserve a historical corpus scope, never derive it from query gold."""
+    if scope_index is None:
+        return read_json(index / 'manifest.json')['documents'], None
+    from evaluation.benchmarks.dev_inheritance import file_bindings, preserved_index
+    if sha256(scope_index / 'manifest.json') != original['index_sha256']:
+        raise ValueError('scope index must be the actual historical calibration index')
+    bindings = file_bindings(scope_index)
+    preserved_index(scope_index, index, bindings)
+    documents = read_json(scope_index / 'manifest.json')['documents']
+    return documents, {'scope_index_path': scope_index.as_posix(),
+                       'scope_index_sha256': sha256(scope_index / 'manifest.json'),
+                       'physical_documents_preserved': True, 'documents': documents,
+                       'reason': 'Historical scope from its frozen index; no qid/gold-dependent filtering.'}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     for key in ('dev', 'index-dir', 'historical-calibration', 'output-dir'):
         parser.add_argument('--' + key, type=Path, required=True)
+    parser.add_argument('--scope-index', type=Path,
+                        help='Historical index defining the original request corpus; every document must be preserved in the expanded index')
     args = parser.parse_args()
     if args.output_dir.exists():
         raise FileExistsError(args.output_dir)
@@ -49,6 +67,7 @@ def main() -> int:
     negative = len(rows) - positive
     if not positive or not negative:
         raise ValueError('dev qualification needs both classes')
+    documents, scoped = qualification_scope(args.index_dir, original, args.scope_index)
     args.output_dir.mkdir(parents=True)
     before = source_identity(ROOT)
     import torch
@@ -61,11 +80,13 @@ def main() -> int:
     observations = []
     started = time.perf_counter()
     for number, row in enumerate(rows, 1):
-        arguments = {'query': row['question'], 'doc_ids': manifest['documents'],
+        arguments = {'query': row['question'], 'doc_ids': documents,
                      'filters': row.get('filters'), 'top_k': 5, 'mode': 'auto'}
         unfiltered = retriever.search(**arguments)
         filtered = retriever.search(**arguments, score_threshold=policy.threshold)
         observations.append({'qid': row['qid'], 'answerable': row['answerable'],
+                             'actual_unthresholded_request': arguments,
+                             'actual_fixed_threshold_request': {**arguments, 'score_threshold': policy.threshold},
                              'unthresholded': [item.to_dict() for item in unfiltered],
                              'fixed_threshold_results': [item.to_dict() for item in filtered],
                              'unthresholded_metrics': query_metrics(row, [item.to_dict() for item in unfiltered]) if row['answerable'] else None,
@@ -84,6 +105,7 @@ def main() -> int:
     raw_path = args.output_dir / 'phase6_successor_dev_observations.json.gz'
     with gzip.open(raw_path, 'xt', encoding='utf8') as stream:
         json.dump({'dev_sha256': sha256(args.dev), 'index_sha256': sha256(args.index_dir / 'manifest.json'),
+                   'historical_corpus_scope': scoped,
                    'historical_calibration_sha256': original_hash, 'observations': observations,
                    'release_eligible': False, 'test_used': False, 'holdout_used': False}, stream, ensure_ascii=False)
     report = {'schema_version': 2, 'phase': 6, 'mode': 'hybrid_rrf',
@@ -92,6 +114,7 @@ def main() -> int:
               'recorded_at': datetime.now(timezone.utc).isoformat(), 'calibration_split': 'dev',
               'test_used': False, 'holdout_used': False, 'parameters_refitted': False,
               'historical_calibration_sha256': original_hash, 'historical_calibration_unchanged': True,
+              'historical_corpus_scope': scoped,
               'benchmark_sha256': sha256(args.dev), 'training_split_sha256': sha256(args.dev),
               'index_sha256': sha256(args.index_dir / 'manifest.json'),
               'model': manifest['model_name'], 'model_revision': manifest['model_revision'],

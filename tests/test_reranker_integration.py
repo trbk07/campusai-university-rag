@@ -14,9 +14,9 @@ def _make_retriever(tmp_path, *, enabled=True, wrong_provenance=False, unavailab
     root = tmp_path / "index"
     records = [
         {"chunk_id": "a", "doc_id": "doc", "content": "tuition policy student fees", "page": 1,
-         "content_type": "text", "metadata": {"page_range": [1, 1], "language": "en"}},
+         "content_type": "text", "metadata": {"page_range": [1, 1], "language": "en", "source_name": "Fixture policy"}},
         {"chunk_id": "b", "doc_id": "doc", "content": "fees policy tuition students", "page": 2,
-         "content_type": "text", "metadata": {"page_range": [2, 2], "language": "en"}},
+         "content_type": "text", "metadata": {"page_range": [2, 2], "language": "en", "source_name": "Fixture policy"}},
     ]
     target = root / "doc"
     BM25Index(records, "en").save(target / "bm25.json")

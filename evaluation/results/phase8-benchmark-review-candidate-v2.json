@@ -1,0 +1,2168 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "candidate_version": "phase8-r18-plus-temporal-review-draft-v2",
+  "status": "draft_pending_owner_review_and_provider_exposure_audit",
+  "gate_eligible": false,
+  "benchmark": {
+    "rows_if_combined": 300,
+    "combined_selected_ids_sha256": "3b0cbbee8ae4384822be781c75a31c979593301bee1212f76b58cf4d3ee5e2d2",
+    "historical_cohort": {
+      "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/human_retrieval.jsonl",
+      "source_sha256": "994e33264da3fc7392ee2dd8bba0be0207a2902cca504c1c1e1de8d0eb9679c2",
+      "selected_ids_sha256": "d8534b944ff2c3ee2dad93c93d682e9b18797d9a0d96d05e6e6627543435b77c",
+      "rows": 280,
+      "split_counts": {
+        "holdout": 140,
+        "test": 140
+      },
+      "prior_phase7_exposure": true,
+      "fresh_validation": false
+    },
+    "supplemental_draft": {
+      "path": "evaluation/phase8/temporal_comparison_review_draft.jsonl",
+      "rows": 20,
+      "sha256": "c377847de6e014a004e97675fe561653e6fbde0c50629943e34a3f72602edfb3",
+      "split_counts": {
+        "holdout": 20
+      },
+      "source_pdf": "data/corpus/university/uet_program_adjustments_2021.pdf",
+      "source_pdf_sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "tags": {
+        "comparison": 19,
+        "curriculum": 20,
+        "table": 20,
+        "temporal": 20
+      },
+      "owner_review": "pending",
+      "exposure_audit": {
+        "status": "historical_content_overlap_detected_regression_only",
+        "method": "conservative case-insensitive old/new course-code search in retained benchmark JSONL rows",
+        "scope": "data/benchmark/**/*.jsonl and evaluation/results/phase7*/**/*.jsonl",
+        "files_scanned": 175,
+        "records_scanned": 41141,
+        "parse_errors": [],
+        "correction_facts_with_any_prior_code_overlap": 13,
+        "correction_fact_count": 20,
+        "hits_by_fact": {
+          "ELT3213->ELT3067": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-051"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-111"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-051"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-111"
+            }
+          ],
+          "ELT3214->ELT3062": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-001"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-067"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-115"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-032-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            }
+          ],
+          "ELT3215->ELT3163": [],
+          "RBE1003->RBE1001": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-031"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-043"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-055"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-097"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-031"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-043"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-055"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-097"
+            }
+          ],
+          "RBE2023->RBE2021": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-007"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-007"
+            }
+          ],
+          "RBE2024->RBE2022": [],
+          "RBE3023->RBE3021": [],
+          "RBE3024->RBE3022": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-035"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-035"
+            }
+          ],
+          "REB3016->RBE3016": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-025"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-091"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-025"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-091"
+            }
+          ],
+          "ELT3212E->ELT3046E": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-052"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-052"
+            }
+          ],
+          "ELT3214E->ELT3062E": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-001"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-067"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-115"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-001"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-067"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-115"
+            }
+          ],
+          "AER1002->AER1001": [],
+          "AER2002->EMA2008": [],
+          "AER2009->AER2005": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-019"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-044"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-019"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-044"
+            }
+          ],
+          "AER2006->EMA2032": [
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/human_retrieval_test.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_candidate_pool.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-1"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-2"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-3"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/human_retrieval_holdout.jsonl",
+              "qid": "human-ownerfresh-009-4"
+            }
+          ],
+          "AER3039->AER3003": [],
+          "AER3040->EMA3048": [],
+          "AER3037->EMA3014": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-036"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-061"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-103"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-109"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-036"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-061"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-103"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-109"
+            }
+          ],
+          "AER3041->EMA3064": [
+            {
+              "path": "data/benchmark/baseline_retrieval_test.jsonl",
+              "qid": "phase3-draft-test-074"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_test.jsonl",
+              "qid": "phase3-draft-test-081"
+            },
+            {
+              "path": "data/benchmark/baseline_retrieval_test.jsonl",
+              "qid": "phase3-draft-test-088"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-074"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-081"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_test.jsonl",
+              "qid": "phase6-test-088"
+            }
+          ],
+          "new:INT4050": [
+            {
+              "path": "data/benchmark/baseline_retrieval_holdout.jsonl",
+              "qid": "phase3-draft-holdout-113"
+            },
+            {
+              "path": "data/benchmark/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r11/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r4/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r5/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r6/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r7/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261003-r8/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            },
+            {
+              "path": "data/benchmark/phase7_review_cycles/phase7-release-20261004-r18/hybrid_retrieval_holdout.jsonl",
+              "qid": "phase6-holdout-113"
+            }
+          ]
+        },
+        "prior_index_contains_source": true,
+        "provider_egress_logs_audited": false,
+        "fresh_validation": false
+      },
+      "file_sha256": "950b7df8da1f63147d5b1749a746889df3b101da5f8e1c445b7a270ab2ae22f9"
+    },
+    "combined_split_counts_if_adopted": {
+      "holdout": 160,
+      "test": 140
+    },
+    "query_type_coverage_if_combined": {
+      "single_hop_fact": {
+        "count": 0,
+        "by_split": {
+          "test": 0,
+          "holdout": 0
+        },
+        "definition": "answerable; not tagged table/calculation/multi_hop/prerequisite/temporal/comparison"
+      },
+      "table_or_calculation": {
+        "count": 142,
+        "by_split": {
+          "test": 70,
+          "holdout": 72
+        },
+        "definition": "tagged table or calculation"
+      },
+      "prerequisite_or_multi_hop": {
+        "count": 38,
+        "by_split": {
+          "test": 21,
+          "holdout": 17
+        },
+        "definition": "tagged prerequisite or multi_hop"
+      },
+      "temporal_or_comparison": {
+        "count": 20,
+        "by_split": {
+          "test": 0,
+          "holdout": 20
+        },
+        "definition": "tagged temporal or comparison"
+      },
+      "unanswerable_or_adversarial": {
+        "count": 158,
+        "by_split": {
+          "test": 70,
+          "holdout": 88
+        },
+        "definition": "unanswerable or tagged adversarial"
+      }
+    },
+    "missing_required_query_categories": [
+      "single_hop_fact"
+    ]
+  },
+  "connected_groups_if_combined": {
+    "count": 107,
+    "largest_group_size": 23,
+    "cross_split_group_count": 0,
+    "cross_split_groups": []
+  },
+  "freeze_decision": "not_frozen_review_and_exposure_audit_required",
+  "phase8_exit_blockers": [
+    "temporal_draft_requires_owner_review",
+    "source_exposure_is_historical_or_provider_logs_unavailable; no_fresh_holdout_claim",
+    "answer_citation_groundedness_and_answer_abstention_not_measured",
+    "historical_cohort_is_not_fresh_validation",
+    "required_query_type_coverage_incomplete"
+  ]
+}

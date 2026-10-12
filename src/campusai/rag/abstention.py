@@ -102,5 +102,6 @@ def user_message(reason: str, language: str = "vi") -> str:
             "no_evidence_found": "No relevant evidence was found in the indexed documents.",
             "document_does_not_mention": "The checked documents do not mention this information.",
             "conflicting_evidence": "The available documents contain conflicting information.",
+            "provider_error": "The answer service is temporarily unavailable. Please try again later.",
         }.get(reason, "There is not enough verified evidence to answer safely.")
     return MESSAGES.get(reason, MESSAGES["system_error"])

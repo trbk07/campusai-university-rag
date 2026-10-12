@@ -23,6 +23,7 @@ from campusai.retrieval.cross_encoder_provider import (
 )
 from evaluation.benchmarks.connected_groups import connected_groups
 from evaluation.benchmarks.dev_inheritance import rows_at
+from evaluation.common.artifact_store import resolve_artifact
 from evaluation.common.release_artifacts import read_json, sha256, source_identity, write_json
 from evaluation.reranker.optimize_reranker_dev import rank_fusion, score_observation, summarize
 from evaluation.reranker.reranker_probe_inputs import FORMATS, probe_loader
@@ -38,6 +39,9 @@ def main() -> int:
     parser.add_argument('--dtype', choices=('float32', 'float16', 'bfloat16'), default='float32')
     parser.add_argument('--batch-size', type=int, default=8)
     parser.add_argument('--torch-threads', type=int, choices=(1, 2, 4, 8, 16), default=1)
+    parser.add_argument('--model-provenance', type=Path, help='Public pinned snapshot download receipt')
+    parser.add_argument('--dev-revision-manifest', type=Path, help='Explicit source-reviewed dev-only correction manifest')
+    parser.add_argument('--candidate-report', type=Path, help='Verified baseline report for archived candidate raw')
     args = parser.parse_args()
     if not args.output_dir.resolve().is_relative_to(ROOT / '.release/reranker/studies'):
         raise ValueError('diagnostic scores require an isolated study')
@@ -54,16 +58,32 @@ def main() -> int:
     for name, digest in f0['benchmark_files'].items():
         if sha256(ROOT / f0['benchmark_dir'] / name) != digest:
             raise ValueError('F0 input changed')
-    with gzip.open(args.candidate_raw, 'rt', encoding='utf8') as stream:
+    revision = None
+    parent_dev = ROOT / f0['benchmark_dir'] / 'human_retrieval_dev.jsonl'
+    if args.dev_revision_manifest:
+        from scripts.benchmarks.prepare_phase7_dev_gold_revision import build
+        revision = read_json(args.dev_revision_manifest)
+        if (revision.get('dev_only') is not True or revision.get('release_eligible') is not False
+                or revision.get('new_heldout_claim') is not False
+                or revision['parent_dev_sha256'] != sha256(parent_dev)
+                or args.dev.resolve() != (args.dev_revision_manifest.parent / 'human_retrieval_dev.jsonl').resolve()):
+            raise ValueError('invalid dev-only correction lineage')
+        payloads = build(parent_dev.relative_to(ROOT), args.index_dir, Path(revision['decisions_path']))
+        for name, payload in payloads.items():
+            if (args.dev_revision_manifest.parent / name).read_bytes() != payload:
+                raise ValueError('source-reviewed dev revision changed')
+    elif sha256(args.dev) != sha256(parent_dev):
+        raise ValueError('dev bytes differ from exact F0 authorization')
+    with gzip.open(resolve_artifact(args.candidate_raw), 'rt', encoding='utf8') as stream:
         raw = json.load(stream)
-    candidate_report = read_json(args.candidate_raw.parent / 'dev_baseline_report.json')
+    candidate_report = read_json(args.candidate_report or args.candidate_raw.parent / 'dev_baseline_report.json')
     if (candidate_report.get('raw_sha256') != sha256(args.candidate_raw)
             or candidate_report.get('measurements_real') is not True
             or candidate_report.get('source_stable') is not True
             or any(candidate_report['coverage'][key] for key in
                    ('provenance_errors', 'scope_errors', 'duplicate_result_sets'))):
         raise ValueError('candidate raw data must match the verified actual measurement report')
-    if (raw.get('dev_sha256') != sha256(args.dev)
+    if (raw.get('dev_sha256') != sha256(parent_dev)
             or raw.get('index_sha256') != f0['index_sha256']
             or raw.get('phase6_calibration_sha256') != sha256(args.calibration)
             or raw.get('f0_signoff_sha256') != sha256(args.f0_signoff)
@@ -79,10 +99,19 @@ def main() -> int:
         if pools[row['qid']]['actual_request'] != benchmark_retrieval_request(row, docs):
             raise ValueError('context resolution differs from measured retrieval input')
     model_hash = snapshot_sha256(args.model_dir)
-    if (args.model_dir.name != '1427fd652930e4ba29e8149678df786c240d8825'
+    origin = None
+    if args.model_provenance:
+        from evaluation.reranker.model_origin import verified_model_origin
+        origin = verified_model_origin(args.model_dir, args.model_provenance)
+        model_name = origin['model_name']
+    elif (args.model_dir.name != '1427fd652930e4ba29e8149678df786c240d8825'
             or model_hash != '23d9d1c4b424f03958bdb9f73b7ad43adb12b5a1bcf937dbe7eafd35ed56d24b'):
-        raise ValueError('this experiment requires the recorded pinned BGE reranker')
-    identity = ModelIdentity('BAAI/bge-reranker-v2-m3', args.model_dir.name, model_hash,
+        raise ValueError('new model experiments require verified public provenance')
+    else:
+        # The historical physical snapshot is mmarco, as confirmed by upstream
+        # weight hashes. New reports must not repeat its old incorrect BGE label.
+        model_name = 'cross-encoder/mmarco-mMiniLMv2-L12-H384-v1'
+    identity = ModelIdentity(model_name, args.model_dir.name, model_hash,
                              args.model_dir.name, device='cuda:0', dtype=args.dtype,
                              max_length=512, batch_size=args.batch_size, input_format=args.input_format)
     import torch
@@ -99,6 +128,10 @@ def main() -> int:
                 'model_identity': identity.to_dict(), 'model_identity_sha256': identity.fingerprint,
                 'input_format': args.input_format, 'score_cache_size': 0,
                 'collection_cap': 40, 'measurements_real': True,
+                'model_origin': origin,
+                'dev_revision_manifest_sha256': sha256(args.dev_revision_manifest) if revision else None,
+                'parent_dev_sha256': sha256(parent_dev),
+                'candidate_replay': True,
                 'torch_num_threads': torch.get_num_threads()}
     args.output_dir.mkdir(parents=True)
     write_json(args.output_dir / 'study_manifest.json', {
@@ -115,8 +148,12 @@ def main() -> int:
         with gzip.open(journal, 'xt', encoding='utf8') as stream:
             for number, row in enumerate(rows, 1):
                 pool = pools[row['qid']]
+                candidates = pool['candidates']
+                if args.input_format == 'source_context':
+                    from campusai.retrieval.source_context_inputs import contextual_pool
+                    candidates = contextual_pool(candidates)
                 observation = score_observation(provider, row['qid'], pool['actual_request'],
-                    pool['baseline'], pool['candidates'], args.input_format)
+                    pool['baseline'], candidates, args.input_format)
                 observations.append(observation)
                 stream.write(json.dumps(observation, ensure_ascii=False, allow_nan=False) + '\n')
                 stream.flush()
@@ -142,7 +179,7 @@ def main() -> int:
                    'observations': observations}, stream, ensure_ascii=False, allow_nan=False)
     base = {o['qid']: o['baseline'] for o in observations}
     groups = connected_groups(rows)
-    inherited = {qid for parent in read_json(args.dev.parent / 'phase7_dev_inheritance.json')['parents']
+    inherited = {qid for parent in read_json(parent_dev.parent / 'phase7_dev_inheritance.json')['parents']
                  for qid in parent['qids']}
     cohorts = {'all_dev': rows, 'consumed_parent_dev': [r for r in rows if r['qid'] in inherited],
                'new_source_dev': [r for r in rows if r['qid'] not in inherited]}

@@ -129,7 +129,8 @@ def test_transient_phase7_fallback_is_retried_after_provider_recovers(tmp_path):
 
     provider.score = once_unavailable
     llm = FakeLLM({"answer": "tuition policy student fees", "confidence": "high", "abstained": False,
-        "citations": [{"chunk_id": "a", "doc_id": "doc", "page": 1, "page_range": [1, 1]}]})
+        "citations": [{"chunk_id": "a", "doc_id": "doc", "page": 1, "page_range": [1, 1],
+                       "quote": "tuition policy student fees"}]})
     service = CampusAIQueryService(retriever, GroundedAnswerGenerator(llm))
     try:
         first = service.ask("tuition policy", ["doc"], language="en", mode="phase7")

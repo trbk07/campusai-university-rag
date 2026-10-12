@@ -8,6 +8,8 @@ import unicodedata
 from typing import Iterable
 
 from .evidence import EvidenceRecord, EvidenceRegistry
+from .course_credits import course_credit_support
+from .credit_sum import credit_sum_claim_support, credit_difference_claim_support
 from ..retrieval.tokenizer_vi import repair_mojibake
 
 CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}
@@ -25,7 +27,10 @@ NEGATIVE_POLARITY_RE = re.compile(
     r"\b(?:not\s+(?:require(?:d|s)?|mandatory|required)|không\s+(?:bắt\s+buộc|bat\s+buoc|cần)|khong\s+(?:bat\s+buoc|can))\b",
     re.I,
 )
-MINIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+least|minimum|min\.?|tối\s+thiểu|ít\s+nhất|it\s+nhat)\b", re.I)
+MINIMUM_QUALIFIER_RE = re.compile(
+    r"\b(?:at\s+least|minimum|min\.?|tối\s+thiểu|ít\s+nhất|it\s+nhat|"
+    r"từ\s+\d+(?:[.,]\d+)?\s*%(?:\s+[^\W\d_]+){0,6}\s+trở\s+lên)\b", re.I
+)
 MAXIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+most|maximum|max\.?|không\s+quá|khong\s+qua|no\s+more\s+than)\b", re.I)
 EXACT_QUALIFIER_RE = re.compile(r"\b(?:exactly|precisely|chính\s+xác|đúng|dung)\b", re.I)
 
@@ -137,6 +142,32 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         if not evidence:
             aligned.append(claim)
             continue
+        calculation = credit_difference_claim_support(claim.text, evidence)
+        difference = calculation is not None
+        if calculation is None:
+            calculation = credit_sum_claim_support(claim.text, evidence)
+        if calculation is not None:
+            correct, used_ids = calculation
+            supported = correct and not missing_requested_evidence
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type,
+                max(2, claim.required_citations) if difference else claim.required_citations,
+                used_ids if supported else ids, 'supported' if supported else 'contradicted',
+                1.0 if supported else 0.0, tuple(item.chunk_id for item in evidence), not supported))
+            continue
+        credit_proofs = [(item, course_credit_support(claim.text, item.content)) for item in evidence]
+        typed_proofs = [(item, verdict) for item, verdict in credit_proofs if verdict is not None]
+        if typed_proofs:
+            supporting = [item for item, verdict in typed_proofs if verdict]
+            conflict = any(not verdict for _item, verdict in typed_proofs)
+            supported = bool(supporting) and not conflict and not missing_requested_evidence
+            # A headed credit-column proof has a precise support set. Bare
+            # numeric fragments must not become redundant published citations
+            # for its unit. Conflicting headed rows cannot be silently pruned.
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
+                tuple(item.chunk_id for item in supporting) if supported else ids,
+                'supported' if supported else 'contradicted', 1.0 if supported else 0.0,
+                tuple(item.chunk_id for item in evidence), not supported))
+            continue
         claim_tokens = _tokens(claim.text)
         markers = _exact_markers(claim.text)
         best = 0.0
@@ -144,6 +175,17 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         contradicted = False
         numeric_mismatch = False
         for item in evidence:
+            credit_verdict = course_credit_support(claim.text, item.content)
+            if credit_verdict is not None:
+                if credit_verdict:
+                    best = 1.0
+                    best_records = [item]
+                else:
+                    numeric_mismatch = True
+                    contradicted = True
+                # A number elsewhere in this table cannot override the exact
+                # credit-column verdict for the asserted course code.
+                continue
             # Citation metadata itself is valid support for page/source claims;
             # content-only matching would incorrectly reject answers such as
             # "the requirement is on page 1".

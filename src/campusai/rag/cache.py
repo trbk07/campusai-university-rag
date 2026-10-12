@@ -17,8 +17,8 @@ from .grounding import Citation, GroundedAnswer
 from .schemas import SCHEMA_VERSION
 
 
-PROMPT_VERSION = "grounding-v1"
-GROUNDING_POLICY_VERSION = "grounding-v1"
+PROMPT_VERSION = "grounding-context-v4"
+GROUNDING_POLICY_VERSION = "grounding-v4"
 ABSTENTION_POLICY_VERSION = "grounding-v1"
 
 
@@ -112,6 +112,8 @@ class RAGAnswerCache:
             return None
 
     def put(self, key: str, answer: GroundedAnswer) -> None:
+        if not answer.abstained and answer.to_public_dict()["abstained"]:
+            return
         cacheable_abstentions = {
             "no_retrieval_evidence",
             "no_relevant_evidence",

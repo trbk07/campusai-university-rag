@@ -7,8 +7,25 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v3"
+CONTEXT_VERSION = "request-context-v4"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
+
+
+def has_local_topic_reference(question: str) -> bool:
+    """A plan's explicitly listed object can anchor 'it' in the same utterance.
+
+    This is a grammar rule, not a list of known courses or benchmark answers.
+    A pronoun-only object still requires conversational context.
+    """
+    match = re.match(
+        r'^the\s+[^;.!?]{0,120}\b(?:plan|curriculum|catalogue|catalog|program|programme)'
+        r'\s+(?:lists|includes|contains|shows)\s+([^;.!?]{1,100});\s*(?:what|which|how)\b',
+        question.strip(), re.I)
+    if not match:
+        return False
+    topic = ' '.join(match[1].casefold().split())
+    return (bool(re.search(r'[^\W\d_]', topic)) and not re.match(
+        r'^(?:it|them|this|that|these|those|some|a course|a subject|the course|the subject)\b', topic))
 
 
 def missing_topic_reference(question: str) -> bool:
@@ -97,10 +114,12 @@ def resolve_query(question: str, *, history: list[dict] | None = None,
                                      or not selected_text.strip() or len(selected_text) > 4000):
         raise ValueError("selected_text must contain 1-4000 characters")
     raw = question.strip()
-    contextual = requires_context or missing_topic_reference(raw) or bool(FOLLOWUP.search(raw) and len(raw.split()) <= 16)
-    if turns and len(raw.split()) <= 8 and not re.search(r"\b[A-Z]{2,}\d{2,}\b", raw, re.I):
+    local_topic = has_local_topic_reference(raw)
+    contextual = requires_context or missing_topic_reference(raw) or bool(
+        not local_topic and FOLLOWUP.search(raw) and len(raw.split()) <= 16)
+    if not local_topic and turns and len(raw.split()) <= 8 and not re.search(r"\b[A-Z]{2,}\d{2,}\b", raw, re.I):
         contextual = True
-    if turns and len(raw.split()) <= 24 and re.match(r"^(?:còn|con|thế|the|vậy|vay|ủa|ua)\b", raw, re.I):
+    if not local_topic and turns and len(raw.split()) <= 24 and re.match(r"^(?:còn|con|thế|the|vậy|vay|ủa|ua)\b", raw, re.I):
         contextual = True
     # Assistant output and selected text never become trusted source evidence.
     # Only the last user topic is used; older turns remain in cache identity.

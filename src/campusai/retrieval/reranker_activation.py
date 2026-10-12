@@ -21,11 +21,12 @@ log = logging.getLogger(__name__)
 
 def build_phase7_retriever(index_root: str | Path, phase6_calibration: str | Path,
                            dev_benchmark: str | Path, *,
-                           environ: Mapping[str, str] | None = None) -> HybridRetriever:
+                           environ: Mapping[str, str] | None = None,
+                           dense_device: str | None = None) -> HybridRetriever:
     """Return Phase 6 on any activation error, without network model lookup."""
     config = os.environ if environ is None else environ
     phase6 = RetrievalPolicy.from_report(phase6_calibration, expected_mode="hybrid_rrf")
-    base_kwargs = {"policies": {"hybrid_rrf": phase6}}
+    base_kwargs = {"policies": {"hybrid_rrf": phase6}, "dense_device": dense_device}
     if config.get("RERANKER_ENABLED", "false").casefold() != "true":
         log.info("phase7_feature_disabled")
         return HybridRetriever(index_root, **base_kwargs)

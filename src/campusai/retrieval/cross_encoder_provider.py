@@ -99,6 +99,7 @@ class RerankCandidate:
     content: str
     original_rank: int
     original_rrf_score: float
+    scoring_content: str | None = None
 
 
 @dataclass(frozen=True)
@@ -216,7 +217,7 @@ class OfflineCrossEncoderReranker:
         return getattr(self._request_local, "last_call", {})
 
     def _predict(self, query: str, candidates: Sequence[RerankCandidate], timing: dict) -> list[float]:
-        return self._predict_pairs([(query, item.content) for item in candidates], [timing])
+        return self._predict_pairs([(query, item.scoring_content if item.scoring_content is not None else item.content) for item in candidates], [timing])
 
     def _predict_pairs(self, pairs: list[tuple[str, str]], timings: list[dict]) -> list[float]:
         with self._state_lock:
@@ -319,7 +320,8 @@ class OfflineCrossEncoderReranker:
             try:
                 if self._closed:
                     raise RerankerUnavailable("feature_disabled")
-                pairs = [(query, item.content) for _, query, candidates, _ in jobs for item in candidates]
+                pairs = [(query, item.scoring_content if item.scoring_content is not None else item.content)
+                         for _, query, candidates, _ in jobs for item in candidates]
                 scores = self._predict_pairs(pairs, [future.phase7_timing for future, _, _, _ in jobs])
                 offset = 0
                 for _, _, candidates, _ in jobs:
@@ -344,7 +346,7 @@ class OfflineCrossEncoderReranker:
 
     def _score_key(self, query, candidates):
         payload = [self.fingerprint, query,
-                   [(c.candidate_id, c.doc_id, c.chunk_id, c.page, c.content) for c in candidates]]
+                   [(c.candidate_id, c.doc_id, c.chunk_id, c.page, c.content, c.scoring_content) for c in candidates]]
         return hashlib.sha256(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode()).hexdigest()
 
     def _predict_queued(self, query, candidates, enqueued_at, timing):
@@ -404,6 +406,9 @@ class OfflineCrossEncoderReranker:
                        or isinstance(item.page, bool) or not isinstance(item.page, int) or item.page < 1
                        or type(item.original_rank) is not int or item.original_rank < 1
                        or type(item.original_rrf_score) not in (int, float) or not math.isfinite(item.original_rrf_score)
+                       or (item.scoring_content is not None and
+                           (self.model_identity.input_format != 'source_context'
+                            or not isinstance(item.scoring_content, str) or not item.scoring_content.strip()))
                        for item in candidates)):
             raise RerankerUnavailable("invalid_candidate_provenance")
         with self._state_lock:

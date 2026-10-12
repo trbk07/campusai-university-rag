@@ -59,18 +59,20 @@ def coverage_errors(metrics: dict, floor: float) -> list[str]:
 
 
 def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: list[str], cap: int,
-                  evidence: dict | None = None) -> dict:
+                  evidence: dict | None = None, *, include_document_diagnostics: bool = False) -> dict:
     if len({row["qid"] for row in rows}) != len(rows) or set(outputs) != {row["qid"] for row in rows}:
         raise ValueError("candidate observations must pair every unique benchmark qid")
     hits = provenance_errors = scope_errors = duplicates = 0
     failures = []
     coverage = []
+    document_records = []
     strata = defaultdict(list)
     for row in rows:
         values = outputs[row["qid"]]
         if not isinstance(values, list) or len(values) > cap:
             raise ValueError("invalid candidate set or candidate cap exceeded")
         duplicates += len({(item["doc_id"], item["chunk_id"]) for item in values}) != len(values)
+        eligible = []
         for item in values:
             recorded = SimpleNamespace(**{**item, "retriever": item.get("retrieval_mode"),
                                           "page_range": tuple(item.get("page_range", []))})
@@ -79,9 +81,12 @@ def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: lis
                 frozen = evidence.get((item["doc_id"], item["chunk_id"]))
                 valid &= bool(frozen and frozen["page"] == item["page"] and frozen["content"] == item["content"])
             provenance_errors += not valid or not item["metadata"].get("page_range")
-            scope_errors += item["doc_id"] not in row.get("doc_ids", doc_ids) or item["doc_id"] not in doc_ids or any(
+            out_of_scope = item["doc_id"] not in row.get("doc_ids", doc_ids) or item["doc_id"] not in doc_ids or any(
                 str(item["metadata"].get(key, "")).casefold() != str(value).casefold()
                 for key, value in (row.get("filters") or {}).items())
+            scope_errors += out_of_scope
+            if valid and item["metadata"].get("page_range") and not out_of_scope:
+                eligible.append(item)
         gold = row["gold_evidence"] if row["answerable"] else []
         if row["answerable"] and not gold:
             raise ValueError("answerable row must have gold evidence")
@@ -92,6 +97,22 @@ def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: lis
         record = {"qid": row["qid"], "answerable": bool(row["answerable"]),
                   "gold_count": len(unique_gold), "gold_hits": len(matched), "candidate_count": len(values)}
         coverage.append(record)
+        if include_document_diagnostics and row["answerable"]:
+            gold_docs = {g[0] for g in unique_gold}
+            found_docs = gold_docs & {item["doc_id"] for item in eligible}
+            found_gold = {g for g in unique_gold if any(
+                item["doc_id"] == g[0] and item["chunk_id"] == g[1]
+                and (g[2] == (None,) or item["page"] in g[2]) for item in eligible)}
+            if len(found_gold) == len(unique_gold):
+                cause = "all_gold_evidence_found"
+            elif found_docs == gold_docs:
+                cause = "all_documents_found_evidence_missing"
+            elif found_docs:
+                cause = "partial_documents_found"
+            else:
+                cause = "no_gold_document_found"
+            document_records.append({"qid": row["qid"], "gold_documents": len(gold_docs),
+                                     "found_gold_documents": len(found_docs), "diagnosis": cause})
         for cohort in cohort_names(row):
             strata[cohort].append(record)
         hits += bool(matched)
@@ -100,7 +121,7 @@ def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: lis
                              "expected_evidence": sorted({(g[0], g[1]) for g in unique_gold - matched}),
                              "candidate_ids": [(item["doc_id"], item["chunk_id"]) for item in values]})
     answerable = sum(row["answerable"] for row in rows)
-    return {**coverage_metrics(coverage),
+    report = {**coverage_metrics(coverage),
             "coverage_per_query": coverage,
             "strata": {name: coverage_metrics(part) for name, part in sorted(strata.items())},
             "records": len(rows), "answerable": answerable, "candidate_cap": cap,
@@ -108,16 +129,32 @@ def audit_outputs(rows: list[dict], outputs: dict[str, list[dict]], doc_ids: lis
             "candidate_misses": failures, "provenance_errors": provenance_errors,
             "scope_errors": scope_errors, "duplicate_result_sets": duplicates,
             "per_query": [{"qid": row["qid"], "candidates": outputs[row["qid"]]} for row in rows]}
+    if include_document_diagnostics:
+        # Opt-in: historical release report dictionaries remain reproducible.
+        count = len(document_records)
+        report["document_diagnostics"] = {
+            "schema_version": 1, "answerable": count,
+            "all_document_recall": sum(r["gold_documents"] == r["found_gold_documents"]
+                                       for r in document_records) / count if count else None,
+            "diagnosis_counts": {name: sum(r["diagnosis"] == name for r in document_records) for name in (
+                "all_gold_evidence_found", "all_documents_found_evidence_missing",
+                "partial_documents_found", "no_gold_document_found")},
+            "per_query": document_records,
+            "acceptance_metrics_unchanged": True,
+        }
+    return report
 
 
 def evaluate_split(rows: list[dict], retriever: HybridRetriever,
-                   doc_ids: list[str], cap: int, evidence: dict | None = None) -> dict:
+                   doc_ids: list[str], cap: int, evidence: dict | None = None, *,
+                   include_document_diagnostics: bool = False) -> dict:
     outputs = {}
     for row in rows:
         from campusai.rag.context import benchmark_retrieval_request
         results = retriever.generate_candidates(**benchmark_retrieval_request(row, doc_ids), top_k=cap, mode="auto")
         outputs[row["qid"]] = [item.to_dict() for item in results]
-    return audit_outputs(rows, outputs, doc_ids, cap, evidence)
+    return audit_outputs(rows, outputs, doc_ids, cap, evidence,
+                         include_document_diagnostics=include_document_diagnostics)
 
 
 def main() -> int:
@@ -129,6 +166,8 @@ def main() -> int:
     parser.add_argument("--results-dir", type=Path, default=Path("evaluation/results"))
     parser.add_argument("--phase6-calibration", type=Path, default=Path("evaluation/results/hybrid_retrieval_calibration.json"))
     parser.add_argument("--exploratory", action="store_true")
+    parser.add_argument("--document-diagnostics", action="store_true",
+                        help="Add document-versus-evidence diagnostics without changing acceptance metrics")
     args = parser.parse_args()
     if not args.exploratory:
         require_previous_gates("M2", args.results_dir, index_dir=args.index_dir, benchmark_dir=args.benchmark_dir)
@@ -155,7 +194,9 @@ def main() -> int:
                                    "caps": {}}
         for cap in caps:
             retriever = HybridRetriever(args.index_dir, query_cache_size=0, candidate_limit=cap, policies={"hybrid_rrf": policy})
-            report["splits"][split]["caps"][str(cap)] = evaluate_split(rows, retriever, doc_ids, cap, evidence)
+            report["splits"][split]["caps"][str(cap)] = evaluate_split(
+                rows, retriever, doc_ids, cap, evidence,
+                include_document_diagnostics=args.document_diagnostics)
     test = report["splits"]["test"]["caps"]["40"]
     holdout = report["splits"]["holdout"]["caps"]["40"]
     errors = []

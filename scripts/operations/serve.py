@@ -19,33 +19,35 @@ from campusai.retrieval.canary_rollout import CanaryController
 from campusai.llm.factory import create_llm
 
 
-class NoProvider:
-    def generate_json(self, *_args, **_kwargs):
-        raise RuntimeError("LLM provider is not configured")
-
-
 def build_application():
     # The release corpus is evaluation-only. Runtime indexes are populated
     # exclusively from user uploads into the configured index directory.
     index_dir = Path(os.getenv("CAMPUSAI_INDEX_DIR", "data/index"))
     store_dir = Path(os.getenv("CAMPUSAI_STORE_DIR", "data/store"))
+    device = os.getenv("CAMPUSAI_DEVICE", "cpu")
     calibration = Path(os.getenv(
         "CAMPUSAI_RETRIEVAL_CALIBRATION",
         "evaluation/results/hybrid_retrieval_calibration.json",
     ))
     if calibration.is_file():
         retriever = build_phase7_retriever(index_dir, calibration,
-            Path(os.getenv("CAMPUSAI_RERANKER_DEV", "data/benchmark/human_retrieval_dev.jsonl")))
+            Path(os.getenv("CAMPUSAI_RERANKER_DEV", "data/benchmark/human_retrieval_dev.jsonl")),
+            dense_device=device)
     else:
-        retriever = HybridRetriever(index_dir)
+        retriever = HybridRetriever(index_dir, dense_device=device)
     service = None
     llm = None
     try:
         llm_config = os.getenv("CAMPUSAI_LLM_CONFIG")
-        llm = create_llm(llm_config) if llm_config else NoProvider()
+        llm = create_llm(llm_config) if llm_config else None
         active = getattr(retriever, "phase7_enabled", False)
         service = CampusAIQueryService(retriever, GroundedAnswerGenerator(llm),
             default_mode=None if active else "auto", canary=CanaryController() if active else None)
+        # Complete dense model/index initialization before HTTP can report ready.
+        # This is local retrieval work only; it never asks the answer provider.
+        warm_retrieval = getattr(retriever, "warm_up", None)
+        if warm_retrieval is not None:
+            warm_retrieval()
         jobs = IngestionJobManager(max_workers=int(os.getenv("CAMPUSAI_INGESTION_WORKERS", "1")))
         return CampusAIApplication(
             service,
@@ -54,7 +56,7 @@ def build_application():
                 "store_dir": store_dir,
                 "index_dir": index_dir,
                 "dense_model": os.getenv("CAMPUSAI_DENSE_MODEL", "BAAI/bge-m3"),
-                "device": os.getenv("CAMPUSAI_DEVICE", "cpu"),
+                "device": device,
             },
         )
     except Exception:

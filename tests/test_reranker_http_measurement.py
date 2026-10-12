@@ -76,12 +76,15 @@ def test_http_runner_exercises_rag_llm_and_raw_concurrency_matrix(tmp_path, monk
             @property
             def last_trace(self):
                 return getattr(self._local, "trace", RoutingTrace(route="uninitialized"))
+            @last_trace.setter
+            def last_trace(self, value):
+                self._local.trace = value
             def search(self, query, **_kwargs):
                 negative = query.startswith("negative")
                 self._local.trace = RoutingTrace(route="hybrid_rrf", rerank_selected=not negative,
                     latency_ms={"parse": .1, "bm25": .1, "dense": .1, "fusion": .1, "total": .5})
                 return [] if negative else [RetrievalResult("c1", "doc", 1, "Fact.", "text", .9,
-                                                             "hybrid_rrf", {"page_range": [1, 1]})]
+                                                             "hybrid_rrf", {"page_range": [1, 1], "source_name": "Synthetic fixture"})]
         from campusai.retrieval import reranker_activation
         monkeypatch.setattr(reranker_activation, "build_phase7_retriever", lambda *_a, **_k: Retriever())
         output = tmp_path / "http-report.json"

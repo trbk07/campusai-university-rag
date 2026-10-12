@@ -37,6 +37,47 @@ def named_table_sources(query: str, records: dict[str, dict]) -> list[str]:
     return matches
 
 
+def primary_course_tables(code: str, records: dict[str, dict]) -> set[str]:
+    """Identify the actual course-code column, never prerequisite mentions."""
+    matches = set()
+    for chunk, item in records.items():
+        content = str(item.get('content', ''))
+        start = content.find('{"headers"')
+        if start < 0:
+            continue
+        try:
+            table = json.loads(content[start:])
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(table, dict):
+            continue
+        headers, rows = table.get('headers'), table.get('rows')
+        if (not isinstance(headers, list) or any(not isinstance(h, str) for h in headers)
+                or not isinstance(rows, list)):
+            continue
+        roles = [_phrase(h).strip() for h in headers]
+        columns = [i for i, role in enumerate(roles) if role in {'ma hoc phan', 'ma so hoc phan', 'ma so', 'course code'}]
+        if len(columns) != 1:
+            continue
+        column = columns[0]
+        if any(isinstance(row, list) and len(row) > column and isinstance(row[column], str)
+               and re.sub(r'\s+', '', row[column]).casefold() == code.casefold() for row in rows):
+            matches.add(chunk)
+    return matches
+
+
+def course_table_fields_requested(query: str) -> bool:
+    """A code identifies a subject; explicit requested fields favor its row.
+
+    Generic requests for information or a description should retain the
+    subject's prose before repeated table rows containing the same code.
+    """
+    text=' '.join(normalized_tokens(query))
+    return bool(re.search(r'\b(?:credits?|tin chi|so tin|may tin|hoc ky|hoc ki|semesters?|terms?|'
+                          r'prerequisites?|tien quyet|hoc truoc|course name|subject name|'
+                          r'ten mon|ten hoc phan|mon gi|hoc phan gi|called|named)\b',text))
+
+
 def _named_curriculum_row(cells: list[str], headers: list[str]) -> tuple[set[str], list[str]] | None:
     """Read a subject name from an explicit column, without inventing a code."""
     if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):

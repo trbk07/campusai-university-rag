@@ -70,9 +70,10 @@ def submit_question(root: Path, record: dict, index_dir: Path) -> dict:
     return packet
 
 
-def submit_review(root: Path, review: dict, index_dir: Path, *, owner_identity: str | None = None) -> dict:
+def submit_review(root: Path, review: dict, index_dir: Path, *, owner_identity: str | None = None,
+                  delegation=None) -> dict:
     question = read_json(packet_path(root, "questions", review.get("qid")))
-    validate_review(question, review, index_dir, owner_identity=owner_identity)
+    validate_review(question, review, index_dir, owner_identity=owner_identity, delegation=delegation)
     path = packet_path(root, "reviews", review["qid"])
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as stream:
@@ -81,7 +82,8 @@ def submit_review(root: Path, review: dict, index_dir: Path, *, owner_identity: 
     return review
 
 
-def validate_review(question: dict, review: dict, index_dir: Path, *, owner_identity: str | None = None) -> None:
+def validate_review(question: dict, review: dict, index_dir: Path, *, owner_identity: str | None = None,
+                    delegation=None) -> None:
     # An unchanged manifest cannot authorize approval after physical evidence
     # files changed. Submission and export already load this verified snapshot;
     # a separately submitted reviewer packet needs the same check.
@@ -95,6 +97,11 @@ def validate_review(question: dict, review: dict, index_dir: Path, *, owner_iden
         raise ValueError("reviewer identity and role must be explicit")
     if reviewer.strip().casefold() in PLACEHOLDER_IDENTITIES:
         raise ValueError("placeholder reviewer identity is not allowed")
+    if role == 'owner_delegated_ai':
+        from .human_record_contract import review_role_error
+        problem = review_role_error(review, owner_identity, delegation=delegation)
+        if problem:
+            raise ValueError(problem)
     if role == "independent_reviewer":
         author = record.get("author")
         if (not isinstance(author, str) or not author.strip()
@@ -125,7 +132,8 @@ def validate_review(question: dict, review: dict, index_dir: Path, *, owner_iden
         raise ValueError("review timestamp must have a timezone and follow submission") from error
 
 
-def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity: str | None = None) -> dict:
+def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity: str | None = None,
+                    delegation=None) -> dict:
     records, audit = [], []
     index_hash = sha256(index_dir / "manifest.json")
     for path in sorted((root / "questions").glob("*.json")):
@@ -135,7 +143,7 @@ def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity
         if not review_path.exists():
             raise ValueError(f"review packet missing: {record['qid']}")
         review = read_json(review_path)
-        validate_review(question, review, index_dir, owner_identity=owner_identity)
+        validate_review(question, review, index_dir, owner_identity=owner_identity, delegation=delegation)
         if (question["record_sha256"] != digest_record(record) or review["record_sha256"] != question["record_sha256"]
                 or review["index_sha256"] != index_hash or question["index_sha256"] != index_hash):
             raise ValueError("question/evidence changed after review")
@@ -143,6 +151,9 @@ def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity
             continue
         final = {**record, **{key: review[key] for key in ("reviewer", "reviewer_role", "review_status", "review_checks")},
                  "reviewed_at": review["reviewed_at"]}
+        if review['reviewer_role'] == 'owner_delegated_ai':
+            from .delegated_review import DELEGATED_FIELDS
+            final.update({key: review[key] for key in DELEGATED_FIELDS})
         records.append(final)
         audit.append({"qid": record["qid"], "question_packet": question, "review_packet": review,
                       "exported_record_sha256": digest_record(final)})
@@ -150,7 +161,8 @@ def export_reviewed(root: Path, output: Path, index_dir: Path, *, owner_identity
         raise ValueError("no approved questions to export")
     # A second validation also catches tampered reviewer/check fields. A partial
     # export is useful for collection but cannot bypass M1's coverage gates.
-    report = validate_rows(records, frozen_evidence(index_dir), owner_identity=owner_identity)
+    report = validate_rows(records, frozen_evidence(index_dir), owner_identity=owner_identity,
+                           delegation=delegation)
     row_errors = [e for e in report["errors"] if e.startswith("row_")]
     if row_errors:
         raise ValueError("reviewed export rejected: " + ", ".join(row_errors))
@@ -182,6 +194,10 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     owner_identity = configured_owner_identity(args.review_policy, args.owner_identity)
     try:
+        from .delegated_review import load_delegation
+        delegation = load_delegation(read_json(args.review_policy) if args.review_policy.is_file() else {},
+                                     root=Path(__file__).resolve().parents[2],
+                                     index_sha256=sha256(args.index_dir / 'manifest.json'), scope='dataset')
         if args.action in {"submit", "review"}:
             if not args.packet:
                 parser.error("--packet is required (author/reviewer submitted JSON)")
@@ -189,10 +205,10 @@ def main(argv=None) -> int:
                 result = submit_question(args.intake_dir, read_json(args.packet), args.index_dir)
             else:
                 result = submit_review(args.intake_dir, read_json(args.packet), args.index_dir,
-                                       owner_identity=owner_identity)
+                                       owner_identity=owner_identity, delegation=delegation)
         elif args.action == "export":
             result = export_reviewed(args.intake_dir, args.output, args.index_dir,
-                                     owner_identity=owner_identity)
+                                     owner_identity=owner_identity, delegation=delegation)
         elif args.action == "inspect":
             result = read_json(packet_path(args.intake_dir, "questions", args.qid))
         else:

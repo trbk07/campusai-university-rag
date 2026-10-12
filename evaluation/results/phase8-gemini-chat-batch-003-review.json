@@ -1,0 +1,2710 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch-003",
+  "reviewed_at": "2026-10-12T03:38:10.152923+00:00",
+  "reviewer": "Codex - Automated AI Review",
+  "provenance": "owner_supplied_batched_gemini_chat_output",
+  "requested_model": "Gemini Chat 3.8 Flash",
+  "actual_model": "not_reported_not_independently_verified",
+  "generation_timestamp": null,
+  "status": "PARTIAL_CONTENT_REVIEW_COMPLETE_AWAITING_4_QIDS",
+  "summary": {
+    "expected": 60,
+    "complete_received": 56,
+    "partial_received": 1,
+    "absent": 3,
+    "unique_complete": 56,
+    "missing_complete": 4,
+    "duplicate": 0,
+    "unknown": 0,
+    "content_accept": 56,
+    "content_reject": 0,
+    "raw_json_valid": 0,
+    "raw_json_invalid_complete": 56,
+    "truncated_records": 1,
+    "normalized_schema_valid": 56,
+    "content_citation_valid": 56,
+    "existing_quote_validator_pass": 55,
+    "existing_quote_validator_discrepancies": 1,
+    "gold_annotation_question_mismatch": 20,
+    "api_outputs_added": 0,
+    "api_calls": 0,
+    "phase8_pass": false
+  },
+  "normalization_policy": "Retain exact raw bytes. Escape only inner quote-array string quotes for complete records, preserving all answer/claim/evidence contents. Never complete or repair truncated semantic data. Original format failures remain failures.",
+  "citation_review_policy": "Existing helper plus independently exact decoded source-table row equality for manual provenance. Record newline helper discrepancies separately, not as helper PASS.",
+  "gold_policy": "Frozen benchmark, gold, rubric and thresholds unchanged. Question-aligned structured expected_claims and source establish content; mismatched derived annotations remain recorded.",
+  "missing_qids": [
+    "human-p7r18-curriculum-009-semester-4",
+    "human-p7r18-curriculum-009-credits-2",
+    "human-p7r18-curriculum-019-semester-1",
+    "human-p7r18-curriculum-020-semester-2"
+  ],
+  "absent_qids": [
+    "human-p7r18-curriculum-009-credits-2",
+    "human-p7r18-curriculum-019-semester-1",
+    "human-p7r18-curriculum-020-semester-2"
+  ],
+  "partial_records": [
+    {
+      "qid": "human-p7r18-curriculum-009-semester-4",
+      "raw_line": 57,
+      "status": "INCOMPLETE_OUTPUT",
+      "error": {
+        "message": "Unterminated string starting at",
+        "column": 456
+      },
+      "content_accepted": false,
+      "reason": "Output ends in the middle of claim citation data. No complete JSON object or full response can be validated; retain raw line and request only this qid again."
+    }
+  ],
+  "issue_qids": {
+    "raw_json_invalid": [
+      "p8-temporal-2021-adjustment-17",
+      "human-p7r18-curriculum-005-combined-3",
+      "human-p7r18-curriculum-001-credits-3",
+      "p8-temporal-2021-adjustment-18",
+      "human-p7r18-curriculum-012-combined-1",
+      "human-p7r18-curriculum-023-credits-4",
+      "p8-temporal-2021-adjustment-19",
+      "human-p7r18-curriculum-009-combined-2",
+      "human-p7r18-curriculum-027-credits-3",
+      "human-p7r18-curriculum-005-combined-1",
+      "human-p7r18-curriculum-027-credits-2",
+      "human-p7r18-curriculum-009-combined-4",
+      "human-p7r18-curriculum-004-semester-1",
+      "human-p7r18-curriculum-005-combined-2",
+      "human-p7r18-curriculum-027-credits-1",
+      "human-p7r18-curriculum-019-combined-1",
+      "human-p7r18-curriculum-004-semester-3",
+      "human-p7r18-curriculum-012-combined-4",
+      "human-p7r18-curriculum-004-credits-1",
+      "human-p7r18-curriculum-012-combined-2",
+      "human-p7r18-curriculum-017-semester-1",
+      "human-p7r18-curriculum-020-combined-4",
+      "human-p7r18-curriculum-027-credits-4",
+      "human-p7r18-curriculum-020-combined-1",
+      "human-p7r18-curriculum-023-credits-3",
+      "human-p7r18-curriculum-020-combined-3",
+      "human-p7r18-curriculum-023-credits-1",
+      "human-p7r18-curriculum-012-combined-3",
+      "human-p7r18-curriculum-026-semester-4",
+      "human-p7r18-curriculum-020-combined-2",
+      "human-p7r18-curriculum-023-semester-1",
+      "human-p7r18-curriculum-026-credits-1",
+      "human-p7r18-curriculum-017-semester-4",
+      "human-p7r18-curriculum-004-semester-2",
+      "human-p7r18-curriculum-023-semester-2",
+      "human-p7r18-curriculum-025-credits-4",
+      "human-p7r18-curriculum-025-semester-3",
+      "human-p7r18-curriculum-004-semester-4",
+      "human-p7r18-curriculum-026-semester-2",
+      "human-p7r18-curriculum-026-credits-3",
+      "human-p7r18-curriculum-017-credits-4",
+      "human-p7r18-curriculum-023-semester-3",
+      "human-p7r18-curriculum-001-credits-2",
+      "human-p7r18-curriculum-001-semester-1",
+      "human-p7r18-curriculum-017-semester-2",
+      "human-p7r18-curriculum-026-semester-3",
+      "human-p7r18-curriculum-027-semester-4",
+      "human-p7r18-curriculum-005-credits-2",
+      "human-p7r18-curriculum-020-credits-1",
+      "human-p7r18-curriculum-019-semester-3",
+      "human-p7r18-curriculum-019-credits-2",
+      "human-p7r18-curriculum-012-semester-4",
+      "human-p7r18-curriculum-012-semester-1",
+      "human-p7r18-curriculum-020-credits-3",
+      "human-p7r18-curriculum-005-semester-3",
+      "human-p7r18-curriculum-012-credits-4"
+    ],
+    "gold_annotation_question_mismatch": [
+      "human-p7r18-curriculum-004-semester-1",
+      "human-p7r18-curriculum-004-semester-3",
+      "human-p7r18-curriculum-017-semester-1",
+      "human-p7r18-curriculum-026-semester-4",
+      "human-p7r18-curriculum-023-semester-1",
+      "human-p7r18-curriculum-017-semester-4",
+      "human-p7r18-curriculum-004-semester-2",
+      "human-p7r18-curriculum-023-semester-2",
+      "human-p7r18-curriculum-025-semester-3",
+      "human-p7r18-curriculum-004-semester-4",
+      "human-p7r18-curriculum-026-semester-2",
+      "human-p7r18-curriculum-023-semester-3",
+      "human-p7r18-curriculum-001-semester-1",
+      "human-p7r18-curriculum-017-semester-2",
+      "human-p7r18-curriculum-026-semester-3",
+      "human-p7r18-curriculum-027-semester-4",
+      "human-p7r18-curriculum-019-semester-3",
+      "human-p7r18-curriculum-012-semester-4",
+      "human-p7r18-curriculum-012-semester-1",
+      "human-p7r18-curriculum-005-semester-3"
+    ],
+    "existing_quote_validator_discrepancy": [
+      "p8-temporal-2021-adjustment-17"
+    ]
+  },
+  "bindings": {
+    "evaluation/results/phase8-gemini-chat-batch-003-raw.txt": "ec0fc39fd1fa4b9feb3a4db6afbba67594af8e242fb36f7a2c139f7f1a4cf20f",
+    "evaluation/results/phase8-gemini-chat-batch-003-normalized.jsonl": "8ec27ec091f4b3f728ddef4649407f1c70db2aa406846fab80f5bd1b17a64c17",
+    "evaluation/phase8/gemini_chat_batch_003_v5.md": "6ea1865e51c4117b081d9f3a182053abe65126171af138e12848a6b8da036ef8",
+    "evaluation/results/phase8-product-preflight-v5.json": "f8f1e1dcca18834da903b992fd91382b2f061f2a185deb7f9a08b450bac7d3ff",
+    "evaluation/phase8/benchmark_candidate_v5.jsonl": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d"
+  },
+  "cases": [
+    {
+      "qid": "p8-temporal-2021-adjustment-17",
+      "raw_line": 1,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 360
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Đối chiếu cột khung hiện hành với cột thông tin điều chỉnh năm 2021 cho Thử nghiệm kết cấu thiết bị không gian: mã mới thay AER3040 là mã nào?",
+      "answer": "Đối chiếu cột thông tin điều chỉnh năm 2021, mã mới thay thế cho mã AER3040 của học phần Thử nghiệm kết cấu thiết bị không gian là EMA3048.",
+      "requested_fields_verified": {
+        "adjusted_course_code": "EMA3048"
+      },
+      "reason": "The answer and claim give the requested new code; the unchanged structured gold and the old/new source table columns support it. The full answer has no contradictory code or unsupported added conclusion.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+        "page": 3,
+        "old_course_code": "AER3040",
+        "adjusted_course_code": "EMA3048",
+        "course_name": "Thử nghiệm kết cấu thiết bị không gian"
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+          "page": 3,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": false,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": true,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-3",
+      "raw_line": 2,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 355
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Engineering Mechanics for Aerospace Eng in the partnership curriculum and report its semester and credits.",
+      "answer": "Trong chương trình đào tạo phối hợp, môn Engineering Mechanics for Aerospace Eng được giảng dạy tại Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Engineering Mechanics for Aerospace Eng",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "1",
+          "Engineering Mechanics for Aerospace Eng",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-credits-3",
+      "raw_line": 3,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 288
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Algebra in the VNU-UET-MAI study plan and report its credit count.",
+      "answer": "Trong kế hoạch học tập VNU-UET-MAI, môn Algebra có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Algebra",
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "5",
+          "Algebra",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-18",
+      "raw_line": 4,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 345
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Trong phụ lục đính chính chương trình đào tạo năm 2021, AER3037 được đổi thành mã nào cho học phần Cơ học quỹ đạo bay?",
+      "answer": "Trong phụ lục đính chính chương trình đào tạo năm 2021, học phần Cơ học quỹ đạo bay được đổi từ mã AER3037 thành mã EMA3014.",
+      "requested_fields_verified": {
+        "adjusted_course_code": "EMA3014"
+      },
+      "reason": "The answer and claim give the requested new code; the unchanged structured gold and the old/new source table columns support it. The full answer has no contradictory code or unsupported added conclusion.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+        "page": 3,
+        "old_course_code": "AER3037",
+        "adjusted_course_code": "EMA3014",
+        "course_name": "Cơ học quỹ đạo bay"
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+          "page": 3,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-1",
+      "raw_line": 5,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 344
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "For Geometric Engineering and CAD 1, give both the semester placement and credit total in the VNU-UET/MAI curriculum.",
+      "answer": "Trong chương trình đào tạo VNU-UET/MAI, môn Geometric Engineering and CAD 1 được xếp vào Semester 1 và có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1,
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-4",
+      "raw_line": 6,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 322
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the MAI partnership curriculum, state the number of credits for Russian Conversation for Beginners.",
+      "answer": "Theo chương trình liên kết với MAI, số tín chỉ của môn Russian Conversation for Beginners là 3.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "p8-temporal-2021-adjustment-19",
+      "raw_line": 7,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 348
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Với học phần Điều khiển điện thủy khí, mã điều chỉnh theo văn bản UET năm 2021 là gì (mã trước đính chính: AER3041)?",
+      "answer": "Theo văn bản năm 2021 của UET, học phần Điều khiển điện thủy khí có mã trước đính chính là AER3041 và mã điều chỉnh là EMA3064.",
+      "requested_fields_verified": {
+        "adjusted_course_code": "EMA3064"
+      },
+      "reason": "The answer and claim give the requested new code; the unchanged structured gold and the old/new source table columns support it. The full answer has no contradictory code or unsupported added conclusion.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+        "page": 3,
+        "old_course_code": "AER3041",
+        "adjusted_course_code": "EMA3064",
+        "course_name": "Điều khiển điện thủy khí"
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79_p3_t1",
+          "page": 3,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-combined-2",
+      "raw_line": 8,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 324
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "The joint MAI study plan lists General materials; what term and number of credits does it show?",
+      "answer": "Kế hoạch đào tạo phối hợp với MAI liệt kê học phần General materials ở Semester 3 với 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "General materials",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "6",
+          "General materials",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-3",
+      "raw_line": 9,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 302
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Theoretical mechanics in the VNU-UET-MAI study plan and report its credit count.",
+      "answer": "Trong kế hoạch học tập VNU-UET-MAI, môn Theoretical mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Theoretical mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Theoretical mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-1",
+      "raw_line": 10,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 348
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "For Engineering Mechanics for Aerospace Eng, give both the semester placement and credit total in the VNU-UET/MAI curriculum.",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Engineering Mechanics for Aerospace Eng được phân bổ vào Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Engineering Mechanics for Aerospace Eng",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "1",
+          "Engineering Mechanics for Aerospace Eng",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-2",
+      "raw_line": 11,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 308
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What credit value does the joint MAI program list for the subject Theoretical mechanics?",
+      "answer": "Chương trình hợp tác với MAI liệt kê học phần Theoretical mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Theoretical mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Theoretical mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-combined-4",
+      "raw_line": 12,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 327
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What semester and credit value are recorded for General materials in the VNU-UET-MAI table?",
+      "answer": "Theo bảng kế hoạch VNU-UET-MAI, học phần General materials được xếp vào Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "General materials",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "6",
+          "General materials",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-1",
+      "raw_line": 13,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 318
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In which semester is Chemistry scheduled in the joint VNU-UET/MAI plan?",
+      "answer": "Trong chương trình đào tạo liên kết VNU-UET/MAI, môn Chemistry được bố trí vào Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Chemistry",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Chemistry",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-combined-2",
+      "raw_line": 14,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 347
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "The joint MAI study plan lists Engineering Mechanics for Aerospace Eng; what term and number of credits does it show?",
+      "answer": "Kế hoạch đào tạo của chương trình MAI liệt kê môn Engineering Mechanics for Aerospace Eng tại Semester 3 với 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Engineering Mechanics for Aerospace Eng",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "1",
+          "Engineering Mechanics for Aerospace Eng",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-1",
+      "raw_line": 15,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 298
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In the VNU-UET/MAI curriculum, how many credits are assigned to Theoretical mechanics?",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Theoretical mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Theoretical mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Theoretical mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-combined-1",
+      "raw_line": 16,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 336
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "For Marxist – Leninst Philosophy, give both the semester placement and credit total in the VNU-UET/MAI curriculum.",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Marxist – Leninst Philosophy được bố trí vào Semester 1 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Marxist – Leninst Philosophy",
+        "semester": 1,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "6",
+          "Marxist – Leninst Philosophy",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-3",
+      "raw_line": 17,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 305
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Chemistry?",
+      "answer": "Kế hoạch học tập VNU-UET-MAI bố trí học phần Chemistry vào học kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Chemistry",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Chemistry",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-4",
+      "raw_line": 18,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 353
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What semester and credit value are recorded for Geometric Engineering and CAD 1 in the VNU-UET-MAI table?",
+      "answer": "Trong bảng kế hoạch đào tạo VNU-UET-MAI, học phần Geometric Engineering and CAD 1 được ghi nhận ở Semester 1 và có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1,
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-credits-1",
+      "raw_line": 19,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 286
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In the VNU-UET/MAI curriculum, how many credits are assigned to Chemistry?",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Chemistry có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Chemistry",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Chemistry",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-2",
+      "raw_line": 20,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 362
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "The joint MAI study plan lists Geometric Engineering and CAD 1; what term and number of credits does it show?",
+      "answer": "Theo kế hoạch học tập của chương trình phối hợp với MAI, môn Geometric Engineering and CAD 1 được ghi nhận ở Semester 1 với 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1,
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-1",
+      "raw_line": 21,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 319
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In which semester is Machine mechanisms scheduled in the joint VNU-UET/MAI plan?",
+      "answer": "Trong chương trình liên kết VNU-UET/MAI, môn Machine mechanisms được xếp vào kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Machine mechanisms",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "7",
+          "Machine mechanisms",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-4",
+      "raw_line": 22,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 363
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What semester and credit value are recorded for Ordinary and Partial Differential Equations in the VNU-UET-MAI table?",
+      "answer": "Trong bảng chương trình VNU-UET-MAI, học phần Ordinary and Partial Differential Equations được ghi nhận tại Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-credits-4",
+      "raw_line": 23,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 297
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the MAI partnership curriculum, state the number of credits for Theoretical mechanics.",
+      "answer": "Theo chương trình đối tác MAI, môn Theoretical mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Theoretical mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Theoretical mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-1",
+      "raw_line": 24,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 341
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "For Ordinary and Partial Differential Equations, give both the semester placement and credit total in the VNU-UET/MAI curriculum.",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Ordinary and Partial Differential Equations thuộc Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-3",
+      "raw_line": 25,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 320
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Russian Conversation for Beginners in the VNU-UET-MAI study plan and report its credit count.",
+      "answer": "Trong kế hoạch học tập VNU-UET-MAI, học phần Russian Conversation for Beginners có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-3",
+      "raw_line": 26,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 348
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Ordinary and Partial Differential Equations in the partnership curriculum and report its semester and credits.",
+      "answer": "Trong chương trình phối hợp, môn Ordinary and Partial Differential Equations được bố trí vào Semester 3 và có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-credits-1",
+      "raw_line": 27,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 311
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In the VNU-UET/MAI curriculum, how many credits are assigned to Russian Conversation for Beginners?",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Russian Conversation for Beginners có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-combined-3",
+      "raw_line": 28,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 332
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Geometric Engineering and CAD 1 in the partnership curriculum and report its semester and credits.",
+      "answer": "Trong chương trình hợp tác, môn Geometric Engineering and CAD 1 được xếp vào Semester 1 và có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1,
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-4",
+      "raw_line": 29,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 317
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the partnership curriculum, when is Solid mechanics taught? Give the semester.",
+      "answer": "Theo chương trình đối tác, học phần Solid mechanics được giảng dạy vào học kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Solid mechanics",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Solid mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-combined-2",
+      "raw_line": 30,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 356
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "The joint MAI study plan lists Ordinary and Partial Differential Equations; what term and number of credits does it show?",
+      "answer": "Kế hoạch đào tạo của chương trình MAI liệt kê học phần Ordinary and Partial Differential Equations tại Semester 3 với 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "semester": 3,
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-1",
+      "raw_line": 31,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 338
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In which semester is Russian Conversation for Beginners scheduled in the joint VNU-UET/MAI plan?",
+      "answer": "Trong chương trình liên kết VNU-UET/MAI, môn Russian Conversation for Beginners được bố trí vào kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-credits-1",
+      "raw_line": 32,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 292
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In the VNU-UET/MAI curriculum, how many credits are assigned to Solid mechanics?",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Solid mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Solid mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Solid mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-4",
+      "raw_line": 33,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 323
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the partnership curriculum, when is Machine mechanisms taught? Give the semester.",
+      "answer": "Theo chương trình hợp tác đào tạo, môn Machine mechanisms được giảng dạy vào học kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Machine mechanisms",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "7",
+          "Machine mechanisms",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-2",
+      "raw_line": 34,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 300
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Locate Chemistry in the MAI curriculum table and give its semester number.",
+      "answer": "Trong bảng chương trình MAI, học phần Chemistry nằm ở học kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Chemistry",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Chemistry",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-2",
+      "raw_line": 35,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 321
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Locate Russian Conversation for Beginners in the MAI curriculum table and give its semester number.",
+      "answer": "Trong bảng chương trình MAI, học phần Russian Conversation for Beginners nằm ở kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-credits-4",
+      "raw_line": 36,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 312
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the MAI partnership curriculum, state the number of credits for Signals and Systems.",
+      "answer": "Theo chương trình liên kết với MAI, số tín chỉ của học phần Signals and Systems là 3.",
+      "requested_fields_verified": {
+        "course_name": "Signals and Systems",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "8",
+          "Signals and Systems",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-3",
+      "raw_line": 37,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 306
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Signals and Systems?",
+      "answer": "Kế hoạch đào tạo VNU-UET-MAI bố trí môn Signals and Systems vào kỳ Semester 2.",
+      "requested_fields_verified": {
+        "course_name": "Signals and Systems",
+        "semester": 2
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "8",
+          "Signals and Systems",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-4",
+      "raw_line": 38,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 311
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the partnership curriculum, when is Chemistry taught? Give the semester.",
+      "answer": "Theo chương trình đối tác, học phần Chemistry được giảng dạy vào học kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Chemistry",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Chemistry",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-2",
+      "raw_line": 39,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 306
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Locate Solid mechanics in the MAI curriculum table and give its semester number.",
+      "answer": "Trong bảng chương trình MAI, học phần Solid mechanics nằm ở học kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Solid mechanics",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Solid mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-credits-3",
+      "raw_line": 40,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 301
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Solid mechanics in the VNU-UET-MAI study plan and report its credit count.",
+      "answer": "Trong kế hoạch đào tạo VNU-UET-MAI, học phần Solid mechanics có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Solid mechanics",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Solid mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-credits-4",
+      "raw_line": 41,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 294
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the MAI partnership curriculum, state the number of credits for Machine mechanisms.",
+      "answer": "Theo chương trình đối tác MAI, môn Machine mechanisms có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Machine mechanisms",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "7",
+          "Machine mechanisms",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-3",
+      "raw_line": 42,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 321
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Russian Conversation for Beginners?",
+      "answer": "Kế hoạch đào tạo VNU-UET-MAI bố trí môn Russian Conversation for Beginners vào kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Russian Conversation for Beginners",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Russian Conversation for Beginners",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-credits-2",
+      "raw_line": 43,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 294
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What credit value does the joint MAI program list for the subject Algebra?",
+      "answer": "Chương trình hợp tác với MAI liệt kê học phần Algebra có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Algebra",
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "5",
+          "Algebra",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-semester-1",
+      "raw_line": 44,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 312
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In which semester is Algebra scheduled in the joint VNU-UET/MAI plan?",
+      "answer": "Trong chương trình phối hợp VNU-UET/MAI, môn Algebra được xếp vào học kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Algebra",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "5",
+          "Algebra",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-2",
+      "raw_line": 45,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 304
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Locate Machine mechanisms in the MAI curriculum table and give its semester number.",
+      "answer": "Trong bảng kế hoạch đào tạo MAI, môn Machine mechanisms nằm ở kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Machine mechanisms",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "7",
+          "Machine mechanisms",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-3",
+      "raw_line": 46,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 302
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Solid mechanics?",
+      "answer": "Kế hoạch đào tạo VNU-UET-MAI bố trí môn Solid mechanics vào kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Solid mechanics",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Solid mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-semester-4",
+      "raw_line": 47,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 323
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the partnership curriculum, when is Theoretical mechanics taught? Give the semester.",
+      "answer": "Theo chương trình đối tác, học phần Theoretical mechanics được giảng dạy vào học kỳ Semester 2.",
+      "requested_fields_verified": {
+        "course_name": "Theoretical mechanics",
+        "semester": 2
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "9",
+          "Theoretical mechanics",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 2
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-credits-2",
+      "raw_line": 48,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 326
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What credit value does the joint MAI program list for the subject Engineering Mechanics for Aerospace Eng?",
+      "answer": "Chương trình hợp tác với MAI liệt kê học phần Engineering Mechanics for Aerospace Eng có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Engineering Mechanics for Aerospace Eng",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "1",
+          "Engineering Mechanics for Aerospace Eng",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-credits-1",
+      "raw_line": 49,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 320
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In the VNU-UET/MAI curriculum, how many credits are assigned to Ordinary and Partial Differential Equations?",
+      "answer": "Trong chương trình VNU-UET/MAI, môn Ordinary and Partial Differential Equations có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-3",
+      "raw_line": 50,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 315
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Marxist – Leninst Philosophy?",
+      "answer": "Kế hoạch đào tạo VNU-UET-MAI bố trí môn Marxist – Leninst Philosophy vào kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Marxist – Leninst Philosophy",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "6",
+          "Marxist – Leninst Philosophy",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-credits-2",
+      "raw_line": 51,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 307
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "What credit value does the joint MAI program list for the subject Marxist – Leninst Philosophy?",
+      "answer": "Chương trình hợp tác MAI quy định môn Marxist – Leninst Philosophy có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Marxist – Leninst Philosophy",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "6",
+          "Marxist – Leninst Philosophy",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-4",
+      "raw_line": 52,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 329
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the partnership curriculum, when is Geometric Engineering and CAD 1 taught? Give the semester.",
+      "answer": "Theo chương trình liên kết, môn Geometric Engineering and CAD 1 được giảng dạy vào học kỳ Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-1",
+      "raw_line": 53,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 329
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "In which semester is Geometric Engineering and CAD 1 scheduled in the joint VNU-UET/MAI plan?",
+      "answer": "Trong chương trình liên kết VNU-UET/MAI, môn Geometric Engineering and CAD 1 được xếp vào Semester 1.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "semester": 1
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-credits-3",
+      "raw_line": 54,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 329
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Find Ordinary and Partial Differential Equations in the VNU-UET-MAI study plan and report its credit count.",
+      "answer": "Trong kế hoạch đào tạo VNU-UET-MAI, học phần Ordinary and Partial Differential Equations có 3 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Ordinary and Partial Differential Equations",
+        "credits": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "4",
+          "Ordinary and Partial Differential Equations",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-3",
+      "raw_line": 55,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 326
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "Which term does the VNU-UET-MAI study plan assign to Engineering Mechanics for Aerospace Eng?",
+      "answer": "Kế hoạch đào tạo VNU-UET-MAI bố trí môn Engineering Mechanics for Aerospace Eng vào kỳ Semester 3.",
+      "requested_fields_verified": {
+        "course_name": "Engineering Mechanics for Aerospace Eng",
+        "semester": 3
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "1",
+          "Engineering Mechanics for Aerospace Eng",
+          "3",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 3
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": "Frozen gold_claims states credits although QUESTION asks semester; unchanged structured expected_claims and source establish the semester. Benchmark annotation gate remains unresolved.",
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-credits-4",
+      "raw_line": 56,
+      "decision": "ACCEPT_CONTENT",
+      "raw_json_valid": false,
+      "raw_json_error": {
+        "message": "Expecting ',' delimiter",
+        "column": 307
+      },
+      "normalization": "Escape only unescaped inner double quotes in the quote array string.",
+      "normalized_schema_valid": true,
+      "question": "According to the MAI partnership curriculum, state the number of credits for Geometric Engineering and CAD 1.",
+      "answer": "Theo chương trình đối tác MAI, môn Geometric Engineering and CAD 1 có 4 tín chỉ.",
+      "requested_fields_verified": {
+        "course_name": "Geometric Engineering and CAD 1",
+        "credits": 4
+      },
+      "reason": "The answer and all claim texts correctly state the requested curriculum fields. The exact table row and its preceding semester heading agree with unchanged structured expected_claims; no missing requested fact or unsupported added conclusion found.",
+      "semantic_review": "Codex - Automated AI Review: inspected answer and all claim texts against QUESTION, unchanged structured expected_claims and supplied source.",
+      "evidence_proof": {
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "row": [
+          "10",
+          "Geometric Engineering and CAD 1",
+          "4",
+          "VNU-UET"
+        ],
+        "semester_from_preceding_table_heading": 1
+      },
+      "citation_checks": [
+        {
+          "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+          "page": 1,
+          "supplied_in_this_case": true,
+          "existing_quote_validator_pass": true,
+          "exact_decoded_table_row_match": true,
+          "content_provenance_valid": true
+        }
+      ],
+      "claim_citation_references_valid": true,
+      "gold_annotation_issue": null,
+      "legacy_quote_validator_issue": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-4",
+      "decision": "PENDING_OUTPUT",
+      "question": "According to the partnership curriculum, when is General materials taught? Give the semester.",
+      "reason": "Raw response truncated; full claims/schema cannot be validated.",
+      "raw_json_valid": false,
+      "content_accepted": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-credits-2",
+      "decision": "PENDING_OUTPUT",
+      "question": "What credit value does the joint MAI program list for the subject General materials?",
+      "reason": "No output received for this qid.",
+      "raw_json_valid": null,
+      "content_accepted": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-1",
+      "decision": "PENDING_OUTPUT",
+      "question": "In which semester is Marxist – Leninst Philosophy scheduled in the joint VNU-UET/MAI plan?",
+      "reason": "No output received for this qid.",
+      "raw_json_valid": null,
+      "content_accepted": false,
+      "api_baseline_eligible": false
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-2",
+      "decision": "PENDING_OUTPUT",
+      "question": "Locate Ordinary and Partial Differential Equations in the MAI curriculum table and give its semester number.",
+      "reason": "No output received for this qid.",
+      "raw_json_valid": null,
+      "content_accepted": false,
+      "api_baseline_eligible": false
+    }
+  ]
+}

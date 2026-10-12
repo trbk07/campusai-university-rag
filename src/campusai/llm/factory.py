@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import math
 import os
 import re
 import urllib.parse
@@ -171,9 +172,33 @@ def create_llm(
     timeout = _integer(config, "timeout_seconds", 60, minimum=1)
     requests_per_minute = _integer(config, "requests_per_minute", 60, minimum=0)
     max_retries = _integer(config, "max_retries", 3, minimum=0)
+    retry_only_503 = config.get("retry_only_503", False)
+    if type(retry_only_503) is not bool or (retry_only_503 and max_retries not in (0, 1)):
+        raise ValueError("retry_only_503 requires a boolean and at most one retry")
+    retry_min_wait = config.get("retry_min_wait_seconds", 30.0)
+    retry_max_wait = config.get("retry_max_wait_seconds", 60.0)
+    if (not isinstance(retry_min_wait, (int, float)) or isinstance(retry_min_wait, bool)
+            or not isinstance(retry_max_wait, (int, float)) or isinstance(retry_max_wait, bool)
+            or not math.isfinite(retry_min_wait) or not math.isfinite(retry_max_wait)
+            or retry_min_wait < 0 or retry_max_wait < retry_min_wait):
+        raise ValueError("503 retry wait bounds must be finite, non-negative, and ordered")
     cache_path = str(config.get("cache_path", "data/cache/llm_cache.sqlite")).strip()
     if not cache_path:
         raise ValueError("llm.cache_path cannot be empty")
+    overload_path = config.get("overload_circuit_path")
+    if overload_path is not None and (provider != "gemini" or not isinstance(overload_path, str)
+                                     or not overload_path.strip() or max_retries != 0):
+        raise ValueError("overload_circuit_path requires Gemini, a nonempty path and max_retries=0")
+
+    generation_config = config.get("generation_config", {})
+    if not isinstance(generation_config, dict):
+        raise ValueError("llm.generation_config must be a JSON object")
+    try:
+        json.dumps(generation_config, allow_nan=False)
+    except (TypeError, ValueError):
+        raise ValueError("llm.generation_config must contain finite JSON values") from None
+    if provider != "gemini" and generation_config:
+        raise ValueError("llm.generation_config is only supported for Gemini")
 
     cache = SQLiteLLMCache(cache_path)
     limiter = RateLimiter(requests_per_minute)
@@ -182,12 +207,17 @@ def create_llm(
         "limiter": limiter,
         "timeout": timeout,
         "max_retries": max_retries,
+        "retry_only_503": retry_only_503,
+        "retry_min_wait_seconds": retry_min_wait,
+        "retry_max_wait_seconds": retry_max_wait,
     }
     if provider == "gemini":
         gemini_options = dict(common)
+        if overload_path:
+            gemini_options["overload_circuit_path"] = overload_path
         if config.get("endpoint"):
             gemini_options["endpoint"] = _endpoint(str(config["endpoint"]), "endpoint")
-        return GeminiClient(api_key, model=model, **gemini_options)
+        return GeminiClient(api_key, model=model, generation_config=generation_config, **gemini_options)
 
     endpoint = str(
         config.get("endpoint")

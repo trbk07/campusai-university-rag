@@ -1,5 +1,7 @@
 # Phase 7 — Đặc tả thực thi và chuẩn bàn giao từng task
 
+> **Phạm vi hiện hành 08/10/2026:** owner đã thay Phase 7 bằng sáu hạng mục chất lượng sản phẩm C7-01–C7-06 trong [plan.md](../../plan.md#phase-7--hoàn-thiện-chất-lượng-sản-phẩm-phạm-vi-tinh-gọn). Optional reranker giữ tắt; các task/19 gate trong tài liệu này là hợp đồng qualification được hoãn, vẫn phải đạt trước khi bật reranker production. Không dùng các checkpoint cũ bên dưới làm mục tiêu 20/20–19/19 hiện hành. Trạng thái mới nằm ở `active_tasks` của [ledger](../../evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
+
 Ngày cập nhật: **02/10/2026**, Asia/Bangkok. Đây là **kế hoạch thực hiện**, không phải
 báo cáo PASS. Roadmap gốc: [`plan.md`](../../plan.md#phase-7--reranker).
 Phạm vi, ngưỡng gate hiện hành và CLI: [release plan](release_plan.md) và

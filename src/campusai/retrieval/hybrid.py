@@ -83,7 +83,11 @@ class HybridRetriever:
         phase7_provider: RerankerProvider | None = None,
         phase7_policy: Phase7Policy | None = None,
         phase7_enabled: bool = False,
+        dense_device: str | None = None,
     ) -> None:
+        if dense_device not in {None, "cpu", "cuda", "cuda:0"}:
+            raise ValueError("unsupported dense serving device")
+        self._dense_device = dense_device
         self.index_root = Path(index_root)
         self.rrf_k = rrf_k
         self.reranker = reranker
@@ -118,6 +122,11 @@ class HybridRetriever:
         self.last_trace = RoutingTrace(route="uninitialized")
 
     @property
+    def dense_device(self) -> str | None:
+        """Explicit serving profile; persisted build device remains unchanged."""
+        return self._dense_device
+
+    @property
     def last_trace(self) -> RoutingTrace:
         return getattr(self._trace_state, "value", RoutingTrace(route="uninitialized"))
 
@@ -130,6 +139,8 @@ class HybridRetriever:
         bm25 = BM25Index.load(root / "bm25.json")
         try:
             dense = DenseIndex.load(root / "dense.json")
+            if self.dense_device is not None:
+                dense.device = self.dense_device
         except IndexNotFoundError:
             dense = None
         self._indexes[doc_id] = (bm25, dense)
@@ -171,6 +182,23 @@ class HybridRetriever:
                 with self._index_lock:
                     if doc_id not in self._indexes or self._index_generations.get(doc_id) != self._generation(doc_id):
                         self.load_document(doc_id)
+
+    def warm_up(self) -> None:
+        """Load retrieval resources before accepting traffic, without caching answers.
+
+        Startup remains a measured cost. A fixed non-user query initializes the
+        encoder and index matrices only; no ranking policy or corpus is changed.
+        """
+        doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
+        self._ensure_loaded(doc_ids)
+        vectors = {}
+        for _bm25, dense in self._indexes.values():
+            if dense is None or not dense.items:
+                continue
+            key = (dense.model_name, dense.device, dense.model_revision)
+            if key not in vectors:
+                vectors[key] = dense.encode_query("CampusAI retrieval readiness.")
+            dense.search("", top_k=1, query_vector=vectors[key])
 
     def _generation(self, doc_id: str) -> tuple:
         root = self.index_root / doc_id
@@ -453,6 +481,10 @@ class HybridRetriever:
                                          0 if pair[0] in semester_ids else 1, -pair[1], pair[0]))
         if len(course_codes) == 1 and exact_candidate_ids:
             code_pattern = code_patterns[0]
+            from .table_links import primary_course_tables, course_table_fields_requested
+            primary_tables = primary_course_tables(course_codes[0],
+                                                    {key: records[key] for key in exact_candidate_ids})
+            prefer_table = course_table_fields_requested(query)
             def course_identity_priority(pair):
                 item_id, score = pair
                 item = records[item_id]
@@ -460,7 +492,11 @@ class HybridRetriever:
                 # mentions in prerequisite columns are supporting evidence.
                 body = source_body(item)
                 primary = bool(code_pattern.match(body.strip()))
-                return (0 if primary else 1 if item_id in exact_candidate_ids else 2,
+                # A headed course row establishes identity and column values.
+                # Bare code-only fragments can be repeated beside unrelated
+                # rows; keep the primary source table ahead of those fragments.
+                return (0 if prefer_table and item_id in primary_tables else 1 if primary
+                        else 2 if item_id in primary_tables else 3 if item_id in exact_candidate_ids else 4,
                         -score, item_id)
             ranked.sort(key=course_identity_priority)
         if requested_pages:
@@ -689,10 +725,14 @@ class HybridRetriever:
                                         top_k=policy.candidate_cap, mode="auto")
         if not pool:
             return finish(baseline[:top_k], False, "empty_candidate_pool")
-        candidates = [RerankCandidate(item.chunk_id, item.doc_id, item.chunk_id,
-                                      item.page, item.content, item.rank,
-                                      float(item.fusion_score or 0.0))
-                      for item in pool[:policy.rerank_candidate_cap]]
+        scoring_pool = [item.to_dict() for item in pool]
+        if provider.model_identity.input_format == 'source_context':
+            from .source_context_inputs import contextual_pool
+            scoring_pool = contextual_pool(scoring_pool)
+        candidates = [RerankCandidate(item['chunk_id'], item['doc_id'], item['chunk_id'],
+                                      item['page'], item['content'], item['rank'],
+                                      float(item.get('fusion_score') or 0.0), item.get('scoring_content'))
+                      for item in scoring_pool[:policy.rerank_candidate_cap]]
         if not self.phase7_enabled:
             return finish(baseline[:top_k], False, "feature_disabled")
         try:

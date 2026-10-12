@@ -1,10 +1,12 @@
 """Opt-in live-provider Basic RAG contract evidence."""
 
 import os
+from pathlib import Path
 
 import pytest
 
 from campusai.llm import GeminiClient, SQLiteLLMCache
+from campusai.llm.factory import _read_config
 from campusai.rag.grounding import ANSWER_SCHEMA, GroundedAnswerGenerator
 from campusai.rag.schemas import validate_release_response
 from campusai.retrieval.hybrid import RetrievalResult
@@ -17,11 +19,13 @@ pytestmark = pytest.mark.skipif(
 
 
 def test_live_gemini_grounded_answer_has_valid_fixture_citation(tmp_path):
+    config = _read_config(Path(__file__).resolve().parents[2] / 'configs/product_llm.yaml')['llm']
     client = GeminiClient(
         os.environ["GEMINI_API_KEY"],
-        model=os.getenv("PHASE4_LLM_MODEL", "gemini-3-flash-preview"),
+        model=config['model'], generation_config=config['generation_config'],
         cache=SQLiteLLMCache(str(tmp_path / "phase4-live.sqlite")),
-        max_retries=1,
+        max_retries=config['max_retries'], timeout=config['timeout_seconds'],
+        retry_only_503=config.get('retry_only_503', False),
     )
     result = RetrievalResult(
         "phase4-live-c1",

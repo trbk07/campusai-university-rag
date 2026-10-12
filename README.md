@@ -7,6 +7,8 @@ citations and explicit abstention when evidence is missing.
 The runtime indexes documents uploaded by the user and scopes queries to the
 selected document IDs. `data/corpus/university/` is an evaluation fixture.
 
+Phase 7 now focuses on six product-quality items (C7-01–C7-06). Optional reranker qualification is deferred and the feature stays disabled; citation, grounding, scope, abstention, security and measured delivery-runtime checks remain required. See [the current roadmap](plan.md#phase-7--hoàn-thiện-chất-lượng-sản-phẩm-phạm-vi-tinh-gọn). Historical 20-task/19-gate qualification reports remain available for audit and future reranker activation.
+
 ## Evaluation artifact storage
 
 Git keeps benchmark/gold references, summaries and hash manifests. Historical

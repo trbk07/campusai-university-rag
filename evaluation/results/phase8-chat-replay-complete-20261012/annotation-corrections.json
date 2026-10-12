@@ -1,0 +1,568 @@
+{
+  "status": "SOURCE_VERIFIED_SCORING_OVERLAY",
+  "frozen_benchmark_sha256": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d",
+  "scoring_benchmark_sha256": "e078dbbab168d90a9f05ad8bf01143adaecbc1452b61bee8f1edbb6f5d0eb4ba",
+  "reviewer": "Codex - Automated AI Source Review",
+  "changes": [
+    {
+      "qid": "human-p7r18-curriculum-017-semester-3",
+      "before": "Machine mechanisms carries 3 credits.",
+      "after": "Machine mechanisms is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 33,
+        "cells_sha256": "8d5bee65f15d71f4b228a31a6c40d399f086a2b894f808b314cab8d4f9c37fb5",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-1",
+      "before": "Signals and Systems carries 3 credits.",
+      "after": "Signals and Systems is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 22,
+        "cells_sha256": "c3c858f39eed1fd922e37a859da5792e770f393d703c68bfc7b9a4176b055ddf",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-semester-2",
+      "before": "Theoretical mechanics carries 3 credits.",
+      "after": "Theoretical mechanics is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 23,
+        "cells_sha256": "4b27b5a52ae2e167e0c9f031f994bd4dff71dc065db6b5c6a2e1b98d81a9fd7e",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-4",
+      "before": "Russian Conversation for Beginners carries 3 credits.",
+      "after": "Russian Conversation for Beginners is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 36,
+        "cells_sha256": "4d83972bdc91ff1dfc190658510d69ba730f03a6eb75c80c4bb39ceac700f3d0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-1",
+      "before": "Solid mechanics carries 3 credits.",
+      "after": "Solid mechanics is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 35,
+        "cells_sha256": "2611d2975f0935ddc4bc277bf8c427bb974b32ab1a2c0c3b98d41589ff4f84bb",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-2",
+      "before": "Signals and Systems carries 3 credits.",
+      "after": "Signals and Systems is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 22,
+        "cells_sha256": "c3c858f39eed1fd922e37a859da5792e770f393d703c68bfc7b9a4176b055ddf",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-semester-4",
+      "before": "Algebra carries 4 credits.",
+      "after": "Algebra is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 6,
+        "cells_sha256": "18ce098dfb75cfac752595af3d416f62bd6da124a629624020d57a7e8caed03e",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-4",
+      "before": "Signals and Systems carries 3 credits.",
+      "after": "Signals and Systems is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 22,
+        "cells_sha256": "c3c858f39eed1fd922e37a859da5792e770f393d703c68bfc7b9a4176b055ddf",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-1",
+      "before": "Chemistry carries 3 credits.",
+      "after": "Chemistry is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 10,
+        "cells_sha256": "11202dc9330f29bdafeea06a63d08dd19ba2c0d28a10eaa24c07a8538c6eee83",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-3",
+      "before": "Chemistry carries 3 credits.",
+      "after": "Chemistry is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 10,
+        "cells_sha256": "11202dc9330f29bdafeea06a63d08dd19ba2c0d28a10eaa24c07a8538c6eee83",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-1",
+      "before": "Machine mechanisms carries 3 credits.",
+      "after": "Machine mechanisms is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 33,
+        "cells_sha256": "8d5bee65f15d71f4b228a31a6c40d399f086a2b894f808b314cab8d4f9c37fb5",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-4",
+      "before": "Solid mechanics carries 3 credits.",
+      "after": "Solid mechanics is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 35,
+        "cells_sha256": "2611d2975f0935ddc4bc277bf8c427bb974b32ab1a2c0c3b98d41589ff4f84bb",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-1",
+      "before": "Russian Conversation for Beginners carries 3 credits.",
+      "after": "Russian Conversation for Beginners is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 36,
+        "cells_sha256": "4d83972bdc91ff1dfc190658510d69ba730f03a6eb75c80c4bb39ceac700f3d0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-4",
+      "before": "Machine mechanisms carries 3 credits.",
+      "after": "Machine mechanisms is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 33,
+        "cells_sha256": "8d5bee65f15d71f4b228a31a6c40d399f086a2b894f808b314cab8d4f9c37fb5",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-2",
+      "before": "Chemistry carries 3 credits.",
+      "after": "Chemistry is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 10,
+        "cells_sha256": "11202dc9330f29bdafeea06a63d08dd19ba2c0d28a10eaa24c07a8538c6eee83",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-2",
+      "before": "Russian Conversation for Beginners carries 3 credits.",
+      "after": "Russian Conversation for Beginners is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 36,
+        "cells_sha256": "4d83972bdc91ff1dfc190658510d69ba730f03a6eb75c80c4bb39ceac700f3d0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-025-semester-3",
+      "before": "Signals and Systems carries 3 credits.",
+      "after": "Signals and Systems is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 22,
+        "cells_sha256": "c3c858f39eed1fd922e37a859da5792e770f393d703c68bfc7b9a4176b055ddf",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-004-semester-4",
+      "before": "Chemistry carries 3 credits.",
+      "after": "Chemistry is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 10,
+        "cells_sha256": "11202dc9330f29bdafeea06a63d08dd19ba2c0d28a10eaa24c07a8538c6eee83",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-2",
+      "before": "Solid mechanics carries 3 credits.",
+      "after": "Solid mechanics is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 35,
+        "cells_sha256": "2611d2975f0935ddc4bc277bf8c427bb974b32ab1a2c0c3b98d41589ff4f84bb",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-023-semester-3",
+      "before": "Russian Conversation for Beginners carries 3 credits.",
+      "after": "Russian Conversation for Beginners is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 36,
+        "cells_sha256": "4d83972bdc91ff1dfc190658510d69ba730f03a6eb75c80c4bb39ceac700f3d0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-001-semester-1",
+      "before": "Algebra carries 4 credits.",
+      "after": "Algebra is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 6,
+        "cells_sha256": "18ce098dfb75cfac752595af3d416f62bd6da124a629624020d57a7e8caed03e",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-017-semester-2",
+      "before": "Machine mechanisms carries 3 credits.",
+      "after": "Machine mechanisms is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 33,
+        "cells_sha256": "8d5bee65f15d71f4b228a31a6c40d399f086a2b894f808b314cab8d4f9c37fb5",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-026-semester-3",
+      "before": "Solid mechanics carries 3 credits.",
+      "after": "Solid mechanics is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 35,
+        "cells_sha256": "2611d2975f0935ddc4bc277bf8c427bb974b32ab1a2c0c3b98d41589ff4f84bb",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-027-semester-4",
+      "before": "Theoretical mechanics carries 3 credits.",
+      "after": "Theoretical mechanics is listed in semester 2.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 23,
+        "cells_sha256": "4b27b5a52ae2e167e0c9f031f994bd4dff71dc065db6b5c6a2e1b98d81a9fd7e",
+        "semester_from_preceding_heading": 2
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-3",
+      "before": "Marxist – Leninst Philosophy carries 3 credits.",
+      "after": "Marxist – Leninst Philosophy is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 7,
+        "cells_sha256": "96e399c9641657d8e4d1e6e9b1b1f98f45015e7345740b4e2b415bd9936f3e88",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-4",
+      "before": "Geometric Engineering and CAD 1 carries 4 credits.",
+      "after": "Geometric Engineering and CAD 1 is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 11,
+        "cells_sha256": "2e0e3d95c43f50ae050327f6f6b4056bcd8b433ec7d5b50a5765ff106327e292",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-1",
+      "before": "Geometric Engineering and CAD 1 carries 4 credits.",
+      "after": "Geometric Engineering and CAD 1 is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 11,
+        "cells_sha256": "2e0e3d95c43f50ae050327f6f6b4056bcd8b433ec7d5b50a5765ff106327e292",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-3",
+      "before": "Engineering Mechanics for Aerospace Eng carries 3 credits.",
+      "after": "Engineering Mechanics for Aerospace Eng is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 27,
+        "cells_sha256": "3b11e3a9a1e98d9b6a9ba9d41d90dfaa5f8e1512f38368344d8029a138a65671",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-4",
+      "before": "General materials carries 3 credits.",
+      "after": "General materials is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 32,
+        "cells_sha256": "64f0ef2f69f79e036571c192c84a6be7dcc213fea3c4042cd5555c19069288c0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-1",
+      "before": "Marxist – Leninst Philosophy carries 3 credits.",
+      "after": "Marxist – Leninst Philosophy is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 7,
+        "cells_sha256": "96e399c9641657d8e4d1e6e9b1b1f98f45015e7345740b4e2b415bd9936f3e88",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-2",
+      "before": "Ordinary and Partial Differential Equations carries 3 credits.",
+      "after": "Ordinary and Partial Differential Equations is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 30,
+        "cells_sha256": "707140b3bbd76a1b2ab6c85d0a8be4c83f2296f35c4b10339223db54a30bb755",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-4",
+      "before": "Marxist – Leninst Philosophy carries 3 credits.",
+      "after": "Marxist – Leninst Philosophy is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 7,
+        "cells_sha256": "96e399c9641657d8e4d1e6e9b1b1f98f45015e7345740b4e2b415bd9936f3e88",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-4",
+      "before": "Engineering Mechanics for Aerospace Eng carries 3 credits.",
+      "after": "Engineering Mechanics for Aerospace Eng is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 27,
+        "cells_sha256": "3b11e3a9a1e98d9b6a9ba9d41d90dfaa5f8e1512f38368344d8029a138a65671",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-3",
+      "before": "General materials carries 3 credits.",
+      "after": "General materials is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 32,
+        "cells_sha256": "64f0ef2f69f79e036571c192c84a6be7dcc213fea3c4042cd5555c19069288c0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-4",
+      "before": "Ordinary and Partial Differential Equations carries 3 credits.",
+      "after": "Ordinary and Partial Differential Equations is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 30,
+        "cells_sha256": "707140b3bbd76a1b2ab6c85d0a8be4c83f2296f35c4b10339223db54a30bb755",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-2",
+      "before": "General materials carries 3 credits.",
+      "after": "General materials is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 32,
+        "cells_sha256": "64f0ef2f69f79e036571c192c84a6be7dcc213fea3c4042cd5555c19069288c0",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-019-semester-2",
+      "before": "Marxist – Leninst Philosophy carries 3 credits.",
+      "after": "Marxist – Leninst Philosophy is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 7,
+        "cells_sha256": "96e399c9641657d8e4d1e6e9b1b1f98f45015e7345740b4e2b415bd9936f3e88",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-1",
+      "before": "Ordinary and Partial Differential Equations carries 3 credits.",
+      "after": "Ordinary and Partial Differential Equations is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 30,
+        "cells_sha256": "707140b3bbd76a1b2ab6c85d0a8be4c83f2296f35c4b10339223db54a30bb755",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-012-semester-3",
+      "before": "Geometric Engineering and CAD 1 carries 4 credits.",
+      "after": "Geometric Engineering and CAD 1 is listed in semester 1.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 11,
+        "cells_sha256": "2e0e3d95c43f50ae050327f6f6b4056bcd8b433ec7d5b50a5765ff106327e292",
+        "semester_from_preceding_heading": 1
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-1",
+      "before": "Engineering Mechanics for Aerospace Eng carries 3 credits.",
+      "after": "Engineering Mechanics for Aerospace Eng is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 27,
+        "cells_sha256": "3b11e3a9a1e98d9b6a9ba9d41d90dfaa5f8e1512f38368344d8029a138a65671",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-005-semester-2",
+      "before": "Engineering Mechanics for Aerospace Eng carries 3 credits.",
+      "after": "Engineering Mechanics for Aerospace Eng is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 27,
+        "cells_sha256": "3b11e3a9a1e98d9b6a9ba9d41d90dfaa5f8e1512f38368344d8029a138a65671",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-020-semester-3",
+      "before": "Ordinary and Partial Differential Equations carries 3 credits.",
+      "after": "Ordinary and Partial Differential Equations is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 30,
+        "cells_sha256": "707140b3bbd76a1b2ab6c85d0a8be4c83f2296f35c4b10339223db54a30bb755",
+        "semester_from_preceding_heading": 3
+      }
+    },
+    {
+      "qid": "human-p7r18-curriculum-009-semester-1",
+      "before": "General materials carries 3 credits.",
+      "after": "General materials is listed in semester 3.",
+      "proof": {
+        "doc_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+        "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+        "page": 1,
+        "table_row": 32,
+        "cells_sha256": "64f0ef2f69f79e036571c192c84a6be7dcc213fea3c4042cd5555c19069288c0",
+        "semester_from_preceding_heading": 3
+      }
+    }
+  ],
+  "policy": "Only derived semester claim text changes. Questions, qids, structured gold, evidence, splits and thresholds unchanged. Exposed regression; original frozen file preserved."
+}

@@ -201,7 +201,8 @@ def frozen_evidence(index_dir: Path) -> dict[tuple[str, str], dict]:
 def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
                   regression_rows: list[dict] | None = None,
                   owner_identity: str | None = None,
-                  generated_records: dict[str, dict] | None = None) -> dict:
+                  generated_records: dict[str, dict] | None = None,
+                  delegation=None) -> dict:
     from evaluation.benchmarks.human_record_contract import expected_behavior_error, review_role_error
     errors = []
     review_errors = []
@@ -243,11 +244,11 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
         if normalized:
             seen_queries[normalized] = split
             questions.append((qid, split, set(normalized.split())))
-        role_error = review_role_error(row, owner_identity)
+        role_error = review_role_error(row, owner_identity, delegation=delegation)
         if role_error:
             errors.append(prefix + ":" + role_error)
             review_errors.append(prefix + ":" + role_error)
-        elif row.get("reviewer_role") in {"independent_reviewer", "project_owner"}:
+        elif row.get("reviewer_role") in {"independent_reviewer", "project_owner", 'owner_delegated_ai'}:
             reviewer_roles.add(row["reviewer_role"])
         if ((row.get("author_type") != "human" and not owner_generated) or row.get("review_status") != "approved"
                 or not isinstance(row.get("author"), str) or not row["author"].strip()):
@@ -376,6 +377,7 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
         errors.append("invalid_connected_families")
     review_complete = not review_errors
     review_mode = ("owner_self_review" if reviewer_roles == {"project_owner"} else
+                   'owner_delegated_ai_review' if reviewer_roles == {'owner_delegated_ai'} else
                    "independent_review" if reviewer_roles == {"independent_reviewer"} else
                    "mixed_review" if reviewer_roles else "incomplete")
     return {"schema_version": 3, "phase": 7, "status": "pass" if not errors else "conditional",
@@ -385,7 +387,8 @@ def validate_rows(rows: list[dict], evidence: dict[tuple[str, str], dict],
             "benchmark_profile": "personal_owner_source_checked_ai" if generated_records else "human_authored",
             "review_mode": review_mode,
             "independent_review_complete": review_complete and reviewer_roles == {"independent_reviewer"},
-            "owner_review_complete": review_complete and reviewer_roles == {"project_owner"}}
+            "owner_review_complete": review_complete and reviewer_roles == {"project_owner"},
+            "delegated_ai_review_complete": review_complete and reviewer_roles == {'owner_delegated_ai'}}
 
 
 @contextmanager
@@ -482,8 +485,13 @@ def main(argv=None) -> int:
                       for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         from evaluation.benchmarks.owner_generation import load_generation
         authorization, generated = load_generation(args.dataset.parent, args.index_dir)
+        from .delegated_review import load_delegation
+        delegation = load_delegation(read_json(policy_path) if policy_path.is_file() else {},
+                                     root=Path(__file__).resolve().parents[2],
+                                     index_sha256=sha256(args.index_dir / 'manifest.json'), scope='dataset')
         report = validate_rows(rows, frozen_evidence(args.index_dir), regression,
-                               owner_identity=owner_identity, generated_records=generated)
+                               owner_identity=owner_identity, generated_records=generated,
+                               delegation=delegation)
         if authorization:
             report["generation_authorization_sha256"] = sha256(args.dataset.parent / "phase7_generation_authorization.json")
             dev_auth_path = args.dataset.parent/'phase7_dev_generation_authorization.json'

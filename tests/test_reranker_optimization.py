@@ -220,9 +220,11 @@ def test_server_factory_uses_guarded_activation_and_configured_llm(tmp_path, mon
     monkeypatch.setenv("CAMPUSAI_STORE_DIR", str(tmp_path / "store"))
     monkeypatch.setenv("CAMPUSAI_RETRIEVAL_CALIBRATION", str(calibration))
     monkeypatch.setenv("CAMPUSAI_LLM_CONFIG", "configured.yaml")
+    monkeypatch.setenv("CAMPUSAI_DEVICE", "cuda")
     retriever = SimpleNamespace(phase7_enabled=True, phase7_provider=None)
     calls = []
-    def activate(index, baseline, dev):
+    def activate(index, baseline, dev, *, dense_device=None):
+        assert dense_device == "cuda"
         calls.append((index, baseline, dev))
         return retriever
     monkeypatch.setattr(serve, "build_phase7_retriever", activate)
@@ -234,6 +236,7 @@ def test_server_factory_uses_guarded_activation_and_configured_llm(tmp_path, mon
         assert app.query_service.default_mode is None
         assert app.query_service.canary.traffic_percent == 0
         assert app.query_service.answer_generator.llm is llm
+        assert app.ingestion_defaults["device"] == "cuda"
     finally:
         app.close()
 
@@ -246,7 +249,7 @@ def test_server_factory_releases_warmed_provider_when_llm_configuration_fails(tm
     monkeypatch.setenv("CAMPUSAI_LLM_CONFIG", "invalid.yaml")
     closed = []
     provider = SimpleNamespace(close=lambda:closed.append("provider"))
-    monkeypatch.setattr(serve, "build_phase7_retriever", lambda *_args:SimpleNamespace(phase7_provider=provider))
+    monkeypatch.setattr(serve, "build_phase7_retriever", lambda *_args, **_kwargs:SimpleNamespace(phase7_provider=provider))
     def invalid(_config):
         raise ValueError("invalid LLM configuration")
     monkeypatch.setattr(serve, "create_llm", invalid)
@@ -395,3 +398,23 @@ def test_precision_probe_measures_and_propagates_the_selected_candidate_cap(monk
         if attempt.exists():
             attempt.unlink()
         output.rmdir()
+
+
+def test_server_factory_warms_retrieval_without_asking_llm_and_closes_on_failure(tmp_path, monkeypatch):
+    from scripts.operations import serve
+    calibration = tmp_path / "phase6.json"
+    calibration.write_text("{}")
+    monkeypatch.setenv("CAMPUSAI_RETRIEVAL_CALIBRATION", str(calibration))
+    monkeypatch.setenv("CAMPUSAI_LLM_CONFIG", "configured.yaml")
+    events = []
+    llm = SimpleNamespace(generate_json=lambda *_a, **_kw: pytest.fail("startup must not call LLM"),
+                          close=lambda: events.append("llm_closed"))
+    def warm():
+        events.append("warm")
+        raise RuntimeError("encoder initialization failed")
+    retriever = SimpleNamespace(phase7_enabled=False, phase7_provider=None, warm_up=warm)
+    monkeypatch.setattr(serve, "build_phase7_retriever", lambda *_a, **_kw: retriever)
+    monkeypatch.setattr(serve, "create_llm", lambda _config: llm)
+    with pytest.raises(RuntimeError, match="encoder initialization"):
+        serve.build_application()
+    assert events == ["warm", "llm_closed"]

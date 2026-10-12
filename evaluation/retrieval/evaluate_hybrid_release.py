@@ -117,11 +117,14 @@ def main() -> int:
     parser.add_argument("--index-dir", type=Path, default=Path(".tmp/hybrid-index"))
     parser.add_argument("--calibration", type=Path, default=Path("evaluation/results/hybrid_retrieval_calibration.json"))
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/results"))
+    parser.add_argument("--dense-device", choices=("cpu", "cuda", "cuda:0"))
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
     policy = RetrievalPolicy.from_report(args.calibration, expected_mode="hybrid_rrf")
-    ranking_retriever = HybridRetriever(args.index_dir, query_cache_size=0)
-    primary_retriever = HybridRetriever(args.index_dir, query_cache_size=0, policies={"hybrid_rrf": policy})
+    # Omit the optional argument for historical source implementations.
+    device_options = {"dense_device": args.dense_device} if args.dense_device is not None else {}
+    ranking_retriever = HybridRetriever(args.index_dir, query_cache_size=0, **device_options)
+    primary_retriever = HybridRetriever(args.index_dir, query_cache_size=0, policies={"hybrid_rrf": policy}, **device_options)
     doc_ids = sorted(path.name for path in args.index_dir.iterdir()
                      if path.is_dir() and (path / "bm25.json").is_file())
     manifest_path = args.index_dir / "manifest.json"

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "qid": "human-p7r18-curriculum-001-credits-1",
+  "reviewed_at": "2026-10-12T02:59:57.927866+00:00",
+  "reviewer": "Codex - Automated AI Review",
+  "provenance": "owner_supplied_gemini_chat_output",
+  "model_identity": "not_reported_not_verified",
+  "generation_timestamp": null,
+  "status": "CONTENT_ACCEPTED_RAW_JSON_INVALID",
+  "raw_json_valid": false,
+  "raw_json_error": {
+    "message": "Expecting ',' delimiter",
+    "line": 9,
+    "column": 13
+  },
+  "normalization": {
+    "performed_by": "Codex",
+    "scope": "Escape inner double quotes in citations[0].quote only; no answer or evidence changed.",
+    "schema_valid_after_normalization": true,
+    "provider_output_schema_pass": false
+  },
+  "checks": {
+    "answer_matches_gold": true,
+    "citation_chunk_matches_gold": true,
+    "citation_page_matches_evidence": true,
+    "quote_exact_substring_of_supplied_evidence": true,
+    "claim_supported_by_source_table": true,
+    "claim_citation_reference_valid": true,
+    "abstention_appropriate": true
+  },
+  "evidence": {
+    "document": "uet_mai_joint_curriculum_2022.pdf",
+    "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+    "page": 1,
+    "row": [
+      "5",
+      "Algebra",
+      "4",
+      "VNU-UET"
+    ],
+    "headers": [
+      "No.",
+      "Discipline",
+      "Credits",
+      "Resources"
+    ]
+  },
+  "decision_reason": "The Algebra row assigns 4 credits; the answer and sole claim match this row and benchmark gold. Raw pasted JSON has unescaped double quotes inside quote. Origin of formatting loss is unknown.",
+  "bindings": {
+    "evaluation\\results\\phase8-gemini-chat-case-001-raw.txt": "d320a9a89b24be26adb746d35f01dd5f8ff0c61a79c9a633dfeee91e89fd2364",
+    "evaluation\\results\\phase8-gemini-chat-case-001-normalized.json": "eb1410a4384bdd69443e760d16f8d40b397acc47433759d960617b2dd1d618fe",
+    "evaluation\\results\\phase8-product-preflight-v5.json": "f8f1e1dcca18834da903b992fd91382b2f061f2a185deb7f9a08b450bac7d3ff",
+    "evaluation\\phase8\\benchmark_candidate_v5.jsonl": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d",
+    "evaluation\\phase8\\gemini_chat_pending_case_v5.md": "a61010fb39fe823b9ffb8cc93282bf2ffd76c492ac0d197a2f4945ce89c4c279"
+  },
+  "scope": {
+    "manual_chat_content_reviews_completed": 1,
+    "manual_chat_content_accepted": 1,
+    "raw_json_valid_count": 0,
+    "api_baseline_outputs_added": 0,
+    "api_requests_sent": 0,
+    "product_latency_measured": false,
+    "resource_usage_measured": false,
+    "phase8_pass": false
+  },
+  "workflow_authorization": "Owner requests Gemini Chat for subsequent content verification: provide a file and prompt; do not infer API or release acceptance."
+}

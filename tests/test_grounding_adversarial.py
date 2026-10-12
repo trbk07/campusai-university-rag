@@ -9,6 +9,7 @@ import pytest
 from campusai.rag.claims import Claim, align_claims
 from campusai.rag.evidence import EvidenceRegistry
 from campusai.rag.grounding import build_context, validate_citation, validate_quote
+from campusai.rag.grounding import GroundedAnswerGenerator
 from campusai.rag.schemas import validate_release_response
 from campusai.retrieval.hybrid import RetrievalResult
 
@@ -139,3 +140,84 @@ def test_registry_rejects_wrong_document_page_quote_and_internal_hash():
     check = validate_citation(attack, evidence, require_quote=True, require_provenance=True)
     assert not check.valid
     assert {"doc_id_mismatch", "page_mismatch", "quote_not_in_evidence", "source_hash_mismatch"} <= set(check.errors)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("page_range", None), ("page_range", False), ("page_range", 2),
+    ("page_range", {}), ("page_range", "22"), ("page_range", ["2", 2]),
+    ("page_range", [2, None]), ("page_range", [2.0, 2]),
+    ("confidence", []), ("confidence", {}), ("confidence", ["high"]),
+    ("abstention_reason", []), ("abstention_reason", {}),
+])
+def test_malformed_provider_fields_abstain_through_http_without_crashing(tmp_path, field, value):
+    from types import SimpleNamespace
+    from campusai.api import CampusAIApplication
+    from campusai.rag.service import CampusAIQueryService
+    from tests.test_basic_rag import FakeLLM
+    from tests.test_web import call
+    from campusai.web import make_wsgi_app
+
+    payload = valid_payload()
+    if field == "page_range":
+        payload["citations"][0][field] = value
+    else:
+        payload[field] = value
+        if field == "abstention_reason":
+            payload["abstained"] = True
+    retriever = SimpleNamespace(index_root=tmp_path, _indexes={}, reranker=None,
+                               search=lambda *_a, **_kw: [result()])
+    service = CampusAIQueryService(retriever, GroundedAnswerGenerator(FakeLLM(payload)))
+    application = CampusAIApplication(service)
+    try:
+        response = call(make_wsgi_app(application), "/api/query", "POST",
+                        {"question": "How many credits does CS201 require in 2025?", "language": "en"})
+        assert response["status"].startswith("200")
+        import json
+        public = json.loads(response["body"])["answer"]
+        assert public["abstained"] is True
+        assert validate_release_response(public)[0]
+    finally:
+        application.close()
+
+
+HTTP_ATTACKS = (
+    [("citation_" + name, "citation", mutation) for name, mutation in CITATION_MUTATIONS]
+    + [("schema_" + name, "schema", mutation) for name, mutation in SCHEMA_MUTATIONS]
+    + [(f"claim_{i:02d}", "claim", text) for i, text in enumerate(CLAIM_ATTACKS)]
+    + [(f"quote_{i:02d}", "quote", text) for i, text in enumerate(INVALID_QUOTES)]
+)
+
+
+@pytest.mark.parametrize("name,kind,attack", HTTP_ATTACKS, ids=[item[0] for item in HTTP_ATTACKS])
+def test_existing_fifty_attacks_preserve_public_contract_through_http(tmp_path, name, kind, attack):
+    import json
+    from types import SimpleNamespace
+    from campusai.api import CampusAIApplication
+    from campusai.rag.service import CampusAIQueryService
+    from tests.test_basic_rag import FakeLLM
+    from tests.test_web import call
+    from campusai.web import make_wsgi_app
+
+    payload = valid_payload()
+    if kind in {"citation", "schema"}:
+        attack(payload)
+    elif kind == "claim":
+        payload["answer"] = payload["claims"][0]["text"] = attack
+    else:
+        payload["citations"][0]["quote"] = attack
+    retriever = SimpleNamespace(index_root=tmp_path, _indexes={}, reranker=None,
+                               search=lambda *_a, **_kw: [result()])
+    service = CampusAIQueryService(retriever, GroundedAnswerGenerator(FakeLLM(payload)))
+    application = CampusAIApplication(service)
+    try:
+        response = call(make_wsgi_app(application), "/api/query", "POST",
+                        {"question": "How many credits does CS201 require in 2025?", "language": "en"})
+        assert response["status"].startswith("200")
+        public = json.loads(response["body"])["answer"]
+        assert validate_release_response(public)[0], (name, public)
+        if kind in {"claim", "quote"}:
+            assert public["abstained"] is True, name
+        else:
+            assert "system_prompt" not in public and "confidence_score" not in public
+    finally:
+        application.close()

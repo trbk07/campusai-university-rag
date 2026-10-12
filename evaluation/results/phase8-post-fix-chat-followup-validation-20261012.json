@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "status": "APPLICATION_FIXES_VERIFIED_AWAITING_THREE_CHAT_OUTPUTS",
+  "validated_at": "2026-10-12T05:02:19.029689+00:00",
+  "reviewer": "Codex - Automated AI Review",
+  "benchmark_cases": 300,
+  "model_cases_before": 142,
+  "model_cases_after": 145,
+  "native_local_cases_after": 155,
+  "retained_exact_prompts_and_schemas": 142,
+  "retained_exact_requests_and_evidence": 142,
+  "negative_cases_still_native_abstentions": 155,
+  "negative_public_responses_unchanged": 155,
+  "newly_reachable_qids": [
+    "human-p7r18-curriculum-004-combined-2",
+    "human-p7r18-curriculum-001-combined-2",
+    "p8-fact-awards-effective-date"
+  ],
+  "new_chat_prompt_characters": 26935,
+  "exact_new_prompts_saved": 3,
+  "gold_labels_exported": false,
+  "credentials_read_or_exported": false,
+  "provider_requests_sent": 0,
+  "phase8_pass": false,
+  "fixes": {
+    "context": "Same-utterance explicit plan/course subject anchors it; unresolved pronouns still require user context. No corpus name allowlist.",
+    "conflict": "Legal instrument identifiers remain subject identity; different decisions are not conflicting values of one decision. Same-identifier contradictions still abstain.",
+    "cache": "request-context-v4 and grounding-v4 prevent reuse of prior false abstentions."
+  },
+  "output_policy": "Three preflight provider-error placeholders are NOT accepted model responses. Preserve old full baseline; no actual output assumed for the newly reachable cases.",
+  "bindings": {
+    "evaluation/phase8/gemini_chat_followup_3_20261012.md": "e0a21a03389c4a94694c286a96ce994643d6e636401133148e86ebd813fd4935",
+    "evaluation/results/phase8-post-fix-preflight-20261012.json": "06e63378eced424b21d206de979163ebb8f685e71d502ed4f03ea2fdb508fdaa",
+    "evaluation/results/phase8-product-preflight-v5.json": "f8f1e1dcca18834da903b992fd91382b2f061f2a185deb7f9a08b450bac7d3ff",
+    "evaluation/phase8/benchmark_candidate_v5.jsonl": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d",
+    "evaluation/results/phase8-gemini-chat-responses-v5.jsonl": "e3c39d7e7d2e8e86ef8799c8d4cb97412346d98256ee4b72243bc6f9049ebc48",
+    "evaluation/results/phase8-remaining-fix-tests-20261012.xml": "948fe328c5eb1e7fec1b57a13c002e848670d9101b10eec903a6791124033603",
+    "evaluation/results/phase8-followup-regression-20261012.xml": "4616a1616969ba20324805ee9d6cdab4b98e4f78452f975b93d65c6d311d9061"
+  }
+}

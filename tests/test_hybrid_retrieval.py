@@ -38,6 +38,26 @@ def _write_index(root, doc_id, records, *, dense=True):
         index.save(target / "dense.json")
 
 
+def test_dense_serving_device_overrides_mixed_build_devices_without_rewriting_indexes(tmp_path):
+    original={}
+    for name,device in (('cpu-built','cpu'),('gpu-built','cuda')):
+        records=[_record(name+'-1',name,'Grounded campus requirement')]
+        _write_index(tmp_path,name,records,dense=False)
+        dense=DenseIndex(records,device=device)
+        dense.build(records,corpus_id='device-profile',document_id=name)
+        path=tmp_path/name/'dense.json';dense.save(path)
+        original[name]=path.read_bytes()
+    runtime=HybridRetriever(tmp_path,dense_device='cpu')
+    for name in original:runtime.load_document(name)
+    assert {dense.device for _,dense in runtime._indexes.values()}=={'cpu'}
+    assert all((tmp_path/name/'dense.json').read_bytes()==value for name,value in original.items())
+    legacy=HybridRetriever(tmp_path)
+    for name in original:legacy.load_document(name)
+    assert {dense.device for _,dense in legacy._indexes.values()}=={'cpu','cuda'}
+    with pytest.raises(AttributeError):runtime.dense_device='cuda'
+    with pytest.raises(ValueError):HybridRetriever(tmp_path,dense_device='unverified-device')
+
+
 @pytest.mark.parametrize(
     ("query", "route"),
     [
@@ -270,3 +290,36 @@ def test_query_cache_reloads_rebuilt_document(tmp_path):
     _write_index(tmp_path, "doc", [_record("new", "doc", "library policy")])
     results = retriever.search("tuition policy", ["doc"], mode="auto")
     assert results and all(item.chunk_id == "new" for item in results)
+
+
+def test_warm_up_preserves_ranking_and_does_not_cache_synthetic_query(tmp_path, monkeypatch):
+    records = [_record("a1", "a", "Campus course credits and graduation"),
+               _record("a2", "a", "Semester registration deadline")]
+    _write_index(tmp_path, "a", records)
+    _write_index(tmp_path, "b", [_record("b1", "b", "Programme credits")])
+    before = {p: p.read_bytes() for p in tmp_path.rglob("*.json")}
+    expected = HybridRetriever(tmp_path).search("course credits", mode="hybrid")
+    retriever = HybridRetriever(tmp_path)
+    calls = []
+    original = DenseIndex.encode_query
+    def encode(index, query):
+        calls.append(query)
+        return original(index, query)
+    monkeypatch.setattr(DenseIndex, "encode_query", encode)
+    retriever.warm_up()
+    assert calls == ["CampusAI retrieval readiness."]
+    assert retriever._query_cache == {} and retriever._trace_cache == {}
+    assert retriever.last_trace.route == "uninitialized"
+    actual = retriever.search("course credits", mode="hybrid")
+    assert [item.to_dict() for item in actual] == [item.to_dict() for item in expected]
+    assert all(p.read_bytes() == value for p, value in before.items())
+
+
+def test_warm_up_accepts_empty_or_bm25_only_corpus(tmp_path):
+    retriever = HybridRetriever(tmp_path)
+    retriever.warm_up()
+    assert retriever._indexes == {}
+    _write_index(tmp_path, "a", [_record("a1", "a", "Campus requirement")], dense=False)
+    retriever.warm_up()
+    assert retriever._indexes["a"][1] is None
+    assert retriever.search("Campus requirement", mode="bm25")[0].chunk_id == "a1"

@@ -1,0 +1,2542 @@
+{
+  "schema_version": 1,
+  "phase": 8,
+  "status": "recorded_chat_replay_scored_regression_only",
+  "gate_eligible": false,
+  "provider_requests_by_scorer": 0,
+  "scorer_sha256": "5a93de00371e6dbf0a8a0cb4ef36502e5c5266c557ed753b1187f74d61089c20",
+  "benchmark": {
+    "path": "evaluation/results/phase8-chat-replay-baseline-20261012/benchmark-scoring-annotations.jsonl",
+    "file_sha256": "e078dbbab168d90a9f05ad8bf01143adaecbc1452b61bee8f1edbb6f5d0eb4ba",
+    "canonical_rows_sha256": "449ddcf411cc2fd14df8d84ffacfea8620c165d5f69229015070e4b910442d5b",
+    "rows": 300,
+    "split_counts": {
+      "holdout": 160,
+      "test": 140
+    },
+    "tag_counts": {
+      "abstention": 155,
+      "comparison": 19,
+      "curriculum": 102,
+      "easy": 237,
+      "exact_code": 155,
+      "fact": 10,
+      "hard": 33,
+      "multi_hop": 33,
+      "natural": 270,
+      "negative": 155,
+      "single_hop": 10,
+      "table": 135,
+      "temporal": 20
+    },
+    "owner_review": "pending",
+    "frozen": false,
+    "officially_approved": false,
+    "fresh_validation": false
+  },
+  "prediction_count": 300,
+  "runtime": {
+    "index_manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+    "index_tree_sha256": "217feea4f33f8a0e3b9aa831be1c6f82f1c5394c642102be2ae1e3449994c347",
+    "model": "BAAI/bge-m3",
+    "model_revision": "1",
+    "index_size_bytes": 33644261,
+    "execution_manifest_sha256": "722089dfd024bc1f1d6a547d10def18431ee9fedbb940cc7b72cf7ffd6eecab2"
+  },
+  "metrics": {
+    "exact_gold_answer_match": {
+      "value": 0.766667,
+      "numerator": 23,
+      "denominator": 30,
+      "status": "measured",
+      "population": "rows with explicit gold_answer; exact normalized substring in non-abstained answer",
+      "aggregation": "micro exact text match, not semantic correctness",
+      "ci95": {
+        "status": "measured",
+        "metric": "exact_gold_answer_match",
+        "groups": 30,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.6,
+          0.9
+        ]
+      }
+    },
+    "required_code_accuracy": {
+      "value": 1.0,
+      "numerator": 20,
+      "denominator": 20,
+      "status": "measured",
+      "population": "temporal/comparison rows with old/new course codes; exact code in answer text",
+      "aggregation": "micro exact code match",
+      "ci95": {
+        "status": "measured",
+        "metric": "required_code_accuracy",
+        "groups": 20,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "grounded_claim_precision": {
+      "value": 0.605634,
+      "numerator": 43,
+      "denominator": 71,
+      "status": "measured",
+      "population": "predicted answer claims across benchmark rows",
+      "aggregation": "micro fraction of predicted claims supported by gold evidence",
+      "ci95": {
+        "status": "measured",
+        "metric": "grounded_claim_precision",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.42623,
+          0.757576
+        ]
+      }
+    },
+    "grounded_claim_recall": {
+      "value": 0.296552,
+      "numerator": 43,
+      "denominator": 145,
+      "status": "measured",
+      "population": "gold answer claims across benchmark rows",
+      "aggregation": "micro fraction of gold claims recovered with support",
+      "ci95": {
+        "status": "measured",
+        "metric": "grounded_claim_recall",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.212766,
+          0.393258
+        ]
+      }
+    },
+    "unsupported_claim_leakage": {
+      "value": 0.380282,
+      "numerator": 27,
+      "denominator": 71,
+      "status": "measured",
+      "population": "predicted answer claims across benchmark rows",
+      "aggregation": "micro fraction of predicted claims that are unsupported",
+      "ci95": {
+        "status": "measured",
+        "metric": "unsupported_claim_leakage",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.22619,
+          0.548387
+        ]
+      }
+    },
+    "contradicted_claim_leakage": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 71,
+      "status": "measured",
+      "population": "predicted answer claims across benchmark rows",
+      "aggregation": "micro fraction of predicted claims that are contradicted",
+      "ci95": {
+        "status": "measured",
+        "metric": "contradicted_claim_leakage",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "citation_precision": {
+      "value": 0.985915,
+      "numerator": 70,
+      "denominator": 71,
+      "status": "measured",
+      "population": "public citations across benchmark rows",
+      "aggregation": "micro fraction of citations matching gold evidence",
+      "ci95": {
+        "status": "measured",
+        "metric": "citation_precision",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.948718,
+          1.0
+        ]
+      }
+    },
+    "citation_recall": {
+      "value": 0.482759,
+      "numerator": 70,
+      "denominator": 145,
+      "status": "measured",
+      "population": "gold claim-evidence links across benchmark rows",
+      "aggregation": "micro fraction of gold evidence links cited",
+      "ci95": {
+        "status": "measured",
+        "metric": "citation_recall",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.419811,
+          0.605263
+        ]
+      }
+    },
+    "citation_coordinate_validity": {
+      "value": 1.0,
+      "numerator": 71,
+      "denominator": 71,
+      "status": "measured",
+      "population": "public citations across benchmark rows",
+      "aggregation": "micro fraction with valid document/page/chunk coordinates",
+      "ci95": {
+        "status": "measured",
+        "metric": "citation_coordinate_validity",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "answerable_false_abstention_rate": {
+      "value": 0.510345,
+      "numerator": 74,
+      "denominator": 145,
+      "ci95": {
+        "status": "measured",
+        "metric": "answerable_false_abstention_rate",
+        "groups": 40,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.39759,
+          0.573394
+        ]
+      },
+      "population": "answerable benchmark rows",
+      "aggregation": "micro fraction of answerable rows incorrectly abstained"
+    },
+    "unanswerable_false_positive_rate": {
+      "value": 0.0,
+      "numerator": 0,
+      "denominator": 155,
+      "status": "measured",
+      "population": "unanswerable benchmark rows",
+      "aggregation": "micro fraction answered instead of abstained",
+      "ci95": {
+        "status": "measured",
+        "metric": "unanswerable_false_positive_rate",
+        "groups": 77,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "unanswerable_abstention_rate": {
+      "value": 1.0,
+      "numerator": 155,
+      "denominator": 155,
+      "status": "measured",
+      "population": "unanswerable benchmark rows",
+      "aggregation": "micro fraction correctly abstained",
+      "ci95": {
+        "status": "measured",
+        "metric": "unanswerable_abstention_rate",
+        "groups": 77,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "schema_validity": {
+      "value": 1.0,
+      "numerator": 300,
+      "denominator": 300,
+      "status": "measured",
+      "population": "all benchmark responses",
+      "aggregation": "micro fraction passing internal and public response schemas",
+      "ci95": {
+        "status": "measured",
+        "metric": "schema_validity",
+        "groups": 117,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "abstention_precision": {
+      "value": 0.676856,
+      "numerator": 155,
+      "denominator": 229,
+      "status": "measured",
+      "population": "predicted abstentions across benchmark rows",
+      "aggregation": "micro fraction of predicted abstentions that are unanswerable",
+      "ci95": {
+        "status": "measured",
+        "metric": "abstention_precision",
+        "groups": 117,
+        "iterations": 2000,
+        "valid_iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          0.479263,
+          0.850202
+        ]
+      }
+    },
+    "abstention_recall": {
+      "value": 1.0,
+      "numerator": 155,
+      "denominator": 155,
+      "status": "measured",
+      "population": "unanswerable benchmark rows",
+      "aggregation": "micro fraction correctly abstained",
+      "ci95": {
+        "status": "measured",
+        "metric": "abstention_recall",
+        "groups": 77,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95": [
+          1.0,
+          1.0
+        ]
+      }
+    },
+    "abstention_reason_accuracy": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "status": "not_measured_no_gold_abstention_reason_labels",
+      "population": "benchmark rows with an owner-labeled gold_abstention_reason",
+      "aggregation": "micro exact match after canonicalizing the abstention reason taxonomy",
+      "ci95": {
+        "status": "not_measured_no_gold_abstention_reason_labels",
+        "ci95": null
+      }
+    },
+    "semantic_answer_correctness": {
+      "value": null,
+      "numerator": 0,
+      "denominator": 0,
+      "status": "not_measured_human_labels_required",
+      "reason": "exact answer-text match does not establish semantic correctness; human labels are required",
+      "population": "answerable product responses",
+      "aggregation": "human-labeled semantic correctness; no gold labels are currently bound"
+    },
+    "peak_working_set_bytes": {
+      "value": 2559868928,
+      "numerator": 2559868928,
+      "denominator": null,
+      "unit": "bytes",
+      "status": "measured",
+      "reason": null,
+      "execution_manifest_sha256": "722089dfd024bc1f1d6a547d10def18431ee9fedbb940cc7b72cf7ffd6eecab2",
+      "population": "product process during the bound benchmark run",
+      "aggregation": "maximum resident working set in bytes",
+      "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+    },
+    "index_size_bytes": {
+      "value": 33644261,
+      "numerator": 33644261,
+      "denominator": null,
+      "unit": "bytes",
+      "status": "measured",
+      "population": "all files under the index directory bound by index_tree_sha256",
+      "aggregation": "sum of file sizes"
+    }
+  },
+  "grounding_metric_details": {
+    "records": 300,
+    "claim_count": 71,
+    "predicted_claim_count": 71,
+    "matched_predicted_claim_count": 44,
+    "gold_claim_count": 145,
+    "matched_gold_claim_count": 44,
+    "grounded_claim_precision": 0.605634,
+    "grounded_claim_recall": 0.296552,
+    "unsupported_claim_leakage": 0.380282,
+    "contradicted_claim_leakage": 0.0,
+    "citation_precision": 0.985915,
+    "citation_coordinate_validity": 1.0,
+    "citation_recall": 0.482759,
+    "citation_completeness": 0.977273,
+    "claim_citation_precision": 1.0,
+    "claim_citation_recall": 1.0,
+    "claim_citation_f1": 1.0,
+    "abstention_precision": 0.676856,
+    "abstention_recall": 1.0,
+    "reason_accuracy": null,
+    "brier_score": 0.003865,
+    "ece": 0.051754,
+    "calibration_count": 300,
+    "schema_invalid_rate": 0.0,
+    "abstention_reason_counts": {
+      "contradicted_claim": 71,
+      "no_evidence_found": 129,
+      "ambiguous_question": 28,
+      "conflicting_evidence": 1
+    },
+    "reason_accuracy_status": "not_measured_no_gold_abstention_reason_labels"
+  },
+  "split_metrics": {
+    "holdout": {
+      "records": 160,
+      "answerable_denominator": 73,
+      "unanswerable_denominator": 87,
+      "latency": {
+        "status": "measured",
+        "measured_requests": 160,
+        "denominator": 160,
+        "population": "warm product requests in this slice; cold first request excluded",
+        "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+        "warm_p50_ms": 22.312,
+        "warm_p95_ms": 312.702,
+        "warm_p99_ms": 398.28,
+        "ci95": {
+          "status": "measured",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95_ms": {
+            "p50": [
+              21.469,
+              166.591
+            ],
+            "p95": [
+              254.138,
+              341.516
+            ],
+            "p99": [
+              335.851,
+              472.95
+            ]
+          }
+        },
+        "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+      },
+      "exact_gold_answer_match": {
+        "value": 0.84,
+        "numerator": 21,
+        "denominator": 25,
+        "status": "measured",
+        "population": "rows with explicit gold_answer",
+        "aggregation": "micro exact normalized answer-text match",
+        "ci95": {
+          "status": "measured",
+          "metric": "exact_gold_answer_match",
+          "groups": 25,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.68,
+            0.96
+          ]
+        }
+      },
+      "required_code_accuracy": {
+        "value": 1.0,
+        "numerator": 20,
+        "denominator": 20,
+        "status": "measured",
+        "population": "temporal/comparison rows with required codes",
+        "aggregation": "micro exact code match",
+        "ci95": {
+          "status": "measured",
+          "metric": "required_code_accuracy",
+          "groups": 20,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "answerable_false_abstention_rate": {
+        "value": 0.410959,
+        "numerator": 30,
+        "denominator": 73,
+        "status": "measured",
+        "population": "answerable rows",
+        "aggregation": "micro fraction incorrectly abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "answerable_false_abstention_rate",
+          "groups": 30,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.217391,
+            0.50495
+          ]
+        }
+      },
+      "unanswerable_false_positive_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 87,
+        "status": "measured",
+        "population": "unanswerable rows",
+        "aggregation": "micro fraction answered instead of abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "unanswerable_false_positive_rate",
+          "groups": 47,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "unanswerable_abstention_rate": {
+        "value": 1.0,
+        "numerator": 87,
+        "denominator": 87,
+        "status": "measured",
+        "population": "unanswerable rows",
+        "aggregation": "micro fraction correctly abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "unanswerable_abstention_rate",
+          "groups": 47,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "abstention_precision": {
+        "value": 0.74359,
+        "numerator": 87,
+        "denominator": 117,
+        "status": "measured",
+        "population": "predicted abstentions",
+        "aggregation": "micro fraction that are unanswerable",
+        "ci95": {
+          "status": "measured",
+          "metric": "abstention_precision",
+          "groups": 77,
+          "iterations": 2000,
+          "valid_iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.507042,
+            0.923077
+          ]
+        }
+      },
+      "abstention_reason_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "status": "not_measured_no_gold_abstention_reason_labels",
+        "population": "rows with owner-labeled gold_abstention_reason",
+        "aggregation": "micro exact canonical reason match",
+        "ci95": {
+          "status": "not_applicable",
+          "ci95": null
+        }
+      },
+      "semantic_answer_correctness": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "status": "not_measured_human_labels_required",
+        "population": "answerable product responses",
+        "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+      },
+      "grounded_claim_precision": {
+        "value": 0.627907,
+        "numerator": 27,
+        "denominator": 43,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "grounded_claim_precision",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.425532,
+            0.788462
+          ]
+        }
+      },
+      "grounded_claim_recall": {
+        "value": 0.369863,
+        "numerator": 27,
+        "denominator": 73,
+        "status": "measured",
+        "population": "gold answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "grounded_claim_recall",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.283333,
+            0.461538
+          ]
+        }
+      },
+      "unsupported_claim_leakage": {
+        "value": 0.348837,
+        "numerator": 15,
+        "denominator": 43,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "unsupported_claim_leakage",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.194444,
+            0.542857
+          ]
+        }
+      },
+      "contradicted_claim_leakage": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 43,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "contradicted_claim_leakage",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "citation_precision": {
+        "value": 0.976744,
+        "numerator": 42,
+        "denominator": 43,
+        "status": "measured",
+        "population": "public citations",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_precision",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.916667,
+            1.0
+          ]
+        }
+      },
+      "citation_recall": {
+        "value": 0.575342,
+        "numerator": 42,
+        "denominator": 73,
+        "status": "measured",
+        "population": "gold claim-evidence links",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_recall",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.482143,
+            0.76087
+          ]
+        }
+      },
+      "citation_coordinate_validity": {
+        "value": 1.0,
+        "numerator": 43,
+        "denominator": 43,
+        "status": "measured",
+        "population": "public citations",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_coordinate_validity",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "schema_validity": {
+        "value": 1.0,
+        "numerator": 160,
+        "denominator": 160,
+        "status": "measured",
+        "population": "all product responses",
+        "aggregation": "micro fraction passing internal and public response schemas",
+        "ci95": {
+          "status": "measured",
+          "metric": "schema_validity",
+          "groups": 77,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    "test": {
+      "records": 140,
+      "answerable_denominator": 72,
+      "unanswerable_denominator": 68,
+      "latency": {
+        "status": "measured",
+        "measured_requests": 139,
+        "denominator": 139,
+        "population": "warm product requests in this slice; cold first request excluded",
+        "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+        "warm_p50_ms": 64.17,
+        "warm_p95_ms": 321.19,
+        "warm_p99_ms": 354.775,
+        "ci95": {
+          "status": "measured",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95_ms": {
+            "p50": [
+              21.351,
+              220.007
+            ],
+            "p95": [
+              267.149,
+              337.747
+            ],
+            "p99": [
+              329.745,
+              389.868
+            ]
+          }
+        },
+        "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+      },
+      "exact_gold_answer_match": {
+        "value": 0.4,
+        "numerator": 2,
+        "denominator": 5,
+        "status": "measured",
+        "population": "rows with explicit gold_answer",
+        "aggregation": "micro exact normalized answer-text match",
+        "ci95": {
+          "status": "measured",
+          "metric": "exact_gold_answer_match",
+          "groups": 5,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.0,
+            0.8
+          ]
+        }
+      },
+      "required_code_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "status": "not_applicable_empty_population",
+        "population": "temporal/comparison rows with required codes",
+        "aggregation": "micro exact code match",
+        "ci95": {
+          "status": "not_applicable",
+          "ci95": null
+        }
+      },
+      "answerable_false_abstention_rate": {
+        "value": 0.611111,
+        "numerator": 44,
+        "denominator": 72,
+        "status": "measured",
+        "population": "answerable rows",
+        "aggregation": "micro fraction incorrectly abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "answerable_false_abstention_rate",
+          "groups": 10,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.5,
+            0.658915
+          ]
+        }
+      },
+      "unanswerable_false_positive_rate": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 68,
+        "status": "measured",
+        "population": "unanswerable rows",
+        "aggregation": "micro fraction answered instead of abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "unanswerable_false_positive_rate",
+          "groups": 30,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "unanswerable_abstention_rate": {
+        "value": 1.0,
+        "numerator": 68,
+        "denominator": 68,
+        "status": "measured",
+        "population": "unanswerable rows",
+        "aggregation": "micro fraction correctly abstained",
+        "ci95": {
+          "status": "measured",
+          "metric": "unanswerable_abstention_rate",
+          "groups": 30,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "abstention_precision": {
+        "value": 0.607143,
+        "numerator": 68,
+        "denominator": 112,
+        "status": "measured",
+        "population": "predicted abstentions",
+        "aggregation": "micro fraction that are unanswerable",
+        "ci95": {
+          "status": "measured",
+          "metric": "abstention_precision",
+          "groups": 40,
+          "iterations": 2000,
+          "valid_iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.314607,
+            0.887097
+          ]
+        }
+      },
+      "abstention_reason_accuracy": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "status": "not_measured_no_gold_abstention_reason_labels",
+        "population": "rows with owner-labeled gold_abstention_reason",
+        "aggregation": "micro exact canonical reason match",
+        "ci95": {
+          "status": "not_applicable",
+          "ci95": null
+        }
+      },
+      "semantic_answer_correctness": {
+        "value": null,
+        "numerator": 0,
+        "denominator": 0,
+        "status": "not_measured_human_labels_required",
+        "population": "answerable product responses",
+        "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+      },
+      "grounded_claim_precision": {
+        "value": 0.571429,
+        "numerator": 16,
+        "denominator": 28,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "grounded_claim_precision",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.25,
+            0.857143
+          ]
+        }
+      },
+      "grounded_claim_recall": {
+        "value": 0.222222,
+        "numerator": 16,
+        "denominator": 72,
+        "status": "measured",
+        "population": "gold answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "grounded_claim_recall",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.088889,
+            0.375
+          ]
+        }
+      },
+      "unsupported_claim_leakage": {
+        "value": 0.428571,
+        "numerator": 12,
+        "denominator": 28,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "unsupported_claim_leakage",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.142857,
+            0.761905
+          ]
+        }
+      },
+      "contradicted_claim_leakage": {
+        "value": 0.0,
+        "numerator": 0,
+        "denominator": 28,
+        "status": "measured",
+        "population": "predicted answer claims",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "contradicted_claim_leakage",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "citation_precision": {
+        "value": 1.0,
+        "numerator": 28,
+        "denominator": 28,
+        "status": "measured",
+        "population": "public citations",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_precision",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "citation_recall": {
+        "value": 0.388889,
+        "numerator": 28,
+        "denominator": 72,
+        "status": "measured",
+        "population": "gold claim-evidence links",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_recall",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            0.340659,
+            0.53125
+          ]
+        }
+      },
+      "citation_coordinate_validity": {
+        "value": 1.0,
+        "numerator": 28,
+        "denominator": 28,
+        "status": "measured",
+        "population": "public citations",
+        "aggregation": "micro ratio over the stated population",
+        "ci95": {
+          "status": "measured",
+          "metric": "citation_coordinate_validity",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      },
+      "schema_validity": {
+        "value": 1.0,
+        "numerator": 140,
+        "denominator": 140,
+        "status": "measured",
+        "population": "all product responses",
+        "aggregation": "micro fraction passing internal and public response schemas",
+        "ci95": {
+          "status": "measured",
+          "metric": "schema_validity",
+          "groups": 40,
+          "iterations": 2000,
+          "seed": 20261010,
+          "ci95": [
+            1.0,
+            1.0
+          ]
+        }
+      }
+    }
+  },
+  "category_metrics": {
+    "single_hop_fact": {
+      "definition": "answerable; excludes table, calculation, multi_hop, prerequisite, temporal, and comparison tags",
+      "overlap_allowed": true,
+      "metrics": {
+        "records": 10,
+        "answerable_denominator": 10,
+        "unanswerable_denominator": 0,
+        "latency": {
+          "status": "measured",
+          "measured_requests": 10,
+          "denominator": 10,
+          "population": "warm product requests in this slice; cold first request excluded",
+          "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+          "warm_p50_ms": 337.221,
+          "warm_p95_ms": 472.95,
+          "warm_p99_ms": 472.95,
+          "ci95": {
+            "status": "measured",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95_ms": {
+              "p50": [
+                323.205,
+                389.868
+              ],
+              "p95": [
+                354.775,
+                472.95
+              ],
+              "p99": [
+                354.775,
+                472.95
+              ]
+            }
+          },
+          "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+        },
+        "exact_gold_answer_match": {
+          "value": 0.3,
+          "numerator": 3,
+          "denominator": 10,
+          "status": "measured",
+          "population": "rows with explicit gold_answer",
+          "aggregation": "micro exact normalized answer-text match",
+          "ci95": {
+            "status": "measured",
+            "metric": "exact_gold_answer_match",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.6
+            ]
+          }
+        },
+        "required_code_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "temporal/comparison rows with required codes",
+          "aggregation": "micro exact code match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "answerable_false_abstention_rate": {
+          "value": 0.2,
+          "numerator": 2,
+          "denominator": 10,
+          "status": "measured",
+          "population": "answerable rows",
+          "aggregation": "micro fraction incorrectly abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "answerable_false_abstention_rate",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.5
+            ]
+          }
+        },
+        "unanswerable_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction answered instead of abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unanswerable_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction correctly abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "abstention_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 2,
+          "status": "measured",
+          "population": "predicted abstentions",
+          "aggregation": "micro fraction that are unanswerable",
+          "ci95": {
+            "status": "not_estimable",
+            "metric": "abstention_precision",
+            "groups": 10,
+            "valid_iterations": 1786,
+            "iterations": 2000,
+            "ci95": null,
+            "reason": "too many bootstrap samples had a zero predicted-positive denominator"
+          }
+        },
+        "abstention_reason_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_no_gold_abstention_reason_labels",
+          "population": "rows with owner-labeled gold_abstention_reason",
+          "aggregation": "micro exact canonical reason match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "semantic_answer_correctness": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_human_labels_required",
+          "population": "answerable product responses",
+          "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+        },
+        "grounded_claim_precision": {
+          "value": 0.125,
+          "numerator": 1,
+          "denominator": 8,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_precision",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.375
+            ]
+          }
+        },
+        "grounded_claim_recall": {
+          "value": 0.1,
+          "numerator": 1,
+          "denominator": 10,
+          "status": "measured",
+          "population": "gold answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_recall",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.3
+            ]
+          }
+        },
+        "unsupported_claim_leakage": {
+          "value": 0.875,
+          "numerator": 7,
+          "denominator": 8,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "unsupported_claim_leakage",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.625,
+              1.0
+            ]
+          }
+        },
+        "contradicted_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 8,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "contradicted_claim_leakage",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "citation_precision": {
+          "value": 1.0,
+          "numerator": 8,
+          "denominator": 8,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_precision",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "citation_recall": {
+          "value": 0.8,
+          "numerator": 8,
+          "denominator": 10,
+          "status": "measured",
+          "population": "gold claim-evidence links",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_recall",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.5,
+              1.0
+            ]
+          }
+        },
+        "citation_coordinate_validity": {
+          "value": 1.0,
+          "numerator": 8,
+          "denominator": 8,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_coordinate_validity",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "schema_validity": {
+          "value": 1.0,
+          "numerator": 10,
+          "denominator": 10,
+          "status": "measured",
+          "population": "all product responses",
+          "aggregation": "micro fraction passing internal and public response schemas",
+          "ci95": {
+            "status": "measured",
+            "metric": "schema_validity",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        }
+      }
+    },
+    "table_or_calculation": {
+      "definition": "tagged table or calculation",
+      "overlap_allowed": true,
+      "metrics": {
+        "records": 135,
+        "answerable_denominator": 135,
+        "unanswerable_denominator": 0,
+        "latency": {
+          "status": "measured",
+          "measured_requests": 134,
+          "denominator": 134,
+          "population": "warm product requests in this slice; cold first request excluded",
+          "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+          "warm_p50_ms": 226.441,
+          "warm_p95_ms": 300.162,
+          "warm_p99_ms": 341.516,
+          "ci95": {
+            "status": "measured",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95_ms": {
+              "p50": [
+                174.441,
+                234.451
+              ],
+              "p95": [
+                279.646,
+                335.851
+              ],
+              "p99": [
+                312.172,
+                345.82
+              ]
+            }
+          },
+          "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+        },
+        "exact_gold_answer_match": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "rows with explicit gold_answer",
+          "aggregation": "micro exact normalized answer-text match",
+          "ci95": {
+            "status": "measured",
+            "metric": "exact_gold_answer_match",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "required_code_accuracy": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "temporal/comparison rows with required codes",
+          "aggregation": "micro exact code match",
+          "ci95": {
+            "status": "measured",
+            "metric": "required_code_accuracy",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "answerable_false_abstention_rate": {
+          "value": 0.533333,
+          "numerator": 72,
+          "denominator": 135,
+          "status": "measured",
+          "population": "answerable rows",
+          "aggregation": "micro fraction incorrectly abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "answerable_false_abstention_rate",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.431818,
+              0.590909
+            ]
+          }
+        },
+        "unanswerable_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction answered instead of abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unanswerable_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction correctly abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "abstention_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 72,
+          "status": "measured",
+          "population": "predicted abstentions",
+          "aggregation": "micro fraction that are unanswerable",
+          "ci95": {
+            "status": "measured",
+            "metric": "abstention_precision",
+            "groups": 30,
+            "iterations": 2000,
+            "valid_iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "abstention_reason_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_no_gold_abstention_reason_labels",
+          "population": "rows with owner-labeled gold_abstention_reason",
+          "aggregation": "micro exact canonical reason match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "semantic_answer_correctness": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_human_labels_required",
+          "population": "answerable product responses",
+          "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+        },
+        "grounded_claim_precision": {
+          "value": 0.666667,
+          "numerator": 42,
+          "denominator": 63,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_precision",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.472727,
+              0.820896
+            ]
+          }
+        },
+        "grounded_claim_recall": {
+          "value": 0.311111,
+          "numerator": 42,
+          "denominator": 135,
+          "status": "measured",
+          "population": "gold answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_recall",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.217143,
+              0.414634
+            ]
+          }
+        },
+        "unsupported_claim_leakage": {
+          "value": 0.31746,
+          "numerator": 20,
+          "denominator": 63,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "unsupported_claim_leakage",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.16129,
+              0.514286
+            ]
+          }
+        },
+        "contradicted_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 63,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "contradicted_claim_leakage",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "citation_precision": {
+          "value": 0.984127,
+          "numerator": 62,
+          "denominator": 63,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_precision",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.944444,
+              1.0
+            ]
+          }
+        },
+        "citation_recall": {
+          "value": 0.459259,
+          "numerator": 62,
+          "denominator": 135,
+          "status": "measured",
+          "population": "gold claim-evidence links",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_recall",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.405556,
+              0.558442
+            ]
+          }
+        },
+        "citation_coordinate_validity": {
+          "value": 1.0,
+          "numerator": 63,
+          "denominator": 63,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_coordinate_validity",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "schema_validity": {
+          "value": 1.0,
+          "numerator": 135,
+          "denominator": 135,
+          "status": "measured",
+          "population": "all product responses",
+          "aggregation": "micro fraction passing internal and public response schemas",
+          "ci95": {
+            "status": "measured",
+            "metric": "schema_validity",
+            "groups": 30,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        }
+      }
+    },
+    "prerequisite_or_multi_hop": {
+      "definition": "tagged prerequisite or multi_hop",
+      "overlap_allowed": true,
+      "metrics": {
+        "records": 33,
+        "answerable_denominator": 33,
+        "unanswerable_denominator": 0,
+        "latency": {
+          "status": "measured",
+          "measured_requests": 33,
+          "denominator": 33,
+          "population": "warm product requests in this slice; cold first request excluded",
+          "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+          "warm_p50_ms": 246.038,
+          "warm_p95_ms": 312.172,
+          "warm_p99_ms": 329.745,
+          "ci95": {
+            "status": "measured",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95_ms": {
+              "p50": [
+                239.914,
+                254.899
+              ],
+              "p95": [
+                274.846,
+                329.745
+              ],
+              "p99": [
+                280.929,
+                329.745
+              ]
+            }
+          },
+          "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+        },
+        "exact_gold_answer_match": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "rows with explicit gold_answer",
+          "aggregation": "micro exact normalized answer-text match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "required_code_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "temporal/comparison rows with required codes",
+          "aggregation": "micro exact code match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "answerable_false_abstention_rate": {
+          "value": 1.0,
+          "numerator": 33,
+          "denominator": 33,
+          "status": "measured",
+          "population": "answerable rows",
+          "aggregation": "micro fraction incorrectly abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "answerable_false_abstention_rate",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "unanswerable_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction answered instead of abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unanswerable_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction correctly abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "abstention_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 33,
+          "status": "measured",
+          "population": "predicted abstentions",
+          "aggregation": "micro fraction that are unanswerable",
+          "ci95": {
+            "status": "measured",
+            "metric": "abstention_precision",
+            "groups": 10,
+            "iterations": 2000,
+            "valid_iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "abstention_reason_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_no_gold_abstention_reason_labels",
+          "population": "rows with owner-labeled gold_abstention_reason",
+          "aggregation": "micro exact canonical reason match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "semantic_answer_correctness": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_human_labels_required",
+          "population": "answerable product responses",
+          "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+        },
+        "grounded_claim_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "grounded_claim_recall": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 33,
+          "status": "measured",
+          "population": "gold answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_recall",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "unsupported_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "contradicted_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "citation_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "citation_recall": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 33,
+          "status": "measured",
+          "population": "gold claim-evidence links",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_recall",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "citation_coordinate_validity": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "schema_validity": {
+          "value": 1.0,
+          "numerator": 33,
+          "denominator": 33,
+          "status": "measured",
+          "population": "all product responses",
+          "aggregation": "micro fraction passing internal and public response schemas",
+          "ci95": {
+            "status": "measured",
+            "metric": "schema_validity",
+            "groups": 10,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        }
+      }
+    },
+    "temporal_or_comparison": {
+      "definition": "tagged temporal or comparison",
+      "overlap_allowed": true,
+      "metrics": {
+        "records": 20,
+        "answerable_denominator": 20,
+        "unanswerable_denominator": 0,
+        "latency": {
+          "status": "measured",
+          "measured_requests": 20,
+          "denominator": 20,
+          "population": "warm product requests in this slice; cold first request excluded",
+          "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+          "warm_p50_ms": 150.655,
+          "warm_p95_ms": 345.82,
+          "warm_p99_ms": 345.82,
+          "ci95": {
+            "status": "measured",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95_ms": {
+              "p50": [
+                142.589,
+                161.025
+              ],
+              "p95": [
+                173.241,
+                345.82
+              ],
+              "p99": [
+                173.241,
+                345.82
+              ]
+            }
+          },
+          "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+        },
+        "exact_gold_answer_match": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "rows with explicit gold_answer",
+          "aggregation": "micro exact normalized answer-text match",
+          "ci95": {
+            "status": "measured",
+            "metric": "exact_gold_answer_match",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "required_code_accuracy": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "temporal/comparison rows with required codes",
+          "aggregation": "micro exact code match",
+          "ci95": {
+            "status": "measured",
+            "metric": "required_code_accuracy",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "answerable_false_abstention_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 20,
+          "status": "measured",
+          "population": "answerable rows",
+          "aggregation": "micro fraction incorrectly abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "answerable_false_abstention_rate",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "unanswerable_false_positive_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction answered instead of abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unanswerable_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction correctly abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "abstention_precision": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted abstentions",
+          "aggregation": "micro fraction that are unanswerable",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "abstention_reason_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_no_gold_abstention_reason_labels",
+          "population": "rows with owner-labeled gold_abstention_reason",
+          "aggregation": "micro exact canonical reason match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "semantic_answer_correctness": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_human_labels_required",
+          "population": "answerable product responses",
+          "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+        },
+        "grounded_claim_precision": {
+          "value": 0.5,
+          "numerator": 10,
+          "denominator": 20,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_precision",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.25,
+              0.7
+            ]
+          }
+        },
+        "grounded_claim_recall": {
+          "value": 0.5,
+          "numerator": 10,
+          "denominator": 20,
+          "status": "measured",
+          "population": "gold answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "grounded_claim_recall",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.25,
+              0.7
+            ]
+          }
+        },
+        "unsupported_claim_leakage": {
+          "value": 0.45,
+          "numerator": 9,
+          "denominator": 20,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "unsupported_claim_leakage",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.25,
+              0.65
+            ]
+          }
+        },
+        "contradicted_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 20,
+          "status": "measured",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "contradicted_claim_leakage",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "citation_precision": {
+          "value": 0.95,
+          "numerator": 19,
+          "denominator": 20,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_precision",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.85,
+              1.0
+            ]
+          }
+        },
+        "citation_recall": {
+          "value": 0.95,
+          "numerator": 19,
+          "denominator": 20,
+          "status": "measured",
+          "population": "gold claim-evidence links",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_recall",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.85,
+              1.0
+            ]
+          }
+        },
+        "citation_coordinate_validity": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "measured",
+            "metric": "citation_coordinate_validity",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "schema_validity": {
+          "value": 1.0,
+          "numerator": 20,
+          "denominator": 20,
+          "status": "measured",
+          "population": "all product responses",
+          "aggregation": "micro fraction passing internal and public response schemas",
+          "ci95": {
+            "status": "measured",
+            "metric": "schema_validity",
+            "groups": 20,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        }
+      }
+    },
+    "unanswerable_or_adversarial": {
+      "definition": "unanswerable or tagged adversarial",
+      "overlap_allowed": true,
+      "metrics": {
+        "records": 155,
+        "answerable_denominator": 0,
+        "unanswerable_denominator": 155,
+        "latency": {
+          "status": "measured",
+          "measured_requests": 155,
+          "denominator": 155,
+          "population": "warm product requests in this slice; cold first request excluded",
+          "aggregation": "nearest-rank p50/p95/p99 over per-request end-to-end latency in milliseconds",
+          "warm_p50_ms": 21.267,
+          "warm_p95_ms": 23.534,
+          "warm_p99_ms": 24.319,
+          "ci95": {
+            "status": "measured",
+            "groups": 77,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95_ms": {
+              "p50": [
+                20.833,
+                21.565
+              ],
+              "p95": [
+                22.733,
+                24.029
+              ],
+              "p99": [
+                23.326,
+                64.17
+              ]
+            }
+          },
+          "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider"
+        },
+        "exact_gold_answer_match": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "rows with explicit gold_answer",
+          "aggregation": "micro exact normalized answer-text match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "required_code_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "temporal/comparison rows with required codes",
+          "aggregation": "micro exact code match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "answerable_false_abstention_rate": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "answerable rows",
+          "aggregation": "micro fraction incorrectly abstained",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unanswerable_false_positive_rate": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 155,
+          "status": "measured",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction answered instead of abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "unanswerable_false_positive_rate",
+            "groups": 77,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "unanswerable_abstention_rate": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured",
+          "population": "unanswerable rows",
+          "aggregation": "micro fraction correctly abstained",
+          "ci95": {
+            "status": "measured",
+            "metric": "unanswerable_abstention_rate",
+            "groups": 77,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "abstention_precision": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured",
+          "population": "predicted abstentions",
+          "aggregation": "micro fraction that are unanswerable",
+          "ci95": {
+            "status": "measured",
+            "metric": "abstention_precision",
+            "groups": 77,
+            "iterations": 2000,
+            "valid_iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        },
+        "abstention_reason_accuracy": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_no_gold_abstention_reason_labels",
+          "population": "rows with owner-labeled gold_abstention_reason",
+          "aggregation": "micro exact canonical reason match",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "semantic_answer_correctness": {
+          "value": null,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_measured_human_labels_required",
+          "population": "answerable product responses",
+          "aggregation": "human-labeled semantic correctness; exact text match is insufficient"
+        },
+        "grounded_claim_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "grounded_claim_recall": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "gold answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "unsupported_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "contradicted_claim_leakage": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "predicted answer claims",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "citation_precision": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "citation_recall": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "gold claim-evidence links",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "citation_coordinate_validity": {
+          "value": 0.0,
+          "numerator": 0,
+          "denominator": 0,
+          "status": "not_applicable_empty_population",
+          "population": "public citations",
+          "aggregation": "micro ratio over the stated population",
+          "ci95": {
+            "status": "not_applicable",
+            "ci95": null
+          }
+        },
+        "schema_validity": {
+          "value": 1.0,
+          "numerator": 155,
+          "denominator": 155,
+          "status": "measured",
+          "population": "all product responses",
+          "aggregation": "micro fraction passing internal and public response schemas",
+          "ci95": {
+            "status": "measured",
+            "metric": "schema_validity",
+            "groups": 77,
+            "iterations": 2000,
+            "seed": 20261010,
+            "ci95": [
+              1.0,
+              1.0
+            ]
+          }
+        }
+      }
+    }
+  },
+  "schema_errors": {},
+  "latency": {
+    "status": "measured",
+    "measured_requests": 300,
+    "denominator": 300,
+    "population": "all product requests; first request of each runtime separately labeled cold start",
+    "aggregation": "per-request latency in milliseconds; sharded cold requests include recorded runtime startup",
+    "cold_ms": 65907.579,
+    "cold_requests": 1,
+    "cold_start_values_ms": [
+      65907.579
+    ],
+    "warm_requests": 299,
+    "warm_p50_ms": 23.534,
+    "warm_p95_ms": 312.702,
+    "warm_p99_ms": 389.868,
+    "total_ms": 100454.698,
+    "cold_ci95": {
+      "status": "not_estimable_single_cold_request",
+      "ci95_ms": null
+    },
+    "warm_ci95": {
+      "status": "measured",
+      "groups": 117,
+      "iterations": 2000,
+      "seed": 20261010,
+      "ci95_ms": {
+        "p50": [
+          21.641,
+          167.081
+        ],
+        "p95": [
+          274.846,
+          336.695
+        ],
+        "p99": [
+          335.851,
+          472.95
+        ]
+      }
+    },
+    "scope": "local_wsgi_processing_with_recorded_chat_output_not_live_provider",
+    "live_provider_latency_measured": false
+  },
+  "unmeasured": {
+    "semantic_answer_correctness": "not_measured_requires_human_labels; exact_gold_answer_match is only exact text matching",
+    "abstention_reason_accuracy": "not_measured_requires_owner_labeled_gold_abstention_reason",
+    "live_provider_end_to_end_latency": "not_measured_recorded_chat_replay_returns_model_output_instantly"
+  }
+}

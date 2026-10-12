@@ -30,7 +30,8 @@ def score_observation(provider, qid, request, baseline, pool, input_format):
     if len({item["chunk_id"] for item in pool}) != len(pool):
         raise ValueError("duplicate candidate provenance")
     candidates = [RerankCandidate(item["chunk_id"], item["doc_id"], item["chunk_id"],
-        item["page"], item["content"], item["rank"], float(item.get("fusion_score") or 0.0))
+        item["page"], item["content"], item["rank"], float(item.get("fusion_score") or 0.0),
+        item.get('scoring_content'))
         for item in pool]
     started = time.perf_counter()
     ranking = provider.score(query, candidates) if candidates else []
@@ -43,7 +44,7 @@ def score_observation(provider, qid, request, baseline, pool, input_format):
         "scores": scores, "resolved_query_sha256": hashlib.sha256(query.encode()).hexdigest(),
         "scoring_query_sha256": hashlib.sha256(query[:QUERY_MAX_CHARS].encode()).hexdigest(),
         "scoring_input_sha256": {item["chunk_id"]: hashlib.sha256(
-            scoring_text(item["content"], input_format, query[:QUERY_MAX_CHARS])[:CONTENT_MAX_CHARS].encode()
+            scoring_text(item.get('scoring_content', item["content"]), input_format, query[:QUERY_MAX_CHARS])[:CONTENT_MAX_CHARS].encode()
             ).hexdigest() for item in pool}, "latency_ms": latency_ms,
         "provider_call": dict(provider.last_call) if candidates else
                          {"inference_started": False, "score_cache_hit": False}}

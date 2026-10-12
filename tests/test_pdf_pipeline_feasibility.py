@@ -1,4 +1,5 @@
-import importlib.util
+import sys
+from types import SimpleNamespace
 
 from scripts.ingestion.benchmark_pdf_pipeline import (
     _benchmark_encoder,
@@ -40,13 +41,14 @@ def test_encoder_metrics_use_validator_field_names():
     assert metrics["warm_p95_seconds"] >= metrics["warm_p50_seconds"]
 
 
-def test_cuda_without_hardware_is_blocked_without_loading_models():
+def test_cuda_without_hardware_is_blocked_without_loading_models(monkeypatch):
+    # Simulate this failure explicitly, including on CUDA-capable CI machines.
+    monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(
+        cuda=SimpleNamespace(is_available=lambda: False)))
+    monkeypatch.setitem(sys.modules, "sentence_transformers", None)
     result = benchmark_models(["course prerequisite"], device="cuda", batch_size=1, repeats=1)
     assert result["status"] == "blocked"
-    if importlib.util.find_spec("torch") is None:
-        assert result["reason"] == "torch_not_installed"
-    else:
-        assert result["reason"] in {"cuda_unavailable", "cuda_probe_failed"}
+    assert result["reason"] == "cuda_unavailable"
 
 
 def test_corpus_coverage_exposes_all_acceptance_dimensions():

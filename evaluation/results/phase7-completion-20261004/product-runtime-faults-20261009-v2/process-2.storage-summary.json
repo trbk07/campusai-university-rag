@@ -1,0 +1,539 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "process-2.json",
+    "sha256": "7f6b77dce14ea0e42d0972a564d05f26fbc580fd5f15db76c84b0f9cd39e798d"
+  },
+  "summary": {
+    "schema_version": 1,
+    "status": "pass",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "7c415db7c624df4ddcbb982f884edab9015e14b3715bfd1c1465173e9f3cfdb1",
+      "runtime_sha256": "c56ad14d1851bd180f22087e7289c2215b4f9ebcae957e682823e70790ee66f5"
+    },
+    "source_stable": true,
+    "pid": 6656,
+    "ordinal": 2,
+    "profile": {
+      "RERANKER_ENABLED": "false",
+      "CAMPUSAI_DEVICE": "cuda",
+      "CAMPUSAI_INDEX_DIR": ".tmp/phase7-curated-source-20261005-v2/index",
+      "CAMPUSAI_RETRIEVAL_CALIBRATION": ".release/reranker/studies/phase7-successor-r19b-phase6-dev-qualification-v1/hybrid_retrieval_calibration.json",
+      "CAMPUSAI_LLM_CONFIG": "configs/product_llm.yaml",
+      "CAMPUSAI_INGESTION_WORKERS": "1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_HUB_DISABLE_TELEMETRY": "1",
+      "OMP_NUM_THREADS": "8",
+      "MKL_NUM_THREADS": "8"
+    },
+    "dev_packet_sha256": "80fd3cbb5f0aa7c02009ef60b5f0fcea82e41da26e53e656692f26946d44c14c",
+    "positive_cache_control": {
+      "first_cache_hit": false,
+      "warm_cache_hit": true,
+      "provider_transport_calls": 1,
+      "answer": {
+        "answer": "Course EMA2036E has 3 credits.",
+        "citations": [
+          {
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "page": 3,
+            "page_range": [
+              3,
+              3
+            ],
+            "quote": "EMA2036E",
+            "section_path": "FLF2103",
+            "source_name": "uet_mechatronics_curriculum_2023.pdf",
+            "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+          }
+        ],
+        "confidence": "high",
+        "abstained": false,
+        "claims": [
+          {
+            "claim_id": "1",
+            "text": "Course EMA2036E has 3 credits.",
+            "type": "fact",
+            "citation_ids": [
+              "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+            ]
+          }
+        ],
+        "schema_version": "grounding-public-v2"
+      }
+    },
+    "cases": {
+      "raw_array_reference": "/cases",
+      "records": 60
+    },
+    "failure_recovery": [
+      {
+        "id": "provider_503",
+        "origin": "provider",
+        "error_type": "HTTPError",
+        "http_status": 200,
+        "response": {
+          "ok": true,
+          "answer": {
+            "answer": "The answer service is temporarily unavailable. Please try again later.",
+            "citations": [],
+            "confidence": "low",
+            "abstained": true,
+            "abstention_reason": "provider_abstention",
+            "claims": [],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "fault_transport_calls": 1,
+        "recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "warm_after_recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": true
+        },
+        "status": "pass"
+      },
+      {
+        "id": "provider_401",
+        "origin": "provider",
+        "error_type": "HTTPError",
+        "http_status": 200,
+        "response": {
+          "ok": true,
+          "answer": {
+            "answer": "The answer service is temporarily unavailable. Please try again later.",
+            "citations": [],
+            "confidence": "low",
+            "abstained": true,
+            "abstention_reason": "provider_abstention",
+            "claims": [],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "fault_transport_calls": 1,
+        "recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "warm_after_recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": true
+        },
+        "status": "pass"
+      },
+      {
+        "id": "provider_timeout",
+        "origin": "provider",
+        "error_type": "URLError",
+        "http_status": 200,
+        "response": {
+          "ok": true,
+          "answer": {
+            "answer": "The answer service is temporarily unavailable. Please try again later.",
+            "citations": [],
+            "confidence": "low",
+            "abstained": true,
+            "abstention_reason": "provider_abstention",
+            "claims": [],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "fault_transport_calls": 1,
+        "recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "warm_after_recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": true
+        },
+        "status": "pass"
+      },
+      {
+        "id": "missing_index",
+        "origin": "retrieval",
+        "error_type": "FileNotFoundError",
+        "http_status": 503,
+        "response": {
+          "ok": false,
+          "error_code": "retrieval_not_ready"
+        },
+        "fault_transport_calls": 0,
+        "recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "warm_after_recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": true
+        },
+        "status": "pass"
+      },
+      {
+        "id": "corrupt_index",
+        "origin": "retrieval",
+        "error_type": "JSONDecodeError",
+        "http_status": 503,
+        "response": {
+          "ok": false,
+          "error_code": "retrieval_not_ready"
+        },
+        "fault_transport_calls": 0,
+        "recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": false
+        },
+        "warm_after_recovery": {
+          "ok": true,
+          "answer": {
+            "answer": "Course EMA2036E has 3 credits.",
+            "citations": [
+              {
+                "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+                "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+                "page": 3,
+                "page_range": [
+                  3,
+                  3
+                ],
+                "quote": "EMA2036E",
+                "section_path": "FLF2103",
+                "source_name": "uet_mechatronics_curriculum_2023.pdf",
+                "table_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+              }
+            ],
+            "confidence": "high",
+            "abstained": false,
+            "claims": [
+              {
+                "claim_id": "1",
+                "text": "Course EMA2036E has 3 credits.",
+                "type": "fact",
+                "citation_ids": [
+                  "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1"
+                ]
+              }
+            ],
+            "schema_version": "grounding-public-v2"
+          },
+          "cache_hit": true
+        },
+        "status": "pass"
+      }
+    ],
+    "categories": [
+      "out_of_corpus",
+      "similar_wrong_document",
+      "conflicting_documents",
+      "exact_code_trap",
+      "year_mismatch",
+      "entity_mismatch",
+      "chunk_prompt_injection",
+      "malformed_metadata",
+      "duplicate_chunks",
+      "scope_restriction",
+      "empty_result",
+      "fake_citation"
+    ],
+    "external_provider_calls": 0,
+    "provider_transport": "controlled local bytes; not model inference",
+    "test_or_holdout_read": false,
+    "performance_or_live_quality_acceptance": false,
+    "physical_index_mutated": false
+  },
+  "omitted_raw": [
+    {
+      "json_pointer": "/cases",
+      "records": 60
+    }
+  ]
+}

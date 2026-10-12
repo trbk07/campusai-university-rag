@@ -31,6 +31,7 @@ def main() -> int:
     for key in ('dev', 'index-dir', 'calibration', 'f0-signoff', 'output-dir'):
         parser.add_argument('--' + key, type=Path, required=True)
     parser.add_argument('--torch-threads', type=int, choices=(1, 2, 4, 8, 16), default=1)
+    parser.add_argument('--dense-device', choices=('cpu', 'cuda', 'cuda:0'))
     args = parser.parse_args()
     if not args.output_dir.resolve().is_relative_to(ROOT / '.release/reranker/studies'):
         raise ValueError('dev measurement requires an isolated study')
@@ -40,7 +41,9 @@ def main() -> int:
     f0 = read_json(args.f0_signoff)
     expected_dev = {qid for qid, split in f0['split_assignments'].items() if split == 'dev'}
     if (not rows or any(row['split'] != 'dev' for row in rows)
+            or len(rows) != len(expected_dev)
             or {row['qid'] for row in rows} != expected_dev
+            or args.dev.resolve() != (ROOT / f0['benchmark_dir'] / 'human_retrieval_dev.jsonl').resolve()
             or f0['index_sha256'] != sha256(args.index_dir / 'manifest.json')
             or f0['f0_split_frozen'] is not True):
         raise ValueError('measurement input differs from exact F0-authorized dev/index')
@@ -52,7 +55,8 @@ def main() -> int:
                'phase6_calibration_sha256': sha256(args.calibration),
                'f0_signoff_sha256': sha256(args.f0_signoff), 'runner_sha256': sha256(Path(__file__)),
                'release_eligible': False, 'calibration_split': 'dev',
-               'test_used': False, 'holdout_used': False, 'torch_num_threads': args.torch_threads}
+               'test_used': False, 'holdout_used': False, 'torch_num_threads': args.torch_threads,
+               'dense_serving_device_override': args.dense_device}
     write_json(args.output_dir / 'study_manifest.json', {
         **binding, 'recorded_at': datetime.now(timezone.utc).isoformat(),
         'purpose': 'actual successor dev Phase 6 baseline/candidate measurement before P7-09 tuning',
@@ -64,7 +68,8 @@ def main() -> int:
     evidence = frozen_evidence(args.index_dir)
     docs = read_json(args.index_dir / 'manifest.json')['documents']
     retriever = HybridRetriever(args.index_dir, query_cache_size=0,
-                               policies={'hybrid_rrf': RetrievalPolicy.from_report(args.calibration)})
+                               policies={'hybrid_rrf': RetrievalPolicy.from_report(args.calibration)},
+                               dense_device=args.dense_device)
     outputs, baseline, observations = {}, {}, []
     started = time.perf_counter()
     for number, row in enumerate(rows, 1):

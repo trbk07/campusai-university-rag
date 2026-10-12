@@ -52,11 +52,15 @@ def test_paired_answer_provider_attempt_is_recorded_before_success_or_failure():
 
     prompt = "instructions\n\nQUESTION:\nquestion\n\nEVIDENCE:\nsource text"
     calls = []
-    response = SimpleNamespace(usage={"prompt_tokens": 4}, latency_ms=12.5, cached=False)
+    response = SimpleNamespace(text='{"answer":"source-supported text"}', usage={"prompt_tokens": 4},
+                               latency_ms=12.5, cached=False, finish_reason="STOP")
     assert recording_generate(lambda value, **kwargs: response, calls)(prompt) is response
     assert calls[0]["provider_status"] == "completed"
     assert calls[0]["usage_status"] == "reported"
     assert calls[0]["selected_context"] == "source text"
+    assert calls[0]["response_text"] == response.text
+    assert calls[0]["response_text_sha256"] == __import__('hashlib').sha256(response.text.encode()).hexdigest()
+    assert calls[0]["finish_reason"] == "STOP"
 
     def fail(value, **kwargs):
         raise RuntimeError("sensitive provider response must not be retained")
@@ -83,6 +87,66 @@ def test_paired_answer_failed_application_attempt_is_replayable_without_exceptio
     assert record["evidence"] == [{"chunk_id": "chunk-1"}]
     assert record["llm_calls"][0]["selected_context"] == "selected excerpt"
     assert "secret-bearing" not in json.dumps(record)
+
+
+def test_provider_failure_classification_keeps_status_without_credentials_or_messages():
+    import urllib.error
+    from evaluation.reranker.collect_paired_answers import provider_failure_classification
+    from campusai.llm.client import LLMProviderError
+
+    cause = urllib.error.HTTPError("https://private.invalid/?key=secret", 503, "secret", {}, None)
+    failure = LLMProviderError("sensitive provider response")
+    failure.__cause__ = cause
+    observed = provider_failure_classification(failure)
+    assert observed == {"provider_failure_origin": "http", "provider_http_status": 503}
+    assert "secret" not in json.dumps(observed)
+    failure.__cause__ = urllib.error.URLError(TimeoutError("private timeout URL"))
+    assert provider_failure_classification(failure) == {
+        "provider_failure_origin": "timeout", "provider_http_status": None}
+
+
+def test_product_pilot_refuses_changed_prompts_heldout_rows_and_reranker_admission(monkeypatch):
+    import hashlib
+    from scripts.benchmarks import product_quality_pilot as pilot
+    from campusai.llm.factory import _read_config
+    legacy = deepcopy(_read_config(pilot.CONFIG))
+    legacy['llm']['max_retries'] = 0
+    legacy['llm'].pop('retry_only_503', None)
+    monkeypatch.setattr(pilot, '_read_config', lambda _: deepcopy(legacy))
+
+    cases = [{"qid": qid, "split": "dev", "arm": "current_product_reranker_disabled",
+              "prompt": "approved" if n == 0 else None, "planned_provider_call": n == 0,
+              "prompt_sha256": hashlib.sha256(b"approved").hexdigest() if n == 0 else None}
+             for n, qid in enumerate(pilot.QIDS)]
+    packet = {"profile": deepcopy(pilot.PROFILE), "endpoint_host": "generativelanguage.googleapis.com",
+              "release_eligible": False, "test_or_holdout_read": False, "max_provider_calls": 1,
+              "max_retries": 0, "minimum_call_start_interval_seconds": 30,
+              "llm_config": deepcopy(legacy['llm']), "cases": cases}
+    pilot.validate_packet(packet)
+    probe = deepcopy(packet)
+    probe['case_limit'] = 1
+    probe['cases'] = probe['cases'][:1]
+    pilot.validate_packet(probe)
+    for cases, limit in (([], 1), (probe['cases'], 2), (packet['cases'][1:2], 1)):
+        bad = {**probe, 'cases': cases, 'case_limit': limit}
+        with pytest.raises(ValueError):
+            pilot.validate_packet(bad)
+    for kind in ("prompt", "split", "feature", "destination", "retries", "budget"):
+        bad = deepcopy(packet)
+        if kind == "prompt":
+            bad["cases"][0]["prompt"] = "unapproved"
+        elif kind == "split":
+            bad["cases"][0]["split"] = "holdout"
+        elif kind == "feature":
+            bad["profile"]["RERANKER_ENABLED"] = "true"
+        elif kind == "destination":
+            bad["endpoint_host"] = "unapproved.invalid"
+        elif kind == "retries":
+            bad["max_retries"] = 1
+        else:
+            bad["max_provider_calls"] = 7
+        with pytest.raises(ValueError):
+            pilot.validate_packet(bad)
 
 
 def test_direct_authored_questions_need_no_invented_faq_url_but_still_need_review():
@@ -377,7 +441,8 @@ def test_readiness_tracks_provider_and_returns_http_503_before_warmup(tmp_path):
     from campusai.web import make_wsgi_app
     provider = SimpleNamespace(ready=False)
     retriever = SimpleNamespace(index_root=tmp_path, phase7_enabled=True, phase7_provider=provider, _indexes={})
-    service = SimpleNamespace(retriever=retriever, metrics=SimpleNamespace(as_dict=lambda: {}))
+    service = SimpleNamespace(retriever=retriever, metrics=SimpleNamespace(as_dict=lambda: {}),
+                              answer_generator=SimpleNamespace(llm=object()))
     application = CampusAIApplication(service)
     seen = []
     web = make_wsgi_app(application)
@@ -448,6 +513,44 @@ def test_semantic_review_can_use_disclosed_owner_role_when_policy_identity_match
     assert report['review_summary'] == {'review_mode': 'owner_self_review',
                                         'reviewer_roles': ['project_owner'],
                                         'semantic_reviews': len(rows)}
+
+
+def test_product_gate_keeps_stricter_precision_floor_than_legacy_reranker():
+    from evaluation.reranker.paired_answer_quality import (
+        evaluate_answer_observations, answer_quality_errors, product_answer_quality_errors)
+    metrics = evaluate_answer_observations(paired_answers())
+    assert product_answer_quality_errors(metrics) == []
+    for arm in ('baseline', 'phase7'):
+        metrics['human_test'][arm]['citation_precision'] = {
+            'numerator': 49, 'denominator': 50, 'value': .98}
+    assert answer_quality_errors(metrics) == []
+    assert 'human_test:product_citation_precision_floor' in product_answer_quality_errors(metrics)
+
+
+@pytest.mark.parametrize('ratio', [
+    {'numerator': 0, 'denominator': 0, 'value': 1},
+    {'numerator': 1, 'denominator': 1, 'value': float('nan')},
+    {'numerator': 1, 'denominator': 1, 'value': float('inf')},
+    {'numerator': 1, 'denominator': 2, 'value': 1},
+    {'numerator': True, 'denominator': 1, 'value': 1},
+])
+def test_product_gate_rejects_missing_or_inconsistent_metric_denominators(ratio):
+    from evaluation.reranker.paired_answer_quality import (
+        evaluate_answer_observations, product_answer_quality_errors)
+    metrics = evaluate_answer_observations(paired_answers())
+    metrics['human_holdout']['phase7']['citation_recall'] = ratio
+    assert 'human_holdout:missing_product_answer_evidence' in product_answer_quality_errors(metrics)
+
+
+def test_product_gate_requires_absolute_recall_even_if_both_arms_match():
+    from evaluation.reranker.paired_answer_quality import (
+        evaluate_answer_observations, answer_quality_errors, product_answer_quality_errors)
+    metrics = evaluate_answer_observations(paired_answers())
+    for arm in ('baseline', 'phase7'):
+        metrics['human_holdout'][arm]['citation_recall'] = {
+            'numerator': 97, 'denominator': 100, 'value': .97}
+    assert answer_quality_errors(metrics) == []
+    assert 'human_holdout:product_citation_recall_floor' in product_answer_quality_errors(metrics)
 
 
 def test_semantic_metrics_fail_valid_coordinates_with_wrong_number_or_missing_support():

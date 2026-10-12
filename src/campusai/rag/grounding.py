@@ -5,21 +5,24 @@ from __future__ import annotations
 from ..request_timings import stage, timed_stage
 
 from dataclasses import dataclass
+import json
 import math
+import re
 from typing import Any, Iterable
 
 from ..llm.client import LLMClient, LLMError
 from ..retrieval.hybrid import RetrievalResult
+from ..retrieval.tokenizer_vi import source_body
 from .claims import Claim, align_claims, extract_claims, normalize_text
 from .confidence import POLICY_VERSION, score_confidence
 from .calibration import IsotonicCalibrator
 from .decision import decide
-from .abstention import canonicalize_abstention_reason
+from .abstention import canonicalize_abstention_reason, user_message
 from .abstention import AbstentionReason
 from .evidence import EvidenceRegistry
-from .schemas import SCHEMA_VERSION, validate_response
+from .schemas import SCHEMA_VERSION, validate_response, validate_release_response
 from .policies import sanitize_evidence_text
-from .policies import has_conflicting_numeric_evidence, is_ambiguous_question
+from .policies import has_conflicting_numeric_evidence, is_ambiguous_question, explicit_comparison_request
 
 
 @dataclass(frozen=True)
@@ -34,7 +37,47 @@ def validate_quote(quote: str, content: str) -> bool:
     """Validate quote fidelity without stripping accents or numbers."""
     if not quote:
         return True
-    return len(quote) <= 1200 and normalize_text(quote) in normalize_text(content)
+    if len(quote) > 1200:
+        return False
+    normalized = normalize_text(quote)
+    if normalized in normalize_text(content):
+        return True
+    # JSON serializes line breaks inside source table cells as escape sequences.
+    # Check decoded cells/one original row, never concatenate separate rows or
+    # invent a prose paraphrase. Numeric and accent fidelity still apply.
+    start = content.find('{"headers"')
+    if start < 0:
+        return False
+    try:
+        table = json.loads(content[start:])
+    except (ValueError, TypeError):
+        return False
+    if not isinstance(table, dict):
+        return False
+    rows = [table.get('headers'), *(table.get('rows') or [])] if isinstance(table.get('rows'), list) else []
+    # A JSON-array quote can contain decoded cell line breaks inside the outer
+    # response string. Compare the complete cells to one source row, preserving
+    # whitespace, accents, codes and values; never combine cells across rows.
+    try:
+        quoted_cells = json.loads(quote, strict=False)
+    except (ValueError, TypeError):
+        quoted_cells = None
+    if (isinstance(quoted_cells, list) and quoted_cells
+            and all(isinstance(cell, str) for cell in quoted_cells)
+            and quoted_cells in rows):
+        return True
+    for row in rows:
+        if isinstance(row, list) and all(isinstance(cell, str) for cell in row):
+            if normalized in normalize_text(' '.join(row)):
+                return True
+            # Providers can display the exact JSON cells as a pipe-separated
+            # row while retaining one/two levels of escaped cell whitespace.
+            # Accept that presentation only against one original row; do not
+            # decode arbitrary escapes or join cells from different rows.
+            displayed = re.sub(r'\\{1,2}[nrt]', ' ', quote)
+            if normalize_text(displayed) in normalize_text(' | '.join(row)):
+                return True
+    return False
 
 
 def validate_citation(
@@ -66,12 +109,16 @@ def validate_citation(
         page = -1
     if page != result.page:
         errors.append("page_mismatch")
-    expected_range = tuple(result.metadata.get("page_range", [result.page, result.page]))
-    supplied_range = tuple(values.get("page_range", expected_range))
+    expected_range = result.metadata.get("page_range", [result.page, result.page])
+    supplied_range = values.get("page_range", expected_range)
+    ranges_valid = all(
+        isinstance(interval, (list, tuple)) and len(interval) == 2
+        and all(type(endpoint) is int for endpoint in interval)
+        for interval in (expected_range, supplied_range)
+    )
     if (
-        len(expected_range) != 2
-        or len(supplied_range) != 2
-        or supplied_range != expected_range
+        not ranges_valid
+        or tuple(supplied_range) != tuple(expected_range)
         or not (supplied_range[0] <= page <= supplied_range[1])
     ):
         errors.append("page_range_mismatch")
@@ -163,6 +210,11 @@ class GroundedAnswer:
     def to_public_dict(self) -> dict[str, Any]:
         """Return only the stable UI/API contract; diagnostics stay internal."""
         payload = self.to_dict()
+        if self.abstained:
+            # A rejected answer must not publish its unverified factual claims.
+            # Keep the full alignment/citation diagnostics in to_dict only.
+            payload["claims"] = []
+            payload["citations"] = []
         payload["citations"] = [
             {key: citation[key] for key in ("chunk_id", "doc_id", "page", "page_range", "quote", "section_path", "source_name", "table_id")}
             for citation in payload.get("citations", [])
@@ -178,6 +230,10 @@ class GroundedAnswer:
         if not public.get("abstained"):
             public.pop("abstention_reason", None)
         public["schema_version"] = "grounding-public-v2"
+        if not validate_release_response(public)[0]:
+            reason = canonicalize_abstention_reason(self.reason if self.abstained else "invalid_citation")
+            return {"answer": user_message(reason), "citations": [], "claims": [], "confidence": "low",
+                    "abstained": True, "abstention_reason": reason, "schema_version": "grounding-public-v2"}
         return public
 
 
@@ -194,12 +250,12 @@ ANSWER_SCHEMA = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["chunk_id", "page"],
+                "required": ["chunk_id", "page", "quote"],
                 "additionalProperties": False,
                 "properties": {
                     "chunk_id": {"type": "string", "minLength": 1},
                     "page": {"type": "integer", "minimum": 1},
-                    "quote": {"type": "string", "maxLength": 1200},
+                    "quote": {"type": "string", "minLength": 1, "maxLength": 1200},
                 },
             },
         },
@@ -223,7 +279,7 @@ ANSWER_SCHEMA = {
 
 
 def estimate_tokens(text: str) -> int:
-    """Conservative, tokenizer-independent token estimate for UTF-8 text."""
+    """Character-based estimate, not a provider tokenizer's exact count."""
 
     return max(1, math.ceil(len(text) / 4)) if text else 0
 
@@ -238,7 +294,10 @@ def _context_block(result: RetrievalResult) -> tuple[str, str]:
         f"document={source_name}\ndoc_id={result.doc_id}\npage={result.page}\n"
         f"page_range={page_range[0]}-{page_range[1]}\n{table_line}section={section}\ncontent:\n"
     )
-    return metadata, sanitize_evidence_text(result.content.strip())
+    # Generated index headers are not source evidence. Keep physical citation
+    # coordinates above and preserve the source/table serialization verbatim.
+    body = source_body({"content": result.content}, decode_tables=False)
+    return metadata, sanitize_evidence_text(body.strip())
 
 
 def build_context(
@@ -247,42 +306,41 @@ def build_context(
     *,
     max_tokens: int | None = None,
 ) -> str:
-    """Serialize evidence with stable ids and page provenance for the prompt."""
+    """Serialize evidence within a budget including headers and separators.
+
+    The token budget uses estimate_tokens; it does not bound the entire prompt
+    (instructions/question) or claim to match a provider's actual tokenizer.
+    """
 
     blocks: list[str] = []
     used_chars = 0
-    used_tokens = 0
+    char_limit = min(max_chars, max_tokens * 4) if max_tokens is not None else max_chars
     for result in results:
         metadata, content = _context_block(result)
         if not content:
             continue
-        remaining_chars = max_chars - used_chars
-        remaining_tokens = max_tokens - used_tokens if max_tokens is not None else None
-        if remaining_chars <= len(metadata) or (remaining_tokens is not None and remaining_tokens <= estimate_tokens(metadata)):
-            continue
-        available_chars = remaining_chars - len(metadata)
-        if remaining_tokens is not None:
-            available_chars = min(available_chars, max(0, remaining_tokens * 4 - len(metadata)))
+        separator_chars = 2 if blocks else 0
+        available_chars = char_limit - used_chars - separator_chars - len(metadata)
         if available_chars <= 0:
             continue
-        truncated = len(content) > available_chars
-        excerpt = content[:available_chars].rstrip()
-        if truncated:
+        if len(content) > available_chars:
             marker = "\n[truncated=true]"
-            excerpt = excerpt[: max(0, available_chars - len(marker))].rstrip() + marker
+            excerpt = content[:max(0, available_chars - len(marker))].rstrip()
+            if not excerpt:
+                continue
+            excerpt += marker
+        else:
+            excerpt = content
         block = metadata + excerpt
-        block_tokens = estimate_tokens(block)
-        if max_tokens is not None and used_tokens + block_tokens > max_tokens:
-            continue
         blocks.append(block)
-        used_chars += len(block)
-        used_tokens += block_tokens
+        used_chars += separator_chars + len(block)
     return "\n\n".join(blocks)
 
 
-def _abstention(reason: str, citations: tuple[Citation, ...] = ()) -> GroundedAnswer:
+def _abstention(reason: str, citations: tuple[Citation, ...] = (), *, language: str = "vi") -> GroundedAnswer:
     return GroundedAnswer(
-        answer="Mình chưa tìm thấy đủ bằng chứng trong các tài liệu đã chọn để trả lời chắc chắn.",
+        answer=(user_message("provider_error", language) if reason == "llm_error" else
+                "Mình chưa tìm thấy đủ bằng chứng trong các tài liệu đã chọn để trả lời chắc chắn."),
         # Abstained public responses never expose orphan citations.  Evidence
         # remains available in the internal trace when needed for diagnosis.
         citations=(),
@@ -317,6 +375,8 @@ class GroundedAnswerGenerator:
                 "Use only the supplied evidence. Do not use outside knowledge, guess, or infer unsupported facts.\n"
                 "If evidence is insufficient, set abstained=true and answer briefly that the documents do not establish it.\n"
                 "Every material claim must cite one or more supplied chunk_id values.\n"
+                "Split distinct facts into short atomic claims. For course credits use 'Course CODE has N credits.' with the value from that course's own credit column, not hours or prerequisite rows.\n"
+                "For tables, quote exact cells from one source row; preserve codes, numbers and accents. Give citation.page from the evidence page field.\n"
                 "Return valid JSON only with answer, claims, confidence (high|medium|low), abstained, and citations. Each claim must list citation_ids.\n"
                 "Keep the answer direct and short (1-3 short paragraphs)."
             )
@@ -326,8 +386,23 @@ class GroundedAnswerGenerator:
                 "Chỉ dùng thông tin trong EVIDENCE; không dùng kiến thức bên ngoài, không đoán hoặc suy diễn.\n"
                 "Nếu bằng chứng chưa đủ, đặt abstained=true và nói ngắn rằng tài liệu chưa xác lập được câu trả lời.\n"
                 "Mọi kết luận quan trọng phải trích dẫn một hoặc nhiều chunk_id có trong EVIDENCE.\n"
+                "Tách các sự kiện thành claim ngắn, riêng biệt. Với tín chỉ, dùng 'Môn CODE có N tín chỉ.' và lấy N từ cột tín chỉ của đúng hàng môn đó, không lấy số giờ hay hàng tiên quyết.\n"
+                "Với bảng, quote phải chép đúng các ô trong một hàng nguồn; giữ nguyên mã, số và dấu. citation.page lấy từ trường page của bằng chứng.\n"
                 "Chỉ trả về JSON hợp lệ gồm answer, claims, confidence (high|medium|low), abstained và citations. Mỗi claim phải có citation_ids.\n"
                 "Trả lời trực tiếp, ngắn gọn (1-3 đoạn ngắn)."
+            )
+        from .course_credits import folded
+        if explicit_comparison_request(question) and re.search(r'\b(?:credits?|tin chi)\b', folded(question)):
+            instructions += (
+                "\nLabel each source's credit value separately. For subtraction, emit one atomic claim exactly as "
+                "'Credit difference for CODE_B minus CODE_A is B - A = D credits.' with numeric operands and result. "
+                "Cite both source chunks in operand order (B, A); for the same code in two sources, repeat that code. "
+                "Use only each cited course row's credit column; if either row is absent, abstain."
+                if language.casefold().startswith('en') else
+                "\nGhi rõ giá trị tín chỉ của từng nguồn. Với phép trừ, dùng một claim đúng mẫu "
+                "'Chênh lệch tín chỉ của CODE_B trừ CODE_A là B - A = D tín chỉ.' thay B, A, D bằng số. "
+                "Trích dẫn đủ hai chunk theo thứ tự toán hạng (B, A); cùng mã ở hai nguồn thì lặp lại mã. "
+                "Chỉ lấy cột tín chỉ đúng hàng môn của mỗi nguồn; thiếu một hàng thì abstain."
             )
         return f"{instructions}\n\nQUESTION:\n{question}\n\nEVIDENCE:\n{context}"
 
@@ -348,6 +423,10 @@ class GroundedAnswerGenerator:
             return _abstention("conflicting_evidence")
         if self.min_retrieval_score is not None and max(result.score for result in results) < self.min_retrieval_score:
             return _abstention("no_relevant_evidence")
+        from .credit_sum import deterministic_credit_sum
+        calculated = deterministic_credit_sum(question, results, language)
+        if calculated is not None:
+            return calculated
         if self.llm is None:
             return _abstention("llm_not_configured")
         if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens):
@@ -359,14 +438,15 @@ class GroundedAnswerGenerator:
             with stage("llm"):
                 payload = self.llm.generate_json(prompt, schema=ANSWER_SCHEMA)
         except LLMError:
-            return _abstention("llm_error")
+            return _abstention("llm_error", language=language)
         if not isinstance(payload, dict) or not isinstance(payload.get("answer"), str):
             return _abstention("invalid_model_output")
         if not isinstance(payload.get("citations", []), list):
             return _abstention("invalid_model_output")
         if not payload["answer"].strip():
             return _abstention("empty_model_answer")
-        if len(payload["answer"].strip()) > 1600 or payload.get("confidence") not in {"high", "medium", "low"}:
+        if (len(payload["answer"].strip()) > 1600 or not isinstance(payload.get("confidence"), str)
+                or payload["confidence"] not in {"high", "medium", "low"}):
             return _abstention("invalid_model_output")
         raw_claims = payload.get("claims")
         if isinstance(raw_claims, list):
@@ -382,10 +462,19 @@ class GroundedAnswerGenerator:
         citations: list[Citation] = []
         seen_chunks: set[str] = set()
         for raw in payload.get("citations", []):
+            if not isinstance(raw, dict):
+                return _abstention("invalid_model_output")
             result = by_chunk.get(str(raw.get("chunk_id", "")))
             if result is None:
                 return _abstention("citation_not_in_evidence")
-            validation = validate_citation(raw, result)
+            # ANSWER_SCHEMA deliberately exposes chunk/page/quote only. Derive
+            # table identity from that exact request-scoped chunk, as we already
+            # do for the published citation. Explicit contradictory IDs still
+            # fail the strict validator; no provider page or quote is replaced.
+            validated_raw = dict(raw)
+            if "table_id" not in validated_raw and result.metadata.get("table_id") is not None:
+                validated_raw["table_id"] = result.metadata["table_id"]
+            validation = validate_citation(validated_raw, result)
             if not validation.valid:
                 return _abstention("citation_not_in_evidence")
             if result.chunk_id in seen_chunks:
@@ -407,7 +496,7 @@ class GroundedAnswerGenerator:
         if not citations or bool(payload.get("abstained")):
             provider_reason = payload.get("abstention_reason")
             allowed = {reason.value for reason in AbstentionReason}
-            if provider_reason not in allowed:
+            if not isinstance(provider_reason, str) or provider_reason not in allowed:
                 provider_reason = "provider_abstained"
             # Provider labels are accepted only after deterministic policy
             # checks above have had the opportunity to classify conflict and

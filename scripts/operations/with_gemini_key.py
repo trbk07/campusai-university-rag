@@ -9,18 +9,32 @@ import runpy
 import re
 import sys
 
+KEY_NAMES = {
+    "key", "key_1", "key_2", "api_key", "gemini_key", "gemini_api_key",
+    "google_api_key",
+}
 
-def read_key(path: Path) -> str:
+
+def read_key(path: Path, key_name: str | None = None) -> str:
     import yaml
     try:
         value = yaml.safe_load(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, yaml.YAMLError):
         raise ValueError("cannot read local Gemini credential file") from None
     if isinstance(value, dict):
-        value = value.get("api_key", value.get("GEMINI_API_KEY"))
+        normalized = {str(name).strip().lower(): candidate for name, candidate in value.items()}
+        selected = key_name.strip().lower() if key_name else None
+        if selected:
+            value = normalized.get(selected)
+        else:
+            value = next((normalized[name] for name in
+                          ("api_key", "gemini_api_key", "google_api_key", "key", "key_1", "key_2")
+                          if normalized.get(name)), None)
     if isinstance(value, str) and "=" in value:
         name, candidate = value.split("=", 1)
-        if name.strip().lower() in {"key", "api_key", "gemini_key", "gemini_api_key", "google_api_key"}:
+        normalized_name = name.strip().lower()
+        selected = key_name.strip().lower() if key_name else None
+        if normalized_name in KEY_NAMES and (selected is None or normalized_name == selected):
             candidate = candidate.strip()
             if candidate.startswith(("'", '"')):
                 try:
@@ -35,13 +49,14 @@ def read_key(path: Path) -> str:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--key-file", type=Path, default=Path("configs/gemini.yaml"))
+    parser.add_argument("--key-file", type=Path, default=Path("configs/key.yaml"))
+    parser.add_argument("--key-name", help="select key_1/key_2 when the local file has multiple credentials")
     parser.add_argument("--live-tests", action="store_true")
     parser.add_argument("module")
     parser.add_argument("arguments", nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
     try:
-        key = read_key(args.key_file)
+        key = read_key(args.key_file, args.key_name)
     except ValueError as error:
         parser.error(str(error))
     previous_key = os.environ.get("GEMINI_API_KEY")

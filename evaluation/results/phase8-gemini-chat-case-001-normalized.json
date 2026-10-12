@@ -1,0 +1,21 @@
+{
+  "answer": "Trong chương trình đào tạo VNU-UET/MAI, môn Algebra (Đại số) có 4 tín chỉ.",
+  "confidence": "high",
+  "abstained": false,
+  "citations": [
+    {
+      "chunk_id": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1",
+      "page": 1,
+      "quote": "[\"5\", \"Algebra\", \"4\", \"VNU-UET\"]"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "c1",
+      "text": "Môn Algebra có 4 tín chỉ.",
+      "citation_ids": [
+        "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13_p1_t1"
+      ]
+    }
+  ]
+}

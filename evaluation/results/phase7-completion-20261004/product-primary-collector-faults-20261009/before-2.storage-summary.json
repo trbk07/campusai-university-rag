@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "view_only": true,
+  "gate_eligible": false,
+  "raw_reference": {
+    "path": "before-2.json",
+    "sha256": "39bfa941c1ac15be4ac46f5e78408f8ca2b4ef19cbd719945f5992339448e6a6"
+  },
+  "summary": {
+    "mode": "live",
+    "arm": "current",
+    "pid": 24732,
+    "observations": [],
+    "external_provider_calls": 1,
+    "quality_accepted": false,
+    "status": "HARNESS_FAILURE_STOPPED",
+    "offline_synthetic_limiter_disabled": false,
+    "startup_ms": 0.0289999989036005,
+    "active_step": 0,
+    "pending_attempt": {
+      "qid": "human-successor-05-compare",
+      "step": 0,
+      "provider_start": 1791523570.6046066
+    },
+    "error_type": "TypeError"
+  },
+  "omitted_raw": []
+}

@@ -6,7 +6,7 @@
     "schema_version": 1,
     "status": "active"
   },
-  "goal": "Complete Phase 7 task by task with reproducible M0-M12/S1-S6 evidence.",
+  "goal": "Hoàn thiện Phase 7 tinh gọn theo plan.md: hoàn tất C7-01–C7-06 trên một cấu hình bàn giao local một process, giữ RERANKER_ENABLED=false; dùng bằng chứng thực tế, giữ ngưỡng, không mở rộng nghiên cứu hoặc lặp packet khi provider chưa sẵn sàng.",
   "official_status": {
     "M0": "PASS",
     "M1": "PASS",
@@ -17,8 +17,8 @@
     "score": null,
     "total_gates": 19
   },
-  "policy": "Notify the owner after each completed task, then continue with the next independent or unblocked work.",
-  "recorded_at": "2026-10-05T07:12:25.784651+00:00",
+  "policy": "One active core product item, one serving configuration and one measured delivery profile. Reranker disabled; no model/router/cap sweep or reranker rollout. Preserve core quality thresholds, source/scope/citation/abstention/security/fallback, heldout protection and actual HTTP/LLM evidence; reuse existing valid evidence. Never relabel historical FAIL as PASS.",
+  "recorded_at": "2026-10-10",
   "schema_version": 1,
   "tasks": [
     {
@@ -39,7 +39,8 @@
       "owner_role": "release engineer",
       "review_role": "self-review by Codex; no independent reviewer claimed",
       "review_status": "PASS",
-      "status": "DONE"
+      "status": "DONE",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
       "blocker": null,
@@ -52,7 +53,8 @@
       "owner_role": "data/retrieval engineer",
       "review_role": "self-review by Codex; no independent reviewer claimed",
       "review_status": "PASS",
-      "status": "DONE"
+      "status": "DONE",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
       "blocker": null,
@@ -134,7 +136,8 @@
           "holdout": 13
         }
       },
-      "completed_at": "2026-10-05T04:32:32.233229+00:00"
+      "completed_at": "2026-10-05T04:32:32.233229+00:00",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
       "blocker": null,
@@ -147,7 +150,8 @@
       "owner_role": "evaluation/validator engineer",
       "review_role": "Self-review by Codex; no independent reviewer claimed",
       "status": "DONE",
-      "review_status": "PASS_CONTRACT_REVIEW"
+      "review_status": "PASS_CONTRACT_REVIEW",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
       "blocker": null,
@@ -160,10 +164,11 @@
       "owner_role": "retrieval engineer",
       "review_role": "Self-review by Codex; no independent reviewer claimed",
       "status": "DONE",
-      "review_status": "PASS_FOR_DEV_DIAGNOSTIC"
+      "review_status": "PASS_FOR_DEV_DIAGNOSTIC",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
-      "blocker": "Full source-based answer claims/rubric remain incomplete. Source-only successor dev screen confirms an incomplete/misaligned inherited gold for human-candidate-0156 and flags additional cases without approving them. Any correction requires a separately reviewed dev-only version; frozen r19b and old results remain immutable. Required internal benchmark transmission to live Gemini remains rejected by automatic approval review pending specific egress authorization.",
+      "blocker": "Live final-policy semantic-quality evidence is incomplete. Stable packet has one failed attempted call. Auto-review rejected the new continuation before process creation.",
       "evidence": [
         "p7-06_blocker_report.json",
         "p7-06-offline-contract-tests.xml",
@@ -174,13 +179,68 @@
         "p7-06_dev_claim_input_audit.json",
         "p7-06_dev_claim_input_manifest-v1.json",
         "audit_p7_06_dev_gold_inputs.py",
-        "p7-06_successor_semantic_gold_source_audit-v1.json"
+        "p7-06_successor_semantic_gold_source_audit-v1.json",
+        "data/benchmark/phase7_dev_gold_revision_20261007/packet/manifest.json",
+        "p7-06-dev-gold-revision-tests-20261007.xml",
+        "p7-06-live-contracts-20261007/report.json",
+        "docs/reranker/phase7_resume_20261007.md",
+        "p7-06-dev-source-rubric-20261007.json",
+        "p7-06-dev-rubric-tests-20261007.xml",
+        "p7-06-paired-pilot-egress-packet-20261007.json",
+        "p7-06-dev-source-rubric-20261007-v2.json",
+        "data/benchmark/phase7_dev_gold_revision_20261007/negative_review_decisions.json",
+        "p7-06-09-review-and-replay-tests-20261007.xml",
+        "p7-06-paired-pilot-egress-authorization-20261007.json",
+        "p7-06-paired-pilot-actual-20261007.json",
+        "p7-06-paired-pilot-public-review-20261007.json",
+        "p7-06-gemini-pricing-reference-20261007.json",
+        "p7-06-source-table-grounding-tests-20261007.xml",
+        "p7-09-primary-source-retrieval-tests-20261007.xml",
+        "p7-06-09-source-grounding-audit-tests-20261007-v2.xml",
+        "p7-06-repaired-pilot-audit-20261007.json",
+        "p7-06-grounding-replay-quality-20261007.json",
+        "p7-06-credit-sum-component-results-20261007.json",
+        "p7-06-deterministic-credit-sum-tests-20261007-v2.xml",
+        "p7-06-final-policy-pilot-egress-packet-20261007.json",
+        "p7-06-final-policy-pilot-contract-tests-20261007-v2.xml",
+        "p7-06-unattempted-pilot-continuation-tests-20261007.xml",
+        "p7-06-final-policy-pilot-provider-blocker-20261007.json",
+        "p7-06-chained-continuation-tests-20261007.xml",
+        "p7-06-stable-model-pilot-egress-packet-20261008.json",
+        "p7-06-stable-model-reference-20261008.json",
+        "p7-core-blocker-report-20261008.json",
+        "med-rag-adoption-audit-20261008.json"
       ],
       "id": "P7-06",
       "owner_role": "grounding/evaluation engineer",
-      "review_role": "Pending semantic human reviewer; no sign-off claimed",
-      "status": "IN_PROGRESS",
-      "review_status": "SOURCE_ONLY_DEV_GOLD_SCREEN_RECORDED; ONE_CONFIRMED_DEFECT; FULL_RUBRIC_AND_LIVE_PAIRED_REVIEW_PENDING"
+      "review_role": "Codex AI self-review; owner decision pending; no independent human reviewer claimed",
+      "status": "BLOCKED",
+      "review_status": "LIVE_QUALITY_STILL_MISSING; PRIOR_BLOCKED_EXIT_IS_NOT_A_PASS",
+      "progress": {
+        "latest_combined_tests_passed": 291,
+        "second_pilot_completed_calls": 8,
+        "second_pilot_original_accuracy": 0.75,
+        "second_pilot_original_citation_precision": 0.875,
+        "local_postprocessing_positive_pairs": 4,
+        "local_postprocessing_accuracy": 1.0,
+        "local_postprocessing_citation_precision": 1.0,
+        "fresh_final_policy_pilot_complete": false,
+        "arithmetic_component_cases_passed": 4,
+        "final_policy_packet_maximum_calls": 12,
+        "final_policy_packet_prompt_chars": 65134,
+        "final_policy_packet_status": "SIX_UNIQUE_PROVIDER_FAILURES; SIX_UNATTEMPTED",
+        "final_policy_packet_attempted_calls": 6,
+        "final_policy_packet_remaining_calls": 6,
+        "stable_packet_attempted_calls": 1,
+        "stable_packet_remaining_calls": 11,
+        "calls_sent_this_task": 0
+      },
+      "latest_progress": "Stable authorization receipt and one failed call reconciled. Automatic approval review rejected continuation before execution. No further calls planned while candidate fails uplift.",
+      "next": "Prepare a concrete bounded live-quality action when the candidate/baseline protocol is ready; previously rejected external packet remains unsent.",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "prior_next_before_owner_decision": "Owner may approve provider-blocked Decision A. Do not send further prompts by default; completing this pilot cannot repair the ranking failure.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
       "blocker": null,
@@ -194,25 +254,32 @@
       "owner_role": "runtime engineer",
       "review_role": "Self-review by Codex; no independent reviewer claimed",
       "status": "DONE",
-      "review_status": "PASS_TASK"
+      "review_status": "PASS_TASK",
+      "current_scope_disposition": "REUSE_VALID_EVIDENCE"
     },
     {
-      "blocker": "Component telemetry is measured, but live RAG/grounding/LLM application requests and S6 evidence remain missing. External transmission of internal benchmark payloads to Gemini was rejected by automatic approval review.",
+      "blocker": "Existing measurements are component/direct-generator evidence, not one frozen full HTTP/RAG/LLM deployment measurement.",
       "evidence": [
         "p7-08_validation.json",
         "p7-08_telemetry_protocol.json",
         "p7-08_deployment_profile.json",
         "p7-08-local-http-pilot.json",
         "p7-08-recomputed.json",
-        "p7-08-telemetry-tests-cuda.xml"
+        "p7-08-telemetry-tests-cuda.xml",
+        "p7-core-blocker-report-20261008.json"
       ],
       "id": "P7-08",
       "owner_role": "runtime/observability engineer",
-      "review_role": "Self-review by Codex; no independent reviewer claimed",
-      "status": "BLOCKED"
+      "review_role": "Codex AI self-review; owner decision pending; no independent human reviewer claimed",
+      "status": "BLOCKED",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "prior_next_before_owner_decision": "Defer new workloads until a qualified fixed configuration exists.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
-      "blocker": "Latest actual dev baseline meets Recall/FPR thresholds, and nested route OOF meets route thresholds; native reranker ranking still has no jointly feasible uplift configuration. A source-proved inherited gold defect requires honest separately versioned dev correction/review before further label-driven optimization. Historical expanded-index baseline retention is not certified; no held-out or live joint acceptance has run.",
+      "blocker": "The existing candidate fails the unchanged +3% relative ranking-uplift target on both original F0 and research-corrected dev.",
       "evidence": [
         "p7-09-dev-feasibility.json",
         "p7-09-reranker-dev-raw.json",
@@ -278,53 +345,148 @@
         "p7-09_successor_source_snapshot-input-v3.json",
         "p7-09_successor_source_snapshot-input-v3.zip",
         "p7-09_successor_diagnostic_reproduction.zip",
-        "p7-06_successor_semantic_gold_source_audit-v1.json"
+        "p7-06_successor_semantic_gold_source_audit-v1.json",
+        "p7-09-model-origin-audit-20261007/origin_report.json",
+        "p7-09-verified-bge-download-20261007.json",
+        "p7-09-reviewed-bge-studies-20261007.json",
+        "p7-09-model-origin-tests-20261007.xml",
+        "p7-06-09-review-and-replay-tests-20261007.xml",
+        "evaluation/artifacts/manifest.json",
+        "p7-09-reviewed-bge-studies-20261007-v2.json",
+        "p7-09-baseline-algorithm-drift-20261007.json",
+        "p7-09-frozen-source-contract-tests-20261007.xml",
+        "p7-09-primary-source-retrieval-tests-20261007.xml",
+        "p7-09-primary-course-tables-dev-20261007.json",
+        "p7-09-source-context-bge-dev-20261007.json",
+        "p7-09-verified-gte-local-20261007.json",
+        "p7-09-gte-dual-origin-tests-20261007.xml",
+        "p7-09-gte-dev-20261007.json",
+        "p7-09-route-unrestricted-rank-ceiling-20261007.json",
+        "p7-09-utility-route-v1-20261007.json",
+        "p7-09-route-potential-v1-20261007.json",
+        "p7-09-utility-router-tests-20261007.xml",
+        "p7-09-route-potential-v2-20261007.json",
+        "p7-09-route-potential-v3-20261007.json",
+        "p7-09-route-forest-tests-20261007.xml",
+        "p7-09-route-potential-v4-20261007.json",
+        "p7-core-blocker-report-20261008.json",
+        "p7-core-fixed-candidate-audit-20261008.json",
+        "p7-09-current-dev-and-score-binding-20261008.json",
+        "med-rag-adoption-audit-20261008.json"
       ],
       "id": "P7-09",
       "owner_role": "retrieval/evaluation engineer",
-      "review_role": "Self-review by Codex; no independent reviewer claimed",
+      "review_role": "Codex AI self-review; owner decision pending; no independent human reviewer claimed",
       "status": "IN_PROGRESS",
-      "review_status": "ACTUAL_829_DEV_BASELINE_V4_AND_UNCACHED_INPUT_V3_SCORES_ARCHIVED; DEV_ROUTE_OOF_THRESHOLDS_MET; JOINT_FEASIBILITY_NOT_PASSED; SEMANTIC_GOLD_AUDIT_STARTED",
+      "review_status": "FULL_GOAL_REOPENED; PRIOR_CANDIDATE_REMAINS_FAILED",
       "progress": {
         "dev_queries": 829,
-        "baseline_recall5": 0.9830866807610994,
-        "baseline_fpr": 0.025280898876404494,
-        "body_uncached_nonempty_calls": 479,
+        "reviewed_dev_gold_corrections": 9,
+        "baseline_recall5": 0.985200845665962,
+        "baseline_fpr": 0.0028089887640449437,
+        "actual_score_pairs_per_input": 17084,
+        "nonempty_queries_per_input": 472,
         "score_cache_hits": 0,
-        "scope_regression_tests_passed": 118,
-        "heldout_used": false
-      }
+        "provider_failures": 0,
+        "oof_body_table_window_mrr_relative": 0.0003774012152317763,
+        "oof_body_table_window_ndcg_relative": 0.001637429527008738,
+        "oof_body_mrr_relative": -0.0005661018228478865,
+        "oof_body_ndcg_relative": 0.001467480589127712,
+        "route_outer_hard_recall": 0.9578313253012049,
+        "route_outer_easy_excess": 0.1509433962264151,
+        "heldout_used": false,
+        "release_eligible": false,
+        "actual_input_formats": [
+          "body_table_window",
+          "body",
+          "section_body"
+        ],
+        "oof_section_body_mrr_relative": 0.0,
+        "frozen_original_dev_hits": 115,
+        "current_original_dev_hits_before_table_repair": 110,
+        "original_dev_positive_queries": 126,
+        "frozen_successor_retrieval_recall5": 0.49471458773784355,
+        "frozen_successor_retrieval_negative_fpr": 0.6544943820224719,
+        "baseline_mrr": 0.9336504580690628,
+        "baseline_ndcg5": 0.9384800939153493,
+        "baseline_negative_fpr": 0.0028089887640449437,
+        "baseline_positive": 473,
+        "baseline_negative": 356,
+        "baseline_all_gold_coverage5": 0.9661733615221987,
+        "oof_body_table_window_ndcg5_relative": 0.0014663648111037375,
+        "oof_body_ndcg5_relative": 0.0012979619349942073,
+        "oof_section_body_ndcg5_relative": 0.0006554129795712793,
+        "source_context_mrr_relative": -0.00018870060761599916,
+        "source_context_independent_audit_pass": true,
+        "gte_measurement_status": "COMPLETE_ACTUAL_GPU_DEV; INDEPENDENT_AUDIT_PASS; UPLIFT_FAIL",
+        "gte_window_mrr_relative": -0.0009435030380798848,
+        "current_route_unrestricted_cap20_mrr_ceiling": 0.02132316866060302,
+        "optimistic_budget_route_cap20_mrr_ceiling": 0.05521379778842883,
+        "original_f0_dev_mrr_relative_uplift": 0.0003822337741763307,
+        "original_f0_dev_ndcg5_relative_uplift": 0.0014819775658039681,
+        "current_dev_remeasurement_complete": true,
+        "new_fit_or_sweep_performed": false
+      },
+      "latest_progress": "Exact current-dev logits revalidated. One existing fitted candidate replayed without selection: original F0 MRR +0.03822%, nDCG +0.14820%; both below +3%. No promotion or more sweep; owner infeasibility decision pending.",
+      "next": "Baseline/comparator and ranking-headroom admission audit before any new candidate inference.",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "prior_next_before_owner_decision": "Do not promote this candidate; request owner decision on documented infeasibility. No more model/router/rank sweep in this critical path.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "DEFERRED_RERANKER_QUALIFICATION"
     },
     {
-      "blocker": "P7-03/F0 is DONE. F1 remains blocked by an honest expanded-index Phase 6 baseline, P7-06/P7-08 real live/target evidence, and P7-09 jointly feasible dev configuration; clean source/complete physical bindings are also required.",
+      "blocker": "Expanded-index historical regression misses unchanged generated-recall floors; historical original-index M0 PASS does not transfer to expanded source identity.",
       "evidence": [
-        "p7-16-20_acceptance_blockers.json"
+        "p7-16-20_acceptance_blockers.json",
+        "p7-10-historical-two-reruns-20261007-v3.json",
+        "p7-10-historical-m0-validator-20261007-v3.json",
+        "p7-10-expanded-baseline-regression-20261007-v1.json",
+        "p7-10-expanded-scoped-baseline-regression-20261008-v2.json",
+        "p7-10-expanded-gpu-baseline-regression-20261008-v3.json",
+        "p7-10-legacy-source-metadata-gold-audit-20261008.json",
+        "p7-10-dense-serving-device-tests-20261008.xml",
+        "docs/reranker/phase7_baseline_index_bridge.md",
+        "p7-core-blocker-report-20261008.json"
       ],
       "id": "P7-10",
       "owner_role": null,
-      "review_role": null,
+      "review_role": "Codex AI self-review; owner decision pending; no independent human reviewer claimed",
       "status": "BLOCKED",
-      "review_status": "SUCCESSOR_F0_READY; F1_DEPENDENCIES_PENDING"
+      "review_status": "SUCCESSOR_F0_READY; F1_DEPENDENCIES_PENDING",
+      "latest_progress": "Historical twoCPU8 reruns/freeze/unmodifiedM0 validator PASS onoriginalindex. Actual expanded singleCUDAencoder testp95 243.162ms, exact-code100%; generated test97.436%/holdout94.017% fail unchanged98%/95% floors. All260historicalregression source bodies audited; two golds have onlymetadata coursecode identity and needsemantic review; originalbytes unchanged.",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "prior_next_before_owner_decision": "Preserve the failed regression and original bytes. Any future baseline fix needs a separate bounded cycle and fresh acceptance; do not tune these consumed splits.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
-      "blocker": "No frozen successor benchmark or CUDA-capable runtime/provider identity for M2/M3/S2.",
+      "blocker": "Successor F0 and verified official CUDA snapshot are available, but F1/M0/M1 and formal M2/M3/S2 measurements with the frozen runtime remain pending.",
       "evidence": [
         "p7-16-20_acceptance_blockers.json"
       ],
       "id": "P7-11",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
-      "blocker": "No F0-eligible groups or successor runtime for hard-route fit and held-out acceptance.",
+      "blocker": "Successor F0 dev groups and nested route diagnostics are available. F1/M3/source-bound route freeze and formal M4 heldout acceptance remain pending; no heldout tuning authorized.",
       "evidence": [
         "p7-16-20_acceptance_blockers.json"
       ],
       "id": "P7-12",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "DEFERRED_RERANKER_QUALIFICATION"
     },
     {
       "blocker": "No frozen route calibration or eligible benchmark for cap/probability sweep.",
@@ -334,27 +496,39 @@
       "id": "P7-13",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "DEFERRED_RERANKER_QUALIFICATION"
     },
     {
-      "blocker": "No fresh held-out ranking packet or human-reviewed paired answers; P7-03/P7-06 remain blocked.",
+      "blocker": "Successor F0 heldout is preserved. F1/F3, a jointly feasible dev config and reviewed paired-answer pilot are missing; no fresh M6/S3/S4/S5 acceptance performed.",
       "evidence": [
         "p7-16-20_acceptance_blockers.json"
       ],
       "id": "P7-14",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
-      "blocker": "No CUDA-enabled target, live HTTP/LLM workload, or approved public deployment profile for M7/S6.",
+      "blocker": "Local RTX 4060 CUDA is measured at component level. Frozen target deployment/workload and actual end-to-end HTTP/LLM/resource observations for M7/S6 remain missing; internal pilot egress is pending.",
       "evidence": [
         "p7-16-20_acceptance_blockers.json"
       ],
       "id": "P7-15",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
       "blocker": "Offline adversarial contracts pass; frozen successor held-out regressions and semantic review for M8 are absent.",
@@ -369,7 +543,11 @@
       "id": "P7-16",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
       "blocker": "P7-17.1-.4 offline/dev and pinned RTX 4060 CUDA subtask validations all pass. Parent M9 remains blocked because the frozen successor/release chain and measured production target profile are unavailable; these component probes do not satisfy the full target-profile M9 gate.",
@@ -393,7 +571,11 @@
       "id": "P7-17",
       "owner_role": null,
       "review_role": "Codex self-review of offline, active-index and pinned local CUDA probes; no target-production or full M9 acceptance claim.",
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
       "blocker": "No two-process rollback observation against a shared cache on a frozen candidate runtime for M10.",
@@ -404,7 +586,11 @@
       "id": "P7-18",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     },
     {
       "blocker": "Canary contract tests pass; live staging cohorts, SLO measurements, and rollback exercise for M11 are absent.",
@@ -415,7 +601,11 @@
       "id": "P7-19",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "DEFERRED_RERANKER_QUALIFICATION"
     },
     {
       "blocker": "Clean-checkout release reproduction depends on all passing evidence gates, which remain blocked.",
@@ -426,7 +616,1537 @@
       "id": "P7-20",
       "owner_role": null,
       "review_role": null,
-      "status": "BLOCKED"
+      "status": "BLOCKED",
+      "execution_disposition": "REOPENED_DEPENDENCY_PENDING",
+      "next": "Execute only after upstream acceptance inputs pass; no gate PASS inherited across changed identities.",
+      "prior_execution_disposition": "CLOSED_CYCLE_RELEASE_BLOCKED",
+      "current_scope_disposition": "CORE_RETAINED_RERANKER_PORTION_DEFERRED"
     }
-  ]
+  ],
+  "core_decision": {
+    "status": "PRODUCT_HARDENING_IN_PROGRESS",
+    "phase_complete": false,
+    "release_complete": false,
+    "all_tasks_complete": false,
+    "candidate_promotion_allowed": false,
+    "historical_qualification_decision_preserved": true
+  },
+  "phase_status": "PRODUCT_HARDENING_3_OF_6_DONE_AWAITING_EXACT_PRIMARY_EGRESS_APPROVAL",
+  "phase_closed": false,
+  "owner_decision": {
+    "status": "APPROVED",
+    "recorded_at": "2026-10-08T07:50:56.759753+00:00",
+    "actor": "project owner",
+    "trusted_source": "Direct user reply in this conversation to the selected approval question.",
+    "approval_question": "B?n duy?t k?t lu?n RELEASE-BLOCKED, gi? Phase 6 v? d?ng nh?nh candidate n?y theo plan ch??",
+    "explicit_user_reply": "t duy?t",
+    "annotation_index": 1,
+    "decision_A": "Accept provider-blocked quality status; no semantic quality PASS claimed.",
+    "decision_B": "Accept documented infeasibility of the tested candidate; stop its promotion branch.",
+    "phase_exit": "RELEASE-BLOCKED",
+    "phase6_serving_retained": true,
+    "reranker_release_authorized": false,
+    "additional_provider_egress_authorized": false,
+    "new_research_or_phase8_authorized": false,
+    "all_acceptance_tasks_done_claim": false
+  },
+  "previous_execution_decision": {
+    "status": "RELEASE-BLOCKED",
+    "owner_decision": {
+      "status": "APPROVED",
+      "recorded_at": "2026-10-08T07:50:56.759753+00:00",
+      "actor": "project owner",
+      "trusted_source": "Direct user reply in this conversation to the selected approval question.",
+      "approval_question": "B?n duy?t k?t lu?n RELEASE-BLOCKED, gi? Phase 6 v? d?ng nh?nh candidate n?y theo plan ch??",
+      "explicit_user_reply": "t duy?t",
+      "annotation_index": 1,
+      "decision_A": "Accept provider-blocked quality status; no semantic quality PASS claimed.",
+      "decision_B": "Accept documented infeasibility of the tested candidate; stop its promotion branch.",
+      "phase_exit": "RELEASE-BLOCKED",
+      "phase6_serving_retained": true,
+      "reranker_release_authorized": false,
+      "additional_provider_egress_authorized": false,
+      "new_research_or_phase8_authorized": false,
+      "all_acceptance_tasks_done_claim": false
+    },
+    "report": "p7-core-blocker-report-20261008.json",
+    "disposition": "Historical accepted closure; previous failed candidate remains unpromoted."
+  },
+  "reopen_authorization": {
+    "source": "Direct user instruction in this conversation",
+    "explicit_user_reply": "thiết lập goal: hoàn thiện toàn bộ phase 7, cho cả 20 task done và 19 gate pass",
+    "supersedes_cycle_closure": true,
+    "waives_thresholds_or_heldout_protection": false,
+    "authorizes_reuse_of_failed_heldout": false,
+    "authorizes_previously_rejected_external_packet": false
+  },
+  "active_work_item": {
+    "task": "C7-03",
+    "owner": "Codex",
+    "action": "Run the frozen Free Tier primary acceptance in five qid-paired daily quota shards, then review the full 68-row aggregate.",
+    "evidence": [
+      "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v30-parent.json",
+      "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v30.json",
+      "evaluation\\results\\phase7-completion-20261004\\product-c7-final-offline-tests-20261010-v4.xml",
+      "evaluation\\results\\phase7-completion-20261004\\product-runtime-faults-finalprofile-20261010-shards-v2\\summary.json"
+    ],
+    "next": "v32 is terminal because the runner passed the full key_2 assignment line instead of its parsed value; this did not validate the actual credential. v33 is already prepared with the same payload, rubric, gold, thresholds, source identity, model, Free Tier-only limit, and corrected key_2 parsing. Do not create another packet unless scope/limits change; run the next eligible shard only after the next Pacific quota date, then preserve one shard per Pacific date and aggregate the five shards."
+  },
+  "med_rag_adoption": {
+    "source": "Direct user requested learning from and applying https://github.com/Jmhzbmcn2/med_rag",
+    "upstream_commit": "e30839adb0c2396c5ffcbbd70237eccf1acf883b",
+    "recorded_at": "2026-10-08T08:11:21.115989+00:00",
+    "status": "IMPLEMENTED_OFFLINE_VERIFIED_NO_RELEASE_PROMOTION",
+    "review": "docs/reranker/med_rag_adoption_20261008.md",
+    "evidence": {
+      "med-rag-adoption-audit-20261008.json": "9db532ffca3bd3b7886939eeb5ad2aace41a330977417375f5be29b3151cd9dc",
+      "med-rag-adoption-regression-20261008.xml": "cce72c8992a99196c70aa58c1ce2a3107c425f16bf80a878f3b12d7c3fb46dc8",
+      "reproduce_med_rag_adoption_20261008.py": "30c994b53dfeab36138cae321bd8262b6fadc1c13d86b1a68e63aaba8da7874a"
+    },
+    "full_offline_tests": {
+      "passed": 1093,
+      "skipped_live_opt_in": 2
+    },
+    "new_model_calls": 0,
+    "new_provider_calls": 0,
+    "test_used": false,
+    "holdout_used": false,
+    "task_or_gate_promotion": false
+  },
+  "previous_goal": "Complete all 20/20 Phase 7 tasks and all 19/19 M0–M12/S1–S6 gates using real, reproducible acceptance evidence; RELEASE-BLOCKED does not satisfy this goal.",
+  "scope_id": "phase7-product-hardening-20261008",
+  "scope_authorization": {
+    "source": "Direct owner instruction in the current conversation",
+    "instruction": "vậy ở phase 7 t có thể lược bỏ bớt đi phần nào để tránh mất thời gian mà cũng k ảnh hưởng đến chất lượng của dự án, chất lượng sản phẩm thì bạn bỏ đi và update lại vào plan làm xong và chỉnh sửa lại goal luôn và bắt đầu goal mới",
+    "supersedes_20_tasks_19_gates_goal": true,
+    "waives_product_quality": false,
+    "authorizes_reranker_production": false,
+    "confirmed_reply": "Giữ Phase 7 tinh gọn: 6 hạng mục chất lượng sản phẩm, reranker tắt",
+    "latest_request": "thiết lập goal mới và hoàn thiện phase 7"
+  },
+  "goal_manager": {
+    "new_goal_created": true,
+    "status": "active",
+    "scope_id": "phase7-product-hardening-20261008",
+    "objective_achieved": false,
+    "resume_authorization": "Owner explicitly approved manifestv7 and repeated68-case acceptance after actual output exposure; running within exact127attempt cap.",
+    "owner_resume_authorized": true,
+    "tool_status_at_resume": "blocked; user authorized continuation, tool does not expose active-status transition",
+    "owner_methodology_approved": true,
+    "current_blocking_condition": "Owner requires Free Tier only and forbids charges. The observed per-project limit is 20 GenerateContent requests per Pacific quota day; the full 68-post primary is now split into five fixed qid-paired shards capped at 14 planned posts plus one globally shared 503 retry. V30 has not sent requests. Primary review, performance and live integration remain incomplete.",
+    "status_note": "V27 and v28 are consumed historical runs; v28 stopped after one complete pair and two valid current outputs on HTTP 429 quota exhaustion. The unchanged 68-row population is exposed, not fresh. V30 prepared five offline shards (14/13/13/14/14 planned posts), 69 maximum attempts including one retry, and passed offline validation. No provider calls were sent. C7-01/C7-02/C7-04 are rebound to current identity; C7-03 awaits the five quota windows; C7-05 and live C7-06 remain gated."
+  },
+  "tasks_scope": "Historical P7-01–P7-20 qualification records. Current backlog is active_tasks; historical statuses are not relabeled as DONE/PASS.",
+  "official_status_scope": "Historical reranker r18 gate outcomes only; not the acceptance status of product-hardening scope.",
+  "previous_active_work_item": {
+    "task": "P7-09",
+    "owner": "Codex",
+    "action": "Baseline/comparator and ranking-headroom admission audit before any new candidate inference.",
+    "hypothesis": "Existing comparisons mix historical Phase 6, enhanced expanded retrieval and multiple data revisions; explicitly establish the acceptance baseline and identify whether any honest candidate path can reach the fixed +3% target.",
+    "inputs": [
+      "docs/reranker/phase7_baseline_index_bridge.md",
+      "p7-core-fixed-candidate-audit-20261008.json",
+      "p7-09-current-dev-and-score-binding-20261008.json"
+    ],
+    "stop_condition": "Do not run another equivalent grid or model call when the measured admissible ceiling cannot reach +3%; preserve failed candidates.",
+    "success_condition": "One unambiguous paired baseline/candidate protocol and a bounded implementation action supported by dev/source evidence; this audit alone cannot mark P7-09 DONE.",
+    "supporting_diagnosis": {
+      "report": "med-rag-adoption-audit-20261008.json",
+      "baseline_top5_all_evidence": 455,
+      "baseline_top5_correct_documents_missing_evidence": 16,
+      "candidate_pool_all_evidence": 471,
+      "missing_gold_documents": 2,
+      "answerable_dev": 473,
+      "requires_comparator_admission_before_new_ranking_candidate": true
+    }
+  },
+  "prior_core_decision": {
+    "status": "FULL_QUALIFICATION_ACTIVE",
+    "owner_decision": "Direct user requested 20/20 tasks and 19/19 gates",
+    "phase_complete": false,
+    "release_complete": false,
+    "all_tasks_complete": false,
+    "candidate_promotion_allowed": false,
+    "historical_blocker_report": "p7-core-blocker-report-20261008.json"
+  },
+  "active_tasks": [
+    {
+      "id": "C7-01",
+      "name": "Baseline và identity cấu hình sản phẩm",
+      "status": "DONE",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-serving-snapshot-20261008-v2.json",
+        "product-serving-snapshot-20261009-v2.json",
+        "product-serving-snapshot-20261009-v3.json",
+        "product-serving-snapshot-20261009-v4.json",
+        "product-serving-snapshot-20261009-v5.json",
+        "product-serving-snapshot-20261009-v6.json",
+        "product-serving-snapshot-20261009-v8.json",
+        "product-serving-snapshot-20261009-v9.json",
+        "product-serving-snapshot-20261009-v10.json",
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261009-v12.json",
+          "sha256": "abb99caa34dc5ab87b181fefb44ffbd7adae1b52d75fa705c50480a881c4ffb3"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261009-v13.json",
+          "sha256": "2d806c7c795ea7dc18a0aa439bdbf716aa20f60f50b49f95d9616cb1d2cc1489"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-serving-snapshot-20261010-v15.json",
+          "sha256": "4d89959c120053a91f186ea147a2e2b268525e7816d04dafd25fb6bf1a84a95f"
+        }
+      ],
+      "next": "Serving snapshot v15 is frozen for the v30 primary shard sequence and subsequent performance work.",
+      "blocker": null
+    },
+    {
+      "id": "C7-02",
+      "name": "Retrieval, context, scope và cache",
+      "status": "DONE",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-serving-dev-20261008-v1/summary.json",
+        "product-prehardening-serving-preflight-20261008.json",
+        "product-primary-protocol-20261008.json",
+        "product-paired-dev-collector-preflight-20261009-v2.storage-summary.json",
+        "product-primary-source-review-opening-20261009.json",
+        "product-primary-source-rubric-20261009.json",
+        "product-primary-retrieval-acceptance-20261009-v1.json",
+        "product-primary-retrieval-acceptance-20261009-v2.json",
+        "product-primary-context-coverage-20261009.json",
+        "product503-retrieval-context-equivalence-20261009.json",
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-02-rebind-20261010-v2.json",
+          "sha256": "1b8d4333cf0254038b764eff331d25d3d5011ee11e3e0fa2e49c3b7246168ef8"
+        }
+      ],
+      "next": "Current-identity v30 parent bytes match all 136 baseline/current requests, provider bodies and retrieval evidence exactly; the existing 35/33 metric evidence is rebound without fresh-validation claims."
+    },
+    {
+      "id": "C7-03",
+      "name": "Answer, citation, grounding, abstention và nhiều hop thực đo",
+      "status": "BLOCKED",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-dev-quality-egress-packet-20261008-v3.json",
+        "product-dev-quality-live-20261008-v3.storage-summary.json",
+        "product-primary-protocol-20261008.json",
+        "product-strict-quality-contracts-20261008.xml",
+        "product-generation-diagnostic-result-20261008.json",
+        "product-dev-quality-egress-packet-20261008-v4.json",
+        "product-dev-quality-live-20261008-v4.storage-summary.json",
+        "product-schema-diagnostic-packet-20261009.json",
+        "product-schema-diagnostic-result-20261009.json",
+        "product-http503-resolution-20261009.json",
+        "product-dev-quality-egress-packet-20261009-v6.json",
+        "product-dev-quality-source-review-20261009-v6.json",
+        "product-dev-quality-live-20261009-v6.storage-summary.json",
+        "product-primary-source-rubric-20261009.json",
+        "product-readiness-cuda-dev-20261009.storage-summary.json",
+        "product-primary-preprovider-finding-20261009.json",
+        "product-primary-preprovider-resolution-20261009.json",
+        "product-comparison-and-collector-tests-20261009-v2.xml",
+        "product-dev-grounding-equivalence-20261009-v1.storage-summary.json",
+        "product-primary-egress-packet-20261009-v4.json",
+        "product-primary-collector-fault-fix-20261009.json",
+        "product-primary-egress-packet-20261009-v5.json",
+        "product-acceptance-owner-authorization-20261009-v2.json",
+        "product-primary-parent-fix-20261009.json",
+        "product-acceptance-execution-20261009-v2.json",
+        "product-acceptance-execution-20261009-v3.json",
+        "product-acceptance-owner-authorization-20261009-v4.json",
+        "product-acceptance-execution-20261009-v4.json",
+        "product-provider503-resilience-proposal-20261009.json",
+        "product-provider503-offline-characterization-20261009.json",
+        "product503-fix-acceptance-20261009.json",
+        "product-acceptance-execution-20261009-v6.json",
+        "product-code-spacing-resolution-20261009.json",
+        "product-acceptance-owner-authorization-20261009-v7.json",
+        "product-acceptance-execution-20261009-v7.json",
+        "product-primary-source-review-20261009-v12.json",
+        "product-acceptance-execution-20261009-v8.json",
+        "product-primary-source-review-20261009-v13.json",
+        "product-http400-diagnostic-egress-packet-20261009-v1.json",
+        "product-http400-diagnostic-preflight-20261009-v1.json",
+        "scripts/benchmarks/product_provider_error_diagnostic.py",
+        "tests/test_product_provider_error_diagnostic.py",
+        "product-http400-offline-comparison-20261009.json",
+        "product-http400-diagnostic-result-20261009-v1.json",
+        "product-primary-egress-packet-20261009-v17.json",
+        "product-primary-egress-preflight-20261009-v17.json",
+        "product-primary-execution-20261009-v17.json",
+        "product-primary-live-20261009-v17/summary.json",
+        "product-primary-egress-packet-20261009-v18.json",
+        "product-primary-egress-preflight-20261009-v18.json",
+        "product-primary-execution-20261009-v18.json",
+        "product-primary-live-20261009-v18/summary.json",
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009.json",
+          "sha256": "63aac85e795d28b7906caff25efb0afa3dbe999d50fa27d1b4c7c5d4ebde1b20"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009-v2.json",
+          "sha256": "91689ae4834c9c9e66dfb4f9e93a560865049a738e51c0bf1af56b94921d4bf1"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v27.json",
+          "sha256": "e2bb67465a964fc38acf6ea083e0c86f9bc15870e58ed1c437baab5955438991"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v27.json",
+          "sha256": "c97286b432491d245f7ca512ca77490abed8b592c75aa50cb86931527fdcbee6"
+        },
+        {
+          "path": "product-primary-execution-20261010-v27.json",
+          "sha256": "a964dbe4bc30601e370be9ce35e1abc58721c82cbbfaf6d4591b33f4c4ac125e"
+        },
+        {
+          "path": "product-primary-egress-packet-20261010-v28.json",
+          "sha256": "6cde722a478a6fdbd8348ddddeeaea8380f054fa7a75b610917366aae3a104ef"
+        },
+        {
+          "path": "product-primary-retry-egress-manifest-20261010-v28.json",
+          "sha256": "25eda19fbb3bb2dc7623b9241e6dae9ce720985ab5c1aa5be77372afa8f63232"
+        },
+        {
+          "path": "product-primary-retry-budget-state-20261010-v28.json",
+          "sha256": "740f4c2c87fbd07ad45b12837c8057b39a26c6bb1bd7d5660861539275dbd42f"
+        },
+        {
+          "path": "product-primary-execution-20261010-v28.json",
+          "sha256": "44740820e9bc59ce31f0d3cda779a6c152d66e14c4195c75c17be63d85b506b7"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v30-parent.json",
+          "sha256": "ba1e723d6d82bf941869692a6d75ac3f132db95c8d7b953c26f1062c1994c533"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v30.json",
+          "sha256": "958ec43d34406abf595aab1d229c129539120299ca656b2f7aa5adc83b6772b7"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-01-of-05.json",
+          "sha256": "8256ec3f95ba82230c5a20fbdf70577dbfb783c85cb7be54df4add1bb697b69b",
+          "planned_posts": 14
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-02-of-05.json",
+          "sha256": "59d36bed8404627e453698249d0df00f10fb195c8a07b76925ed2ec4eb5b47b2",
+          "planned_posts": 13
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-03-of-05.json",
+          "sha256": "5da68fa9634a638084005c6c0d515372785f41560a502d47b87883f8ca1eb6b7",
+          "planned_posts": 13
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-04-of-05.json",
+          "sha256": "4afad9a32125e5d430361c024e35e2097d3ccdd25301e16b2c94d73d14aac459",
+          "planned_posts": 14
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-05-of-05.json",
+          "sha256": "60be9f409b6c766ae225cb013a2b2ca11b6f94bce111e4c8a84bbd67f683ff3f",
+          "planned_posts": 14
+        }
+      ],
+      "next": "After exact v33 authorization and the next Pacific midnight reset, run shard 1 using the parsed key_2 value; stop on first non-503 failure, then review all outputs before C7-05.",
+      "blocker": "V32 is terminal after the runner passed the full key_2 assignment line instead of its value; HTTP 400 API_KEY_INVALID does not validate key_2. V33 repeats the same frozen payload and limits with corrected local value extraction, but has 0 calls and awaits exact authorization and the next Pacific quota date.",
+      "review_status": "STOPPED_FREE_TIER_QUOTA_EXHAUSTED_AFTER_PARTIAL_PAIR"
+    },
+    {
+      "id": "C7-04",
+      "name": "Security, failure, restart và fallback",
+      "status": "DONE",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-security-acceptance-20261008.json",
+        "product-runtime-faults-20261008-v3/summary.json",
+        "product-request-state-regression-20261008.xml",
+        "product-security-independent-finding-20261009.json",
+        "product-security-acceptance-20261009-v2.json",
+        "product-runtime-faults-20261009-v2/summary.json",
+        "product-abstention-claim-leak-tests-20261009.xml",
+        "product-security-acceptance-20261009-v3.json",
+        "product-runtime-faults-20261009-v3/summary.json",
+        "product-security-acceptance-20261009-v5.json",
+        "product-runtime-faults-20261009-v4/summary.json",
+        "product-runtime-faults-20261009-v5/summary.json",
+        "product-security-acceptance-20261009-v6.json",
+        "product-security-acceptance-20261009-v7.json",
+        "product-local-credential-remediation-20261009.json",
+        "configs/product_llm.yaml",
+        "tests/test_product_retry.py",
+        "tests/test_web.py",
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-runtime-faults-finalprofile-20261009-v1/summary.json",
+          "sha256": "1f562dbfb371f1bb6354294bd508c4f2284ed6b04ebd05e13494611b71c41de0"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-04-finalprofile-tests-20261009-v2.xml",
+          "sha256": "9e5068f9e7d9d47411d2d447f19ec20d13312c8956f2f8e680f10427111b220e"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-runtime-faults-finalprofile-20261009-v2/summary.json",
+          "sha256": "9ba6d94cc9ecc7436e025b9ac2645ce44cf925279996230c77c42c953ac9688e"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-retry-output-budget-tests-20261009-v3.xml",
+          "sha256": "8f8dee47a375ef059643048b239faa6ae67a354f551e9c90455212fd63a6e172"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-runtime-faults-finalprofile-20261010-shards-v2\\summary.json",
+          "sha256": "12ec47ef75f7a03070d4daad9b8518c5ab6d42219a78e360fc34908df7b8c923"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-final-offline-tests-20261010-v4.xml",
+          "sha256": "5b43400e37143429d597cd76ae82fd33313a349118e6905d5065c2896cc85260"
+        }
+      ],
+      "next": "No further C7-04 rerun unless runtime/security source changes.",
+      "review_status": "PASS_CURRENT_PROFILE_60_FAULT_CASES_AND_1312_FULL_OFFLINE_TESTS",
+      "security_revalidation": "Ignored local credential file sanitized; scanner now checks the ignored credential config. Rotate prior credential before next live call.",
+      "blocker": null
+    },
+    {
+      "id": "C7-05",
+      "name": "HTTP/LLM và resource trên cấu hình bàn giao",
+      "status": "BLOCKED",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-dev-quality-live-20261008.json",
+        "product-performance-workload-20261009.json",
+        "product-readiness-cuda-dev-20261009.storage-summary.json",
+        "product-readiness-tests-20261009.xml",
+        "product-performance-collector-preflight-review-20261009-v2.json",
+        "product-performance-egress-packet-20261009-v2.json",
+        "product-performance-egress-packet-20261009-v3.json"
+      ],
+      "next": "Run the one frozen performance workload on the same identity only after C7-03 PASS.",
+      "blocker": "Waiting for a complete C7-03 primary source review PASS; v32 stopped after one HTTP 400 caused by incorrect local credential extraction and produced no accepted answer.",
+      "prepared_packet": {
+        "path": "evaluation/results/phase7-completion-20261004/product-performance-egress-packet-20261009-v11.json",
+        "sha256": "f74e8fafe5217fedfbb0d6f60b2834bc6d2869adc8d2886855c5fa96ed10e4de"
+      }
+    },
+    {
+      "id": "C7-06",
+      "name": "Final checks, reproduction và handoff",
+      "status": "IN_PROGRESS",
+      "owner": "Codex",
+      "acceptance": "plan.md section 7.2",
+      "evidence": [
+        "product-final-offline-tests-20261008-v3.xml",
+        "product-final-coverage-20261008-v3.json",
+        "product-one-call-packet-contract-20261008.xml",
+        "product-progress-20261008-v3.json",
+        "product-final-offline-tests-20261009-v2.xml",
+        "product-final-coverage-20261009-v2.json",
+        "product-final-offline-tests-20261009-v3.xml",
+        "product-final-coverage-20261009-v3.json",
+        "product-final-offline-tests-20261009-v5.xml",
+        "product-final-coverage-20261009-v5.json",
+        "product-comparison-verification-20261009.json",
+        "product-integration-egress-packet-20261009-v2.json",
+        "product-acceptance-egress-bundle-20261009-v1.json",
+        "product-final-offline-tests-20261009-v6.xml",
+        "product-final-coverage-20261009-v6.json",
+        "product-primary-fault-final-20261009.xml",
+        "product-integration-egress-packet-20261009-v3.json",
+        "product-acceptance-egress-bundle-20261009-v2.json",
+        "product-acceptance-egress-withdrawal-20261009-v1.json",
+        "product-primary-collector-verification-20261009.json",
+        "product-final-offline-tests-20261009-v7.xml",
+        "product-final-coverage-20261009-v7.json",
+        "product-primary-idle-after-20261009.xml",
+        "product-acceptance-egress-bundle-20261009-v4.json",
+        "product-acceptance-progress-verification-20261009.json",
+        "product-code-spacing-release-tests-20261009.xml",
+        "product-code-spacing-coverage-20261009.json",
+        "product-local-credential-remediation-20261009.json",
+        "product-serving-snapshot-20261009-v10.json",
+        "product-final-offline-tests-20261009-v5.json",
+        "product-final-offline-tests-20261009-v9.json",
+        "product-final-offline-tests-20261009-v9.xml",
+        "product-final-coverage-20261009-v9.json",
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-final-offline-tests-20261009-v1.xml",
+          "sha256": "507e35363e80baf8c53b674419ed2b72e99876fdd533f3dd2028db5e3e0320b9"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-final-coverage-20261009-v1.json",
+          "sha256": "f85c5dc5579f3b0f03bf7322064072ae895d46e8c8aad1b258896e6f7f441a5c"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-runtime-faults-finalprofile-20261009-v1/summary.json",
+          "sha256": "1f562dbfb371f1bb6354294bd508c4f2284ed6b04ebd05e13494611b71c41de0"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-04-finalprofile-tests-20261009-v2.xml",
+          "sha256": "9e5068f9e7d9d47411d2d447f19ec20d13312c8956f2f8e680f10427111b220e"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009.json",
+          "sha256": "63aac85e795d28b7906caff25efb0afa3dbe999d50fa27d1b4c7c5d4ebde1b20"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-final-offline-tests-20261009-v2.xml",
+          "sha256": "0fecde18cd0b0716a72f06854f6058adf6d070faa85c17cd8a882a329899d5b3"
+        },
+        {
+          "path": "evaluation/results/phase7-completion-20261004/product-c7-final-coverage-20261009-v2.json",
+          "sha256": "1c29bfce9e61a63c2440bafa56daa775aeff275afc0d717d28e29c4602bb95cf"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-final-offline-tests-20261010-v4.xml",
+          "sha256": "5b43400e37143429d597cd76ae82fd33313a349118e6905d5065c2896cc85260"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-final-coverage-20261010-v4.json",
+          "sha256": "f77047de94142c5b1b5d543c76d6049856c1692baa6a3c27d15e5934d38a97a1"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-serving-snapshot-20261010-v15.json",
+          "sha256": "4d89959c120053a91f186ea147a2e2b268525e7816d04dafd25fb6bf1a84a95f"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-02-rebind-20261010-v2.json",
+          "sha256": "1b8d4333cf0254038b764eff331d25d3d5011ee11e3e0fa2e49c3b7246168ef8"
+        },
+        {
+          "path": "evaluation\\results\\phase7-completion-20261004\\product-runtime-faults-finalprofile-20261010-shards-v2\\summary.json",
+          "sha256": "12ec47ef75f7a03070d4daad9b8518c5ab6d42219a78e360fc34908df7b8c923"
+        }
+      ],
+      "next": "Offline final checks pass on the current identity: 1312 passed, 2 live opt-in skips, 90.60% coverage. Live integration and final reconciliation still wait on C7-03/C7-05.",
+      "handoff_draft": {
+        "path": "docs/phase7_product_handoff.md",
+        "sha256": "22607dac8cfccf749ec39ed6394d1fe201670313e47bbf4a058f09057959ca2c",
+        "status": "IN_PROGRESS_NOT_FINAL"
+      },
+      "blocker": null
+    }
+  ],
+  "active_progress": {
+    "done": 3,
+    "total": 6,
+    "percent": 50.0,
+    "done_items": [
+      "C7-01",
+      "C7-02",
+      "C7-04"
+    ],
+    "active_item": "C7-03",
+    "reranker_enabled": false,
+    "in_progress": 1,
+    "blocked_items": [
+      "C7-03",
+      "C7-05"
+    ],
+    "finalization_item": "C7-06"
+  },
+  "scope_change_evidence": {
+    "path": "phase7-product-scope-20261008.json",
+    "sha256": "ad6072eeb190bd91f6aa5a2289243c259f33e105161b156d95b8f535ea388270"
+  },
+  "phase_complete": false,
+  "active_cycle_scope": "Historical reranker qualification selector only; current product target is product_serving_target.",
+  "product_serving_target": {
+    "scope_id": "phase7-product-hardening-20261008",
+    "profile": {
+      "RERANKER_ENABLED": "false",
+      "CAMPUSAI_DEVICE": "cuda",
+      "CAMPUSAI_INDEX_DIR": ".tmp/phase7-curated-source-20261005-v2/index",
+      "CAMPUSAI_RETRIEVAL_CALIBRATION": ".release/reranker/studies/phase7-successor-r19b-phase6-dev-qualification-v1/hybrid_retrieval_calibration.json",
+      "CAMPUSAI_LLM_CONFIG": "configs/product_llm.yaml",
+      "CAMPUSAI_INGESTION_WORKERS": "1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_HUB_DISABLE_TELEMETRY": "1",
+      "OMP_NUM_THREADS": "8",
+      "MKL_NUM_THREADS": "8"
+    },
+    "snapshot": "evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261009-v13.json",
+    "sha256": "2d806c7c795ea7dc18a0aa439bdbf716aa20f60f50b49f95d9616cb1d2cc1489",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "f0c4040f0bf81803f754a071483c646a0934bb06cc4b6faac68d516a43299ffb",
+      "runtime_sha256": "7cfe319a56ef3fbe3d01bc9cae527d40e2033c1e63472cad5558da8b6baee42d"
+    },
+    "metadata_readiness": {
+      "path": "evaluation/results/phase7-completion-20261004/product-gemini-metadata-readiness-20261009-v2.json",
+      "sha256": "91689ae4834c9c9e66dfb4f9e93a560865049a738e51c0bf1af56b94921d4bf1",
+      "status": "PASS_METADATA_READINESS",
+      "http_status": 200,
+      "benchmark_prompts_sent": false
+    }
+  },
+  "current_product_evidence": {
+    "path": "evaluation\\results\\phase7-completion-20261004\\product-serving-snapshot-20261010-v15.json",
+    "sha256": "4d89959c120053a91f186ea147a2e2b268525e7816d04dafd25fb6bf1a84a95f"
+  },
+  "latest_authorized_dev_v6": {
+    "packet": {
+      "path": "evaluation/results/phase7-completion-20261004/product-dev-quality-egress-packet-20261009-v6.json",
+      "sha256": "e070dbbfedc788598855aed5ed70fcc89efa194dec294837933d6aae7443cc37"
+    },
+    "raw": {
+      "path": "evaluation/results/phase7-completion-20261004/product-dev-quality-live-20261009-v6.json",
+      "sha256": "aacaed70bd566706b9a3074173f2ff869d7c970700bce1a41d74f42043603db4"
+    },
+    "source_review": {
+      "path": "evaluation/results/phase7-completion-20261004/product-dev-quality-source-review-20261009-v6.json",
+      "sha256": "d52d4afaa2093713d22130522e7f1fbbb29191654743bc8468fe13f3ca56937b"
+    },
+    "status": "PASS_BOUNDED_DEV_SOURCE_REVIEW_NOT_PRIMARY_ACCEPTANCE",
+    "authorization_status": "EXACT_V6_OWNER_APPROVED_AND_CONSUMED",
+    "trusted_user_reply": "Duyệt đúng packet dev v6 và giới hạn trên t xác nhận",
+    "provider_calls_sent": 6,
+    "successful_provider_outputs": 6,
+    "http_cases": 8,
+    "actual_retries": 0,
+    "provider_failures": 0,
+    "source_stable": true,
+    "test_or_holdout_sent": false,
+    "remaining_or_retry_authorized": false,
+    "counts": {
+      "http_cases": 8,
+      "positive_cases": 6,
+      "negative_cases": 2,
+      "provider_attempts": 6,
+      "successful_provider_outputs": 6,
+      "failures": 0,
+      "retries": 0,
+      "structured_claims_supported": 14,
+      "atomic_factual_assertions_supported": 16,
+      "requested_gold_claims_covered": 13,
+      "requested_gold_claims_total": 13,
+      "valid_citations": 7,
+      "citation_total": 7,
+      "false_abstentions": 0,
+      "negative_factual_answers": 0,
+      "test_or_holdout_read": false
+    },
+    "usage": {
+      "total_reported_tokens": 15460,
+      "cost_status": "unknown; no verified price-based cost available"
+    }
+  },
+  "owner_acceptance_authorization": {
+    "path": "evaluation/results/phase7-completion-20261004/product-acceptance-owner-authorization-20261009-v7.json",
+    "sha256": "0a662e744660f4f936550645b786db54f27e8a082558679dcaec16be0e49805f"
+  },
+  "latest_product_acceptance_bundle": {
+    "path": "evaluation/results/phase7-completion-20261004/product-acceptance-egress-bundle-20261009-v10.json",
+    "sha256": "a99ece46ec915a2e09e4d3e823e4f06413c7959f5d1b70a896d2dfaccad0b4ee",
+    "status": "EXACT_OWNER_APPROVED_AND_STOPPED_HTTP_400",
+    "authorization_receipt": "evaluation/results/phase7-completion-20261004/product-acceptance-owner-approval-20261009-v10.json",
+    "planned_posts": 124,
+    "max_shared_503_retries": 3,
+    "max_posts": 127,
+    "planned_prompt_chars": 710858,
+    "max_prompt_chars": 746204,
+    "max_output_tokens": 520192,
+    "provider_calls_sent": 1,
+    "successful_outputs": 0,
+    "http_status": 400,
+    "actual_retries": 0,
+    "fees_possible": true
+  },
+  "retry_budget_audit": {
+    "packet_counts": [
+      68,
+      54,
+      2
+    ],
+    "planned_provider_posts": 124,
+    "retry_slots": 3,
+    "distinct_retry_prompt_chars": [
+      11883,
+      11760,
+      11703
+    ],
+    "planned_prompt_chars": 710858,
+    "maximum_prompt_chars": 746204,
+    "output_token_cap": 520192,
+    "underbudget": false
+  },
+  "owner_autonomy_instruction_20261009": {
+    "scope": "Complete the current trimmed Phase 7 within the project; do not ask routine confirmation; choose the smallest direct path.",
+    "reranker_enabled": false,
+    "external_bundle": "product-acceptance-egress-bundle-20261009-v9.json"
+  },
+  "latest_product_acceptance_execution": {
+    "path": "evaluation/results/phase7-completion-20261004/product-acceptance-execution-20261009-v10.json",
+    "status": "V10_PRIMARY_STOPPED_HTTP_400",
+    "attempts": 1,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 0,
+    "performance_started": false,
+    "integration_started": false,
+    "provider_error_diagnostic_fix": "evaluation/results/phase7-completion-20261004/product-primary-provider-error-diagnostic-fix-20261009.json"
+  },
+  "latest_full_regression": {
+    "schema_version": 1,
+    "status": "PASS",
+    "recorded_at": "2026-10-10",
+    "provider_calls": 0,
+    "counts": {
+      "tests": 1312,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "coverage_percent": 90.59539918809202,
+    "coverage_floor_percent": 85,
+    "live_opt_in_tests": 2,
+    "live_opt_in_skips_are_not_acceptance": true,
+    "junit": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-final-offline-tests-20261010-v4.xml",
+      "sha256": "5b43400e37143429d597cd76ae82fd33313a349118e6905d5065c2896cc85260"
+    },
+    "coverage": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-c7-final-coverage-20261010-v4.json",
+      "sha256": "f77047de94142c5b1b5d543c76d6049856c1692baa6a3c27d15e5934d38a97a1"
+    }
+  },
+  "latest_egress_review_rejection": {
+    "action": "product_primary.collect packet v27",
+    "status": "SUPERSEDED_BY_EXACT_OWNER_APPROVAL_AND_EXECUTED",
+    "calls_sent": 2,
+    "resolution": "Owner explicitly approved exact v27 and its limits; execution stopped after HTTP 503 UNAVAILABLE and the one approved retry was exhausted."
+  },
+  "latest_http400_diagnostic": {
+    "path": "evaluation/results/phase7-completion-20261004/product-http400-diagnostic-result-20261009-v1.json",
+    "manifest_path": "evaluation/results/phase7-completion-20261004/product-http400-diagnostic-egress-packet-20261009-v1.json",
+    "manifest_sha256": "84d10ed90745386dbd892525cf5ec0e24473e12fe6358089d65ef34be43fb5e3",
+    "sha256": "45f476a75414fb6662959a83c80a115f11e4e0a6923b2281a7c3d31a7224ced5",
+    "status": "HTTP_ERROR_CAPTURED_API_KEY_INVALID",
+    "external_calls_sent": 1,
+    "retries": 0,
+    "http_status": 400,
+    "provider_error_status": "INVALID_ARGUMENT",
+    "provider_error_reasons": [
+      "API_KEY_INVALID"
+    ],
+    "prompt_characters": 9728,
+    "product_acceptance_eligible": false,
+    "credential_value_recorded": false,
+    "next": "Replace the invalid local Gemini credential in ignored configs/key.yaml; no further provider calls until a new exact egress packet is reviewed and explicitly authorized."
+  },
+  "latest_primary_egress_packet": {
+    "schema_version": 1,
+    "status": "PREPARED_FREE_TIER_SHARDS_NOT_EXECUTED",
+    "packet_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v30-parent.json",
+    "packet_sha256": "ba1e723d6d82bf941869692a6d75ac3f132db95c8d7b953c26f1062c1994c533",
+    "retry_manifest_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v30.json",
+    "retry_manifest_sha256": "958ec43d34406abf595aab1d229c129539120299ca656b2f7aa5adc83b6772b7",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "6003f0fc55bcb684fd2c1fe8914d58dfc7b1098b863b5a7184037d0a01b62a0f",
+      "runtime_sha256": "2ac74741dcc51035c35133a62f8a48e82bfe0a34180520cea05a962f770a5a79"
+    },
+    "source_identity_matches": true,
+    "provider": "Google Gemini API",
+    "model": "gemini-3.8-flash",
+    "population": {
+      "test": 35,
+      "holdout": 33,
+      "previously_exposed": true,
+      "fresh_validation_claim": false
+    },
+    "planned_provider_posts": 68,
+    "maximum_external_post_requests": 69,
+    "prompt_characters": 466369,
+    "maximum_prompt_characters": 478252,
+    "max_output_tokens_per_request": 1024,
+    "maximum_total_output_tokens": 70656,
+    "quota_window_policy": "one shard per America/Los_Angeles date; maximum 14 planned posts and 15 attempts including retry",
+    "external_provider_calls": 0,
+    "shards": [
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-01-of-05.json",
+        "sha256": "8256ec3f95ba82230c5a20fbdf70577dbfb783c85cb7be54df4add1bb697b69b",
+        "planned_posts": 14
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-02-of-05.json",
+        "sha256": "59d36bed8404627e453698249d0df00f10fb195c8a07b76925ed2ec4eb5b47b2",
+        "planned_posts": 13
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-03-of-05.json",
+        "sha256": "5da68fa9634a638084005c6c0d515372785f41560a502d47b87883f8ca1eb6b7",
+        "planned_posts": 13
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-04-of-05.json",
+        "sha256": "4afad9a32125e5d430361c024e35e2097d3ccdd25301e16b2c94d73d14aac459",
+        "planned_posts": 14
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-05-of-05.json",
+        "sha256": "60be9f409b6c766ae225cb013a2b2ca11b6f94bce111e4c8a84bbd67f683ff3f",
+        "planned_posts": 14
+      }
+    ]
+  },
+  "latest_primary_execution": {
+    "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261010-v32-parent\\shard-01\\summary.json",
+    "sha256": "7661ab9276835ea77f530b0c475ded295934c25c512b26f186909ae6b3de7e71",
+    "status": "PROVIDER_OR_INTERFACE_FAILURE_STOPPED",
+    "source_stable": true,
+    "attempts": 1,
+    "valid_current_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 0,
+    "provider_http_status": 400,
+    "provider_error_status": "INVALID_ARGUMENT",
+    "provider_error_reason": "API_KEY_INVALID",
+    "performance_started": false,
+    "integrations_started": false,
+    "budget_state": "product-primary-budget-state-20261010-v32.json (stopped after 1 attempt)",
+    "diagnostic_note": "The attempted value was the complete key_2=... assignment line, not the key value; API_KEY_INVALID therefore does not establish that the credential itself is invalid."
+  },
+  "previous_primary_egress_packet_v17": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_400_API_KEY_INVALID",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v17.json",
+    "packet_sha256": "87cbd445696e24aa4985de60e1c94948b152d5dce96e1f86e1adf1e98d259b34",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "provider_posts_maximum": 68,
+    "prompt_characters_maximum": 466369,
+    "prompt_characters_by_arm": {
+      "baseline": 26,
+      "current": 42
+    },
+    "scheduled_http_observations": 136,
+    "maximum_output_tokens_per_request": 4096,
+    "timeout_seconds": 60,
+    "retry_limit": 0,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_failed_observation": true,
+    "output_path": "evaluation/results/phase7-completion-20261004/product-primary-live-20261009-v17",
+    "output_path_absent": false,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 1,
+    "fee_status": "Provider charges possible; amount unknown.",
+    "user_reports_replacement_credential": true,
+    "provider_credential_validated": false,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 0,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v17.json"
+  },
+  "previous_primary_egress_packet_v18": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_400_API_KEY_INVALID",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v18.json",
+    "packet_sha256": "a8ecb47c572c3c0a0f31971134a8b908f063b3b38ffb8e440abf0889bf351b38",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "provider_posts_maximum": 68,
+    "prompt_characters_maximum": 466369,
+    "scheduled_http_observations": 136,
+    "maximum_output_tokens_per_request": 4096,
+    "timeout_seconds": 60,
+    "retry_limit": 0,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_failed_observation": true,
+    "output_path": "evaluation/results/phase7-completion-20261004/product-primary-live-20261009-v18",
+    "output_path_absent": false,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 1,
+    "provider_credential_validated": false,
+    "fee_status": "Provider charges possible; amount unknown.",
+    "collector_command": ".venv/Scripts/python.exe -m scripts.benchmarks.product_primary collect --packet evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v18.json --authorized-packet-sha256 a8ecb47c572c3c0a0f31971134a8b908f063b3b38ffb8e440abf0889bf351b38",
+    "user_reports_key_replaced_after_v17": true,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 0,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v18.json"
+  },
+  "current_primary_egress_packet_v19": {
+    "schema_version": 1,
+    "status": "STOPPED_LOCAL_URLERROR",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v19.json",
+    "packet_sha256": "780f89c5f5f35d5f56c4f9e65d2828eace327adcee869b418fa62b50ce0e2327",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "provider_posts_maximum": 68,
+    "prompt_characters_maximum": 466369,
+    "scheduled_http_observations": 136,
+    "maximum_output_tokens_per_request": 4096,
+    "timeout_seconds": 60,
+    "retry_limit": 0,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_failed_observation": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v19",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "provider_credential_validation": "Owner-reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v19.json",
+    "provider_attempts": 1,
+    "provider_http_responses": 0,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 0,
+    "failure_type": "URLError",
+    "source_stable": true,
+    "resume_allowed": false
+  },
+  "current_primary_egress_packet_v20": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_503_ZERO_RETRIES",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v20.json",
+    "packet_sha256": "8609428bf99b2a576d0b640ee7c58654cadd50f242eeada883acbb30343418f7",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "provider_posts_maximum": 68,
+    "prompt_characters_maximum": 466369,
+    "scheduled_http_observations": 136,
+    "maximum_output_tokens_per_request": 4096,
+    "timeout_seconds": 60,
+    "retry_limit": 0,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_failed_observation": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v20",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "previous_failure": "v19 stopped after one URLError before any provider HTTP response; no resume.",
+    "provider_credential_validation": "Owner-reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "preparation_reuse": "Exact offline-reviewed payloads from v19; no new retrieval/provider call.",
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v20.json",
+    "provider_attempts": 2,
+    "successful_outputs": 1,
+    "complete_pairs": 1,
+    "retries": 0,
+    "provider_http_status": 503,
+    "resume_allowed": false
+  },
+  "current_primary_egress_packet_v21": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_503_AFTER_ONE_GLOBAL_RETRY",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v21.json",
+    "packet_sha256": "593a8f55d2f4c00b04ad16a1f59109d1047326b75f0a71a86f1ff8cf218a8d6e",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v21.json",
+    "retry_manifest_sha256": "293fb8058ee23d786ed459a6232297b05d392c189ee6cb07874c64bcc6ebc974",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "planned_provider_posts": 68,
+    "maximum_extra_503_retries": 1,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_new_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 4096,
+    "maximum_total_output_tokens": 282624,
+    "timeout_seconds": 60,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_non503_failure_or_failed_retry": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v21",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "provider_credential_validation": "Owner reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "prior_observation": "v20 stopped after two POSTs: one complete pair, then provider HTTP 503; zero retries were authorized.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "retry_budget_initialized": true,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v21.json",
+    "provider_attempts": 2,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retry_limit_global": 1,
+    "retries": 1,
+    "provider_http_statuses": [
+      503,
+      503
+    ],
+    "source_stable": true,
+    "resume_allowed": false
+  },
+  "current_primary_egress_packet_v22": {
+    "schema_version": 1,
+    "status": "STOPPED_TIMEOUT_AFTER_ONE_503_RECOVERY",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v22.json",
+    "packet_sha256": "10a514d1845229190b4a3643911a178b6f2915db44cab87bf02de708dead618d",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v22.json",
+    "retry_manifest_sha256": "9ac2ead0af254b226e185b962bdf2b5146ce103649cc636cae5556ca6d647551",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "planned_provider_posts": 68,
+    "maximum_extra_503_retries": 1,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_new_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 4096,
+    "maximum_total_output_tokens": 282624,
+    "timeout_seconds": 60,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_non503_failure_or_failed_retry": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v22",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "prior_observation": "V21 received HTTP 503 on initial request and its one authorized retry; v21 consumed.",
+    "provider_credential_validation": "Owner reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "retry_budget_initialized": true,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v22.json",
+    "provider_attempts": 6,
+    "successful_outputs": 4,
+    "complete_pairs": 3,
+    "retry_limit_global": 1,
+    "retries": 1,
+    "provider_timeout": true,
+    "source_stable": true,
+    "resume_allowed": false
+  },
+  "current_primary_egress_packet_v23": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_503_AFTER_ONE_RETRY",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v23.json",
+    "packet_sha256": "2d1935a8bf4426e628dd173e96b294e5f15b100932ba9b80d2b43fae74a5ad19",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v23.json",
+    "retry_manifest_sha256": "d1f2c72cb1e78678acf6c57f53d661f07f7903c9b3fd26427d7674764bab7dac",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "planned_provider_posts": 68,
+    "maximum_extra_503_retries": 1,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_new_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 4096,
+    "maximum_total_output_tokens": 282624,
+    "timeout_seconds": 60,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_non503_failure_or_failed_retry": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v23",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "prior_observation": "V22 recovered one HTTP 503 with the one allowed retry, then stopped on a 60-second provider timeout; 3 complete pairs, not a full acceptance.",
+    "provider_credential_validation": "Owner reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "retry_budget_initialized": true,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v23.json",
+    "provider_attempts": 4,
+    "successful_outputs": 2,
+    "complete_pairs": 1,
+    "retries": 1,
+    "source_stable": true,
+    "resume_allowed": false
+  },
+  "current_primary_egress_packet_v24": {
+    "schema_version": 1,
+    "status": "STOPPED_HTTP_503_AFTER_ONE_RETRY",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v24.json",
+    "packet_sha256": "e1af411a99ce4824e41cfef5927d460104e211a1aa2af9b7906ac145d3076339",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v24.json",
+    "retry_manifest_sha256": "0ec222fbcc55ae2855fd5220a5deb1ea9e5aa6e6597bd54ede0069cb1bd4e328",
+    "source_identity_matches": true,
+    "all_input_bindings_match": true,
+    "planned_provider_posts": 68,
+    "maximum_extra_503_retries": 1,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_new_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 4096,
+    "maximum_total_output_tokens": 282624,
+    "timeout_seconds": 60,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_non503_failure_or_failed_retry": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v24",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "prior_observation": "V23 stopped on HTTP 503 after one authorized retry; one complete pair and two valid current outputs, not full acceptance.",
+    "provider_credential_validation": "Owner reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "retry_budget_initialized": true,
+    "execution_record": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261009-v24.json",
+    "provider_attempts": 2,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 1,
+    "source_stable": true,
+    "resume_allowed": false,
+    "provider_error_status": "UNAVAILABLE",
+    "provider_error_message": "Model currently experiencing high demand."
+  },
+  "current_primary_egress_packet_v25": {
+    "schema_version": 1,
+    "status": "STALE_AFTER_RUNTIME_PROFILE_CHANGE_DO_NOT_EXECUTE",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261009-v25.json",
+    "packet_sha256": "82b905a694d0a444511cce641bda5b2fca8da8495f55d534b5eed97266067bb9",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261009-v25.json",
+    "retry_manifest_sha256": "05b07c968ae63900c2570182685b38154921bbc9f608450c281895a564568fef",
+    "source_identity_matches": false,
+    "all_input_bindings_match": false,
+    "planned_provider_posts": 68,
+    "maximum_extra_503_retries": 1,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_new_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 4096,
+    "maximum_total_output_tokens": 282624,
+    "timeout_seconds": 60,
+    "minimum_provider_start_interval_seconds": 30,
+    "stop_on_first_non503_failure_or_failed_retry": true,
+    "output_path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261009-v25",
+    "output_path_absent": true,
+    "payload_is_previously_exposed_test_holdout": true,
+    "fresh_validation_claim": false,
+    "performance_or_integrations_included": false,
+    "external_calls_sent": 0,
+    "prior_observation": "V24 stopped after the initial current-arm request and one retry both returned HTTP 503; zero outputs or complete pairs.",
+    "provider_credential_validation": "Owner reported GET models/gemini-3.8-flash returned HTTP 200; credential not recorded.",
+    "fee_status": "Provider charges possible; amount unknown.",
+    "retry_budget_initialized": true,
+    "provider_state": "Not executed. Runtime source/config changed after preparation; prepare a new packet after identity refresh."
+  },
+  "runtime_resilience_fix_20261009": {
+    "status": "IMPLEMENTED_FOCUSED_OFFLINE_TESTS_PASS_AWAITING_FINAL_ACCEPTANCE",
+    "profile": {
+      "timeout_seconds": 15,
+      "max_retries": 1,
+      "retry_only_http_status": 503,
+      "retry_wait_seconds": [
+        1,
+        3
+      ],
+      "max_output_tokens": 1024,
+      "long_retry_after": "stop_without_retry",
+      "browser_wait_deadline_seconds": 45
+    },
+    "focused_test_command": "pytest tests/test_product_retry.py tests/test_product_primary.py tests/test_llm_acceptance.py tests/test_web.py tests/test_basic_rag.py tests/test_grounding_release_contract.py",
+    "focused_tests_passed": 115,
+    "provider_calls_sent": 0,
+    "stale_packets": [
+      "product-primary-egress-packet-20261009-v25.json",
+      "product-performance-egress-packet-20261009-v14.json"
+    ],
+    "notes": "C7-02 retrieval evidence is unchanged. Rebind C7-01/C7-03/C7-04/C7-05/C7-06 to the new source/runtime identity; no 6/6 claim."
+  },
+  "current_primary_egress_packet_v28": {
+    "schema_version": 1,
+    "status": "STOPPED_FREE_TIER_QUOTA_EXHAUSTED",
+    "packet_path": "evaluation/results/phase7-completion-20261004/product-primary-egress-packet-20261010-v28.json",
+    "packet_sha256": "6cde722a478a6fdbd8348ddddeeaea8380f054fa7a75b610917366aae3a104ef",
+    "retry_manifest_path": "evaluation/results/phase7-completion-20261004/product-primary-retry-egress-manifest-20261010-v28.json",
+    "retry_manifest_sha256": "25eda19fbb3bb2dc7623b9241e6dae9ce720985ab5c1aa5be77372afa8f63232",
+    "source_identity_matches": true,
+    "provider": "Google Gemini API",
+    "model": "gemini-3.8-flash",
+    "endpoint_host": "generativelanguage.googleapis.com",
+    "provider_posts_planned": 68,
+    "global_http_503_retry_max": 1,
+    "provider_posts_maximum": 69,
+    "prompt_characters_maximum": 478252,
+    "maximum_output_tokens_per_request": 1024,
+    "maximum_total_output_tokens": 70656,
+    "timeout_seconds": 15,
+    "minimum_provider_start_interval_seconds": 30,
+    "retry_only_status": 503,
+    "stop_on_first_nonrecoverable_failure": true,
+    "resume_allowed": false,
+    "population": {
+      "test": 35,
+      "holdout": 33,
+      "previously_exposed": true,
+      "fresh_validation_claim": false
+    },
+    "performance_or_integrations_included": false,
+    "provider_requests_sent": 4,
+    "retry_budget_state": {
+      "attempts": 4,
+      "retries": 1,
+      "stopped": true,
+      "max_calls": 69,
+      "max_prompt_chars": 478252,
+      "max_total_output_tokens": 70656
+    },
+    "fees": "Possible; amount unknown.",
+    "valid_current_outputs": 2,
+    "complete_pairs": 1,
+    "packet_consumed": true
+  },
+  "previous_primary_execution_v27": {
+    "path": "evaluation/results/phase7-completion-20261004/product-primary-execution-20261010-v27.json",
+    "sha256": "a964dbe4bc30601e370be9ce35e1abc58721c82cbbfaf6d4591b33f4c4ac125e",
+    "status": "PRIMARY_V27_STOPPED_PROVIDER_503_RETRY_EXHAUSTED",
+    "attempts": 2,
+    "successful_outputs": 0,
+    "complete_pairs": 0,
+    "retries": 1,
+    "performance_started": false,
+    "integrations_started": false
+  },
+  "current_primary_shard_bundle_v30": {
+    "status": "FIRST_SHARD_FAILED_PROVIDER_TRANSPORT_STOPPED",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "6003f0fc55bcb684fd2c1fe8914d58dfc7b1098b863b5a7184037d0a01b62a0f",
+      "runtime_sha256": "2ac74741dcc51035c35133a62f8a48e82bfe0a34180520cea05a962f770a5a79"
+    },
+    "parent_packet": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v30-parent.json",
+      "sha256": "ba1e723d6d82bf941869692a6d75ac3f132db95c8d7b953c26f1062c1994c533"
+    },
+    "retry_manifest": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v30.json",
+      "sha256": "958ec43d34406abf595aab1d229c129539120299ca656b2f7aa5adc83b6772b7"
+    },
+    "shards": [
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-01-of-05.json",
+        "sha256": "8256ec3f95ba82230c5a20fbdf70577dbfb783c85cb7be54df4add1bb697b69b",
+        "planned_posts": 14
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-02-of-05.json",
+        "sha256": "59d36bed8404627e453698249d0df00f10fb195c8a07b76925ed2ec4eb5b47b2",
+        "planned_posts": 13
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-03-of-05.json",
+        "sha256": "5da68fa9634a638084005c6c0d515372785f41560a502d47b87883f8ca1eb6b7",
+        "planned_posts": 13
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-04-of-05.json",
+        "sha256": "4afad9a32125e5d430361c024e35e2097d3ccdd25301e16b2c94d73d14aac459",
+        "planned_posts": 14
+      },
+      {
+        "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v30\\product-primary-shard-05-of-05.json",
+        "sha256": "60be9f409b6c766ae225cb013a2b2ca11b6f94bce111e4c8a84bbd67f683ff3f",
+        "planned_posts": 14
+      }
+    ],
+    "planned_posts": 68,
+    "maximum_attempts": 69,
+    "retry_limit": 1,
+    "retry_only_http_status": 503,
+    "quota_window_policy": {
+      "timezone": "America/Los_Angeles",
+      "one_shard_per_day": true,
+      "daily_planned_posts_cap": 14,
+      "attempt_cap_including_retry": 15,
+      "provider_model_version_must_match_across_all_shards": true
+    },
+    "external_provider_calls": 1,
+    "real_retry_budget_initialized": true,
+    "owner_cost_constraint": "Free Tier only; no billing or charges",
+    "budget_state": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-budget-state-20261010-v30.json",
+      "sha256": "cde921e58bd0d9adb1ecae15767a6264951ef32c068cc1401b9a37ce5fa824c0",
+      "attempts": 1,
+      "stopped": true
+    },
+    "scheduled_runner": {
+      "status": "SESSION_ENDED_NO_CALLS_BEFORE_MANUAL_POST_RESET_RUN",
+      "exec_session_id": 20102,
+      "script": ".tmp/phase7-v30-wait-shard01.py",
+      "scheduled_for_pacific": "2026-10-10T00:05:00-07:00",
+      "authorized_manifest_sha256": "958ec43d34406abf595aab1d229c129539120299ca656b2f7aa5adc83b6772b7",
+      "credential_source": "first non-empty line of ignored configs/key.yaml; never logged",
+      "provider_requests_sent": 0,
+      "previous_background_pid": 6412,
+      "previous_runner_ended_before_execution": true,
+      "date_calculation_bug_found": true
+    },
+    "first_shard_execution": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261010-v30-parent\\shard-01\\summary.json",
+      "sha256": "d2eef58e7329fcca5c147dc95a805f4b3bf0a7b8698ba0caf1d54631ae7bbe26",
+      "status": "PROVIDER_OR_INTERFACE_FAILURE_STOPPED",
+      "source_stable": true,
+      "provider_attempts": 1,
+      "retry_used": false,
+      "local_app_http_status": 200,
+      "provider_transport_error": "URLError",
+      "provider_http_status": null,
+      "quality_accepted": false,
+      "qid": "human-successor-05-compare",
+      "arm_steps": [
+        {
+          "arm": "baseline",
+          "qid": "human-successor-05-compare",
+          "step": 0,
+          "valid": true
+        },
+        {
+          "arm": "current",
+          "qid": "human-successor-05-compare",
+          "step": 1,
+          "valid": false
+        }
+      ]
+    }
+  },
+  "current_primary_shard_bundle_v31": {
+    "status": "FIRST_SHARD_FAILED_HTTP400_API_KEY_INVALID_STOPPED",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "6003f0fc55bcb684fd2c1fe8914d58dfc7b1098b863b5a7184037d0a01b62a0f",
+      "runtime_sha256": "2ac74741dcc51035c35133a62f8a48e82bfe0a34180520cea05a962f770a5a79"
+    },
+    "same_primary_inputs_as_v30": true,
+    "v30_failure_root_cause": "default sandbox TCP 443 egress blocked; DNS worked; escalated TCP-only connectivity succeeded",
+    "parent_packet": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v31-parent.json",
+      "sha256": "5901830a4e27d0f0798bca02523a388a6737d06c9e238773723dc80481e6100c"
+    },
+    "retry_manifest": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v31.json",
+      "sha256": "e4aa7bf5bfd9e5746dfa71edcf287262c243d7236d3ef7625c2f6685923b1bd9"
+    },
+    "shards": [
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v31\\product-primary-shard-01-of-05.json",
+        "sha256": "6407f8d73dc44e1e719bc18a90b7aac16416a40c926368e5c514fda4bad0cb88"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v31\\product-primary-shard-02-of-05.json",
+        "sha256": "02082b93b85cfc33bb84f947023b5fc6f5f5d2e6a93916f1a2348e2e7a1dfeb4"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v31\\product-primary-shard-03-of-05.json",
+        "sha256": "fb5b4b95165f605e1ed8f8a888e8e0d158312fc306fe4896cd60229e39cd5edd"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v31\\product-primary-shard-04-of-05.json",
+        "sha256": "775ce893fc6b29983f533d117d026c5ca7350b254b8f94470cf2e2ce91073904"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v31\\product-primary-shard-05-of-05.json",
+        "sha256": "f485bbba352a9f0a3a7d1890aa077b8060ef41b1990712f86a3b1c7b90d620a2"
+      }
+    ],
+    "planned_provider_posts": 68,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 1024,
+    "maximum_total_output_tokens": 70656,
+    "minimum_provider_start_interval_seconds": 30,
+    "timeout_seconds": 15,
+    "retry_policy": "one global retry, only HTTP 503; stop on first other error; no resume",
+    "quota_window_policy": {
+      "provider": "gemini_free_tier",
+      "reset_timezone": "America/Los_Angeles",
+      "max_shards_per_pacific_date": 1,
+      "max_planned_posts_per_shard": 14,
+      "max_attempts_per_shard_per_day": 15,
+      "model_version_must_remain_constant": true
+    },
+    "owner_cost_constraint": "Free Tier only; billing disabled",
+    "population": {
+      "test": 35,
+      "holdout": 33,
+      "previously_exposed": true,
+      "fresh_validation_claim": false
+    },
+    "budget_state": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-budget-state-20261010-v31.json",
+      "sha256": "1702c75c0fd008ba4613e86e25dce83e82175c5c9d06ecc6e4ddbaad6eff6d51",
+      "attempts": 1,
+      "stopped": true
+    },
+    "provider_calls": 1,
+    "auto_review_rejection": {
+      "action": "POST v31 shard 1 to Gemini",
+      "reason": "prior explicit approval covered v30 only; no explicit authorization for new v31 egress",
+      "bypass_attempted": false
+    },
+    "authorization_required": "explicit approval for this exact manifest and limits",
+    "first_shard_execution": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-live-20261010-v31-parent\\shard-01\\summary.json",
+      "sha256": "442527eba43ef0e753deba0fb0ebf48eedbf8cc06c1ad9347360be88fd2defff",
+      "status": "PROVIDER_OR_INTERFACE_FAILURE_STOPPED",
+      "provider_http_status": 400,
+      "provider_error_status": "INVALID_ARGUMENT",
+      "provider_error_reasons": [
+        "API_KEY_INVALID"
+      ],
+      "source_stable": true,
+      "quality_accepted": false
+    }
+  },
+  "current_primary_shard_bundle_v32": {
+    "status": "TERMINAL_AFTER_HTTP400_API_KEY_INVALID_WRONG_ENV_VALUE",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "6003f0fc55bcb684fd2c1fe8914d58dfc7b1098b863b5a7184037d0a01b62a0f",
+      "runtime_sha256": "2ac74741dcc51035c35133a62f8a48e82bfe0a34180520cea05a962f770a5a79"
+    },
+    "same_primary_inputs_as_v30": true,
+    "credential_source": "The runner passed the entire second key.yaml assignment line (key_2=...) instead of its parsed value; the actual key_2 credential has not been validated.",
+    "parent_packet": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v32-parent.json",
+      "sha256": "ce0fda6a7d9efa13ef7f0fe81c0b62f7ae0c1c4af27b7a47f9c049bc3e92b4a7"
+    },
+    "retry_manifest": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v32.json",
+      "sha256": "f9f2b7ded889df150a4fab4a5ab0ee733936e960633340f895173f68be1b6fcf"
+    },
+    "shards": [
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v32\\product-primary-shard-01-of-05.json",
+        "sha256": "5ea530b7acda0079f07aff6665f0deb17740b82b3e5718cc886b9957cc70abb2"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v32\\product-primary-shard-02-of-05.json",
+        "sha256": "d102d8d66c85a7c8bf466e75f439ba4ca25693b5a43f175f374ca42179e4d5dd"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v32\\product-primary-shard-03-of-05.json",
+        "sha256": "a5811fec9e4c1309732a142ad76060b8f11f550ce672ae874ae0a83f87ecdfc0"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v32\\product-primary-shard-04-of-05.json",
+        "sha256": "79e597af7260d97789c8a525c1b1db5031b44a19d1f250f1a5c70ef980465cf7"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v32\\product-primary-shard-05-of-05.json",
+        "sha256": "a6207e1a272c00bd75f9b7ab6df147e230e06efb96d694fb72409ed44edcb94a"
+      }
+    ],
+    "planned_provider_posts": 68,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 1024,
+    "maximum_total_output_tokens": 70656,
+    "minimum_provider_start_interval_seconds": 30,
+    "timeout_seconds": 15,
+    "retry_policy": "one global retry, only HTTP 503; stop on first other error; no resume",
+    "quota_window_policy": {
+      "provider": "gemini_free_tier",
+      "reset_timezone": "America/Los_Angeles",
+      "max_shards_per_pacific_date": 1,
+      "max_planned_posts_per_shard": 14,
+      "max_attempts_per_shard_per_day": 15,
+      "model_version_must_remain_constant": true
+    },
+    "model": "gemini-3.8-flash",
+    "reranker_enabled": false,
+    "owner_cost_constraint": "Free Tier only; billing disabled",
+    "population": {
+      "test": 35,
+      "holdout": 33,
+      "previously_exposed": true,
+      "fresh_validation_claim": false
+    },
+    "budget_state": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-budget-state-20261010-v32.json",
+      "sha256": "c3ea98e71968a93fa0afee737ff8402c617f8606131715600828794e83196d62",
+      "attempts": 1,
+      "stopped": true
+    },
+    "provider_calls": 1,
+    "authorization_required": "V32 is terminal and cannot resume. A new exact bundle/authorization is needed for a corrected execution; obey one-shard-per-Pacific-day policy.",
+    "failure_cause_verified": "Local credential extraction error: exact key_2 assignment value was not separated before setting GEMINI_API_KEY."
+  },
+  "current_primary_shard_bundle_v33": {
+    "status": "PREPARED_NOT_AUTHORIZED",
+    "source_identity": {
+      "commit": "f8e913616dfcc82ebb652dec36b19672e1abf512",
+      "source_sha256": "6003f0fc55bcb684fd2c1fe8914d58dfc7b1098b863b5a7184037d0a01b62a0f",
+      "runtime_sha256": "2ac74741dcc51035c35133a62f8a48e82bfe0a34180520cea05a962f770a5a79"
+    },
+    "same_payload_as_v32": true,
+    "credential_source": "key_2 value parsed after the assignment separator; value never copied into artifacts or logs; provider validity not yet checked",
+    "parent_packet": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-egress-packet-20261010-v33-parent.json",
+      "sha256": "36609315659c470a2ee183094a2b8b55d9e07a40216b0a604b61979046464219"
+    },
+    "retry_manifest": {
+      "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-retry-manifest-20261010-v33.json",
+      "sha256": "482de5afde5bfbc4013ea24c2715977453ae98bd14b3cc20cd1f1ac12538ba75"
+    },
+    "shards": [
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v33\\product-primary-shard-01-of-05.json",
+        "sha256": "9d79716a7430ac73c0919c68f70fa83c78d83edc6b4cdac81bcb72960da51069"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v33\\product-primary-shard-02-of-05.json",
+        "sha256": "119d0a5179716e787e681049e3311cc6d694b6095b6eea205106cff4b63c297f"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v33\\product-primary-shard-03-of-05.json",
+        "sha256": "27a2655bb4a5a52d7589a8d4663b97948eaf702bd5ed55167c980344827ffcb9"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v33\\product-primary-shard-04-of-05.json",
+        "sha256": "185b99c6b27cf098b2b63519fe06767b8a256d7890701a0da3074456b6e82db7"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-shards-20261010-v33\\product-primary-shard-05-of-05.json",
+        "sha256": "8831a396a02cf5f66b1aca99be89df5f116d33c2f8e08e2cc224b0d3d836e04b"
+      }
+    ],
+    "planned_provider_posts": 68,
+    "maximum_external_post_requests": 69,
+    "planned_prompt_characters": 466369,
+    "maximum_prompt_characters": 478252,
+    "maximum_output_tokens_per_request": 1024,
+    "maximum_total_output_tokens": 70656,
+    "minimum_provider_start_interval_seconds": 30,
+    "timeout_seconds": 15,
+    "retry_policy": "One global retry only for HTTP 503; stop on other errors; no resume.",
+    "quota_window_policy": {
+      "provider": "gemini_free_tier",
+      "reset_timezone": "America/Los_Angeles",
+      "max_shards_per_pacific_date": 1,
+      "max_planned_posts_per_shard": 14,
+      "max_attempts_per_shard_per_day": 15,
+      "model_version_must_remain_constant": true
+    },
+    "model": "gemini-3.8-flash",
+    "reranker_enabled": false,
+    "owner_cost_constraint": "Free Tier only; billing disabled",
+    "population": {
+      "test": 35,
+      "holdout": 33,
+      "previously_exposed": true,
+      "fresh_validation_claim": false
+    },
+    "budget_state": {
+      "path": "D:\\Project\\evaluation\\results\\phase7-completion-20261004\\product-primary-budget-state-20261010-v33.json",
+      "created": false,
+      "attempts": 0
+    },
+    "provider_calls": 0,
+    "authorization_required": "Exact v33 manifest authorization; no shard before the next Pacific quota date."
+  }
 }

@@ -33,3 +33,8 @@
 /data/benchmark/** -text
 /data/corpus/** -text
 /evaluation/results/** -text
+
+# Phase 8 frozen benchmark/review packets also bind exact physical bytes.
+/evaluation/phase8/*.jsonl -text
+/evaluation/phase8/*.md -text
+/evaluation/phase8/** whitespace=cr-at-eol
