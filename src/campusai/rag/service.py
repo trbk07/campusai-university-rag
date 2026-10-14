@@ -6,7 +6,7 @@ import hashlib
 import json
 import re
 from collections import OrderedDict
-from dataclasses import replace
+from dataclasses import replace, asdict
 from threading import local, RLock
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -20,7 +20,7 @@ from .grounding import GroundedAnswer, GroundedAnswerGenerator
 from .context import resolve_query, authorized_scope
 from ..observability import MetricsRegistry
 from ..retrieval.canary_rollout import CanaryController, rollback_retriever
-from ..retrieval.contracts import validate_filters
+from ..retrieval.contracts import validate_filters, RETRIEVAL_MODES
 from .temporal import (parse_temporal_intent, resolve_temporal, temporal_fingerprint,
                        document_from_items, verified_documents, fold)
 from ..retrieval.tokenizer_vi import source_body
@@ -72,6 +72,7 @@ class CampusAIQueryService:
         canary: CanaryController | None = None,
         temporal_clock=None,
         temporal_timezone: str = "Asia/Bangkok",
+        relation_index=None,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
@@ -87,6 +88,7 @@ class CampusAIQueryService:
         self.temporal_timezone = temporal_timezone
         self.temporal_clock = temporal_clock or (lambda: datetime.now(ZoneInfo(temporal_timezone)).date())
         self._temporal_index_cache = OrderedDict()
+        self.relation_index = relation_index
 
     def _temporal_documents(self, doc_ids, filters=None):
         """Read existing BM25 metadata once per file generation; never load a model."""
@@ -151,6 +153,7 @@ class CampusAIQueryService:
         self._request_local.temporal_trace = None
         self._request_local.multi_hop_trace = None
         self._request_local.multi_hop_plan = None
+        self._request_local.relation_trace = None
 
     @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
@@ -261,6 +264,24 @@ class CampusAIQueryService:
             return []
         if temporal.status == 'resolved':
             doc_ids = list(temporal.eligible_doc_ids)
+        if self.relation_index is not None:
+            from .relations import plan_relation,relation_results
+            plan=plan_relation(question,[d for d in temporal_docs if doc_ids is None or d['doc_id'] in doc_ids])
+            if plan is not None:
+                if plan.problem or top_k<=0:
+                    self._request_local.relation_trace=dict(kind=plan.kind,problem=plan.problem or 'retrieval_budget_empty',
+                        adjacency_lookups=0,nodes_visited=0,edges_visited=0,candidate_chunks=0,proof_fetches=0)
+                    return []
+                outcome=self.relation_index.lookup(plan.source.doc_id,plan.code,kind=plan.kind,filters=filters)
+                self._request_local.relation_trace=outcome['trace']
+                legacy=plan_request(question,temporal_docs)
+                if (outcome['trace']['problem'] and not outcome['trace']['adjacency_lookups']
+                        and not outcome['trace']['proof_fetches'] and plan.kind=='direct'
+                        and legacy.kind=='prerequisite_lookup' and not legacy.problem):
+                    self._request_local.relation_trace['fallback']='legacy_composition_no_graph_work'
+                else:
+                    self.last_retrieval=relation_results(outcome)
+                    return self.last_retrieval
         composition = plan_request(question, [d for d in temporal_docs
             if doc_ids is None or d['doc_id'] in doc_ids])
         self._request_local.multi_hop_plan = composition
@@ -325,6 +346,14 @@ class CampusAIQueryService:
         if temporal.status == 'resolved':
             doc_ids = list(temporal.eligible_doc_ids)
         selected_mode = self._selected_mode(question, mode, request_id)
+        if self.relation_index is not None:
+            if selected_mode not in RETRIEVAL_MODES:
+                raise ValueError('unsupported retrieval mode')
+            related = self._ask_relation_if_supported(question, doc_ids, filters, top_k,
+                selected_mode, language, corpus_version, [d for d in temporal_docs
+                    if doc_ids is None or d['doc_id'] in doc_ids], resolved.cache_context())
+            if related is not None:
+                return related
         composition = plan_request(question, [d for d in temporal_docs
             if doc_ids is None or d['doc_id'] in doc_ids])
         self._request_local.multi_hop_plan = composition
@@ -367,6 +396,64 @@ class CampusAIQueryService:
         )
         with self.metrics.observe("rag.ask"):
             return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)
+
+    def _ask_relation_if_supported(self, question, doc_ids, filters, top_k, selected_mode,
+                                   language, supplied_version, documents, request_context):
+        from .relations import plan_relation,compose_relation,relation_results,answer_policy_fingerprint
+        from .relation_index import RelationUnavailable
+        from .grounding import _abstention
+        plan=plan_relation(question,documents)
+        if plan is None:
+            return None
+        trace=dict(kind=plan.kind,adjacency_lookups=0,nodes_visited=0,edges_visited=0,
+                   candidate_chunks=0,proof_fetches=0,cold_source_loads=0,problem=plan.problem,cache_hit=False)
+        self._request_local.relation_trace=trace
+        if plan.problem or top_k<=0:
+            return _abstention('ambiguous_question' if plan.problem else 'no_retrieval_evidence')
+        try:
+            fingerprint=self.relation_index.fingerprint([plan.source.doc_id])
+        except RelationUnavailable as exc:
+            trace['problem']=str(exc)
+            legacy=plan_request(question,documents)
+            if plan.kind=='direct' and legacy.kind=='prerequisite_lookup' and not legacy.problem:
+                trace['fallback']='legacy_composition_no_graph_work'
+                return None
+            return _abstention('insufficient_evidence')
+        budget=dict(max_chars=min(12000,self.answer_generator.max_context_chars),
+                    max_tokens=self.answer_generator.max_context_tokens,
+                    relation_generation=fingerprint,relation_request=asdict(plan),
+                    relation_answer_policy=answer_policy_fingerprint())
+        key=build_rag_cache_key(question=question,language=language,doc_ids=doc_ids,filters=filters,
+            top_k=top_k,mode=selected_mode,corpus_version=supplied_version or fingerprint,
+            model='source-relations/local',context_budget=budget,request_context=request_context)
+        with self.metrics.observe('rag.ask'),self.cache.lock(key):
+            cached=self.cache.get(key)
+            if cached is not None:
+                try:
+                    if self.relation_index.fingerprint([plan.source.doc_id])!=fingerprint:
+                        return _abstention('insufficient_evidence')
+                except RelationUnavailable:
+                    return _abstention('insufficient_evidence')
+                trace['cache_hit']=True
+                return self._cached_answer(cached,'source_relations')
+            with stage('relation_lookup'):
+                outcome=self.relation_index.lookup(plan.source.doc_id,plan.code,kind=plan.kind,filters=filters)
+            self._request_local.relation_trace={**outcome['trace'],'cache_hit':False}
+            self.last_retrieval=relation_results(outcome)
+            with stage('grounding'):
+                answer=compose_relation(plan,outcome,self.answer_generator,language)
+            self.retriever.last_trace=RoutingTrace(route='source_relations',exact_match=not answer.abstained,
+                filters_applied=bool(filters),candidate_count=outcome['trace']['candidate_chunks'],
+                final_count=len(self.last_retrieval),abstained=answer.abstained,abstention_reason=answer.reason)
+            # Never persist a transient corrupt/missing/proof-failure result.
+            if not answer.abstained:
+                try:
+                    if self.relation_index.fingerprint([plan.source.doc_id])!=fingerprint:
+                        return _abstention('insufficient_evidence')
+                except RelationUnavailable:
+                    return _abstention('insufficient_evidence')
+                self.cache.put(key,answer)
+            return answer
 
     def _ask_uncached_or_cached(self, question, doc_ids, filters, top_k, selected_mode, language, version, key):
         self.last_retrieval = []

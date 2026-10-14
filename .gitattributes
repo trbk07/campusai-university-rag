@@ -57,3 +57,13 @@
 /evaluation/phase10/** whitespace=cr-at-eol
 /docs/phase*_*.md whitespace=cr-at-eol
 /plan.md whitespace=cr-at-eol
+
+# Freeze the source-owned relation benchmark and exact runtime bytes for audit.
+/evaluation/phase11/*.json -text
+/evaluation/phase11/*.jsonl -text
+/evaluation/phase11/*.py -text
+/evaluation/phase11/** whitespace=cr-at-eol
+/src/campusai/rag/relation_index.py -text
+/src/campusai/rag/relations.py -text
+/tests/test_relation_index.py -text
+/tests/test_relation_application.py -text

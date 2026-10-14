@@ -1,0 +1,100 @@
+{
+  "status": "FROZEN_BEFORE_RELATION_INDEX_PROTOTYPE",
+  "baseline_identity": {
+    "commit": "b3c68084975471eab5eac788692ad723afe7fa3f",
+    "source_sha256": "18d01e9e64572bd0b4b2247c1bbdb944113af21a62e4584c1efbeaef722bccc7",
+    "runtime_sha256": "975e7a7bd38b22b1e5ab4469e6ef638f0297894f9c43a600cd2af12e1af39260"
+  },
+  "count": 16,
+  "dev": 8,
+  "acceptance": 8,
+  "positive": 8,
+  "negative": 8,
+  "families_disjoint": true,
+  "exposure": "Previously exposed corpus; not fresh validation.",
+  "provider_posts": 0,
+  "benefit": {
+    "branch": "quality",
+    "minimum_distinct_dev_failures_fixed": 2,
+    "known_candidate_cases": [
+      "p11-dev-02",
+      "p11-dev-04"
+    ],
+    "note": "Baseline full-service zero-generation false abstention must be observed; parser inventory alone is not enough."
+  },
+  "budget": {
+    "max_hops": 2,
+    "max_source_groups": 2,
+    "max_adjacency_lookups": 2,
+    "max_nodes": 40,
+    "max_edges": 40,
+    "max_candidates": 40,
+    "max_search_candidates": 20,
+    "max_searches": 2,
+    "max_encoder_queries": 2,
+    "max_generation": 1,
+    "context_chars": 12000,
+    "output_tokens": 1024
+  },
+  "requirements": {
+    "positive_accuracy": 1,
+    "negative_accuracy": 1,
+    "edge_claim_citation_coordinate_schema_validity": 1,
+    "false_edge": 0,
+    "false_merge": 0,
+    "scope_leak": 0,
+    "unsupported": 0,
+    "contradicted": 0,
+    "false_abstention": 0,
+    "minimum_offline_coverage": 85
+  },
+  "pilot_sources": {
+    "mech": {
+      "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "source_index": ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "source_name": "uet_mechatronics_curriculum_2023.pdf",
+      "pdf": "data/corpus/university/uet_mechatronics_curriculum_2023.pdf",
+      "split": "dev"
+    },
+    "robot": {
+      "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "source_index": ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "source_name": "uet_robotics_curriculum_2020.pdf",
+      "pdf": "data/corpus/phase7_source_expansion/20261004b/uet_robotics_curriculum_2020.pdf",
+      "split": "dev"
+    },
+    "electronics": {
+      "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "source_index": ".tmp/hybrid-index/cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "source_name": "uet_electronics_program_2023.pdf",
+      "pdf": "data/corpus/university/uet_electronics_program_2023.pdf",
+      "split": "acceptance"
+    },
+    "electronics_master": {
+      "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "source_index": ".tmp/phase7-curated-source-20261005-v2/index/1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "source_name": "uet_electronics_masters_curriculum_2022.pdf",
+      "pdf": "data/corpus/phase7_source_expansion/20261004b/uet_electronics_masters_curriculum_2022.pdf",
+      "split": "acceptance"
+    }
+  },
+  "qualification": "Quality regression plus local runtime observations, not API availability/latency/native-format qualification.",
+  "bindings": {
+    ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/bm25.json": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+    ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/dense.json": "77c8bac55045cdb6ca43c7315429ba657597a46fcbb2df389a09d9800c79232a",
+    "data/corpus/university/uet_mechatronics_curriculum_2023.pdf": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+    ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/bm25.json": "6bd45bbbac91f5aac2c54b54ed6b3d96d1272f1e99d05336c7f0c44abc1b0022",
+    ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/dense.json": "bf92b561c2d2c37bbc0a00e884cae40a4ebd3c4bf8486312a7f08eab6b9d60a9",
+    "data/corpus/phase7_source_expansion/20261004b/uet_robotics_curriculum_2020.pdf": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+    ".tmp/hybrid-index/cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/bm25.json": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea",
+    ".tmp/hybrid-index/cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/dense.json": "e99eac93660bbc2a2a50cc53ee17ac380c4ee5448043ebadfd36590914ceb1a7",
+    "data/corpus/university/uet_electronics_program_2023.pdf": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+    ".tmp/phase7-curated-source-20261005-v2/index/1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/bm25.json": "91da6444928414f2dcfe828a3fb6d8ade781396625e8defb84dabbbb1424ec9e",
+    ".tmp/phase7-curated-source-20261005-v2/index/1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/dense.json": "a0795731c03aa698ff25cd0459ab0ee90fdfd6e035ce1accc49c8ff25e1af03e",
+    "data/corpus/phase7_source_expansion/20261004b/uet_electronics_masters_curriculum_2022.pdf": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+    "evaluation/phase11/benchmark.jsonl": "e6cf20c7db6db4266e6ca5dee269835e4dc2025682b6d5f8fd635a85affc51fb",
+    "evaluation/phase11/source-rubric.json": "8158dde4c6f67cf748f8e381a47a934524b053962a60d3187414fcd6e7278da2",
+    ".local_artifacts/experiment_runs/phase11-20261014/source-review.json": "0311a9ec29d1359ecfd0048a0495d6830e8d764a4ac18cab1339f25adc251f37",
+    ".local_artifacts/experiment_runs/phase11-20261014/source-inventory.json": "c194f692bbf871a2311323965ae82b9b7b6944e84f7af9aefdf3c5fd53af5383"
+  }
+}

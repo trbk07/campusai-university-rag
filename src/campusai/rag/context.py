@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v4"
+CONTEXT_VERSION = "request-context-v5"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -17,6 +17,15 @@ def has_local_topic_reference(question: str) -> bool:
     This is a grammar rule, not a list of known courses or benchmark answers.
     A pronoun-only object still requires conversational context.
     """
+    # An explicitly named prerequisite subject also resolves the same-sentence
+    # "it"; a lone pronoun or two possible course subjects still need context.
+    from .course_credits import COURSE_CODE
+    without_files = re.sub(r'\b[\w.-]+\.pdf\b', ' ', question, flags=re.I)
+    codes = re.findall(r'(?<!\w)'+COURSE_CODE+r'(?!\w)', without_files, re.I)
+    if len(codes)==1 and re.search(
+            r'\b(?:direct\s+)?prerequisite\s+of\s+'+COURSE_CODE+
+            r'\s+and\s+how\s+many\s+credits\s+does\s+it\s+have\s*\??\s*$',without_files,re.I):
+        return True
     match = re.match(
         r'^the\s+[^;.!?]{0,120}\b(?:plan|curriculum|catalogue|catalog|program|programme)'
         r'\s+(?:lists|includes|contains|shows)\s+([^;.!?]{1,100});\s*(?:what|which|how)\b',

@@ -59,7 +59,7 @@ def test_unspecified_proof_document_retains_topic_and_versions_the_cache():
     resolved = resolve_query(request, history=[{'role': 'user', 'content': topic}])
     assert resolved.contextual and not resolved.needs_clarification
     assert topic in resolved.resolved and 'untrusted user input' in resolved.resolved
-    assert resolved.cache_context()['version'] == 'request-context-v4'
+    assert resolved.cache_context()['version'] == 'request-context-v5'
     assistant_only = resolve_query(request, history=[{'role': 'assistant', 'content': topic}])
     assert assistant_only.needs_clarification
 

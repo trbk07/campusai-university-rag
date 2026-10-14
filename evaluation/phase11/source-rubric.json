@@ -1,0 +1,1380 @@
+{
+  "status": "AUTOMATED_SOURCE_REVIEW_COMPLETE",
+  "reviewer": "Codex — Automated AI Review",
+  "officially_human_approved": false,
+  "benchmark_sha256": "e6cf20c7db6db4266e6ca5dee269835e4dc2025682b6d5f8fd635a85affc51fb",
+  "cases": [
+    {
+      "qid": "p11-dev-01",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "INT2209",
+          "prerequisite": "INT1006",
+          "source": "mech",
+          "proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "INT2209",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p4_t1",
+            "page": 4,
+            "table_row": 7,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "28.",
+              "INT2209",
+              "Mạng máy tính\nComputer Network",
+              "3",
+              "30",
+              "15",
+              "",
+              "INT1006"
+            ],
+            "cells_sha256": "8cf157ba50cabc804cdaf23919b7d76ae6f77b6e00f13792d0bcd5090b4c6f4f",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "INT1006",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+            "page": 2,
+            "table_row": 7,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "6.",
+              "INT1006",
+              "Tin học cơ sở 4\nIntroduction to Informatics 4",
+              "3",
+              "20",
+              "23",
+              "2",
+              "INT1003"
+            ],
+            "cells_sha256": "6196052418554aac25cd0588593f0a9072f47eb77831d61375be6aa40c67d3a0",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "code": "INT1006",
+          "credits": 3,
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+          "page": 2,
+          "table_row": 7,
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ],
+          "cells": [
+            "6.",
+            "INT1006",
+            "Tin học cơ sở 4\nIntroduction to Informatics 4",
+            "3",
+            "20",
+            "23",
+            "2",
+            "INT1003"
+          ],
+          "cells_sha256": "6196052418554aac25cd0588593f0a9072f47eb77831d61375be6aa40c67d3a0",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-02",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "PHI1005",
+          "prerequisite": "PHI1004",
+          "source": "mech",
+          "proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "PHI1005",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+            "page": 2,
+            "table_row": 3,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "2.",
+              "PHI1005",
+              "Những nguyên lý cơ bản của\nchủ nghĩa Mác – Lênin 2\nFundamental Principles of\nMarxism-Leninism 2",
+              "3",
+              "36",
+              "9",
+              "",
+              "PHI1004"
+            ],
+            "cells_sha256": "4dcc22586024382905d1e2a2a8d7e57047a02e93ff6284f9c3ec1cef4f6400cd",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "PHI1004",
+            "credits": 2,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+            "page": 2,
+            "table_row": 2,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "1.",
+              "PHI1004",
+              "Những nguyên lý cơ bản của\nchủ nghĩa Mác – Lênin 1\nFundamental Principles of\nMarxism-Leninism 1",
+              "2",
+              "24",
+              "6",
+              "",
+              ""
+            ],
+            "cells_sha256": "776e8061536db318c61fc6a368efad72713465d16e97fbb4814795623d4b1777",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        }
+      ],
+      "required_facts": [],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-03",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "EMA2012",
+          "prerequisite": "EMA2037E",
+          "source": "mech",
+          "proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "EMA2012",
+            "credits": 4,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p4_t1",
+            "page": 4,
+            "table_row": 4,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "25.",
+              "EMA2012",
+              "Sức bền vật liệu và cơ học kết\ncấu\nStrength of Materials and\nStructural Mechanics",
+              "4",
+              "45",
+              "15",
+              "",
+              "EMA2037E"
+            ],
+            "cells_sha256": "b1f7542d9820c278fe30d574cbcce5844a9db6e4dcfadba7fea669429f4533ed",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "EMA2037E",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+            "page": 3,
+            "table_row": 15,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "22.",
+              "EMA2037E",
+              "Cơ học kỹ thuật 2 *",
+              "3",
+              "30",
+              "15",
+              "",
+              "EMA2036E"
+            ],
+            "cells_sha256": "c0e8ad5318505d2eb12aa96703312765473da83a7cb1eb99153b88b62bfd3039",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        },
+        {
+          "dependent": "EMA2037E",
+          "prerequisite": "EMA2036E",
+          "source": "mech",
+          "proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "EMA2037E",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+            "page": 3,
+            "table_row": 15,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "22.",
+              "EMA2037E",
+              "Cơ học kỹ thuật 2 *",
+              "3",
+              "30",
+              "15",
+              "",
+              "EMA2036E"
+            ],
+            "cells_sha256": "c0e8ad5318505d2eb12aa96703312765473da83a7cb1eb99153b88b62bfd3039",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "mech",
+            "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+            "code": "EMA2036E",
+            "credits": 3,
+            "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+            "page": 3,
+            "table_row": 14,
+            "headers": [
+              "STT",
+              "Mã học\nphần",
+              "Học phần",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số\nhọc phần\ntiên quyết"
+            ],
+            "cells": [
+              "21.",
+              "EMA2036E",
+              "Cơ học kỹ thuật 1 *\nEngineering Mechanics 1",
+              "3",
+              "30",
+              "15",
+              "",
+              "MAT1093\nMAT1042"
+            ],
+            "cells_sha256": "c83845c7668c653e57157da64233ac759cdfb32607d2984ab37af26bc8a7dec7",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "code": "EMA2036E",
+          "credits": 3,
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 14,
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ],
+          "cells": [
+            "21.",
+            "EMA2036E",
+            "Cơ học kỹ thuật 1 *\nEngineering Mechanics 1",
+            "3",
+            "30",
+            "15",
+            "",
+            "MAT1093\nMAT1042"
+          ],
+          "cells_sha256": "c83845c7668c653e57157da64233ac759cdfb32607d2984ab37af26bc8a7dec7",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-04",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "ELT3051",
+          "prerequisite": "ELT2035",
+          "source": "robot",
+          "proof": {
+            "source": "robot",
+            "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+            "code": "ELT3051",
+            "credits": 3,
+            "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+            "page": 12,
+            "table_row": 18,
+            "headers": [
+              "Số\nTT",
+              "Mã số",
+              "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "28.",
+              "ELT3051",
+              "Kỹ thuật điều khiển\nControl Engineering",
+              "3",
+              "45",
+              "",
+              "",
+              "ELT2035"
+            ],
+            "cells_sha256": "f907d6ed195d979343a68055586daaa6f9f4da1b9156e21c3250d2271d6c2f0d",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "robot",
+            "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+            "code": "ELT2035",
+            "credits": 3,
+            "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+            "page": 12,
+            "table_row": 2,
+            "headers": [
+              "Số\nTT",
+              "Mã số",
+              "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "16.",
+              "ELT2035",
+              "Tín hiệu và hệ thống\nSignals and systems",
+              "3",
+              "45",
+              "",
+              "",
+              "MAT1042"
+            ],
+            "cells_sha256": "a853a8d35f9afed7a46e9157b0bdb0f5322f0d1edbf884597fa8192b036731ab",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        },
+        {
+          "dependent": "ELT2035",
+          "prerequisite": "MAT1042",
+          "source": "robot",
+          "proof": {
+            "source": "robot",
+            "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+            "code": "ELT2035",
+            "credits": 3,
+            "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p12_t1",
+            "page": 12,
+            "table_row": 2,
+            "headers": [
+              "Số\nTT",
+              "Mã số",
+              "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "16.",
+              "ELT2035",
+              "Tín hiệu và hệ thống\nSignals and systems",
+              "3",
+              "45",
+              "",
+              "",
+              "MAT1042"
+            ],
+            "cells_sha256": "a853a8d35f9afed7a46e9157b0bdb0f5322f0d1edbf884597fa8192b036731ab",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "robot",
+            "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+            "code": "MAT1042",
+            "credits": 4,
+            "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+            "page": 11,
+            "table_row": 13,
+            "headers": [
+              "Số\nTT",
+              "Mã số",
+              "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+              "Số\ntín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "11.",
+              "MAT1042",
+              "Giải tích 2\nCalculus 2",
+              "4",
+              "30",
+              "30",
+              "",
+              "MAT1041"
+            ],
+            "cells_sha256": "9a992198549baad7ac84ef0e8c21c99f3caff90bf3355667dda9dbcf940bcc21",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 7
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "robot",
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "code": "MAT1042",
+          "credits": 4,
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+          "page": 11,
+          "table_row": 13,
+          "headers": [
+            "Số\nTT",
+            "Mã số",
+            "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "11.",
+            "MAT1042",
+            "Giải tích 2\nCalculus 2",
+            "4",
+            "30",
+            "30",
+            "",
+            "MAT1041"
+          ],
+          "cells_sha256": "9a992198549baad7ac84ef0e8c21c99f3caff90bf3355667dda9dbcf940bcc21",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-05",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [],
+      "negative_basis": "Same code across programs does not establish equivalence; mechatronics also has conflicting prerequisite occurrences. No merge or inference permitted.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-06",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [],
+      "negative_basis": "Explicit source is outside authorized scope; intersection empty; no source traversal allowed.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-07",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "code": "MAT1041",
+          "credits": 4,
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 6,
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ],
+          "cells": [
+            "15.",
+            "MAT1041",
+            "Giải tích 1\nAnalytics 1",
+            "4",
+            "30",
+            "30",
+            "",
+            ""
+          ],
+          "cells_sha256": "2bf56ecab2a37e84a923a3c701cc89c9599fbc959cfe745b5eaf2e41bb8427a9",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": "Blank prerequisite cell does not establish a direct edge.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-dev-08",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "code": "EMA2050",
+          "credits": 3,
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 11,
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ],
+          "cells": [
+            "19.",
+            "EMA2050",
+            "Xác suất thống kê ứng dụng\nApplied Probability and\nStatistic",
+            "3",
+            "30",
+            "15",
+            "",
+            "MAT1093\nMAT1042"
+          ],
+          "cells_sha256": "99f137a9236160bb27e1d6b1948e97e49affe6c5a1c60e62676cfb48bcd60a84",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": "Two identifiers MAT1093/MAT1042 in prerequisite cell; single-edge/AND/OR interpretation not supported.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-01",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "ELT3103",
+          "prerequisite": "ELT2041",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT3103",
+            "credits": 2,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 8,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "28",
+              "ELT 3103",
+              "Thực tập điện tử số\nDigital Electronics Lab",
+              "",
+              "",
+              "2",
+              "",
+              "30",
+              "",
+              "ELT2041"
+            ],
+            "cells_sha256": "58c7cfdf824765545fe49c8193fb716fd8ff2efeae26afad9c3688f0b97f44ad",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2041",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 6,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "26",
+              "ELT 2041",
+              "Điện tử số\nDigital Electronics",
+              "",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              ""
+            ],
+            "cells_sha256": "00b0332fb8ded1e6567a8a36ade14d6c3af4f23467df19288aaee405d7ce5044",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "prerequisite_column": 9
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "code": "ELT2041",
+          "credits": 3,
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần",
+            "",
+            "",
+            "Số tín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "26",
+            "ELT 2041",
+            "Điện tử số\nDigital Electronics",
+            "",
+            "",
+            "3",
+            "45",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "00b0332fb8ded1e6567a8a36ade14d6c3af4f23467df19288aaee405d7ce5044",
+          "code_column": 1,
+          "credit_column": 5
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-02",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "ELT2040",
+          "prerequisite": "ELT2030",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2040",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 5,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "25",
+              "ELT 2040",
+              "Điện tử tương tự\nAnalog Electronics",
+              "",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              "ELT2030"
+            ],
+            "cells_sha256": "0fb6cb8a4fbb35da4fc645f1ce8feddcfecb537a1bea8fe236c2e000bdf9feb5",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2030",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 4,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "24",
+              "ELT 2030",
+              "Kỹ thuật điện\nElectrical Engineering",
+              "",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              ""
+            ],
+            "cells_sha256": "db0d07bc52e05967eda73a13746b44b3d34edafdbd1b88e01b724f8392050d53",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "prerequisite_column": 9
+        }
+      ],
+      "required_facts": [],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-03",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "ELT3189",
+          "prerequisite": "ELT2036",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT3189",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p10_t1",
+            "page": 10,
+            "table_row": 6,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "39",
+              "ELT 3189",
+              "Kỹ thuật anten\nAntenna Techniques",
+              "3",
+              "45",
+              "",
+              "",
+              "ELT2036"
+            ],
+            "cells_sha256": "80d2c914db43d936c0c61c9c672bbf9a0951c2ae24c2f3289983c12dd90d15e5",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2036",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 16,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "34",
+              "ELT 2036",
+              "",
+              "Kỹ thuật điện từ",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              "EPN1096"
+            ],
+            "cells_sha256": "6e34fad22847d00729fabd6a85ba5a3b875972a67e0c6d469fde6cc37aa58da3",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "prerequisite_column": 7
+        },
+        {
+          "dependent": "ELT2036",
+          "prerequisite": "EPN1096",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2036",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 16,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "34",
+              "ELT 2036",
+              "",
+              "Kỹ thuật điện từ",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              "EPN1096"
+            ],
+            "cells_sha256": "6e34fad22847d00729fabd6a85ba5a3b875972a67e0c6d469fde6cc37aa58da3",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "EPN1096",
+            "credits": 2,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p8_t1",
+            "page": 8,
+            "table_row": 12,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "17",
+              "EPN 1096",
+              "Vật lý đại cương 2\nGeneral Physics 2",
+              "2",
+              "30",
+              "",
+              "",
+              "EPN1095"
+            ],
+            "cells_sha256": "5011c67d9a7852d996d37c7f91f97a9bc83b1e44f6a8d91601c0a1a11c1bf4ca",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 9
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "code": "EPN1096",
+          "credits": 2,
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p8_t1",
+          "page": 8,
+          "table_row": 12,
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần",
+            "Số tín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "17",
+            "EPN 1096",
+            "Vật lý đại cương 2\nGeneral Physics 2",
+            "2",
+            "30",
+            "",
+            "",
+            "EPN1095"
+          ],
+          "cells_sha256": "5011c67d9a7852d996d37c7f91f97a9bc83b1e44f6a8d91601c0a1a11c1bf4ca",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-04",
+      "answerable": true,
+      "required_edges": [
+        {
+          "dependent": "ELT3077",
+          "prerequisite": "ELT3051",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT3077",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p12_t1",
+            "page": 12,
+            "table_row": 9,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "67",
+              "ELT 3077",
+              "Hệ thống robot thông minh\nIntelligent Robot Systems",
+              "3",
+              "36",
+              "9",
+              "",
+              "ELT3051"
+            ],
+            "cells_sha256": "13f6560727089a9d2b4bbf485763c6b59fa090ea3e4680f74ea9c2836d3d4d1b",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT3051",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 10,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "30",
+              "ELT 3051",
+              "Kỹ thuật điều khiển\nControl Engineering",
+              "",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              "ELT2035"
+            ],
+            "cells_sha256": "ed8e1e65a7d6c414cca0950337786f76cf4c3aac63f3a4f130eae5fe69d62c31",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "prerequisite_column": 7
+        },
+        {
+          "dependent": "ELT3051",
+          "prerequisite": "ELT2035",
+          "source": "electronics",
+          "proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT3051",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+            "page": 9,
+            "table_row": 10,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "",
+              "",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "30",
+              "ELT 3051",
+              "Kỹ thuật điều khiển\nControl Engineering",
+              "",
+              "",
+              "3",
+              "45",
+              "",
+              "",
+              "ELT2035"
+            ],
+            "cells_sha256": "ed8e1e65a7d6c414cca0950337786f76cf4c3aac63f3a4f130eae5fe69d62c31",
+            "code_column": 1,
+            "credit_column": 5
+          },
+          "endpoint_proof": {
+            "source": "electronics",
+            "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+            "code": "ELT2035",
+            "credits": 3,
+            "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p8_t1",
+            "page": 8,
+            "table_row": 15,
+            "headers": [
+              "STT",
+              "Mã\nhọc phần",
+              "Tên học phần",
+              "Số tín\nchỉ",
+              "Số giờ tín chỉ",
+              "",
+              "",
+              "Mã số học\nphần tiên\nquyết"
+            ],
+            "cells": [
+              "19",
+              "ELT 2035",
+              "Tín hiệu và hệ thống\nSignals and systems",
+              "3",
+              "45",
+              "",
+              "",
+              "MAT1041"
+            ],
+            "cells_sha256": "7bafebe714894983f5145202da3c6e9a4a37f40a011b78d9f8bce4cac92fe7b3",
+            "code_column": 1,
+            "credit_column": 3
+          },
+          "prerequisite_column": 9
+        }
+      ],
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "code": "ELT2035",
+          "credits": 3,
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p8_t1",
+          "page": 8,
+          "table_row": 15,
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần",
+            "Số tín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "19",
+            "ELT 2035",
+            "Tín hiệu và hệ thống\nSignals and systems",
+            "3",
+            "45",
+            "",
+            "",
+            "MAT1041"
+          ],
+          "cells_sha256": "7bafebe714894983f5145202da3c6e9a4a37f40a011b78d9f8bce4cac92fe7b3",
+          "code_column": 1,
+          "credit_column": 3
+        }
+      ],
+      "negative_basis": null,
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-05",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [],
+      "negative_basis": "Requested undergraduate source unavailable in explicitly selected masters source; cannot broaden scope.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-06",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [],
+      "negative_basis": "Selected 2023/2022 curricula do not establish current legal applicability in 2026; filename/upload time not effective date.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-07",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "code": "ELT2030",
+          "credits": 3,
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+          "page": 9,
+          "table_row": 4,
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần",
+            "",
+            "",
+            "Số tín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "24",
+            "ELT 2030",
+            "Kỹ thuật điện\nElectrical Engineering",
+            "",
+            "",
+            "3",
+            "45",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "db0d07bc52e05967eda73a13746b44b3d34edafdbd1b88e01b724f8392050d53",
+          "code_column": 1,
+          "credit_column": 5
+        }
+      ],
+      "negative_basis": "Blank prerequisite cell does not establish a direct edge.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    },
+    {
+      "qid": "p11-acceptance-08",
+      "answerable": false,
+      "required_edges": [],
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "code": "ELT3240",
+          "credits": 3,
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p9_t1",
+          "page": 9,
+          "table_row": 12,
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần",
+            "",
+            "",
+            "Số tín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ],
+          "cells": [
+            "32",
+            "ELT 3240",
+            "Nhập môn hệ thống nhúng\nIntroduction to Embedded\nSystems",
+            "",
+            "",
+            "3",
+            "30",
+            "15",
+            "",
+            "INT1008\nELT2041"
+          ],
+          "cells_sha256": "649f65c7bffc6d285575b1c5445d9d3306dc942d997cb16f37d6db3ad8ee74b2",
+          "code_column": 1,
+          "credit_column": 5
+        }
+      ],
+      "negative_basis": "Two identifiers INT1008/ELT2041 in prerequisite cell; no unique single-edge inference.",
+      "reviewer": "Codex — Automated AI Review",
+      "officially_human_approved": false
+    }
+  ],
+  "source_review_notes": [
+    "10 original physical PDF pages visually inspected; render receipt retained.",
+    "Mechatronics p4 continues headers from p3; masters physical9 is printed7; preserve original coordinates.",
+    "Electronics spaced codes and source-inherited logical table columns retained without corpus edits.",
+    "Inverse counts checked against all supported and unsupported source-index cells; exact-code PDF occurrence check recorded separately."
+  ]
+}

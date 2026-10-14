@@ -66,6 +66,13 @@ def validate_quote(quote: str, content: str) -> bool:
             and all(isinstance(cell, str) for cell in quoted_cells)
             and quoted_cells in rows):
         return True
+    # Local bounded composition can cite several distinct original rows in
+    # one chunk. Preserve row boundaries; never splice cells into a fake row
+    # or pretend the selection was a contiguous prose quote.
+    if (isinstance(quoted_cells,list) and len(quoted_cells)>=2
+            and all(isinstance(row,list) and row and all(isinstance(cell,str) for cell in row)
+                    and row in rows for row in quoted_cells)):
+        return True
     for row in rows:
         if isinstance(row, list) and all(isinstance(cell, str) for cell in row):
             if normalized in normalize_text(' '.join(row)):

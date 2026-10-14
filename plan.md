@@ -31,7 +31,7 @@ hoạt động trên tài liệu người dùng tải lên, không phụ thuộc
 | 8 | Benchmark và đánh giá sản phẩm | **DONE — 100% scope Chat** | 300/300 trường hợp đúng nội dung/negative qua replay ứng dụng. |
 | 9 | Temporal RAG | **DONE — 100% scope Phase 9** | 6/6 task DONE, 5/5 gate PASS; 24/24 quality/replay, tests/coverage/regression và cleanup đã kiểm tra. |
 | 10 | Multi-document / multi-hop | DONE — 5/5 task (100%), 5/5 gate PASS | Actual replay/source review 24/24; 1.550 tests PASS, coverage 91,09%; raw/normalization và API limitations báo riêng. |
-| 11 | Knowledge Graph | DEFERRED | Không thuộc MVP; chỉ mở khi có lỗi quan hệ cụ thể và lợi ích đo được. |
+| 11 | Knowledge Graph có nguồn chứng minh | **DONE — 5/5 task (100%), 5/5 gate PASS** | Candidate16/16, quality benefit, hồi quy68/300/24/24, 1.582 tests PASS, coverage90,99%; opt-in, mặc định OFF. |
 | 12 | Web app MVP | PLANNED — chưa nghiệm thu phase | Tái sử dụng API/web hiện có, hoàn thiện luồng người dùng đầu cuối. |
 | 13 | Deployment | PLANNED — chưa nghiệm thu phase | Một profile Free Tier, có smoke test và rollback. |
 | 14 | Production hardening | PLANNED — chưa nghiệm thu phase | Vận hành, dữ liệu, bảo mật, quan sát và độ tin cậy trước public release. |
@@ -1042,10 +1042,251 @@ không commit model weights, index hay nhật ký prompt/output dài vào Git.
 
 ### Phase 11 — Knowledge Graph
 
-**DEFERRED, ngoài MVP.** Chỉ mở khi Phase 9/10 chứng minh lỗi còn lại đến từ
-quan hệ thực thể và retrieval/multihop hiện tại không xử lý được. Trước khi làm
-phải có problem statement, hypothesis, prototype giới hạn và tiêu chí dừng.
-Không triển khai graph chỉ để đủ số phase.
+**Mục tiêu:** truy xuất quan hệ học phần nhanh, đúng scope và có thể lần ngược
+đến bằng chứng gốc. Tái sử dụng core Phase 9/10, giữ một sidecar SQLite nhỏ.
+
+Trạng thái **DONE — 5/5 task (100%), 5/5 gate PASS** ngày 14/10/2026.
+[Frozen protocol](evaluation/phase11/protocol.json) giữ 16 case (8 dev/8 acceptance),
+nguồn/rubric/ngưỡng trước prototype. Nhánh **QUALITY** đã chứng minh sửa hai lỗi
+local dev khác chain (`p11-dev-02`, `p11-dev-04`); baseline thiếu model output
+ở bốn câu khác vẫn UNMEASURED, không được tính là model trả sai.
+
+Candidate qua WSGI/service thật đạt **16/16: 8 positive/8 negative**, 18 claim và
+15 citation có nguồn; 15 answer schemas và 1 authorization HTTP400 error contract
+hợp lệ. Cả bộ dùng **0 generation/search/encoder/provider call**. Index audit
+249 node/72 cạnh đủ điều kiện, extraction precision/recall100%; unsupported/
+conflicting/missing-endpoint relations được báo riêng. SQLite610.304 byte,
+manifest1.611 byte, dưới cap2.380.584 byte; không có dependency/service graph mới.
+
+Hồi quy thực Phase7/8/9/10 đạt **68/300/24/24**, exact actual prompt/schema/source
+và public outputs khớp các bản đã source-review. Full offline suite **1.582 PASS,
+2 live SKIP, coverage90,99%**. Feature opt-in qua `relation_index`, mặc định OFF;
+profile web/MVP hiện có không phụ thuộc sidecar. Không gọi API hoặc phát sinh phí.
+Local timing/RSS không phải API SLO; R-01/R-02 vẫn NOT PASSED.
+
+[Completion/evidence](evaluation/results/phase11-completion-20261014.json) giữ
+20 bước audit, gates, các raw/failure/hash binding và roadmap snapshot tại exit.
+[Handoff/rollback/replay](docs/phase11_relation_index_handoff.md) mô tả bật/tắt,
+build/rebuild, scope, budgets và giới hạn. Bằng chứng lớn được nén đúng byte vào
+artifact store; đã kiểm tra restore, secret/diff và xóa 12 thư mục test tạm.
+Phase0–10 và12–14, các kết quả lịch sử và gold giữ nguyên.
+
+#### 11.1 Phương án tối ưu và giới hạn
+
+Chọn **relation index deterministic**, không dựng một hệ GraphRAG riêng.
+Ưu tiên một sidecar SQLite qua `sqlite3` sẵn có, kèm manifest nhỏ; chỉ chọn
+format khác nếu P11-01 chứng minh SQLite không đáp ứng. Không duy trì đồng thời
+nhiều backend. Chỉ mục là dữ liệu dẫn đường tới chunk/row gốc, không phải nguồn
+sự thật độc lập hoặc gold benchmark.
+
+Tái sử dụng `course_code_key`, headed table rows, `Premise`/edge proof trong
+`multi_hop_evidence.py`, `plan_request`, resolver temporal, `CampusAIQueryService`,
+`HybridRetriever`, `EvidenceRegistry`, `align_claims`, arithmetic và cache.
+Không viết lại parser, embedding, bộ sinh đáp án hay citation validator.
+
+Trong scope nếu có quyết định GO:
+
+- Học phần trong đúng tài liệu/chương trình/phiên bản; tên và mã có bằng chứng.
+- Quan hệ **tiên quyết trực tiếp** từ cột hoặc phát biểu nguồn rõ ràng. Chọn một
+  hướng lưu canonical, ví dụ `môn phụ thuộc → môn tiên quyết`; truy vấn chiều
+  ngược chỉ dùng index đảo, không đảo nghĩa quan hệ trong đáp án.
+- Tra quan hệ trực tiếp/chiều ngược và chain tối đa hai bước. Hai cạnh trực tiếp
+  tạo một đường đi hai bước, không biến thành một cạnh tiên quyết trực tiếp mới.
+- Tín chỉ là fact có ô nguồn; cộng/trừ tiếp tục chạy deterministic. Tên→mã là
+  lookup đã chứng minh, không phải xác nhận hai chương trình tương đương.
+
+Ngoài scope: Neo4j/network service, graph framework, LLM extraction/planner,
+entity embedding mới, community detection, graph visualization/UI, recommendation
+lộ trình học, crawl/migration corpus, hơn hai hop, nhận diện tương đương tự động,
+diễn giải prerequisite nhiều mã/AND/OR hoặc điều kiện văn bản chưa có contract.
+Reranker OFF; không tự gọi API, đổi key/model, bật billing hoặc phát sinh phí.
+
+| Contract | Chuẩn đầu ra bắt buộc |
+|---|---|
+| Entity identity | Khóa theo `doc_id/source_hash + program/version scope + canonical course_code`; giữ giá trị gốc. Nếu program/version chưa xác lập, giữ identity riêng theo tài liệu, không đoán hoặc gộp theo tên/mã giống nhau. |
+| Edge/fact proof | Mỗi cạnh/fact có relation type/direction, entity endpoints, source hash, chunk, physical page/range, heading và row/column/cell nếu là bảng. Thiếu heading/provenance hoặc endpoint chưa xác minh thì không publish cạnh sử dụng được. |
+| Alias/conflict | Chỉ chuẩn hóa khoảng trắng mã, đoạn song ngữ/footnote đã có rule. Không fuzzy merge. Duplicate cùng proof được dedup; khác giá trị hoặc quan hệ cùng scope giữ conflict và chặn kết luận, không lấy cạnh đầu tiên. |
+| Scope/time | Lọc selected/authorized docs và resolver thời gian trước lookup/traversal. Không đi qua nguồn ngoài quyền rồi mới lọc kết quả; không dùng năm tên file làm ngày hiệu lực. |
+| Query budget | Tối đa 2 hop, 2 nhóm nguồn, 2 adjacency lookup; tối đa 40 node/40 edge xét cho một request. Kiểm tra fan-out/count trước khi đọc danh sách vượt cap; vượt giới hạn phải báo không đủ phạm vi, không trả danh sách cắt như kết quả đầy đủ. |
+| Shared retrieval budget | Graph candidates và fallback chia chung cap tối đa 40 evidence candidates, mỗi search tối đa 20; tối đa 2 search và 2 encoder query toàn câu. Truy vấn chunk theo ID phải được trace; không ẩn full-index scan, retry hoặc tăng cap sau fallback. |
+| Grounding/context | Fetch và kiểm chứng lại chunk/row thật trước trả lời; không tạo quote từ bản tóm tắt cạnh. Giữ context cap 12.000 ký tự của profile nghiệm thu và token/output cap hiện có; tối đa 1 generation/câu, local relation/arithmetic/negative dùng 0 khi đủ xử lý deterministic. |
+| Lifecycle/cache | Graph là derived artifact, có source/index/extractor/schema/policy fingerprint và trạng thái ready. Build idempotent/atomic, không phục vụ bản ghi một phần. Update/delete nguồn làm mất hiệu lực cạnh và answer cache; manifest cũ/corrupt không được dùng âm thầm. |
+| Fallback | Chỉ dùng đường Phase 10 khi intent được hỗ trợ và còn budget; graph off/missing không làm hỏng đường hiện có. Nếu nguồn thật thiếu/mâu thuẫn hoặc hết budget thì clarify/abstain; fallback không được bỏ điều kiện để trả lời một phần. |
+
+#### 11.2 Bộ nghiệm thu nhỏ và quyết định giá trị
+
+P11-01 khóa **16 case nguồn thật: 8 dev + 8 acceptance**, mỗi split 4 positive
+và 4 negative; tách family/nhóm nguồn/chain, không chia paraphrase qua hai split.
+Reuse corpus đã có, giới hạn pilot tối đa bốn tài liệu thuộc hai family. Không
+đọc đáp án benchmark để build index. Mỗi case phải có source review, đáp án/
+answerability, direction/path/edge, eligible/excluded scope và coordinates.
+
+| Nhóm | Dev | Acceptance | Chuẩn đầu ra |
+|---|---|---|---|
+| Quan hệ trực tiếp và truy vấn chiều ngược | 2 positive | 2 positive | Đúng hướng, đủ kết quả được hỏi trong cap, mỗi cạnh có proof riêng; không suy cạnh từ hai endpoint cùng xuất hiện. |
+| Chain hai bước và fact cuối chain | 2 positive | 2 positive | Đủ hai cạnh/premise, đúng entity cuối; không gọi quan hệ gián tiếp là tiên quyết trực tiếp. |
+| Identity/scope/phiên bản sai | 2 negative | 2 negative | Không gộp trùng mã khác chương trình, leak nguồn ngoài quyền hoặc trộn phiên bản. |
+| Thiếu cạnh/mơ hồ/mâu thuẫn | 2 negative | 2 negative | Chặn kết luận thiếu proof; không coi ô trống/OR/nhiều mã hoặc cạnh không duy nhất là cạnh hợp lệ. |
+
+Fault/cycle/fan-out, reordered input, budget, cache, update/delete, corrupt index,
+build failure và restart là controls riêng, không cộng fixture synthetic vào
+16 case quality. Nếu nguồn thật không đủ matrix thì ghi gap, không bịa cạnh;
+chỉ bổ sung nguồn chính thức tối thiểu khi chứng minh cần. Chỉ tăng tối đa 24
+case nếu coverage gap được ghi trước freeze, không mở sweep lớn.
+
+Khóa một protocol, qid/request, rubric/gold, hashes và ngưỡng **trước prototype**.
+Baseline có graph OFF, candidate có graph ON, cùng source/config/profile; raw
+output chưa có phải ghi UNMEASURED. Lịch sử exposure và lỗi phải giữ nguyên;
+không sửa gold/denominator/ngưỡng sau khi nhìn acceptance.
+
+**GO sơ bộ sau audit:** có ít nhất hai lỗi dev khác chain tái hiện thuộc quan hệ
+trong scope, hoặc có ít nhất bốn câu positive cần lookup quan hệ để kiểm tra giả
+thuyết giảm chi phí. Giả thuyết không được tính là lợi ích đã đạt.
+
+**Chỉ giữ implementation sau P11-04 nếu quality không giảm và đạt ít nhất một
+nhánh lợi ích đã chọn trước:**
+
+- **Nhánh chất lượng:** sửa được ít nhất hai case dev khác chain mà baseline
+  sai/không trả lời dù đủ nguồn; candidate đạt đủ acceptance và regression.
+- **Nhánh chi phí:** trên cohort quan hệ đã khóa, giảm ít nhất 25% tổng
+  search/encoder calls so với baseline và giảm ít nhất 20% p95 local retrieval
+  + proof. Đo xen kẽ OFF/ON, cùng device/thread/cache profile, ít nhất năm lượt
+  cho tám positive (40 quan sát mỗi arm); tách build/cold load và lỗi khỏi
+  warm timing nhưng vẫn báo đầy đủ lỗi. Đây là phép đo local, không phải API SLO.
+
+Sidecar pilot không vượt `max(1 MiB, 10% dung lượng BM25+dense của cùng nguồn)`;
+báo build time, disk, cold/warm/RSS và fallback rate. Không đạt chất lượng/lợi
+ích hoặc tăng độ phức tạp không tương xứng thì kết luận **NO-GO/DEFERRED**,
+giữ core hiện có, gỡ prototype và chuyển ưu tiên sang MVP. Đây là quyết định
+dừng hợp lệ, **không được ghi graph đã DONE/PASS 100%**. Chỉ một prototype và
+một vòng chỉnh theo dev trước acceptance; không đổi stack hay thử vô hạn.
+
+#### 11.3 Task tuần tự và chuẩn đầu ra
+
+| Task | Công việc | Phụ thuộc | Trạng thái |
+|---|---|---|---|
+| P11-01 | Audit nhu cầu, source proof, baseline và khóa protocol | Phase 9/10 evidence | DONE — 100%; source review/freeze16, actual baseline và GO nhánh chất lượng có proof; model baseline chưa đo được báo riêng |
+| P11-02 | Build relation index nhỏ, có provenance và lifecycle | P11-01, GO sơ bộ | DONE — 100%; source audit 249 node/72 cạnh, cap storage và 16 mechanics/lifecycle tests PASS |
+| P11-03 | Tích hợp query/grounding/cache/fallback có budget | P11-02 | DONE — 100%; actual16/source review, caps/cache/fallback và 131 focused controls PASS |
+| P11-04 | Nghiệm thu quality, lợi ích và regression | P11-03 | DONE — 100%; quality benefit, hồi quy68/300/24/24 và offline tests/coverage PASS |
+| P11-05 | Exit audit, handoff và cleanup | P11-04 | DONE — 100%; 20 bước audit, handoff/bindings/restore/secret/diff và cleanup PASS |
+
+**P11-01 — Chứng minh cần làm trước khi thêm code.**
+
+1. Đọc kết quả Phase 9/10; kiểm kê phần đã có, lỗi tái hiện, phần thiếu và ngoài
+   scope. Chọn user queries cụ thể, ưu tiên direct/inverse relation lookup;
+   không coi tên “Knowledge Graph” là yêu cầu phải thêm database.
+2. Source-review identity/edge/direction của hai family; khóa 16 case, negative
+   rationale và controls. Ghi exposure, không gọi tập đã xem là fresh holdout.
+3. Chạy graph-OFF baseline bằng service thật, lưu đúng/sai/chưa đo, counters,
+   local costs và source/runtime/index hashes. Reuse output cũ chỉ khi actual
+   prompt/schema/source tương thích; không dùng synthetic answer thay chất lượng.
+4. Chốt một hướng lưu cạnh, schema nhỏ, nhánh lợi ích và budgets; quyết định
+   GO sơ bộ/NO-GO có lý do. Chỉ GO mới mở P11-02; NO-GO không chặn Phase 12.
+
+**Đầu ra:** gap/decision record, source-edge map, frozen benchmark/rubric/protocol
+và baseline có hashes. **DONE khi:** đủ nguồn và baseline để quyết định, mọi
+case có proof hoặc negative rationale, không có phần quality chưa đo bị ghi PASS.
+
+**P11-02 — Tạo chỉ mục cạnh từ evidence đã xác minh.**
+
+1. Dùng extractor/table rules hiện có tạo entity occurrence, direct edge và
+   fact references. Không parse bằng LLM, không lấy edge từ gold hoặc history.
+2. Lưu forward/reverse lookup và provenance trong một sidecar; giữ direction,
+   scope, source version, original cells và conflict status. Không tạo cạnh
+   transitive, tương đương hoặc alias không có nguồn.
+3. Build theo nguồn, idempotent và atomic; manifest bind source/index/extractor/
+   schema hashes. Source update/delete/reindex vô hiệu bản derived cũ; lỗi giữa
+   chừng không làm ready index nửa vời, restart không nhân đôi entity/edge.
+4. Kiểm tra source→index và index→source: không sót cạnh thuộc contract, không
+   phát sinh cạnh giả; test code spacing, duplicate/conflict, blank/OR cells,
+   direction, deletion, corrupt manifest và build interruption.
+
+**Đầu ra:** builder/reader tối thiểu, sidecar/manifest có hashes và edge audit.
+**DONE khi:** extraction precision/recall đều 100% trên tập cạnh hỗ trợ đã source-
+review (case không hỗ trợ báo riêng), provenance/direction 100%, lifecycle controls
+PASS và sidecar nằm trong cap; chưa tính index đúng là answer quality đã PASS.
+
+**P11-03 — Dùng index để lấy nguồn, giữ nguyên guard trả lời.**
+
+1. Route deterministic chỉ intent quan hệ đã chốt; resolver và authorization
+   chạy trước lookup. Feature flag mặc định OFF trong khi nghiệm thu, các intent
+   khác giữ đường cũ. Không planner/model load hoặc public API/schema mới.
+2. Lookup/traverse tối đa hai hop, kiểm tra fan-out/cycle và budget trước khi
+   mở rộng. Fetch source chunk/row theo pointer, kiểm chứng lại cạnh và fact;
+   graph stale hoặc dangling pointer không trở thành evidence.
+3. Đưa evidence thật qua context/claim/citation/conflict/completeness guards
+   hiện có. Arithmetic/local negatives không cần model; thiếu edge/citation,
+   wrong direction hoặc trả lời thiếu danh sách phải bị chặn.
+4. Bind graph/source generation và policy vào cache hiện có. Test graph on/off,
+   update/delete một nguồn, scope/filter/time/history, operand order, restart,
+   corrupt sidecar và fallback còn/hết budget; trace cả graph lookup/proof fetch,
+   search, encoder, generation và candidate counts.
+
+**Đầu ra:** tích hợp nhỏ trong service, source-backed traces, cache/fallback
+controls. **DONE khi:** dev/control cases đúng đầy đủ; false edge/leak=0, không
+vượt cap, graph OFF giữ behavior cũ và lỗi index không làm request treo/crash.
+
+**P11-04 — Đo chất lượng và lợi ích trước khi quyết định giữ graph.**
+
+1. Chạy đủ 16 case qua service thật ở OFF/ON; review từng endpoint/edge/path/
+   fact/citation và completeness. Không nhận abstain tất cả là thành công.
+2. Nếu cần model output mới, xuất một packet gộp prompt/evidence/schema thật,
+   không gold, tối đa tám positive cần generation. Owner dùng Gemini Chat;
+   nhận raw, báo parse/schema và syntax-only normalization riêng, source-review
+   rồi actual replay. Không chờ API/quota và không gửi lại payload đã tương thích.
+3. Chạy phép đo lợi ích đã khóa ở 11.2; báo quality dev/acceptance, chi phí
+   build/storage/cold/warm/RSS/counters, cả lỗi và trường hợp không cải thiện.
+   So cả end-to-end local processing để không che chi phí proof/fallback.
+4. Chạy focused controls; nếu sửa shared retrieval/service/claim/cache thì replay
+   regression Phase 7/8/9/10 (68/300/24/24) khi payload tương thích, review phần
+   thay đổi. Chạy full offline suite một lần khi runtime ổn, coverage ≥85%;
+   lưu failure, sửa bằng dev/generalized fixture, không tune gold acceptance.
+
+**Đầu ra:** per-case source review/replay, OFF/ON comparison, regression và
+tests/coverage receipt. **DONE khi:** 8/8 positive và 8/8 negative đúng, không
+case thiếu/chưa chấm, citations/edges/schema đạt 100%, regression không giảm và
+lợi ích đã khóa đạt. Không đạt lợi ích thì ghi NO-GO, không gán PASS kỹ thuật
+thành “graph hữu ích”; native API reliability/latency vẫn không được suy từ Chat.
+
+**P11-05 — Chốt hồ sơ và giữ dự án gọn.**
+
+1. Audit từng bước/task/gate với source/config/index/raw/review/test bindings;
+   phân biệt real-source quality, synthetic controls, exposure và local timing.
+2. Viết handoff: scope/edge direction/budget, build/rebuild/update/delete,
+   cache/fallback, feature flag, rollback và lệnh replay offline. Chỉ bật cho
+   profile/intent đã đạt nghiệm thu; MVP không phụ thuộc graph để khởi động.
+3. Cập nhật task/%/gate trong root `plan.md`, lưu snapshot roadmap tại exit;
+   giữ Phase 0–14, kết quả Phase 7–10 và R-01/R-02 NOT PASSED.
+4. Kiểm tra references/bindings/secret/diff và artifact restore; nén raw cần
+   audit, xóa temp/draft/build/cache dư. Nếu NO-GO, rollback/gỡ code prototype
+   không dùng, giữ baseline/failure/decision proof, không để backend nửa làm.
+
+**Đầu ra:** một completion hoặc decision summary, handoff, immutable roadmap
+snapshot và cleanup receipt. **DONE khi:** exit GO thực sự đạt đủ gate; nếu
+NO-GO chỉ đóng audit/decision với trạng thái DEFERRED, không khai graph hoàn tất.
+
+#### 11.4 Gates, tiến độ và exit
+
+| Gate | Điều kiện PASS / chuẩn đầu ra | Trạng thái hiện tại |
+|---|---|---|
+| T11-01 — Nhu cầu/protocol | Baseline/source proof đủ; GO sơ bộ có căn cứ; 16 case/hashes/rubric/nhánh lợi ích/ngưỡng frozen, split tách family, không sửa gold sau acceptance. | PASS — source audit/protocol và actual baseline |
+| T11-02 — Entity/edge/index | Identity/direction/provenance và extraction precision/recall 100% trên quan hệ hỗ trợ; không false edge/merge; build/update/delete/corrupt/restart controls PASS, storage trong cap. | PASS — index audit và 16 mechanics tests |
+| T11-03 — Query safety/quality | 8/8 positive đầy đủ, 8/8 negative đúng; edge/path/claim/citation/source-coordinate/public schema 100%; leak/unsupported/contradicted/false abstention=0; caps/context/cache/fallback PASS. | PASS — actual16 và focused controls |
+| T11-04 — Giá trị/regression | Ít nhất một nhánh lợi ích đã khóa đạt; chi phí và faults công khai; regression liên quan không giảm, required tests 0 FAIL, full offline coverage ≥85%, live SKIP báo riêng. | PASS — quality benefit, regression416/416 và offline suite |
+| T11-05 — Exit | Task chuẩn đầu ra đủ; bindings/restore/secret/diff/rollback/handoff/cleanup PASS, roadmap và limitations đúng thực tế, không phí/API qualification giả. | PASS — exit audit/restore/secret/diff/cleanup |
+
+Thứ tự: **P11-01 → quyết định GO → P11-02 → P11-03 → P11-04 → P11-05**.
+Mỗi task có bốn bước: PLANNED 0%, IN PROGRESS 25/50/75%, DONE 100% khi đủ
+chuẩn đầu ra và proof. Báo task count/gate count riêng, không dùng thời gian chờ
+Chat làm % tiến độ. **Chỉ nhận Phase 11 graph DONE 100% khi 5/5 task DONE và
+5/5 gate PASS**. NO-GO/DEFERRED giữ trạng thái/việc chưa làm rõ, không đổi mẫu số
+hoặc đánh dấu các task chưa triển khai thành DONE để đạt 100%.
+
+Hồ sơ tối thiểu khi triển khai: một bộ nhỏ tại `evaluation/phase11/` (protocol,
+benchmark, rubric), một completion/decision summary tại `evaluation/results/`
+và một handoff tại `docs/`. Raw/index/snapshot lớn dùng artifact store có hashes;
+không tạo report cho từng retry hoặc commit sidecar/corpus/model weights vào Git.
 
 ### Phase 12 — Web app MVP
 
