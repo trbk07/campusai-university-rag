@@ -218,8 +218,10 @@ class HybridRetriever:
                 records[chunk_id] = item
         return records
 
-    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None, *, _candidate_generation: bool = False) -> list[RetrievalResult]:
+    def search(self, query: str, doc_ids: list[str] | None = None, filters: dict | None = None, top_k: int = 5, mode: str = "hybrid", score_threshold: float | None = None, *, _candidate_generation: bool = False, required_course_rows: bool = False) -> list[RetrievalResult]:
         if mode == "phase7":
+            if required_course_rows:
+                raise ValueError('bounded course-row retrieval must use a base retrieval mode')
             return self.search_phase7(query, doc_ids=doc_ids, filters=filters,
                                       top_k=top_k, score_threshold=score_threshold)
         total_started = time.perf_counter()
@@ -289,6 +291,7 @@ class HybridRetriever:
             self.candidate_limit,
             self.rrf_weights,
             _candidate_generation,
+            required_course_rows,
             getattr(self.reranker, "model_name", None),
         )
         if self.query_cache_size:
@@ -479,11 +482,10 @@ class HybridRetriever:
             named_ids = set(named_table_sources(search_query, records))
             ranked.sort(key=lambda pair: (0 if pair[0] in named_ids else 1,
                                          0 if pair[0] in semester_ids else 1, -pair[1], pair[0]))
-        if len(course_codes) == 1 and exact_candidate_ids:
-            code_pattern = code_patterns[0]
+        if (len(course_codes) == 1 or required_course_rows and course_codes) and exact_candidate_ids:
             from .table_links import primary_course_tables, course_table_fields_requested
-            primary_tables = primary_course_tables(course_codes[0],
-                                                    {key: records[key] for key in exact_candidate_ids})
+            primary_tables = set().union(*(primary_course_tables(code,
+                {key: records[key] for key in exact_candidate_ids}) for code in course_codes))
             prefer_table = course_table_fields_requested(query)
             def course_identity_priority(pair):
                 item_id, score = pair
@@ -491,7 +493,7 @@ class HybridRetriever:
                 # A primary course heading/body identifies the course itself;
                 # mentions in prerequisite columns are supporting evidence.
                 body = source_body(item)
-                primary = bool(code_pattern.match(body.strip()))
+                primary = any(pattern.match(body.strip()) for pattern in code_patterns)
                 # A headed course row establishes identity and column values.
                 # Bare code-only fragments can be repeated beside unrelated
                 # rows; keep the primary source table ahead of those fragments.

@@ -1,0 +1,147 @@
+"""Review the exact public outputs and score the unchanged paired product rubric."""
+import json
+import math
+import random
+import sys
+from collections import Counter
+from datetime import datetime, timezone
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+sys.path[:0] = [str(ROOT), str(ROOT / 'src')]
+from campusai.rag.schemas import validate_release_response
+from evaluation.benchmarks.delegated_review import load_delegation
+from evaluation.common.release_artifacts import read_json, sha256, source_identity, write_json
+from evaluation.reranker.paired_answer_quality import answer_digest, evaluate_answer_observations, product_answer_quality_errors
+from scripts.benchmarks.product_chat_quality import load_export
+
+BASE = ROOT / 'evaluation/results/phase7-chat-quality-20261013'
+RAW = ROOT / '.local_artifacts/experiment_runs/phase7-chat-quality-20261013'
+manifest, packet, _cases = load_export(BASE / 'runtime-fix-execution')
+assert manifest['source_identity'] == source_identity(ROOT)
+rubric = read_json(ROOT / manifest['rubric']['path'])
+rows = {r['qid']: r for r in rubric['rows']}
+model_review = read_json(RAW / 'raw-model-source-review.json')
+assert model_review['verdicts'] == {'SUPPORTED': 68}
+models = {(r['arm'], r['qid']): r for r in model_review['reviews']}
+policy_path = ROOT / 'evaluation/results/phase7-completion-20261004/p7-06-delegated-ai-review-policy-20261008.json'
+policy = read_json(policy_path)
+delegation = load_delegation(policy, root=ROOT, index_sha256=rubric['index_manifest_sha256'], scope='semantic')
+stamp = datetime.now(timezone.utc).isoformat()
+observations, defects = [], []
+replay = RAW / 'combined-received/post-prefix-fix/recorded-replay'
+for arm in ('baseline', 'current'):
+    report = read_json(replay / (arm + '.json'))
+    assert len(report['observations']) == 68 and report['external_provider_calls'] == 0
+    for observed in report['observations']:
+        row = rows[observed['qid']]
+        expected = packet['cases'][arm][row['qid']]
+        answer = observed['answer']['answer']
+        valid, schema_errors = validate_release_response(answer)
+        assert valid and observed['interface_valid'], (row['qid'], schema_errors)
+        assert observed['request'] == expected['request']
+        assert observed['trace']['evidence'] == expected['evidence']
+        assert observed['provider_body'] == expected['provider_body']
+        model = models.get((arm, row['qid']))
+        citations = {c['chunk_id']: c for c in answer['citations']}
+        evidence = {e['chunk_id']: e for e in expected['evidence']}
+        for citation in citations.values():
+            item = evidence[citation['chunk_id']]
+            assert citation['doc_id'] == item['doc_id'] and citation['page'] == item['page']
+            assert citation['page_range'] == item['page_range'] and citation['doc_id'] in row['request']['doc_ids']
+            assert model and any(c['valid'] and c['chunk_id'] == citation['chunk_id'] for c in model['citations'])
+        claims = []
+        for claim in answer['claims']:
+            source_claim = next(c for c in model['claims'] if c['claim_id'] == claim['claim_id'] and c['text'] == claim['text'])
+            assert source_claim['supported']
+            claims.append({'claim_id': claim['claim_id'], 'text': claim['text'], 'supported': True,
+                'requires_citation': True, 'all_hops_supported': True,
+                'citations': [{'chunk_id': chunk, 'supports': True} for chunk in claim['citation_ids']],
+                'reason': source_claim['reason'], 'source_gold_claim_ids': source_claim['covered_gold_claim_ids']})
+        covered = []
+        if not answer['abstained']:
+            assert row['answerable'] and model and answer['answer'] == model['answer']
+            covered = sorted({g for c in claims for g in c['source_gold_claim_ids']})
+        satisfied = (set(covered) == {g['claim_id'] for g in row['gold_claims']}
+                     if row['answerable'] else answer['abstained'])
+        if arm == 'current' and (not satisfied or (row['answerable'] and answer['abstained'])):
+            defects.append(row['qid'])
+        review = {'status': 'approved', 'reviewer': delegation.analyst, 'reviewer_role': 'owner_delegated_ai',
+            'reviewed_at': stamp, 'answer_sha256': answer_digest(answer), 'all_factual_claims_enumerated': True,
+            'rubric_satisfied': satisfied, 'unsupported_affirmative_answer': not row['answerable'] and not answer['abstained'],
+            'claims': claims, 'covered_gold_claim_ids': covered, 'owner_authority': delegation.owner,
+            'review_authorization_sha256': delegation.authorization_sha256, 'review_scope': 'semantic',
+            'review_index_sha256': delegation.index_sha256, 'owner_manual_review_claim': False,
+            'independent_human_review_claim': False,
+            'prose_review': model['answer_prose_review'] if not answer['abstained'] else
+                'Abstention retained as observed, without inventing covered gold claims. Any retained factual claims reviewed against source rows; wrong positive abstentions count as accuracy/coverage failures.',
+            'source_coordinate_scope_verdict': 'PASS'}
+        observations.append({'qid': row['qid'], 'split': 'human_' + row['split'],
+            'source_group': row['source_group'], 'tags': row['tags'], 'arm': 'phase7' if arm == 'current' else 'baseline',
+            'answerable': row['answerable'], 'answer': answer, 'observed_at': observed['observed_at'],
+            'gold_claim_ids': [g['claim_id'] for g in row['gold_claims']], 'request_sha256': row['request_sha256'],
+            'rubric_sha256': manifest['rubric']['sha256'], 'record_sha256': row['record_sha256'], 'review': review})
+metrics = evaluate_answer_observations(observations, owner_identity=delegation.owner, delegation=delegation)
+errors = product_answer_quality_errors(metrics)
+assert not defects
+
+def ratio(values, metric):
+    positives = [r for r in values if r['answerable']]
+    negatives = [r for r in values if not r['answerable']]
+    if metric == 'accuracy':
+        denominator = len(positives)
+        numerator = sum(not r['answer']['abstained'] and r['review']['rubric_satisfied'] for r in positives)
+    elif metric == 'answer_fpr':
+        denominator = len(negatives)
+        numerator = sum(r['review']['unsupported_affirmative_answer'] for r in negatives)
+    else:
+        denominator = sum(len(r['gold_claim_ids']) for r in positives)
+        numerator = sum(len(r['review']['covered_gold_claim_ids']) for r in positives)
+    return numerator / denominator if denominator else None
+
+intervals, strata = {}, {}
+for split in ('human_test', 'human_holdout'):
+    current = [r for r in observations if r['split'] == split and r['arm'] == 'phase7']
+    grouped = {}
+    for r in current:
+        grouped.setdefault(r['source_group'], []).append(r)
+    assert len(grouped) == 13
+    rng = random.Random(7)
+    sampled = {name: [] for name in ('accuracy', 'answer_fpr', 'gold_claim_coverage')}
+    group_names = sorted(grouped)
+    for _ in range(10000):
+        sample = [r for name in rng.choices(group_names, k=len(group_names)) for r in grouped[name]]
+        for name in sampled:
+            value = ratio(sample, name)
+            if value is not None:
+                sampled[name].append(value)
+    intervals[split] = {'groups': 13, 'bootstrap_replicates': 10000, 'seed': 7,
+        'percentile_95': {name: [sorted(values)[int((len(values)-1)*p)] for p in (.025, .975)]
+                          for name, values in sampled.items()},
+        'independent_group_success_wilson_95_lower': 13 / (13 + 1.959963984540054**2),
+        'interpretation': 'Descriptive grouped resampling of an exposed regression set. Perfect observed results give degenerate bootstrap intervals; they do not establish a 99% population guarantee.'}
+    strata[split] = {}
+    for tag in sorted({tag for r in current for tag in r['tags']}):
+        group = [r for r in current if tag in r['tags']]
+        strata[split][tag] = {'records': len(group), 'positive': sum(r['answerable'] for r in group),
+            'correct': sum(r['review']['rubric_satisfied'] and (not r['answerable'] or not r['answer']['abstained']) for r in group),
+            'false_abstentions': sum(r['answerable'] and r['answer']['abstained'] for r in group)}
+write_json(RAW / 'reviewed-paired-observations.json', {'observations': observations,
+    'review_policy_sha256': sha256(policy_path), 'index_sha256': rubric['index_manifest_sha256']})
+bindings = [replay/'baseline.json', replay/'current.json', RAW/'raw-model-source-review.json',
+    RAW/'reviewed-paired-observations.json', BASE/'runtime-fix-execution/manifest.json', policy_path, Path(__file__).resolve()]
+summary = {'schema_version': 1, 'status': 'PASS_OWNER_MEDIATED_CHAT_QUALITY' if not errors else 'FAIL',
+    'task': 'C7-03', 'reviewed_at': stamp, 'reviewer': 'Codex - Automated AI Review',
+    'review_mode': 'owner_delegated_ai', 'official_human_approval': False,
+    'source_identity': source_identity(ROOT), 'paired_requests': 136, 'model_outputs': 68,
+    'external_provider_calls': 0, 'metrics': metrics, 'numeric_gate_errors': errors,
+    'invalid_source_coordinate_scope_citations': 0, 'unsupported_or_contradicted_emitted_current_claims': 0,
+    'invalid_public_schema_responses': 0, 'current_false_abstentions': 0,
+    'confidence_intervals': intervals, 'strata': strata, 'thresholds_unchanged': True,
+    'quality_accepted': not errors, 'phase7_complete': False, 'live_latency_measured': False,
+    'limitations': ['Owner-mediated Chat quality plus actual application replay; no API model/version/settings verification.',
+        'Previously exposed 35 test / 33 holdout; not fresh validation or independent human approval.',
+        'No C7-05 live latency/availability or C7-06 live integration claim. Policy research_only flag preserved.'],
+    'bindings': {p.relative_to(ROOT).as_posix(): sha256(p) for p in bindings}}
+write_json(BASE / 'paired-quality-review.json', summary)
+print(json.dumps({k: summary[k] for k in ('status', 'paired_requests', 'numeric_gate_errors', 'current_false_abstentions')}))

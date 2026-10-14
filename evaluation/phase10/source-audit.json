@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "status": "P10_01_COMPLETE",
+  "at": "2026-10-14T02:28:55.007475+00:00",
+  "reviewer": "Codex - Automated AI Review",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "4b69994517c22d9152dafd0ffffcfe69c4a30a628338c6e97e19d9ddc065553e",
+    "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+  },
+  "provider_posts": 0,
+  "quality_cases_accepted": 0,
+  "protocol_frozen": true,
+  "reuse": [
+    {
+      "component": "credit_sum / credit_difference",
+      "evidence": "Existing focused tests PASS; reuse headed-row arithmetic, signed operands and anti-duplicate guards."
+    },
+    {
+      "component": "context/history and selected/authorized source guard",
+      "evidence": "Existing contracts and source-scope tests retained; neither history nor selected text may become source proof."
+    },
+    {
+      "component": "Phase9 temporal resolver/cache",
+      "evidence": "Phase9 PASS preserved; date/version provenance and bounded comparison context reused."
+    },
+    {
+      "component": "claims/citations/public schema",
+      "evidence": "Existing evidence registry and validators reused; general lexical overlap must not prove a relation edge."
+    }
+  ],
+  "reproduced_gaps": [
+    {
+      "id": "unqualified_cross_program_sum",
+      "basis": "Synthetic mechanism only",
+      "observed": "Deterministic sum publishes 7 credits from Program A CS201=3 and Program B CS202=4 without request assigning those scopes.",
+      "required": "Clarify/abstain for unassigned cross-program operands; preserve explicitly scoped valid arithmetic.",
+      "classification": "Scope-completeness risk; initial probe does not establish that every cross-program sum is wrong.",
+      "refinement": "Preserve explicitly scoped or unambiguously requested multi-source arithmetic. Do not add a blanket cross-program-sum ban. Fix missing required source-role coverage and ambiguous identity, as frozen cases demand."
+    },
+    {
+      "id": "endpoint_overlap_cannot_prove_prerequisite_edge",
+      "basis": "Synthetic mechanism only",
+      "observed": "Claim alignment accepts prerequisite relation when two sources state only independent course credit facts.",
+      "required": "Verify the actual edge and both hop premises, not combined token/code overlap."
+    }
+  ],
+  "source_inventory": [
+    {
+      "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "source_name": "uet_mechatronics_curriculum_2023.pdf",
+      "source_origin": "repository://QĐ.1586_Ban-hành-CTĐT-CNKT-Cơ-điện-tử-CLCTT23.pdf",
+      "source_bytes_sha256": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "index_path": ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/bm25.json",
+      "index_sha256": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+      "single_prerequisite_edges": 28,
+      "cross_chunk_candidate_chains": 18
+    },
+    {
+      "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "source_name": "uet_electronics_program_2023.pdf",
+      "source_origin": "https://fet.uet.vnu.edu.vn/wp-content/uploads/2024/03/2.-Khung-chuong-trinh-dai-hoc-he-chuan_Cong-nghe-ky-thuat-dien-tu-Vien-thong_2023.pdf",
+      "source_bytes_sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "index_path": ".tmp/hybrid-index/cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/bm25.json",
+      "index_sha256": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea",
+      "single_prerequisite_edges": 30,
+      "cross_chunk_candidate_chains": 19
+    }
+  ],
+  "focused_tests": {
+    "passed": 98,
+    "failed": 0
+  },
+  "remaining": [],
+  "bindings": {
+    "data/corpus/university/manifest.json": "7d60213f10791a7eadeec1ad297fbc3526a808fc85cbc14d67cf2e2ad097a53c",
+    ".local_artifacts/experiment_runs/phase10-20261014/core-before.json": "f0255ee009d938a6c4754fc70d30979c33f90ff4716ba062cb9dcb6b0337b792",
+    ".local_artifacts/experiment_runs/phase10-20261014/audit-core-before.py.txt": "576954f019813e9b029a1945ef4ed556e97238ba762e1b3c7c111d58856bcd35",
+    ".local_artifacts/experiment_runs/phase10-20261014/reuse-tests.xml": "be0a1bf2a6fdde34a6f70aa7b44c9263edea0ad6dc51b976100c2efd6c9d62a3",
+    ".local_artifacts/experiment_runs/phase10-20261014/chain-candidates.json": "0c942783f12e79ed56858760d28d2342a556a13fe0815c45e97a4fe5a30753cd",
+    "evaluation/phase10/protocol.json": "25c2769b9f2a938a7395f283df5b8a49c4deb75add6754a79d8b5251101a2127",
+    "evaluation/phase10/benchmark.jsonl": "0a9be3ebe5a8413697d18fb250135576b56d7b4cde40e0f49410b7d3dc783aee",
+    "evaluation/phase10/source-rubric.json": "85dc3ab146c7b14ebe4751fe6bc3f9009aefb3d8c7188a1f704e79366271e8c2",
+    ".local_artifacts/experiment_runs/phase10-20261014/source-records.json": "e1c41cb13342fa1a6d90b147f0875eb7c0d3a3877d80e0c114da783502a57cd5",
+    ".local_artifacts/experiment_runs/phase10-20261014/source-pages/render-receipt.json": "e46f6a51e298994ed47f84effd93634550d8b311007c97e793a0a2b95b089f37",
+    ".local_artifacts/experiment_runs/phase10-20261014/before-preflight.json": "6311a83e5f1cc21d08bd72f0118b22e44a9013c6e8a90791c89252a61e695998",
+    ".local_artifacts/experiment_runs/phase10-20261014/before-diagnostic.json": "69af473b3fed91adb6df7847e6633d861dfd9eb33d2c4d2ad0f24fced59dc655",
+    ".local_artifacts/experiment_runs/phase10-20261014/runtime-before.zip": "c8ee49fc423315daeece7faa571c741436e61a94b9b3c3c6d55046bdd051c145",
+    ".local_artifacts/experiment_runs/phase10-20261014/source-audit-initial.json": "125742ab6268dfc9a590b1ac8fb4687ccf2da5de25ef3b8ef0b2e5bacbd5a4b0"
+  },
+  "cleanup": {
+    "pending_temporary_paths": [],
+    "inspection": "All ten completed test roots safely enumerated, checked for reparse points, then removed without ACL changes. Current final test root is cleaned separately after completion.",
+    "retained_source_results": "Tests XML, mechanism baseline and source candidates archived; no report binds the temp tree.",
+    "closure_requirement": "Resolve safely before task/phase cleanup is declared complete; unrelated authorized work continues.",
+    "task_temporary_cleanup_resolved": true
+  },
+  "updated_at": "2026-10-14T02:58:08.455185+00:00",
+  "source_review": {
+    "status": "AUTOMATED_SOURCE_REVIEW_COMPLETE",
+    "reviewer": "Codex — Automated AI Review",
+    "human_approved": false,
+    "visual_pages_reviewed": 11,
+    "dev_bundle": [
+      "mech",
+      "robot"
+    ],
+    "acceptance_bundle": [
+      "electronics",
+      "communications"
+    ],
+    "source_and_chain_groups_disjoint": true,
+    "physical_pagination": "Masters physical page9 is printed page7; citation coordinates stay physical. Mechatronics page4 continues headings shown on page3.",
+    "two_hop_scope": "Dev: explicit prerequisite edge then source-local credit lookup across pages. Acceptance: source-backed name-to-code edge then explicit same-code lookup in another named source. Neither asserts cross-program equivalence."
+  },
+  "baseline": {
+    "cases": 24,
+    "captured_model_boundaries": 20,
+    "local_branches": 4,
+    "negative_cases_reaching_model": 8,
+    "all_public_schema_valid": true,
+    "model_quality_measured": false
+  }
+}

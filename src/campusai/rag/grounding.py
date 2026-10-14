@@ -367,7 +367,8 @@ class GroundedAnswerGenerator:
         self.min_retrieval_score = min_retrieval_score
         self.calibrator = calibrator
 
-    def prompt(self, question: str, results: list[RetrievalResult], language: str = "vi") -> str:
+    def prompt(self, question: str, results: list[RetrievalResult], language: str = "vi", *, temporal_context: dict | None = None,
+               multi_hop_context: dict | None = None) -> str:
         context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens)
         if language.casefold().startswith("en"):
             instructions = (
@@ -404,6 +405,34 @@ class GroundedAnswerGenerator:
                 "Trích dẫn đủ hai chunk theo thứ tự toán hạng (B, A); cùng mã ở hai nguồn thì lặp lại mã. "
                 "Chỉ lấy cột tín chỉ đúng hàng môn của mỗi nguồn; thiếu một hàng thì abstain."
             )
+        if temporal_context is not None:
+            instructions += (
+                "\nTEMPORAL SOURCE SCOPE (system-resolved eligibility, not a new fact source):\n"
+                + json.dumps(temporal_context, ensure_ascii=False, sort_keys=True)
+                + "\nIdentify the requested version(s) in the answer and cite the supporting source quotes. "
+                  "Answer only within the selected sources; never claim global current validity or infer "
+                  "an effective date from a version label, issue date, upload date, or publication date. "
+                  "For comparisons, state each version's fact separately and cite each source."
+            )
+        if multi_hop_context is not None and not multi_hop_context.get('preserve_existing_prompt'):
+            # Full row/cell proofs remain in the internal trace. The prompt
+            # references those exact evidence rows without duplicating tables.
+            required = dict(kind=multi_hop_context['kind'], roles=multi_hop_context['roles'],
+                premises=[{k:p[k] for k in ('doc_id','chunk_id','page','code','credits')}
+                          for p in multi_hop_context['premises']])
+            if multi_hop_context['edge']:
+                edge = multi_hop_context['edge']
+                required['edge'] = dict(kind=edge['kind'], bridge_code=edge['bridge_code'],
+                    parent_chunk_id=edge['parent']['chunk_id'], target_code=edge['parent']['code'],
+                    lookup_name=edge['lookup_name'])
+            instructions += ('\nREQUIRED SOURCE ROLES (resolved from the retrieved source rows):\n'
+                + json.dumps(required,ensure_ascii=False,sort_keys=True)
+                + '\nAnswer every requested role. Label each source separately and cite its own row. '
+                  'For every requested credit use one atomic claim: Course CODE has N credits. '
+                  'A prerequisite edge must have an atomic claim: Course BRIDGE is a prerequisite of course TARGET. '
+                  'For a name-to-code lookup, state the source course name and its code in a separate cited claim. '
+                  'Same codes in different sources do not establish equivalence or credit transfer. '
+                  'If any required fact or edge is missing, abstain.')
         return f"{instructions}\n\nQUESTION:\n{question}\n\nEVIDENCE:\n{context}"
 
     @timed_stage("grounding")
@@ -412,6 +441,7 @@ class GroundedAnswerGenerator:
         question: str,
         results: list[RetrievalResult],
         language: str = "vi",
+        *, temporal_context: dict | None = None, multi_hop_context: dict | None = None,
     ) -> GroundedAnswer:
         if not question.strip():
             return _abstention("empty_question")
@@ -419,10 +449,33 @@ class GroundedAnswerGenerator:
             return _abstention("no_retrieval_evidence")
         if is_ambiguous_question(question, results):
             return _abstention("ambiguous_question")
-        if has_conflicting_numeric_evidence(results, question):
+        conflict = (any(has_conflicting_numeric_evidence([r for r in results if r.doc_id == doc], question)
+                        for doc in {r.doc_id for r in results}) if multi_hop_context is not None
+                    else has_conflicting_numeric_evidence(results, question))
+        if conflict:
             return _abstention("conflicting_evidence")
         if self.min_retrieval_score is not None and max(result.score for result in results) < self.min_retrieval_score:
             return _abstention("no_relevant_evidence")
+        if multi_hop_context is not None:
+            from .multi_hop_evidence import deterministic_calculation
+            context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens)
+            # A required source row truncated from the model's context is not
+            # still available as hidden evidence to validate its answer.
+            visible = True
+            if multi_hop_context.get('preserve_existing_prompt'):
+                for p in multi_hop_context['premises']:
+                    marker='chunk_id='+p['chunk_id']+'\n'
+                    block=context.split(marker,1)[1].split('[EVIDENCE]',1)[0] if marker in context else ''
+                    if (json.dumps(p['cells'],ensure_ascii=False) not in block
+                            or json.dumps(p['headers'],ensure_ascii=False) not in block):
+                        visible=False
+            elif '[truncated=true]' in context or any('chunk_id='+r.chunk_id+'\n' not in context for r in results):
+                visible=False
+            if not visible:
+                return _abstention('context_budget_exceeded')
+            calculated = deterministic_calculation(multi_hop_context, results, language)
+            if calculated is not None:
+                return calculated
         from .credit_sum import deterministic_credit_sum
         calculated = deterministic_credit_sum(question, results, language)
         if calculated is not None:
@@ -434,7 +487,10 @@ class GroundedAnswerGenerator:
 
         by_chunk = {result.chunk_id: result for result in results}
         try:
-            prompt = self.prompt(question, results, language)
+            kwargs = {}
+            if temporal_context is not None: kwargs['temporal_context'] = temporal_context
+            if multi_hop_context is not None: kwargs['multi_hop_context'] = multi_hop_context
+            prompt = self.prompt(question, results, language, **kwargs)
             with stage("llm"):
                 payload = self.llm.generate_json(prompt, schema=ANSWER_SCHEMA)
         except LLMError:
@@ -502,8 +558,13 @@ class GroundedAnswerGenerator:
             # checks above have had the opportunity to classify conflict and
             # ambiguity. Unknown or unsupported labels remain generic.
             return _abstention(provider_reason, tuple(citations))
-        return _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
-                                calibrator=self.calibrator)
+        answer = _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
+                                     calibrator=self.calibrator)
+        if multi_hop_context is not None:
+            from .multi_hop_evidence import composition_complete
+            if not composition_complete(answer, multi_hop_context, results):
+                return _abstention('unsupported_claim')
+        return answer
 
 
 @timed_stage("citation_validation")

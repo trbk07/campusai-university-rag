@@ -17,7 +17,9 @@ Giữ `RERANKER_ENABLED=false`. Các fixture trong tests và kiểm tra chèn l�
 không phải bằng chứng quality, performance hoặc staging của deployment.
 
 Target của cycle hiện tại là **RTX 4060 local trước, public sau**. GPU interpreter
-có sẵn là `.tmp/phase7-gpu-runtime/Scripts/python.exe`; CPU `.venv` dùng kiểm thử code.
+có sẵn là `.venv/Scripts/python.exe` (CUDA đã kiểm tra ngày 13/10/2026).
+Môi trường `.tmp/phase7-gpu-runtime` cũ đã được dọn sau khi xác minh các file
+Torch/functorch/torchgen trùng với `.venv`; xem [biên bản dọn](../../evaluation/results/storage-cleanup-20261013.json).
 Giữ cùng GPU interpreter/device/dtype/inference options xuyên M3–M12. Các ví dụ CPU
 bên dưới minh họa CLI; khi nghiệm thu RTX thay interpreter và `--device cuda:0
 --dtype float16` nhất quán với F1. Không ghép latency của GPU với quality identity CPU.
@@ -39,7 +41,7 @@ release: thay đổi source sau khi đo sẽ làm các binding mất hiệu lự
 
 # Nạp key local đã ignore vào process environment, không in hoặc commit key.
 # M3 workflow đo snapshot/provider, thu S2 context/cache/lifecycle và validate.
-.tmp/phase7-gpu-runtime/Scripts/python.exe -m scripts.operations.with_gemini_key evaluation.reranker.release_workflow model --model-dir .tmp/models/1427fd652930e4ba29e8149678df786c240d8825 --device cuda:0 --dtype float16
+.venv/Scripts/python.exe -m scripts.operations.with_gemini_key evaluation.reranker.release_workflow model --model-dir .tmp/models/1427fd652930e4ba29e8149678df786c240d8825 --device cuda:0 --dtype float16
 # M1/S1: dataset và audit phải được human_benchmark_intake export từ các packet
 # đã duyệt. Exposure registry phải hoàn tất và bind đúng pool/lineage/index.
 # Workflow đọc owner policy, kiểm tra audit trước freeze, rồi build S1 và validate M1.

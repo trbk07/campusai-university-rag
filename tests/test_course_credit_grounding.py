@@ -92,10 +92,34 @@ def test_code_spacing_policy_does_not_reuse_pre_fix_abstention_cache():
                 filters=None, top_k=5, mode='hybrid', corpus_version='index',
                 model='model', context_budget={})
     # Old false abstentions cannot hide the correction in a warm answer cache.
-    assert GROUNDING_POLICY_VERSION == 'grounding-v4'
+    assert GROUNDING_POLICY_VERSION == 'grounding-v5'
     assert build_rag_cache_key(**args) != build_rag_cache_key(**args, grounding_policy_version='grounding-v1')
     assert build_rag_cache_key(**args) != build_rag_cache_key(**args, grounding_policy_version='grounding-v2')
     assert build_rag_cache_key(**args) != build_rag_cache_key(**args, grounding_policy_version='grounding-v3')
+    assert build_rag_cache_key(**args) != build_rag_cache_key(**args, grounding_policy_version='grounding-v4')
+
+
+@pytest.mark.parametrize('course', ['UET.RBE1072', 'UET.RBE 1072'])
+def test_institution_prefixed_credit_identity_is_proved_from_its_own_row(course):
+    content = table(['Course code', 'Credits', 'Hours'],
+                    [['UET.RBE1072', '3', '30'], ['RBE1072', '2', '3']])
+    assert course_credit_support(f'Course {course} has 3 credits.', content) is True
+    assert course_credit_support(f'Course {course} has 2 credits.', content) is False
+    assert course_credit_support('Course RBE1072 has 2 credits.', content) is True
+    assert course_credit_support('Course RBE1072 has 3 credits.', content) is False
+    assert course_credit_support('Course OTHER.RBE1072 has 3 credits.', content) is None
+
+
+def test_prefixed_credit_difference_keeps_two_source_operand_order():
+    from campusai.rag.credit_sum import credit_difference_claim_support
+    first = RetrievalResult('new', 'new-document', 1,
+        table(['Course code', 'Credits'], [['UET.RBE1072', '3']]), 'table', .9, 'hybrid', {})
+    second = RetrievalResult('old', 'old-document', 2,
+        table(['Course code', 'Credits'], [['RBE2031', '2']]), 'table', .9, 'hybrid', {})
+    text = 'Credit difference for RBE2031 minus UET.RBE1072 is 2 - 3 = -1 credits.'
+    assert credit_difference_claim_support(text, [second, first])[0]
+    assert not credit_difference_claim_support(text, [first, second])[0]
+    assert not credit_difference_claim_support(text.replace('= -1', '= 1'), [second, first])[0]
 
 
 def named_table():

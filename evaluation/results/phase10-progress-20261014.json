@@ -1,0 +1,178 @@
+{
+  "status": "COMPLETE",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "53fc481286e9242ebf030e601b7417b37ab61c094e2bbb6be727cea734ebff49",
+    "runtime_sha256": "975e7a7bd38b22b1e5ab4469e6ef638f0297894f9c43a600cd2af12e1af39260"
+  },
+  "tasks": {
+    "P10-01": {
+      "status": "DONE",
+      "percent": 100,
+      "evidence_steps": [
+        "P10-01.1",
+        "P10-01.2",
+        "P10-01.3",
+        "P10-01.4"
+      ]
+    },
+    "P10-02": {
+      "status": "DONE",
+      "percent": 100,
+      "evidence_steps": [
+        "P10-02.1",
+        "P10-02.2",
+        "P10-02.3",
+        "P10-02.4"
+      ]
+    },
+    "P10-03": {
+      "status": "DONE",
+      "percent": 100,
+      "evidence_steps": [
+        "P10-03.1",
+        "P10-03.2",
+        "P10-03.3",
+        "P10-03.4"
+      ]
+    },
+    "P10-04": {
+      "status": "DONE",
+      "percent": 100,
+      "evidence_steps": [
+        "P10-04.1",
+        "P10-04.2",
+        "P10-04.3",
+        "P10-04.4"
+      ]
+    },
+    "P10-05": {
+      "status": "DONE",
+      "percent": 100,
+      "evidence_steps": [
+        "P10-05.1",
+        "P10-05.2",
+        "P10-05.3",
+        "P10-05.4"
+      ]
+    }
+  },
+  "done_tasks": 5,
+  "total_tasks": 5,
+  "task_completion_percent": 100,
+  "gates": {
+    "T10-01": "PASS",
+    "T10-02": "PASS",
+    "T10-03": "PASS",
+    "T10-04": "PASS",
+    "T10-05": "PASS"
+  },
+  "passed_gates": 5,
+  "total_gates": 5,
+  "tests": {
+    "passed": 1550,
+    "failed": 0,
+    "skipped": [
+      {
+        "classname": "tests.integration.test_basic_rag_provider",
+        "name": "test_live_gemini_grounded_answer_has_valid_fixture_citation",
+        "time": "0.001",
+        "reason": "set RUN_LLM_INTEGRATION=1 and GEMINI_API_KEY to run live Phase 4 evidence"
+      },
+      {
+        "classname": "tests.integration.test_gemini",
+        "name": "test_gemini_cache_contract",
+        "time": "0.000",
+        "reason": "set RUN_LLM_INTEGRATION=1 and GEMINI_API_KEY to run live tests"
+      }
+    ],
+    "coverage_percent": 91.09437306158618
+  },
+  "provider_posts": 0,
+  "paid_calls": 0,
+  "reranker_enabled": false,
+  "limitations": [
+    "24 exposed real-source regression cases, disjoint dev/acceptance families; not statistical global100% or fresh validation.",
+    "Codex automated source review, not human signature; owner-mediated Gemini Chat settings/model label not independently verified.",
+    "Raw Chat parse0/8; normalized schema8/8 after16 syntax quote escapes and separator removal, zero semantic edits. No native-format qualification.",
+    "Original baseline model quality unmeasured; 22/24 earlier replay failure retained, then24/24 after general spaced-code identity fix with identical captured payloads.",
+    "Local before/after is one traversal per arm under shared host activity; 189ms to696ms median excluding cold load. Added dependent search has real cost; no speedup/SLO claim.",
+    "API latency/availability/native-format qualification remains NOT PASSED (R-01/R-02). Zero external POST/billing/paid fallback; reranker OFF.",
+    "Required raw archives and original source/index artifacts must accompany checkout for offline audit/reproduction; model weights are not committed."
+  ],
+  "remaining": [],
+  "updated_at": "2026-10-14T07:19:51.952007+00:00",
+  "readiness": {
+    "actual_cases": 24,
+    "local_cases_verified": 16,
+    "missing_model_outputs": 0,
+    "model_quality_pass": true
+  },
+  "quality": {
+    "accepted": 24,
+    "rejected": 0,
+    "missing": 0,
+    "positive_pass": 12,
+    "negative_pass": 12,
+    "dev_pass": 12,
+    "acceptance_pass": 12,
+    "groups": {
+      "arithmetic": {
+        "total": 4,
+        "accepted": 4
+      },
+      "compare": {
+        "total": 4,
+        "accepted": 4
+      },
+      "false_join": {
+        "total": 4,
+        "accepted": 4
+      },
+      "missing_hop": {
+        "total": 4,
+        "accepted": 4
+      },
+      "scope_time_context": {
+        "total": 4,
+        "accepted": 4
+      },
+      "two_hop": {
+        "total": 4,
+        "accepted": 4
+      }
+    },
+    "supported_published_claims": 32,
+    "valid_published_citations": 24,
+    "false_abstention": 0,
+    "false_join": 0,
+    "scope_leak": 0,
+    "unsupported_leak": 0,
+    "contradicted_leak": 0,
+    "public_schema_valid": 24
+  },
+  "formatting": {
+    "raw_parse_pass": 0,
+    "raw_parse_fail": 8,
+    "normalized_schema_pass": 8,
+    "quote_escape_edits": 16,
+    "semantic_edits": 0,
+    "runner_input_is_normalized": true,
+    "raw_format_pass": false
+  },
+  "cleanup": {
+    "archived_materializations_pruned": 97,
+    "pruned_bytes": 58247020,
+    "acl_changes": false,
+    "temporary_roots_removed": 4,
+    "unused_drafts_removed": 1,
+    "disposable_index_removed": true,
+    "archive_restore_verified": true
+  },
+  "resolved_blocker_history": "Eight correct Phase10 raw outputs received; syntax normalized separately, all source-reviewed/replayed. Historical pending receipts retained.",
+  "bindings": {
+    "evaluation/results/phase10-completion-20261014.json": "4802c411da4f567db2a5e32e2eed355eec206ee0d4048bf182676291a0a050e2",
+    ".local_artifacts/experiment_runs/phase10-20261014/exit-audit.json": "327ef9d779ce45b1dc1f76f42e1d6a45b29b37ee90da2fb630f1e916712c1414",
+    ".local_artifacts/experiment_runs/phase10-20261014/plan-final-phase10-exit.md": "07616bbf943cdc0781a7ca411693ffe6300ec580bf945994076c1cdb1eb7424f"
+  }
+}

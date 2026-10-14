@@ -1,0 +1,132 @@
+"""Reproduce the offline audit of the owner-approved finite live measurement."""
+from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
+from collections import Counter
+from datetime import datetime, timezone
+import json
+import xml.etree.ElementTree as ET
+
+from campusai.rag.schemas import validate_release_response, validate_response
+from evaluation.common.release_artifacts import source_identity
+from evaluation.phase8 import measure_live_runtime as live
+
+ROOT = live.ROOT
+OUTPUT = live.REMAINING
+APPROVED = '806d7aa30a67d65de98ade8452f45353551ab1d6b12fbc1124f640dd25f6ed45'
+manifest = live.read(OUTPUT / 'manifest.json')
+packet = live.read(OUTPUT / 'preflight.json')
+state = live.read(OUTPUT / 'execution.json')
+measurement = live.read(OUTPUT / 'measurement.json')
+assert live.sha(OUTPUT / 'manifest.json') == APPROVED == state['manifest_sha256']
+live.verify(manifest, packet)
+assert source_identity(ROOT) == manifest['source_identity']
+assert len(state['shards']) == 1 and state['shards'][0]['status'] == 'stopped_on_error'
+assert state['status'] == 'waiting_next_pacific_day'
+assert len(state['attempts']) == 1 and not state['predictions']
+assert state['attempts'][0]['http_status'] == 503
+assert state['attempts'][0]['qid'] == packet['cases'][0]['qid']
+assert state['attempts'][0]['body_sha256'] == manifest['provider_body_sha256_by_qid'][packet['cases'][0]['qid']]
+assert state['credential_fingerprint'] == live.read(live.FOLLOWUP / 'execution.json')['credential_fingerprint']
+assert not (OUTPUT / 'execution.lock').exists()
+fallback = state['failed_product_response']
+assert fallback['provider_output'] is None
+assert validate_response(fallback['internal'], include_internal=True)[0]
+assert validate_release_response(fallback['public'])[0]
+assert fallback['public']['abstained'] and not fallback['public']['claims'] and not fallback['public']['citations']
+assert measurement['provider_attempts'] == 1 and measurement['successful_product_requests'] == 0
+assert measurement['raw_format']['denominator'] == 0
+assert measurement['application_schema']['valid'] == measurement['application_schema']['denominator'] == 1
+assert manifest['planned_calls'] == manifest['max_attempts'] == 13
+assert manifest['max_prompt_characters'] == 77959 and manifest['max_output_tokens_total'] == 13312
+assert manifest['max_output_tokens_per_attempt'] == 1024 and manifest['timeout_seconds'] == 15
+assert manifest['min_start_spacing_seconds'] == 30 and manifest['immediate_retries'] == 0
+assert manifest['credential_name'] == 'key_2' and not manifest['key_rotation']
+assert manifest['free_tier_only'] and not manifest['billing_changes'] and not manifest['paid_fallback']
+for name, digest in measurement['bindings'].items():
+    assert live.sha(ROOT / name) == digest, name
+
+cohorts = []
+attempts, predictions = [], []
+for directory in (live.OUTPUT, live.FOLLOWUP, OUTPUT):
+    recorded = live.read(directory / 'execution.json')
+    descriptor = live.read(directory / 'manifest.json')
+    attempts += recorded['attempts']
+    predictions += recorded['predictions']
+    cohorts.append({'path': directory.relative_to(ROOT).as_posix(),
+        'source_identity': descriptor['source_identity'], 'attempts': len(recorded['attempts']),
+        'successful_requests': len(recorded['predictions']),
+        'http_status_counts': dict(Counter(str(e['http_status']) for e in recorded['attempts']))})
+population = live.read(live.OUTPUT / 'manifest.json')['selection']['qids']
+assert len(population) == 18
+assert [e['qid'] for e in attempts] == population[:len(attempts)]
+assert len({e['qid'] for e in attempts}) == len(attempts) == 6
+assert len(predictions) == 3
+pending = population[len(attempts):]
+assert len(pending) == 12
+_packet, _cases, prior_events, _previous_state = live.remaining_inputs()
+events = prior_events + state['attempts']
+daily = dict(Counter(e['pacific_day'] for e in events))
+assert max(daily.values()) <= 18 and len(events) <= 160
+tests_path = ROOT / 'evaluation/results/phase8-live-remaining-collector-tests-20261013.xml'
+suites = ET.parse(tests_path).getroot().findall('testsuite')
+tests = {k: sum(int(s.get(k, 0)) for s in suites) for k in ('tests', 'errors', 'failures', 'skipped')}
+assert tests == {'tests': 42, 'errors': 0, 'failures': 0, 'skipped': 0}
+regression = live.read(live.CURRENT_REGRESSION / 'baseline-review.json')
+assert regression['exit']['content_and_local_regression_pass']
+
+bound = [OUTPUT / n for n in ('manifest.json', 'preflight.json', 'execution.json', 'measurement.json', 'preparation-review.json')]
+bound += [tests_path, Path(__file__).resolve(), live.BENCHMARK,
+          live.CURRENT_REGRESSION / 'execution.json', live.CURRENT_REGRESSION / 'baseline-review.json',
+          ROOT / 'evaluation/phase8/measure_live_runtime.py', ROOT / 'tests/test_phase8_live_runtime.py']
+for directory in (live.OUTPUT, live.FOLLOWUP):
+    bound += [directory / 'manifest.json', directory / 'execution.json', directory / 'measurement.json']
+report = {
+    'schema_version': 1, 'status': 'AUTOMATED_EXIT_AUDIT_COMPLETE_PROVIDER_HTTP503_WORKLOAD_INCOMPLETE',
+    'reviewed_at': datetime.now(timezone.utc).isoformat(), 'reviewer': 'Codex - Automated AI Review',
+    'source_identity': source_identity(ROOT), 'phase8_pass': False, 'officially_approved': False,
+    'fresh_validation': False,
+    'owner_egress_authorization': {'manifest_sha256': APPROVED,
+        'reply': 'Duyệt đúng 13 case và các giới hạn trên',
+        'scope': 'Exact 13-case egress only; not benchmark approval or passing live performance.'},
+    'pre_egress_startup_error': {'type': 'Missing GEMINI_API_KEY environment variable',
+        'provider_attempts': 0, 'shards_created': 0,
+        'resolution': 'Used the existing with_gemini_key launcher with key_2. Packet/source/limits unchanged; not a provider retry.'},
+    'approved_run': {'planned': 13, 'attempts': 1, 'successful_outputs': 0, 'http503': 1,
+        'sent_prompt_characters': len(packet['cases'][0]['prompt']), 'retry_posts': 0,
+        'key_rotation': False, 'resume_allowed': False, 'terminal_reason': 'First HTTP/provider failure',
+        'provider_transport_ms': state['attempts'][0]['transport_latency_ms'],
+        'application_request_ms': fallback['request_latency_ms'], 'startup_ms': fallback['startup_ms'],
+        'startup_plus_request_ms': fallback['latency_ms'],
+        'public_and_internal_schema': 'PASS; failed-claim/citation lists empty',
+        'raw_provider_format': 'UNMEASURED_NO_FINAL_TEXT', 'provider_model_version': None,
+        'configured_model': manifest['model'], 'usage_and_cost': 'Unknown: provider supplied no usage on 503',
+        'peak_working_set_bytes': state['peak_working_set_bytes']},
+    'fixed_live_workload': {'planned_cases': 18, 'attempted_unique_cases': 6,
+        'successful_requests': 3, 'http503': 3, 'unattempted_count': 12, 'unattempted_qids': pending,
+        'provider_schema_valid_per_attempt': {'numerator': 3, 'denominator': 6, 'value': 0.5},
+        'raw_schema_valid_among_received_final_texts': {'numerator': 3, 'denominator': 3},
+        'cohorts': cohorts,
+        'scope': 'Cross-runtime descriptive totals only. Current runtime has one failed cold request and no warm/provider-format sample; no pooled latency/SLO or production reliability claim.'},
+    'shared_attempt_budget': {'daily_counts': daily, 'total': len(events), 'daily_cap': 18, 'total_cap': 160},
+    'regression_baseline': {'requests': 300, 'correct_answers': 145,
+        'correct_negative_abstentions': 155, 'provider_posts': 0,
+        'scope': 'Recorded Chat and native local branches; exact unchanged source/config outside allowed measurement dispatchers/tests verified.'},
+    'collector_tests': tests,
+    'goal_completion_audit': {
+        'C7-01': 'PASS; production runtime unchanged by collector updates',
+        'C7-02': 'PASS; request/evidence retrieval bindings retained',
+        'C7-03': 'PASS owner-mediated Chat, 68/68 population; not live API performance',
+        'C7-04': 'PASS offline fault/restart evidence; not proof of provider recovery',
+        'C7-05': 'INCOMPLETE: earlier 100-HTTP/54-call run stopped on first HTTP 503; no valid complete performance cycle',
+        'C7-06': 'INCOMPLETE depends on C7-05; two genuine integrations PASS and offline suite/coverage retained',
+        'phase8_benchmark_content_local_regression': 'PASS; frozen v5 and 300-case review retained',
+        'phase8_live_latency_format': 'INCOMPLETE; 12 never-attempted cases, no current warm/provider-format sample',
+        'phase7_done': 4, 'phase7_total': 6, 'phase8_done': 4, 'phase8_total': 5,
+        'full_goal_achieved': False,
+        'next_action': 'Provider recovery is required. Do not resume this terminal run, create a successor merely to retry 503, rotate keys, loosen thresholds, or label the phases complete.'},
+    'bindings': {p.relative_to(ROOT).as_posix(): live.sha(p) for p in bound},
+}
+live.write_json(OUTPUT / 'exit-review.json', report)
+print(json.dumps({'status': report['status'], 'attempts': 1, 'successful': 0,
+                  'pending_unique_cases': 12, 'request_ms': fallback['request_latency_ms']}))

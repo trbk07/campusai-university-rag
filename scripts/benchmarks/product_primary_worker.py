@@ -88,7 +88,7 @@ class NoAnswerCache:
 def main():
     mode, arm, setup_name, output_name = sys.argv[1:5]
     setup = read(setup_name)
-    if mode not in {"prepare", "live"} or arm not in {"baseline", "current"}:
+    if mode not in {"prepare", "live", "recorded"} or arm not in {"baseline", "current"}:
         raise ValueError("unknown worker mode or arm")
     output = Path(output_name)
     output.open("x", encoding="utf8").close()
@@ -111,7 +111,7 @@ def main():
     spec.loader.exec_module(adapter)
     budget = adapter.Budget(setup_name, digest(setup_name)) if mode == "live" and setup["max_retries"] else None
     retry503 = adapter.load_retry503()
-    client = GeminiClient("offline-payload-capture-only" if mode == "prepare"
+    client = GeminiClient("offline-payload-capture-only" if mode != "live"
         else os.environ["GEMINI_API_KEY"], model=config["model"], max_retries=0,
         cache=None, timeout=config["timeout_seconds"],
         limiter=RateLimiter(config["requests_per_minute"]) if mode == "live" else None)
@@ -119,7 +119,22 @@ def main():
     calls, sent = [], []
     report = {"mode": mode, "arm": arm, "pid": os.getpid(), "observations": [],
               "external_provider_calls": 0, "quality_accepted": False,
-              "status": "STARTED_NO_RESTART", "offline_synthetic_limiter_disabled": mode == "prepare"}
+              "status": "STARTED_NO_RESTART", "offline_synthetic_limiter_disabled": mode != "live",
+              "measurement_scope": "recorded Chat application processing, not live provider latency" if mode == "recorded" else mode}
+    recorded = {}
+    if mode == "recorded":
+        binding = setup["recorded_chat"]
+        if digest(binding["path"]) != binding["sha256"]:
+            raise ValueError("recorded Chat input changed")
+        for item in read(binding["path"])["responses"]:
+            key = (item["arm"], item["qid"])
+            if key in recorded:
+                raise ValueError("duplicate recorded Chat response")
+            recorded[key] = item["response"]
+        needed = {(a, qid) for a, cases in setup["cases"].items()
+                  for qid, case in cases.items() if case["provider_body"]}
+        if set(recorded) != needed:
+            raise ValueError("recorded Chat cohort incomplete or contains extra responses")
     expected, attempts, last_start = None, 0, 0.0
     attempt_trace = []
     original_transport = __import__("urllib.request", fromlist=["urlopen"]).urlopen
@@ -146,6 +161,8 @@ def main():
         body = json.loads(request.data)
         if attempts >= (2 if budget else 1) or expected is None or request.get_method() != "POST" or request.full_url != setup["endpoint"]:
             raise RuntimeError("unexpected provider attempt")
+        if mode in {"live", "recorded"} and body != expected["provider_body"]:
+            raise RuntimeError("recorded or live payload differs from prepared input")
         if mode == "live":
             if body != expected["provider_body"] or (not budget and time.time() - last_start < 30):
                 raise RuntimeError("payload or global spacing changed")
@@ -158,6 +175,11 @@ def main():
                 "confidence": "low", "abstained": True, "abstention_reason": "provider_abstained"}
             return io.BytesIO(json.dumps({"candidates": [{"content": {"parts": [
                 {"text": json.dumps(placeholder)}]}, "finishReason": "STOP"}]}).encode())
+        if mode == "recorded":
+            return io.BytesIO(json.dumps({"candidates": [{"content": {"parts": [
+                {"text": json.dumps(recorded[arm, expected["qid"]], ensure_ascii=False)}]},
+                "finishReason": "STOP"}],
+                "modelVersion": "owner-mediated-gemini-chat-ui-model-unverified"}, ensure_ascii=False).encode("utf8"))
         last_start = time.time()
         report["external_provider_calls"] += 1
         report["pending_attempt"] = {"qid": expected["qid"], "step": report["active_step"],
@@ -228,7 +250,7 @@ def main():
                 seen = set()
                 try:
                     emit({"ready": True, "arm": arm})
-                    commands = ({"qid": r["qid"]} for r in setup["rows"]) if mode == "prepare" else (
+                    commands = ({"qid": r["qid"]} for r in setup["rows"]) if mode in {"prepare", "recorded"} else (
                         json.loads(line) for line in sys.stdin if line.strip())
                     rows = {r["qid"]: r for r in setup["rows"]}
                     for command in commands:
@@ -286,11 +308,11 @@ def main():
                                 **candidate_request, top_k=40, mode="auto")]
                         valid = (not error_type and status == 200 and answer.get("ok") and len(traces) == 1
                             and len(calls) == int(bool(sent)) and all(c["provider_status"] == "completed" and not c["cached"] for c in calls))
-                        if mode == "live":
+                        if mode in {"live", "recorded"}:
                             planned = int(bool(expected["provider_body"]))
                             valid = valid and (planned <= attempts <= planned * (2 if budget else 1)
                                 and observation["trace"]["evidence"] == expected["evidence"]
-                                and (not planned or bool(observation["provider_model_version"])))
+                                and (mode == "recorded" or not planned or bool(observation["provider_model_version"])))
                         observation["interface_valid"] = bool(valid)
                         report["observations"].append(observation)
                         report.pop("pending_attempt", None)

@@ -1,0 +1,207 @@
+{
+  "status": "AUTOMATED_REVIEW_COMPLETE_REPAIR_RECHECK_PENDING",
+  "reviewer": "Codex ? Automated AI Review",
+  "officially_human_approved": false,
+  "reviewed_at": "2026-10-14T01:37:40.023912+00:00",
+  "model_identity": "Owner-mediated Gemini Chat; UI model/settings not independently verified",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "216ab8d2748d78e447f4e627876180d4d382e0e2bcc6808bbf827f089e33d8d1",
+    "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+  },
+  "cases": [
+    {
+      "qid": "p9-robotics-01",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "Engineer degree is stated on the 2020 source page 1; version qualification is correct and does not assert effectiveness.",
+      "source_proofs": [
+        {
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p1_s8_c1",
+          "page": 1,
+          "quote": "Danh hiệu tốt nghiệp: Kỹ sư"
+        }
+      ],
+      "original_public_answer_accepted": true,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    },
+    {
+      "qid": "p9-robotics-02",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "QH-2025 source page 1 states 4.5 years. Unicode whitespace in the supplied quote is validated without changing raw bytes.",
+      "source_proofs": [
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p1_s2_c1",
+          "page": 1,
+          "quote": "– Thời gian đào tạo: 4,5 năm"
+        }
+      ],
+      "original_public_answer_accepted": true,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    },
+    {
+      "qid": "p9-robotics-07",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "Both versions state Engineer, each claim cites its own source. Correct original answer; changed context order requires a new recorded model output.",
+      "source_proofs": [
+        {
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p1_s8_c1",
+          "page": 1,
+          "quote": "Danh hiệu tốt nghiệp: Kỹ sư"
+        },
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p1_s2_c1",
+          "page": 1,
+          "quote": "– Danh hiệu tốt nghiệp: Kỹ sư"
+        }
+      ],
+      "original_public_answer_accepted": true,
+      "repaired_payload_unchanged": false,
+      "repair_model_recheck_required": true,
+      "repaired_public_answer_accepted": null
+    },
+    {
+      "qid": "p9-robotics-08",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "Both versions state 4.5 years, with separate source citations and explicit version labels.",
+      "source_proofs": [
+        {
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p1_s8_c1",
+          "page": 1,
+          "quote": "Thời gian đào tạo: 4,5 năm"
+        },
+        {
+          "doc_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+          "chunk_id": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d_p1_s2_c1",
+          "page": 1,
+          "quote": "– Thời gian đào tạo: 4,5 năm"
+        }
+      ],
+      "original_public_answer_accepted": true,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    },
+    {
+      "qid": "p9-electronics-01",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "The 2023 source page 3 states Bachelor. Answer labels the source version, not the intake or a signed effective date.",
+      "source_proofs": [
+        {
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p3_s17_c1",
+          "page": 3,
+          "quote": "- Danh hiệu tốt nghiệp: Cử nhân"
+        }
+      ],
+      "original_public_answer_accepted": true,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    },
+    {
+      "qid": "p9-electronics-02",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "QH-2025 HTML block 12 states 4.0 years on declared logical snapshot page 1. Original public rejection was missing source-verified version propagation; unchanged raw output now passes.",
+      "source_proofs": [
+        {
+          "doc_id": "df2c17bf39827eec0040da09d6582c28c0f73f7b89ef136082a3735dbaf5d490",
+          "chunk_id": "df2c17bf39827eec0040da09d6582c28c0f73f7b89ef136082a3735dbaf5d490_html_b12",
+          "page": 1,
+          "quote": "– Thời gian đào tạo: 4,0 năm"
+        }
+      ],
+      "original_public_answer_accepted": false,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    },
+    {
+      "qid": "p9-electronics-07",
+      "raw_schema_valid": true,
+      "decision": "REJECT_FALSE_ABSTENTION",
+      "reason": "False abstention against the frozen answerable source pair: QH-2025 block 11 states Bachelor. Original context omitted that explicit field; source gold remains unchanged and the bounded candidate selection was repaired.",
+      "source_proofs": [],
+      "original_public_answer_accepted": false,
+      "repaired_payload_unchanged": false,
+      "repair_model_recheck_required": true,
+      "repaired_public_answer_accepted": null
+    },
+    {
+      "qid": "p9-electronics-08",
+      "raw_schema_valid": true,
+      "decision": "ACCEPT_CONTENT",
+      "reason": "2023 source page 3 states 4 years; QH-2025 HTML block 12 states 4.0 years. Both claims and their own citations are valid. Original public rejection was version propagation; unchanged raw output now passes.",
+      "source_proofs": [
+        {
+          "doc_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+          "chunk_id": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6_p3_s17_c1",
+          "page": 3,
+          "quote": "- Thời gian đào tạo: 4 năm"
+        },
+        {
+          "doc_id": "df2c17bf39827eec0040da09d6582c28c0f73f7b89ef136082a3735dbaf5d490",
+          "chunk_id": "df2c17bf39827eec0040da09d6582c28c0f73f7b89ef136082a3735dbaf5d490_html_b12",
+          "page": 1,
+          "quote": "– Thời gian đào tạo: 4,0 năm"
+        }
+      ],
+      "original_public_answer_accepted": false,
+      "repaired_payload_unchanged": true,
+      "repair_model_recheck_required": false,
+      "repaired_public_answer_accepted": true
+    }
+  ],
+  "summary": {
+    "raw_received": 8,
+    "raw_schema_valid": 8,
+    "raw_content_accepted": 7,
+    "raw_content_rejected": 1,
+    "original_end_to_end_correct": 21,
+    "repaired_end_to_end_confirmed": 22,
+    "total_frozen_cases": 24,
+    "pending_changed_payloads": [
+      "p9-electronics-07",
+      "p9-robotics-07"
+    ],
+    "resolution_correct": 24,
+    "negative_abstentions_correct": 16,
+    "public_schema_valid": 24,
+    "phase7_exact_public_regression": 68,
+    "phase8_exact_public_regression": 300,
+    "provider_posts": 0
+  },
+  "limitations": [
+    "Exposed small-family regression, not fresh or independent human validation.",
+    "Missing repair outputs are not counted correct.",
+    "No API latency, availability, or native format qualification.",
+    "HTML page 1 means the declared logical snapshot page."
+  ],
+  "bindings": {
+    ".local_artifacts/experiment_runs/phase9-20261014/received-chat-5fa978420c22.jsonl": "5fa978420c22e860faef6b0fc79202ac2e1130cc8cc93879f9da61c9fb1f66a6",
+    ".local_artifacts/experiment_runs/phase9-20261014/preflight.json": "3004ae5f99d05b5cfdb09316027e62a9f95086618a4ce9b80c596856e8c6469f",
+    ".local_artifacts/experiment_runs/phase9-20261014/recorded-replay.json": "b951c4089a3ecc980b2a4db6e34bb665311d2fa5094df0ead24cc196f1f6c9ee",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-preflight.json": "eb6319bfa83f13aef9117dbd3f97037bda75d389fbc2641e22b23b2251277761",
+    ".local_artifacts/experiment_runs/phase9-20261014/compatible-chat-responses.jsonl": "191deef68d60762dbb73cc65377ab2a0ac6f18556cd8359ec5f9522e8501c41a",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-preflight-replay-191deef68d60.json": "ac58a598f599ee892f1f7e10ab3b36d752255dd8569b4f7338962c391b23c17c",
+    "evaluation/phase9/repair-preflight-chat-packet.md": "9852bb7a32e03f1b55fb17da09a18acf305b57d00d9e23017e88256b6fb2b079",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase7-regression.json": "e5951cdf61f16540efa9b5f364728f6ac0ee9899f49ec5b87853dbadc09e3a41",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase8-regression/execution.json": "8179fb96318abf2ad5951f3bffa098974758129d3f609716225665ba59235618",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase8-regression/predictions.jsonl": "81b1f10c5cb22d69469fba9e3729262460ca00c73ce7a33dc917c4eb7d2b4e63",
+    "evaluation/phase9/source-rubric.json": "4fb482d637ed48290234d38e6b95098afa6d46c1efaf3aee7c9f92b05de05886"
+  }
+}

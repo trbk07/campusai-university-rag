@@ -38,3 +38,22 @@
 /evaluation/phase8/*.jsonl -text
 /evaluation/phase8/*.md -text
 /evaluation/phase8/** whitespace=cr-at-eol
+
+# Phase 7 Chat collection manifest binds exact upload packet bytes.
+/evaluation/phase7/chat-quality-20261013/manifest.json -text
+# The frozen collection manifest contains historical CR-CR-LF; do not rewrite its hash.
+/evaluation/phase7/chat-quality-20261013/manifest.json whitespace=-blank-at-eol
+
+# Frozen temporal/composition inputs and bound handoffs retain exact bytes.
+/evaluation/phase9/*.json -text
+/evaluation/phase9/*.jsonl -text
+/evaluation/phase9/*.md -text
+/evaluation/phase10/*.json -text
+/evaluation/phase10/*.jsonl -text
+/evaluation/phase10/*.md -text
+/docs/phase*_*.md -text
+/plan.md -text
+/evaluation/phase9/** whitespace=cr-at-eol
+/evaluation/phase10/** whitespace=cr-at-eol
+/docs/phase*_*.md whitespace=cr-at-eol
+/plan.md whitespace=cr-at-eol

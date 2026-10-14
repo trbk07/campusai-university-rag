@@ -9,6 +9,7 @@ import argparse
 from collections import Counter
 from contextlib import ExitStack
 from copy import deepcopy
+from datetime import datetime
 import hashlib
 import http.client
 import io
@@ -20,6 +21,7 @@ import sys
 import threading
 import time
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 from campusai.llm.client import LLMResponseError
@@ -88,7 +90,7 @@ def read_json_config():
     return _read_config(CONFIG)["llm"]
 
 
-def prepare(output: Path, workload_path: Path):
+def prepare(output: Path, workload_path: Path, daily_history: list[Path] | None = None):
     available_output(output)
     workload = read_json(workload_path)
     seed_path = Path(workload["source_packet"]["path"])
@@ -131,11 +133,78 @@ def prepare(output: Path, workload_path: Path):
         "output_dir": str(BASE / (output.stem.replace("egress-packet", "live"))),
         "quality_or_performance_accepted": False,
         "readiness": "Measure complete startup before HTTP bind, then full first HTTP query; no cache prefill."}
+    if daily_history is not None:
+        if config['max_retries'] != 0:
+            raise ValueError('Free Tier shards require zero retries')
+        packet['free_tier_schedule'] = {
+            'daily_attempt_cap': 18, 'timezone': 'America/Los_Angeles',
+            'billing_changes': False, 'paid_fallback': False,
+            'history': {str(p): sha256(p) for p in daily_history},
+            'policy': 'Resume only after a quota pause between complete cycles. Any failure is terminal; never replay a completed cycle.',
+        }
+        packet['bindings'].update(packet['free_tier_schedule']['history'])
     validate_packet(packet)
     write_json(output, packet)
     print(json.dumps({"packet": str(output), "sha256": sha256(output),
         "requests": 100, "max_provider_calls": 54, "prompt_chars": packet["prompt_chars"],
         "external_calls": 0}))
+
+
+def pacific_day(timestamp: float | None = None) -> str:
+    return datetime.fromtimestamp(time.time() if timestamp is None else timestamp,
+                                  ZoneInfo('America/Los_Angeles')).date().isoformat()
+
+
+def daily_attempts(packet: dict, children: list[dict], day: str) -> int:
+    """Count real starts, including failed calls and other bound phase runs."""
+    schedule = packet['free_tier_schedule']
+    if (schedule['daily_attempt_cap'] != 18 or schedule['timezone'] != 'America/Los_Angeles'
+            or schedule['billing_changes'] is not False or schedule['paid_fallback'] is not False
+            or packet['max_retries'] != 0):
+        raise ValueError('Free Tier limits changed')
+    starts = []
+    for path, digest in schedule['history'].items():
+        if sha256(Path(path)) != digest:
+            raise ValueError('shared history changed')
+        history = read_json(Path(path))
+        if 'attempts' in history:
+            starts.extend(datetime.fromisoformat(a['started_at']).timestamp() for a in history['attempts'])
+        elif 'observations' in history:
+            if history.get('offline') is not False or history['external_provider_calls'] != len(history['observations']):
+                raise ValueError('unsupported shared integration history')
+            starts.extend(o['provider_start'] for o in history['observations'])
+        else:
+            raise ValueError('unrecognized shared history')
+    for child in children:
+        events = child['provider_starts']
+        if len(events) != child['external_provider_calls']:
+            raise ValueError('incomplete provider attempt ledger')
+        starts.extend(events)
+    return sum(pacific_day(start) == day for start in starts)
+
+
+def resumed_children(report: dict, packet: dict, digest: str) -> list[dict]:
+    if (report['status'] != 'WAITING_DAILY_QUOTA' or report['packet_sha256'] != digest
+            or report['source_identity'] != packet['source_identity'] or report['offline_replay']):
+        raise ValueError('only a clean quota pause can resume')
+    children = []
+    for number, entry in enumerate(report['processes'], 1):
+        path = Path(entry['path'])
+        if (path.resolve() != (Path(packet['output_dir']) / f'cycle-{number}.json').resolve()
+                or sha256(path) != entry['sha256']):
+            raise ValueError('completed cycle binding changed')
+        child = read_json(path)
+        expected = [w['ordinal'] for w in packet['workload'] if w.get('cycle', 18) == number]
+        if (child['cycle'] != number or child['status'] != 'PENDING_SOURCE_AND_PERFORMANCE_REVIEW'
+                or child['source_identity'] != packet['source_identity']
+                or [o['ordinal'] for o in child['observations']] != expected
+                or not all(o['valid'] for o in child['observations'])
+                or child['external_provider_calls'] != 3):
+            raise ValueError('incomplete or failed cycle cannot resume')
+        children.append(child)
+    if report['external_provider_calls'] != sum(c['external_provider_calls'] for c in children):
+        raise ValueError('quota checkpoint totals changed')
+    return children
 
 
 class ResourceSampler:
@@ -189,7 +258,7 @@ def worker(packet_path: Path, output: Path, cycle: int, last_start: float,
     report = {"schema_version": 1, "status": "STARTED_NO_RESTART", "cycle": cycle,
         "pid": os.getpid(), "source_identity": packet["source_identity"],
         "observations": [], "offline_replay": bool(replay), "last_provider_start": last_start,
-        "external_provider_calls": 0, "performance_accepted": False}
+        "external_provider_calls": 0, "provider_starts": [], "performance_accepted": False}
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("x", encoding="utf8") as f:
         json.dump(report, f)
@@ -214,6 +283,8 @@ def worker(packet_path: Path, output: Path, cycle: int, last_start: float,
         attempts += 1
         report["last_provider_start"] = time.time()
         report["external_provider_calls"] += int(not replay)
+        if not replay:
+            report['provider_starts'].append(report['last_provider_start'])
         write_json(output, report)  # Durable attempted-call record before egress.
         if replay:
             captured = replay_answers[expected["qid"]]
@@ -329,6 +400,18 @@ def worker(packet_path: Path, output: Path, cycle: int, last_start: float,
 
 def collect(packet_path: Path, digest: str | None, output_dir: Path | None = None,
             replay_path: Path | None = None, cycles: list[int] | None = None):
+    # One dispatcher owns the durable cycle ledger; a crashed lock fails closed.
+    lock = packet_path.with_suffix('.collector.lock')
+    with lock.open('x', encoding='utf8') as stream:
+        stream.write(str(os.getpid()))
+    try:
+        return _collect(packet_path, digest, output_dir, replay_path, cycles)
+    finally:
+        lock.unlink()
+
+
+def _collect(packet_path: Path, digest: str | None, output_dir: Path | None = None,
+            replay_path: Path | None = None, cycles: list[int] | None = None):
     packet = read_json(packet_path)
     validate_packet(packet)
     if not replay_path and sha256(packet_path) != digest:
@@ -341,13 +424,24 @@ def collect(packet_path: Path, digest: str | None, output_dir: Path | None = Non
     if not selected or len(set(selected)) != len(selected) or not set(selected) <= set(range(1, 19)):
         raise ValueError("invalid preflight process cycles")
     out = output_dir if replay_path else Path(packet["output_dir"])
-    available_output(out / "summary.json")
-    out.mkdir(parents=True, exist_ok=False)
-    report = {"schema_version": 1, "status": "STARTED_NO_RESUME", "packet_sha256": sha256(packet_path),
-        "source_identity": packet["source_identity"], "processes": [], "offline_replay": bool(replay_path),
-        "external_provider_calls": 0, "performance_accepted": False}
-    last_start = 0.0
+    scheduled = not replay_path and 'free_tier_schedule' in packet
+    if scheduled and (out / 'summary.json').exists():
+        report = read_json(out / 'summary.json')
+        previous = resumed_children(report, packet, digest)
+        selected = list(range(len(previous) + 1, 19))
+    else:
+        available_output(out / "summary.json")
+        out.mkdir(parents=True, exist_ok=False)
+        report = {"schema_version": 1, "status": "STARTED_NO_RESUME", "packet_sha256": sha256(packet_path),
+            "source_identity": packet["source_identity"], "processes": [], "offline_replay": bool(replay_path),
+            "external_provider_calls": 0, "performance_accepted": False}
+        previous = []
+    last_start = previous[-1]['last_provider_start'] if previous else 0.0
     for cycle in selected:
+        if scheduled and daily_attempts(packet, previous, pacific_day()) + 3 > 18:
+            report.update(status='WAITING_DAILY_QUOTA', quota_day=pacific_day(), next_cycle=cycle)
+            write_json(out / 'summary.json', report)
+            break
         report["active_cycle"] = cycle
         write_json(out / "summary.json", report)
         target = out / f"cycle-{cycle}.json"
@@ -364,6 +458,7 @@ def collect(packet_path: Path, digest: str | None, output_dir: Path | None = Non
             report.update(status="CHILD_FAILURE_STOPPED", failed_cycle=cycle)
             break
         child = read_json(target)
+        previous.append(child)
         last_start = child["last_provider_start"]
         report["processes"].append({"path": str(target), "sha256": sha256(target), "pid": child["pid"]})
         report["external_provider_calls"] += child["external_provider_calls"]
@@ -406,6 +501,8 @@ def main():
     prepare_args = commands.add_parser("prepare")
     prepare_args.add_argument("--workload", type=Path, required=True)
     prepare_args.add_argument("--output", type=Path, required=True)
+    prepare_args.add_argument('--daily-history', type=Path, nargs='*', default=None,
+                              help='Enable Free Tier daily shards; bind all prior shared attempt ledgers')
     for name in ("collect", "preflight", "worker"):
         sub = commands.add_parser(name)
         sub.add_argument("--packet", type=Path, required=True)
@@ -423,7 +520,7 @@ def main():
             sub.add_argument("--last-start", type=float, required=True)
     args = parser.parse_args()
     if args.command == "prepare":
-        prepare(args.output, args.workload)
+        prepare(args.output, args.workload, args.daily_history)
     elif args.command == "worker":
         worker(args.packet, args.output, args.cycle, args.last_start, args.replay, args.authorized_packet_sha256)
     elif args.command == "preflight":

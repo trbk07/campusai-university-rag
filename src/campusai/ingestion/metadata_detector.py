@@ -114,6 +114,50 @@ def _iso_date(value: str | None) -> str | None:
         return None
 
 
+def _temporal_date_fields(text: str) -> dict:
+    """Bind labelled dates to their own clause; never borrow a nearby year.
+
+    Partial dates retain precision in the optional temporal block. Existing ISO
+    fields remain None unless a full physical calendar date is supported.
+    """
+    fields = {}
+    for field, label in (
+        ('issue_date', r'issue date|issued(?: on)?|ngày ban hành|ban hành ngày'),
+        ('effective_date', r'effective date|effective from|ngày hiệu lực|có hiệu lực(?: kể)? từ'),
+    ):
+        candidates = []
+        for match in re.finditer(r'(?P<label>' + label + r')\s*[:\-]?\s*(?P<value>[^\n;]+)', text, re.I):
+            line_start = text.rfind('\n', 0, match.start()) + 1
+            prefix = _fold(text[line_start:match.start()])
+            if re.search(r'\b(?:khong|chua|du kien|not|another document|van ban khac)\b', prefix):
+                continue
+            raw = match['value']
+            full = _iso_date(raw)
+            value, precision = full, 'day' if full else None
+            if not full:
+                partial = re.search(r'(?:tháng\s+|\b)(\d{1,2})\s*(?:/|năm\s+)(\d{4})\b', raw, re.I)
+                year = re.search(r'\b(?:năm\s+)?((?:19|20|21)\d{2})\b', raw, re.I)
+                # Malformed full dates do not get downgraded to a valid month.
+                malformed = re.search(r'\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}[/-]\d{1,2}[/-]\d{1,2}|ngày\s+\d+\s+tháng\s+\d+\s+năm\s+\d{4}|\b\d{1,2}\s+[A-Za-z]+\s+\d{4}', raw, re.I)
+                if not malformed and partial and 1 <= int(partial[1]) <= 12:
+                    value, precision = f'{partial[2]}-{int(partial[1]):02d}', 'month'
+                elif not malformed and year and not re.search(r'\d[/-]\d', raw):
+                    value, precision = year[1], 'year'
+            if value:
+                markers = list(re.finditer(r'(?:^|\n)##\s*Page\s+(\d+)\b', text[:match.start()]))
+                candidates.append(dict(value=value, precision=precision, quote=match[0],
+                    source_page=int(markers[-1][1]) if markers else 1))
+        distinct = {(c['value'], c['precision']) for c in candidates}
+        fields[field] = candidates[0] if len(distinct) == 1 else None
+    # Explicit "effective on signing" may refer to the proven issue clause.
+    same_day = re.search(r'(?:có hiệu lực kể từ ngày ký|effective (?:on|from) (?:the )?(?:date of )?signing)', text, re.I)
+    if not fields['effective_date'] and same_day and fields['issue_date']:
+        issue = fields['issue_date']
+        fields['effective_date'] = dict(issue, quote=issue['quote'] + '\n' + same_day[0],
+            basis='explicit_same_day_as_issue')
+    return fields
+
+
 def _extract_entities(text: str, years: list[int]) -> dict[str, object]:
     """Extract labelled entities; absent evidence is deliberately ``None``."""
     institution = _first_match(
@@ -141,23 +185,9 @@ def _extract_entities(text: str, years: list[int]) -> dict[str, object]:
     version = _first_match(
         [r"(?:version|revision|phiên bản|lần ban hành)\s*[:#\-]?\s*([^\n,;]+)"], text
     )
-    effective_raw = _first_match(
-        [r"(?:effective date|effective from|ngày hiệu lực|có hiệu lực từ|ban hành ngày)\s*[:\-]?\s*([^\n,;]+)"],
-        text,
-    )
-    effective_date = _iso_date(effective_raw)
-    if effective_date is None:
-        nearby = re.search(
-            r"(?:effective|hiệu lực).{0,50}?(\d{1,2}[/-]\d{1,2}[/-]\d{4}|\d{4}[/-]\d{1,2}[/-]\d{1,2})",
-            text,
-            re.IGNORECASE | re.DOTALL,
-        )
-        effective_date = _iso_date(nearby.group(1) if nearby else None)
-    issue_raw = _first_match(
-        [r"(?:issue date|issued|ngày ban hành|ban hành ngày)\s*[:\-]?\s*([^\n,;]+)"],
-        text,
-    )
-    issue_date = _iso_date(issue_raw)
+    dates = _temporal_date_fields(text)
+    effective_date = dates['effective_date']['value'] if dates['effective_date'] and dates['effective_date']['precision'] == 'day' else None
+    issue_date = dates['issue_date']['value'] if dates['issue_date'] and dates['issue_date']['precision'] == 'day' else None
     faculty = _first_match(
         [r"(?:faculty|school|khoa|viện)\s*[:\-]\s*([^\n,;]+)"], text
     )
@@ -294,7 +324,23 @@ def detect_metadata(text: str) -> dict:
             "evidence": field_evidence,
             "source_page": source_page,
         }
+    temporal_dates = _temporal_date_fields(text)
+    temporal_block = {"schema_version": 1, "dates": temporal_dates}
+    cohort = re.search(r'(?:áp dụng|applies).{0,90}?(?:từ\s+khóa(?:\s+tuyển\s+sinh)?(?:\s+năm)?|from\s+(?:cohort|intake))\s*(?:QH[-\s]*)?((?:19|20|21)\d{2})', text, re.I | re.S)
+    academic_period = re.search(r'(?:năm học|academic year)\s*[:\-]?\s*((?:19|20|21)\d{2})\s*[-–/]\s*((?:19|20|21)\d{2})', text, re.I)
+    for field, match, value in [
+        ('cohort_start', cohort, int(cohort[1]) if cohort else None),
+        ('academic_period', academic_period, f'{academic_period[1]}-{academic_period[2]}' if academic_period else None),
+    ]:
+        if match:
+            markers = list(re.finditer(r'(?:^|\n)##\s*Page\s+(\d+)\b', text[:match.start()]))
+            temporal_block[field] = dict(value=value, quote=match[0], source_page=int(markers[-1][1]) if markers else 1)
+    for field, entry in temporal_dates.items():
+        if entry and entry['precision'] == 'day':
+            metadata_evidence[field]['evidence'] = entry['quote']
+            metadata_evidence[field]['source_page'] = entry['source_page']
     return {
+        "temporal": temporal_block,
         "domain": "academic" if is_academic else "general",
         "language": language,
         "language_confidence": language_confidence,

@@ -1,4 +1,113 @@
-# Phase 7 product handoff - in progress
+# Phase 7 product handoff
+
+## Current completion — owner-amended Chat quality scope, 2026-10-13
+
+**DONE — 100% of the owner's amended quality scope.** The owner explicitly
+accepts Chat/file-based answer verification instead of waiting for the API.
+All 68 cases pass source review and actual paired application replay: 42 correct
+answers, 26 correct negatives, 74 supported claims and 90 supported citation
+pairs. Final offline checks pass 1,473 tests with 90.60% coverage; two opt-in
+live tests are skipped here, with their earlier genuine integration evidence
+retained. All 60 fault cases and the current runtime/evidence bindings pass.
+
+No unchecked content cases remain and no further Chat submission is needed.
+The [completion audit](../evaluation/results/phase78-chat-quality-completion-20261013.json)
+records the scope amendment and reproducible zero-network checks. C7-05's
+original live performance requirement remains **NOT PASSED / RELEASE HARDENING
+PENDING**; this closure does not establish production readiness or turn prior
+503 failures into successes. Keep reranker off. The following checkpoints
+describe the original live contract and remain historical audit evidence.
+
+## Historical live goal — 2026-10-13, provider unavailable
+
+The owner-approved remaining Phase 8 live cohort stopped after its first POST
+returned HTTP 503; no retry or key rotation followed. This is a genuine current
+product observation, but it does not substitute for C7-05's locked 100-HTTP /
+54-provider-call workload. C7-05 and its dependent C7-06 remain incomplete;
+the two genuine integrations and quality/fault evidence remain retained.
+No new performance run is scheduled while provider recovery is unverified.
+
+The [current execution audit](../evaluation/results/phase8-live-remaining-20261013/exit-review.json)
+verifies the exact current source/payload, unchanged product runtime and
+300-case regression. The older snapshots below remain historical; their
+source hashes are not rewritten after measurement dispatcher/test updates.
+Reproduce the current zero-network audit with:
+
+```powershell
+.venv\Scripts\python.exe evaluation/results/phase8-live-remaining-20261013/review-execution.py.txt
+```
+
+## Latest verification — 2026-10-13
+
+[Continuation review](../evaluation/results/phase7-free-tier-performance-20261013/progress-review.json)
+records **2/2 real Gemini integrations PASS**, 1,466 offline tests PASS and
+90.60% coverage. The two opt-in tests skipped in the offline suite passed
+separately against the provider. Product source/configuration did not change;
+the review reconstructs the previous source hash with only the performance
+collector and its tests reverted.
+
+The unchanged 100-HTTP/54-provider-call performance workload now supports
+Free Tier quota pauses between complete cycles. It counts bound shared history
+against 18 starts per Pacific day, permits no immediate retry, rejects modified
+or failed checkpoints, and never resends a completed cycle. Its 46 regression
+tests and 20-request offline preflight pass. This infrastructure change does
+not qualify latency or availability.
+
+The real run stopped after its **first POST returned HTTP 503**. The HTTP
+application returned a valid fallback in 1,944.457 ms. No retry or key rotation
+followed; provider usage/cost was unavailable. The run is terminal and cannot
+resume. Earlier synthetic integrations took 3,616.272 and 2,485.974 ms; their
+success does not establish availability for the full workload.
+
+**Phase 7 remains 4/6 DONE.** C7-05 needs a complete live performance result;
+C7-06's test/integration evidence is ready but final closure depends on C7-05.
+No further packet or background provider job is scheduled. Keep reranker off.
+Historical reproduction (requires that receipt's matching source tree):
+
+```powershell
+.venv\Scripts\python.exe evaluation/results/phase7-free-tier-performance-20261013/review-progress.py.txt
+```
+
+## Quality acceptance checkpoint — 2026-10-13, before live continuation
+
+The owner returned the active work to Phase 7 and authorized Gemini Chat for
+answer-quality verification. **C7-03 is DONE/PASS via owner-mediated Chat**;
+the API quota-window workflow below is historical and must not be started.
+Phase 7 is now **4/6 items DONE (66.7%)**. The owner supplied all three batches
+in one attachment, then a formatting-only resubmission: all 68 unique IDs are
+schema-valid and answer/quote/claim contents are unchanged. Original malformed
+bytes and the initial application failures remain audit evidence.
+The replay exposed false abstentions on institution-prefixed course codes.
+Exact column proofs now recognize the full prefix without merging it with bare
+codes; cache policy is `grounding-v5`. The corrected product answers 42/42
+positive items and abstains correctly on 26/26 negatives, with 74/74 grounded
+claims and 90/90 supported claim-citation pairs. Both splits pass the unchanged
+numeric gate. See [paired quality review](../evaluation/results/phase7-chat-quality-20261013/paired-quality-review.json)
+for source bindings, denominators, strata, grouped intervals and limitations.
+168 focused tests and 60/60 fault/restart cases in two processes pass.
+The current full offline suite passes **1,457 tests**, with **2 live tests
+skipped**, and **90.60% coverage**. See [current offline check bindings](../evaluation/results/phase7-chat-quality-20261013/completion-review.json).
+
+Use [the three batches and shared prompt](../evaluation/phase7/chat-quality-20261013/README.md).
+The 24/24/20 inputs cover 42 current and 26 baseline generation calls; the full
+experiment still contains 68 question pairs and 136 application responses.
+The exact current profile was exercised offline and all 136 prepared cases
+match v33's requests, prompts and evidence. No provider request was sent.
+No answer key, rubric, arm label or benchmark gold is exported to Chat.
+
+Keep the frozen rubric, comparator and thresholds. Received raw bytes must be
+retained without silent escape repair. Schema validity alone is not semantic
+acceptance. Review every answer/claim against original sources, run both actual
+applications with recorded responses, then score primary splits and regression
+against the frozen comparator. These steps are complete for this intake.
+Chat UI model/settings remain unverified unless
+supplied; do not label recorded application timing as live Gemini latency.
+
+C7-05 is now the active work item; live performance and integrations still need separate runtime evidence. This modality
+change does not waive them, promote the reranker or declare 6/6 DONE. The latest
+rebind/review is under `evaluation/results/phase7-chat-quality-20261013/`.
+
+## Historical API handoff — superseded for quality collection
 
 Roadmap: [plan.md](../plan.md). Authoritative task state: [completion ledger](../evaluation/results/phase7-completion-20261004/completion_task_ledger.json).
 

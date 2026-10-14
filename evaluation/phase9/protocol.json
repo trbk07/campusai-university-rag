@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "status": "FROZEN_BEFORE_TEMPORAL_IMPLEMENTATION",
+  "scope": "Small real-source quality regression; no API qualification or fresh-validation claim.",
+  "benchmark_sha256": "c03706528458a3b84969c8281d8e2751444eab22bda75a5ad1e2c48d8c559bb3",
+  "source_records_sha256": "c5bcbc9b82ca67064170e33118fca80e1ab442a13fb0a7487e59895bc931fbdf",
+  "audit_sha256": "057ad294f7c766cbe0f67c5658a92a9017cfcc7dd9ceeffd7c893ae4f5165365",
+  "count": 24,
+  "dev": 12,
+  "acceptance": 12,
+  "families_disjoint": true,
+  "additional_regression": "20 existing Phase 8 temporal cases, reported separately",
+  "requirements": {
+    "resolution_accuracy": 1.0,
+    "semantic_answer_accuracy": 1.0,
+    "safe_negatives": 1.0,
+    "false_abstentions": 0,
+    "scope_leaks": 0,
+    "unsupported_claims": 0,
+    "public_schema_validity": 1.0,
+    "source_coordinate_validity": 1.0,
+    "minimum_coverage_percent": 85
+  },
+  "limitations": [
+    "Both genuine families lack a sufficiently proven effective timeline/precedence. Real latest/as-of cases must abstain; positive date/precedence mechanics are separately synthetic contract tests.",
+    "A lexical version label permits explicit selection but never proves global current/latest legal validity.",
+    "Two families and 12 acceptance cases are bounded regression, not broad statistical guarantees.",
+    "Electronics HTML uses explicitly labelled snapshot pagination, not original physical PDF pages."
+  ],
+  "source_bindings": {
+    ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/bm25.json": "6bd45bbbac91f5aac2c54b54ed6b3d96d1272f1e99d05336c7f0c44abc1b0022",
+    ".tmp/phase7-curated-source-20261005-v2/index/1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d/bm25.json": "61a297c4b00324a49cb2d39f7e728e7380a177028c44b0db6bb94b9085619aaa",
+    ".tmp/phase7-curated-source-20261005-v2/index/cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/bm25.json": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea",
+    ".local_artifacts/experiment_runs/phase9-20261014/electronics-qh2025.html": "df2c17bf39827eec0040da09d6582c28c0f73f7b89ef136082a3735dbaf5d490"
+  },
+  "provider_posts": 0
+}

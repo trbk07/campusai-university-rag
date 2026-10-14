@@ -1373,3 +1373,34 @@ data/cache/
 /evaluation/results/phase8-remaining-fix-tests-20261012.xml
 /evaluation/results/phase8-review-successor-tests.xml
 /evaluation/results/github-publication-tests-20261012.xml
+
+# Phase 8 finite unattempted-cohort evidence, hash verified in local artifact store.
+/evaluation/results/phase8-live-unattempted-20261012/preflight.json
+/evaluation/results/phase8-live-unattempted-20261012/execution.json
+/evaluation/results/phase8-live-unattempted-20261012/collector-tests.xml
+
+# Owner upload packets: local exact bytes catalogued in evaluation/artifacts/manifest.json.
+/evaluation/phase7/chat-quality-20261013/batch-01.md
+/evaluation/phase7/chat-quality-20261013/batch-02.md
+/evaluation/phase7/chat-quality-20261013/batch-03.md
+
+# Bound raw/preflight evidence; restore exact bytes from the local artifact store.
+/evaluation/results/phase7-free-tier-performance-20261013/egress-packet.json
+/evaluation/results/phase7-live-integration-20261013/preflight.json
+/evaluation/results/phase7-live-integration-20261013/preflight.xml
+/evaluation/results/phase7-live-integration-20261013/daily-collector-tests.xml
+
+# Immutable current-runtime preflight and collector test report are hash-catalogued.
+/evaluation/results/phase8-live-remaining-20261013/preflight.json
+/evaluation/results/phase8-live-remaining-collector-tests-20261013.xml
+/evaluation/results/phase8-live-remaining-20261013/execution.json
+
+# Completed owner upload packets and raw integration receipts live in the artifact store.
+/evaluation/phase9/gemini-chat-packet.md
+/evaluation/phase9/repair-preflight-chat-packet.md
+/evaluation/phase10/gemini-chat-packet.md
+/evaluation/results/phase7-live-integration-20261013/verified-live.json
+/evaluation/results/phase7-live-integration-20261013/verified-preflight.json
+/evaluation/results/phase7-live-integration-20261013/collector-regression-tests.xml
+/evaluation/results/phase7-live-integration-20261013/verified-live.xml
+/evaluation/results/phase7-live-integration-20261013/verified-preflight.xml

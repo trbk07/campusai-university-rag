@@ -1,0 +1,55 @@
+{
+  "status": "AWAITING_OWNER_MEDIATED_CHAT_OUTPUT",
+  "provider_posts": 0,
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "39b4736114c2669fddba8f1aa83c90087bd4a5f4d91bfe81d397236fa6c63f5e",
+    "runtime_sha256": "25027f76e8107dd212734dfbf0f482ddf06e849a1908cb60d8f8a9cf62e9573a"
+  },
+  "capture_path": ".local_artifacts/experiment_runs/phase10-20261014/after-preflight-current.json",
+  "capture_sha256": "3cfe91d356ff3d1350265c2a26dfc069622e4667c9258534b4f3f6f0be852af9",
+  "packet_sha256": "12e5348bec15095c18b0a8cf7d90a63bfc8eae3456bc4f2e42a46f50996b1969",
+  "qids": [
+    "p10-dev-01",
+    "p10-dev-02",
+    "p10-dev-05",
+    "p10-dev-06",
+    "p10-acceptance-01",
+    "p10-acceptance-02",
+    "p10-acceptance-05",
+    "p10-acceptance-06"
+  ],
+  "missing_raw_outputs": 8,
+  "quality_pass": false,
+  "qualification": "Owner-mediated Chat; model label/settings unverified, exposed corpus; not native API qualification.",
+  "previous_capture": {
+    "path": ".local_artifacts/experiment_runs/phase10-20261014/after-preflight-rerun-4.json",
+    "sha256": "7ab0b89e01ef15e87d5cf58fd912d16e4b3e3688de40fce8b8385b836302950d",
+    "source_identity": {
+      "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+      "source_sha256": "52a6cc5f062e3b17079e63e01040a21166c0de6bcad403a64e23877c666013fe",
+      "runtime_sha256": "60f49cf4065009d3a7e864eb91dc035395fc88db0f662fd3c11d9395a9420294"
+    }
+  },
+  "payload_compatibility": "Final actual production-runtime capture: all eight prompt/schema values byte-identical to the sent packet. Exact packet bytes unchanged.",
+  "compatibility_history": [
+    {
+      "path": ".local_artifacts/experiment_runs/phase10-20261014/after-preflight-rerun-4.json",
+      "sha256": "7ab0b89e01ef15e87d5cf58fd912d16e4b3e3688de40fce8b8385b836302950d",
+      "source_identity": {
+        "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+        "source_sha256": "52a6cc5f062e3b17079e63e01040a21166c0de6bcad403a64e23877c666013fe",
+        "runtime_sha256": "60f49cf4065009d3a7e864eb91dc035395fc88db0f662fd3c11d9395a9420294"
+      }
+    },
+    {
+      "path": ".local_artifacts/experiment_runs/phase10-20261014/after-preflight-rerun-5.json",
+      "sha256": "0b749c80e96f8f68986c5a7c96d2ee5411689773604e663f084ae12c4123450b",
+      "source_identity": {
+        "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+        "source_sha256": "37ee8379831d1966f65311472b545ff5f9778b0b0f93f1c0e3db1ee74dbc5348",
+        "runtime_sha256": "f859ec751933cdf55706147b35b7ffbd5c6dde32b4c091fa2b3812f00c9c880c"
+      }
+    }
+  ]
+}

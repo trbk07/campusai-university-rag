@@ -1,0 +1,451 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-13T14:15:00.612804+00:00",
+  "status": "CLEANUP_COMPLETE",
+  "removed_targets": 66,
+  "removed_files": 16146,
+  "removed_bytes": 4619149905,
+  "removed_GiB": 4.302,
+  "removed": [
+    {
+      "path": ".tmp/phase7-gpu-runtime",
+      "bytes": 4198788690,
+      "files": 12729,
+      "reason": "Redundant environment: Torch/functorch/torchgen equal the active .venv copy; launchers and pip are recreatable."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-collector-preflight-20261009-v2/baseline.json",
+      "bytes": 4890399,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-collector-preflight-20261009-v3/baseline.json",
+      "bytes": 4900361,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-collector-preflight-20261009-v3/current.json",
+      "bytes": 4872164,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-current-postfix-20261009-v1/current.json",
+      "bytes": 5404713,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v8/baseline.json",
+      "bytes": 4908770,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v8/current.json",
+      "bytes": 5413253,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/p7-09-current-dev-and-score-binding-20261008.json",
+      "bytes": 167388610,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261009-v26/baseline.json",
+      "bytes": 4908751,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261009-v26/current.json",
+      "bytes": 5413176,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261009-v27/baseline.json",
+      "bytes": 4908737,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261009-v27/current.json",
+      "bytes": 5413217,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261010-v28/baseline.json",
+      "bytes": 4908756,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-offline-prep-20261010-v28/current.json",
+      "bytes": 5413193,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v14/baseline.json",
+      "bytes": 4908753,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v14/current.json",
+      "bytes": 5413211,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v17/baseline.json",
+      "bytes": 4908752,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v17/current.json",
+      "bytes": 5413215,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v18/baseline.json",
+      "bytes": 4908757,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v18/current.json",
+      "bytes": 5413213,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v19/baseline.json",
+      "bytes": 4908749,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v19/current.json",
+      "bytes": 5413206,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v21/baseline.json",
+      "bytes": 4908760,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261009-v21/current.json",
+      "bytes": 5413200,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261010-v29-parent/baseline.json",
+      "bytes": 4912294,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261010-v29-parent/current.json",
+      "bytes": 5417290,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261010-v30-parent/baseline.json",
+      "bytes": 4912282,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": "evaluation/results/phase7-completion-20261004/product-primary-prepare-20261010-v30-parent/current.json",
+      "bytes": 5417252,
+      "files": 1,
+      "reason": "Historical materialized copy; verified compressed backup retained in artifact store."
+    },
+    {
+      "path": ".tmp/uv-cache",
+      "bytes": 24413530,
+      "files": 81,
+      "reason": "Disposable package/resolution/pytest cache; installed dependencies and audit evidence retained."
+    },
+    {
+      "path": ".local_artifacts/resolved",
+      "bytes": 2578804,
+      "files": 11,
+      "reason": "Disposable package/resolution/pytest cache; installed dependencies and audit evidence retained."
+    },
+    {
+      "path": ".tmp/pytest-phase78-final-20261013",
+      "bytes": 48867751,
+      "files": 2952,
+      "reason": "Disposable package/resolution/pytest cache; installed dependencies and audit evidence retained."
+    },
+    {
+      "path": "src/campusai/__pycache__",
+      "bytes": 36126,
+      "files": 6,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "src/campusai/documents/__pycache__",
+      "bytes": 9049,
+      "files": 2,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "src/campusai/ingestion/__pycache__",
+      "bytes": 108211,
+      "files": 10,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "src/campusai/llm/__pycache__",
+      "bytes": 75633,
+      "files": 7,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "src/campusai/rag/__pycache__",
+      "bytes": 179503,
+      "files": 15,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "src/campusai/retrieval/__pycache__",
+      "bytes": 344581,
+      "files": 27,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "scripts/__pycache__",
+      "bytes": 3468,
+      "files": 3,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "scripts/benchmarks/__pycache__",
+      "bytes": 651340,
+      "files": 36,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "scripts/dev/__pycache__",
+      "bytes": 27238,
+      "files": 4,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "scripts/ingestion/__pycache__",
+      "bytes": 76383,
+      "files": 4,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "scripts/operations/__pycache__",
+      "bytes": 15885,
+      "files": 4,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "tests/__pycache__",
+      "bytes": 2711701,
+      "files": 123,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "tests/integration/__pycache__",
+      "bytes": 12471,
+      "files": 2,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/__pycache__",
+      "bytes": 205,
+      "files": 1,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/benchmarks/__pycache__",
+      "bytes": 327416,
+      "files": 23,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/common/__pycache__",
+      "bytes": 43402,
+      "files": 6,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/grounding/__pycache__",
+      "bytes": 87306,
+      "files": 6,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/phase8/__pycache__",
+      "bytes": 360331,
+      "files": 13,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/release/__pycache__",
+      "bytes": 20196,
+      "files": 2,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/reranker/__pycache__",
+      "bytes": 584804,
+      "files": 28,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/retrieval/__pycache__",
+      "bytes": 171922,
+      "files": 10,
+      "reason": "Regenerable Python bytecode cache."
+    },
+    {
+      "path": "evaluation/results/phase8-product-preflight-v1.json",
+      "bytes": 9134953,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/results/phase8-product-preflight-v2.json",
+      "bytes": 9134954,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/results/phase8-product-preflight-v3.json",
+      "bytes": 9134961,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/results/phase8-product-preflight-v4.json",
+      "bytes": 9134912,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_batch_002_v5.md",
+      "bytes": 122214,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_batch_003_v5.md",
+      "bytes": 76552,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_batch_004_v5.md",
+      "bytes": 44164,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_final_4_v5.md",
+      "bytes": 24023,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_followup_3_20261012.md",
+      "bytes": 36021,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_pending_case_v5.md",
+      "bytes": 13753,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase8/gemini_chat_remaining_v5.md",
+      "bytes": 47131,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-01.md",
+      "bytes": 278335,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-02.md",
+      "bytes": 249227,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    },
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-03.md",
+      "bytes": 209725,
+      "files": 1,
+      "reason": "Superseded upload/preflight materialization after completed Chat quality review; verified exact compressed backup retained."
+    }
+  ],
+  "failed": [],
+  "source_identity_before": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "42b5141fdae132ae7a923d4d1f11366b9d708dc955c7ffa0babe7816225f56d9",
+    "runtime_sha256": "e631d4232b62ba090439d40b8d193c315cd8b9486ff764b77d75606e256ee86e"
+  },
+  "source_identity_after": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "42b5141fdae132ae7a923d4d1f11366b9d708dc955c7ffa0babe7816225f56d9",
+    "runtime_sha256": "e631d4232b62ba090439d40b8d193c315cd8b9486ff764b77d75606e256ee86e"
+  },
+  "runtime_verification": {
+    "torch_version": "2.14.0+cu126",
+    "cuda_available": true,
+    "active_environment": ".venv",
+    "source_config_runtime_unchanged": true,
+    "current_phase7_review_bindings": "PASS"
+  },
+  "preserved": [
+    "plan.md",
+    "source/config/tests",
+    ".venv",
+    "model/index snapshots",
+    "artifact object store",
+    "current Phase 7/8 evidence",
+    "Git history"
+  ],
+  "gpu_environment_duplicate_proof": {
+    "canonical": ".venv",
+    "compared_files": 12146,
+    "identical_bytes": 4190286651,
+    "mismatches": [],
+    "legacy_pyvenv_config": "home = C:\\Users\\LEGION\\AppData\\Roaming\\uv\\python\\cpython-3.14-windows-x86_64-none\ninclude-system-site-packages = true\nversion = 3.14.6\nexecutable = D:\\Project\\.venv\\Scripts\\python.exe\ncommand = D:\\Project\\.venv\\Scripts\\python.exe -m venv --system-site-packages D:\\Project\\.tmp\\phase7-gpu-runtime\n",
+    "torch_version": "2.14.0+cu126",
+    "recreate_command": ".venv/Scripts/python.exe -m venv --system-site-packages .tmp/phase7-gpu-runtime"
+  },
+  "archived_copy_proof": {
+    "verified_exact_raw_and_compressed_before_deletion": 41,
+    "verified_compressed_after_deletion": 41,
+    "catalog": "evaluation/artifacts/manifest.json",
+    "store": ".local_artifacts/objects",
+    "restore_command": ".venv/Scripts/python.exe -m scripts.dev.manage_artifacts restore <logical-path>"
+  },
+  "cache_note": "Import verification may regenerate small Python bytecode caches after deletion."
+}

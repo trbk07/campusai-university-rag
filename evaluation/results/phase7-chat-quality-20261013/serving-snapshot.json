@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "task": "C7-01",
+  "status": "CURRENT_CHAT_TARGET_SNAPSHOT_VERIFIED",
+  "recorded_at": "2026-10-12T17:44:10.950320+00:00",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "abacce0c1fc4d784572a776d5baa1134ea3430471b67ed232c80fa674195cafc",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "target": {
+    "deployment": "local single process",
+    "reranker_enabled": false,
+    "profile": {
+      "RERANKER_ENABLED": "false",
+      "CAMPUSAI_DEVICE": "cuda",
+      "CAMPUSAI_INDEX_DIR": ".tmp/phase7-curated-source-20261005-v2/index",
+      "CAMPUSAI_RETRIEVAL_CALIBRATION": ".release/reranker/studies/phase7-successor-r19b-phase6-dev-qualification-v1/hybrid_retrieval_calibration.json",
+      "CAMPUSAI_LLM_CONFIG": "configs/product_llm.yaml",
+      "CAMPUSAI_INGESTION_WORKERS": "1",
+      "HF_HUB_OFFLINE": "1",
+      "TRANSFORMERS_OFFLINE": "1",
+      "HF_HUB_DISABLE_TELEMETRY": "1",
+      "OMP_NUM_THREADS": "8",
+      "MKL_NUM_THREADS": "8"
+    },
+    "llm_config": {
+      "provider": "gemini",
+      "model": "gemini-3.8-flash",
+      "api_key_env": "GEMINI_API_KEY",
+      "timeout_seconds": 15,
+      "max_retries": 1,
+      "retry_only_503": true,
+      "retry_min_wait_seconds": 1,
+      "retry_max_wait_seconds": 3,
+      "requests_per_minute": 10,
+      "cache_path": ":memory:",
+      "generation_config": {
+        "temperature": 1,
+        "maxOutputTokens": 1024,
+        "thinkingConfig": {
+          "thinkingLevel": "low"
+        }
+      }
+    },
+    "hardware": {
+      "os": "Windows-11-10.0.26200-SP0",
+      "python": "3.14.6",
+      "logical_cpus": 20,
+      "physical_cpus": 14,
+      "ram_bytes": 25480257536,
+      "cuda_available": true,
+      "cuda_device": "NVIDIA GeForce RTX 4060 Laptop GPU"
+    },
+    "quality_collection": "OWNER_MEDIATED_GEMINI_CHAT"
+  },
+  "indexes": [
+    {
+      "role": "historical-10-document-baseline",
+      "path": ".tmp/hybrid-index",
+      "manifest_sha256": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38",
+      "documents": 10,
+      "physical_file_count": 22,
+      "physical_files_sha256": {
+        "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59/bm25.json": "ad6a3497eec9ab09ce95179ef27c26067e2343270e82b2d34f89370c92c57995",
+        "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59/dense.json": "fee0ec2f795ec0efae8733bed80acdbeb4e68e469b8bd5f604dbdf8e2bc0a5c4",
+        "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1/bm25.json": "375f18491d92d0948d89a6033a5773f3e14a8fdc66154e49798f872b6f6f7c26",
+        "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1/dense.json": "86b6b1fcaeec4ec269a199f3a93898daed05dc39230131581d0cfa7aa39493a9",
+        "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13/bm25.json": "92931f2315523444e95e610ea3c4f26f2fe41d1536d06fdc3555e58cdec51d4c",
+        "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13/dense.json": "392bea26dd94e21d105fb2015746c855da74641bdfcaca7c0629f114bf9a3f5c",
+        "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b/bm25.json": "e7d235e93e4c21dde6eaa0fc71026d5b1c826b7134f07d9692f5c7d1533370ad",
+        "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b/dense.json": "ec62a96a88c3715a907183fd6d037260d8bddf4fd4341802b194a730e3c2aeee",
+        "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a/bm25.json": "1ce1097f5534050dea6b304b99f55abd1d14b903ff721be41303052dd9b6b58d",
+        "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a/dense.json": "73c713d353bf33a642dc2fc109059d9ee530dc7b4c46df30ebc9b85446d3a395",
+        "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8/bm25.json": "73b5164f083b4f4422db8c1c9ac5257cad4fda32777f84d415b43ad6c6c2e829",
+        "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8/dense.json": "1d2446b53ef5d028642ea25ecd856f8e0b0ae44ad691c2365adb342de6cbcaf0",
+        "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/bm25.json": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+        "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/dense.json": "77c8bac55045cdb6ca43c7315429ba657597a46fcbb2df389a09d9800c79232a",
+        "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd/bm25.json": "4ea0c49e74eaf285ba5dc4675927b6fb9cdfad69ad66dae5c776f0d6c580289e",
+        "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd/dense.json": "710d5b9ccec6f5e3575c6c0948c25f47f3b99b6ef714701ecd27c42101558ecb",
+        "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/bm25.json": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea",
+        "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/dense.json": "e99eac93660bbc2a2a50cc53ee17ac380c4ee5448043ebadfd36590914ceb1a7",
+        "corpus_build_report.json": "f6feb8a5b628b4626a005c7bab51e3f28aaa1091b0baa798cd8eaea7617e1a19",
+        "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79/bm25.json": "63c881e61435331ff280964080533b5df7fb79f59fe92b955ea244559182723e",
+        "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79/dense.json": "4cc27c9700967afaed4d2fd02b332c893f04a783b69b3e214342e5c8f10b9ed0",
+        "manifest.json": "9952da0f42bde725d08c6a676ca260e70ac12313fa33c401ca6a387a90419f38"
+      }
+    },
+    {
+      "role": "current-15-document-product-index",
+      "path": ".tmp/phase7-curated-source-20261005-v2/index",
+      "manifest_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+      "documents": 15,
+      "physical_file_count": 32,
+      "physical_files_sha256": {
+        "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d/bm25.json": "61a297c4b00324a49cb2d39f7e728e7380a177028c44b0db6bb94b9085619aaa",
+        "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d/dense.json": "8f245cb4a4928609742d8a286102b5fdea3e51b4ace6f24e6edf638098dadf5d",
+        "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/bm25.json": "91da6444928414f2dcfe828a3fb6d8ade781396625e8defb84dabbbb1424ec9e",
+        "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/dense.json": "a0795731c03aa698ff25cd0459ab0ee90fdfd6e035ce1accc49c8ff25e1af03e",
+        "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59/bm25.json": "ad6a3497eec9ab09ce95179ef27c26067e2343270e82b2d34f89370c92c57995",
+        "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59/dense.json": "fee0ec2f795ec0efae8733bed80acdbeb4e68e469b8bd5f604dbdf8e2bc0a5c4",
+        "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1/bm25.json": "375f18491d92d0948d89a6033a5773f3e14a8fdc66154e49798f872b6f6f7c26",
+        "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1/dense.json": "86b6b1fcaeec4ec269a199f3a93898daed05dc39230131581d0cfa7aa39493a9",
+        "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d/bm25.json": "9123dacbf0fe5a0a7f833cdd580ca7f6ad4e83ec24a6799b061c68f5270c4d1a",
+        "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d/dense.json": "d715ad05f2045a549bed4c8586f8aa6109522bab61eb1319bb8fdab2a75ec3b4",
+        "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13/bm25.json": "92931f2315523444e95e610ea3c4f26f2fe41d1536d06fdc3555e58cdec51d4c",
+        "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13/dense.json": "392bea26dd94e21d105fb2015746c855da74641bdfcaca7c0629f114bf9a3f5c",
+        "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b/bm25.json": "e7d235e93e4c21dde6eaa0fc71026d5b1c826b7134f07d9692f5c7d1533370ad",
+        "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b/dense.json": "ec62a96a88c3715a907183fd6d037260d8bddf4fd4341802b194a730e3c2aeee",
+        "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a/bm25.json": "1ce1097f5534050dea6b304b99f55abd1d14b903ff721be41303052dd9b6b58d",
+        "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a/dense.json": "73c713d353bf33a642dc2fc109059d9ee530dc7b4c46df30ebc9b85446d3a395",
+        "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8/bm25.json": "73b5164f083b4f4422db8c1c9ac5257cad4fda32777f84d415b43ad6c6c2e829",
+        "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8/dense.json": "1d2446b53ef5d028642ea25ecd856f8e0b0ae44ad691c2365adb342de6cbcaf0",
+        "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/bm25.json": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+        "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/dense.json": "77c8bac55045cdb6ca43c7315429ba657597a46fcbb2df389a09d9800c79232a",
+        "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd/bm25.json": "4ea0c49e74eaf285ba5dc4675927b6fb9cdfad69ad66dae5c776f0d6c580289e",
+        "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd/dense.json": "710d5b9ccec6f5e3575c6c0948c25f47f3b99b6ef714701ecd27c42101558ecb",
+        "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/bm25.json": "f662f47cb01d69751d9fd23f624f95e3a9a87ab311e598a633a438ccaf9ccfea",
+        "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6/dense.json": "e99eac93660bbc2a2a50cc53ee17ac380c4ee5448043ebadfd36590914ceb1a7",
+        "corpus_build_report.json": "f6feb8a5b628b4626a005c7bab51e3f28aaa1091b0baa798cd8eaea7617e1a19",
+        "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/bm25.json": "6bd45bbbac91f5aac2c54b54ed6b3d96d1272f1e99d05336c7f0c44abc1b0022",
+        "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/dense.json": "bf92b561c2d2c37bbc0a00e884cae40a4ebd3c4bf8486312a7f08eab6b9d60a9",
+        "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e/bm25.json": "5e205b1c5af6412bfe8ff3c07484b5caff33d774730be736f50f101b6b70b7be",
+        "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e/dense.json": "f93b92617b6e7bb6418dccc95dccf2138089a64d9dc529a6d0dac4d047771f50",
+        "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79/bm25.json": "63c881e61435331ff280964080533b5df7fb79f59fe92b955ea244559182723e",
+        "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79/dense.json": "4cc27c9700967afaed4d2fd02b332c893f04a783b69b3e214342e5c8f10b9ed0",
+        "manifest.json": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2"
+      }
+    }
+  ],
+  "baseline_comparator": {
+    "archive": {
+      "path": ".release/reranker/studies/phase7-source-continuation-20261008-v3/current-dev-and-stable-pilot-preparation-source.zip",
+      "sha256": "eedc5bc75aace1c44217ef696d82b1774da51762ac4e631ea873a71f7f0b145f"
+    },
+    "source_files_verified": 398,
+    "documents": 10
+  },
+  "calibration": {
+    "path": ".release/reranker/studies/phase7-successor-r19b-phase6-dev-qualification-v1/hybrid_retrieval_calibration.json",
+    "sha256": "ec77f5037b004b2b666e942763ef8d1254d3637fc71e7b556ff1a185bb94ad39",
+    "index_sha256": "e1f20b94b643283d89b1c8d0eb354351a3f5f0138760d4eb3a93045df7de0eb2",
+    "release_eligible": false
+  },
+  "source_inventory": {
+    "source_file_count": 446,
+    "source_bytes": 4009846,
+    "credential_files_excluded": [
+      "configs/key.yaml",
+      "configs/gemini.yaml"
+    ]
+  },
+  "cache_and_retry_identity": {
+    "cache_path": ":memory:",
+    "source_files_sha256": {
+      "src/campusai/rag/cache.py": "c9d596d4e0e6896ca523c4e142f40099aab770668343dd29e8662e8b299e93d7",
+      "src/campusai/rag/grounding.py": "89ed83737258ffcc0a4b1d13b533051ca82cc25eb6af838796af091541df95d4",
+      "src/campusai/rag/abstention.py": "d85dba12cd7eaceafe5a0766d4ba553a986957a564644250d62ebfe0216c085a",
+      "src/campusai/llm/client.py": "e127506fa72c3fe30e1a695a3b60d28d7746f44fd11052bd877197d60e6e5de8",
+      "src/campusai/llm/factory.py": "1c5b753881f9028b3824d9bde0f393e2374fbc820c544764d40aa221c707591f",
+      "src/campusai/llm/retry.py": "ea8467b2020133298aa160a8d4752d02d131e8d9638ac0025d5ef67584eaa5d2",
+      "scripts/benchmarks/product_retry.py": "8458b54140de46d6308a669343a08c425dcb41d2b775c5aa54e24ded186d4c1c",
+      "scripts/benchmarks/product_primary.py": "6a6d6e6bed1ffdca8db02fa80633638a92601169ffb84b92a1b9252c2558d6d3",
+      "scripts/benchmarks/product_primary_worker.py": "268634d97554454115f469892cc02d60453d5263bea84863b0ade34f65f0b511"
+    }
+  },
+  "source_snapshot_before_chat": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "14f088dd11a982f58200d4e68828120b1455c62f9fca19c2bd891272a75589c7",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "execution_source_compatibility": {
+    "only_changed_source": "scripts/benchmarks/product_runtime_faults.py",
+    "change": "Isolate synthetic provider health DB and verify cooldown before controlled-clock recovery.",
+    "original_preparation_source_reconstructed": true,
+    "production_runtime_unchanged": true
+  },
+  "checks": {
+    "physical_indexes": "PASS",
+    "baseline_source_files_verified": 398,
+    "original_source_pdfs": "PASS",
+    "calibration": "PASS",
+    "reranker_enabled": false,
+    "runtime_faults": {
+      "path": ".local_artifacts\\experiment_runs\\phase7-chat-quality-20261013\\runtime-faults-isolated\\summary.json",
+      "sha256": "ed7f1df7b3d81a8fc365e3a4a0286b9c41f8108d1cb567940621a42bed4d1e29"
+    },
+    "collector_tests_passed": 43,
+    "external_provider_calls": 0
+  },
+  "previous_snapshot": {
+    "path": "evaluation/results/phase7-completion-20261004/product-serving-snapshot-20261010-v15.json",
+    "sha256": "4d89959c120053a91f186ea147a2e2b268525e7816d04dafd25fb6bf1a84a95f"
+  },
+  "quality_accepted": false,
+  "live_performance_accepted": false
+}

@@ -1,0 +1,13 @@
+{
+  "status": "AUDIT_RAW_RETAINED_ONE_TEMP_DIRECTORY_INACCESSIBLE",
+  "archived_verified_files": 28,
+  "removed_temporary_paths": [
+    ".tmp/phase7-integration-preflight-20261013",
+    ".tmp/phase7-integration-live-20261013",
+    ".tmp/pytest-performance-daily-20261013",
+    ".tmp/pytest-phase78-current-20261013",
+    ".tmp/phase78-current-coverage"
+  ],
+  "retained_temporary_path": ".tmp/pytest-phase78-final-20261013",
+  "reason": "Windows denies enumeration and resetting inherited access even in the elevated execution context; contents could not be safely inspected for recursive deletion. No recursive ACL reset, ownership change, or out-of-project operation performed."
+}

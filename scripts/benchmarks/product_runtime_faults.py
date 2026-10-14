@@ -18,11 +18,13 @@ from pathlib import Path
 import subprocess
 import sys
 import threading
+import time
 from urllib.error import HTTPError, URLError
 from unittest.mock import patch
 from wsgiref.simple_server import WSGIRequestHandler, make_server
 
 from campusai.rag.schemas import validate_release_response
+from campusai.llm.overload import OverloadCircuit
 from campusai.rag.policies import INJECTION_RE
 from campusai.web import make_wsgi_app
 from evaluation.common.release_artifacts import read_json, sha256, source_identity, write_json
@@ -70,8 +72,16 @@ def child(output: Path, ordinal: int):
     traces = []
     outcomes = []
     failures = []
+    # Synthetic 503s must not poison the product's durable health database.
+    # Both child processes share this isolated store with the same real circuit.
+    circuit_path = output.parent / 'provider-health.sqlite3'
+    real_wall_time, clock_offset = time.time, 0.0
+    def isolated_circuit(_path, endpoint, **options):
+        return OverloadCircuit(circuit_path, endpoint, **options)
     with profile_environment(), patch.dict(os.environ, {'GEMINI_API_KEY': 'offline-fault-test-only'}), \
-            patch('urllib.request.urlopen', transport):
+            patch('urllib.request.urlopen', transport), \
+            patch('campusai.llm.client.OverloadCircuit', side_effect=isolated_circuit), \
+            patch('campusai.llm.overload.time.time', side_effect=lambda: real_wall_time() + clock_offset):
         app = build_application()
         service = app.query_service
         client = service.answer_generator.llm
@@ -238,6 +248,22 @@ def child(output: Path, ordinal: int):
                         fault_passed = (status == 200 and response['answer']['abstained']
                             and validate_release_response(response['answer'])[0] and fault_calls == expected_fault_calls) if origin == 'provider' else (
                             status == 503 and response == {'ok': False, 'error_code': 'retrieval_not_ready'} and fault_calls == 0)
+                        cooldown_control = None
+                        if fault_name == 'provider_503' and client.overload_circuit is not None:
+                            before_cooldown_calls = transport.calls
+                            cooldown_status, cooldown_response = call(request)
+                            cooldown_control = {'http_status': cooldown_status,
+                                'abstained': cooldown_response['answer']['abstained'],
+                                'cache_hit': cooldown_response['cache_hit'],
+                                'additional_transport_calls': transport.calls - before_cooldown_calls,
+                                'schema_valid': validate_release_response(cooldown_response['answer'])[0]}
+                            fault_passed = fault_passed and (cooldown_status == 200
+                                and cooldown_control['abstained'] and not cooldown_control['cache_hit']
+                                and cooldown_control['schema_valid']
+                                and cooldown_control['additional_transport_calls'] == 0)
+                            # Advance the controlled test clock; never clear the
+                            # health row or disable cooldown to manufacture recovery.
+                            clock_offset += client.overload_circuit.maximum + 1
                         recovered_status, recovered = call(request)
                         cached_status, cached = call(request)
                         passed = (fault_passed and recovered_status == cached_status == 200
@@ -247,6 +273,7 @@ def child(output: Path, ordinal: int):
                         failures.append({'id': fault_name, 'origin': origin, 'error_type': type(error).__name__,
                             'http_status': status, 'response': response, 'fault_transport_calls': fault_calls,
                             'expected_fault_transport_calls': expected_fault_calls if origin == 'provider' else 0,
+                            'cooldown_control': cooldown_control,
                             'recovery': recovered, 'warm_after_recovery': cached,
                             'status': 'pass' if passed else 'fail'})
                 finally:
@@ -261,6 +288,7 @@ def child(output: Path, ordinal: int):
         'profile': PROFILE, 'dev_packet_sha256': sha256(DEV_PACKET), 'positive_cache_control': restart_control,
         'cases': outcomes, 'failure_recovery': failures, 'categories': list(CATEGORIES), 'external_provider_calls': 0,
         'provider_transport': 'controlled local bytes; not model inference', 'test_or_holdout_read': False,
+        'isolated_circuit_path': str(circuit_path), 'controlled_clock_advance_seconds': clock_offset,
         'performance_or_live_quality_acceptance': False, 'physical_index_mutated': False}
     write_json(output, report)
     print(json.dumps({'status': report['status'], 'pid': os.getpid(), 'cases': len(outcomes),

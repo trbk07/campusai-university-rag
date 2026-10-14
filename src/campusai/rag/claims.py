@@ -10,6 +10,7 @@ from typing import Iterable
 from .evidence import EvidenceRecord, EvidenceRegistry
 from .course_credits import course_credit_support
 from .credit_sum import credit_sum_claim_support, credit_difference_claim_support
+from .multi_hop_evidence import prerequisite_claim_support, scoped_calculation_support, name_code_claim_support
 from ..retrieval.tokenizer_vi import repair_mojibake
 
 CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}
@@ -142,7 +143,20 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         if not evidence:
             aligned.append(claim)
             continue
-        calculation = credit_difference_claim_support(claim.text, evidence)
+        relation = prerequisite_claim_support(claim.text, evidence)
+        if relation is None:
+            relation = name_code_claim_support(claim.text, evidence)
+        if relation is not None:
+            correct, used_ids = relation
+            supported = correct and not missing_requested_evidence
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
+                used_ids if supported else ids, 'supported' if supported else 'unsupported',
+                1.0 if supported else 0.0, tuple(item.chunk_id for item in evidence), False))
+            continue
+        calculation = scoped_calculation_support(claim.text, evidence)
+        scoped = calculation is not None
+        if calculation is None:
+            calculation = credit_difference_claim_support(claim.text, evidence)
         difference = calculation is not None
         if calculation is None:
             calculation = credit_sum_claim_support(claim.text, evidence)
@@ -150,7 +164,7 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             correct, used_ids = calculation
             supported = correct and not missing_requested_evidence
             aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type,
-                max(2, claim.required_citations) if difference else claim.required_citations,
+                max(2, claim.required_citations) if difference or scoped else claim.required_citations,
                 used_ids if supported else ids, 'supported' if supported else 'contradicted',
                 1.0 if supported else 0.0, tuple(item.chunk_id for item in evidence), not supported))
             continue

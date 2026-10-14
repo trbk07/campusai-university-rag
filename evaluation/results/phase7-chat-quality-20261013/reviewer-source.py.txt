@@ -1,0 +1,147 @@
+"""Verify current Phase 7 preparation and rebind only unchanged product evidence."""
+from copy import deepcopy
+from datetime import datetime, timezone
+import hashlib
+import json
+from pathlib import Path
+import shutil
+import subprocess
+import xml.etree.ElementTree as ET
+
+from evaluation.common.release_artifacts import read_json, sha256, source_identity, write_json
+from scripts.benchmarks import product_chat_quality as chat
+
+ROOT, RAW = chat.ROOT, chat.RAW
+OUT = ROOT / 'evaluation/results/phase7-chat-quality-20261013'
+OUT.mkdir(parents=True, exist_ok=True)
+packet_path = RAW / 'paired-preflight.json'
+packet = read_json(packet_path)
+current = source_identity(ROOT)
+assert current['runtime_sha256'] == packet['source_identity']['runtime_sha256']
+fault_name = 'scripts/benchmarks/product_runtime_faults.py'
+original_fault = subprocess.check_output(['git', 'show', '2ac714d:' + fault_name], cwd=ROOT)
+# Reconstruct the pre-preparation source identity: only the offline fault
+# harness changed, with no production runtime/prompt/evidence changes.
+files = set()
+for directory in ('src', 'evaluation', 'scripts', 'tests'):
+    files.update(p for p in (ROOT / directory).rglob('*.py') if '__pycache__' not in p.parts)
+files.update(p for p in (ROOT / 'configs').rglob('*') if p.is_file()
+             and p.suffix.lower() in {'.json', '.toml', '.yaml', '.yml'}
+             and p.name not in {'gemini.yaml', 'key.yaml'})
+files.update(ROOT / n for n in ('pyproject.toml', 'requirements.txt', 'requirements-dev.txt', 'uv.lock', 'poetry.lock')
+             if (ROOT / n).is_file())
+identity = hashlib.sha256()
+for path in sorted(files, key=lambda p: p.relative_to(ROOT).as_posix()):
+    name = path.relative_to(ROOT).as_posix()
+    encoded = name.encode()
+    identity.update(len(encoded).to_bytes(4, 'big'))
+    identity.update(encoded)
+    identity.update(hashlib.sha256(original_fault if name == fault_name else path.read_bytes()).digest())
+assert identity.hexdigest() == packet['source_identity']['source_sha256'], 'Unexpected source drift'
+(RAW / 'preparation/fault-harness-original.py.txt').write_bytes(original_fault)
+
+BASE = ROOT / 'evaluation/results/phase7-completion-20261004'
+old_retrieval_path = BASE / 'product-c7-02-rebind-20261010-v2.json'
+old_retrieval = read_json(old_retrieval_path)
+old_packet_path = ROOT / old_retrieval['current_parent_packet']['path']
+assert sha256(old_packet_path) == old_retrieval['current_parent_packet']['sha256']
+old_packet = read_json(old_packet_path)
+assert packet['cases'] == old_packet['cases']
+assert packet['rows'] == old_packet['rows']
+for name, digest in packet['bindings'].items():
+    assert sha256(ROOT / name) == digest, name
+rubric = read_json(Path(packet['rubric']['path']))
+for name, digest in rubric['source_pdf_bindings'].items():
+    assert sha256(ROOT / name) == digest, name
+old_snapshot_path = BASE / 'product-serving-snapshot-20261010-v15.json'
+old = read_json(old_snapshot_path)
+for index in old['indexes']:
+    directory = ROOT / index['path']
+    assert sha256(directory / 'manifest.json') == index['manifest_sha256']
+    for name, digest in index['physical_files_sha256'].items():
+        assert sha256(directory / name) == digest, name
+assert sha256(ROOT / old['calibration']['path']) == old['calibration']['sha256']
+fault_dir = RAW / 'runtime-faults-isolated'
+faults = read_json(fault_dir / 'summary.json')
+assert faults['status'] == 'pass' and faults['unique_cases'] == 60
+assert faults['source_identity'] == current
+assert len(set(faults['processes'])) == 2 and faults['restart_passed']
+for number in (1, 2):
+    path = fault_dir / f'process-{number}.json'
+    assert sha256(path) == faults['raw_sha256'][path.name]
+    report = read_json(path)
+    assert report['source_identity'] == current and report['external_provider_calls'] == 0
+    assert len(report['cases']) == 60 and all(r['status'] == 'pass' for r in report['cases'])
+    assert all(r['status'] == 'pass' for r in report['failure_recovery'])
+    cooldown = next(r for r in report['failure_recovery'] if r['id'] == 'provider_503')['cooldown_control']
+    assert cooldown['additional_transport_calls'] == 0 and cooldown['abstained'] and cooldown['schema_valid']
+tests = ET.parse(ROOT / '.tmp/phase7-chat-final-tests.xml').getroot().find('testsuite').attrib
+assert int(tests['tests']) == 43 and int(tests['errors']) == int(tests['failures']) == 0
+shutil.copyfile(ROOT / '.tmp/phase7-chat-final-tests.xml', RAW / 'collector-tests.xml')
+shutil.copyfile(__file__, OUT / 'reviewer-source.py.txt')
+
+snapshot = {'schema_version': 1, 'task': 'C7-01', 'status': 'CURRENT_CHAT_TARGET_SNAPSHOT_VERIFIED',
+    'recorded_at': datetime.now(timezone.utc).isoformat(), 'source_identity': current,
+    'target': dict(deepcopy(old['target']), profile=packet['profile'], quality_collection='OWNER_MEDIATED_GEMINI_CHAT'),
+    'indexes': old['indexes'], 'baseline_comparator': old['baseline_comparator'], 'calibration': old['calibration'],
+    'source_inventory': {'source_file_count': len(files), 'source_bytes': sum(p.stat().st_size for p in files),
+                         'credential_files_excluded': ['configs/key.yaml', 'configs/gemini.yaml']},
+    'cache_and_retry_identity': {'cache_path': ':memory:', 'source_files_sha256': {
+        name: sha256(ROOT / name) for name in old['cache_and_retry_identity']['source_files_sha256']}},
+    'source_snapshot_before_chat': packet['source_identity'],
+    'execution_source_compatibility': {'only_changed_source': fault_name,
+        'change': 'Isolate synthetic provider health DB and verify cooldown before controlled-clock recovery.',
+        'original_preparation_source_reconstructed': True, 'production_runtime_unchanged': True},
+    'checks': {'physical_indexes': 'PASS', 'baseline_source_files_verified': packet['baseline_files_verified'],
+        'original_source_pdfs': 'PASS', 'calibration': 'PASS', 'reranker_enabled': False,
+        'runtime_faults': {'path': str(fault_dir.relative_to(ROOT) / 'summary.json'), 'sha256': sha256(fault_dir / 'summary.json')},
+        'collector_tests_passed': 43, 'external_provider_calls': 0},
+    'previous_snapshot': {'path': old_snapshot_path.relative_to(ROOT).as_posix(), 'sha256': sha256(old_snapshot_path)},
+    'quality_accepted': False, 'live_performance_accepted': False}
+write_json(OUT / 'serving-snapshot.json', snapshot)
+retrieval = {'schema_version': 1, 'task': 'C7-02', 'status': 'PASS_REBOUND_BYTE_IDENTICAL_RETRIEVAL_CONTEXT',
+    'source_identity': current, 'population': old_retrieval['population'],
+    'exact_equivalence_counts': {'paired_cases': 136, 'provider_bodies': 68, 'retrieval_evidence': 136},
+    'previous_review': {'path': old_retrieval_path.relative_to(ROOT).as_posix(), 'sha256': sha256(old_retrieval_path)},
+    'prior_metrics': old_retrieval['prior_metrics'], 'external_provider_calls': 0,
+    'paired_preflight': {'path': packet_path.relative_to(ROOT).as_posix(), 'sha256': sha256(packet_path)},
+    'interpretation': 'All prepared baseline/current cases match the previously accepted retrieval/context inputs exactly. Synthetic preparation does not qualify model answers.'}
+write_json(OUT / 'retrieval-rebind.json', retrieval)
+
+# No Chat output exists yet. Rebind execution metadata while leaving every
+# exported prompt/schema and the original preparation receipt unchanged.
+manifest_path = chat.OUTPUT / 'manifest.json'
+manifest = read_json(manifest_path)
+assert manifest['status'] == 'EXPORTED_NO_CHAT_OUTPUTS'
+assert not list(RAW.glob('batch-*-received'))
+manifest['preparation_source_identity'] = packet['source_identity']
+manifest['source_identity'] = current
+manifest['execution_source_rebind'] = {'path': (OUT / 'serving-snapshot.json').relative_to(ROOT).as_posix(),
+                                       'sha256': sha256(OUT / 'serving-snapshot.json')}
+write_json(manifest_path, manifest)
+chat.load_export()
+review = {'schema_version': 1, 'status': 'CHAT_PREPARATION_VERIFIED_AWAITING_OUTPUTS',
+    'reviewed_at': datetime.now(timezone.utc).isoformat(), 'reviewer': 'Codex - Automated AI Review',
+    'phase7_complete': False, 'quality_accepted': False, 'officially_approved': False,
+    'owner_authority': 'Direct instruction: return to Phase 7; Gemini Chat may verify answer quality.',
+    'source_identity': current, 'preparation_source_identity': packet['source_identity'],
+    'rows': 68, 'paired_local_requests': 136, 'planned_chat_inputs': 68,
+    'chat_inputs_by_arm': {'current': 42, 'baseline': 26}, 'received_chat_inputs': 0,
+    'export_batch_counts': [24, 24, 20], 'external_provider_calls': 0,
+    'frozen_rubric_unchanged': True, 'thresholds_unchanged': True,
+    'benchmark_exposed': True, 'fresh_validation': False,
+    'current_progress': {'done': 3, 'total': 6, 'percent': 50, 'C7-03_preparation_substeps': '1/4 (25%)'},
+    'checks': {'prepared_cases_and_evidence_equal_prior': 136, 'physical_source_indexes': 'PASS',
+        'fault_cases': '60/60 PASS in two processes', '503_cooldown_transport_calls': 0, 'collector_tests': '43 PASS'},
+    'limitations': ['Chat UI model/settings and provider token usage are not API-verified.',
+        'Recorded Chat replay cannot qualify C7-05 live latency or C7-06 live integrations.',
+        'C7-03 remains open until all raw outputs, source reviews and paired application metrics are complete.'],
+    'bindings': {p.resolve().relative_to(ROOT).as_posix(): sha256(p) for p in [
+        packet_path, manifest_path, OUT / 'serving-snapshot.json', OUT / 'retrieval-rebind.json',
+        fault_dir / 'summary.json', RAW / 'collector-tests.xml', OUT / 'reviewer-source.py.txt',
+        Path(packet['rubric']['path']), BASE / 'product-primary-protocol-20261008.json',
+        ROOT / 'scripts/benchmarks/product_chat_quality.py', ROOT / 'scripts/benchmarks/product_primary_worker.py',
+        ROOT / fault_name, ROOT / 'tests/test_product_chat_quality.py']}}
+write_json(OUT / 'preparation-review.json', review)
+print(json.dumps({'status': review['status'], 'rows': 68, 'inputs': 68,
+                  'faults': '60/60 PASS', 'tests': '43 PASS', 'external_calls': 0}))

@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "status": "CHAT_PREPARATION_VERIFIED_AWAITING_OUTPUTS",
+  "reviewed_at": "2026-10-12T17:44:11.024927+00:00",
+  "reviewer": "Codex - Automated AI Review",
+  "phase7_complete": false,
+  "quality_accepted": false,
+  "officially_approved": false,
+  "owner_authority": "Direct instruction: return to Phase 7; Gemini Chat may verify answer quality.",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "abacce0c1fc4d784572a776d5baa1134ea3430471b67ed232c80fa674195cafc",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "preparation_source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "14f088dd11a982f58200d4e68828120b1455c62f9fca19c2bd891272a75589c7",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "rows": 68,
+  "paired_local_requests": 136,
+  "planned_chat_inputs": 68,
+  "chat_inputs_by_arm": {
+    "current": 42,
+    "baseline": 26
+  },
+  "received_chat_inputs": 0,
+  "export_batch_counts": [
+    24,
+    24,
+    20
+  ],
+  "external_provider_calls": 0,
+  "frozen_rubric_unchanged": true,
+  "thresholds_unchanged": true,
+  "benchmark_exposed": true,
+  "fresh_validation": false,
+  "current_progress": {
+    "done": 3,
+    "total": 6,
+    "percent": 50,
+    "C7-03_preparation_substeps": "1/4 (25%)"
+  },
+  "checks": {
+    "prepared_cases_and_evidence_equal_prior": 136,
+    "physical_source_indexes": "PASS",
+    "fault_cases": "60/60 PASS in two processes",
+    "503_cooldown_transport_calls": 0,
+    "collector_tests": "43 PASS"
+  },
+  "limitations": [
+    "Chat UI model/settings and provider token usage are not API-verified.",
+    "Recorded Chat replay cannot qualify C7-05 live latency or C7-06 live integrations.",
+    "C7-03 remains open until all raw outputs, source reviews and paired application metrics are complete."
+  ],
+  "bindings": {
+    ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/paired-preflight.json": "9b8f056938a6be5cc89de2ce25f12c359ddaffafb759f18333bf92b7d6a4a295",
+    "evaluation/phase7/chat-quality-20261013/manifest.json": "fde3048cdcb22f45b9844f52429646b20a241aa75041056cd193898bb8454383",
+    "evaluation/results/phase7-chat-quality-20261013/serving-snapshot.json": "0f855cf57a9370ac1a444837753213ff5e1ffee46b26e7274d0125c73cdf1127",
+    "evaluation/results/phase7-chat-quality-20261013/retrieval-rebind.json": "f99af9609426784f12b0ab25ff9043bcf6f0a2e8b5d04989950f1ed42150d622",
+    ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/runtime-faults-isolated/summary.json": "ed7f1df7b3d81a8fc365e3a4a0286b9c41f8108d1cb567940621a42bed4d1e29",
+    ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/collector-tests.xml": "c51af7c17a5a0617f083ba99af94d2dd0f2889cf7fa7f209dc3ec21ab066e678",
+    "evaluation/results/phase7-chat-quality-20261013/reviewer-source.py.txt": "6fe2ac6b2b6056de6e18e86d2347c8f248e0028671e7686bdef04cc23ed490eb",
+    "evaluation/results/phase7-completion-20261004/product-primary-source-rubric-20261009.json": "6fe5d6a24f323e7072a4f71d9964d458643ce2cdbe504fc2c8e98811bca384f4",
+    "evaluation/results/phase7-completion-20261004/product-primary-protocol-20261008.json": "88f36c54b34ec1371a2fccf94b21b9e2a3d63464a04629d9304a55f03a248940",
+    "scripts/benchmarks/product_chat_quality.py": "72e176ec9cf88ab7adc81275f88b893e2b175382ce33cd12b979dbc1683aed0d",
+    "scripts/benchmarks/product_primary_worker.py": "268634d97554454115f469892cc02d60453d5263bea84863b0ade34f65f0b511",
+    "scripts/benchmarks/product_runtime_faults.py": "8af71414bc1e95415c5296f6546fb719781e97ee0fb0fad54f942d569ff92d74",
+    "tests/test_product_chat_quality.py": "4ecc77a11c9d5295bbe22e8bb52ff0cf5a7801aa4ba60f70aeb64127424dcdec"
+  }
+}

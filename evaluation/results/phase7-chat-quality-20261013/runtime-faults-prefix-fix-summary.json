@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "unique_cases": 60,
+  "categories": [
+    "out_of_corpus",
+    "similar_wrong_document",
+    "conflicting_documents",
+    "exact_code_trap",
+    "year_mismatch",
+    "entity_mismatch",
+    "chunk_prompt_injection",
+    "malformed_metadata",
+    "duplicate_chunks",
+    "scope_restriction",
+    "empty_result",
+    "fake_citation"
+  ],
+  "processes": [
+    29028,
+    28356
+  ],
+  "restart_passed": true,
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "0693e4c5acb975d637003d193f014865448cd5d6d250247e787e21833bc12c3a",
+    "runtime_sha256": "e631d4232b62ba090439d40b8d193c315cd8b9486ff764b77d75606e256ee86e"
+  },
+  "raw_sha256": {
+    "process-1.json": "3702e231a75d1f72ac9e87b085f967809104437d8841c43075fd794723bc9b00",
+    "process-2.json": "f38671a199403b8fe2716aef5320a42e9bc51e6c37209ed51736363093d422f5"
+  },
+  "external_provider_calls": 0,
+  "live_model_robustness_or_latency_claim": false
+}

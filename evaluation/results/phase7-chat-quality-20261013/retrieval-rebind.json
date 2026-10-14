@@ -1,0 +1,1865 @@
+{
+  "schema_version": 1,
+  "task": "C7-02",
+  "status": "PASS_REBOUND_BYTE_IDENTICAL_RETRIEVAL_CONTEXT",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "abacce0c1fc4d784572a776d5baa1134ea3430471b67ed232c80fa674195cafc",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "population": {
+    "rows": 68,
+    "test": 35,
+    "holdout": 33,
+    "previously_exposed": true
+  },
+  "exact_equivalence_counts": {
+    "paired_cases": 136,
+    "provider_bodies": 68,
+    "retrieval_evidence": 136
+  },
+  "previous_review": {
+    "path": "evaluation/results/phase7-completion-20261004/product-c7-02-rebind-20261010-v2.json",
+    "sha256": "1b8d4333cf0254038b764eff331d25d3d5011ee11e3e0fa2e49c3b7246168ef8"
+  },
+  "prior_metrics": {
+    "test": {
+      "baseline": {
+        "quality": {
+          "recall5": 1.0,
+          "mrr": 0.8636363636363636,
+          "ndcg5": 0.9116161953567125,
+          "negative_fpr": 0.0,
+          "positive": 22,
+          "negative": 13,
+          "all_gold_coverage5": 1
+        },
+        "candidates": {
+          "records": 35,
+          "answerable": 22,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 22,
+              "answerable": 22,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 40,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        },
+        "head": {
+          "records": 35,
+          "answerable": 22,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 22,
+              "answerable": 22,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 5,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        }
+      },
+      "current": {
+        "quality": {
+          "recall5": 1.0,
+          "mrr": 0.8636363636363636,
+          "ndcg5": 0.9116161953567125,
+          "negative_fpr": 0.0,
+          "positive": 22,
+          "negative": 13,
+          "all_gold_coverage5": 1
+        },
+        "candidates": {
+          "records": 35,
+          "answerable": 22,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 22,
+              "answerable": 22,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 40,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        },
+        "head": {
+          "records": 35,
+          "answerable": 22,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 22,
+              "answerable": 22,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 9,
+              "answerable": 9,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 35,
+              "answerable": 22,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 5,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        }
+      }
+    },
+    "holdout": {
+      "baseline": {
+        "quality": {
+          "recall5": 1.0,
+          "mrr": 0.875,
+          "ndcg5": 0.9233566009043177,
+          "negative_fpr": 0.0,
+          "positive": 20,
+          "negative": 13,
+          "all_gold_coverage5": 1
+        },
+        "candidates": {
+          "records": 33,
+          "answerable": 20,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 20,
+              "answerable": 20,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 40,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        },
+        "head": {
+          "records": 33,
+          "answerable": 20,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 20,
+              "answerable": 20,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 5,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        }
+      },
+      "current": {
+        "quality": {
+          "recall5": 1.0,
+          "mrr": 0.875,
+          "ndcg5": 0.9233566009043177,
+          "negative_fpr": 0.0,
+          "positive": 20,
+          "negative": 13,
+          "all_gold_coverage5": 1
+        },
+        "candidates": {
+          "records": 33,
+          "answerable": 20,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 20,
+              "answerable": 20,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 40,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        },
+        "head": {
+          "records": 33,
+          "answerable": 20,
+          "negative": 13,
+          "candidate_recall": 1.0,
+          "all_gold_recall": 1.0,
+          "evidence_recall": 1.0,
+          "negative_candidate_rate": 0.0,
+          "strata": {
+            "answerable:false": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "answerable:true": {
+              "records": 20,
+              "answerable": 20,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "category:unknown": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "cohort:numeric": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:scoped": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "cohort:year": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "difficulty:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "difficulty:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:abstention": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:contextual": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:contextual_followup": {
+              "records": 5,
+              "answerable": 5,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:easy": {
+              "records": 26,
+              "answerable": 13,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:exact_code": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:hard": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_document": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:multi_hop": {
+              "records": 7,
+              "answerable": 7,
+              "negative": 0,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": null
+            },
+            "tag:natural": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:negative": {
+              "records": 13,
+              "answerable": 0,
+              "negative": 13,
+              "candidate_recall": null,
+              "all_gold_recall": null,
+              "evidence_recall": null,
+              "negative_candidate_rate": 0.0
+            },
+            "tag:table": {
+              "records": 33,
+              "answerable": 20,
+              "negative": 13,
+              "candidate_recall": 1.0,
+              "all_gold_recall": 1.0,
+              "evidence_recall": 1.0,
+              "negative_candidate_rate": 0.0
+            }
+          },
+          "candidate_cap": 5,
+          "candidate_misses": [],
+          "provenance_errors": 0,
+          "scope_errors": 0,
+          "duplicate_result_sets": 0
+        }
+      }
+    }
+  },
+  "external_provider_calls": 0,
+  "paired_preflight": {
+    "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/paired-preflight.json",
+    "sha256": "9b8f056938a6be5cc89de2ce25f12c359ddaffafb759f18333bf92b7d6a4a295"
+  },
+  "interpretation": "All prepared baseline/current cases match the previously accepted retrieval/context inputs exactly. Synthetic preparation does not qualify model answers."
+}

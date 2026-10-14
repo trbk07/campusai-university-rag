@@ -254,7 +254,14 @@ def test_manifest_must_budget_the_largest_retry_prompt(bundle):
 
 def test_free_tier_primary_bundle_claims_one_shard_per_pacific_day_and_pins_model(tmp_path, monkeypatch, clock):
     from datetime import datetime
-    clock[0] = datetime.now(policy.PACIFIC).timestamp()
+    # Use the controlled clock for calendar reads as well as time.time(). The
+    # real 23:30-00:00 Pacific guard must not make this offline test time-flaky.
+    clock[0] = datetime(2026, 1, 15, 12, tzinfo=policy.PACIFIC).timestamp()
+    class ControlledDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls.fromtimestamp(clock[0], tz)
+    monkeypatch.setattr(policy, 'datetime', ControlledDateTime)
     monkeypatch.setattr(policy, 'ROOT', tmp_path)
     identity = {'source_sha256': 'free-tier-shards'}
     monkeypatch.setattr('evaluation.common.release_artifacts.source_identity', lambda _: identity)
@@ -291,6 +298,12 @@ def test_free_tier_primary_bundle_claims_one_shard_per_pacific_day_and_pins_mode
     with pytest.raises(ValueError, match='model version changed'):
         next_day.record_model_version('gemini-3.8-flash-002')
     assert policy.read(budget['path'])['provider_model_version'] == 'gemini-3.8-flash-001'
+    clock[0] += 24 * 60 * 60
+    next_day.claim_quota_window()
+    clock[0] = datetime(2026, 1, 16, 23, 45, tzinfo=policy.PACIFIC).timestamp()
+    near_reset = policy.Budget(packet_bindings[2]['path'], packet_bindings[2]['sha256'])
+    with pytest.raises(RuntimeError, match='next Pacific quota window'):
+        near_reset.claim_quota_window()
 
 
 def test_primary_schedule_counts_only_actual_provider_posts():

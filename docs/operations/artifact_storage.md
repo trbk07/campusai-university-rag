@@ -1,5 +1,16 @@
 # Evidence storage for Phase 6/7/8
 
+Cleanup on 2026-10-13 removed 4.302 GiB across 16,146 files: the redundant
+GPU virtual environment, disposable caches, completed Chat upload packets and
+verified historical materializations. The active `.venv` retains identical
+Torch/functorch/torchgen files and CUDA works. Source/config/runtime identity
+and current quality-review bindings are unchanged. Model/index snapshots,
+compressed raw evidence, baseline artifacts and `plan.md` remain available.
+See [the deletion and verification record](../../evaluation/results/storage-cleanup-20261013.json).
+Restore a removed historical input with `manage_artifacts restore <logical-path>`
+before using a legacy script that opens that path directly. Completed Chat
+upload links refer to restorable historical inputs; they need not stay unpacked.
+
 Git contains source, configs, reviewed benchmark JSONL and gold references,
 canonical summaries, regression cases, manifests and hash bindings.
 `plan.md` remains the tracked roadmap. Raw observations and physical indexes

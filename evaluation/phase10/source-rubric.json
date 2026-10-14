@@ -1,0 +1,980 @@
+{
+  "status": "SOURCE_REVIEWED_BEFORE_RUNTIME_CHANGE",
+  "reviewer": "Codex — Automated AI Review",
+  "officially_human_approved": false,
+  "benchmark_sha256": "0a9be3ebe5a8413697d18fb250135576b56d7b4cde40e0f49410b7d3dc783aee",
+  "cases": [
+    {
+      "qid": "p10-dev-01",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 6,
+          "code": "MAT1041",
+          "credits": 4,
+          "cells": [
+            "15.",
+            "MAT1041",
+            "Giải tích 1\nAnalytics 1",
+            "4",
+            "30",
+            "30",
+            "",
+            ""
+          ],
+          "cells_sha256": "2bf56ecab2a37e84a923a3c701cc89c9599fbc959cfe745b5eaf2e41bb8427a9",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "robot",
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+          "page": 11,
+          "table_row": 12,
+          "code": "MAT1041",
+          "credits": 4,
+          "cells": [
+            "10.",
+            "MAT1041",
+            "Giải tích 1\nCalculus 1",
+            "4",
+            "30",
+            "30",
+            "",
+            ""
+          ],
+          "cells_sha256": "b27dd08f03a87a2b99c5012d5d2a0d96ebf4a5d535ae0ace85f64d88018ff7dc",
+          "headers": [
+            "Số\nTT",
+            "Mã số",
+            "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-02",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 8,
+          "code": "EPN1095",
+          "credits": 2,
+          "cells": [
+            "17.",
+            "EPN1095",
+            "Vật lý đại cương 1\nGeneral Physics 1",
+            "2",
+            "30",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "b025246306cb6a0cc6d1b89cd38aa8e1d07aacae2a9cec1bb7f33bfda67a2faa",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "robot",
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+          "page": 11,
+          "table_row": 14,
+          "code": "EPN1095",
+          "credits": 2,
+          "cells": [
+            "12.",
+            "EPN1095",
+            "Vật lý đại cương 1\nGeneral Physics 1",
+            "2",
+            "30",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "b99011f9727f7cebca1d3846739cf2fb34800767f22cb53b9d01554b41f02b58",
+          "headers": [
+            "Số\nTT",
+            "Mã số",
+            "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-03",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p4_t1",
+          "page": 4,
+          "table_row": 4,
+          "code": "EMA2012",
+          "credits": 4,
+          "cells": [
+            "25.",
+            "EMA2012",
+            "Sức bền vật liệu và cơ học kết\ncấu\nStrength of Materials and\nStructural Mechanics",
+            "4",
+            "45",
+            "15",
+            "",
+            "EMA2037E"
+          ],
+          "cells_sha256": "b1f7542d9820c278fe30d574cbcce5844a9db6e4dcfadba7fea669429f4533ed",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "robot",
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+          "page": 11,
+          "table_row": 11,
+          "code": "MAT1093",
+          "credits": 4,
+          "cells": [
+            "9.",
+            "MAT1093",
+            "Đại số\nAlgebra",
+            "4",
+            "30",
+            "30",
+            "",
+            ""
+          ],
+          "cells_sha256": "817eb390a2bdb6a7a52766a1c26f08a0fbc826bf15318cb8d424937a286e9149",
+          "headers": [
+            "Số\nTT",
+            "Mã số",
+            "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": "sum",
+      "expected_result": 8,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-04",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+          "page": 2,
+          "table_row": 4,
+          "code": "POL1001",
+          "credits": 2,
+          "cells": [
+            "3.",
+            "POL1001",
+            "Tư tưởng Hồ Chí Minh\nHo Chi Minh Ideology",
+            "2",
+            "20",
+            "10",
+            "",
+            "PHI1005"
+          ],
+          "cells_sha256": "7218e01187dd5d9bdebbe1b66af89baeec2f6f9289d36b08fe864ec6ac04226e",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "robot",
+          "doc_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+          "chunk_id": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09_p11_t1",
+          "page": 11,
+          "table_row": 12,
+          "code": "MAT1041",
+          "credits": 4,
+          "cells": [
+            "10.",
+            "MAT1041",
+            "Giải tích 1\nCalculus 1",
+            "4",
+            "30",
+            "30",
+            "",
+            ""
+          ],
+          "cells_sha256": "b27dd08f03a87a2b99c5012d5d2a0d96ebf4a5d535ae0ace85f64d88018ff7dc",
+          "headers": [
+            "Số\nTT",
+            "Mã số",
+            "Học phần\n(ghi bằng tiếng Việt và tiếng\nAnh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": "difference",
+      "expected_result": -2,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-05",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p3_t1",
+          "page": 3,
+          "table_row": 15,
+          "code": "EMA2037E",
+          "credits": 3,
+          "cells": [
+            "22.",
+            "EMA2037E",
+            "Cơ học kỹ thuật 2 *",
+            "3",
+            "30",
+            "15",
+            "",
+            "EMA2036E"
+          ],
+          "cells_sha256": "c0e8ad5318505d2eb12aa96703312765473da83a7cb1eb99153b88b62bfd3039",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        }
+      ],
+      "required_edge": {
+        "kind": "prerequisite",
+        "target_code": "EMA2012",
+        "bridge_code": "EMA2037E",
+        "proof": {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p4_t1",
+          "page": 4,
+          "table_row": 4,
+          "code": "EMA2012",
+          "credits": 4,
+          "cells": [
+            "25.",
+            "EMA2012",
+            "Sức bền vật liệu và cơ học kết\ncấu\nStrength of Materials and\nStructural Mechanics",
+            "4",
+            "45",
+            "15",
+            "",
+            "EMA2037E"
+          ],
+          "cells_sha256": "b1f7542d9820c278fe30d574cbcce5844a9db6e4dcfadba7fea669429f4533ed",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        }
+      },
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-06",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p2_t1",
+          "page": 2,
+          "table_row": 7,
+          "code": "INT1006",
+          "credits": 3,
+          "cells": [
+            "6.",
+            "INT1006",
+            "Tin học cơ sở 4\nIntroduction to Informatics 4",
+            "3",
+            "20",
+            "23",
+            "2",
+            "INT1003"
+          ],
+          "cells_sha256": "6196052418554aac25cd0588593f0a9072f47eb77831d61375be6aa40c67d3a0",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        }
+      ],
+      "required_edge": {
+        "kind": "prerequisite",
+        "target_code": "INT2209",
+        "bridge_code": "INT1006",
+        "proof": {
+          "source": "mech",
+          "doc_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+          "chunk_id": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850_p4_t1",
+          "page": 4,
+          "table_row": 7,
+          "code": "INT2209",
+          "credits": 3,
+          "cells": [
+            "28.",
+            "INT2209",
+            "Mạng máy tính\nComputer Network",
+            "3",
+            "30",
+            "15",
+            "",
+            "INT1006"
+          ],
+          "cells_sha256": "8cf157ba50cabc804cdaf23919b7d76ae6f77b6e00f13792d0bcd5090b4c6f4f",
+          "headers": [
+            "STT",
+            "Mã học\nphần",
+            "Học phần",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        }
+      },
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-dev-07",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Equal course code/credits do not prove automatic cross-program credit recognition; neither selected source supplies that mapping."
+    },
+    {
+      "qid": "p10-dev-08",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "EMA2012 prerequisite cell states EMA2037E, not the requested direct edge MAT1093; endpoints and indirect chains cannot certify the requested direct relation."
+    },
+    {
+      "qid": "p10-dev-09",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "FLF2102 names FLF1105, but the selected mechatronics source has no headed credit row for FLF1105; do not substitute FLF2101 or a different program."
+    },
+    {
+      "qid": "p10-dev-10",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Requested robotics operand source is outside selected scope; same code in mechatronics cannot fill that role."
+    },
+    {
+      "qid": "p10-dev-11",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "No complete effective timeline or cross-program recognition proof; version/filename/signing year cannot establish current applicability or equivalence."
+    },
+    {
+      "qid": "p10-dev-12",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Only assistant history supplies a subject; no user anchor exists. Assistant output is not trusted source/context authority."
+    },
+    {
+      "qid": "p10-acceptance-01",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 3,
+          "code": "INT7016",
+          "credits": 3,
+          "cells": [
+            "26",
+            "INT 7016",
+            "Công nghệ chuỗi khối\nBlockchain Technology",
+            "3",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "5b5fa2b8e4251ffb7a4fc91e451d112ebf25ddff9806785945a87bd49ffe91f3",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "code": "INT7016",
+          "credits": 3,
+          "cells": [
+            "25",
+            "INT 7016",
+            "Công nghệ chuỗi khối\nBlockchain Technology",
+            "3",
+            "30",
+            "0",
+            "15",
+            ""
+          ],
+          "cells_sha256": "20e1f112b0372a16290c5330fed73505a6b92728c36f8786f5c8b99189429f55",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-02",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 10,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-03",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 9,
+          "code": "ELT7010",
+          "credits": 3,
+          "cells": [
+            "28",
+            "ELT 7010",
+            "Quản lý dự án\nProject Management",
+            "3",
+            "30",
+            "0",
+            "15",
+            ""
+          ],
+          "cells_sha256": "8dd1ad0d1a463fd1b641ddfd4a19d78a3430e7946021dcbcb3a43b5a1900ac1e",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": "sum",
+      "expected_result": 18,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-04",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 3,
+          "code": "INT7016",
+          "credits": 3,
+          "cells": [
+            "26",
+            "INT 7016",
+            "Công nghệ chuỗi khối\nBlockchain Technology",
+            "3",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "5b5fa2b8e4251ffb7a4fc91e451d112ebf25ddff9806785945a87bd49ffe91f3",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 10,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": null,
+      "operation": "difference",
+      "expected_result": -12,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-05",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "code": "INT7016",
+          "credits": 3,
+          "cells": [
+            "25",
+            "INT 7016",
+            "Công nghệ chuỗi khối\nBlockchain Technology",
+            "3",
+            "30",
+            "0",
+            "15",
+            ""
+          ],
+          "cells_sha256": "20e1f112b0372a16290c5330fed73505a6b92728c36f8786f5c8b99189429f55",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        }
+      ],
+      "required_edge": {
+        "kind": "name_to_code_lookup",
+        "name": "Công nghệ chuỗi khối",
+        "bridge_code": "INT7016",
+        "proof": {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 3,
+          "code": "INT7016",
+          "credits": 3,
+          "cells": [
+            "26",
+            "INT 7016",
+            "Công nghệ chuỗi khối\nBlockchain Technology",
+            "3",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "5b5fa2b8e4251ffb7a4fc91e451d112ebf25ddff9806785945a87bd49ffe91f3",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        },
+        "interpretation": "Explicit requested identifier lookup in another named source; does not assert program equivalence or transferability."
+      },
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-06",
+      "answerable": true,
+      "required_facts": [
+        {
+          "source": "electronics",
+          "doc_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+          "chunk_id": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf_p9_t1",
+          "page": 9,
+          "table_row": 6,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín\nchỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số\nhọc phần\ntiên quyết"
+          ]
+        }
+      ],
+      "required_edge": {
+        "kind": "name_to_code_lookup",
+        "name": "Luận văn",
+        "bridge_code": "ELT7200",
+        "proof": {
+          "source": "communications",
+          "doc_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+          "chunk_id": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e_p9_t1",
+          "page": 9,
+          "table_row": 10,
+          "code": "ELT7200",
+          "credits": 15,
+          "cells": [
+            "III",
+            "ELT 7200",
+            "Luận văn*\nThesis",
+            "15",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "cells_sha256": "1c35452ff35b1e51ca436baaa07bab03800a408cc9b06c5d614172d7c50e1d0d",
+          "headers": [
+            "STT",
+            "Mã\nhọc phần",
+            "Tên học phần\n(tiếng Việt và tiếng Anh)",
+            "Số\ntín chỉ",
+            "Số giờ tín chỉ",
+            "",
+            "",
+            "Mã số học\nphần tiên\nquyết"
+          ]
+        },
+        "interpretation": "Explicit requested identifier lookup in another named source; does not assert program equivalence or transferability."
+      },
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": null
+    },
+    {
+      "qid": "p10-acceptance-07",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Same thesis code/credits do not prove cross-specialization recognition or an automatic substitution rule."
+    },
+    {
+      "qid": "p10-acceptance-08",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Both independent course rows exist but prerequisite cells are blank; blank is unknown, not an edge or a proof of no prerequisites."
+    },
+    {
+      "qid": "p10-acceptance-09",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Source electronics identifies ELT7006; communications has no headed row for that code. Source-A credits cannot replace the requested source-B lookup."
+    },
+    {
+      "qid": "p10-acceptance-10",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Requested communications operand is not in selected/authorized scope; do not borrow an identically coded electronics row."
+    },
+    {
+      "qid": "p10-acceptance-11",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Intake 2022/signing date alone do not establish current effectivity or automatic cross-specialization equivalence."
+    },
+    {
+      "qid": "p10-acceptance-12",
+      "answerable": false,
+      "required_facts": [],
+      "required_edge": null,
+      "operation": null,
+      "expected_result": null,
+      "negative_basis": "Assistant-only topic history is not user authority or source proof; ask for the subject."
+    }
+  ],
+  "source_notes": [
+    "Mechatronics p4 continues the table headed on p3; physical row locations preserved.",
+    "Masters physical PDF p9 is printed p7; citations use physical p9.",
+    "Dev two-hop cases use real prerequisite relations across pages of one source; acceptance two-hop cases are explicit name-to-code-to-other-source lookups, not equivalence assertions.",
+    "Sources/code/value equality never supplies credit-recognition or prerequisite relationships."
+  ]
+}

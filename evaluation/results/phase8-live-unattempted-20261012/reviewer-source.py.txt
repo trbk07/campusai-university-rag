@@ -1,0 +1,149 @@
+"""Zero-network review of the finite live followup and unchanged Chat baseline."""
+import hashlib
+import json
+from datetime import datetime, timezone
+from pathlib import Path
+import shutil
+import statistics
+import subprocess
+import xml.etree.ElementTree as ET
+
+from campusai.rag.schemas import validate_release_response, validate_response
+from evaluation.benchmarks.connected_groups import connected_groups
+from evaluation.common.release_artifacts import source_identity
+from evaluation.phase8 import measure_live_runtime as live
+from evaluation.phase8.repair_reviewed_benchmark import verify_freeze
+from evaluation.phase8.replay_chat_baseline import ROOT, BENCHMARK, read_rows, sha, write_json
+from evaluation.phase8.score_temporal_product_outputs import _bootstrap_latency_ci
+
+
+historical_sources = {}
+
+
+def verified_bindings(report, historical=False):
+    for name, digest in report['bindings'].items():
+        path = (ROOT / name).resolve()
+        if not path.is_relative_to(ROOT):
+            raise ValueError('historical binding mismatch: ' + name)
+        if sha(path) != digest:
+            # Source can evolve; preserve and verify the exact Git-published
+            # source used by the historical receipt rather than rewriting it.
+            if not historical or name not in {
+                    'evaluation/phase8/measure_live_runtime.py', 'tests/test_phase8_live_runtime.py'}:
+                raise ValueError('historical binding mismatch: ' + name)
+            content = subprocess.check_output(['git', 'show', '2ac714d:' + name], cwd=ROOT)
+            if hashlib.sha256(content).hexdigest() != digest:
+                raise ValueError('published source differs from historical binding: ' + name)
+            snapshot = live.OUTPUT / (Path(name).stem + '.snapshot.py.txt')
+            if snapshot.exists() and snapshot.read_bytes() != content:
+                raise ValueError('historical snapshot already differs')
+            snapshot.write_bytes(content)
+            historical_sources[name] = {'snapshot': snapshot.relative_to(ROOT).as_posix(),
+                                        'sha256': digest, 'commit': '2ac714d'}
+    return len(report['bindings'])
+
+
+output = live.FOLLOWUP
+state, manifest = live.read(output / 'execution.json'), live.read(output / 'manifest.json')
+assert state['status'] == 'waiting_next_pacific_day' and len(state['attempts']) == 1
+assert len(state['predictions']) == 0 and state['attempts'][0]['http_status'] == 503
+assert state['manifest_sha256'] == sha(output / 'manifest.json')
+assert manifest['source_identity'] == source_identity(ROOT)
+bound_count = verified_bindings(manifest)
+assert manifest['max_attempts'] == 14 and manifest['max_prompt_characters'] == 84155
+assert manifest['max_output_tokens_total'] == 14336
+assert not manifest['key_rotation'] and manifest['immediate_retries'] == 0
+verify_freeze()
+baseline_path = ROOT / 'evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json'
+baseline = live.read(baseline_path)
+baseline_bindings = verified_bindings(baseline)
+assert baseline['exit']['content_and_local_regression_pass'] is True
+assert baseline['counts']['requests'] == 300
+assert baseline['counts']['published_content_accepted'] == 145
+assert baseline['counts']['correct_negative_abstentions'] == 155
+parent_state = live.read(live.OUTPUT / 'execution.json')
+parent_manifest = live.read(live.OUTPUT / 'manifest.json')
+parent_measurement = live.read(live.OUTPUT / 'measurement.json')
+measurement = live.read(output / 'measurement.json')
+verified_bindings(parent_measurement, historical=True)
+verified_bindings(live.read(live.OUTPUT / 'measurement-review.json'), historical=True)
+verified_bindings(measurement)
+assert manifest['source_identity']['runtime_sha256'] == parent_manifest['source_identity']['runtime_sha256']
+population = parent_manifest['selection']['qids']
+attempts = parent_state['attempts'] + state['attempts']
+assert len({event['qid'] for event in attempts}) == len(attempts)
+assert [event['qid'] for event in attempts] == population[:len(attempts)]
+pending = [qid for qid in population if qid not in {a['qid'] for a in attempts}]
+case_by_id = {c['qid']: c for c in live.read(live.OUTPUT / 'preflight.json')['cases']}
+observations = list(parent_state['predictions']) + list(state['predictions'])
+fallbacks = [s['failed_product_response'] for s in [parent_state, state] if s.get('failed_product_response')]
+assert len(fallbacks) == 2
+for row in fallbacks:
+    assert validate_response(row['internal'], include_internal=True)[0]
+    assert validate_release_response(row['public'])[0]
+    assert row['provider_output'] is None and row['public']['abstained']
+warm = {r['qid']: r['request_latency_ms'] for r in observations + fallbacks if not r['cold_start']}
+warm_values = sorted(warm.values())
+rows = [r for r in read_rows(BENCHMARK) if r['qid'] in population]
+history = live.read(live.HISTORY)['attempts']
+all_events = history + attempts
+daily = {}
+for event in all_events:
+    daily[event['pacific_day']] = daily.get(event['pacific_day'], 0) + 1
+assert max(daily.values()) <= 18 and len(all_events) <= 160
+review_source = output / 'reviewer-source.py.txt'
+shutil.copyfile(__file__, review_source)
+junit = output / 'collector-tests.xml'
+shutil.copyfile(ROOT / '.tmp/phase8-unattempted-tests.xml', junit)
+tests = ET.parse(junit).getroot().find('testsuite').attrib
+assert int(tests['tests']) == 27 and int(tests['failures']) == int(tests['errors']) == 0
+report = {
+    'schema_version': 1, 'status': 'AUTOMATED_EXIT_AUDIT_COMPLETE_LIVE_WORKLOAD_INCOMPLETE',
+    'reviewer': 'Codex - Automated AI Review', 'reviewed_at': datetime.now(timezone.utc).isoformat(),
+    'phase8_pass': False, 'officially_approved': False, 'fresh_validation': False,
+    'followup': {'planned': 14, 'attempts': 1, 'http_503': 1, 'successful_outputs': 0,
+        'sent_prompt_characters': sum(len(case_by_id[e['qid']]['prompt']) for e in state['attempts']),
+        'known_output_tokens': None, 'usage_status': 'not supplied on HTTP 503; not assumed zero',
+        'request_latency_ms': fallbacks[-1]['request_latency_ms'],
+        'startup_plus_first_request_ms': fallbacks[-1]['latency_ms'],
+        'application_schema_valid': True, 'resume_allowed': False, 'retry_sent': 0},
+    'combined_fixed_workload': {'planned_unique_groups': 18, 'attempted_unique_cases': len(attempts),
+        'successful_product_requests': len(observations), 'http_200': 3, 'http_503': 2,
+        'unattempted_count': len(pending), 'unattempted_qids': pending,
+        'failed_qids': [e['qid'] for e in attempts if e['http_status'] != 200],
+        'successful_qids_resent': 0, 'all_attempted_qids_unique': True,
+        'raw_provider_schema_valid': {'numerator': 3, 'denominator_final_texts': 3,
+                                      'normalization': False},
+        'valid_provider_output_per_attempt': {'numerator': 3, 'denominator': 5, 'value': 0.6},
+        'application_schema_valid_including_fallback': {'numerator': 5, 'denominator': 5},
+        'request_latency_values_ms': [r['request_latency_ms'] for r in observations + fallbacks],
+        'warm_latency': {'denominator': len(warm_values), 'p50_ms': statistics.median(warm_values),
+            'p95_ms': warm_values[min(len(warm_values)-1, int(.95*len(warm_values)))],
+            'p99_ms': warm_values[min(len(warm_values)-1, int(.99*len(warm_values)))],
+            'ci95': _bootstrap_latency_ci(rows, warm, iterations=2000)},
+        'cold_startup_plus_request_values_ms': [r['latency_ms'] for r in observations + fallbacks if r['cold_start']],
+        'peak_working_set_bytes': max(s['peak_working_set_bytes'] for s in [parent_state, state]),
+        'scope': 'Two separately bound cohorts with identical product runtime and exact previously approved bodies; failures retained. Not the 300-case live baseline or production SLO qualification.'},
+    'shared_phase8_attempts': {'daily_counts': daily, 'total_including_historical_api': len(all_events),
+                             'daily_cap': 18, 'total_cap': 160},
+    'regression_baseline': {'report': baseline_path.relative_to(ROOT).as_posix(),
+        'bindings_verified': baseline_bindings, 'requests': 300, 'ai_reviewed_content_accepted': 145,
+        'correct_negative_abstentions': 155, 'false_model_abstentions': 0,
+        'scope': '145 recorded Chat model responses + 155 native local requests; not live generation.'},
+    'checks': {'followup_bindings_verified': bound_count, 'benchmark_freeze': 'PASS',
+               'product_runtime_matches_parent': True, 'collector_tests_passed': 27,
+               'failed_case_fallback_schema': 'PASS', 'budgets': 'PASS'},
+    'historical_source_snapshots': historical_sources,
+    'exit': {'closed_steps': 4, 'total_steps': 5, 'percent_by_closed_steps': 80,
+        'remaining': 'Representative live latency/format workload remains incomplete after provider HTTP 503. No new run or retry is scheduled by this review.',
+        'ablations_started': False, 'phase9_started': False, 'phase7_status_changed': False},
+    'bindings': {p.relative_to(ROOT).as_posix(): sha(p) for p in (
+        output / 'manifest.json', output / 'preflight.json', output / 'execution.json',
+        output / 'measurement.json', live.OUTPUT / 'manifest.json', live.OUTPUT / 'execution.json',
+        live.OUTPUT / 'measurement.json', live.OUTPUT / 'measurement-review.json',
+        live.HISTORY, baseline_path, BENCHMARK, review_source, junit,
+        Path(live.__file__), ROOT / 'tests/test_phase8_live_runtime.py')}
+}
+write_json(output / 'exit-review.json', report)
+print(json.dumps({'status': report['status'], 'followup': report['followup'],
+                  'shared_attempts': report['shared_phase8_attempts']}))

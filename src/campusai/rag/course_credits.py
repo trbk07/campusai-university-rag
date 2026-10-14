@@ -7,7 +7,7 @@ import json
 import re
 import unicodedata
 
-COURSE_CODE = r'[a-z]{2,5}\s*\d{3,5}[a-z]?'
+COURSE_CODE = r'(?:[a-z]{2,5}\.)?[a-z]{2,5}\s*\d{3,5}[a-z]?'
 
 
 def course_code_key(code: str) -> str:
@@ -55,7 +55,7 @@ def headed_credit_rows(content: str, *, identity: str = 'code'):
             continue
         code = (re.sub(r'\s+', '', row[code_col]).upper() if identity == 'code'
                 else course_name_key(row[code_col]))
-        if not code or (identity == 'code' and not re.fullmatch(r'[A-Z]{2,5}\d{3,5}[A-Z]?', code)):
+        if not code or (identity == 'code' and not re.fullmatch(COURSE_CODE, code, re.IGNORECASE)):
             continue
         value = row[credit_col].strip()
         output.append((code, int(value) if value.isascii() and value.isdigit() and len(value) <= 6 else None, row))

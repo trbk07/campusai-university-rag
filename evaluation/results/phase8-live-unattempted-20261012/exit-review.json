@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "status": "AUTOMATED_EXIT_AUDIT_COMPLETE_LIVE_WORKLOAD_INCOMPLETE",
+  "reviewer": "Codex - Automated AI Review",
+  "reviewed_at": "2026-10-12T16:36:08.282305+00:00",
+  "phase8_pass": false,
+  "officially_approved": false,
+  "fresh_validation": false,
+  "followup": {
+    "planned": 14,
+    "attempts": 1,
+    "http_503": 1,
+    "successful_outputs": 0,
+    "sent_prompt_characters": 6196,
+    "known_output_tokens": null,
+    "usage_status": "not supplied on HTTP 503; not assumed zero",
+    "request_latency_ms": 8932.139,
+    "startup_plus_first_request_ms": 69986.676,
+    "application_schema_valid": true,
+    "resume_allowed": false,
+    "retry_sent": 0
+  },
+  "combined_fixed_workload": {
+    "planned_unique_groups": 18,
+    "attempted_unique_cases": 5,
+    "successful_product_requests": 3,
+    "http_200": 3,
+    "http_503": 2,
+    "unattempted_count": 13,
+    "unattempted_qids": [
+      "human-p7r18-curriculum-025-combined-3",
+      "p8-temporal-2021-adjustment-13",
+      "p8-temporal-2021-adjustment-04",
+      "p8-temporal-2021-adjustment-16",
+      "p8-temporal-2021-adjustment-07",
+      "p8-temporal-2021-adjustment-02",
+      "p8-fact-entrance-award-amount",
+      "p8-fact-collective-contribution-gpa",
+      "p8-fact-exam-warning-deduction",
+      "p8-fact-excellent-student-floor",
+      "human-p7r18-curriculum-017-semester-2",
+      "human-p7r18-curriculum-023-semester-4",
+      "human-p7r18-curriculum-009-credits-2"
+    ],
+    "failed_qids": [
+      "human-p7r18-curriculum-020-combined-1",
+      "human-p7r18-curriculum-005-combined-3"
+    ],
+    "successful_qids_resent": 0,
+    "all_attempted_qids_unique": true,
+    "raw_provider_schema_valid": {
+      "numerator": 3,
+      "denominator_final_texts": 3,
+      "normalization": false
+    },
+    "valid_provider_output_per_attempt": {
+      "numerator": 3,
+      "denominator": 5,
+      "value": 0.6
+    },
+    "application_schema_valid_including_fallback": {
+      "numerator": 5,
+      "denominator": 5
+    },
+    "request_latency_values_ms": [
+      5869.477,
+      11175.703,
+      8455.594,
+      8640.566,
+      8932.139
+    ],
+    "warm_latency": {
+      "denominator": 3,
+      "p50_ms": 8640.566,
+      "p95_ms": 11175.703,
+      "p99_ms": 11175.703,
+      "ci95": {
+        "status": "measured",
+        "groups": 3,
+        "iterations": 2000,
+        "seed": 20261010,
+        "ci95_ms": {
+          "p50": [
+            8455.594,
+            11175.703
+          ],
+          "p95": [
+            8455.594,
+            11175.703
+          ],
+          "p99": [
+            8455.594,
+            11175.703
+          ]
+        }
+      }
+    },
+    "cold_startup_plus_request_values_ms": [
+      62477.242,
+      69986.676
+    ],
+    "peak_working_set_bytes": 2531639296,
+    "scope": "Two separately bound cohorts with identical product runtime and exact previously approved bodies; failures retained. Not the 300-case live baseline or production SLO qualification."
+  },
+  "shared_phase8_attempts": {
+    "daily_counts": {
+      "2026-10-11": 2,
+      "2026-10-12": 5
+    },
+    "total_including_historical_api": 7,
+    "daily_cap": 18,
+    "total_cap": 160
+  },
+  "regression_baseline": {
+    "report": "evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json",
+    "bindings_verified": 19,
+    "requests": 300,
+    "ai_reviewed_content_accepted": 145,
+    "correct_negative_abstentions": 155,
+    "false_model_abstentions": 0,
+    "scope": "145 recorded Chat model responses + 155 native local requests; not live generation."
+  },
+  "checks": {
+    "followup_bindings_verified": 11,
+    "benchmark_freeze": "PASS",
+    "product_runtime_matches_parent": true,
+    "collector_tests_passed": 27,
+    "failed_case_fallback_schema": "PASS",
+    "budgets": "PASS"
+  },
+  "historical_source_snapshots": {
+    "evaluation/phase8/measure_live_runtime.py": {
+      "snapshot": "evaluation/results/phase8-live-runtime-20261012/measure_live_runtime.snapshot.py.txt",
+      "sha256": "28554c6ad91b4fc1d0ded675b8969d646430b4701784d242add1e607c766c13e",
+      "commit": "2ac714d"
+    },
+    "tests/test_phase8_live_runtime.py": {
+      "snapshot": "evaluation/results/phase8-live-runtime-20261012/test_phase8_live_runtime.snapshot.py.txt",
+      "sha256": "7544f4f868797a6ef19cedb946911c1558712afd95285315441a47e053c6481a",
+      "commit": "2ac714d"
+    }
+  },
+  "exit": {
+    "closed_steps": 4,
+    "total_steps": 5,
+    "percent_by_closed_steps": 80,
+    "remaining": "Representative live latency/format workload remains incomplete after provider HTTP 503. No new run or retry is scheduled by this review.",
+    "ablations_started": false,
+    "phase9_started": false,
+    "phase7_status_changed": false
+  },
+  "bindings": {
+    "evaluation/results/phase8-live-unattempted-20261012/manifest.json": "531462d897aa710da87a4144239e21f2e5f00d7614e3878dd6429ea1726fa1cd",
+    "evaluation/results/phase8-live-unattempted-20261012/preflight.json": "78ce2b6967c23f4e852c8e34d9112ad6ae7ffa4bbd8b698aeb9ff9181ee45b0a",
+    "evaluation/results/phase8-live-unattempted-20261012/execution.json": "917c82bdefd6275a220656148d1ff42428c7b4bca731e8acb1a5aafbbd21e46a",
+    "evaluation/results/phase8-live-unattempted-20261012/measurement.json": "5eed0cfa8f032d665ce3b1ed974b2b94d3457c4a18fdb3abdf85414b72061e36",
+    "evaluation/results/phase8-live-runtime-20261012/manifest.json": "2af5c05a87c5e30542ec50c33d6d6b319bc1cd07f9f95186a0307f033a0b0cbf",
+    "evaluation/results/phase8-live-runtime-20261012/execution.json": "3a487cb0d3a83e49924a2ecccba72b6b44d0e6963634aeb06ca880be5b4456b3",
+    "evaluation/results/phase8-live-runtime-20261012/measurement.json": "2ef1be904fc78f48e176e587ba47504e30216da487ed16707f126b082f0a380a",
+    "evaluation/results/phase8-live-runtime-20261012/measurement-review.json": "ce06c14f51361556907425a8a6df3a84373690e82b2bdfd9e4ad882dbb2cd251",
+    "evaluation/results/phase8-product-execution-v5.json": "90b6a336c6bc8b812e42ca1ebcb2e1551875182dabd5890e3bafe56152876bef",
+    "evaluation/results/phase8-chat-replay-complete-20261012/baseline-review.json": "46da545a2f3af65064378518f30cf95c63b0898ebd707d6ef732664b2341385b",
+    "evaluation/phase8/benchmark_candidate_v5.jsonl": "0001ed7e3c6ad932434c368eb0bf212110a5d6165a9a4af12a639eb09ce4a93d",
+    "evaluation/results/phase8-live-unattempted-20261012/reviewer-source.py.txt": "83008a1ce3d75fca417552a076926434f49a9e7dd04ad691c3db7005e842cde4",
+    "evaluation/results/phase8-live-unattempted-20261012/collector-tests.xml": "3c8cb89b8a8d65763060ba973db241b5901be96ce738ed90ac0f10eff2a4cdab",
+    "evaluation/phase8/measure_live_runtime.py": "81295259f695381e45960b6604fcb2bf5d2e5e3094fb3da90ad29774367af2b2",
+    "tests/test_phase8_live_runtime.py": "601c71fbcfdb014e328301b03a1a7b8f708875f54f235232fbb9c977540ee7aa"
+  }
+}

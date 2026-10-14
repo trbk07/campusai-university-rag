@@ -1,0 +1,54 @@
+{
+  "status": "FROZEN_BEFORE_PHASE10_RUNTIME_CHANGE",
+  "baseline_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "ada8092099066872375cd4253777742f970bdb0200dad4910ba424e2862a7e84",
+    "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+  },
+  "count": 24,
+  "dev": 12,
+  "acceptance": 12,
+  "positive": 12,
+  "negative": 12,
+  "families_disjoint": true,
+  "provider_posts": 0,
+  "requirements": {
+    "resolution_and_required_hop_accuracy": 1,
+    "semantic_answer_accuracy": 1,
+    "negative_accuracy": 1,
+    "false_join": 0,
+    "scope_leak": 0,
+    "unsupported_claim": 0,
+    "contradicted_claim": 0,
+    "false_abstention": 0,
+    "public_schema_validity": 1,
+    "source_coordinate_validity": 1,
+    "minimum_coverage_percent": 85
+  },
+  "budget": {
+    "max_searches": 2,
+    "max_candidates_per_search": 20,
+    "max_total_candidates": 40,
+    "max_generation_calls": 1,
+    "context": "Unchanged configured char/token/output caps; no new model load for planning."
+  },
+  "qualification": "Small exposed quality regression; not fresh validation, human approval, or live API qualification.",
+  "bindings": {
+    "data/corpus/university/uet_mechatronics_curriculum_2023.pdf": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+    ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/bm25.json": "2a32f0211fa8cfbb6fcade5cb93439de052ef7a929f59f07ea59a8b6d543936c",
+    ".tmp/hybrid-index/c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850/dense.json": "77c8bac55045cdb6ca43c7315429ba657597a46fcbb2df389a09d9800c79232a",
+    "data/corpus/phase7_source_expansion/20261004b/uet_robotics_curriculum_2020.pdf": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+    ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/bm25.json": "6bd45bbbac91f5aac2c54b54ed6b3d96d1272f1e99d05336c7f0c44abc1b0022",
+    ".tmp/phase7-curated-source-20261005-v2/index/d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09/dense.json": "bf92b561c2d2c37bbc0a00e884cae40a4ebd3c4bf8486312a7f08eab6b9d60a9",
+    "data/corpus/phase7_source_expansion/20261004b/uet_electronics_masters_curriculum_2022.pdf": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+    ".tmp/phase7-curated-source-20261005-v2/index/1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/bm25.json": "91da6444928414f2dcfe828a3fb6d8ade781396625e8defb84dabbbb1424ec9e",
+    ".tmp/phase7-curated-source-20261005-v2/index/1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf/dense.json": "a0795731c03aa698ff25cd0459ab0ee90fdfd6e035ce1accc49c8ff25e1af03e",
+    "data/corpus/phase7_source_expansion/20261004b/uet_telecommunications_masters_curriculum_2022.pdf": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+    ".tmp/phase7-curated-source-20261005-v2/index/e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e/bm25.json": "5e205b1c5af6412bfe8ff3c07484b5caff33d774730be736f50f101b6b70b7be",
+    ".tmp/phase7-curated-source-20261005-v2/index/e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e/dense.json": "f93b92617b6e7bb6418dccc95dccf2138089a64d9dc529a6d0dac4d047771f50",
+    "evaluation/phase10/benchmark.jsonl": "0a9be3ebe5a8413697d18fb250135576b56d7b4cde40e0f49410b7d3dc783aee",
+    "evaluation/phase10/source-rubric.json": "85dc3ab146c7b14ebe4751fe6bc3f9009aefb3d8c7188a1f704e79366271e8c2",
+    ".local_artifacts/experiment_runs/phase10-20261014/source-records.json": "e1c41cb13342fa1a6d90b147f0875eb7c0d3a3877d80e0c114da783502a57cd5",
+    ".local_artifacts/experiment_runs/phase10-20261014/source-pages/render-receipt.json": "e46f6a51e298994ed47f84effd93634550d8b311007c97e793a0a2b95b089f37"
+  }
+}

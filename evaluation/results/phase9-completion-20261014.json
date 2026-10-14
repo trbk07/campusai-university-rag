@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "updated_at": "2026-10-14T02:04:27.800458+00:00",
+  "reviewer": "Codex ? Automated AI Review",
+  "officially_human_approved": false,
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "4b69994517c22d9152dafd0ffffcfe69c4a30a628338c6e97e19d9ddc065553e",
+    "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+  },
+  "metrics": {
+    "cases": 24,
+    "correct": 24,
+    "dev_correct": 12,
+    "acceptance_correct": 12,
+    "positive_answers": 8,
+    "positive_correct": 8,
+    "negative_cases": 16,
+    "negative_correct": 16,
+    "claims_supported": 12,
+    "citations_source_valid": 12,
+    "public_schema_valid": 24,
+    "raw_chat_schema_valid": 8,
+    "raw_chat_content_correct": 8,
+    "false_abstentions": 0,
+    "scope_leaks": 0,
+    "unsupported_claims": 0,
+    "contradicted_claims": 0,
+    "provider_posts": 0
+  },
+  "thresholds": {
+    "temporal_protocol_all_met": true,
+    "applicable_grounding_precision_recall_completeness_coordinate_schema_safety_thresholds_met": true,
+    "calibration_dataset_size_performance_and_api_qualification": "NOT_CLAIMED: Phase9 small exposed quality scope; R-01/R-02 unchanged"
+  },
+  "gates": {
+    "T9-01": "PASS",
+    "T9-02": "PASS",
+    "T9-03": "PASS",
+    "T9-04": "PASS",
+    "T9-05": "PASS"
+  },
+  "requirements_audit": {
+    "P9-01": [
+      "source-audit.json: reproduced issue/effective defect and minimum missing family source",
+      "protocol.json, benchmark.jsonl: 24 frozen cases, two disjoint real source families and six categories",
+      "source-rubric.json and original preflight: before-implementation source proofs and exposure history",
+      "Phase8 regression: 20 temporal cases reused inside 300, not added to independent denominator"
+    ],
+    "P9-02": [
+      "metadata-before-after.json: signing/effectivity defect corrected",
+      "test_temporal_metadata.py: exact clauses/pages, precision, invalid/conflicting/negated dates",
+      "temporal.py verified_documents: source-owned version/replacement/cohort proof; partial amendment remains conservative",
+      "test_restart_preserves_native_metadata_provenance: existing BM25 persistence and native optional metadata"
+    ],
+    "P9-03": [
+      "24/24 actual source eligibility matches expected IDs and statuses",
+      "test_temporal_resolver.py: boundaries/future/current/latest/overlap/permutation/filter/cohort/family/missing proof",
+      "16/16 real negatives stop before model; no out-of-scope version selected",
+      "Pure deterministic resolver, injected clock; no network, encoder or retrieval pass for resolution"
+    ],
+    "P9-04": [
+      "Actual full replay: 8 model answers, each <=1 boundary call; 16 local branches, unchanged public schema",
+      "12/12 source-valid fact/version citations; four comparisons include both source arms",
+      "test_product_current_clock_boundary_cache_and_public_schema plus fingerprint/index generation: two cache scopes, day/metadata changes",
+      "Split-fact/version propagation regression plus filter/auth, persistence and provider fault controls in passing suite"
+    ],
+    "P9-05": [
+      "24/24 fully reviewed and replayed, no missing cases; 12 dev/12 acceptance",
+      "6 byte-identical original payload responses plus 2 raw exposed repair responses; no gold/model output fabrication",
+      "Current-runtime Phase7 68 and Phase8 300 public regressions exact; prior source reviews carried only on exact outputs",
+      "1502 tests PASS, 2 live SKIP, coverage 91.05%; alternating local timing bound to same runtime, not provider SLO"
+    ],
+    "P9-06": [
+      "Source/config/index/protocol/raw/review/test identities checked",
+      "Handoff and zero-network replay command updated",
+      "Task/gate status updated without touching Phase7/8 results or R-01/R-02",
+      "Cleanup complete: 18 task-temporary paths removed. Owner explicitly approved root-only ACL change on two denied pytest roots; same-account elevated helper inspected 4,779 entries per root, no reparse points, removed both and verified absent. Helper archived then deleted. No recursive ACL or outside-project changes."
+    ]
+  },
+  "raw_provenance": {
+    "original_raw": "received-chat-5fa978420c22.jsonl",
+    "new_raw": "repair-chat-received.jsonl",
+    "new_raw_origin": "Verbatim JSONL copied from owner chat message; saved UTF-8 LF. No payload or quote correction.",
+    "merged": "complete-chat-responses.jsonl",
+    "merge": "Six original payloads byte-compatible with new captures, plus two new outputs. Envelope JSON whitespace reserialized; response values unchanged.",
+    "semantic_normalization_applied": false
+  },
+  "limitations": [
+    "Real source applicability/publication dates are incomplete. Real latest/as-of cases abstain; positive date boundaries are synthetic contract tests.",
+    "The 2023 electronics PDF has blank signature day/month/number; no legal current-effectiveness claim.",
+    "HTML uses declared logical snapshot pagination, not physical PDF page provenance.",
+    "Prior Phase 7/8 raw failures and gold unchanged; this work does not pass native live API release conditions.",
+    "Exposed 24-case small regression, not broad statistical accuracy or fresh validation.",
+    "Owner-mediated Chat model label/settings unverified; no native API performance/availability/format claim."
+  ],
+  "cleanup": {
+    "status": "COMPLETE",
+    "removed_paths": 18,
+    "pending_paths": [],
+    "approved_root_only_acl_changes": true,
+    "recursive_acl_changes": false,
+    "outside_project_actions": false,
+    "removed_inaccessible_roots": [
+      {
+        "path": "D:\\Project\\.tmp\\pytest-phase9-full",
+        "status": "REMOVED",
+        "inspected_entries": 4779
+      },
+      {
+        "path": "D:\\Project\\.tmp\\pytest-phase9-full-2",
+        "status": "REMOVED",
+        "inspected_entries": 4779
+      }
+    ],
+    "temporary_helper_removed": true,
+    "automatic_approval_rejection_history": "Initial ACL action rejected; owner subsequently explicitly approved same root-only scope. No bypass. Windows required same-account Administrator/UAC execution; both target roots deleted."
+  },
+  "bindings": {
+    "evaluation/phase9/protocol.json": "479b60bb9e934e6255bdd98595dd50e27f12a9bba6da3e0daeedb42604ee2dac",
+    "evaluation/phase9/benchmark.jsonl": "c03706528458a3b84969c8281d8e2751444eab22bda75a5ad1e2c48d8c559bb3",
+    "evaluation/phase9/source-rubric.json": "4fb482d637ed48290234d38e6b95098afa6d46c1efaf3aee7c9f92b05de05886",
+    ".local_artifacts/experiment_runs/phase9-20261014/source-records.json": "c5bcbc9b82ca67064170e33118fca80e1ab442a13fb0a7487e59895bc931fbdf",
+    ".local_artifacts/experiment_runs/phase9-20261014/preflight.json": "3004ae5f99d05b5cfdb09316027e62a9f95086618a4ce9b80c596856e8c6469f",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-preflight.json": "eb6319bfa83f13aef9117dbd3f97037bda75d389fbc2641e22b23b2251277761",
+    ".local_artifacts/experiment_runs/phase9-20261014/received-chat-5fa978420c22.jsonl": "5fa978420c22e860faef6b0fc79202ac2e1130cc8cc93879f9da61c9fb1f66a6",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-chat-received.jsonl": "99059de88b07267e8c65a0cc2feb14531673ea70fb40d14d0c1e69a4ea57d3fe",
+    ".local_artifacts/experiment_runs/phase9-20261014/compatible-chat-responses.jsonl": "191deef68d60762dbb73cc65377ab2a0ac6f18556cd8359ec5f9522e8501c41a",
+    ".local_artifacts/experiment_runs/phase9-20261014/complete-chat-responses.jsonl": "b8167c628c8e6fe8981f1f07c1756da5970c8aad756b8167969a506a66d1f6c0",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-preflight-replay-b8167c628c8e.json": "687de50e440dc21203ac8a9eb4ae2979ef2529b71a994fe4243637445786d71e",
+    ".local_artifacts/experiment_runs/phase9-20261014/complete-source-review.json": "c76a2c2dd9a481572618b677ac98513ff520cf9c5826f18f170349328d9f88a0",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-tests.xml": "cc2169feacf62db98a6752edeabbc11550054bb176eee8a633972bb665583c61",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-coverage.json": "2b7a7c66d463f6f2ce970cd34500eb76e56f8d7f0f53ef78665eab9e1dc4fdda",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase7-regression.json": "e5951cdf61f16540efa9b5f364728f6ac0ee9899f49ec5b87853dbadc09e3a41",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase8-regression/execution.json": "8179fb96318abf2ad5951f3bffa098974758129d3f609716225665ba59235618",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-phase8-regression/predictions.jsonl": "81b1f10c5cb22d69469fba9e3729262460ca00c73ce7a33dc917c4eb7d2b4e63",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-local-overhead.json": "c737bdba76b682eb5e01c4d7398b2e6b221c76de99316f8c77ecc12df7ca03bd",
+    "configs/grounding_release.json": "5d4da46a7de31f8605a8d7dc310bf500861115834b53de97dbba29a9b4b37546",
+    ".local_artifacts/experiment_runs/phase9-20261014/repair-preflight-replay-b8167c628c8e-rerun-2.json": "e46b613c14c945e67d944d45866a7722886958bf34381b9529a5b552d1d19d5d",
+    ".local_artifacts/experiment_runs/phase9-20261014/runner-before-receipt-guard.py.txt": "9ee40b971a2d645a88dc2adfb7d0bd36847650f8066692a1e1205f3db5b51ecf",
+    "evaluation/phase9/run.py": "4280702af9f64c67b511aa891708b654c4adfe217c8a3d050d9db9f96901cfec",
+    ".local_artifacts/experiment_runs/phase9-20261014/cleanup-elevated.json": "7c23e52f215be5353c12003a9605e6d8f09e4f240da379ab1e9bb2b9c4a856e3",
+    ".tmp/phase9-cleanup-root-only.ps1": "de404260eeb70e03472e9d189ed4817bbe449084decc9cbb729edfb0a79c50b0",
+    ".local_artifacts/experiment_runs/phase9-20261014/cleanup-helper.ps1.txt": "de404260eeb70e03472e9d189ed4817bbe449084decc9cbb729edfb0a79c50b0",
+    "docs/phase9_temporal_handoff.md": "60da604d8574908b852cdf9b8e94c6f01e558fd934f69bf6019703fb7fed4f1c",
+    ".local_artifacts/experiment_runs/phase9-20261014/plan-at-phase9-exit.md": "76446969395e28c661ec7e0ada33fefef95a8c1a5ba6dbb21149705c4513f031",
+    ".local_artifacts/experiment_runs/phase9-20261014/completion-report-at-phase9-exit.json": "455da6fb12433521a2a16a93c6d9a3727ce29cda0b525025527ae05d97faefc4"
+  },
+  "done_tasks": 6,
+  "total_tasks": 6,
+  "passed_gates": 5,
+  "total_gates": 5,
+  "phase_completion_percent": 100,
+  "tasks": {
+    "P9-01": {
+      "status": "DONE",
+      "percent": 100
+    },
+    "P9-02": {
+      "status": "DONE",
+      "percent": 100
+    },
+    "P9-03": {
+      "status": "DONE",
+      "percent": 100
+    },
+    "P9-04": {
+      "status": "DONE",
+      "percent": 100
+    },
+    "P9-05": {
+      "status": "DONE",
+      "percent": 100
+    },
+    "P9-06": {
+      "status": "DONE",
+      "percent": 100
+    }
+  },
+  "evaluator_compatibility": {
+    "full_suite_source_identity": {
+      "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+      "source_sha256": "216ab8d2748d78e447f4e627876180d4d382e0e2bcc6808bbf827f089e33d8d1",
+      "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+    },
+    "current_source_identity": {
+      "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+      "source_sha256": "4b69994517c22d9152dafd0ffffcfe69c4a30a628338c6e97e19d9ddc065553e",
+      "runtime_sha256": "45668b2a96857648de815130a29e95ea594f347846a9734aed4488da5aef3ea4"
+    },
+    "only_change": "evaluation/phase9/run.py: append a unique rerun suffix instead of overwriting a retained replay receipt.",
+    "prior_source_tree_reconstructed_with_snapshot": true,
+    "application_runtime_unchanged": true,
+    "all_24_actual_public_outputs_and_prompts_exact": true,
+    "old_receipt_unchanged": true,
+    "verification": "Actual zero-network replay created rerun-2, 24/24 PASS; production full suite/coverage and Phase7/8 regressions remain bound to identical runtime. No additional provider or model generation."
+  },
+  "roadmap_snapshot": {
+    "path": ".local_artifacts/experiment_runs/phase9-20261014/plan-at-phase9-exit.md",
+    "sha256": "76446969395e28c661ec7e0ada33fefef95a8c1a5ba6dbb21149705c4513f031",
+    "note": "Phase9 exit roadmap bytes preserved before the owner-requested Phase10 planning update. Current plan.md remains the tracked mutable project roadmap; no Phase9 quality result changed."
+  },
+  "historical_exit_report": {
+    "path": ".local_artifacts/experiment_runs/phase9-20261014/completion-report-at-phase9-exit.json",
+    "sha256": "455da6fb12433521a2a16a93c6d9a3727ce29cda0b525025527ae05d97faefc4"
+  }
+}

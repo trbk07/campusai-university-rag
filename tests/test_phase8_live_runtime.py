@@ -76,3 +76,122 @@ def test_started_measurement_cannot_resume_or_resend(measured):
     live.write_json(measured / 'execution.json', {'attempts': [{'qid': 'q'}], 'shards': []})
     with pytest.raises(ValueError, match='no resume'):
         live.run(measured)
+
+
+def test_followup_excludes_successful_and_failed_attempts():
+    packet = {'cases': [{'qid': q} for q in ['success', 'failed', 'unattempted']]}
+    state = {'status': 'waiting_next_pacific_day',
+             'attempts': [{'qid': 'success'}, {'qid': 'failed', 'http_status': 503}],
+             'predictions': [{'qid': 'success'}]}
+    assert live.unattempted_cases(packet, state) == [{'qid': 'unattempted'}]
+
+
+@pytest.mark.parametrize('attempts,completed,status', [
+    (['a', 'a'], ['a'], 'waiting_next_pacific_day'),
+    (['b'], ['b'], 'waiting_next_pacific_day'),
+    (['a'], ['b'], 'waiting_next_pacific_day'),
+    (['a'], ['a', 'a'], 'waiting_next_pacific_day'),
+    (['a'], ['a'], 'running'),
+    ([], [], 'waiting_next_pacific_day'),
+])
+def test_followup_rejects_ambiguous_or_active_parent(attempts, completed, status):
+    with pytest.raises(ValueError):
+        live.unattempted_cases({'cases': [{'qid': 'a'}, {'qid': 'b'}]}, {
+            'status': status, 'attempts': [{'qid': q} for q in attempts],
+            'predictions': [{'qid': q} for q in completed]})
+
+
+def test_shared_allowance_counts_prior_failures_and_other_days():
+    prior = [{'pacific_day': 'today', 'http_status': 503}] * 4
+    live.check_shared_allowance(prior, 14, 'today')
+    with pytest.raises(ValueError, match='shared'):
+        live.check_shared_allowance(prior, 15, 'today')
+    live.check_shared_allowance(prior, 18, 'tomorrow')
+    with pytest.raises(ValueError, match='shared'):
+        live.check_shared_allowance([{'pacific_day': 'old'}] * 158, 3, 'today')
+
+
+def test_remaining_real_cohort_is_thirteen_unique_never_attempted_cases():
+    _packet, cases, events, _state = live.remaining_inputs()
+    assert len(cases) == len({c['qid'] for c in cases}) == 13
+    attempted = {e['qid'] for directory in (live.OUTPUT, live.FOLLOWUP)
+                 for e in live.read(directory / 'execution.json')['attempts']}
+    assert not attempted.intersection(c['qid'] for c in cases)
+    # Seven Phase 8 attempts plus two integration starts and a failed Phase 7 start.
+    assert len(events) == 10
+
+
+def test_historical_regression_rejects_an_unmeasured_runtime_without_network(monkeypatch):
+    monkeypatch.setattr('urllib.request.urlopen', lambda *_a, **_kw: pytest.fail('network sent'))
+    # Phase 9 changes the serving runtime. The old Phase 8 receipt must remain
+    # historical and cannot authorize new live measurements. Test that guard
+    # without assuming the checkout always equals the old replay's source tree.
+    identity = dict(live.source_identity(live.ROOT), runtime_sha256='unmeasured-runtime')
+    monkeypatch.setattr(live, 'source_identity', lambda _root: identity)
+    with pytest.raises(ValueError, match='does not qualify'):
+        live.verify_current_regression()
+
+
+@pytest.fixture
+def remaining_history(tmp_path, monkeypatch):
+    monkeypatch.setattr(live, 'ROOT', tmp_path)
+    original, followup = tmp_path / 'original', tmp_path / 'followup'
+    original.mkdir()
+    followup.mkdir()
+    monkeypatch.setattr(live, 'OUTPUT', original)
+    monkeypatch.setattr(live, 'FOLLOWUP', followup)
+    benchmark = tmp_path / 'benchmark.jsonl'
+    benchmark.write_text('frozen', encoding='utf-8')
+    monkeypatch.setattr(live, 'BENCHMARK', benchmark)
+    history = tmp_path / 'history.json'
+    live.write_json(history, {'attempts': []})
+    monkeypatch.setattr(live, 'HISTORY', history)
+    integration = tmp_path / 'integration.json'
+    live.write_json(integration, {'offline': False, 'external_provider_calls': 2,
+        'observations': [{'provider_start': 1791900000}, {'provider_start': 1791900030}]})
+    monkeypatch.setattr(live, 'OTHER_LEDGER_PATHS', (integration,))
+    for directory, qids, attempted in ((original, ['a', 'b', 'c'], ['a']), (followup, ['b', 'c'], ['b'])):
+        live.write_json(directory / 'manifest.json', {'bindings': {}})
+        live.write_json(directory / 'preflight.json', {'cases': [{'qid': q} for q in qids],
+            'benchmark': {'sha256': live.sha(benchmark)}})
+        live.write_json(directory / 'execution.json', {'status': 'waiting_next_pacific_day',
+            'manifest_sha256': live.sha(directory / 'manifest.json'),
+            'attempts': [{'qid': q, 'http_status': 503, 'pacific_day': '2026-10-13'} for q in attempted],
+            'predictions': []})
+    return original, followup, integration
+
+
+def test_remaining_counts_failed_calls_and_integration_starts(remaining_history):
+    _packet, cases, events, _state = live.remaining_inputs()
+    assert cases == [{'qid': 'c'}]
+    assert len(events) == 4 and all(e['pacific_day'] == '2026-10-13' for e in events)
+
+
+@pytest.mark.parametrize('damage', ['overlap', 'manifest', 'missing_start'])
+def test_remaining_rejects_corrupt_or_overlapping_history(remaining_history, damage):
+    original, followup, integration = remaining_history
+    if damage == 'overlap':
+        path = followup / 'preflight.json'
+        packet = live.read(path)
+        packet['cases'] = [{'qid': 'a'}, {'qid': 'c'}]
+        live.write_json(path, packet)
+    elif damage == 'manifest':
+        live.write_json(original / 'manifest.json', {'bindings': {}, 'tampered': True})
+    else:
+        ledger = live.read(integration)
+        ledger['observations'].pop()
+        live.write_json(integration, ledger)
+    with pytest.raises(ValueError):
+        live.remaining_inputs()
+
+
+def test_remaining_prepare_checks_quota_before_creating_state(tmp_path, monkeypatch):
+    monkeypatch.setattr(live, 'ROOT', tmp_path)
+    monkeypatch.setattr(live, 'remaining_inputs', lambda: ({}, [{'qid': 'pending'}],
+        [{'pacific_day': 'today'}] * 18, {}))
+    monkeypatch.setattr(live, 'verify_current_regression', lambda: None)
+    monkeypatch.setattr(live.collector, 'pacific_day', lambda: 'today')
+    output = tmp_path / 'new-cohort'
+    with pytest.raises(ValueError, match='shared'):
+        live.prepare_remaining(output)
+    assert not output.exists()

@@ -1,6 +1,155 @@
 # Phase 8 evaluation
 
-## Latest live measurement — 2026-10-12, stopped after HTTP 503
+## Current completion — owner-amended Chat quality scope, 2026-10-13
+
+**DONE — 100% of the owner's amended quality scope.** The frozen regression
+replay contains 145/145 source-reviewed correct answers and 155/155 correct
+local negative abstentions, 300/300 valid application schemas and 178 supported
+claims. No unchecked content cases remain. Final checks pass 1,473 offline
+tests with 90.60% coverage; two live opt-in tests are skipped.
+
+The final normalized handoff has 145/145 schema-valid, value-preserving records.
+Original raw format results remain 17 valid / 128 invalid; local serialization
+is not evidence of new model generation or native API format reliability.
+Exact-gold citation identity is 144/145; one alternative source chunk is valid.
+Gold, rubric and thresholds remain unchanged. These are exposed regression
+samples reviewed by Codex — Automated AI Review, not fresh validation or an
+independent human signature. The Chat model/settings identity is unverified.
+
+The [completion audit](../evaluation/results/phase78-chat-quality-completion-20261013.json)
+closes the scope the owner explicitly selected. Live API latency, availability
+and native format qualification remain **NOT PASSED / RELEASE HARDENING PENDING**.
+Historical checkpoints below retain the original live contract and failures;
+their pending exit status is not the current Chat-quality phase progress.
+
+Public-status recheck after the stopped 13/10 run: the
+[official GenerateContent error reference](https://ai.google.dev/gemini-api/docs/generate-content/api-errors)
+identifies 503 as temporary service capacity/unavailability. The linked
+[Gemini API status page](https://aistudio.google.com/status) exposed no readable
+health/incident data through the web reader, so recovery is **unverified**.
+The latest actual project request still returned 503. No generation call,
+successor manifest, key/model change or resumed job was made by this check.
+
+## Latest approved execution — 2026-10-13, stopped on HTTP 503
+
+The owner explicitly approved manifest
+`806d7aa30a67d65de98ade8452f45353551ab1d6b12fbc1124f640dd25f6ed45` and its limits.
+An initial local startup omitted GEMINI_API_KEY and failed before any shard or
+POST. The existing key_2 launcher corrected that environment-only error without
+changing source, payload, limits, or consuming a provider retry.
+
+The actual first POST returned HTTP 503. Collection stopped after **one attempt**,
+zero successful outputs, zero retries and no key rotation. The application
+returned a schema-valid abstention with empty public claims/citations in
+**3,271.784 ms**; startup was 61,584.888 ms, cold total 64,856.672 ms. No final
+provider text, modelVersion or usage was supplied. Format is unmeasured for this
+cohort and cost/usage is unknown. Peak working set was 2,526,707,712 bytes.
+
+The [execution exit audit](../evaluation/results/phase8-live-remaining-20261013/exit-review.json)
+verifies the exact manifest, source, original body, credential fingerprint,
+stop policy, 42 tests, benchmark freeze, 300-case regression and shared budget.
+The fixed workload totals are now **6/18 unique cases attempted, 3 successes,
+3 HTTP 503, 12 unattempted**. These are descriptive cross-runtime totals;
+current runtime has one failed cold request and no warm/format sample. The
+three historical received final texts are schema-valid, while valid provider
+output per attempt is 3/6. Neither is production reliability qualification.
+
+The finite run is terminal even though the generic checkpoint says
+`waiting_next_pacific_day`; `run` rejects any existing shard or attempt. No
+successor, retry, key rotation or background job is scheduled. **Phase 8 remains
+4/5 DONE (80%); Phase 7 remains 4/6 DONE.** Provider recovery is still required.
+
+Reproduce the audit with zero network:
+
+```powershell
+.venv\Scripts\python.exe evaluation/results/phase8-live-remaining-20261013/review-execution.py.txt
+```
+
+## Preparation checkpoint — 2026-10-13, before owner approval
+
+The remaining 13 never-attempted cases are prepared in
+`evaluation/results/phase8-live-remaining-20261013/`. The original bodies and
+benchmark remain unchanged. Current product code/index/prompts are verified
+against the 300-request replay; reconstructing its source hash permits only
+the performance/measurement dispatchers and their tests to differ. Historical
+collector/test snapshots are retained beside the second terminal cohort.
+42 offline control tests pass, covering overlap, historical manifest drift,
+failed-call/integration accounting and quota rejection before creating state.
+
+The bounded run uses key_2, Free Tier only, at most 13 POST / 77,959 prompt
+characters / 13,312 output tokens (1,024 each), 15s timeout, >=30s start spacing,
+zero retries and no key rotation. Phase 7 starts count against the shared
+18/day ceiling. A failure remains terminal. Five earlier observations retain
+their old runtime identity and cannot become a single-runtime 18-case SLO.
+
+Automatic approval review rejected the execution before process start because
+it requires explicit approval for this exact benchmark/corpus egress to Google.
+There are **zero provider requests** in the new execution. The manifest digest
+is `806d7aa30a67d65de98ade8452f45353551ab1d6b12fbc1124f640dd25f6ed45`.
+See `preparation-review.json` for the source, test, payload and limit bindings.
+Phase 8 remains 4/5 DONE until actual measurement and review are complete.
+
+## Latest regression — 2026-10-13
+
+The current prefix-aware product/cache-v5 runtime passed all 300 replayed WSGI
+cases: 145/145 source-reviewed answers, 155/155 correct negative abstentions,
+300/300 valid schemas, 178 supported claims and zero false abstentions. This run
+used the same frozen v5 inputs and recorded Chat outputs, sent zero API calls,
+and retained raw formatting failures and the source-verified annotation overlay.
+The full offline suite passes 1,466 tests with 90.60% coverage.
+
+[The shared continuation review](../evaluation/results/phase7-free-tier-performance-20261013/progress-review.json)
+binds the new raw replay/review, tests and source compatibility proof. Only the
+performance dispatcher and its tests changed after this replay; product source,
+configuration and runtime remain identical. Raw files are stored and catalogued
+under `.local_artifacts/experiment_runs/phase8-current-runtime-20261013`.
+
+Two real Gemini synthetic integrations passed for Phase 7. Its subsequent
+performance request returned HTTP 503, with a valid fallback in 1.944 seconds;
+collection stopped immediately. These different fixtures/index profiles do not
+fill Phase 8's missing cases. The Phase 8 live cohort remains 5/18 attempted,
+3 successful and 2 HTTP 503, with 13 unattempted. **4/5 steps DONE (80%)** remains
+the honest completion status. No extra Chat answers are needed; the remaining
+work is representative live timing/format collection and review after recovery.
+
+## Latest continuation — 2026-10-12, 23:32 Bangkok
+
+The owner requested continuing Phase 8. One separate finite cohort was prepared
+from the 14 bodies never attempted in the original fixed workload. It retained
+key_2, the exact approved prompts/schemas, Free Tier only, 15s timeout, at least
+30s between starts, no retries/rotation/resume. Its ceilings were 14 POST,
+84,155 prompt characters and 14,336 output tokens, with the earlier attempts
+included in the shared 18/day and 160/total limits. No billing was enabled.
+
+The first new POST returned **HTTP 503**. The actual WSGI request took
+**8,932.139 ms**, or **69,986.676 ms** including cold startup. The application
+returned a valid abstention/error fallback. No provider final text or usage was
+received; unknown usage is not treated as zero. Actual prompt characters sent:
+6,196. The run stopped after one POST and is terminal; the collector's generic
+`waiting_next_pacific_day` label does not authorize resuming it.
+
+Combined observations are **5 distinct attempted cases / 18 planned**, with
+**3 HTTP 200 and 2 HTTP 503**; 13 cases remain unattempted. Original provider
+schema validity remains 3/3 final texts, while valid provider output per attempt
+is 3/5 (60%). Application schema is valid for 5/5 responses including fallback.
+Neither result establishes production availability or format reliability.
+No earlier successful or failed qid was resent. The 300-case Chat/local baseline
+and all of its hash bindings were checked again and remain valid.
+
+Evidence: `evaluation/results/phase8-live-unattempted-20261012/manifest.json`,
+`preflight.json`, `execution.json`, `measurement.json` and `exit-review.json`.
+The exit review binds its exact reviewer source and the 27 passing offline
+collector tests. Historical measurement/test source snapshots were recovered
+from published commit `2ac714d` and verified against the old receipt hashes;
+the historical reports were not rewritten after the collector changed.
+
+**Phase 8 remains 4/5 steps DONE (80%).** The outstanding item is a completed
+representative live latency/format workload. Further retries, key rotation,
+new runs, ablations and Phase 9 are not scheduled by this report. Fixing local
+error handling does not make Google's HTTP 503 disappear. The remaining quota
+is not a reason to keep sending requests while the provider is unavailable.
+
+## First live measurement — 2026-10-12, stopped after HTTP 503
 
 The owner explicitly requested real Gemini latency and format measurement after
 the completed Chat content regression. The bounded workload reuses previously
@@ -936,7 +1085,7 @@ and end-to-end product latency/resource measurements are still missing. The
 retrieval-only run now has source-stability receipt evidence; ablations remain
 closed. No Phase 8 PASS is claimed.
 
-Exit audit (2026-10-12):
+Historical exit audit (2026-10-12, superseded by the current sections above):
 
 | Exit item | Status | Remaining evidence |
 |---|---|---|

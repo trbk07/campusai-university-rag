@@ -1,0 +1,20 @@
+{
+  "status": "RECORDED_CHAT_REPLAY_COMPLETE_PENDING_SOURCE_REVIEW",
+  "arms": {
+    "baseline": {
+      "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/combined-received/post-prefix-fix/recorded-replay/baseline.json",
+      "sha256": "b2a1da5ed5d97ea742d206e299d5729c6469bf65953c42c98daa4948b6bc8a8f",
+      "observations": 68
+    },
+    "current": {
+      "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/combined-received/post-prefix-fix/recorded-replay/current.json",
+      "sha256": "e51b652ad5ae0cc310c764729bb22f47fe16d1d2c5fc8f9afc9ef5d1dd599300",
+      "observations": 68
+    }
+  },
+  "pairs": 68,
+  "external_api_calls": 0,
+  "quality_accepted": false,
+  "live_latency_measured": false,
+  "chat_manifest_sha256": "be795ded065d84ca32763b1d7b9efd50b54c00b7befbe613515019fba28878f8"
+}

@@ -1,0 +1,600 @@
+{
+  "schema_version": 1,
+  "status": "EXPORTED_NO_CHAT_OUTPUTS",
+  "prepared_at": "2026-10-12T17:34:28.585713+00:00",
+  "source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "0693e4c5acb975d637003d193f014865448cd5d6d250247e787e21833bc12c3a",
+    "runtime_sha256": "e631d4232b62ba090439d40b8d193c315cd8b9486ff764b77d75606e256ee86e"
+  },
+  "authority": "Owner explicitly requested Phase 7 quality verification through Gemini Chat.",
+  "mode": "OWNER_MEDIATED_CHAT_NOT_LIVE_API",
+  "external_api_calls": 0,
+  "billing_changes": false,
+  "model_ui_selection_requested": "Gemini 3.8 Flash",
+  "actual_chat_model_identity": "Unverified; collect UI label/settings with outputs if available.",
+  "paired_packet": {
+    "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/paired-preflight.json",
+    "sha256": "9b8f056938a6be5cc89de2ce25f12c359ddaffafb759f18333bf92b7d6a4a295"
+  },
+  "rubric": {
+    "path": "evaluation\\results\\phase7-completion-20261004\\product-primary-source-rubric-20261009.json",
+    "sha256": "6fe5d6a24f323e7072a4f71d9964d458643ce2cdbe504fc2c8e98811bca384f4"
+  },
+  "thresholds_unchanged": true,
+  "rows": 68,
+  "split_counts": {
+    "test": 35,
+    "holdout": 33
+  },
+  "model_inputs": 68,
+  "model_inputs_by_arm": {
+    "current": 42,
+    "baseline": 26
+  },
+  "local_responses_by_arm": {
+    "baseline": 42,
+    "current": 26
+  },
+  "batches": [
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-01.md",
+      "sha256": "84294c5b848eef2179984f001e6f6ea5caf111b386ec6630a5e6eaf5c1f7f207",
+      "case_ids": [
+        "p7-chat-001",
+        "p7-chat-002",
+        "p7-chat-003",
+        "p7-chat-004",
+        "p7-chat-005",
+        "p7-chat-006",
+        "p7-chat-007",
+        "p7-chat-008",
+        "p7-chat-009",
+        "p7-chat-010",
+        "p7-chat-011",
+        "p7-chat-012",
+        "p7-chat-013",
+        "p7-chat-014",
+        "p7-chat-015",
+        "p7-chat-016",
+        "p7-chat-017",
+        "p7-chat-018",
+        "p7-chat-019",
+        "p7-chat-020",
+        "p7-chat-021",
+        "p7-chat-022",
+        "p7-chat-023",
+        "p7-chat-024"
+      ],
+      "count": 24
+    },
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-02.md",
+      "sha256": "7c5fcae14086eda2885aa7a91885c4d045dc1ea4a89b5a7214b60d5dbb384ee1",
+      "case_ids": [
+        "p7-chat-025",
+        "p7-chat-026",
+        "p7-chat-027",
+        "p7-chat-028",
+        "p7-chat-029",
+        "p7-chat-030",
+        "p7-chat-031",
+        "p7-chat-032",
+        "p7-chat-033",
+        "p7-chat-034",
+        "p7-chat-035",
+        "p7-chat-036",
+        "p7-chat-037",
+        "p7-chat-038",
+        "p7-chat-039",
+        "p7-chat-040",
+        "p7-chat-041",
+        "p7-chat-042",
+        "p7-chat-043",
+        "p7-chat-044",
+        "p7-chat-045",
+        "p7-chat-046",
+        "p7-chat-047",
+        "p7-chat-048"
+      ],
+      "count": 24
+    },
+    {
+      "path": "evaluation/phase7/chat-quality-20261013/batch-03.md",
+      "sha256": "74b62ea2c30daa0e057ff2de1710ff0cbede06dafeeaba0626b72421ad4ef020",
+      "case_ids": [
+        "p7-chat-049",
+        "p7-chat-050",
+        "p7-chat-051",
+        "p7-chat-052",
+        "p7-chat-053",
+        "p7-chat-054",
+        "p7-chat-055",
+        "p7-chat-056",
+        "p7-chat-057",
+        "p7-chat-058",
+        "p7-chat-059",
+        "p7-chat-060",
+        "p7-chat-061",
+        "p7-chat-062",
+        "p7-chat-063",
+        "p7-chat-064",
+        "p7-chat-065",
+        "p7-chat-066",
+        "p7-chat-067",
+        "p7-chat-068"
+      ],
+      "count": 20
+    }
+  ],
+  "case_map": [
+    {
+      "case_id": "p7-chat-001",
+      "arm": "current",
+      "qid": "human-successor-05-compare",
+      "body_sha256": "5edf6403f9a1f9cc138ebe93c4532ed2f6b1eb263e111a674c0cab844cab2a4c"
+    },
+    {
+      "case_id": "p7-chat-002",
+      "arm": "current",
+      "qid": "human-successor-05-credit",
+      "body_sha256": "67fa3aa8679acdf4616501e14edd4b00a819d34f86ead53e2d030d9d1e85f8cd"
+    },
+    {
+      "case_id": "p7-chat-003",
+      "arm": "baseline",
+      "qid": "human-successor-05-credit",
+      "body_sha256": "a3321199e53076f1d838f3a5fd47c1c16d3185b08b94a236cc0c4f1131096802"
+    },
+    {
+      "case_id": "p7-chat-004",
+      "arm": "current",
+      "qid": "human-successor-07-credit",
+      "body_sha256": "b76e01a12c2002916e756a9030ebfb2e8b4136cba72705675d6b70b115793b23"
+    },
+    {
+      "case_id": "p7-chat-005",
+      "arm": "baseline",
+      "qid": "human-successor-07-credit",
+      "body_sha256": "e874250ad2319f8881ac1bb1cca4c0eab52a9077bfc81ddb1fa9e0b31f3d1148"
+    },
+    {
+      "case_id": "p7-chat-006",
+      "arm": "current",
+      "qid": "human-successor-08-compare",
+      "body_sha256": "7ba4d78f1fbad13468c7e5d858d6adc97367a32d0858c48ea216799e38b5061b"
+    },
+    {
+      "case_id": "p7-chat-007",
+      "arm": "baseline",
+      "qid": "human-successor-08-credit",
+      "body_sha256": "1eee340357141ca3ccf125228ac26603470f81fbf03eb72ad32b3f449816abaa"
+    },
+    {
+      "case_id": "p7-chat-008",
+      "arm": "current",
+      "qid": "human-successor-08-credit",
+      "body_sha256": "16f708be10ce59f91ea2d042efb4d83b4cff12710edc187d91a86407b7cc83c5"
+    },
+    {
+      "case_id": "p7-chat-009",
+      "arm": "current",
+      "qid": "human-successor-09-compare",
+      "body_sha256": "b87c669668493b517330dc56fe6843c01169986cd4e118245245efcc4d719b1f"
+    },
+    {
+      "case_id": "p7-chat-010",
+      "arm": "current",
+      "qid": "human-successor-09-credit",
+      "body_sha256": "5eb1fc14dbba4ce830884fc4bb749da63e1873f620d0f12d476857f170e5496b"
+    },
+    {
+      "case_id": "p7-chat-011",
+      "arm": "baseline",
+      "qid": "human-successor-09-credit",
+      "body_sha256": "d1fa7013450aac65e8984af5c7f212252a5c97e2dbd1b158105bfdf0dd168fa1"
+    },
+    {
+      "case_id": "p7-chat-012",
+      "arm": "current",
+      "qid": "human-successor-13-compare",
+      "body_sha256": "f2b603d14bcda9c5cd93154fd4c80a0d4d31792efb929e160788c837e802052f"
+    },
+    {
+      "case_id": "p7-chat-013",
+      "arm": "baseline",
+      "qid": "human-successor-13-credit",
+      "body_sha256": "29d345050c39f6cc7321b5b9651899832415387b073a56daae2abbafb8f16737"
+    },
+    {
+      "case_id": "p7-chat-014",
+      "arm": "current",
+      "qid": "human-successor-13-credit",
+      "body_sha256": "d29a87ea75ed8a5a018f33bef1d0ac919eb477b2fe1da76ed030330ce23f6c27"
+    },
+    {
+      "case_id": "p7-chat-015",
+      "arm": "current",
+      "qid": "human-successor-14-compare",
+      "body_sha256": "0b1c427ef49fe4d8ba1269455662045ae805212414282892685f2e8119aaa95e"
+    },
+    {
+      "case_id": "p7-chat-016",
+      "arm": "current",
+      "qid": "human-successor-14-credit",
+      "body_sha256": "ec3c00865c3aaf666da2ccd961adad44fba693aa1c48bc3c3c24f05880e72c36"
+    },
+    {
+      "case_id": "p7-chat-017",
+      "arm": "baseline",
+      "qid": "human-successor-14-credit",
+      "body_sha256": "c87fadc2de0912d68bb3d3918ebe0ac5c5d2f7506f617189b66aa4b9dbe4c6e6"
+    },
+    {
+      "case_id": "p7-chat-018",
+      "arm": "current",
+      "qid": "human-successor-15-compare",
+      "body_sha256": "e048d14b3578c7f37886c177eaba7235ed0ec7016a70280683e3c7be794708c1"
+    },
+    {
+      "case_id": "p7-chat-019",
+      "arm": "current",
+      "qid": "human-successor-15-credit",
+      "body_sha256": "87633ee597c7875b7ac08553cfbbcb413f3f089fe8147618da716bd7ecd4e6ba"
+    },
+    {
+      "case_id": "p7-chat-020",
+      "arm": "baseline",
+      "qid": "human-successor-15-credit",
+      "body_sha256": "4cc069e7a6fe517580672733a80b700263a0a73e433446e6923499f74398bdc9"
+    },
+    {
+      "case_id": "p7-chat-021",
+      "arm": "current",
+      "qid": "human-successor-20-compare",
+      "body_sha256": "c7b28904b51f00b1cdb213bb3534371c427a3e94c2b0af4b9e4ff60621b21571"
+    },
+    {
+      "case_id": "p7-chat-022",
+      "arm": "baseline",
+      "qid": "human-successor-20-credit",
+      "body_sha256": "1434fccba1a81adf8b9821bc025d9b6b9ee80a4610280dd9e556e9b0d044c92a"
+    },
+    {
+      "case_id": "p7-chat-023",
+      "arm": "current",
+      "qid": "human-successor-20-credit",
+      "body_sha256": "26b4d75bd94b92f40c406ebda52c53e6fe9dd7c15384e1b2cd83172485fbaa4b"
+    },
+    {
+      "case_id": "p7-chat-024",
+      "arm": "current",
+      "qid": "human-successor-22-compare",
+      "body_sha256": "a52cc7798b8e2466e4c66d35b6a9623ac074cf6eee56755301cd114b526ab2e1"
+    },
+    {
+      "case_id": "p7-chat-025",
+      "arm": "current",
+      "qid": "human-successor-22-credit",
+      "body_sha256": "0fe54c6e2fa637d5192448d7e611198c0412019129065cb428891f8741c43e21"
+    },
+    {
+      "case_id": "p7-chat-026",
+      "arm": "baseline",
+      "qid": "human-successor-22-credit",
+      "body_sha256": "e99211ad9f642423ac7b57df123fa5365648013974d60f11fa62a52f98a8f751"
+    },
+    {
+      "case_id": "p7-chat-027",
+      "arm": "current",
+      "qid": "human-successor-26-compare",
+      "body_sha256": "11894c507a4a2b11dfe321601d48499788418aa3ae0d6097c8c8a7f1684e6e1f"
+    },
+    {
+      "case_id": "p7-chat-028",
+      "arm": "baseline",
+      "qid": "human-successor-26-credit",
+      "body_sha256": "9d7da70e3d6d81c340b95022794e3d733039bc9855c3e9f84737c9e0a24fe100"
+    },
+    {
+      "case_id": "p7-chat-029",
+      "arm": "current",
+      "qid": "human-successor-26-credit",
+      "body_sha256": "a0a30b450d89e5e8c1635de58d964b44c5b10c29e7736c8c3b968d502c8c81e5"
+    },
+    {
+      "case_id": "p7-chat-030",
+      "arm": "current",
+      "qid": "human-successor-31-credit",
+      "body_sha256": "bb1ac550793b9b7f201a1ff92cf6942ede368a2c8b48365850e96053fe94873d"
+    },
+    {
+      "case_id": "p7-chat-031",
+      "arm": "baseline",
+      "qid": "human-successor-31-credit",
+      "body_sha256": "c8155d0c85cd862c596348620b41dfcad5b576aad9f45fec75797b00f48e20a6"
+    },
+    {
+      "case_id": "p7-chat-032",
+      "arm": "current",
+      "qid": "human-successor-33-credit",
+      "body_sha256": "0bda59d07dae2b8f9239bc4a5bb830761dc4ef5caf7f47936eb3b56691e6e89f"
+    },
+    {
+      "case_id": "p7-chat-033",
+      "arm": "baseline",
+      "qid": "human-successor-33-credit",
+      "body_sha256": "1053dc51565cba64cc23e29c3d0e5b7ef4765811cc7408d19418679fc8b0fa8b"
+    },
+    {
+      "case_id": "p7-chat-034",
+      "arm": "current",
+      "qid": "human-successor-35-credit",
+      "body_sha256": "66dd17fda5665d569426bb72812c34329af4a8421b14427c35685deead16872c"
+    },
+    {
+      "case_id": "p7-chat-035",
+      "arm": "baseline",
+      "qid": "human-successor-35-credit",
+      "body_sha256": "7ebe6f3ba4e33ba8088ce34bee1fd7c22eecfbe7c9eb6c19849dc421924c28f7"
+    },
+    {
+      "case_id": "p7-chat-036",
+      "arm": "current",
+      "qid": "human-successor-01-credit",
+      "body_sha256": "4e3e6c7ea4034b198713b179a1a2e25db03df46e8254ec97b0af5e60a2de9dd6"
+    },
+    {
+      "case_id": "p7-chat-037",
+      "arm": "baseline",
+      "qid": "human-successor-01-credit",
+      "body_sha256": "9ec2ceafe586a41bc4d85f8eee9fcb1f3a15b2484451275d12e31698114be645"
+    },
+    {
+      "case_id": "p7-chat-038",
+      "arm": "current",
+      "qid": "human-successor-02-compare",
+      "body_sha256": "cf91c3291901072894ec3c8d3ad518648317e381bb5f7be85cd89d18ed6e7573"
+    },
+    {
+      "case_id": "p7-chat-039",
+      "arm": "current",
+      "qid": "human-successor-02-credit",
+      "body_sha256": "f58463eee9f949081074cc95fc3c0f3417c7468ddaddfa8223bdc91eea2d13dd"
+    },
+    {
+      "case_id": "p7-chat-040",
+      "arm": "baseline",
+      "qid": "human-successor-02-credit",
+      "body_sha256": "adab3b4bd61b23ee23b81f13401b7da9af86c45a726dd7ea3e1faaa9e3b479ef"
+    },
+    {
+      "case_id": "p7-chat-041",
+      "arm": "baseline",
+      "qid": "human-successor-04-credit",
+      "body_sha256": "fafa65050b14d4908052c3c9c1a0cab57cb62f23dfab6bbda6a3f662b3f1cb6a"
+    },
+    {
+      "case_id": "p7-chat-042",
+      "arm": "current",
+      "qid": "human-successor-04-credit",
+      "body_sha256": "d37dc580d3a8f5638e374097f76b2049a0cd7edf452a53283ca24625d38b508a"
+    },
+    {
+      "case_id": "p7-chat-043",
+      "arm": "current",
+      "qid": "human-successor-10-compare",
+      "body_sha256": "f3d4824995a6816230c292123d4e8c21a756733f73708d249966c8f8253d6b53"
+    },
+    {
+      "case_id": "p7-chat-044",
+      "arm": "baseline",
+      "qid": "human-successor-10-credit",
+      "body_sha256": "023de590214d55eef93b83ed9728d4b6e5f1deebab8ad9602365b47e5691b288"
+    },
+    {
+      "case_id": "p7-chat-045",
+      "arm": "current",
+      "qid": "human-successor-10-credit",
+      "body_sha256": "04e70dbe5a9238e594c3b5071453b9fb96f4ccc92b9a7f3100bb020a8973b0fa"
+    },
+    {
+      "case_id": "p7-chat-046",
+      "arm": "current",
+      "qid": "human-successor-17-compare",
+      "body_sha256": "6576a0ee847e7ff065dd12ac0b2805308e05c0b9c92fa1f2d7b8b2c2794a9b44"
+    },
+    {
+      "case_id": "p7-chat-047",
+      "arm": "current",
+      "qid": "human-successor-17-credit",
+      "body_sha256": "e205146574cdb1f0af9119df79151f1b8a26a4b2eb7bcf084dcd9c8141b2283f"
+    },
+    {
+      "case_id": "p7-chat-048",
+      "arm": "baseline",
+      "qid": "human-successor-17-credit",
+      "body_sha256": "95cb87746279a7539cd0c441c599171a82a0b8358965c47209ace93b3ad56f69"
+    },
+    {
+      "case_id": "p7-chat-049",
+      "arm": "current",
+      "qid": "human-successor-18-compare",
+      "body_sha256": "d769b0205b59b8a02c21f658f160ef9a9893978ecd16714679064a1ed4f03024"
+    },
+    {
+      "case_id": "p7-chat-050",
+      "arm": "current",
+      "qid": "human-successor-18-credit",
+      "body_sha256": "fdcfb5122b3e9754957e6a68acc612ad48439a240809c074860bd476896dff0e"
+    },
+    {
+      "case_id": "p7-chat-051",
+      "arm": "baseline",
+      "qid": "human-successor-18-credit",
+      "body_sha256": "d7c7726f0df906ad2e2d60b82ee406ae06caa346d0c4ca8a103d54f3501368ab"
+    },
+    {
+      "case_id": "p7-chat-052",
+      "arm": "current",
+      "qid": "human-successor-19-compare",
+      "body_sha256": "a81e3abb8a7afe3399872a2477dcdf50cd45d60b0bfd64f2a5e04be30f958100"
+    },
+    {
+      "case_id": "p7-chat-053",
+      "arm": "baseline",
+      "qid": "human-successor-19-credit",
+      "body_sha256": "e662b6496860aaa7559784450594776a301dafea6141f0681817f6c4fa18abdc"
+    },
+    {
+      "case_id": "p7-chat-054",
+      "arm": "current",
+      "qid": "human-successor-19-credit",
+      "body_sha256": "19a717565376885c874dded617595bc032c4ad999180f52e1d7bedb3e316a498"
+    },
+    {
+      "case_id": "p7-chat-055",
+      "arm": "baseline",
+      "qid": "human-successor-24-credit",
+      "body_sha256": "a345cebd4d43d518bacc264d7fb1d0d35175160cd44ac0578762dbd6b3bad8b1"
+    },
+    {
+      "case_id": "p7-chat-056",
+      "arm": "current",
+      "qid": "human-successor-24-credit",
+      "body_sha256": "8b69b4c6cebbb0cc269523dc32e55e2519023ca2e18028ebb8a58349e7a9b09c"
+    },
+    {
+      "case_id": "p7-chat-057",
+      "arm": "current",
+      "qid": "human-successor-27-compare",
+      "body_sha256": "0cd41fec1378752ba8da4af6750f1c24acc380804a51f7d6400623a9ef7924c4"
+    },
+    {
+      "case_id": "p7-chat-058",
+      "arm": "baseline",
+      "qid": "human-successor-27-credit",
+      "body_sha256": "48645959ca32b45044819f6cc6fdd1ce74ce0ce87532a7cab65a311c9440dbdb"
+    },
+    {
+      "case_id": "p7-chat-059",
+      "arm": "current",
+      "qid": "human-successor-27-credit",
+      "body_sha256": "3588d15ecc3753ce7f03735be3e60edc45b7eab353cde9b51f73a0abdcf1bae9"
+    },
+    {
+      "case_id": "p7-chat-060",
+      "arm": "baseline",
+      "qid": "human-successor-29-credit",
+      "body_sha256": "e6fe6280de2a889659ac44058a6c4c5451acfea18675867a976c9bbf7cd59775"
+    },
+    {
+      "case_id": "p7-chat-061",
+      "arm": "current",
+      "qid": "human-successor-29-credit",
+      "body_sha256": "4ac3912e2cdea8b61138b665a50355a61cdc4a85d3285dbf32d127e0492a2321"
+    },
+    {
+      "case_id": "p7-chat-062",
+      "arm": "current",
+      "qid": "human-successor-32-compare",
+      "body_sha256": "cb20c75886cbeba362746919098700b6fe0782a5acf7a072c461d6b53d587c04"
+    },
+    {
+      "case_id": "p7-chat-063",
+      "arm": "baseline",
+      "qid": "human-successor-32-credit",
+      "body_sha256": "74db2cf9596a1951a3664e3ccaea43a1150143457f677cc1659aa2954bd6b8c8"
+    },
+    {
+      "case_id": "p7-chat-064",
+      "arm": "current",
+      "qid": "human-successor-32-credit",
+      "body_sha256": "3900dae2c59e15be709969f07081b27176894f146852596227e31c1c73a6b811"
+    },
+    {
+      "case_id": "p7-chat-065",
+      "arm": "current",
+      "qid": "human-successor-36-credit",
+      "body_sha256": "887cefa42c71b3ac035471b890fc13d876b40015af2f6979798d9fc51bd9d74e"
+    },
+    {
+      "case_id": "p7-chat-066",
+      "arm": "baseline",
+      "qid": "human-successor-36-credit",
+      "body_sha256": "b5de13d69cc34cc8d9aed761b197d4ec50f07885cdfc45938d43c73af1ca4a58"
+    },
+    {
+      "case_id": "p7-chat-067",
+      "arm": "baseline",
+      "qid": "human-successor-37-credit",
+      "body_sha256": "348998fbeff7794a8f22446bfb04336cbbf2c368ca36728fa38d0cc7e1d4fecf"
+    },
+    {
+      "case_id": "p7-chat-068",
+      "arm": "current",
+      "qid": "human-successor-37-credit",
+      "body_sha256": "5d45a6ca19b8b2f1574901446a44225aa2d12d152300bcd364c961d96486c734"
+    }
+  ],
+  "quality_accepted": false,
+  "fresh_validation": false,
+  "limitations": [
+    "Previously exposed 35 test / 33 holdout; not fresh validation.",
+    "Chat generation settings/model identity are not API-verified.",
+    "Chat content and recorded replay cannot qualify API latency, availability or live integrations.",
+    "Outputs require source review and actual application replay before acceptance."
+  ],
+  "preparation_source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "14f088dd11a982f58200d4e68828120b1455c62f9fca19c2bd891272a75589c7",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "execution_source_rebind": {
+    "path": "evaluation/results/phase7-chat-quality-20261013/serving-snapshot.json",
+    "sha256": "0f855cf57a9370ac1a444837753213ff5e1ffee46b26e7274d0125c73cdf1127"
+  },
+  "prior_execution_source_identity": {
+    "commit": "2ac714d8fdd9073b45683da10e98674ffe77e35b",
+    "source_sha256": "3367f636417e846e4433b63c28f84e2d627c8d541c8633be4d5004766b216c27",
+    "runtime_sha256": "b7e2ced3c12425fb0afdf22c9f4b0420938d463dcc75e239bd579680b20f328b"
+  },
+  "collector_compatibility_rebind": {
+    "parent_manifest": {
+      "path": "evaluation/phase7/chat-quality-20261013/manifest.json",
+      "sha256": "fde3048cdcb22f45b9844f52429646b20a241aa75041056cd193898bb8454383"
+    },
+    "changes": [
+      "Translate Gemini uppercase schema type names for Draft202012 validation; schema constraints and submitted responses unchanged.",
+      "Partition one combined 68-record submission by original opaque batch IDs; retain prior invalid submission.",
+      "Recorded replay permits archived clients without API modelVersion metadata; the live mode still requires modelVersion. Failed initial replay is retained. Application runtime bytes unchanged."
+    ],
+    "runtime_sha256_unchanged": true,
+    "prompts_schema_rubric_thresholds_unchanged": true,
+    "tests": {
+      "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/final-collector-tests.xml",
+      "sha256": "3e889bffb1058e894ccf01e59e48376b613d77053b70cbeb352ad91912982f1b"
+    },
+    "collector_sha256": "7aa7a33f64738343e2e2362950c99ffb0ceaa3939362fa1ad1c53de491132382",
+    "test_source_sha256": "38d0c7608d220e210f96a98b7abc96d4c13152f871fcf65203794f94efd6b536",
+    "initial_execution_manifest_sha256": "b8147430fd9e4134224a3d7c8946991d7b8576205df6089ca3b719b8fc79da1f",
+    "worker_sha256": "d32c87db4212169ddae783ff45d4b78adb3a556fde7dbc72fd74f2cbfba4d051"
+  },
+  "runtime_fix_rebind": {
+    "parent_manifest": {
+      "path": "evaluation/results/phase7-chat-quality-20261013/chat-execution/manifest.json",
+      "sha256": "a27579833e248444bd5d6c5ca9f427d2e134c4dfb4d13cb77a543f845c5a0410"
+    },
+    "reason": "Recognize institution-prefixed course codes in exact headed-column and ordered-difference proofs; preserve full prefix identity. Bump grounding policy cache v4 to v5. No source row, gold, rubric, threshold or model answer changed. Replay must still prove every request, provider body and retrieved evidence equals the prepared case.",
+    "tests": {
+      "path": ".local_artifacts/experiment_runs/phase7-chat-quality-20261013/prefix-fix-tests.xml",
+      "sha256": "79031050b2fef8ab6bb9adb8b6459c3a209e0b0853006307424a9019110846c4"
+    },
+    "changed_runtime_files": {
+      "src/campusai/rag/course_credits.py": "040fde819d1289b308735ff115cd1d32eb500c3caa69c2a3d161f9db0c37c22f",
+      "src/campusai/rag/cache.py": "af7daf9df2a04d83668f4c96e4e057e37664df6d34c838d4f1af42cfd9028960"
+    },
+    "cache_policy": "grounding-v5",
+    "quality_accepted": false
+  }
+}
