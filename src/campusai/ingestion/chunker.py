@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import re
+import unicodedata
 from typing import Any
 
 from ..schemas import Chunk
 
+CHUNKER_VERSION = "structure-v5"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -73,6 +75,17 @@ def _looks_like_heading(line: str, layout: dict[str, Any] | None = None) -> tupl
     if stripped.startswith("#"):
         level = len(stripped) - len(stripped.lstrip("#"))
         return True, max(1, min(level, 6)), stripped.lstrip("#").strip()
+    # A short uppercase course identifier is a table/body value, not evidence
+    # of a section boundary. Keep spaced codes and dotted namespaces intact.
+    if re.fullmatch(r'(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?',stripped,re.I):
+        return False,0,''
+    # A standalone credit quantity belongs to the preceding label, even when
+    # bold or printed in a larger font. Treating it as a numbered heading
+    # attaches that value to the next curriculum block instead.
+    if re.fullmatch(r'\d+(?:[.,]\d+)?(?:/\d+(?:[.,]\d+)?)?\s*'
+                    r'(?:credits?|tín\s+chỉ|tin\s+chi|ects|tc)[.!]?',
+                    unicodedata.normalize('NFC', stripped), re.I):
+        return False,0,''
     numbered_or_article = bool(_ARTICLE_HEADING.match(stripped) or _NUMBERED_HEADING.match(stripped))
     ends_with_sentence_punct = stripped.endswith((".", ";", ",", "?", "!")) and not stripped.endswith("...")
     if numbered_or_article:
@@ -384,17 +397,23 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
         # to verify by plain substring matching.
         readable_headers = " | ".join(str(header) for header in table.headers if str(header).strip())
         table_header_line = f"Table headers: {readable_headers}" if readable_headers else "Table headers:"
-        table_budget = max(1, _MAX_CHARS - len(table_header) - len(table_header_line) - 3)
+        table_scope = str(table.schema.get("section") or "").strip()
+        table_scope_line = (f"Table scope: {table_scope}"
+                            if table_scope and table.schema.get("section_provenance") == "explicit_pdf_marker"
+                            else "")
+        table_prefix = "\n".join(part for part in
+            (table_header, table_scope_line, table_header_line) if part)
+        table_budget = max(1, _MAX_CHARS - len(table_prefix) - 3)
         batches = _table_row_batches(table.headers, table.rows, table_budget)
         for part, rows in enumerate(batches, start=1):
             table_chunk_id = table.table_id if len(batches) == 1 else f"{table.table_id}_part{part}"
             payload = json.dumps({"headers": table.headers, "rows": rows}, ensure_ascii=False)
-            content = f"{table_header}\n{table_header_line}\n\n{payload}"
+            content = f"{table_prefix}\n\n{payload}"
             if len(content) > _MAX_CHARS:
                 report.setdefault("oversized_table_cells", []).append(table_chunk_id)
-                payload_budget = max(1, _MAX_CHARS - len(table_header) - len(table_header_line) - 3)
+                payload_budget = max(1, _MAX_CHARS - len(table_prefix) - 3)
                 payload = _truncate_table_payload_safely(table.headers, rows, payload_budget)
-                content = f"{table_header}\n{table_header_line}\n\n{payload}"
+                content = f"{table_prefix}\n\n{payload}"
             chunk_metadata = {
                 **metadata,
                 "doc_id": doc_id,
@@ -405,6 +424,8 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                 "table_id": table.table_id,
                 "table_part": part,
                 "heading_path": HeadingPath(table_headings),
+                "table_scope": table_scope if table_scope_line else None,
+                "table_scope_provenance": ("explicit_pdf_marker" if table_scope_line else None),
                 "citation": {
                     "chunk_id": table_chunk_id,
                     "doc_id": doc_id,

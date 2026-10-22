@@ -27,7 +27,21 @@ class EvidenceRecord:
     @classmethod
     def from_result(cls, result: RetrievalResult) -> "EvidenceRecord":
         metadata = result.metadata or {}
-        page_range = tuple(metadata.get("page_range", [result.page, result.page]))
+        if not isinstance(metadata, dict):
+            raise ValueError("invalid evidence metadata")
+        page_range = metadata.get("page_range", [result.page, result.page])
+        if (not isinstance(result.chunk_id, str) or not result.chunk_id.strip()
+                or not isinstance(result.doc_id, str) or not result.doc_id.strip()
+                or type(result.page) is not int or result.page < 1
+                or not isinstance(result.content, str) or not result.content.strip()
+                or not isinstance(page_range, (list, tuple)) or len(page_range) != 2
+                or any(type(page) is not int or page < 1 for page in page_range)
+                or not page_range[0] <= result.page <= page_range[1]):
+            raise ValueError("invalid evidence coordinates or content")
+        headings = metadata.get("heading_path", [])
+        if not isinstance(headings, (list, tuple)) or any(not isinstance(item, str) for item in headings):
+            raise ValueError("invalid evidence heading path")
+        page_range = tuple(page_range)
         metadata_values = tuple(str(metadata[key]) for key in ("document_type", "program", "institution", "version") if metadata.get(key) is not None)
         return cls(result.chunk_id, result.doc_id, int(result.page), (int(page_range[0]), int(page_range[1])),
                    result.content, result.content_type, metadata.get("table_id"), metadata.get("source_hash"),
@@ -37,7 +51,12 @@ class EvidenceRecord:
 
 class EvidenceRegistry:
     def __init__(self, results: Iterable[RetrievalResult] = ()) -> None:
-        self._records = {record.chunk_id: record for record in map(EvidenceRecord.from_result, results)}
+        self._records = {}
+        for record in map(EvidenceRecord.from_result, results):
+            previous = self._records.get(record.chunk_id)
+            if previous is not None and previous != record:
+                raise ValueError("conflicting evidence chunk identity")
+            self._records[record.chunk_id] = record
 
     def get(self, chunk_id: str) -> EvidenceRecord | None:
         return self._records.get(str(chunk_id))

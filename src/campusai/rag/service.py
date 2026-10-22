@@ -17,7 +17,7 @@ from ..retrieval.hybrid import HybridRetriever, RetrievalResult
 from ..retrieval.routing import RoutingTrace
 from .cache import RAGAnswerCache, build_rag_cache_key
 from .grounding import GroundedAnswer, GroundedAnswerGenerator
-from .context import resolve_query, authorized_scope
+from .context import resolve_query, authorized_scope, small_talk_kind
 from ..observability import MetricsRegistry
 from ..retrieval.canary_rollout import CanaryController, rollback_retriever
 from ..retrieval.contracts import validate_filters, RETRIEVAL_MODES
@@ -73,10 +73,16 @@ class CampusAIQueryService:
         temporal_clock=None,
         temporal_timezone: str = "Asia/Bangkok",
         relation_index=None,
+        cache_namespace: str | None = None,
+        context_candidates: int | None = None,
+        document_scope_reader=None,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
         self.cache = cache if cache is not None else RAGAnswerCache()
+        self.cache_namespace = cache_namespace
+        self.context_candidates = context_candidates
+        self.document_scope_reader = document_scope_reader
         self._request_local = local()
         self._corpus_identity_lock = RLock()
         self._corpus_file_hashes = OrderedDict()
@@ -89,6 +95,11 @@ class CampusAIQueryService:
         self.temporal_clock = temporal_clock or (lambda: datetime.now(ZoneInfo(temporal_timezone)).date())
         self._temporal_index_cache = OrderedDict()
         self.relation_index = relation_index
+
+    def _calibration_cache_identity(self):
+        from .calibration import calibration_payload_sha256
+        calibrator = self.answer_generator.calibrator
+        return calibration_payload_sha256(calibrator.to_dict()) if calibrator is not None else None
 
     def _temporal_documents(self, doc_ids, filters=None):
         """Read existing BM25 metadata once per file generation; never load a model."""
@@ -154,6 +165,9 @@ class CampusAIQueryService:
         self._request_local.multi_hop_trace = None
         self._request_local.multi_hop_plan = None
         self._request_local.relation_trace = None
+        self._request_local.conversation_kind = None
+        self._request_local.document_scope_audit = None
+        self._request_local.document_scope_request = None
 
     @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
@@ -305,6 +319,52 @@ class CampusAIQueryService:
             mode=selected_mode,
         )
 
+    def ask_source_pages(self, question, results, *, language='vi', history=None,
+                         selected_text=None, requires_context=False):
+        """Internal trusted-source lane; HTTP clients cannot supply evidence."""
+        self.reset_request_state()
+        resolved = resolve_query(question, history=history, selected_text=selected_text,
+                                 requires_context=requires_context)
+        self._request_local.context_trace = {'raw_question':resolved.raw, **resolved.cache_context()}
+        from ..retrieval.negative import negative_query_reason
+        if negative_query_reason(resolved.raw) == 'prompt_injection':
+            return GroundedAnswer('Câu hỏi này không phải yêu cầu tra cứu nội dung tài liệu.' if language == 'vi'
+                else 'This is not a document-content question.', (), 'low', True,
+                reason='no_retrieval_evidence', evidence_status='missing')
+        if resolved.needs_clarification:
+            return GroundedAnswer('Bạn muốn hỏi phần nào trong các trang đã chọn?' if language == 'vi'
+                else 'Which topic in the selected pages do you mean?', (), 'low', True,
+                reason='ambiguous_question', evidence_status='ambiguous')
+        self.last_retrieval = list(results)
+        self.retriever.last_trace = RoutingTrace(route='source_pages')
+        identity = hashlib.sha256(json.dumps([(r.doc_id,r.page,r.content,r.metadata) for r in results],
+                                             ensure_ascii=False).encode()).hexdigest()
+        key = build_rag_cache_key(question=resolved.resolved, language=language,
+            doc_ids=sorted({r.doc_id for r in results}), filters=None, top_k=len(results),
+            mode='source_pages', corpus_version=identity,
+            model=getattr(self.answer_generator.llm,'model',None),
+            calibration_artifact_sha256=self._calibration_cache_identity(),
+            context_budget={'max_chars':self.answer_generator.max_context_chars,
+                'max_tokens':self.answer_generator.max_context_tokens,
+                'source_citations':getattr(self.answer_generator,'source_citations',False),
+                'generation_config':getattr(self.answer_generator.llm,'generation_config',None),
+                'json_mode':getattr(self.answer_generator.llm,'json_mode','native'),
+                'balanced_context':getattr(self.answer_generator,'balanced_context',False),
+                'namespace':self.cache_namespace}, request_context=resolved.cache_context())
+        with self.cache.lock(key):
+            cached = self.cache.get(key)
+            if cached is not None:
+                self.last_cache_hit = True
+                return cached
+            answer = self.answer_generator.answer(resolved.resolved, list(results), language)
+            # Explicit page requests retain their bounded insufficient-evidence
+            # response. They never expand to unrequested pages. This cache is
+            # already bound to the exact physical page text supplied above.
+            if answer.document_absence_requested:
+                answer = replace(answer, document_absence_requested=False)
+            self.cache.put(key, answer)
+            return answer
+
     def ask(
         self,
         question: str,
@@ -324,11 +384,20 @@ class CampusAIQueryService:
         doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
         resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
         self._request_local.context_trace = {"raw_question": resolved.raw, **resolved.cache_context()}
+        kind = small_talk_kind(resolved.raw)
+        if kind:
+            self._request_local.conversation_kind = kind
+            message = (('Chào bạn! Bạn muốn tìm hiểu phần nào trong tài liệu đã chọn?' if language == 'vi'
+                        else 'Hello! Which part of the selected document would you like to explore?')
+                       if kind == 'greeting' else
+                       ('Bạn cứ hỏi tiếp phần cần tìm hiểu trong tài liệu nhé.' if language == 'vi'
+                        else 'You can ask another question about the selected document.'))
+            return GroundedAnswer(message, (), 'low', True, reason='ambiguous_question', evidence_status='ambiguous')
         if resolved.needs_clarification:
             self.last_cache_hit, self.last_retrieval = False, []
             self.retriever.last_trace = RoutingTrace(route="abstain", abstained=True, abstention_reason="ambiguous_question")
-            return GroundedAnswer("Bạn đang hỏi về môn học hoặc chương trình nào?" if language == "vi"
-                                  else "Which course or program are you referring to?", (), "low", True,
+            return GroundedAnswer("Bạn muốn hỏi về nội dung hoặc phần nào trong tài liệu?" if language == "vi"
+                                  else "Which topic or section in the document do you mean?", (), "low", True,
                                   reason="ambiguous_question", evidence_status="ambiguous")
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
@@ -371,8 +440,19 @@ class CampusAIQueryService:
             "relation_proof_policy": "direct-prerequisite-v1",
         }
         generation_config = getattr(self.answer_generator.llm, "generation_config", None)
+        if getattr(self.answer_generator, 'source_citations', False):
+            budget['citation_protocol'] = 'source-resolved-v1'
+        if self.cache_namespace is not None:
+            budget['cache_namespace'] = self.cache_namespace
+        if self.context_candidates is not None or getattr(self.answer_generator, 'balanced_context', False):
+            budget['source_windows'] = {'version': 'balanced-source-windows-v1',
+                'candidates': self.context_candidates, 'balanced': self.answer_generator.balanced_context}
         if generation_config:
             budget["llm_generation_config"] = generation_config
+        if self.document_scope_reader is not None:
+            budget['document_scope_policy'] = self.document_scope_reader.policy_identity()
+        if getattr(self.answer_generator.llm, 'json_mode', 'native') != 'native':
+            budget['llm_json_mode'] = self.answer_generator.llm.json_mode
         if selected_mode == "phase7":
             budget["phase7_retrieval_fingerprint"] = self.retriever.phase7_cache_fingerprint
         if temporal.status == 'resolved':
@@ -382,6 +462,7 @@ class CampusAIQueryService:
         self._request_local.temporal_resolution = temporal
         self._request_local.temporal_documents = temporal_docs
         self._request_local.temporal_intent = temporal_intent
+        self._request_local.document_scope_request = (question, doc_ids, filters, language)
         key = build_rag_cache_key(
             question=question,
             language=language,
@@ -392,6 +473,7 @@ class CampusAIQueryService:
             corpus_version=version,
             model=getattr(self.answer_generator.llm, "model", None) or getattr(self.answer_generator.llm, "model_name", None),
             context_budget=budget,
+            calibration_artifact_sha256=self._calibration_cache_identity(),
             request_context=resolved.cache_context(),
         )
         with self.metrics.observe("rag.ask"):
@@ -425,7 +507,8 @@ class CampusAIQueryService:
                     relation_answer_policy=answer_policy_fingerprint())
         key=build_rag_cache_key(question=question,language=language,doc_ids=doc_ids,filters=filters,
             top_k=top_k,mode=selected_mode,corpus_version=supplied_version or fingerprint,
-            model='source-relations/local',context_budget=budget,request_context=request_context)
+            model='source-relations/local',context_budget=budget,request_context=request_context,
+            calibration_artifact_sha256=self._calibration_cache_identity())
         with self.metrics.observe('rag.ask'),self.cache.lock(key):
             cached=self.cache.get(key)
             if cached is not None:
@@ -502,9 +585,14 @@ class CampusAIQueryService:
                             else 'Evidence is missing or ambiguous for a required source or hop.',
                             (), 'low', True, reason='insufficient_evidence', evidence_status='missing')
                 else:
+                    retrieval_k = top_k
+                    if (top_k > 0 and self.context_candidates is not None
+                            and selected_mode in {'auto', 'hybrid', 'hybrid_rrf'}
+                            and (not temporal or temporal.status != 'resolved')):
+                        retrieval_k = max(top_k, self.context_candidates)
                     results = self.retriever.search(
                         temporal_query, doc_ids=doc_ids, filters=filters,
-                        top_k=max(top_k, 20) if top_k > 0 and temporal and len(temporal.groups) > 1 else top_k, mode=selected_mode,
+                        top_k=max(top_k, 20) if top_k > 0 and temporal and len(temporal.groups) > 1 else retrieval_k, mode=selected_mode,
                     )
             if (composition.kind == 'single' or legacy_comparison) and temporal and temporal.status == 'resolved':
                 if any(not any(r.doc_id in group for r in results) for group in temporal.groups):
@@ -567,9 +655,81 @@ class CampusAIQueryService:
             transient_fallback = selected_mode == "phase7" and getattr(trace, "rerank_reason", None) in {
                 "queue_full", "reranker_timeout", "model_not_ready", "reranker_unavailable",
                 "reranker_submit_failed", "reranker_drain_failed"}
-            if not transient_fallback:
+            if answer.document_absence_requested and composition.kind == 'single':
+                answer = self._audit_document_absence(answer)
+            if not transient_fallback and not answer.document_absence_requested and not answer.source_scope_checked:
                 self.cache.put(key, answer)
             return answer
+
+    def _prepare_complete_document_scope(self):
+        from .document_scope import DocumentScopeUnavailable
+        reader = self.document_scope_reader
+        request = getattr(self._request_local, 'document_scope_request', None)
+        if reader is None or request is None:
+            raise DocumentScopeUnavailable('reader_not_configured')
+        question, doc_ids, filters, language = request
+        composition = getattr(self._request_local, 'multi_hop_plan', None)
+        if filters or composition is None or composition.kind != 'single':
+            raise DocumentScopeUnavailable('filtered_or_composed_scope_not_complete')
+        temporal = getattr(self._request_local, 'temporal_resolution', None)
+        if temporal and temporal.status == 'resolved':
+            doc_ids = list(temporal.eligible_doc_ids)
+        if doc_ids is None:
+            doc_ids = [d['doc_id'] for d in getattr(self._request_local, 'temporal_documents', [])]
+        scope = reader.read(doc_ids)
+        if scope.pdf_documents and not getattr(self.answer_generator.llm, 'allow_pdf_scope', False):
+            raise DocumentScopeUnavailable('pdf_provider_scope_not_enabled')
+        generator = GroundedAnswerGenerator(self.answer_generator.llm,
+            max_context_chars=reader.max_context_chars, calibrator=self.answer_generator.calibrator,
+            source_citations=self.answer_generator.source_citations)
+        return question, language, scope, generator
+
+    def prepare_document_scope_prompt(self):
+        """Local preflight of the possible follow-up; never calls the provider."""
+        question, language, scope, generator = self._prepare_complete_document_scope()
+        return {'prompt': generator.prompt(question, list(scope.results), language,
+                    **self._complete_scope_prompt_context(scope)),
+                'answer_schema': generator.response_schema(), 'source_scope': scope.trace(),
+                **({'generation_arguments': {'pdf_documents': list(scope.pdf_documents)}}
+                    if scope.pdf_documents else {})}
+
+    def _complete_scope_prompt_context(self, scope):
+        context = {'document_scope_context': scope.trace()}
+        temporal = getattr(self._request_local, 'temporal_resolution', None)
+        if temporal and temporal.status == 'resolved':
+            intent = self._request_local.temporal_intent
+            context['temporal_context'] = dict(intent=intent.kind, as_of=intent.as_of,
+                reference_date=intent.reference_date, selected_doc_ids=list(temporal.eligible_doc_ids),
+                source_groups=[list(group) for group in temporal.groups],
+                qualification='Only the selected and source-verified document scope.')
+        return context
+
+    def _audit_document_absence(self, original):
+        """One authorized, bounded full-source inference after top-k abstention."""
+        from .document_scope import DocumentScopeUnavailable
+        from .grounding import build_context
+        try:
+            question, language, scope, generator = self._prepare_complete_document_scope()
+        except DocumentScopeUnavailable as error:
+            self._request_local.document_scope_audit = {'status': 'unavailable', 'reason': str(error)}
+            return original
+        digest = hashlib.sha256(build_context(scope.results, generator.max_context_chars).encode()).hexdigest()
+        if digest != scope.context_sha256:
+            self._request_local.document_scope_audit = {'status': 'unavailable', 'reason': 'source_scope_changed'}
+            return original
+        trace = {**scope.trace(), 'status': 'inference_started',
+                 'initial_retrieved_evidence': [asdict(item) for item in self.last_retrieval]}
+        self._request_local.document_scope_audit = trace
+        self.last_retrieval = list(scope.results)
+        answer = generator.answer(question, list(scope.results), language,
+            verified_document_absence=True,
+            **({'pdf_documents': list(scope.pdf_documents)} if scope.pdf_documents else {}),
+            **self._complete_scope_prompt_context(scope))
+        trace.update(status='provider_failure' if answer.provider_failure else 'checked',
+                     outcome=answer.reason if answer.abstained else 'found')
+        # Physical sources are outside the ordinary retrieval-index cache key.
+        # Recheck them on another request instead of persisting these results.
+        return replace(answer, source_scope_checked=True)
 
     def _cached_answer(self, answer: GroundedAnswer, selected_mode: str) -> GroundedAnswer:
         self.last_cache_hit = True

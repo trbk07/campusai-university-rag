@@ -4,8 +4,9 @@
 def test_runtime_report_rechecks_embedded_dataset_rows(monkeypatch):
     seen = {}
 
-    def fake_validate(rows):
+    def fake_validate(rows, *, acceptance_scope):
         seen["rows"] = rows
+        seen["scope"] = acceptance_scope
         return []
 
     monkeypatch.setattr(validate_grounding_release, "validate_release_records", fake_validate)
@@ -24,3 +25,9 @@ def test_runtime_report_rechecks_embedded_dataset_rows(monkeypatch):
     assert "dataset_count_rows_mismatch" not in errors
     assert not any(error.startswith("dataset_row_") for error in errors)
     assert seen["rows"] == report["rows"]
+    assert seen["scope"] == "public_release"
+    assert "working_tree_dirty" in errors
+    errors = validate_grounding_release.validate(report, acceptance_scope="phase5_acceptance")
+    assert seen["rows"] == report["rows"]
+    assert seen["scope"] == "phase5_acceptance"
+    assert "working_tree_dirty" in errors

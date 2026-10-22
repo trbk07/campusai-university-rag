@@ -14,13 +14,15 @@ CALIBRATION_VERSION = "grounding-isotonic-v1"
 
 def calibration_payload_sha256(payload: dict) -> str:
     """Return the stable digest used to pin a calibration artifact."""
-    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode("utf-8")
     return hashlib.sha256(encoded).hexdigest()
 
 
 def load_calibration_artifact(path: str | Path, *, expected_sha256: str | None = None) -> tuple["IsotonicCalibrator", str]:
     """Load and verify a persisted Phase 5 calibrator fail-closed."""
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("invalid calibration artifact")
     artifact = payload.get("artifact", payload)
     actual = calibration_payload_sha256(artifact)
     declared = payload.get("artifact_sha256")
@@ -50,7 +52,13 @@ class IsotonicCalibrator:
         ordered = sorted(cleaned)
         blocks: list[list[float | int]] = []
         for score, label in ordered:
-            blocks.append([score, score, 1, label])
+            # Equal scores are one observation group. Splitting them into
+            # separate blocks made predict(score) select only the first label.
+            if blocks and blocks[-1][1] == score:
+                blocks[-1][2] += 1
+                blocks[-1][3] += label
+            else:
+                blocks.append([score, score, 1, label])
             while len(blocks) >= 2 and blocks[-2][3] / blocks[-2][2] > blocks[-1][3] / blocks[-1][2]:
                 right = blocks.pop()
                 left = blocks.pop()

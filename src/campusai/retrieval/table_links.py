@@ -15,6 +15,25 @@ def _phrase(value: str) -> str:
     return " " + " ".join(tokenize(value.encode("ascii", "ignore").decode("ascii"))) + " "
 
 
+def outcome_namespace_sources(query: str, records: dict[str, dict]) -> tuple[list[str], list[str]] | None:
+    """Keep explicitly requested PO/PLO labels separate using source definitions."""
+    namespaces = set(re.findall(r'\b(PLO|PO)\b', query))
+    if len(namespaces) != 1:
+        return None
+    namespace = next(iter(namespaces))
+    definition = re.compile(r'^\s*(' + namespace + r'\s*\d+)\s*[:.)\-]', re.M)
+    matches, labels = [], set()
+    for key, item in records.items():
+        # Ignore ingestion metadata: section titles alone do not define a label.
+        body = str(item.get('content', '')).split('\n\n', 1)
+        text = body[-1] if body[0].startswith('[Document type:') else str(item.get('content', ''))
+        found = definition.findall(text)
+        if found:
+            matches.append(key)
+            labels.update(re.sub(r'\s+', '', label) for label in found)
+    return (matches, sorted(labels)) if matches else None
+
+
 def named_table_sources(query: str, records: dict[str, dict]) -> list[str]:
     """Find explicit subject columns containing a complete requested name."""
     query_phrase = _phrase(query)

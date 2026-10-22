@@ -9,7 +9,8 @@ from campusai.rag.evidence import EvidenceRegistry
 from campusai.rag.grounding import GroundedAnswerGenerator
 from campusai.rag.multi_hop import MultiHopRequest, SourceRole
 from campusai.rag.multi_hop_evidence import (find_premise, name_matches,
-    prerequisite_claim_support, retrieve_composition, scoped_calculation_support)
+    prerequisite_claim_support, retrieve_composition, scoped_calculation_support,
+    deterministic_direct_prerequisite_code)
 from campusai.rag.multi_hop_evidence import name_code_claim_support
 from campusai.retrieval.hybrid import RetrievalResult
 
@@ -81,6 +82,29 @@ def test_parent_row_proves_bridge_before_one_dependent_source_scoped_search():
     assert trace['edge']['bridge_code']=='CS101'
     assert search.calls[1][0]==('CS101',) and search.calls[1][1]['doc_ids']==['a']
     assert len(search.calls)==2 and all(call[1]['top_k']==20 for call in search.calls)
+
+
+def test_direct_prerequisite_code_lookup_uses_the_reviewable_source_row_without_model():
+    evidence = row('a', 'PEC1008', 2, 'PHI1006')
+    model = Model()
+    answer = GroundedAnswerGenerator(model).answer(
+        'Use only alpha.pdf. Which prerequisite code is listed for PEC1008?',
+        [evidence], 'en')
+    assert not answer.abstained
+    assert answer.answer == 'Course PHI1006 is a direct prerequisite of PEC1008.'
+    assert answer.citations[0].chunk_id == evidence.chunk_id
+    assert json.loads(answer.citations[0].quote) == ['PEC1008', 'Example', '2', 'PHI1006']
+    assert model.calls == 0
+
+
+@pytest.mark.parametrize('question,results', [
+    ('Which prerequisite code is listed for PEC1008 and PEC2008?', [row('a','PEC1008',2,'PHI1006')]),
+    ('Which courses list PEC1008 as a prerequisite?', [row('a','PEC1008',2,'PHI1006')]),
+    ('How many credits does the prerequisite of PEC1008 have?', [row('a','PEC1008',2,'PHI1006')]),
+    ('Which prerequisite code is listed for PEC1008?', [row('a','PEC1008',2,'PHI1006'), row('b','PEC1008',2,'PHI2006')]),
+])
+def test_direct_prerequisite_code_lookup_fails_closed_for_scope_or_conflict(question, results):
+    assert deterministic_direct_prerequisite_code(question, results, 'en') is None
 
 
 @pytest.mark.parametrize('prereq',['','CS101 or CS102','CS101 CS102','unknown'])

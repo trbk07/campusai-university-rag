@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 
 import fitz
+import pytest
 
 from campusai.ingestion.chunker import _MAX_CHARS, _truncate_table_payload_safely, make_chunks
 from campusai.schemas import Chunk, Document, Table
@@ -104,6 +105,30 @@ def test_numbered_list_inside_section_stays_one_section():
     assert len(chunks) == 1
     assert list(chunks[0].heading_path) == fixture["expected"]["section"]
     assert all(value in chunks[0].content for value in fixture["expected"]["contains"])
+
+
+@pytest.mark.parametrize('value', ['135 tín chỉ','19 credits','1.5 credits','12/24 tín chỉ',
+    '06 TÍN CHỈ','3 ECTS','3\u00a0tín\u00a0chỉ'])
+@pytest.mark.parametrize('layout', [None, {'is_larger_font':True,'bold':True}])
+def test_standalone_credit_values_are_body_content_even_when_emphasized(value,layout):
+    from campusai.ingestion.chunker import _looks_like_heading
+    assert _looks_like_heading(value,layout)[0] is False
+    assert _looks_like_heading('3. Credit allocation policy',layout)[0] is True
+    assert _looks_like_heading('# 3 credits',layout)[0] is True
+
+
+def test_curriculum_summary_preserves_label_then_value_in_one_physical_chunk():
+    text=('1. Curriculum summary\nTotal programme credits:\n135 credits\n'
+          '- General knowledge block:\n26 credits\n- Field knowledge block:\n19 credits\n'
+          '2. Course framework\nCourse code and credit columns follow.')
+    chunks=make_chunks([{'page':7,'text':text}], 'source-doc',{})
+    summary=next(chunk for chunk in chunks if 'Curriculum summary' in chunk.heading_path)
+    assert 'Total programme credits:\n135 credits' in summary.content
+    assert 'Field knowledge block:\n19 credits' in summary.content
+    assert 'General knowledge block:\n26 credits' in summary.content
+    assert summary.page==7 and summary.page_range==(7,7)
+    assert not any(heading in {'135 credits','26 credits','19 credits'}
+                   for chunk in chunks for heading in chunk.heading_path)
 
 
 def test_truncate_table_payload_binary_searches_single_oversized_cell():

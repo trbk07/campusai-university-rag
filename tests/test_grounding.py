@@ -120,7 +120,7 @@ def test_grounding_abstains_when_provider_adds_unsupported_claim():
 def test_grounding_does_not_publish_partially_supported_claim():
     answer = GroundedAnswerGenerator(LLM({
         "answer": "CS201 requires CS101 and 4 credits.", "confidence": "high", "abstained": False,
-        "citations": [{"chunk_id": "c1", "page": 2}],
+        "citations": [{"chunk_id": "c1", "page": 2, "quote": "CS201 requires CS101."}],
     })).answer("What is required?", [evidence("CS201 requires CS101.")])
     assert answer.abstained is True
     assert answer.reason == "unsupported_claim"

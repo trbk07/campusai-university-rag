@@ -1,5 +1,19 @@
 """Temporal mechanics are synthetic contracts, not real-source model quality."""
 from datetime import date
+
+
+def test_legacy_index_cohort_uses_exact_source_proof_without_inventing_effective_date():
+    from campusai.rag.temporal import document_from_items, verified_documents, parse_temporal_intent, resolve_temporal
+    item = {'chunk_id': 'legacy-clause', 'page': 2, 'content': 'The curriculum applies from cohort 2024.', 'metadata': {}}
+    document = document_from_items('legacy-source', [item])
+    verified = verified_documents([document])
+    assert verified[0]['cohort_start'] == 2024
+    assert verified[0]['evidence_ids'] == ('legacy-clause',)
+    assert 'effective_start' not in verified[0]
+    intent = parse_temporal_intent('For cohort 2024, what is the duration?', reference_date=date(2026, 1, 1))
+    assert resolve_temporal(intent, [document]).status == 'resolved'
+    intent = parse_temporal_intent('What is current?', reference_date=date(2026, 1, 1))
+    assert resolve_temporal(intent, [document]).status == 'insufficient_evidence'
 import pytest
 from campusai.rag.temporal import TemporalIntent, parse_temporal_intent, resolve_temporal, temporal_fingerprint
 

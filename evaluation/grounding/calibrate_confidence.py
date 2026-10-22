@@ -9,6 +9,7 @@ from pathlib import Path
 
 from campusai.rag.calibration import IsotonicCalibrator, calibration_payload_sha256
 from campusai.rag.confidence import calibration_metrics
+from evaluation.grounding.grounding_metrics import evaluable_prediction_rows, is_grounded_answer
 
 
 LABEL_SCORES = {"low": 0.25, "medium": 0.60, "high": 0.90}
@@ -20,16 +21,20 @@ def _score(row: dict) -> float:
     # would systematically penalize safe abstentions.
     if row.get("abstained"):
         return 0.0
-    value = row.get("confidence_score")
+    value = row.get("raw_confidence_score")
+    if value is None:
+        value = row.get("confidence_score")
     return float(value if value is not None else LABEL_SCORES.get(row.get("confidence"), 0.0))
 
 
 def _label(row: dict) -> bool:
-    return bool(row.get("answerable", True)) and not bool(row.get("abstained"))
+    return is_grounded_answer(row, allow_reviewed_source_subspan=True)
 
 
 def _validate_calibration_population(rows: list[dict]) -> dict:
     """Reject degenerate or leakage-prone calibration populations."""
+    all_rows = list(rows)
+    rows = evaluable_prediction_rows(all_rows)
     splits = {row.get("split") for row in rows}
     if not {"dev", "test", "holdout"}.issubset(splits):
         raise ValueError("calibration requires dev, test and holdout splits")
@@ -43,7 +48,7 @@ def _validate_calibration_population(rows: list[dict]) -> dict:
                           "negative": sum(not _label(row) for row in subset)}
     for field in ("source_group", "template_group", "semantic_topic", "adversarial_pattern"):
         groups = {}
-        for row in rows:
+        for row in all_rows:
             value = str(row.get(field, "")).strip()
             if value:
                 groups.setdefault(value, set()).add(row.get("split"))
@@ -54,6 +59,7 @@ def _validate_calibration_population(rows: list[dict]) -> dict:
 
 def evaluate_calibrator(rows: list[dict], calibrator: IsotonicCalibrator) -> dict:
     """Evaluate a locked calibrator without refitting on held-out rows."""
+    rows = evaluable_prediction_rows(rows)
     metrics = {}
     for split in ("dev", "test", "holdout"):
         subset = [row for row in rows if row.get("split") == split]
@@ -76,7 +82,7 @@ def risk_at_coverage(rows: list[dict], calibrator: IsotonicCalibrator, coverage:
     """
     if not 0 < coverage <= 1:
         raise ValueError("coverage must be between 0 and 1")
-    subset = [row for row in rows if row.get("split") == split]
+    subset = [row for row in evaluable_prediction_rows(rows) if row.get("split") == split]
     if not subset:
         raise ValueError(f"risk split is empty: {split}")
     publishable = [row for row in subset if not row.get("abstained")]
@@ -92,8 +98,10 @@ def risk_at_coverage(rows: list[dict], calibrator: IsotonicCalibrator, coverage:
 
 
 def fit_report(report: dict) -> dict:
-    rows = report.get("rows", [])
-    population = _validate_calibration_population(rows) if {"dev", "test", "holdout"}.issubset({row.get("split") for row in rows}) else None
+    source_rows = report.get("rows", [])
+    rows = evaluable_prediction_rows(source_rows)
+    population = (_validate_calibration_population(source_rows)
+                  if {"dev", "test", "holdout"}.issubset({row.get("split") for row in rows}) else None)
     dev = [row for row in rows if row.get("split") == "dev"]
     if not dev:
         raise ValueError("calibration requires a non-empty dev split")

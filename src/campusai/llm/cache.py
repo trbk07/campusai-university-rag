@@ -122,6 +122,17 @@ class SQLiteLLMCache:
                 if self._memory_connection is None:
                     database.close()
 
+    def clear(self) -> None:
+        """Remove response bodies during a local corpus deletion."""
+        with self._lock:
+            database = self._open()
+            try:
+                database.execute("DELETE FROM responses")
+                database.commit()
+            finally:
+                if self._memory_connection is None:
+                    database.close()
+
     def close(self) -> None:
         """Close the persistent in-memory connection, if one exists."""
 

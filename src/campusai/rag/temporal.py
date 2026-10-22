@@ -233,6 +233,14 @@ def document_from_items(doc_id, items):
     are admitted only if their exact label/evidence exists in the source body.
     """
     metadata = items[0].get('metadata', {}) if items else {}
+    if items and not metadata.get('temporal'):
+        # Legacy indexes predate temporal ingest fields. Reuse the current
+        # source parser, then require the same exact chunk/page proof below;
+        # document titles and benchmark annotations never supply these values.
+        from ..ingestion.metadata_detector import detect_metadata
+        source = '\n'.join(f"## Page {item['page']}\n{source_body(item, decode_tables=False)}"
+                           for item in items)
+        metadata = {**metadata, 'temporal': detect_metadata(source).get('temporal', {})}
     block = dict(metadata.get('temporal') or {})
     if 'proofs' in block:
         return dict(doc_id=doc_id, items=items, temporal=block)

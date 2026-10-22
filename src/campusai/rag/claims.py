@@ -290,6 +290,11 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         # version claim into a conflict. Numeric mismatch is safety-critical
         # only when no evidence actually supports the asserted value.
         numeric_conflict = numeric_mismatch and best < 0.55
+        if (status == "supported" and best >= 0.999 and best_records
+                and len(best_records) >= claim.required_citations):
+            # Keep only chunks that actually prove this claim. Extra retrieved
+            # context should not become an irrelevant public citation.
+            ids = tuple(dict.fromkeys(item.chunk_id for item in best_records))
         aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations, ids,
                              status, round(best, 6), tuple(item.chunk_id for item in evidence), numeric_conflict))
     return aligned

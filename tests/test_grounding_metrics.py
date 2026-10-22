@@ -1,5 +1,6 @@
 ﻿from evaluation.grounding.grounding_metrics import evaluate_grounding
 from evaluation.grounding.validate_grounding_release import validate
+from campusai.rag.claims import Claim, align_claims
 from campusai.rag.schemas import validate_response
 from campusai.rag.calibration import IsotonicCalibrator
 from campusai.rag.confidence import score_confidence
@@ -19,6 +20,28 @@ def test_metrics_do_not_trust_self_reported_supported_status():
     }])
     assert report["grounded_claim_precision"] == 0.0
     assert report["citation_precision"] == 0.0
+
+
+def test_provider_failure_is_missing_evidence_not_a_correct_abstention():
+    failed = {"answerable": True, "abstained": True, "native_failure": {"error_code": "provider_timeout"},
+              "gold_claims": [{"text": "MATH101 is required.", "answerable": True}]}
+    valid_negative = {"answerable": False, "abstained": True, "gold_claims": [],
+                      "gold_abstention_reason": "document_does_not_mention"}
+    report = evaluate_grounding([failed, valid_negative])
+    assert report["records"] == 1
+    assert report["excluded_native_failures"] == 1
+    assert report["abstention_precision"] == 1.0
+
+
+def test_supported_claim_drops_irrelevant_mapped_citations():
+    records = [
+        RetrievalResult("support", "d", 1, "MATH101 is required.", "text", 1.0, "hybrid", {}),
+        RetrievalResult("background", "d", 2, "Admissions open in September.", "text", 0.9, "hybrid", {}),
+    ]
+    claim = Claim("c1", "MATH101 is required.", citation_ids=("support", "background"))
+    aligned = align_claims([claim], EvidenceRegistry(records), {"c1": claim.citation_ids})
+    assert aligned[0].status == "supported"
+    assert aligned[0].citation_ids == ("support",)
 
 
 def test_public_schema_requires_reason_for_abstention():

@@ -8,7 +8,7 @@ import json
 import re
 
 from .course_credits import course_code_key, folded, headed_credit_rows
-from .multi_hop import CODE
+from .multi_hop import CODE, PDF
 
 
 @dataclass(frozen=True)
@@ -87,6 +87,49 @@ def prerequisite(premise):
     # Only a single explicit identifier is supported as a dependent hop. OR,
     # several prerequisites, blank and prose do not become an invented edge.
     return course_code_key(cell) if CODE.fullmatch(cell) else None
+
+
+def deterministic_direct_prerequisite_code(question, results, language='vi', *, calibrator=None):
+    """Answer a single-course prerequisite-code lookup from its exact table row."""
+    raw = str(question)
+    text = folded(raw)
+    if (not re.search(r'\b(?:prerequisites?|tien quyet)\b', text)
+            or re.search(r'\b(?:credits?|tin chi|how many|bao nhieu|all|every|chain|links?)\b', text)
+            or re.search(r'\b(?:which courses|list all|courses? (?:list|have)|liet ke cac|cac hoc phan)\b', text)
+            or not re.search(r'\b(?:which|what|code|listed|ma|nao|gi)\b', text)):
+        return None
+    clean = PDF.sub(' ', raw)
+    clean = re.sub(r'\b(?:in|on|year|cohort|article|page|semester)\s+\d{1,4}\b', ' ', clean, flags=re.I)
+    codes = tuple(dict.fromkeys(course_code_key(match.group(1)) for match in CODE.finditer(clean)))
+    doc_ids = {result.doc_id for result in results}
+    if len(codes) != 1 or len(doc_ids) != 1:
+        return None
+    target = codes[0]
+    premise = find_premise(results, next(iter(doc_ids)), code=target, require_credits=False)
+    bridge = prerequisite(premise) if premise is not None else None
+    if not bridge:
+        return None
+
+    from .grounding import Citation, _grounding_finalize, validate_citation
+    from .source_citations import source_quote
+    claim_text = (f'Course {bridge} is a direct prerequisite of {target}.' if language.startswith('en')
+                  else f'Mon {bridge} la tien quyet truc tiep cua {target}.')
+    raw_claim = {'claim_id': 'direct-prerequisite-code', 'text': claim_text,
+                 'citation_ids': [premise.result.chunk_id]}
+    quote = source_quote(premise.result, [raw_claim], question=raw)
+    if not quote:
+        return None
+    result = premise.result
+    citation = Citation(result.chunk_id, result.doc_id, result.page, quote,
+        ' > '.join(result.metadata.get('heading_path', [])), result.metadata.get('source_name', ''),
+        tuple(result.metadata.get('page_range', [result.page, result.page])),
+        result.metadata.get('table_id', ''), result.metadata.get('source_hash', ''))
+    if not validate_citation(citation, result, require_quote=True).valid:
+        return None
+    answer = _grounding_finalize(claim_text, (citation,), {'claims': [raw_claim]}, [result], language,
+                                 question=raw, calibrator=calibrator)
+    return answer if not answer.abstained and answer.claims and all(
+        claim.status == 'supported' for claim in answer.claims) else None
 
 
 def resolve_premises(plan, results):
@@ -256,7 +299,7 @@ def scoped_calculation_support(text, evidence):
     return correct, tuple(dict.fromkeys(p.result.chunk_id for p in premises)) if correct else ()
 
 
-def deterministic_calculation(context, results, language):
+def deterministic_calculation(context, results, language, *, calibrator=None):
     """Use already resolved, source-qualified operands; revalidate all claims."""
     from .grounding import Citation, _abstention, _grounding_finalize, validate_citation
     from .multi_hop import SourceRole
@@ -282,7 +325,8 @@ def deterministic_calculation(context, results, language):
                             [p['credits'] for p in context['premises']], language)
     claims.append(dict(claim_id='calculation', text=text, citation_ids=list(citations), type='calculation',
                        required_citations=len(citations)))
-    return _grounding_finalize(text, tuple(citations.values()), {'claims':claims}, results, language)
+    return _grounding_finalize(text, tuple(citations.values()), {'claims':claims}, results, language,
+                               calibrator=calibrator)
 
 
 def composition_complete(answer, context, results):

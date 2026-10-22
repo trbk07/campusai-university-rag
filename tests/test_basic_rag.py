@@ -132,6 +132,7 @@ def test_vietnamese_and_english_prompts_are_grounded_and_secret_free():
     en = generator.prompt("Which course is required?", [evidence()], "en")
     assert "Chỉ dùng thông tin trong EVIDENCE" in vi
     assert "Use only the supplied evidence" in en
+    assert "STRICT SCOPE AND CITATIONS" in en
     assert "c1" in vi and "Curriculum" in en
     assert "api_key" not in vi.lower() and "secret" not in en.lower()
 

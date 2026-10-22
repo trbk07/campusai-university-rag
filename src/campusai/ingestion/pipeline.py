@@ -10,11 +10,12 @@ from pathlib import Path
 from typing import Callable
 
 from ..schemas import Document
-from .chunker import make_chunks
+from .chunker import CHUNKER_VERSION, make_chunks
+from .background.commit import atomic_text
 from .docling_parser import parse_pdf
 from .metadata_detector import detect_metadata
 from .ocr import OCRLimitExceeded, OCRUnavailable, ocr_pdf
-from .table_extractor import extract_tables
+from .table_extractor import TABLE_EXTRACTOR_VERSION, extract_tables
 from .validate import ValidationError, validate_pdf
 from ..documents.registry import DocumentRegistry
 
@@ -57,7 +58,7 @@ def _save_table(table, output_dir: Path) -> None:
 
     schema_path = tables_dir / f"{table.table_id}.schema.json"
     schema_path.parent.mkdir(parents=True, exist_ok=True)
-    schema_path.write_text(
+    atomic_text(schema_path,
         json.dumps(table.schema, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
@@ -94,6 +95,12 @@ def ingest_document(
     if metadata_path.exists():
         data = json.loads(metadata_path.read_text(encoding="utf-8"))
         document = Document.from_dict(data)
+        parser_version = document.metadata.get("parser_version")
+        cache_versions_current = (
+            parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1"}
+            and document.metadata.get("chunker_version") == CHUNKER_VERSION
+            and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
+        )
         if enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
             "ocr_unavailable",
@@ -101,10 +108,14 @@ def ingest_document(
             # An earlier default ingestion may have persisted a fail-closed
             # scan review. Explicit OCR opt-in must be allowed to reprocess it.
             shutil.rmtree(output_dir, ignore_errors=True)
-        else:
+        elif cache_versions_current:
             document.cached = True
             registry.add(document)
             return document
+        else:
+            # A stable PDF hash does not imply that its parsed chunks remain
+            # current after parser, chunker or table-extractor upgrades.
+            shutil.rmtree(output_dir)
 
     output_dir.mkdir(parents=True, exist_ok=True)
     report_progress = progress or _default_progress
@@ -140,7 +151,8 @@ def ingest_document(
                     "source_name": pdf_path.name,
                     "source_hash": document_id,
                     "parser_version": "pymupdf-text-v1",
-                    "chunker_version": "structure-v2",
+                    "chunker_version": CHUNKER_VERSION,
+                    "table_extractor_version": TABLE_EXTRACTOR_VERSION,
                     "schema_version": 1,
                     "status": "review_required",
                     "review_reason": "ocr_unavailable",
@@ -158,7 +170,7 @@ def ingest_document(
                 status="review_required",
                 review_reason="ocr_unavailable",
             )
-            metadata_path.write_text(
+            atomic_text(metadata_path,
                 json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
                 encoding="utf-8",
             )
@@ -173,7 +185,8 @@ def ingest_document(
                 "source_name": pdf_path.name,
                 "source_hash": document_id,
                 "parser_version": "pymupdf-text-v1",
-                "chunker_version": "structure-v2",
+                "chunker_version": CHUNKER_VERSION,
+                "table_extractor_version": TABLE_EXTRACTOR_VERSION,
                 "schema_version": 1,
                 "status": "review_required",
                 "review_reason": "ocr_required",
@@ -191,7 +204,7 @@ def ingest_document(
             status="review_required",
             review_reason="ocr_required",
         )
-        metadata_path.write_text(
+        atomic_text(metadata_path,
             json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
             encoding="utf-8",
         )
@@ -206,7 +219,8 @@ def ingest_document(
     metadata["source_name"] = pdf_path.name
     metadata["source_hash"] = document_id
     metadata["parser_version"] = "pymupdf-text-v1"
-    metadata["chunker_version"] = "structure-v2"
+    metadata["chunker_version"] = CHUNKER_VERSION
+    metadata["table_extractor_version"] = TABLE_EXTRACTOR_VERSION
     metadata["schema_version"] = 1
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
@@ -249,15 +263,15 @@ def ingest_document(
 
     report_progress("persisting", 0.0)
     parsed_path = output_dir / "parsed.md"
-    parsed_path.write_text(full_text, encoding="utf-8")
-
-    metadata_path.write_text(
-        json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    atomic_text(parsed_path,full_text, encoding="utf-8")
 
     for table in tables:
         _save_table(table, output_dir)
+
+    atomic_text(metadata_path,
+        json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     report_progress("persisting", 1.0)
 
     registry.add(document)

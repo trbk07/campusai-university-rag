@@ -51,6 +51,26 @@ def test_actual_local_composition_uses_grounding_public_schema_and_source_coordi
     app.close()
 
 
+def test_relation_answer_cache_separates_same_version_calibrators(tmp_path):
+    from campusai.rag.calibration import IsotonicCalibrator
+    source(tmp_path)
+    store = RelationIndex(tmp_path)
+    store.rebuild(['alpha'])
+    app = service(tmp_path, store=store)
+    question = 'In alpha.pdf, what is the direct prerequisite of CS201 and how many credits does it have?'
+    try:
+        app.answer_generator.calibrator = IsotonicCalibrator((1.0,), (0.2,))
+        first = app.ask(question, doc_ids=['alpha'], language='en')
+        assert not first.abstained and first.confidence_score == 0.2
+        app.answer_generator.calibrator = IsotonicCalibrator((1.0,), (0.9,))
+        second = app.ask(question, doc_ids=['alpha'], language='en')
+        assert not second.abstained and second.confidence_score == 0.9 and not app.last_cache_hit
+        assert app.ask(question, doc_ids=['alpha'], language='en').confidence_score == 0.9
+        assert app.last_cache_hit
+    finally:
+        app.close()
+
+
 def test_feature_off_keeps_legacy_local_abstention_and_does_not_read_sidecar(tmp_path):
     source(tmp_path)
     app=service(tmp_path,enabled=False)

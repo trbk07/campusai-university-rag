@@ -88,7 +88,8 @@ def canonicalize_abstention_reason(
                   "empty_model_answer", "llm_error", "llm_not_configured", "model_abstained"}:
         return "provider_abstention"
     if mapped == "retrieval_below_threshold":
-        return "document_does_not_mention" if evidence_found else "no_evidence_found"
+        # A retrieved top-k below threshold cannot establish document absence.
+        return "no_evidence_found"
     if mapped in CANONICAL_ABSTENTION_REASONS:
         return mapped
     if evidence_found is False:
@@ -103,5 +104,10 @@ def user_message(reason: str, language: str = "vi") -> str:
             "document_does_not_mention": "The checked documents do not mention this information.",
             "conflicting_evidence": "The available documents contain conflicting information.",
             "provider_error": "The answer service is temporarily unavailable. Please try again later.",
+            "unsupported_claim": "There is not enough evidence to verify the complete answer.",
+            "contradicted_claim": "The available evidence contradicts the proposed answer.",
+            "invalid_citation": "The cited source could not be verified against the available evidence.",
+            "ambiguous_question": "Please clarify the programme, year or scope of your question.",
+            "provider_abstention": "The model did not provide an answer that could be verified.",
         }.get(reason, "There is not enough verified evidence to answer safely.")
     return MESSAGES.get(reason, MESSAGES["system_error"])

@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from evaluation.grounding.validate_grounding_release import validate as validate_grounding_report
+from evaluation.grounding.review_evidence import validate_independent_review
 
 
 REQUIRED_ARTIFACTS = {
@@ -70,14 +71,19 @@ def _json(path: Path) -> dict[str, Any]:
 
 
 def validate_annotation_signoff(value: dict[str, Any], benchmark_sha256: str) -> list[str]:
+    """Check legacy aggregate fields; callers must also verify the per-row review contract."""
     errors: list[str] = []
     if value.get("status") != "approved":
         errors.append("annotation_not_approved")
     if value.get("benchmark_sha256") != benchmark_sha256:
         errors.append("annotation_benchmark_checksum_mismatch")
-    for field, expected in (("records_total", 400), ("records_reviewed", 400), ("records_approved", 400)):
-        if value.get(field) != expected:
-            errors.append(f"annotation_{field}_must_equal_{expected}")
+    expected = value.get("records_total")
+    if type(expected) is not int or expected < 400:
+        errors.append("annotation_records_total_below_400")
+        expected = 400
+    for field in ("records_reviewed", "records_approved"):
+        if type(value.get(field)) is not int or value.get(field) != expected:
+            errors.append(f"annotation_{field}_population_mismatch")
     for field in ("split_leakage", "missing_gold_evidence", "missing_abstention_reason"):
         if value.get(field) != 0:
             errors.append(f"annotation_{field}_nonzero")
@@ -103,8 +109,8 @@ def validate_annotation_signoff(value: dict[str, Any], benchmark_sha256: str) ->
             errors.append(f"annotation_reviewer_{index}_attestation_missing")
     if creators & reviewer_ids:
         errors.append("annotation_creator_reviewer_overlap")
-    if reviewed < 400:
-        errors.append("annotation_reviewed_count_below_400")
+    if reviewed < expected:
+        errors.append("annotation_reviewed_count_below_population")
     return errors
 
 
@@ -148,9 +154,15 @@ def validate_package(package_dir: Path, *, root: Path | None = None,
     threshold_path = root / "configs/grounding_release.json"
     if not threshold_path.is_file() or manifest.get("thresholds_sha256") != sha256_file(threshold_path):
         errors.append("thresholds_checksum_mismatch")
-    benchmark_path = root / "data/benchmark/grounding_reviewed.jsonl"
-    if not benchmark_path.is_file() or manifest.get("benchmark_sha256") != sha256_file(benchmark_path):
-        errors.append("benchmark_source_checksum_mismatch")
+    benchmark_value = manifest.get("benchmark_path", "data/benchmark/grounding_reviewed.jsonl")
+    if not isinstance(benchmark_value, str) or not benchmark_value.strip():
+        errors.append("benchmark_source_path_invalid")
+    else:
+        benchmark_path = (root / benchmark_value).resolve()
+        if not benchmark_path.is_relative_to(root) or not benchmark_path.is_file():
+            errors.append("benchmark_source_path_invalid")
+        elif manifest.get("benchmark_sha256") != sha256_file(benchmark_path):
+            errors.append("benchmark_source_checksum_mismatch")
     if check_repository:
         commit, dirty = git_fingerprint(root)
         if manifest.get("commit") != commit:
@@ -166,7 +178,10 @@ def validate_package(package_dir: Path, *, root: Path | None = None,
             errors.append(f"artifact_{name}_missing")
             continue
         relative = entry.get("path", default_name)
-        path = package_dir / str(relative)
+        path = (package_dir / str(relative)).resolve()
+        if not path.is_relative_to(package_dir.resolve()):
+            errors.append(f"artifact_{name}_path_outside_package")
+            continue
         if not path.is_file():
             errors.append(f"artifact_{name}_file_missing")
             continue
@@ -182,7 +197,7 @@ def validate_package(package_dir: Path, *, root: Path | None = None,
     benchmark_sha = str(manifest.get("benchmark_sha256", ""))
     calibration_sha = str(manifest.get("calibration_sha256", ""))
     grounding = loaded.get("grounding_report", {})
-    grounding_errors = validate_grounding_report(grounding) if grounding else ["grounding_report_unreadable"]
+    grounding_errors = validate_grounding_report(grounding, root=root) if grounding else ["grounding_report_unreadable"]
     errors.extend(f"grounding_{item}" for item in grounding_errors)
     if grounding.get("benchmark_sha256") != benchmark_sha:
         errors.append("grounding_benchmark_checksum_mismatch")
@@ -192,6 +207,8 @@ def validate_package(package_dir: Path, *, root: Path | None = None,
         errors.append("grounding_commit_mismatch")
 
     signoff_errors = validate_annotation_signoff(loaded.get("annotation_signoff", {}), benchmark_sha)
+    signoff_errors.extend(validate_independent_review(loaded.get("annotation_signoff"), grounding.get("rows", []),
+                          benchmark_sha256=benchmark_sha, root=root))
     errors.extend(signoff_errors)
     calibration = loaded.get("calibration_report", {})
     if calibration.get("fit_split") != "dev":
@@ -245,6 +262,9 @@ def build_manifest(package_dir: Path, *, root: Path, release_candidate: str,
     commit, dirty = git_fingerprint(root)
     if dirty:
         raise ValueError("working tree must be clean before release evidence is generated")
+    benchmark = (root / benchmark).resolve()
+    if not benchmark.is_relative_to(root.resolve()) or not benchmark.is_file():
+        raise ValueError("benchmark must be a versioned file inside the repository")
     settings = _json(config)
     calibration_value = _json(calibration)
     artifacts = {}
@@ -255,6 +275,7 @@ def build_manifest(package_dir: Path, *, root: Path, release_candidate: str,
         artifacts[name] = {"path": filename, "sha256": sha256_file(path)}
     return {
         "phase": "5", "release_candidate": release_candidate, "commit": commit,
+        "benchmark_path": benchmark.relative_to(root.resolve()).as_posix(),
         "benchmark_sha256": sha256_file(benchmark),
         "calibration_sha256": calibration_value.get("artifact_sha256"),
         "calibration_file_sha256": sha256_file(calibration),

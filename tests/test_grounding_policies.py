@@ -71,7 +71,7 @@ def test_comparison_keeps_per_claim_source_checks(wrong):
     text = f"Course CS101 has {4 if wrong else 3} credits."
     answer = GroundedAnswerGenerator(LLM({"answer": text, "confidence": "high", "abstained": False,
         "claims": [{"claim_id": "1", "text": text, "citation_ids": [first.chunk_id]}],
-        "citations": [{"chunk_id": first.chunk_id, "page": 1, "quote": "CS101"}]})).answer(
+        "citations": [{"chunk_id": first.chunk_id, "page": 1, "quote": first.content}]})).answer(
             "Compare CS101 credits in programme A versus B.", [first, second])
     assert answer.abstained is wrong
     if wrong:

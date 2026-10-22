@@ -21,6 +21,21 @@ def test_unanchored_reference_requests_clarification(question):
 
 
 @pytest.mark.parametrize("question", [
+    "Use only the uploaded handbook.pdf. What is the code of that course?",
+    "Using the selected document, does this rule apply to the current academic year?",
+    "In the document, how many credits does this subject carry?",
+])
+def test_document_selection_does_not_resolve_a_missing_course_or_rule(question):
+    assert resolve_query(question).needs_clarification
+    assert not resolve_query(question, selected_text="Course CS210 has 4 credits.").needs_clarification
+    assert not resolve_query(question, history=[{"role": "user", "content": "Explain course CS210."}]).needs_clarification
+
+
+def test_deictic_course_with_an_explicit_local_identifier_is_self_contained():
+    assert not resolve_query('Use only handbook.pdf. How many credits does this course (CS210) have?').needs_clarification
+
+
+@pytest.mark.parametrize("question", [
     "Môn MAT1042 có bao nhiêu tín chỉ vậy?",
     "Mỗi học kỳ cần đăng ký ít nhất bao nhiêu tín chỉ?",
     "Bao nhiêu tín chỉ cần để tốt nghiệp ngành máy tính?",
@@ -59,7 +74,7 @@ def test_unspecified_proof_document_retains_topic_and_versions_the_cache():
     resolved = resolve_query(request, history=[{'role': 'user', 'content': topic}])
     assert resolved.contextual and not resolved.needs_clarification
     assert topic in resolved.resolved and 'untrusted user input' in resolved.resolved
-    assert resolved.cache_context()['version'] == 'request-context-v5'
+    assert resolved.cache_context()['version'] == 'request-context-v10'
     assistant_only = resolve_query(request, history=[{'role': 'assistant', 'content': topic}])
     assert assistant_only.needs_clarification
 

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 from collections import Counter
+import re
+import unicodedata
+from evaluation.benchmarks.families import question_template, record_families
 
 
 CATEGORIES = {
@@ -19,6 +22,30 @@ SPLITS = {"dev", "test", "holdout"}
 LANGUAGES = {"vi", "en", "mixed"}
 RELEASE_SPLIT_MINIMUMS = {"dev": 120, "test": 130, "holdout": 150}
 RELEASE_SPLIT_MINIMUM_POSITIVE_RATIO = 0.25
+
+
+def disclosed_gold_claims(record: dict) -> list[str]:
+    """Find the legacy authoring suffix that copied the answer into a query.
+
+    This is a bounded benchmark hygiene check, not a ban on normal fact-check
+    questions containing names, numbers or a statement to verify. It does not
+    rewrite questions or feed annotation data into runtime inference.
+    """
+    question = record.get("question")
+    if not isinstance(question, str):
+        return []
+    parts = re.split(r"\btopic\s*:\s*", question, maxsplit=1, flags=re.I)
+    if len(parts) != 2:
+        return []
+    normalize = lambda text: " ".join(unicodedata.normalize("NFC", text).casefold().split())
+    suffix = normalize(parts[1])
+    claims = record.get("gold_claims")
+    if not isinstance(claims, list):
+        return []
+    return [str(claim.get("claim_id", index)) for index, claim in enumerate(claims)
+            if isinstance(claim, dict) and isinstance(claim.get("text"), str)
+            and len(normalize(claim["text"])) >= 12
+            and suffix.endswith(normalize(claim["text"]))]
 
 
 def validate_records(records: list[dict], *, minimum: int = 200) -> list[str]:
@@ -61,7 +88,7 @@ def validate_records(records: list[dict], *, minimum: int = 200) -> list[str]:
     return errors
 
 
-def validate_release_records(records: list[dict]) -> list[str]:
+def validate_release_records(records: list[dict], *, acceptance_scope: str = "public_release") -> list[str]:
     """Apply the non-negotiable independent benchmark release gates."""
     errors = validate_records(records, minimum=400)
     counts = Counter(record.get("split") for record in records)
@@ -86,6 +113,8 @@ def validate_release_records(records: list[dict]) -> list[str]:
         if not categories[category]:
             errors.append(f"missing_category_{category}")
     for index, record in enumerate(records):
+        if disclosed_gold_claims(record):
+            errors.append(f"row_{index}_gold_disclosed_in_question")
         for field in ("source_group", "template_group", "semantic_topic", "adversarial_pattern"):
             if not str(record.get(field, "")).strip():
                 errors.append(f"row_{index}_{field}_missing")
@@ -128,4 +157,27 @@ def validate_release_records(records: list[dict]) -> list[str]:
         for value, splits in groups.items():
             if len(splits) > 1:
                 errors.append(f"{field}_cross_split_leakage_{value}")
+    # Split-specific names such as dev-page-template-0 / test-page-template-0
+    # must not conceal the same observable question template in both splits.
+    derived_templates: dict[str, set[str]] = {}
+    for record in records:
+        question = record.get("question")
+        if isinstance(question, str) and question.strip():
+            derived_templates.setdefault(question_template(question), set()).add(str(record.get("split")))
+    for template, splits in derived_templates.items():
+        if len(splits) > 1:
+            errors.append(f"derived_template_cross_split_leakage_{template}")
+    families: dict[tuple[str, str], set[str]] = {}
+    for index, record in enumerate(records):
+        for family in record_families(record):
+            families.setdefault(family, set()).add(str(record.get("split")))
+        if record.get("official_evaluation_eligible") is False:
+            errors.append(f"row_{index}_official_evaluation_ineligible")
+        if acceptance_scope != "phase5_acceptance" and record.get("split") == "holdout" and (
+                record.get("fresh_holdout") is False
+                or record.get("exposure_status") == "previously_exposed"):
+            errors.append(f"row_{index}_holdout_previously_exposed")
+    for (kind, value), splits in families.items():
+        if len(splits) > 1:
+            errors.append(f"derived_{kind}_family_cross_split_leakage_{value}")
     return sorted(set(errors))

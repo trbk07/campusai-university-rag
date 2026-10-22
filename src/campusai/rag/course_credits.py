@@ -65,7 +65,7 @@ def headed_credit_rows(content: str, *, identity: str = 'code'):
 def course_credit_support(claim_text: str, content: str) -> bool | None:
     """Return an exact headed-row verdict, or None when no such proof exists."""
     match = re.fullmatch(
-        r'(?:mon|hoc phan|course)\s+(' + COURSE_CODE + r')\s+'
+        r'(?:(?:mon|hoc phan|course)\s+)?(' + COURSE_CODE + r')\s+'
         r'(?:co|has|carries|is worth)\s+(\d+)\s+(?:tin chi|credits?)\s*[.!]?', folded(claim_text))
     identity = 'code'
     if match:
@@ -74,7 +74,7 @@ def course_credit_support(claim_text: str, content: str) -> bool | None:
         # Parse names without stripping accents or punctuation. Never infer a
         # unit from nearby numbers: only an explicitly headed credit column.
         match = re.fullmatch(
-            r'(?:môn|học phần|course)\s+(.+?)\s+'
+            r'(?:(?:môn|học phần|course)\s+)?(.+?)\s+'
             r'(?:có|has|carries|is worth)\s+([0-9]+)\s+(?:tín chỉ|credits?)\s*[.!]?',
             course_name_key(claim_text))
         if not match:

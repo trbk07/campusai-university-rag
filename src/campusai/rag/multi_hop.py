@@ -72,6 +72,9 @@ def plan_request(question, documents):
         return MultiHopRequest('unresolved', problem='more_than_two_source_groups')
     # Filenames can contain numeric fragments that are not course codes.
     clean = PDF.sub(' ', raw)
+    # Calendar/section labels with spaces are not course identifiers. Keep
+    # contiguous identifiers (including such prefixes) unchanged.
+    clean = re.sub(r'\b(?:in|on|year|cohort|article|page|semester)\s+\d{1,4}\b', ' ', clean, flags=re.I)
     codes = tuple(dict.fromkeys(course_code_key(m[1]) for m in CODE.finditer(clean)))
     credit = bool(re.search(r'\b(?:tin chi|credits?)\b', text))
     prerequisite = bool(re.search(r'\b(?:tien quyet|prerequisites?)\b', text))
@@ -87,6 +90,11 @@ def plan_request(question, documents):
     if len(roles) >= 2 and re.search(r'\b(?:cong nhan thay the|tu dong duoc cong nhan|transferable|automatic equivalence)\b', text):
         return MultiHopRequest('unsupported_relation', tuple(roles), problem='recognition_rule_not_established')
     if prerequisite and roles:
+        if (len(roles) == 1 and len(codes) == 1 and not credit
+                and not re.search(r'\b(?:courses|all|links|chain|follow|consecutive|dependents|cac|tat ca)\b', text)):
+            # A direct prerequisite question is one fact, not a dependent
+            # prerequisite -> credits hop. Keep the ordinary grounded path.
+            return MultiHopRequest()
         if credit and len(codes) == 1:
             return MultiHopRequest('prerequisite_lookup', (roles[0],), target_code=codes[0])
         if len(codes) == 2 and re.search(r'\b(?:chung minh|prove|confirm)\b', text):

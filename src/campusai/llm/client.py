@@ -17,6 +17,8 @@ import urllib.request
 import sqlite3
 from .retry import retry503
 from .overload import OverloadCircuit, ProviderCoolingDown
+from .quota_hints import google_quota_hints, scoped_quota_hint
+from .quota import QuotaExceeded, QuotaStateError, estimate_gemini_tokens
 from contextlib import contextmanager
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
@@ -54,6 +56,7 @@ class LLMResponse:
     cached: bool = False
     finish_reason: str | None = None
     model_version: str | None = None
+    input_measurement: dict | None = None
 
 
 class LLMClient(Protocol):
@@ -169,7 +172,8 @@ def _retry_after_seconds(value: str | None) -> float | None:
     if value is None:
         return None
     try:
-        return max(0.0, float(value))
+        number = float(value)
+        return max(0.0, number) if math.isfinite(number) else None
     except (TypeError, ValueError):
         pass
     try:
@@ -212,6 +216,7 @@ def _request_json(request, timeout: int, limiter, max_retries: int, *, retry_onl
             if error.code in {401, 403}:
                 raise LLMAuthenticationError("provider authentication failed") from error
             detail = ""
+            parsed_detail = {}
             try:
                 raw_detail = error.read().decode("utf-8", errors="replace")
                 if raw_detail:
@@ -228,6 +233,8 @@ def _request_json(request, timeout: int, limiter, max_retries: int, *, retry_onl
                 if error.code == 429
                 else LLMProviderError(f"provider returned HTTP {error.code}{suffix}")
             )
+            if error.code == 429:
+                failure.quota_hints = google_quota_hints(parsed_detail)
             if error.code not in transient or attempt >= max_retries:
                 raise failure from error
             retry_seconds = _retry_after_seconds(error.headers.get("Retry-After"))
@@ -488,6 +495,9 @@ class GeminiClient(OpenAICompatibleClient):
         model: str = "gemini-3-flash-preview",
         generation_config: dict[str, Any] | None = None,
         overload_circuit_path: str | None = None,
+        quota_governor=None,
+        json_mode: str = 'native',
+        allow_pdf_scope: bool = False,
         **kwargs: Any,
     ) -> None:
         if generation_config is not None and not isinstance(generation_config, dict):
@@ -495,6 +505,9 @@ class GeminiClient(OpenAICompatibleClient):
         # Isolate caller-owned nested settings; include them in the actual
         # request/cache identity, rather than relying on provider defaults.
         self.generation_config = json.loads(json.dumps(generation_config or {}, allow_nan=False))
+        if json_mode not in {'native', 'prompt'}:
+            raise ValueError('json_mode must be native or prompt')
+        self.json_mode = json_mode
         endpoint = kwargs.pop(
             "endpoint",
             f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
@@ -504,40 +517,89 @@ class GeminiClient(OpenAICompatibleClient):
         self.provider = "gemini"
         if overload_circuit_path and self.max_retries:
             raise ValueError("overload circuit requires max_retries=0; recovery uses the next real request")
+        if quota_governor is not None and self.max_retries:
+            raise ValueError('quota admission requires max_retries=0; each attempt needs a reservation')
+        self.quota_governor = quota_governor
+        if (type(allow_pdf_scope) is not bool or (allow_pdf_scope and
+                (self.max_retries != 0 or quota_governor is None))):
+            raise ValueError('PDF scope requires explicit opt-in, durable quota and max_retries=0')
+        self.allow_pdf_scope = allow_pdf_scope
         self.overload_circuit = (OverloadCircuit(overload_circuit_path, _safe_endpoint(endpoint))
                                  if overload_circuit_path else None)
 
-    def _send(self, request):
+    def _send(self, request, *, token_budget=None):
         circuit = self.overload_circuit
         generation = None
+        reservation = None
+        attempted = False
+        result = None
         try:
+            if self.quota_governor is not None:
+                try:
+                    if token_budget is None:
+                        input_tokens, output_tokens = estimate_gemini_tokens(json.loads(request.data))
+                    else:
+                        if (not self.allow_pdf_scope or not isinstance(token_budget, tuple)
+                                or len(token_budget) != 2
+                                or any(type(n) is not int or not 0 <= n <= 1_000_000_000 for n in token_budget)):
+                            raise ValueError('invalid PDF token budget')
+                        input_tokens, output_tokens = token_budget
+                except (ValueError, TypeError, AttributeError):
+                    raise LLMProviderError('request cannot be admitted under the text token budget') from None
             if circuit:
                 generation = circuit.acquire(self.timeout)
-            if self.limiter is not None:
+            if self.quota_governor is not None:
+                reservation = self.quota_governor.reserve(input_tokens, output_tokens,
+                    lease_seconds=self.timeout + 5,
+                    check=(lambda: circuit.check(generation)) if circuit else None)
+            elif self.limiter is not None:
                 self.limiter.wait()
             if circuit:
                 circuit.check(generation)
+            attempted = True
             result = _request_json(request, self.timeout, self.limiter, self.max_retries,
                                    retry_only_503=self.retry_only_503,
                                    retry_min_wait_seconds=self.retry_min_wait_seconds,
                                    retry_max_wait_seconds=self.retry_max_wait_seconds)
         except ProviderCoolingDown as error:
-            failure = LLMProviderError("provider is cooling down; please try again later")
+            failure_type = LLMRateLimitError if error.provider_error_code == 'provider_rate_limited' else LLMProviderError
+            failure = failure_type("provider is cooling down; please try again later")
+            failure.provider_error_code = error.provider_error_code
             failure.retry_after_seconds = error.retry_after_seconds
             raise failure from None
-        except sqlite3.Error:
-            raise LLMProviderError("provider health state unavailable; request stopped") from None
+        except QuotaExceeded as error:
+            failure = LLMRateLimitError('local provider budget exhausted; request stopped before transport')
+            failure.retry_after_seconds = error.retry_after_seconds
+            raise failure from None
+        except (sqlite3.Error, QuotaStateError):
+            raise LLMProviderError("provider admission state unavailable; request stopped") from None
         except LLMError as error:
             cause = error.__cause__
-            if circuit and generation is not None:
+            structured_hint, observations = (scoped_quota_hint(error.quota_hints, self.model)
+                if hasattr(error, 'quota_hints') else (None, []))
+            if structured_hint is not None:
+                error.retry_after_seconds = structured_hint
+            if circuit and generation is not None and attempted:
                 overloaded = isinstance(cause, urllib.error.HTTPError) and cause.code == 503
-                hint = _retry_after_seconds(cause.headers.get("Retry-After")) if overloaded and cause.headers else None
+                rate_limited = isinstance(cause, urllib.error.HTTPError) and cause.code == 429
+                hint = _retry_after_seconds(cause.headers.get("Retry-After")) if (overloaded or rate_limited) and cause.headers else None
                 if hint is not None and not math.isfinite(hint):
                     hint = None
+                if rate_limited and structured_hint is not None:
+                    hint = max(hint or 0, structured_hint)
                 try:
-                    circuit.failed(generation, overloaded=overloaded, retry_after=hint)
+                    circuit.failed(generation, overloaded=overloaded, rate_limited=rate_limited, retry_after=hint)
+                    if overloaded or rate_limited:
+                        error.retry_after_seconds = circuit.remaining_seconds()
                 except sqlite3.Error:
                     raise LLMProviderError("provider health state unavailable; request stopped") from None
+            if observations and self.quota_governor is not None:
+                try:
+                    self.quota_governor.observe(observations)
+                except sqlite3.Error:
+                    # The circuit already protects the exhausted window. A
+                    # broken quota store will fail closed on next admission.
+                    pass
             raise
         else:
             if circuit:
@@ -548,32 +610,70 @@ class GeminiClient(OpenAICompatibleClient):
                     # probe lease expires rather than triggering another call.
                     pass
             return result
+        finally:
+            if reservation is not None:
+                try:
+                    self.quota_governor.finish(reservation, result.get('usageMetadata') if result else None)
+                except sqlite3.Error:
+                    # Counters remain charged; the crash-safe lease expires.
+                    pass
+            if circuit and generation is not None and not attempted:
+                try:
+                    circuit.abandon(generation)
+                except sqlite3.Error:
+                    pass
 
-    def complete(self, prompt: str, **kwargs: Any) -> LLMResponse:
-        """Send a prompt using Gemini's request and response schema."""
-
+    def prepare_request(self, prompt: str, **kwargs: Any) -> dict:
+        """Build the exact request locally, including only verified PDF parts."""
         request_options = dict(kwargs)
+        documents = request_options.pop('pdf_documents', None)
+        if documents is not None:
+            from .pdf_scope import pdf_parts
+            if not self.allow_pdf_scope or 'contents' in request_options:
+                raise LLMProviderError('PDF scope is not enabled or has conflicting content')
+            expected = f'https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent'
+            if self.endpoint != expected or not re.fullmatch(r'gemini-[a-zA-Z0-9._-]+', self.model):
+                raise LLMProviderError('PDF scope requires the configured official Gemini endpoint')
+            try:
+                parts = pdf_parts(documents)
+            except (ValueError, TypeError, RuntimeError) as error:
+                raise LLMProviderError('PDF source identity or bounded scope invalid') from error
+        else:
+            parts = []
         if self.generation_config:
             overrides = request_options.pop("generationConfig", {})
             request_options["generationConfig"] = {**self.generation_config, **overrides}
         system_prompt = request_options.pop("system_prompt", None)
         body: dict[str, Any] = {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{**({'role': 'user'} if parts else {}), "parts": parts + [{"text": prompt}]}],
             **request_options,
         }
         if system_prompt is not None:
             body["systemInstruction"] = {"parts": [{"text": system_prompt}]}
+        if documents is None and any('inlineData' in part or 'fileData' in part
+                for content in body.get('contents', []) for part in content.get('parts', [])):
+            raise LLMProviderError('multimodal input requires a verified PDF scope')
+        return body
+
+    def prepare_json_request(self, prompt: str, schema=None, **kwargs) -> dict:
+        prompt, options = self._json_options(prompt, schema, kwargs)
+        return self.prepare_request(prompt, **options)
+
+    def complete(self, prompt: str, **kwargs: Any) -> LLMResponse:
+        """Send a prompt using Gemini's request and response schema."""
+        body = self.prepare_request(prompt, **kwargs)
+        pdf_mode = kwargs.get('pdf_documents') is not None
         cache_key = build_cache_key(
             provider=self.provider,
             endpoint=self.endpoint,
             request=body,
         )
-        cached = self._cached(cache_key)
+        cached = None if pdf_mode else self._cached(cache_key)
         if cached is not None:
             return cached
 
         with _single_flight(cache_key):
-            cached = self._cached(cache_key)
+            cached = None if pdf_mode else self._cached(cache_key)
             if cached is not None:
                 return cached
             request = urllib.request.Request(
@@ -585,7 +685,26 @@ class GeminiClient(OpenAICompatibleClient):
                 },
             )
             started_at = time.perf_counter()
-            data = self._send(request)
+            measurement = None
+            budget = None
+            if kwargs.get('pdf_documents') is not None:
+                from .pdf_scope import body_hash, measured_budget
+                count_endpoint = self.endpoint.removesuffix(':generateContent') + ':countTokens'
+                count_body = {'generateContentRequest': {'model': 'models/'+self.model, **body}}
+                count_request = urllib.request.Request(count_endpoint,
+                    data=json.dumps(count_body).encode('utf-8'),
+                    headers={'Content-Type': 'application/json', 'x-goog-api-key': self.api_key})
+                # Tokenization is not generation. Charge its HTTP request to
+                # the shared RPM/RPD ledger, with no invented model usage.
+                counts = self._send(count_request, token_budget=(0, 0))
+                try:
+                    budget = measured_budget(body, counts.get('totalTokens'))
+                except (ValueError, TypeError, AttributeError) as error:
+                    raise LLMProviderError('PDF token measurement unavailable; generation stopped') from error
+                measurement = {'endpoint': count_endpoint, 'request_body_sha256': body_hash(count_body),
+                    'generation_body_sha256': body_hash(body), 'response': counts,
+                    'reserved_input_tokens': budget[0], 'reserved_output_tokens': budget[1]}
+            data = self._send(request, token_budget=budget) if budget is not None else self._send(request)
             try:
                 candidate = data["candidates"][0]
                 parts = candidate["content"]["parts"]
@@ -603,13 +722,25 @@ class GeminiClient(OpenAICompatibleClient):
             if not isinstance(usage, dict):
                 usage = {}
             latency_ms = (time.perf_counter() - started_at) * 1000
-            if self.cache is not None:
+            if self.cache is not None and not pdf_mode:
                 self.cache.put(cache_key, text, usage, latency_ms)
             reason = candidate.get("finishReason")
             model_version = data.get("modelVersion")
             return LLMResponse(text, usage, latency_ms,
                 finish_reason=reason if isinstance(reason, str) else None,
-                model_version=model_version if isinstance(model_version, str) else None)
+                model_version=model_version if isinstance(model_version, str) else None,
+                input_measurement=measurement)
+
+    def _json_options(self, prompt, schema, kwargs):
+        kwargs = dict(kwargs)
+        generation_config = dict(kwargs.pop('generationConfig', {}))
+        if self.json_mode == 'native':
+            generation_config['responseMimeType'] = 'application/json'
+            if schema is not None:
+                generation_config['responseSchema'] = _gemini_schema(schema)
+        elif schema is not None:
+            prompt += '\nOUTPUT_JSON_SCHEMA:\n' + json.dumps(schema, ensure_ascii=False, separators=(',', ':'))
+        return prompt, {**kwargs, 'generationConfig': generation_config}
 
     def generate_json(
         self,
@@ -619,11 +750,8 @@ class GeminiClient(OpenAICompatibleClient):
     ) -> dict[str, Any]:
         """Generate JSON using Gemini's native generation configuration."""
 
-        generation_config = dict(kwargs.pop("generationConfig", {}))
-        generation_config["responseMimeType"] = "application/json"
-        if schema is not None:
-            generation_config["responseSchema"] = _gemini_schema(schema)
-        response = self.generate(prompt, generationConfig=generation_config, **kwargs)
+        prompt, options = self._json_options(prompt, schema, kwargs)
+        response = self.generate(prompt, **options)
         text = response.text.strip()
         fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.I | re.S)
         if fenced:

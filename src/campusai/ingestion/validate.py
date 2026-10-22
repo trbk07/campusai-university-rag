@@ -74,7 +74,10 @@ def validate_pdf(
         raise ValidationError(f"PDF vượt giới hạn {max_mb} MB")
 
     try:
-        document = fitz.open(str(pdf_path))
+        # Some malformed inputs leave a native Windows file handle alive when
+        # fitz.open(path) raises. Validation uses the already size-bounded bytes
+        # so a rejected upload can always be removed immediately.
+        document = fitz.open(stream=pdf_path.read_bytes(), filetype="pdf")
     except Exception as error:
         raise ValidationError(f"PDF hỏng hoặc không đọc được: {error}") from error
 

@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from evaluation.grounding.grounding_metrics import evaluate_grounding
+from evaluation.common.release_artifacts import source_identity
 from evaluation.benchmarks.benchmark_schema import validate_release_records
 from evaluation.grounding.calibrate_confidence import evaluate_calibrator, risk_at_coverage
 from evaluation.grounding.run_basic_rag import FixtureLLM, fixture_document, load_records
@@ -34,6 +35,30 @@ from campusai.retrieval.calibration import RetrievalPolicy
 from campusai.ingestion.pipeline import ingest_document
 
 
+class ReplayLLM:
+    """Replay supplied provider JSON by ID; never construct output from gold."""
+
+    model = "phase5-recorded-provider-output"
+
+    def __init__(self, path: Path, records: list[dict]) -> None:
+        self.active = None
+        self.calls = 0
+        responses = load_records(path)
+        self.responses = {}
+        for row in responses:
+            if (not isinstance(row, dict) or not isinstance(row.get("id"), str)
+                    or not isinstance(row.get("response"), dict)
+                    or row["id"] in self.responses):
+                raise ValueError("invalid or duplicate replay response")
+            self.responses[row["id"]] = row["response"]
+        if set(self.responses) != {row["id"] for row in records}:
+            raise ValueError("replay response population must exactly match benchmark IDs")
+
+    def generate_json(self, *_args, **_kwargs):
+        self.calls += 1
+        return self.responses[self.active["id"]]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", default="data/benchmark/basic_rag.jsonl")
@@ -44,6 +69,8 @@ def main():
     parser.add_argument("--calibration-artifact", default=None,
                         help="Locked Phase 5 calibration JSON; required in runtime mode")
     parser.add_argument("--calibration-sha256", default=None)
+    parser.add_argument("--responses", type=Path,
+                        help="Recorded provider JSONL with id/response fields; no gold-generated outputs")
     parser.add_argument("--corpus-dir", default="data/corpus/university",
                         help="Real PDF corpus used by runtime mode")
     parser.add_argument("--ocr", action="store_true",
@@ -55,6 +82,8 @@ def main():
     parser.add_argument("--retrieval-mode", default=None,
                         choices=("auto", "bm25", "dense", "hybrid", "hybrid_rrf"))
     args = parser.parse_args()
+    if args.mode == "runtime" and not args.responses:
+        raise SystemExit("runtime mode cannot use gold-derived FixtureLLM; collect native predictions separately or use draft mode for fixture diagnostics")
     records = load_records(args.benchmark)
     benchmark_path = Path(args.benchmark)
     benchmark_sha256 = hashlib.sha256(benchmark_path.read_bytes()).hexdigest()
@@ -105,7 +134,7 @@ def main():
                                            ocr_max_pages=50, ocr_timeout_seconds=120)
                 if document.status == "succeeded":
                     build_document_indexes(document, root, dense_model="fallback-hash-256")
-        llm = FixtureLLM()
+        llm = ReplayLLM(args.responses, records) if args.responses else FixtureLLM()
         policies = {}
         if args.retrieval_calibration:
             retrieval_policy = RetrievalPolicy.from_report(
@@ -159,6 +188,13 @@ def main():
                 gold_claims = [{"text": record.get("gold_answer", ""), "evidence": record.get("gold_evidence", [])}]
             rows.append({
                 **payload,
+                "answer": public_payload["answer"], "abstained": public_payload["abstained"],
+                "abstention_reason": public_payload.get("abstention_reason"),
+                "citations": public_payload["citations"],
+                "claims": [claim for claim in payload["claims"]
+                           if claim["claim_id"] in {item["claim_id"] for item in public_payload["claims"]}],
+                "public_response": public_payload,
+                "internal_trace": payload,
                 "id": record["id"],
                 "split": record.get("split", "test"),
                 "question": record.get("question", ""),
@@ -187,14 +223,14 @@ def main():
                 "gold_evidence_in_context": context_gold,
                 "retrieved_pages": sorted({f"{item.doc_id}:{item.page}" for item in retrieved}),
             })
-    metrics = evaluate_grounding(rows)
+    metrics = evaluate_grounding(rows, allow_reviewed_source_subspan=True)
     answerable_rows = [row for row in rows if row.get("answerable")]
-    metrics.update({
+    retrieval_metrics = {
         "retrieval_hit_doc": round(sum(row["retrieval_hit_doc"] for row in answerable_rows) / max(1, len(answerable_rows)), 6),
         "retrieval_hit_page": round(sum(row["retrieval_hit_page"] for row in answerable_rows) / max(1, len(answerable_rows)), 6),
         "retrieval_hit_chunk": round(sum(row["retrieval_hit_chunk"] for row in answerable_rows) / max(1, len(answerable_rows)), 6),
         "gold_evidence_in_context": round(sum(row["gold_evidence_in_context"] for row in answerable_rows) / max(1, len(answerable_rows)), 6),
-    })
+    }
     calibration = evaluate_calibrator(rows, calibrator) if calibrator is not None else {}
     risk_metrics = {}
     if calibrator is not None:
@@ -207,7 +243,7 @@ def main():
         target = split_metrics if key == "split" else category_metrics
         for value in values:
             selected = [row for row, record in zip(rows, records) if record.get(key) == value]
-            target[value] = evaluate_grounding(selected)
+            target[value] = evaluate_grounding(selected, allow_reviewed_source_subspan=True)
     try:
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=Path(__file__).parents[1], text=True).strip()
     except (OSError, subprocess.CalledProcessError):
@@ -223,14 +259,21 @@ def main():
         "benchmark": str(benchmark_path), "dataset_count": len(records),
         "benchmark_sha256": benchmark_sha256,
         "metadata": {"commit": commit, "working_tree": working_tree},
+        "source_identity": source_identity(Path(__file__).resolve().parents[2]),
+        "generation": {"kind": "replay" if args.responses else "gold_fixture",
+                       "gold_seeded": not bool(args.responses), "model": llm.model, "provider_calls": 0,
+                       "responses_path": str(args.responses) if args.responses else None,
+                       "responses_sha256": hashlib.sha256(args.responses.read_bytes()).hexdigest() if args.responses else None},
         "runtime": {"python": platform.python_version(), "platform": platform.platform(), "pid": os.getpid()},
         "dataset": {"path": str(benchmark_path), "sha256": benchmark_sha256,
                     "version": "grounding-independent-v1"},
         "policy_version": "grounding-v1", "calibration_artifact_version": calibration_version,
+        "calibration_artifact_path": args.calibration_artifact,
         "calibration_artifact_sha256": calibration_sha256,
         "calibration_benchmark_sha256": calibration_benchmark_sha256,
         "calibration_population": calibration_population,
         "metrics": metrics, "split_metrics": split_metrics, "category_metrics": category_metrics,
+        "retrieval_metrics": retrieval_metrics,
         "calibration": calibration, "risk_at_coverage": risk_metrics,
         "risk_population": "holdout", "rows": rows,
     }

@@ -7,8 +7,76 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v5"
+CONTEXT_VERSION = "request-context-v10"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
+
+
+def _fold(value):
+    return ''.join(c for c in unicodedata.normalize('NFD', value.casefold())
+                   if not unicodedata.combining(c)).replace('đ', 'd')
+
+
+def small_talk_kind(question):
+    text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
+    if text in {'hi', 'hello', 'hey', 'alo', 'chao', 'xin chao', 'chao ban', 'hello ban', 'ban oi'}:
+        return 'greeting'
+    if text in {'cam on', 'cam on ban', 'thanks', 'thank you', 'ok', 'oke', 'ok ban'}:
+        return 'thanks'
+    return None
+
+
+def meaningless_fragment(question):
+    text = question.strip().strip('?!. ')
+    return bool(re.fullmatch(r'[a-zA-Z]{8,}', text) and
+                (re.search(r'[bcdfghjklmnpqrstvwxz]{6,}', text, re.I)
+                 or re.search(r'(.)\1{5,}', text, re.I)))
+
+
+def depends_on_previous_topic(question):
+    """Require a reference or ellipsis; brevity alone never inherits a topic."""
+    text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
+    if missing_topic_reference(question):
+        return True
+    if re.fullmatch(r'(?:vi du(?: di)?|cho (?:minh|t|toi) vi du|noi (?:de hieu|ngan gon)(?: hon)?|'
+                    r'them vi du(?: nua)?|ngan gon hon|don gian hon(?: chut)?|noi ro cho nay|tl dr|'
+                    r'(?:this|that) one|give me another example|'
+                    r'(?:tom tat|giai thich)(?: lai| them)|tai sao|vi sao|why|how|credits|'
+                    r'how many credits|how much|give (?:me )?an example|explain (?:more|again)|simplify it)', text):
+        return True
+    # Explicit document/section questions have their subject in the current
+    # request and selected scope, even when a previous question was very short.
+    discourse = re.match(r'^(?:con|vay|ua)\b', text) or re.match(r'^thế\b', question, re.I)
+    if discourse and len(question.split()) <= 24:
+        # A discourse filler does not turn a complete new definition into a
+        # follow-up; "còn phần rèn luyện thì cần tới loại nào" does need context.
+        return not bool(re.search(r'\b(?:la gi|what is|what are|explain|summarize|tong hop|tom tat|giai thich)\b', text))
+    # Selecting a file does not identify which course/rule a deictic object
+    # refers to. Resolve from an explicit local subject, user history or
+    # selected text before the general document-scope exemption below.
+    if re.search(r'\b(?:this|that)\s+(?:course|subject|rule|program|programme)\b', text):
+        return True
+    if re.search(r'\b(?:tai lieu|tep|file|pdf|document|section|chapter|phan|chuong)\b', text):
+        return False
+    if FOLLOWUP.search(question) and len(question.split()) <= 24:
+        return True
+    if re.search(r'\b(?:cai nay|cai day|this one|that one)\b', text):
+        return True
+    if re.match(r'^no\s+(?:hoat dong|la|co|dung|khac|duoc)\b', text):
+        return True
+    return False
+
+
+def _user_topic(turns):
+    chain = []
+    for role, content in reversed(turns):
+        if role != 'user':
+            continue
+        if small_talk_kind(content):
+            continue
+        chain.append(content)
+        if not depends_on_previous_topic(content):
+            break
+    return '\n'.join(reversed(chain)) if chain else None
 
 
 def has_local_topic_reference(question: str) -> bool:
@@ -22,6 +90,26 @@ def has_local_topic_reference(question: str) -> bool:
     from .course_credits import COURSE_CODE
     without_files = re.sub(r'\b[\w.-]+\.pdf\b', ' ', question, flags=re.I)
     codes = re.findall(r'(?<!\w)'+COURSE_CODE+r'(?!\w)', without_files, re.I)
+    if len(codes) == 1 and re.search(
+            r'\b(?:this|that)\s+(?:course|subject)\s*\(?\s*'+COURSE_CODE+r'\b', without_files, re.I):
+        return True
+    text = _fold(question)
+    subject = None
+    for pattern in (
+        r'^([^;.!?]{1,80}?)\s+la gi\s+(?:va|[,;])',
+        r'^what (?:is|are)\s+([^;.!?]{1,80}?)\s+and\b',
+        r'^(?:explain|giai thich)\s+([^;.!?]{1,80}?)\s+(?:and|va)\b',
+    ):
+        match = re.match(pattern, text)
+        if match:
+            subject = re.sub(r'^(?:a|an|the|mot)\s+', '', match[1].strip())
+            break
+    if (subject and len(codes) <= 1
+            and not re.match(r'^(?:it|its|their|this|that|these|those)\b', subject)
+            and subject not in {
+            'it', 'this', 'that', 'this course', 'that course', 'course', 'program',
+            'the course', 'no', 'mon nay', 'cai nay', 'cai do'}):
+        return True
     if len(codes)==1 and re.search(
             r'\b(?:direct\s+)?prerequisite\s+of\s+'+COURSE_CODE+
             r'\s+and\s+how\s+many\s+credits\s+does\s+it\s+have\s*\??\s*$',without_files,re.I):
@@ -124,18 +212,15 @@ def resolve_query(question: str, *, history: list[dict] | None = None,
         raise ValueError("selected_text must contain 1-4000 characters")
     raw = question.strip()
     local_topic = has_local_topic_reference(raw)
-    contextual = requires_context or missing_topic_reference(raw) or bool(
-        not local_topic and FOLLOWUP.search(raw) and len(raw.split()) <= 16)
-    if not local_topic and turns and len(raw.split()) <= 8 and not re.search(r"\b[A-Z]{2,}\d{2,}\b", raw, re.I):
-        contextual = True
-    if not local_topic and turns and len(raw.split()) <= 24 and re.match(r"^(?:còn|con|thế|the|vậy|vay|ủa|ua)\b", raw, re.I):
-        contextual = True
+    contextual = requires_context or (not local_topic and depends_on_previous_topic(raw))
     # Assistant output and selected text never become trusted source evidence.
-    # Only the last user topic is used; older turns remain in cache identity.
-    anchor = selected_text or next((content for role, content in reversed(turns) if role == "user"), None)
-    needs_clarification = contextual and not anchor
+    # Follow-up chains keep their nearest explicit user topic; a fresh question
+    # starts a new topic. Older turns remain in cache identity.
+    anchor = selected_text or _user_topic(turns)
+    meaningless = meaningless_fragment(raw)
+    needs_clarification = meaningless or (contextual and not anchor)
     resolved = raw
-    if anchor and (contextual or selected_text):
+    if not meaningless and anchor and (contextual or selected_text):
         resolved = raw + "\nContext topic (untrusted user input): " + sanitize_evidence_text(anchor)
     return ResolvedQuery(raw, resolved, tuple(turns), selected_text, bool(needs_clarification), contextual)
 

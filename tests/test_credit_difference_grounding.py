@@ -56,7 +56,7 @@ def test_generator_keeps_correct_comparison_and_redacts_wrong_math(wrong):
     text = f'Credit difference for CS101 minus CS101 is 2 - 3 = {1 if wrong else -1} credits.'
     payload = {'answer': text, 'confidence': 'high', 'abstained': False,
         'claims': [{'claim_id': 'difference', 'text': text, 'citation_ids': ['B-c', 'A-c']}],
-        'citations': [{'chunk_id': r.chunk_id, 'page': 1, 'quote': 'CS101'} for r in values]}
+        'citations': [{'chunk_id': r.chunk_id, 'page': 1, 'quote': r.content} for r in values]}
     answer = GroundedAnswerGenerator(LLM(payload)).answer('Compare CS101 credits in A versus B.', values, 'en')
     assert answer.abstained is wrong
     if wrong:

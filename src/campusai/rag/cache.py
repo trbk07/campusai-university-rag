@@ -17,9 +17,9 @@ from .grounding import Citation, GroundedAnswer
 from .schemas import SCHEMA_VERSION
 
 
-PROMPT_VERSION = "grounding-context-v4"
-GROUNDING_POLICY_VERSION = "grounding-v5"
-ABSTENTION_POLICY_VERSION = "grounding-v1"
+PROMPT_VERSION = "grounding-context-v14"
+GROUNDING_POLICY_VERSION = "grounding-v20"
+ABSTENTION_POLICY_VERSION = "grounding-v3"
 
 
 def normalize_question(question: str) -> str:
@@ -42,6 +42,7 @@ def build_rag_cache_key(
     prompt_version: str = PROMPT_VERSION,
     grounding_policy_version: str = GROUNDING_POLICY_VERSION,
     confidence_policy_version: str = POLICY_VERSION,
+    calibration_artifact_sha256: str | None = None,
     abstention_policy_version: str = ABSTENTION_POLICY_VERSION,
     schema_version: str = SCHEMA_VERSION,
     request_context: dict | None = None,
@@ -59,6 +60,7 @@ def build_rag_cache_key(
         "prompt_version": prompt_version,
         "grounding_policy_version": grounding_policy_version,
         "confidence_policy_version": confidence_policy_version,
+        "calibration_artifact_sha256": calibration_artifact_sha256,
         "abstention_policy_version": abstention_policy_version,
         "schema_version": schema_version,
         "model": model or "none",
@@ -106,6 +108,7 @@ class RAGAnswerCache:
                               for item in payload.get("claims", []) if isinstance(item, dict)),
                 evidence_status=str(payload.get("evidence_status", "found")),
                 confidence_score=payload.get("confidence_score"),
+                raw_confidence_score=payload.get("raw_confidence_score"),
                 policy_version=str(payload.get("confidence_policy_version", POLICY_VERSION)),
             )
         except (KeyError, TypeError, ValueError, json.JSONDecodeError):
@@ -152,6 +155,10 @@ class RAGAnswerCache:
                     del self._locks[key]
                 else:
                     self._locks[key] = (lock, users - 1)
+
+    def clear(self) -> None:
+        """Purge stored answer bodies after a corpus document is removed."""
+        self._store.clear()
 
     def close(self) -> None:
         self._store.close()

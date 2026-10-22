@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import NotRequired, TypedDict
 
 from .abstention import CANONICAL_ABSTENTION_REASONS
@@ -10,7 +11,7 @@ PUBLIC_SCHEMA_VERSION = "grounding-public-v2"
 SCHEMA_VERSION = "grounding-internal-v2"
 PUBLIC_FIELDS = {"answer", "citations", "confidence", "abstained", "claims", "abstention_reason", "schema_version"}
 INTERNAL_FIELDS = {
-    "reason", "cache_hit", "evidence_status", "confidence_score",
+    "reason", "cache_hit", "evidence_status", "confidence_score", "raw_confidence_score",
     "schema_version", "confidence_policy_version", "policy_version",
     "trace_id", "source_versions", "source_manifest_hash", "cache_key",
 }
@@ -43,15 +44,15 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
         if field not in payload:
             errors.append(f"missing_{field}")
     allowed_schema_versions = {SCHEMA_VERSION, PUBLIC_SCHEMA_VERSION} if include_internal else {PUBLIC_SCHEMA_VERSION}
-    if "schema_version" in payload and payload["schema_version"] not in allowed_schema_versions:
+    if "schema_version" in payload and (not isinstance(payload["schema_version"], str) or payload["schema_version"] not in allowed_schema_versions):
         errors.append("schema_version_invalid")
-    if include_internal and payload.get("schema_version") not in {SCHEMA_VERSION, PUBLIC_SCHEMA_VERSION}:
+    if include_internal and (not isinstance(payload.get("schema_version"), str) or payload.get("schema_version") not in allowed_schema_versions):
         errors.append("internal_schema_version_invalid")
     if not isinstance(payload.get("answer"), str) or not payload.get("answer", "").strip():
         errors.append("answer_invalid")
     if not isinstance(payload.get("citations"), list):
         errors.append("citations_invalid")
-    if payload.get("confidence") not in {"high", "medium", "low"}:
+    if not isinstance(payload.get("confidence"), str) or payload["confidence"] not in {"high", "medium", "low"}:
         errors.append("confidence_invalid")
     if not isinstance(payload.get("abstained"), bool):
         errors.append("abstained_invalid")
@@ -59,7 +60,8 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
         for index, citation in enumerate(payload["citations"]):
             if (not isinstance(citation, dict)
                     or not isinstance(citation.get("chunk_id"), str)
-                    or not isinstance(citation.get("page"), int)
+                    or not citation.get("chunk_id", "").strip()
+                    or type(citation.get("page")) is not int
                     or citation.get("page", 0) < 1):
                 errors.append(f"citation_{index}_invalid")
     if "abstained" in payload:
@@ -67,29 +69,36 @@ def validate_response(payload: object, *, include_internal: bool = False) -> tup
             errors.append("abstention_reason_missing")
         if not payload["abstained"] and payload.get("abstention_reason"):
             errors.append("unexpected_abstention_reason")
-        if payload["abstained"] and payload.get("abstention_reason") not in CANONICAL_ABSTENTION_REASONS:
+        if payload["abstained"] and (not isinstance(payload.get("abstention_reason"), str) or payload.get("abstention_reason") not in CANONICAL_ABSTENTION_REASONS):
             errors.append("abstention_reason_invalid")
+    if payload.get("abstention_reason") is not None and not isinstance(payload["abstention_reason"], str):
+        errors.append("abstention_reason_invalid")
+    if "claims" in payload and not isinstance(payload["claims"], list):
+        errors.append("claims_invalid")
     if isinstance(payload.get("claims"), list):
         citation_values = payload.get("citations")
         citation_ids = {
-            item.get("chunk_id") for item in citation_values if isinstance(item, dict)
+            item.get("chunk_id") for item in citation_values if isinstance(item, dict) and isinstance(item.get("chunk_id"), str)
         } if isinstance(citation_values, list) else set()
         for index, claim in enumerate(payload["claims"]):
             if not isinstance(claim, dict) or not isinstance(claim.get("text"), str) or not claim.get("text", "").strip():
                 errors.append(f"claim_{index}_invalid")
                 continue
-            if not isinstance(claim.get("citation_ids", []), list):
+            ids = claim.get("citation_ids", [])
+            if not isinstance(ids, list):
                 errors.append(f"claim_{index}_citations_invalid")
-            elif any(not isinstance(item, str) for item in claim.get("citation_ids", [])):
+            elif any(not isinstance(item, str) or not item.strip() for item in ids):
                 errors.append(f"claim_{index}_citation_id_invalid")
-            elif claim.get("status") == "supported" and not claim.get("citation_ids"):
+            elif claim.get("status") == "supported" and not ids:
                 errors.append(f"claim_{index}_citation_missing")
-            if claim.get("status") not in {None, "supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}:
+            if claim.get("status") is not None and (not isinstance(claim["status"], str) or claim["status"] not in {"supported", "partial", "partially_supported", "unsupported", "contradicted", "ambiguous"}):
                 errors.append(f"claim_{index}_status_invalid")
-            if not include_internal and any(item not in citation_ids for item in claim.get("citation_ids", [])):
+            if not include_internal and isinstance(ids, list) and any(not isinstance(item, str) or item not in citation_ids for item in ids):
                 errors.append(f"claim_{index}_citation_unknown")
-    if payload.get("confidence_score") is not None and not 0 <= payload["confidence_score"] <= 1:
-        errors.append("confidence_score_invalid")
+    for field in ("confidence_score", "raw_confidence_score"):
+        value = payload.get(field)
+        if value is not None and (type(value) not in {int, float} or not math.isfinite(value) or not 0 <= value <= 1):
+            errors.append(f"{field}_invalid")
     return not errors, tuple(errors)
 
 
@@ -117,33 +126,48 @@ def validate_release_response(payload: object) -> tuple[bool, tuple[str, ...]]:
         unknown = set(citation) - allowed_citation_fields
         errors.extend(f"citation_{index}_unknown_{field}" for field in sorted(unknown))
         chunk_id = citation.get("chunk_id")
-        if chunk_id in citation_ids:
+        if isinstance(chunk_id, str) and chunk_id in citation_ids:
             errors.append(f"citation_{index}_duplicate")
-        citation_ids.add(chunk_id)
+        if isinstance(chunk_id, str):
+            citation_ids.add(chunk_id)
         for field in ("doc_id", "page_range", "quote", "source_name"):
             if field not in citation or citation.get(field) in (None, "", []):
                 errors.append(f"citation_{index}_{field}_missing")
         for field in ("chunk_id", "doc_id", "quote", "source_name"):
-            if field in citation and not isinstance(citation.get(field), str):
+            if field in citation and (not isinstance(citation.get(field), str) or not citation[field].strip()):
+                errors.append(f"citation_{index}_{field}_invalid")
+        for field in ("section_path", "table_id"):
+            if field in citation and not isinstance(citation[field], str):
                 errors.append(f"citation_{index}_{field}_invalid")
         page_range = citation.get("page_range")
         if (not isinstance(page_range, list) or len(page_range) != 2
-                or not all(isinstance(value, int) and value >= 1 for value in page_range)
-                or isinstance(citation.get("page"), int) and not page_range[0] <= citation["page"] <= page_range[1]):
+                or not all(type(value) is int and value >= 1 for value in page_range)
+                or page_range[0] > page_range[1]
+                or type(citation.get("page")) is int and not page_range[0] <= citation["page"] <= page_range[1]):
             errors.append(f"citation_{index}_page_range_invalid")
     claims = payload.get("claims")
     if not isinstance(claims, list):
         errors.append("claims_required")
     else:
         mapped_ids = set()
+        claim_ids = set()
         allowed_claim_fields = {"claim_id", "text", "type", "citation_ids"}
         for index, claim in enumerate(claims):
             if not isinstance(claim, dict):
                 continue
+            if "type" in claim and not isinstance(claim["type"], str):
+                errors.append(f"claim_{index}_type_invalid")
+            claim_id = claim.get("claim_id")
+            if not isinstance(claim_id, str) or not claim_id.strip():
+                errors.append(f"claim_{index}_id_invalid")
+            elif claim_id in claim_ids:
+                errors.append(f"claim_{index}_duplicate")
+            else:
+                claim_ids.add(claim_id)
             unknown = set(claim) - allowed_claim_fields
             errors.extend(f"claim_{index}_unknown_{field}" for field in sorted(unknown))
             ids = claim.get("citation_ids")
-            if not isinstance(ids, list) or not ids:
+            if not isinstance(ids, list) or not ids or any(not isinstance(item, str) or not item.strip() for item in ids):
                 errors.append(f"claim_{index}_citation_missing")
                 continue
             unknown = [item for item in ids if item not in citation_ids]
@@ -153,6 +177,10 @@ def validate_release_response(payload: object) -> tuple[bool, tuple[str, ...]]:
         unclaimed = citation_ids - mapped_ids
         if unclaimed:
             errors.append("citation_without_claim_mapping")
+        if payload.get("abstained") is False and (not claims or not citations):
+            errors.append("answered_without_evidence")
+        if payload.get("abstained") is True and (claims or citations):
+            errors.append("abstention_publishes_evidence")
     if not payload.get("abstained") and payload.get("abstention_reason") is not None:
         errors.append("unexpected_abstention_reason")
     return not errors, tuple(dict.fromkeys(errors))

@@ -14,6 +14,7 @@ from typing import Any
 from .cache import SQLiteLLMCache
 from .client import GeminiClient, LLMClient, OpenAICompatibleClient
 from .rate_limiter import RateLimiter
+from .quota import QuotaGovernor, QuotaPolicy
 
 
 def _scalar(value: str) -> Any:
@@ -200,6 +201,30 @@ def create_llm(
     if provider != "gemini" and generation_config:
         raise ValueError("llm.generation_config is only supported for Gemini")
 
+    json_mode = config.get('json_mode', 'native')
+    if json_mode not in {'native', 'prompt'} or (provider != 'gemini' and json_mode != 'native'):
+        raise ValueError('llm.json_mode must be native or prompt for Gemini')
+    allow_pdf_scope = config.get('allow_pdf_scope', False)
+    if type(allow_pdf_scope) is not bool or (allow_pdf_scope and provider != 'gemini'):
+        raise ValueError('llm.allow_pdf_scope requires a boolean and Gemini')
+
+    governor = None
+    quota = config.get('quota')
+    if quota is not None:
+        fields = {'state_path', 'scope', 'input_tokens_per_minute', 'requests_per_day',
+                  'total_tokens_per_day', 'max_in_flight', 'max_wait_seconds'}
+        if (provider != 'gemini' or max_retries != 0 or not isinstance(quota, dict)
+                or set(quota) - fields or not {'state_path', 'scope'} <= quota.keys()):
+            raise ValueError('llm.quota requires Gemini, max_retries=0 and explicit state_path/scope')
+        output = generation_config.get('maxOutputTokens')
+        if type(output) is not int or output < 1 or type(config.get('requests_per_minute', 60)) is not int:
+            raise ValueError('llm.quota requires integer requests_per_minute and positive maxOutputTokens')
+        policy = QuotaPolicy(requests_per_minute,
+            quota.get('input_tokens_per_minute'), quota.get('requests_per_day'),
+            quota.get('total_tokens_per_day'), quota.get('max_in_flight', 1))
+        governor = QuotaGovernor(quota['state_path'], quota['scope'], policy,
+                                 max_wait_seconds=quota.get('max_wait_seconds', 2))
+
     cache = SQLiteLLMCache(cache_path)
     limiter = RateLimiter(requests_per_minute)
     common = {
@@ -213,11 +238,14 @@ def create_llm(
     }
     if provider == "gemini":
         gemini_options = dict(common)
+        if governor is not None:
+            gemini_options['quota_governor'] = governor
         if overload_path:
             gemini_options["overload_circuit_path"] = overload_path
         if config.get("endpoint"):
             gemini_options["endpoint"] = _endpoint(str(config["endpoint"]), "endpoint")
-        return GeminiClient(api_key, model=model, generation_config=generation_config, **gemini_options)
+        return GeminiClient(api_key, model=model, generation_config=generation_config,
+                            json_mode=json_mode, allow_pdf_scope=allow_pdf_scope, **gemini_options)
 
     endpoint = str(
         config.get("endpoint")

@@ -10,6 +10,20 @@ def docs():
             for d,name in [('A','alpha_2023.pdf'),('B','beta_2020.pdf')]]
 
 
+def test_direct_prerequisite_question_does_not_require_a_credit_hop():
+    plan = plan_request('Use only the uploaded alpha_2023.pdf. Which prerequisite code is listed for CS201?', docs()[:1])
+    assert plan.kind == 'single' and plan.problem is None
+    dependent = plan_request('In alpha_2023.pdf, how many credits does the prerequisite of CS201 have?', docs()[:1])
+    assert dependent.kind == 'prerequisite_lookup'
+
+
+def test_issue_year_and_article_number_do_not_become_prerequisite_subject_codes():
+    plan = plan_request('Use alpha_2023.pdf, issued in 2023. Which prerequisite code is listed for CS201?', docs()[:1])
+    assert plan.kind == 'single' and plan.problem is None
+    plan = plan_request('In alpha_2023.pdf, Article 2: how many credits does the prerequisite of CS201 have?', docs()[:1])
+    assert plan.kind == 'prerequisite_lookup' and plan.target_code == 'CS201'
+
+
 @pytest.mark.parametrize('question,kind',[
     ('Trong alpha_2023.pdf và beta_2020.pdf, so sánh tín chỉ CS201.', 'compare'),
     ('Lấy tín chỉ CS201 từ alpha_2023.pdf và CS202 từ beta_2020.pdf. Tổng là bao nhiêu?', 'sum'),
