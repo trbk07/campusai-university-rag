@@ -265,7 +265,7 @@ def _predicted_evidence(row: dict, claim: dict) -> set[tuple]:
 
 def _link_counts(row: dict, predicted: dict, gold: dict, *,
                  allow_reviewed_source_subspan: bool = False) -> tuple[int, int, int]:
-    """Count citation links without double-counting chunk and page aliases."""
+    """Count proved gold spans; one source citation can prove several spans."""
     gold_items = [item for item in gold.get("evidence", []) if isinstance(item, dict)]
     predicted_ids = set(str(item) for item in predicted.get("citation_ids", predicted.get("evidence_ids", [])) if item)
     predicted_items = [item for item in row.get("citations", [])
@@ -278,13 +278,18 @@ def _link_counts(row: dict, predicted: dict, gold: dict, *,
     matched = 0
     unused = set(range(len(gold_items)))
     for citation in predicted_items:
+        proved = 0
         for index in tuple(unused):
             evidence = gold_items[index]
             if _citation_matches_evidence(citation, evidence, str(gold.get('text', '')),
                                           allow_reviewed_source_subspan=allow_reviewed_source_subspan):
                 matched += 1
+                proved += 1
                 unused.remove(index)
-                break
+        # Keep the gold-span denominator unchanged. Credit each additional
+        # span only after validating its full quote and physical coordinates;
+        # a duplicate or irrelevant citation still adds an unmatched link.
+        predicted_count += max(0, proved - 1)
     return gold_count, predicted_count, matched
 
 

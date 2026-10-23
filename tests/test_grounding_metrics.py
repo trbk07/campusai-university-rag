@@ -9,6 +9,36 @@ from campusai.rag.evidence import EvidenceRegistry
 from campusai.retrieval.hybrid import RetrievalResult
 
 
+def test_one_citation_must_cover_every_reviewed_span_of_a_multi_evidence_claim():
+    from copy import deepcopy
+    from evaluation.grounding.grounding_metrics import _link_counts, is_grounded_answer
+    statement = 'Candidates must use both systems.'
+    gold = {'text': statement, 'evidence': [
+        {'doc_id': 'd', 'page': 4, 'quote': 'Register on both systems.'},
+        {'doc_id': 'd', 'page': 4, 'quote': 'Use the university system.'},
+        {'doc_id': 'd', 'page': 4, 'quote': 'Use the Ministry system.'}]}
+    predicted = {'text': statement, 'status': 'supported', 'citation_ids': ['page-four']}
+    row = {'answerable': True, 'claims': [predicted], 'gold_claims': [gold], 'citations': [
+        {'chunk_id': 'page-four', 'doc_id': 'd', 'page': 4,
+         'quote': 'Register on both systems. Use the university system. Use the Ministry system.'}]}
+    assert _link_counts(row, predicted, gold) == (3, 3, 3)
+    assert is_grounded_answer(row)
+    report = evaluate_grounding([row])
+    assert report['claim_citation_precision'] == report['claim_citation_recall'] == 1.0
+    partial = deepcopy(row)
+    partial['citations'][0]['quote'] = 'Use the university system.'
+    assert _link_counts(partial, predicted, gold) == (3, 1, 1)
+    assert not is_grounded_answer(partial)
+    wrong_page = deepcopy(row)
+    wrong_page['citations'][0]['page'] = 5
+    assert _link_counts(wrong_page, predicted, gold) == (3, 1, 0)
+    duplicate = deepcopy(row)
+    duplicate['citations'].append({**row['citations'][0], 'chunk_id': 'redundant'})
+    duplicate['claims'][0]['citation_ids'].append('redundant')
+    assert _link_counts(duplicate, duplicate['claims'][0], gold) == (3, 4, 3)
+    assert evaluate_grounding([duplicate])['claim_citation_precision'] == .75
+
+
 def test_metrics_do_not_trust_self_reported_supported_status():
     report = evaluate_grounding([{
         "answerable": True,

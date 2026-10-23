@@ -695,6 +695,11 @@ class GroundedAnswerGenerator:
             calibrator=self.calibrator) if pdf_documents is None else None)
         if calculated is not None:
             return calculated
+        if pdf_documents is None and multi_hop_context is None and temporal_context is None:
+            from .admission_facts import deterministic_admission_fact
+            calculated = deterministic_admission_fact(question, results, language, calibrator=self.calibrator)
+            if calculated is not None:
+                return calculated
         from .footnotes import deterministic_footnote_fact
         calculated = deterministic_footnote_fact(question, results, language, calibrator=self.calibrator)
         if calculated is not None:

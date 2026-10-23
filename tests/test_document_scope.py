@@ -204,6 +204,46 @@ def test_top_k_absence_stays_provisional_without_complete_scope(tmp_path):
         service.close()
 
 
+def test_empty_selected_retrieval_can_recover_from_one_checked_full_source_call(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [])
+    service.retriever.result = []
+    llm.payloads = iter([{'answer': 'The library closes at midnight.', 'confidence': 'high',
+        'abstained': False, 'citations': [{'chunk_id': f'{doc_id}_physical_page_2', 'page': 2,
+        'quote': 'The library closes at midnight.'}]}])
+    try:
+        result = ask_scope(service, doc_id)
+        assert not result.abstained and result.source_scope_checked
+        assert result.citations[0].page == 2 and len(llm.prompts) == 1
+        assert 'COMPLETE CHECKED DOCUMENT TEXT SCOPE' in llm.prompts[0]
+    finally:
+        service.close()
+
+
+def test_empty_retrieval_is_not_automatically_certified_as_document_absence(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [absent()])
+    service.retriever.result = []
+    try:
+        result = ask_scope(service, doc_id)
+        assert result.reason == 'document_does_not_mention' and result.source_scope_checked
+        assert len(llm.prompts) == 1
+    finally:
+        service.close()
+
+
+@pytest.mark.parametrize('scope_change', ['no_reader', 'filtered', 'unselected'])
+def test_missing_evidence_keeps_its_reason_without_an_authorized_complete_scope(tmp_path, scope_change):
+    service, llm, doc_id, _path = scope_service(tmp_path, [], configured=scope_change != 'no_reader')
+    service.retriever.result = []
+    try:
+        result = service.ask(QUESTION, doc_ids=None if scope_change == 'unselected' else [doc_id],
+            filters={'program': 'Other'} if scope_change == 'filtered' else None,
+            language='en', corpus_version='offline-fixed-index')
+        assert result.reason == 'no_retrieval_evidence' and not result.source_scope_checked
+        assert len(llm.prompts) == 0
+    finally:
+        service.close()
+
+
 def test_vector_graphics_require_visual_scope_and_pdf_parts_keep_exact_source(tmp_path):
     import base64
     store,doc_id,path=source(tmp_path,('A page with a diagram not represented by its text.',),image='drawing')

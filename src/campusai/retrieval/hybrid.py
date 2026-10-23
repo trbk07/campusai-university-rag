@@ -364,6 +364,17 @@ class HybridRetriever:
             records = {key: records[key] for key in outcome_pool[0]}
             search_query += ' ' + ' '.join(outcome_pool[1])
         from ..rag.table_fields import admission_candidates, admission_field_request
+        from ..rag.admission_facts import admission_fact_candidates
+        fact_ids = (admission_fact_candidates(query, records) if len(doc_ids) == 1
+                    and mode in {'auto', 'hybrid', 'hybrid_rrf'} and not _candidate_generation else None)
+        if fact_ids and len(fact_ids) > top_k:
+            self.last_trace = RoutingTrace(route=route, detected_codes=codes,
+                filters_applied=bool(normalized_filters), abstained=True,
+                abstention_reason='ambiguous_source_field', candidate_count=len(fact_ids), final_count=0)
+            return []
+        if fact_ids and len(fact_ids) <= top_k:
+            eligible_ids = set(fact_ids)
+            records = {key: records[key] for key in fact_ids}
         field_ids = (admission_candidates(query, records) if len(doc_ids) == 1
                      and mode in {'auto', 'hybrid', 'hybrid_rrf', 'exact_code'} and not _candidate_generation else None)
         if field_ids is not None:
@@ -501,6 +512,12 @@ class HybridRetriever:
             label = "hybrid_rrf" if effective_mode == "hybrid_rrf" else "hybrid"
         fusion_ms = (time.perf_counter() - fusion_started) * 1000
         ranked = [(item_id, score) for item_id, score in ranked if item_id in records]
+        if fact_ids and len(fact_ids) <= top_k:
+            # A literal field and its year heading are direct source proofs,
+            # even when English query terms have no BM25 hits in Vietnamese.
+            # Include every alternative so grounding can detect conflicts.
+            scores = dict(ranked)
+            ranked = [(item_id, scores.get(item_id, 1.0)) for item_id in fact_ids]
         if semester_ids:
             # A named semester in a source table is a stronger anchor than a
             # document-wide metadata header copied onto unrelated chunks.

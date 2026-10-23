@@ -1,0 +1,88 @@
+{
+  "kind": "strict-captured-response-replay",
+  "diagnostic_only": true,
+  "source_identity": {
+    "commit": "211ea4a38a92c498d62f19d18dd4b73d9fc60763",
+    "source_sha256": "ab42c25611780939457fbe7b30e8550f8e1611443a0e4601e0611143ce0f29e0",
+    "runtime_sha256": "3d27d7dba5e892e65a9f427e6de2d0c25e2e4e2a63d56bc9ddf4686cf2dc5614"
+  },
+  "source_worktree_dirty_at_execution": true,
+  "new_provider_posts": 0,
+  "official_native_predictions": 0,
+  "attempted_records": 66,
+  "replayable_records": 65,
+  "reused_responses": 18,
+  "prompt_mismatches": [],
+  "requires_fresh_inference": [
+    "phase5-fresh-test-008"
+  ],
+  "metrics": {
+    "records": 65,
+    "excluded_native_failures": 0,
+    "claim_count": 63,
+    "predicted_claim_count": 63,
+    "matched_predicted_claim_count": 63,
+    "gold_claim_count": 63,
+    "matched_gold_claim_count": 63,
+    "grounded_claim_precision": 1.0,
+    "grounded_claim_recall": 1.0,
+    "unsupported_claim_leakage": 0.0,
+    "contradicted_claim_leakage": 0.0,
+    "citation_precision": 1.0,
+    "citation_coordinate_validity": 1.0,
+    "citation_recall": 1.0,
+    "citation_completeness": 1.0,
+    "claim_citation_precision": 1.0,
+    "claim_citation_recall": 1.0,
+    "claim_citation_f1": 1.0,
+    "abstention_precision": 1.0,
+    "abstention_recall": 1.0,
+    "reason_accuracy": 0.666667,
+    "brier_score": 0.003161,
+    "ece": 0.028567,
+    "calibration_count": 65,
+    "schema_invalid_rate": 0.0,
+    "abstention_reason_counts": {
+      "contradicted_claim": 1,
+      "ambiguous_question": 1,
+      "document_does_not_mention": 1
+    },
+    "denominators": {
+      "records": 65,
+      "predicted_claims": 63,
+      "gold_claims": 63,
+      "citations": 62,
+      "gold_citation_links": 65,
+      "predicted_citation_links": 65,
+      "predicted_abstentions": 3,
+      "gold_abstentions": 3,
+      "abstention_reasons": 3
+    }
+  },
+  "remaining_issues": [
+    {
+      "id": "phase5-fresh-test-007",
+      "answer": "The available evidence contradicts the proposed answer.",
+      "reason": "contradicted_claim",
+      "expected_reason": "document_does_not_mention",
+      "claims": [],
+      "metrics": {
+        "grounded_claim_precision": 0.0,
+        "grounded_claim_recall": 0.0,
+        "citation_precision": 0.0
+      }
+    }
+  ],
+  "raw_captures": [
+    {
+      "path": "evaluation\\results\\phase5-current-source-e6134dc-qualification-20261023\\test-native-key-1\\raw-model.jsonl",
+      "sha256": "30720027d73b5f0c5cead3978e1c6f28a4b0fdc0c6753e8165d98a7cae9a2a6d"
+    },
+    {
+      "path": "evaluation\\results\\phase5-current-source-e6134dc-qualification-20261023\\test-native-key-2\\raw-model.jsonl",
+      "sha256": "8f45d50a92cc27d4b8660d0d2d09e214bba40152071306cfdbf8ce05b85ee541"
+    }
+  ],
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "index_manifest_sha256": "13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a"
+}

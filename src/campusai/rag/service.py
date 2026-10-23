@@ -669,7 +669,11 @@ class CampusAIQueryService:
             transient_fallback = selected_mode == "phase7" and getattr(trace, "rerank_reason", None) in {
                 "queue_full", "reranker_timeout", "model_not_ready", "reranker_unavailable",
                 "reranker_submit_failed", "reranker_drain_failed"}
-            if answer.document_absence_requested and composition.kind == 'single':
+            missing_selected_evidence = (bool(doc_ids) and not results
+                and selected_mode in {'auto', 'hybrid', 'hybrid_rrf'}
+                and answer.reason == 'no_retrieval_evidence'
+                and self.document_scope_reader is not None)
+            if (answer.document_absence_requested or missing_selected_evidence) and composition.kind == 'single':
                 answer = self._audit_document_absence(answer)
             if not transient_fallback and not answer.document_absence_requested and not answer.source_scope_checked:
                 self.cache.put(key, answer)

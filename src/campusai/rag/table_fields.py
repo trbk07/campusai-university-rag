@@ -153,7 +153,9 @@ def deterministic_admission_field(question, results, language, *, calibrator=Non
         answer = (f'Mã ngành của mã xét tuyển {code} là {value}.' if kind == 'discipline'
                   else f'Chỉ tiêu tuyển sinh của mã {code} là {value}.')
     # This is a checked source-column projection, not a provider support label.
-    claim = Claim('1', answer, 'numeric_fact', 1, (result.chunk_id,), 'supported', 1.0, (result.chunk_id,), False)
+    claim_text = (f'{code} admission quota is {value}.'
+                  if kind == 'quota' and language.casefold().startswith('en') else answer)
+    claim = Claim('1', claim_text, 'numeric_fact', 1, (result.chunk_id,), 'supported', 1.0, (result.chunk_id,), False)
     confidence = score_confidence(retrieval_support=max(0., min(1., result.score)),
         claim_entailment=1., citation_completeness=1., calibrator=calibrator)
     return GroundedAnswer(answer=answer, citations=(citation,), confidence=confidence.label,
