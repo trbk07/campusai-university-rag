@@ -45,7 +45,7 @@ def normalize_options(options):
 
 
 def job_identity(digest,options):
-    return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options},
+    return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,'text_coverage_version':1},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 

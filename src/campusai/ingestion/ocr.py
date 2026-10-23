@@ -51,29 +51,33 @@ def ocr_pdf(
     max_pages: int = 50,
     timeout_seconds: float = 120.0,
     scale: float = 1.5,
+    page_numbers: list[int] | None = None,
 ) -> OCRDocument:
     """OCR a bounded number of pages using the local RapidOCR ONNX backend."""
 
     if max_pages <= 0 or timeout_seconds <= 0 or scale <= 0:
         raise ValueError("OCR limits must be positive")
-    try:
-        from rapidocr_onnxruntime import RapidOCR
-    except ImportError as error:  # pragma: no cover - environment dependent
-        raise OCRUnavailable("install rapidocr-onnxruntime to enable OCR") from error
-
     started = time.perf_counter()
-    engine = RapidOCR()
     pages: list[dict[str, object]] = []
     confidences: list[float] = []
     with fitz.open(Path(path)) as document:
-        if document.page_count > max_pages:
+        selected = list(range(1, document.page_count + 1)) if page_numbers is None else list(page_numbers)
+        if (not selected or any(type(number) is not int or not 1 <= number <= document.page_count for number in selected)
+                or len(set(selected)) != len(selected)):
+            raise ValueError('OCR page numbers must be unique physical pages in the PDF')
+        if len(selected) > max_pages:
             raise OCRLimitExceeded(
-                f"OCR page limit exceeded: {document.page_count}>{max_pages}"
+                f"OCR page limit exceeded: {len(selected)}>{max_pages}"
             )
-        for page_number, page in enumerate(document, start=1):
+        try:
+            from rapidocr_onnxruntime import RapidOCR
+        except ImportError as error:  # pragma: no cover - environment dependent
+            raise OCRUnavailable("install rapidocr-onnxruntime to enable OCR") from error
+        engine = RapidOCR()
+        for page_number in selected:
             if time.perf_counter() - started > timeout_seconds:
                 raise OCRLimitExceeded("OCR time limit exceeded")
-            pixmap = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
+            pixmap = document[page_number - 1].get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
             image = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(
                 pixmap.height, pixmap.width, pixmap.n
             )

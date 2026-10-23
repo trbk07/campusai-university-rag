@@ -32,7 +32,10 @@ def parse_pdf(
         total_pages = max(1, len(document))
         for page_number, page in enumerate(document, start=1):
             lines: list[dict[str, Any]] = []
-            for block in page.get_text("dict").get("blocks", []):
+            # Image bytes are not used by text/layout extraction. Keeping them
+            # materializes embedded scans for every page and concurrent worker.
+            flags = fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES
+            for block in page.get_text("dict", flags=flags).get("blocks", []):
                 for line in block.get("lines", []):
                     spans = line.get("spans", [])
                     text = "".join(str(span.get("text", "")) for span in spans).strip()
@@ -42,7 +45,8 @@ def parse_pdf(
                     lines.append({"text": text, "font_size": round(size, 1),
                                   "bold": any("bold" in str(span.get("font", "")).lower() for span in spans)})
                     body_font_sizes.append(size)
-            raw_pages.append({"page": page_number, "lines": lines})
+            requires_ocr = not lines and bool(page.get_image_info() or page.get_drawings())
+            raw_pages.append({"page": page_number, "lines": lines, "requires_ocr": requires_ocr})
             if progress is not None:
                 progress(page_number / total_pages)
     finally:
@@ -50,6 +54,7 @@ def parse_pdf(
     body_median = statistics.median(body_font_sizes) if body_font_sizes else 0.0
     return [{
         "page": raw["page"],
+        "requires_ocr": raw["requires_ocr"],
         "text": "\n".join(line["text"] for line in raw["lines"]),
         "lines_meta": [{**line, "is_larger_font": bool(body_median and line["font_size"] > body_median * 1.08)} for line in raw["lines"]],
     } for raw in raw_pages]

@@ -88,12 +88,16 @@ export async function refreshDocuments() {
   } catch (error) { state.error = errorText(error); }
   finally { refreshing = false; state.loading = false; renderAll(); schedulePoll(); }
 }
+function reviewNotice(doc) {
+  if (doc.unread_pages?.length) return `Cần OCR để đọc đủ nội dung tại trang ${doc.unread_pages.slice(0,12).join(', ')}${doc.unread_pages.length > 12 ? '…' : ''}. Tài liệu chưa sẵn sàng để hỏi đáp; bạn vẫn có thể xem PDF gốc.`;
+  return 'Tài liệu chưa sẵn sàng để hỏi đáp. PDF scan cần OCR/kiểm tra thêm; tài liệu đã đọc cần có chỉ mục hoàn chỉnh.';
+}
 async function detail(id) {
   showDialog('detail-dialog'); $('#detail-content').textContent = 'Đang tải thông tin...';
   try {
     const {document:doc} = await request(`/api/documents/${encodeURIComponent(id)}`);
     const metadata = Object.entries(doc.metadata).map(([key,value]) => `<dt>${esc({document_type:'Loại tài liệu',academic_year:'Năm học',program:'Chương trình',university:'Đơn vị',version:'Phiên bản',semester:'Học kỳ'}[key] || key)}</dt><dd>${esc(value)}</dd>`).join('');
-    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready ? '<div class="notice">Tài liệu chưa sẵn sàng để hỏi đáp. PDF scan cần OCR/kiểm tra thêm; tài liệu đã đọc cần có chỉ mục hoàn chỉnh.</div>' : ''}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
+    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready ? `<div class="notice">${esc(reviewNotice(doc))}</div>` : ''}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
   } catch (error) { $('#detail-content').textContent = errorText(error); }
 }
 export async function preview(id, page = 1, citation = null) {

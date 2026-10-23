@@ -100,6 +100,7 @@ def ingest_document(
             parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1"}
             and document.metadata.get("chunker_version") == CHUNKER_VERSION
             and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
+            and document.metadata.get("text_coverage_version") == 1
         )
         if enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
@@ -128,88 +129,46 @@ def ingest_document(
     )
     report_progress("parsing", 1.0)
     ocr_info = None
-    if not any(str(page.get("text", "")).strip() for page in pages) and enable_ocr:
-        report_progress("ocr", 0.0)
+    unread_pages = [int(page['page']) for page in pages if page.get('requires_ocr')]
+    if not unread_pages and not any(str(page.get('text', '')).strip() for page in pages):
+        unread_pages = [int(page['page']) for page in pages]
+    review_reason, review_warning = 'ocr_required', None
+    if unread_pages and enable_ocr:
+        report_progress('ocr', 0.0)
         try:
-            ocr_result = ocr_pdf(
-                pdf_path,
-                max_pages=ocr_max_pages,
-                timeout_seconds=ocr_timeout_seconds,
-            )
-            pages = ocr_result.pages
-            ocr_info = {
-                "engine": ocr_result.engine,
-                "average_confidence": ocr_result.average_confidence,
-                "elapsed_seconds": ocr_result.elapsed_seconds,
-                "pages": len(ocr_result.pages),
-            }
-            report_progress("ocr", 1.0)
+            ocr_result = ocr_pdf(pdf_path, max_pages=ocr_max_pages,
+                timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages)
+            recognized = {page['page']: page for page in ocr_result.pages
+                          if page.get('page') in unread_pages and str(page.get('text', '')).strip()}
+            pages = [{**recognized[page['page']], 'lines_meta': [], 'requires_ocr': False}
+                     if page['page'] in recognized else page for page in pages]
+            ocr_info = {'engine': ocr_result.engine, 'average_confidence': ocr_result.average_confidence,
+                'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
+                'page_numbers': sorted(recognized)}
+            unread_pages = [number for number in unread_pages if number not in recognized]
+            report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
-            metadata = detect_metadata("")
-            metadata.update(
-                {
-                    "source_name": pdf_path.name,
-                    "source_hash": document_id,
-                    "parser_version": "pymupdf-text-v1",
-                    "chunker_version": CHUNKER_VERSION,
-                    "table_extractor_version": TABLE_EXTRACTOR_VERSION,
-                    "schema_version": 1,
-                    "status": "review_required",
-                    "review_reason": "ocr_unavailable",
-                    "warnings": ["no_extractable_text", "ocr_unavailable", str(error)],
-                }
-            )
-            document = Document(
-                doc_id=document_id,
-                source_path=str(pdf_path.resolve()),
-                page_count=validation.pages,
-                language=None,
-                metadata=metadata,
-                chunks=[],
-                tables=[],
-                status="review_required",
-                review_reason="ocr_unavailable",
-            )
-            atomic_text(metadata_path,
-                json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
-                encoding="utf-8",
-            )
-            registry.add(document)
-            report_progress("review_required", 1.0)
-            return document
-    if not any(str(page.get("text", "")).strip() for page in pages):
-        report_progress("detecting_metadata", 0.0)
-        metadata = detect_metadata("")
-        metadata.update(
-            {
-                "source_name": pdf_path.name,
-                "source_hash": document_id,
-                "parser_version": "pymupdf-text-v1",
-                "chunker_version": CHUNKER_VERSION,
-                "table_extractor_version": TABLE_EXTRACTOR_VERSION,
-                "schema_version": 1,
-                "status": "review_required",
-                "review_reason": "ocr_required",
-                "warnings": ["no_extractable_text", "ocr_required"],
-            }
-        )
-        document = Document(
-            doc_id=document_id,
-            source_path=str(pdf_path.resolve()),
-            page_count=validation.pages,
-            language=None,
-            metadata=metadata,
-            chunks=[],
-            tables=[],
-            status="review_required",
-            review_reason="ocr_required",
-        )
-        atomic_text(metadata_path,
-            json.dumps(document.to_dict(), ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+            review_reason, review_warning = 'ocr_unavailable', str(error)
+    if unread_pages:
+        metadata = detect_metadata('')
+        warnings = ['unread_pages', review_reason]
+        if not any(str(page.get('text', '')).strip() for page in pages):
+            warnings.append('no_extractable_text')
+        if review_warning:
+            warnings.append(review_warning)
+        metadata.update({'source_name': pdf_path.name, 'source_hash': document_id,
+            'parser_version': 'pymupdf-text-v1', 'chunker_version': CHUNKER_VERSION,
+            'table_extractor_version': TABLE_EXTRACTOR_VERSION, 'text_coverage_version': 1,
+            'schema_version': 1, 'status': 'review_required', 'review_reason': review_reason,
+            'warnings': warnings, 'unread_pages': unread_pages})
+        if ocr_info is not None:
+            metadata['ocr'] = ocr_info
+        document = Document(doc_id=document_id, source_path=str(pdf_path.resolve()),
+            page_count=validation.pages, language=None, metadata=metadata, chunks=[], tables=[],
+            status='review_required', review_reason=review_reason)
+        atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
         registry.add(document)
-        report_progress("review_required", 1.0)
+        report_progress('review_required', 1.0)
         return document
     full_text = "\n\n".join(
         f"## Page {page['page']}\n{page['text']}" for page in pages
@@ -222,6 +181,7 @@ def ingest_document(
     metadata["chunker_version"] = CHUNKER_VERSION
     metadata["table_extractor_version"] = TABLE_EXTRACTOR_VERSION
     metadata["schema_version"] = 1
+    metadata["text_coverage_version"] = 1
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
         metadata["parser_version"] = "rapidocr-onnx-v1"
@@ -247,7 +207,7 @@ def ingest_document(
     chunk_diagnostics: dict = {}
     chunks = make_chunks(pages, document_id, metadata, tables, diagnostics=chunk_diagnostics)
     metadata["chunk_diagnostics"] = chunk_diagnostics
-    metadata["warnings"] = validation.warnings
+    metadata["warnings"] = list(dict.fromkeys([*metadata.get("warnings", []), *validation.warnings]))
     report_progress("chunking", 1.0)
 
     document = Document(

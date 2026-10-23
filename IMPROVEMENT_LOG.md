@@ -25,3 +25,38 @@ browser checks passed. Details and measurement limits are in
 
 Next priorities: representative large/scan PDF latency and memory; live answer
 quality remains tracked by Phase 5. The full-app goal stays active.
+
+## 2026-10-23 — mixed PDF correctness and parser memory
+
+Reproduced four failures before repair: scan page undetected, mixed document
+incorrectly succeeded, scan content omitted despite OCR opt-in, and empty OCR
+output accepted. The parser now excludes unused image bytes and marks no-text
+pages containing images/vector content. The pipeline requests bounded OCR only
+for those physical pages, preserves native page content, and rejects incomplete
+OCR. Blank pages in mixed documents need no OCR. OCR warnings survive metadata
+assembly; old extraction caches and job identities cannot bypass the new policy.
+
+Legacy ready sources without coverage metadata receive a cached local page audit;
+incomplete documents cannot enter query scope. Document details explain which
+pages need OCR. Existing fully readable PDFs avoid re-embedding. Web OCR opt-in
+controls remain QA-05, not implicitly completed by this backend fix.
+
+Focused PDF/web/job regression: 52 PASS. Real local OCR recovered the expected
+advisor text on physical page 2 while preserving page 1. Parser benchmark on
+five real PDFs/104 pages: median wall 0.8493 to 0.1194 s, sampled peak RSS
+93,302,784 to 76,345,344 bytes; exact native text/layout hashes unchanged.
+See PERFORMANCE_REPORT.md for scope and measurement limits. No provider egress.
+
+Final worktree regression: **2,376 PASS, 2 opt-in live SKIP** in 255.80 s;
+focused 52 PASS. Exact staged Git source exported without local files:
+**106 app tests PASS** in 11.68 s. Preserve final JUnit and parser-run evidence;
+remove intermediate stores/exports. Full-app goal remains active: end-to-end
+OCR/index resource measurements, partially text-bearing scan pages, OCR/table
+quality, UI OCR opt-in and native model quality still require work.
+
+Final worktree regression: **2,376 PASS, 2 opt-in live SKIP** in 255.80 s;
+focused 52 PASS. Exact staged Git source exported without local files:
+**106 app tests PASS** in 11.68 s. Preserve final JUnit and parser-run evidence;
+remove intermediate stores/exports. Full-app goal remains active: end-to-end
+OCR/index resource measurements, partially text-bearing scan pages, OCR/table
+quality, UI OCR opt-in and native model quality still require work.

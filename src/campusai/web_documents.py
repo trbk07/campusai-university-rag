@@ -123,6 +123,7 @@ class WebDocuments:
         # source cannot disappear while an answer is being grounded.
         self.corpus_lock = CorpusAccessLock()
         self.responses: dict[str, tuple[float, set[str]]] = {}
+        self._legacy_coverage = {}
 
     @property
     def registry(self):
@@ -154,8 +155,25 @@ class WebDocuments:
         except WebError:
             pass
         meta = record.get("metadata", {})
+        unread = list(meta.get('unread_pages', []))
+        # Older indexes may have silently skipped image-only pages in mixed
+        # PDFs. Audit their immutable local source once, without re-embedding
+        # already readable native PDFs or trusting an old success flag.
+        if (available and record.get('status') == 'succeeded'
+                and meta.get('text_coverage_version') != 1
+                and meta.get('parser_version') != 'rapidocr-onnx-v1'):
+            stat = source.stat()
+            identity = (stat.st_mtime_ns, stat.st_size)
+            cached = self._legacy_coverage.get(doc_id)
+            if cached is None or cached[0] != identity:
+                from .ingestion.docling_parser import parse_pdf
+                unread = [page['page'] for page in parse_pdf(source) if page.get('requires_ocr')]
+                self._legacy_coverage[doc_id] = (identity, unread)
+            else:
+                unread = cached[1]
         ready = record.get("status") == "succeeded" and self.index is not None and all(
             contained(self.index, self.index / doc_id / name).is_file() for name in ("bm25.json", "dense.json"))
+        ready = ready and not unread
         safe_meta = {key: meta[key] for key in ("document_type", "academic_year", "program", "university", "version", "semester")
                      if isinstance(meta.get(key), (str, int))}
         if latest_job is ...:
@@ -163,7 +181,9 @@ class WebDocuments:
         if latest_job is not None and (latest_job['state'] != 'succeeded' or not latest_job.get('ready')):
             ready = False
         return {"doc_id": doc_id, "name": source.name, "page_count": record.get("page_count", 0),
-                "metadata": safe_meta, "ready": ready, "status": "ready" if ready else record.get("status", "review_required"),
+                "metadata": safe_meta, "ready": ready, "status": "review_required" if unread else "ready" if ready else record.get("status", "review_required"),
+                "review_reason": 'ocr_required' if unread else record.get('review_reason'),
+                "unread_pages": unread,
                 "file_available": available, "size_bytes": source.stat().st_size if available else None,
                 "uploaded_at": source.stat().st_mtime if available else None}
 
@@ -455,6 +475,7 @@ class WebDocuments:
         except WebError:
             pass
         delete_document_full(doc_id, store_dir=self.store, index_dir=self.index, registry=self.registry)
+        self._legacy_coverage.pop(doc_id, None)
         retriever = self.application.query_service.retriever
         remove = getattr(retriever, "remove_document", None)
         if remove:
