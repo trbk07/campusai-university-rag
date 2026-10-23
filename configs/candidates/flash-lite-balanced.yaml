@@ -1,0 +1,28 @@
+# Candidate only: activate after Free Tier confirmation and live qualification.
+# Same existing owner credential; no key rotation or paid fallback.
+llm:
+  provider: gemini
+  model: gemini-3.5-flash-lite
+  api_key_env: GEMINI_API_KEY
+  timeout_seconds: 20
+  max_retries: 0
+  json_mode: native
+  overload_circuit_path: .tmp/gemini-provider-health.sqlite3
+  requests_per_minute: 3
+  cache_path: ':memory:'
+  quota:
+    state_path: data/operations/flash-lite-quota.sqlite3
+    scope: gemini:owner:gemini-3.5-flash-lite
+    max_in_flight: 1
+    max_wait_seconds: 20
+  generation_config:
+    temperature: 1
+    maxOutputTokens: 1536
+    thinkingConfig:
+      thinkingLevel: minimal
+
+# Broader evidence coverage within a smaller prompt budget; no new API calls.
+rag:
+  context_candidates: 8
+  max_context_chars: 8000
+  balanced_context: true

@@ -1,5 +1,5 @@
 {
-  "status": "CURRENT_SOURCE_FROZEN_NATIVE_DEV_IN_PROGRESS",
+  "status": "CURRENT_SOURCE_DEV_STOPPED_AT_HTTP503_RECOVERY_PERMISSION_PENDING",
   "updated_at": "2026-10-23",
   "completed_tasks": 7,
   "total_tasks": 10,
@@ -18,8 +18,8 @@
     "P5-07"
   ],
   "remaining_tasks": {
-    "P5-08": "Baseline389/400 outcomes; HTTP429 at observed500/day; quality failed. Repaired source needs complete native qualification.",
-    "P5-09": "Validator implementation regression PASS; required quality/calibration PASS absent.",
+    "P5-08": "Current frozen r4: 67 valid dev cases, one HTTP503 at draft-0551; 53 dev rows remain including that failure. Explicit recovery permission pending. Test/holdout not started; calibration not fitted.",
+    "P5-09": "400 current-source valid outcomes and pinned dev-only calibration are still required; physical annotation validation PASS and partial quality are not release PASS.",
     "P5-10": "Current handoff and cleanup updated; final10/10 closure depends on quality gates."
   },
   "acceptance_scope": "phase5_acceptance",
@@ -2023,9 +2023,40 @@
     "candidate": ".release/grounding/phase5-acceptance-candidate-r4",
     "dev_egress_sha256": "0ab4dd33f612a8735d802093c9c4a21009ff49f63193c3f5294b027278d14345",
     "dev_http_cap": 207,
-    "status": "running",
+    "status": "awaiting_explicit_503_recovery_permission",
     "heldout_egress_sha256": "790bdf1ed9df06c5006c008246431cf161df9ed4270f119cf4d35c76a4919639",
     "heldout_http_cap": 735,
-    "calibration": "pending dev completion"
+    "calibration": "pending dev completion",
+    "dev_pipeline_outcomes": 68,
+    "dev_valid_completed_prefix": 67,
+    "dev_fresh_model_outputs_successful": 45,
+    "dev_completed_prefix_fresh_model_outputs": 44,
+    "dev_posts_spent": 55,
+    "dev_failed_case": "draft-0551",
+    "dev_failure_http_status": 503,
+    "dev_remaining_records_including_failed": 53,
+    "dev_recovery_new_call_cap": 152,
+    "dev_recovery_egress_sha256": "36ef57c78747795df53f9893c5f19cd7d91667ed608fb5d305369c2958fcaae4",
+    "parent_native_run": ".release\\grounding\\phase5-acceptance-candidate-r4\\evaluation\\results\\phase5-final-qualification-20261023\\dev-native\\run.json",
+    "parent_native_run_sha256": "81b9e6d447c8028e03bdb00089d04b2210436918d96098cc8dc1a2990964f9d0",
+    "completed_prefix_run": ".release\\grounding\\phase5-acceptance-candidate-r4\\evaluation\\results\\phase5-final-qualification-20261023\\dev-completed-prefix\\run.json",
+    "completed_prefix_run_sha256": "2e6ff1651a0a353a21edffccacf594cc77b2fef20e66176c1bfffbdbb0fc04a3",
+    "prefix_is_byte_identical": true,
+    "source_bundle_path": ".local_artifacts/experiment_runs/phase5-frozen-r4/source.bundle",
+    "source_bundle_sha256": "023a431f0eee135da0c2918b78b43e4111ec6d7882706ea4205f878883bab355"
+  },
+  "partial_dev_diagnostic": {
+    "scope": "67 completed dev cases only; not release qualification",
+    "metrics": {
+      "grounded_claim_precision": 1.0,
+      "grounded_claim_recall": 1.0,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "reason_accuracy": 0.972973,
+      "unsupported_claim_leakage": 0.0
+    },
+    "full_population_release_status": "BLOCKED"
   }
 }

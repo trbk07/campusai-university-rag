@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "profile": "oci-a1-owner",
+  "paths": {
+    "state_root": "/var/lib/campusai",
+    "model_cache": "/var/cache/campusai/models",
+    "config_root": "/etc/campusai",
+    "release_root": "/opt/campusai/releases/REPLACE_RELEASE_ID"
+  },
+  "http": {
+    "bind": "127.0.0.1",
+    "port": 8000,
+    "threads": 4,
+    "allowed_host": "campusai.REPLACE_TAILNET.ts.net",
+    "origin": "https://campusai.REPLACE_TAILNET.ts.net",
+    "query_concurrency": 1
+  },
+  "workers": {"ingestion": 1, "pending": 2},
+  "provider": {
+    "name": "gemini",
+    "model": "gemini-3.8-flash",
+    "timeout_seconds": 15,
+    "max_retries": 0
+  },
+  "dense": {
+    "model": "BAAI/bge-m3",
+    "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "manifest_sha256": "REPLACE_VERIFIED_MODEL_MANIFEST_SHA256",
+    "device": "cpu"
+  },
+  "runtime": {
+    "python": "3.12",
+    "architecture": "aarch64",
+    "lock_sha256": "REPLACE_VERIFIED_RUNTIME_LOCK_SHA256",
+    "cpu_threads": 2
+  },
+  "budget": {"rpm": 5, "input_tpm": 20000, "rpd": 100, "tokens_per_day": 200000},
+  "storage": {"limit_bytes": 10737418240, "maximum_volume_fraction": 0.8, "require_mount": true},
+  "features": {"reranker": false, "knowledge_graph": false}
+}
