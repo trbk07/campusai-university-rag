@@ -184,6 +184,8 @@ class WebDocuments:
                 "metadata": safe_meta, "ready": ready, "status": "review_required" if unread else "ready" if ready else record.get("status", "review_required"),
                 "review_reason": 'ocr_required' if unread else record.get('review_reason'),
                 "unread_pages": unread,
+                "ocr_available": self.application.jobs is not None and available and not ready
+                    and bool(unread or record.get('review_reason') in {'ocr_required','ocr_unavailable'}),
                 "file_available": available, "size_bytes": source.stat().st_size if available else None,
                 "uploaded_at": source.stat().st_mtime if available else None}
 
@@ -400,6 +402,31 @@ class WebDocuments:
             if directory.is_dir() and not any(directory.iterdir()):
                 directory.rmdir()
         return {'ok':True,'job':self.public_job(self.application.jobs.get(job_id),environ)}
+
+    def ocr(self, doc_id, environ):
+        record = self.record(doc_id, environ)
+        public = self.public_document(record)
+        if self.application.jobs is None:
+            raise WebError('jobs_not_configured', 503)
+        if not public['ocr_available']:
+            raise WebError('ocr_unavailable', 409)
+        if any(job.get('document_id') == doc_id and job['state'] in {'staging','queued','running'}
+               for job in self.application.jobs_snapshot()['jobs']):
+            raise WebError('document_busy', 409)
+        options = {**self.application.ingestion_defaults, 'enable_ocr': True}
+        options['ocr_max_pages'] = min(options.get('ocr_max_pages', 50), 50)
+        options['ocr_timeout_seconds'] = min(options.get('ocr_timeout_seconds', 120.0), 120.0)
+        if len(public['unread_pages']) > options['ocr_max_pages']:
+            raise WebError('ocr_page_limit', 413)
+        source = self.source(doc_id, environ)
+        try:
+            job_id = self.application.jobs.submit(source, expected_sha256=doc_id,
+                reprocess_review=True, **options)
+        except JobQueueFull:
+            raise WebError('ingestion_busy', 429, 2) from None
+        except ValueError:
+            raise WebError('job_source_changed', 409) from None
+        return {'ok': True, 'job': self.public_job(self.application.jobs.get(job_id), environ)}
 
     def job_action(self, job_id, action, environ):
         job = self.application.job(job_id).get("job")

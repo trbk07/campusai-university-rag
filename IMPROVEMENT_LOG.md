@@ -71,6 +71,36 @@ staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
 the earlier 2,376-test receipt remains in commit `12ed6bd9`. Live local backend
 coverage fields and exact UTF-8 frontend asset bytes were verified after restart.
 
+## 2026-10-23 — manual local OCR in the web app
+
+Added the document-detail OCR action for scan/mixed PDFs in review. It schedules
+bounded local work on the existing source (no second upload), preserves native
+pages and job history, and allows deliberate retry after OCR is unavailable.
+The server owns limits (at most 50 scan pages and 120 seconds), rejects client
+option overrides, verifies source hash/authorization, and handles busy documents
+and queue exhaustion. Admission errors remain visible and permit manual retry.
+
+Validation: focused OCR/web/PDF/jobs 37 PASS; full worktree 2,384 PASS / 2 live
+SKIP in 258.03 s; clean staged Git app export 114 PASS in 11.95 s. Browser E2E
+41/41 PASS, including axe OCR dialog and actual local OCR after simulated
+admission failure and manual retry. Harness selectors/dialog waiting were fixed
+before the successful run. No provider calls or grounding-threshold changes.
+
+## 2026-10-23 — manual local OCR in the web app
+
+Added the document-detail OCR action for scan/mixed PDFs in review. It schedules
+bounded local work on the existing source (no second upload), preserves native
+pages and job history, and allows deliberate retry after OCR is unavailable.
+The server owns limits (at most 50 scan pages and 120 seconds), rejects client
+option overrides, verifies source hash/authorization, and handles busy documents
+and queue exhaustion. Admission errors remain visible and permit manual retry.
+
+Validation: focused OCR/web/PDF/jobs 37 PASS; full worktree 2,384 PASS / 2 live
+SKIP in 258.03 s; clean staged Git app export 114 PASS in 11.95 s. Browser E2E
+41/41 PASS, including axe OCR dialog and actual local OCR after simulated
+admission failure and manual retry. Harness selectors/dialog waiting were fixed
+before the successful run. No provider calls or grounding-threshold changes.
+
 Post-upgrade final regression: **2,378 PASS / 2 live SKIP**, 254.39 s. Clean
 staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
 12.94 s. Current receipt replaces the pre-compatibility receipt at the same path;

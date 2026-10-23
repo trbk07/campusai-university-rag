@@ -69,12 +69,13 @@ class IngestionJobManager:
                        for name in ('bm25.json','dense.json'))
         return True
 
-    def _create(self,path,digest,options,*,staging=False):
+    def _create(self,path,digest,options,*,staging=False,reprocess_review=False):
         if not re.fullmatch('[0-9a-f]{64}',digest):
             raise ValueError('source SHA256 required')
         identity = job_identity(digest,options)
         existing = self._jobs.get(self._by_identity.get(identity))
-        if existing and self._existing_is_live(existing,options):
+        if existing and self._existing_is_live(existing,options) and not (
+                reprocess_review and existing.state == 'review_required'):
             return existing.job_id,False
         self._admit()  # Before a job, temporary file or upload directory exists.
         job_id,now = uuid.uuid4().hex,time.time()
@@ -110,11 +111,15 @@ class IngestionJobManager:
                 error_code=code,action='retry' if retryable else 'reupload',
                 ingestion_status='failed',completed_at=time.time())
 
-    def submit(self,source_path,**options):
+    def submit(self,source_path,*,expected_sha256=None,reprocess_review=False,**options):
         path = Path(source_path).resolve()
         digest,normalized = self._sha256(path),normalize_options(options)
+        if expected_sha256 is not None and digest != expected_sha256:
+            raise ValueError('job source changed')
+        if type(reprocess_review) is not bool:
+            raise ValueError('review reprocessing flag must be boolean')
         with self._lock:
-            job_id,created = self._create(path,digest,normalized)
+            job_id,created = self._create(path,digest,normalized,reprocess_review=reprocess_review)
             if created: self._schedule(job_id)
             return job_id
 

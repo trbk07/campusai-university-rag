@@ -23,7 +23,7 @@ async function main() {
   };
   try {
     const existing = await (await context.request.get(`${baseUrl}/api/documents`)).json();
-    const fixtureNames = new Set(['Enrollment.pdf','Enrollment-2.pdf','Enrollment-3.pdf','Enrollment-4.pdf','Enrollment-5.pdf']);
+    const fixtureNames = new Set(['Enrollment.pdf','Enrollment-2.pdf','Enrollment-3.pdf','Enrollment-4.pdf','Enrollment-5.pdf','mixed.pdf']);
     for (const doc of existing.documents) {
       assert(fixtureNames.has(doc.name),`Refusing to clean non-fixture document ${doc.name}`);
       assert.equal((await context.request.delete(`${baseUrl}/api/documents/${doc.doc_id}`)).status(),200);
@@ -262,6 +262,32 @@ async function main() {
     await page.getByText('Bạn chưa có tài liệu nào.',{exact:true}).waitFor();
     assert.equal((await context.request.get(`${baseUrl}/api/documents/${docId}/file`)).status(),404);
     assert.equal(await page.locator('.source-card').count(),0); check('delete confirmation and no stale source access');
+    await page.locator('#clear-filters').click();
+    await page.locator('.upload-main').click();
+    await page.locator('#file-input').setInputFiles(path.join(fixtureDir,'mixed.pdf'));
+    await page.locator('#upload-submit').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('#document-list .document-card')]
+      .some(card => card.textContent.includes('mixed.pdf') && card.textContent.includes('Cần kiểm tra')));
+    const scanned = (await (await context.request.get(`${baseUrl}/api/documents`)).json()).documents.find(doc => doc.name === 'mixed.pdf');
+    assert(scanned.ocr_available && !scanned.ready);
+    await page.locator(`#document-list [data-detail="${scanned.doc_id}"]`).click();
+    await page.locator('#detail-content [data-ocr]').waitFor();
+    assert((await page.locator('#detail-content').textContent()).includes('trang 2'));
+    await audit('OCR review dialog');
+    await page.route('**/api/documents/*/ocr',route => route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error_code:'job_store_unavailable'})}));
+    await page.locator('[data-ocr]').click();
+    await page.locator('#ocr-status').getByText(/Chưa lưu được/).waitFor();
+    assert(await page.locator('[data-ocr]').isEnabled());
+    await page.unroute('**/api/documents/*/ocr');
+    await page.locator('[data-ocr]').click();
+    await page.waitForFunction(() => [...document.querySelectorAll('#document-list .document-card')]
+      .some(card => card.textContent.includes('mixed.pdf') && card.textContent.includes('Sẵn sàng')),
+      undefined,{timeout:30000});
+    const recognized = (await (await context.request.get(`${baseUrl}/api/documents/${scanned.doc_id}`)).json()).document;
+    assert(recognized.ready && !recognized.ocr_available && recognized.page_count === 3);
+    check('mixed PDF manual local OCR recovers after admission error and becomes ready without reupload');
+    await page.locator(`[data-delete="${scanned.doc_id}"]`).click(); await page.locator('#delete-confirm').click();
+    await page.getByText('Bạn chưa có tài liệu nào.',{exact:true}).waitFor();
     assert.deepEqual(errors,[]); check('no browser script errors');
     await fs.writeFile(path.join(output,'browser-results.json'),JSON.stringify({status:'PASS',browser:browser.version(),provider:'local test fixture; no live LLM calls',viewports,checks,browserErrors:errors},null,2));
   } finally { await context.close(); await browser.close(); }

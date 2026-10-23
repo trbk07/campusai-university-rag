@@ -20,3 +20,19 @@ Cycle: 2026-10-23. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
 All current-cycle API/worker scenarios use isolated local test stores and no
 external provider. Existing production/user documents must not be deleted.
+
+Local OCR web cycle: `tests/test_web_ocr.py` adds six cases for source hash,
+authorization, busy/ready documents, server-owned limits, queue capacity and
+manual retry with preserved history. Focused OCR/web/PDF/jobs: 37 PASS. Clean
+Git tree `d4fa931f219a8b47423474e9a10003fb55089917`: 114 app tests PASS; full
+worktree 2,384 PASS / 2 live SKIP. Browser E2E 41/41 PASS includes axe OCR dialog
+and actual local OCR/recovery without reupload. Six established responsive
+viewports remain covered; the OCR action itself was exercised at desktop size.
+
+Local OCR web cycle: `tests/test_web_ocr.py` adds six cases for source hash,
+authorization, busy/ready documents, server-owned limits, queue capacity and
+manual retry with preserved history. Focused OCR/web/PDF/jobs: 37 PASS. Clean
+Git tree `d4fa931f219a8b47423474e9a10003fb55089917`: 114 app tests PASS; full
+worktree 2,384 PASS / 2 live SKIP. Browser E2E 41/41 PASS includes axe OCR dialog
+and actual local OCR/recovery without reupload. Six established responsive
+viewports remain covered; the OCR action itself was exercised at desktop size.

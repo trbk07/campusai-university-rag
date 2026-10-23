@@ -257,3 +257,33 @@ The deterministic test provider produced checked citations for 72 questions and
 abstained on 28 unsupported/ambiguous probes. These figures measure local
 pipeline capacity and grounded-path behavior; they do not measure a live model's
 answer quality, provider latency or quota.
+
+## Manual local OCR — 23/10/2026
+
+Document details offer OCR for scan/mixed PDFs in review. `POST
+/api/documents/{id}/ocr` with an empty JSON object starts a background job on
+the existing source. The server checks trusted scope, source hash, active work
+and readiness, owns limits (at most 50 scan pages / 120 seconds), and rejects
+client option overrides. No PDF reupload or external model inference is needed.
+Explicit retry after OCR review preserves history; it never retries automatically.
+
+Focused regression: 37 PASS; full worktree 2,384 PASS / 2 live SKIP. Clean Git
+source: 114 app tests PASS. Browser E2E: 41/41 PASS, including OCR dialog axe,
+admission-error recovery and actual local OCR becoming ready. Receipts:
+`evidence/ocr-ui-tests.xml` and `evidence/ocr-browser-results.json`. End-to-end
+load, OCR-table fidelity and native answer quality remain in the full-app audit.
+
+## Manual local OCR — 23/10/2026
+
+Document details offer OCR for scan/mixed PDFs in review. `POST
+/api/documents/{id}/ocr` with an empty JSON object starts a background job on
+the existing source. The server checks trusted scope, source hash, active work
+and readiness, owns limits (at most 50 scan pages / 120 seconds), and rejects
+client option overrides. No PDF reupload or external model inference is needed.
+Explicit retry after OCR review preserves history; it never retries automatically.
+
+Focused regression: 37 PASS; full worktree 2,384 PASS / 2 live SKIP. Clean Git
+source: 114 app tests PASS. Browser E2E: 41/41 PASS, including OCR dialog axe,
+admission-error recovery and actual local OCR becoming ready. Receipts:
+`evidence/ocr-ui-tests.xml` and `evidence/ocr-browser-results.json`. End-to-end
+load, OCR-table fidelity and native answer quality remain in the full-app audit.

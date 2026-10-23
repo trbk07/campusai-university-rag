@@ -89,15 +89,30 @@ export async function refreshDocuments() {
   finally { refreshing = false; state.loading = false; renderAll(); schedulePoll(); }
 }
 function reviewNotice(doc) {
+  if (doc.review_reason === 'ocr_unavailable') return 'OCR chưa hoàn tất. Kiểm tra bộ nhận diện chữ trên máy hoặc chia PDF thành phần nhỏ hơn rồi thử lại.';
   if (doc.unread_pages?.length) return `Cần OCR để đọc đủ nội dung tại trang ${doc.unread_pages.slice(0,12).join(', ')}${doc.unread_pages.length > 12 ? '…' : ''}. Tài liệu chưa sẵn sàng để hỏi đáp; bạn vẫn có thể xem PDF gốc.`;
   return 'Tài liệu chưa sẵn sàng để hỏi đáp. PDF scan cần OCR/kiểm tra thêm; tài liệu đã đọc cần có chỉ mục hoàn chỉnh.';
+}
+function ocrControl(doc) {
+  return doc.ocr_available ? `<p class="muted">Nhận diện chữ trên máy này, tối đa 50 trang scan và 2 phút mỗi lượt. Có thể mất lâu hơn đọc PDF text.</p><button class="button primary" data-ocr="${esc(doc.doc_id)}">Đọc trang scan bằng OCR</button><p id="ocr-status" role="status" aria-live="polite"></p>` : '';
+}
+async function startOCR(button) {
+  if (button.disabled) return;
+  button.disabled = true;
+  $('#ocr-status').textContent = 'Đang bắt đầu nhận diện chữ...';
+  try {
+    await post(`/api/documents/${encodeURIComponent(button.dataset.ocr)}/ocr`, {});
+    closeDialog($('#detail-dialog')); route('documents'); pollingStarted = 0;
+    await refreshDocuments(); toast('Đã bắt đầu OCR cục bộ. Bạn có thể tiếp tục dùng thư viện trong lúc chờ.');
+  } catch (error) { $('#ocr-status').textContent = errorText(error); }
+  finally { if (button.isConnected) button.disabled = false; }
 }
 async function detail(id) {
   showDialog('detail-dialog'); $('#detail-content').textContent = 'Đang tải thông tin...';
   try {
     const {document:doc} = await request(`/api/documents/${encodeURIComponent(id)}`);
     const metadata = Object.entries(doc.metadata).map(([key,value]) => `<dt>${esc({document_type:'Loại tài liệu',academic_year:'Năm học',program:'Chương trình',university:'Đơn vị',version:'Phiên bản',semester:'Học kỳ'}[key] || key)}</dt><dd>${esc(value)}</dd>`).join('');
-    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready ? `<div class="notice">${esc(reviewNotice(doc))}</div>` : ''}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
+    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready ? `<div class="notice">${esc(reviewNotice(doc))}</div>` : ''}${ocrControl(doc)}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
   } catch (error) { $('#detail-content').textContent = errorText(error); }
 }
 export async function preview(id, page = 1, citation = null) {
@@ -202,6 +217,7 @@ export function initDocuments() {
   });
   document.addEventListener('input', event => { if (event.target.id === 'document-search') { state.search = event.target.value; renderList(); } });
   document.addEventListener('click', async event => {
+    const ocr = event.target.closest('[data-ocr]'); if (ocr) { await startOCR(ocr); return; }
     const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; state.search = ''; state.year = ''; state.program = ''; state.status = 'all'; renderControls(); renderList(); renderSidebar(); route('documents'); }
     const details = event.target.closest('[data-detail]'); if (details) detail(details.dataset.detail);
     const source = event.target.closest('[data-preview]'); if (source) preview(source.dataset.preview);

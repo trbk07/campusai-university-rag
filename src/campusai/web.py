@@ -111,6 +111,10 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                         return _json_response({"ok": True, "document": documents.public_document(documents.record(doc_id, environ))}, start_response)
                     if len(parts) == 3 and method == "DELETE":
                         return _json_response(documents.delete(doc_id, environ), start_response)
+                    if len(parts) == 4 and parts[3] == 'ocr' and method == 'POST':
+                        if _payload(environ):
+                            raise WebError('invalid_json')
+                        return _json_response(documents.ocr(doc_id, environ), start_response, 202)
                     if len(parts) == 4 and parts[3] == "file" and method == "GET":
                         pdf = documents.source_bytes(doc_id, environ)
                         return _bytes_response(pdf, start_response, "application/pdf", extra=[("Content-Disposition", 'inline; filename="source.pdf"')])

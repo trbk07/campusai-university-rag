@@ -40,3 +40,9 @@ Provider quota remains independent of local query-worker capacity: four local
 query slots do not imply four Gemini requests in flight or unlimited API usage.
 
 Existing detailed runtime/profile notes: [Phase 12 handoff](docs/ui/phase12-ui.md).
+
+Manual web OCR now schedules local work without a second upload and retains
+server caps of at most 50 scan pages / 120 seconds. Its browser flow was verified
+with actual OCR and error recovery (41/41 E2E checks). No matched throughput
+measurement was performed for this UI change, and test-suite duration is not
+reported as OCR latency. Full upload/OCR/index load remains outstanding.

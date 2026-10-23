@@ -1,4 +1,6 @@
 const messages = {
+  ocr_unavailable:'Tài liệu này hiện không cần hoặc chưa thể xử lý OCR. Hãy cập nhật trạng thái tài liệu.',
+  ocr_page_limit:'Số trang cần OCR vượt giới hạn của máy chủ (tối đa 50). Hãy chia PDF thành phần nhỏ hơn.',
   invalid_pdf:'File không phải PDF hợp lệ, bị hỏng, được mã hóa hoặc vượt giới hạn số trang.',
   upload_too_large:'Tài liệu vượt dung lượng cho phép. Hãy chọn file nhỏ hơn.',
   jobs_not_configured:'Chức năng xử lý tài liệu chưa được cấu hình trên máy chủ.',

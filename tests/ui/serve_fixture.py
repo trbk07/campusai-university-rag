@@ -10,6 +10,7 @@ from campusai.rag.service import CampusAIQueryService
 from campusai.retrieval.hybrid import HybridRetriever
 from campusai.web import make_wsgi_app
 from tests.test_web_documents import LocalEvidenceLLM, pdf_bytes
+from tests.test_mixed_pdf import mixed_pdf
 
 
 def main():
@@ -18,6 +19,7 @@ def main():
     parser.add_argument('--port', type=int, default=8012)
     args = parser.parse_args()
     args.root.mkdir(parents=True, exist_ok=True)
+    mixed_pdf.__wrapped__(args.root)
     (args.root/'Enrollment.pdf').write_bytes(pdf_bytes())
     for number in range(2, 6):
         (args.root/f'Enrollment-{number}.pdf').write_bytes(pdf_bytes(
