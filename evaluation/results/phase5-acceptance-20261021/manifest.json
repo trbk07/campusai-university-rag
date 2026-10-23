@@ -1,5 +1,5 @@
 {
-  "status": "CURRENT_SOURCE_DEV_STOPPED_AT_HTTP503_RECOVERY_PERMISSION_PENDING",
+  "status": "PHASE5_R5_EXACT_EGRESS_APPROVAL_PENDING",
   "updated_at": "2026-10-23",
   "completed_tasks": 7,
   "total_tasks": 10,
@@ -2023,7 +2023,7 @@
     "candidate": ".release/grounding/phase5-acceptance-candidate-r4",
     "dev_egress_sha256": "0ab4dd33f612a8735d802093c9c4a21009ff49f63193c3f5294b027278d14345",
     "dev_http_cap": 207,
-    "status": "awaiting_explicit_503_recovery_permission",
+    "status": "authorized_resumed_three_fixed_key_shards",
     "heldout_egress_sha256": "790bdf1ed9df06c5006c008246431cf161df9ed4270f119cf4d35c76a4919639",
     "heldout_http_cap": 735,
     "calibration": "pending dev completion",
@@ -2043,7 +2043,9 @@
     "completed_prefix_run_sha256": "2e6ff1651a0a353a21edffccacf594cc77b2fef20e66176c1bfffbdbb0fc04a3",
     "prefix_is_byte_identical": true,
     "source_bundle_path": ".local_artifacts/experiment_runs/phase5-frozen-r4/source.bundle",
-    "source_bundle_sha256": "023a431f0eee135da0c2918b78b43e4111ec6d7882706ea4205f878883bab355"
+    "source_bundle_sha256": "023a431f0eee135da0c2918b78b43e4111ec6d7882706ea4205f878883bab355",
+    "authorization_reference": "request_user_input_async/call_82930cf388c64b98b9e63b96e702b68e",
+    "credential_assignment": "3 existing keys, disjoint preassigned shards; unchanged shared quota/circuit; no failure-driven switching"
   },
   "partial_dev_diagnostic": {
     "scope": "67 completed dev cases only; not release qualification",
@@ -2059,4 +2061,60 @@
     },
     "full_population_release_status": "BLOCKED"
   }
+,
+  "latest_current_qualification": {
+      "status": "CURRENT_SOURCE_DEV_EGRESS_APPROVAL_PENDING",
+      "source_identity": {
+        "commit": "e6134dcbdc20c4c230d38d1e71daf57f4018bee3",
+        "source_sha256": "6852f7c070a217f61520c729ffacfc1dcffacb38ecaa32ef857cc41fa8aa7d77",
+        "runtime_sha256": "af6fe8bc37eb0469ac7dd0fbfaacfc078962d6d35e351addcc939664b069f7a2"
+      },
+      "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+      "benchmark_population": 400,
+      "selected_dev_records": 120,
+      "model_questions": 68,
+      "local_outcomes_without_model": 52,
+      "conditional_full_document_followups": 68,
+      "pdf_sources": 5,
+      "planned_provider_calls": 204,
+      "aggregate_call_cap": 207,
+      "provider_posts": 0,
+      "official_predictions": 0,
+      "index_manifest_sha256": "13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a",
+      "config_sha256": "c03e67c8c745be958f2f8968ad1fdc113af9ab7dd988f83f5d6d0b685527ce19",
+      "egress_packets": [
+        {
+          "path": "evaluation/results/phase5-current-source-e6134dc-qualification-20261023/dev-1-egress/egress.json",
+          "sha256": "68d2370e2ed268c765cb59aa5cc916b9dfaf55069acfac8bcf78e6c0277f5ad3",
+          "key_shard": "key_1",
+          "planned_calls": 54,
+          "cap": 54
+        },
+        {
+          "path": "evaluation/results/phase5-current-source-e6134dc-qualification-20261023/dev-2-egress/egress.json",
+          "sha256": "16bc7d1e30051c375a3917f90137cefb81bbdc4d36566c0935c24b2df01d8bb3",
+          "key_shard": "key_2",
+          "planned_calls": 78,
+          "cap": 78
+        },
+        {
+          "path": "evaluation/results/phase5-current-source-e6134dc-qualification-20261023/dev-3-egress/egress.json",
+          "sha256": "b2a07223c2339f38e199b7bd1c3c5854a8a200a482578b9d8ca315b06e79453e",
+          "key_shard": "key_3",
+          "planned_calls": 72,
+          "cap": 75
+        }
+      ],
+      "quota_state": "D:/Project/data/operations/flash-lite-quota.sqlite3; shared state preserved; no reset",
+      "owner_approval": "pending exact packet hashes",
+      "auto_review": "rejected new egress because prior approvals did not bind these exact newly generated payloads; no calls attempted",
+      "calibration": "not started for candidate e6134dc",
+      "test_holdout": "not started for candidate e6134dc",
+      "release_status": "BLOCKED_PENDING_CURRENT_NATIVE_QUALITY_AND_ALL_FIVE_GATES",
+      "tests": {
+        "phase5_focused_candidate": "426 passed; 1 unrelated fixture test deselected",
+        "phase5_focused_main": "427 passed",
+        "broad_regression": "2343 passed; 2 live-provider tests skipped; five unrelated platform/harness modules excluded"
+      }
+    }
 }
