@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..request_timings import stage, timed_stage
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 import math
 import re
@@ -15,7 +15,7 @@ from ..llm.client import LLMClient, LLMError
 from ..llm.failures import public_provider_failure
 from ..retrieval.hybrid import RetrievalResult
 from ..retrieval.tokenizer_vi import source_body
-from .claims import Claim, align_claims, extract_claims, normalize_text
+from .claims import Claim, align_claims, extract_claims, normalize_text, trim_unrequested_university_roles
 from .confidence import POLICY_VERSION, score_confidence
 from .calibration import IsotonicCalibrator
 from .decision import decide
@@ -695,6 +695,10 @@ class GroundedAnswerGenerator:
             calibrator=self.calibrator) if pdf_documents is None else None)
         if calculated is not None:
             return calculated
+        from .footnotes import deterministic_footnote_fact
+        calculated = deterministic_footnote_fact(question, results, language, calibrator=self.calibrator)
+        if calculated is not None:
+            return calculated
         from .credit_sum import deterministic_credit_sum, deterministic_single_credit
         calculated = (deterministic_single_credit(question, results, language, calibrator=self.calibrator)
             if pdf_documents is None else None)
@@ -775,6 +779,11 @@ class GroundedAnswerGenerator:
         for raw in payload.get("citations", []):
             if not isinstance(raw, dict):
                 return abstain("invalid_model_output")
+            # Abstentions have no factual claim to cite. Providers sometimes
+            # return a dangling selected-chunk ID alongside an empty claims
+            # array; ignore that orphan ID so a valid reason survives.
+            if payload.get("abstained") is True and not raw_claims:
+                continue
             result = by_chunk.get(str(raw.get("chunk_id", "")))
             if result is None:
                 return abstain("citation_not_in_evidence")
@@ -868,14 +877,16 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     registry = EvidenceRegistry(results)
     citation_ids = tuple(citation.chunk_id for citation in citations)
     raw_claims = payload.get("claims") if isinstance(payload.get("claims"), list) else None
+    answer = trim_unrequested_university_roles(answer, question, answer)
     claims = extract_claims(answer, raw_claims)
+    claims = [replace(claim, text=trim_unrequested_university_roles(claim.text, question, answer))
+              for claim in claims]
     # Keep claim-to-citation links precise. Claims without an explicit mapping
     # are resolved against the registry by ``align_claims``.
     citation_map = {claim.claim_id: claim.citation_ids for claim in claims}
     # Prose facts must be supported by the visible quoted passage, not a
     # different paragraph elsewhere in the cited chunk. Table rows retain
     # their original headed-column proof and whole-row source resolver.
-    from dataclasses import replace
     quote_by_id = {citation.chunk_id:citation.quote for citation in citations}
     if any(not quote.strip() for quote in quote_by_id.values()):
         return _abstention('invalid_citation', language=language)

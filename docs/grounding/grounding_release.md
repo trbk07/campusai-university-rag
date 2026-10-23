@@ -1,7 +1,7 @@
 # Phase 5 release status
 
 **70%: P5-01 through P5-07 DONE; P5-08 through P5-10 remain open.**
-[Plan](../../plan.md) is the authoritative checklist. Frozen candidate-r4 has source SHA-256 `d531563c32cfca89d081d81d16b82461246a96299568285846eef0729b91894d` and runtime `2554b054a90db099335aea0d384a9e137f124692f78ba788cf9bac3063de010a`. Full offline regression: 2,399 PASS / 2 live SKIP; Phase 5 focused regression: 186 PASS on each of three consecutive runs. Current-source native dev stopped at HTTP503 after67 valid completed cases; explicit recovery permission is pending. Current calibration and held-out quality remain unqualified.
+[Plan](../../plan.md) is the authoritative checklist. Current source SHA-256 is `5f708c44a55c0723b1a6da403f4267219c5e60bcd7f21d7641e825c82f1fa727`; runtime is `e6e8ac0ca3cb4294878b09c61308b387079a3ed6b1dc1b9c120359b54303f385`. Phase 5 focused regression: 427 PASS. Broad regression: 2,343 PASS / 2 live-provider SKIP after excluding five unrelated platform/harness modules. Historical r4 dev120 has below-threshold metrics; current-source inference and held-out quality remain open.
 
 The previous-source v2 packet touched 103/120 dev rows and captured real model JSON
 for 57 distinct IDs across 99 journaled request starts. Its 95-evaluable-row diagnostic

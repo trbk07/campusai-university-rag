@@ -24,6 +24,36 @@ def test_source_protocol_builds_verified_quote_and_page_without_model_guessing()
     assert validate_citation(citation, row, require_quote=True).valid
 
 
+@pytest.mark.parametrize(('reason', 'verified', 'expected'), [
+    ('document_does_not_mention', True, 'document_does_not_mention'),
+    ('unsupported_claim', False, 'unsupported_claim'),
+])
+def test_orphan_model_citation_does_not_replace_abstention_reason(reason, verified, expected):
+    model = {'answer': 'The document does not establish this fact.', 'confidence': 'low',
+        'abstained': True, 'abstention_reason': reason, 'claims': [],
+        'citations': [{'chunk_id': 'stale-provider-id'}]}
+    answer = GroundedAnswerGenerator(FakeLLM(model), source_citations=True).answer(
+        'Which fact is established?', [evidence()], language='en',
+        verified_document_absence=verified)
+    assert answer.abstained and answer.reason == expected
+    assert answer.to_public_dict()['citations'] == []
+
+
+@pytest.mark.parametrize(('reason', 'verified', 'expected'), [
+    ('document_does_not_mention', True, 'document_does_not_mention'),
+    ('unsupported_claim', False, 'unsupported_claim'),
+])
+def test_orphan_model_citation_does_not_replace_abstention_reason(reason, verified, expected):
+    model = {'answer': 'The document does not establish this fact.', 'confidence': 'low',
+        'abstained': True, 'abstention_reason': reason, 'claims': [],
+        'citations': [{'chunk_id': 'stale-provider-id'}]}
+    answer = GroundedAnswerGenerator(FakeLLM(model), source_citations=True).answer(
+        'Which fact is established?', [evidence()], language='en',
+        verified_document_absence=verified)
+    assert answer.abstained and answer.reason == expected
+    assert answer.to_public_dict()['citations'] == []
+
+
 @pytest.mark.parametrize('text,chunk', [('MATH101 has 99 credits.', 'c1'),
     ('MATH101 is required.', 'unknown'), ('MATH101 is not required.', 'c1')])
 def test_source_ids_do_not_make_unsupported_claims_valid(text, chunk):
@@ -146,3 +176,53 @@ def test_source_quote_keeps_adjacent_article_heading_as_visible_locator_proof():
     result = replace(evidence(content=source), content_type='text')
     quote = source_quote(result, [{'text': 'The programme lasts four years.', 'citation_ids': ['c1']}])
     assert quote == 'Article 7.\nThe programme lasts four years.'
+
+
+def test_table_footnote_date_is_answered_from_the_matching_exact_source_clause():
+    question = ('According to the asterisk footnote for institutions numbered 1 through 8, '
+                'what issue date is given for the English certificate?')
+    source = ('(*) Đối với chứng chỉ ngoại ngữ tiếng Anh: các cơ sở đào tạo có số thứ tự từ '
+              '1 đến 8 được cấp từ ngày 15/5/2019.')
+    row = replace(evidence(content=source), page=9,
+        metadata={'page_range': [9, 9], 'source_hash': 'source-sha', 'source_name': 'admission notice'})
+    answer = GroundedAnswerGenerator(FakeLLM({}), source_citations=True).answer(
+        question, [row], language='en')
+    assert not answer.abstained
+    assert '15/5/2019' in answer.answer
+    assert answer.citations[0].page == 9 and source in answer.citations[0].quote
+    assert validate_citation(answer.citations[0], row, require_quote=True).valid
+
+
+def test_public_answer_does_not_keep_an_unrequested_adjacent_role():
+    answer_text = ('Yes, the programme lists university teaching and teaching-assistant roles '
+                   'as possible career options.')
+    claim_text = ('Giảng viên/Trợ giảng tại các trường Cao đẳng và Đại học, nghiên cứu viên tại '
+                  'các Trung tâm/Viện nghiên cứu trong lĩnh vực Điện tử Viễn thông')
+    source = ('Giảng viên/Trợ giảng tại các trường Cao đẳng và Đại học, nghiên cứu viên tại '
+              'các Trung tâm/Viện nghiên cứu trong lĩnh vực Điện tử Viễn thông')
+    row = evidence(content=source)
+    model = {'answer': answer_text, 'confidence': 'high', 'abstained': False,
+        'claims': [{'claim_id': 'one', 'text': claim_text, 'citation_ids': ['c1']}],
+        'citations': [{'chunk_id': 'c1'}]}
+    answer = GroundedAnswerGenerator(FakeLLM(model), source_citations=True).answer(
+        'For possible careers, does the programme list university teaching or teaching-assistant work?',
+        [row], language='en')
+    assert not answer.abstained
+    assert answer.answer == answer_text
+    assert 'Giảng viên/Trợ giảng' in answer.claims[0].text
+    assert 'nghiên cứu viên' not in answer.claims[0].text
+
+
+def test_table_footnote_date_is_answered_from_the_matching_exact_source_clause():
+    question = ('According to the asterisk footnote for institutions numbered 1 through 8, '
+                'what issue date is given for the English certificate?')
+    source = ('(*) Đối với chứng chỉ ngoại ngữ tiếng Anh: các cơ sở đào tạo có số thứ tự từ '
+              '1 đến 8 được cấp từ ngày 15/5/2019.')
+    row = replace(evidence(content=source), page=9,
+        metadata={'page_range': [9, 9], 'source_hash': 'source-sha', 'source_name': 'admission notice'})
+    answer = GroundedAnswerGenerator(FakeLLM({}), source_citations=True).answer(
+        question, [row], language='en')
+    assert not answer.abstained
+    assert '15/5/2019' in answer.answer
+    assert answer.citations[0].page == 9 and source in answer.citations[0].quote
+    assert validate_citation(answer.citations[0], row, require_quote=True).valid

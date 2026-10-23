@@ -51,6 +51,20 @@ def choose_query_mode(question: str, *, reranker_available: bool) -> str:
 def retrieval_query(question: str) -> str:
     """Prefer an explicit topic anchor while retaining page/scope markers."""
     raw = str(question).strip()
+    from .course_credits import folded
+    normalized = folded(raw)
+    normalized_words = re.sub(r"[^\w\s]", " ", normalized)
+    cohort = re.search(r"\bcohorts?\s+admitted\s+from\s+(\d{4})\b", normalized_words)
+    if (cohort and re.search(r"\bforeign\s+language\b", normalized_words)
+            and re.search(r"\b(?:exit\s+level|graduation\s+standard)\b", normalized_words)):
+        raw += (f" cohorts admitted from {cohort[1]} chuan dau ra "
+                "doi voi trinh do ngoai ngu")
+    if re.search(r'\b(?:footnote|asterisk note|starred note|chu thich|ghi chu dau sao)\b', normalized):
+        numbered = re.search(r'\b(?:institutions?|organizations?|establishments?|rows?|items?)\s+(?:numbered|nos?\.?)\s+(\d+)\s+(?:through|to|and)\s+(\d+)\b', normalized)
+        if numbered:
+            raw += f" note for row numbers {numbered[1]} through {numbered[2]} date"
+        else:
+            raw += " note marked with an asterisk below the table date"
     if "Topic:" not in raw:
         return raw
     intent, topic = raw.split("Topic:", 1)

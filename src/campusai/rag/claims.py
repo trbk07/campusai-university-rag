@@ -49,6 +49,48 @@ def normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", value).strip()
 
 
+_UNIVERSITY_ROLE_ALIASES = {
+    "lecturer": ("lecturer", "university teaching", "giang vien"),
+    "teaching_assistant": ("teaching assistant", "tro giang"),
+    "researcher": ("researcher", "nghien cuu vien"),
+}
+
+
+def trim_unrequested_university_roles(text: str, question: str, answer: str) -> str:
+    """Drop an adjacent university-job list item the user did not request.
+
+    This only applies when a source-faithful claim explicitly enumerates known
+    university roles in comma-separated clauses. The public answer and question
+    determine requested roles; unknown clauses and unrecognized text are kept.
+    """
+    from .course_credits import folded
+
+    def roles(value: str) -> set[str]:
+        normalized = re.sub(r"[^\w\s]", " ", folded(value))
+        return {role for role, aliases in _UNIVERSITY_ROLE_ALIASES.items()
+                if any(re.search(r"(?<!\w)" + re.escape(folded(alias)) + r"(?!\w)", normalized)
+                       for alias in aliases)}
+
+    requested = roles(question)
+    parts = re.split(r"\s*,\s*|\s+\band\b\s+|\s+\bor\b\s+", text, flags=re.I)
+    if not requested or len(parts) < 2:
+        return text
+    detected = [roles(part) for part in parts]
+    if sum(bool(value) for value in detected) < 2:
+        return text
+    if not any(found and not (found & requested) for found in detected):
+        return text
+    kept = [part for part, found in zip(parts, detected)
+            if not found or found & requested]
+    if not kept:
+        return text
+    joined = ", ".join(kept).rstrip(" ,;:")
+    terminal = text.rstrip()[-1:]
+    if terminal in {".", "!", "?"} and joined[-1:] not in {".", "!", "?"}:
+        joined += terminal
+    return joined
+
+
 def _tokens(value: str) -> set[str]:
     return {token for token in re.findall(r"[\wÀ-ỹ]+", normalize_text(value)) if token not in STOPWORDS and len(token) > 1}
 

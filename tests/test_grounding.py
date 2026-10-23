@@ -1,5 +1,5 @@
 from campusai.rag.abstention import AbstentionReason, user_message
-from campusai.rag.claims import align_claims, extract_claims
+from campusai.rag.claims import align_claims, extract_claims, trim_unrequested_university_roles
 from campusai.rag.confidence import calibration_metrics, score_confidence
 from campusai.rag.evidence import EvidenceRegistry
 from campusai.rag.grounding import GroundedAnswerGenerator, validate_citation, validate_quote
@@ -98,6 +98,30 @@ def test_citation_validator_rejects_wrong_page_range_and_source_hash():
 def test_hard_questions_only_use_reranker_when_available():
     assert choose_query_mode("So sánh hai chương trình", reranker_available=False) == "hybrid"
     assert choose_query_mode("So sánh hai chương trình", reranker_available=True) == "hybrid_rerank"
+
+
+def test_source_role_list_drops_only_known_roles_not_asked_for():
+    question = 'Which university lecturer and teaching-assistant roles are listed?'
+    assert trim_unrequested_university_roles(
+        'Giảng viên, trợ giảng, nghiên cứu viên', question, '') == 'Giảng viên, trợ giảng'
+    assert trim_unrequested_university_roles(
+        'Giảng viên, trợ giảng, nghiên cứu viên',
+        'Which lecturer, teaching assistant, and researcher roles are listed?', '') == \
+        'Giảng viên, trợ giảng, nghiên cứu viên'
+
+
+def test_retrieval_query_adds_range_anchor_for_asterisk_footnote():
+    from campusai.rag.service import retrieval_query
+    expanded = retrieval_query(
+        'What date is stated in the asterisk footnote for institutions numbered 1 through 8?')
+    assert 'note for row numbers 1 through 8 date' in expanded
+
+
+def test_retrieval_query_expands_foreign_language_exit_level_to_source_vocabulary():
+    from campusai.rag.service import retrieval_query
+    question = ('What foreign-language exit level is specified for masters cohorts admitted from 2022?')
+    expanded = retrieval_query(question)
+    assert 'chuan dau ra doi voi trinh do ngoai ngu' in expanded
 
 
 def test_claim_alignment_rejects_unsupported_numeric_leakage():
