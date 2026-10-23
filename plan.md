@@ -1543,6 +1543,18 @@ hiện hành: `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21`
 `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`.
 
 Exit local MVP đạt: upload → ready → chat → source → feedback/delete.
+
+Full-app QA goal remains ACTIVE (23/10/2026): MVP acceptance is not completion
+of the broader autonomous testing/optimization goal. Follow
+[QA audit](QA_AUDIT.md), [scenarios](TEST_SCENARIOS.md),
+[performance report](PERFORMANCE_REPORT.md), and [improvement log](IMPROVEMENT_LOG.md).
+QA-01 P1 FIXED: pushed app commit `0ef54f90` fails clean-source import because runtime
+dependencies were left untracked; the worker/index-builder interface also needs
+its matching source update. The repair includes these runtime dependencies.
+Exact staged Git tree `360f670b2d5b078e11afa6a27fac4f6c8300d273` exported without
+local worktree files: **98/98 local app tests PASS in 11.49 s**.
+QA-02 current-source live AI quality and QA-03 realistic large/scan PDF latency/RSS
+remain OPEN; deterministic provider success does not close either requirement.
 Local startup đã hoàn thiện bằng `start-campusai.cmd`: tự đọc cấu hình/credential
 local đã có, không in key/đổi key/model/bật billing. PDF owner đã index xong;
 đáp án thật bằng VI/EN trên nguồn tiếng Anh và mở đúng trang quote đã kiểm tra.

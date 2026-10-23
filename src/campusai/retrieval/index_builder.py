@@ -44,13 +44,15 @@ def build_document_indexes(
     dense_model: str = "fallback-hash-256",
     device: str = "cpu",
     batch_size: int = 8,
+    model_revision: str = "1",
+    corpus_id: str | None = None,
 ) -> Path:
     target = Path(index_dir) / document.doc_id
     target.mkdir(parents=True, exist_ok=True)
     items = chunk_records(document)
     BM25Index(items, document.language).save(target / "bm25.json")
-    dense = DenseIndex(items, dense_model, device=device, batch_size=batch_size)
-    dense.build(items, corpus_id=Path(index_dir).name, document_id=document.doc_id)
+    dense = DenseIndex(items, dense_model, device=device, batch_size=batch_size,model_revision=model_revision)
+    dense.build(items, corpus_id=corpus_id or Path(index_dir).name, document_id=document.doc_id)
     dense.save(target / "dense.json")
     _write_corpus_manifest(Path(index_dir), document.doc_id, items, dense.manifest)
     return target
