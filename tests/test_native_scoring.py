@@ -86,6 +86,25 @@ def test_scoring_rejects_mixed_native_batch_identities(native_batches, field):
         score(benchmark, directories, root)
 
 
+@pytest.mark.parametrize('field', ['source_identity', 'benchmark_sha256', 'config_sha256',
+                                 'index_manifest_sha256', 'model', 'document_scope_policy'])
+def test_physical_validator_rejects_packet_for_a_different_native_runtime(native_batches, field):
+    root, benchmark, directories = native_batches
+    run_path = directories[0] / 'run.json'
+    run = json.loads(run_path.read_text(encoding='utf-8'))
+    keys = ('source_identity', 'benchmark_sha256', 'config_sha256',
+            'index_manifest_sha256', 'model', 'document_scope_policy')
+    packet = {key: run.get(key) for key in keys}
+    packet[field] = 'different-fixture-binding'
+    packet_path = directories[0] / 'egress.json'
+    write_json(packet_path, packet)
+    run.update(egress_packet_path=str(packet_path),
+               egress_packet_sha256=hashlib.sha256(packet_path.read_bytes()).hexdigest())
+    write_json(run_path, run)
+    report = score(benchmark, directories, root)
+    assert f'native_egress_packet_{field}_mismatch' in report['release_errors']
+
+
 def test_scoring_rejects_duplicate_batch_and_duplicate_prediction_ids(native_batches):
     root, benchmark, directories = native_batches
     with pytest.raises(ValueError, match="unique"):

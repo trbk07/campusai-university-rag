@@ -15,6 +15,7 @@ import json
 import math
 import os
 from pathlib import Path
+import sys
 import time
 
 from campusai.llm import client as client_module
@@ -27,6 +28,23 @@ from campusai.rag.document_scope import DocumentScopeUnavailable, RegisteredDocu
 from campusai.retrieval.hybrid import HybridRetriever
 from evaluation.common.release_artifacts import source_identity, write_json, verify_index_files
 from evaluation.grounding.repair_benchmark import load_rows, stable_hash
+
+
+def verify_runtime_checkout(root: Path) -> None:
+    """Do not fingerprint one checkout while executing another one's imports."""
+    root = root.resolve()
+    if Path(__file__).resolve().parents[2] != root:
+        raise ValueError('native collector must run from its own checkout root')
+    for name, module in tuple(sys.modules.items()):
+        if name == 'campusai' or name.startswith('campusai.'):
+            expected = root / 'src' / 'campusai'
+        elif name == 'evaluation' or name.startswith('evaluation.'):
+            expected = root / 'evaluation'
+        else:
+            continue
+        source = getattr(module, '__file__', None)
+        if source is not None and not Path(source).resolve().is_relative_to(expected):
+            raise ValueError(f'native module loaded outside candidate checkout: {name}')
 
 
 def _http_plan(llm, case, pdf_sources=None):
@@ -384,6 +402,8 @@ def main():
     parser.add_argument('--http503-recovery-authorization', type=Path,
                         help='Explicit owner grant for one delayed HTTP503 recovery per case, within the same packet budget')
     args = parser.parse_args()
+    root = Path.cwd()
+    verify_runtime_checkout(root)
     if args.limit < 1 or args.max_provider_calls < 1 or args.offset < 0:
         raise SystemExit("positive limits required")
     if args.source_root and not args.source_store:
@@ -397,7 +417,6 @@ def main():
         raise SystemExit("collector requires the existing owner-approved Free profile")
     calibrator, calibration_hash = pinned_calibrator(args.calibration_artifact, args.calibration_sha256, args.benchmark)
     from scripts.operations.local import configure_local
-    root = Path.cwd()
     os.environ["CAMPUSAI_LLM_CONFIG"] = str(args.config.resolve())
     configure_local(root)
     llm = create_llm(args.config)
@@ -426,6 +445,8 @@ def main():
             if not args.egress_packet:
                 raise ValueError("explicit reviewed egress packet required before native collection")
             packet = json.loads(args.egress_packet.read_text(encoding="utf-8"))
+            if packet.get('source_identity') != metadata['source_identity']:
+                raise ValueError('egress packet does not bind the current candidate source/runtime')
             metadata.update(egress_packet_path=str(args.egress_packet),
                             egress_packet_sha256=hashlib.sha256(args.egress_packet.read_bytes()).hexdigest())
             recovery = None

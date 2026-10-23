@@ -125,3 +125,11 @@ evidence. Config/index files are checked physically, including index contents.
 The calibration artifact must equal the dev-only fit on the captured dev
 predictions; its declared split alone is insufficient. Release package checks
 invoke these same physical checks rather than using structural validation alone.
+
+The native collector must execute CampusAI/evaluation modules from its own
+candidate checkout. A shared editable virtualenv cannot substitute another
+checkout's runtime. Before sending requests, the collector verifies that the
+packet binds the actual source/runtime identity. Physical release validation
+also verifies the packet hash and its source, benchmark, config, index, model
+and document-scope bindings against every native run. A mismatch is diagnostic
+evidence only and cannot be relabelled as a qualified candidate capture.

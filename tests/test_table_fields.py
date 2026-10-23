@@ -30,6 +30,39 @@ def test_column_projection_is_atomic_and_never_needs_a_model(question, expected)
     assert json.loads(answer.citations[0].quote) == ['8.', 'AZ8', 'Computing', '7480101', '420']
 
 
+@pytest.mark.parametrize(('question', 'expected'), [
+    ('Use only the uploaded admissions.pdf. What proposed 2025 admission quota is listed '
+     'for AZ8 (Computing)?', ('quota', 'AZ8', ('2025',))),
+    ('Chỉ dùng tài liệu đã tải lên admissions.pdf. Mã ngành theo danh mục quốc gia của '
+     'mã xét tuyển AZ8 là gì?', ('discipline', 'AZ8', ())),
+])
+def test_natural_admission_field_wording_routes_to_exact_source_row(question, expected):
+    assert admission_field_request(question) == expected
+
+
+def test_vietnamese_national_discipline_code_uses_exact_admission_table_row():
+    table = evidence(rows=[['1.', 'CN1', 'Information Technology', '7480201',
+                           'HSA, SAT; CN2 may also appear in adjacent notes'],
+                          ['2.', 'CN2', 'Computer Engineering', '7480106', '420']])
+    question = ('Chỉ dùng tài liệu đã tải lên admissions.pdf. Mã ngành theo danh mục quốc gia '
+                'của mã xét tuyển CN2 là gì?')
+    answer = deterministic_admission_field(question, [table], 'vi')
+    assert answer is not None and not answer.abstained
+    assert answer.answer.endswith('7480106.')
+    assert json.loads(answer.citations[0].quote) == json.loads(table.content)['rows'][1]
+
+
+def test_alphanumeric_discipline_value_is_preserved_but_quota_requires_a_number():
+    table = evidence(rows=[['8.', 'AZ8', 'Design', '75290a1', '240']])
+    answer = deterministic_admission_field(
+        'Which national discipline code is listed for programme AZ8?', [table], 'en')
+    assert answer is not None and not answer.abstained
+    assert answer.answer.endswith('75290a1.')
+    assert json.loads(answer.citations[0].quote)[3] == '75290a1'
+    bad_quota = evidence(rows=[['8.', 'AZ8', 'Design', '75290a1', '24a']])
+    assert deterministic_admission_field('What is the admission quota for AZ8?', [bad_quota], 'en').abstained
+
+
 def test_foundation_allocation_cannot_override_general_programme_quota():
     foundation = evidence(['Programme code', 'Programme name', 'Admission quota', 'Entry score'],
                           [['AZ8', 'Computing', '3', '22']], 'foundation')

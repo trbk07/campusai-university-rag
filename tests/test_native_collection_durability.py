@@ -9,6 +9,20 @@ from evaluation.grounding.native_artifacts import load_native_run
 from tests.test_basic_rag import FakeRetriever,evidence,valid_payload
 
 
+def test_native_collection_rejects_an_import_from_another_checkout(tmp_path, monkeypatch):
+    from pathlib import Path
+    from types import SimpleNamespace
+    from evaluation.grounding.collect_native_predictions import verify_runtime_checkout
+    root = Path(__file__).resolve().parents[1]
+    verify_runtime_checkout(root)
+    monkeypatch.setitem(sys.modules, 'campusai.foreign_source',
+                        SimpleNamespace(__file__=str(tmp_path / 'source.py')))
+    with pytest.raises(ValueError, match='outside candidate checkout'):
+        verify_runtime_checkout(root)
+    with pytest.raises(ValueError, match='own checkout root'):
+        verify_runtime_checkout(tmp_path)
+
+
 def recovery_fixture(tmp_path, monkeypatch, statuses, *, budget=2):
     """Fictional transport/owner evidence only; no external requests."""
     import io

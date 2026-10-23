@@ -65,8 +65,11 @@ def main(argv=None) -> int:
     previous_path = sys.path[:]
     try:
         project_root = str(Path(__file__).resolve().parents[2])
-        if project_root not in sys.path:
-            sys.path.insert(0, project_root)
+        # A shared editable environment may point to a different checkout.
+        # Resolve this runner's source before importing the target module.
+        source_root = str(Path(project_root) / 'src')
+        sys.path[:] = [source_root, project_root, *(
+            entry for entry in sys.path if entry not in {source_root, project_root})]
         os.environ["GEMINI_API_KEY"] = key
         if args.live_tests:
             os.environ["RUN_LLM_INTEGRATION"] = "1"

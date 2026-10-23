@@ -74,7 +74,7 @@ def test_unspecified_proof_document_retains_topic_and_versions_the_cache():
     resolved = resolve_query(request, history=[{'role': 'user', 'content': topic}])
     assert resolved.contextual and not resolved.needs_clarification
     assert topic in resolved.resolved and 'untrusted user input' in resolved.resolved
-    assert resolved.cache_context()['version'] == 'request-context-v10'
+    assert resolved.cache_context()['version'] == 'request-context-v11'
     assistant_only = resolve_query(request, history=[{'role': 'assistant', 'content': topic}])
     assert assistant_only.needs_clarification
 
@@ -96,3 +96,14 @@ def test_explicit_subject_before_same_utterance_it_needs_no_history(course):
     'The plan lists some course; what credits does it show?'])
 def test_pronoun_or_unspecified_object_is_not_an_invented_local_topic(question):
     assert resolve_query(question).needs_clarification
+
+
+@pytest.mark.parametrize('prefix', ['Use only the uploaded admissions.pdf. ',
+                                   'Chỉ dùng tài liệu đã tải lên admissions.pdf. '])
+def test_selecting_a_pdf_does_not_resolve_an_unnamed_programme(prefix):
+    question = prefix + 'I want to choose it. What is its admission quota?'
+    assert resolve_query(question).needs_clarification
+    assert not resolve_query(prefix + 'What is the admission quota for programme AZ8?').needs_clarification
+    resolved = resolve_query(question, history=[{'role': 'user', 'content': 'Programme AZ8'}])
+    assert not resolved.needs_clarification
+    assert 'Programme AZ8' in resolved.resolved

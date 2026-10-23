@@ -7,6 +7,8 @@ from .source_windows import verbatim_window
 from ..retrieval.tokenizer_vi import normalized_tokens, source_body
 from .course_credits import COURSE_CODE, course_code_key, folded
 
+_TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,5}[A-Za-z]?(?![A-Za-z0-9])')
+
 
 def source_quote(result, claims, question=''):
     texts = [c['text'] for c in claims if isinstance(c, dict) and isinstance(c.get('text'), str)
@@ -30,16 +32,27 @@ def source_quote(result, claims, question=''):
         if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):
             return None
         identity_columns = [i for i, header in enumerate(headers) if isinstance(header, str)
-                            and folded(header) in {'course code', 'ma hoc phan', 'ma so hoc phan', 'ma so'}]
+                            and (folded(header) in {'course code', 'ma hoc phan', 'ma so hoc phan', 'ma so',
+                                                   'ma xet tuyen', 'admission code', 'programme code',
+                                                   'program code', 'discipline code'}
+                                 or re.fullmatch(r'ma nganh\d*', folded(header)))]
         selected = set()
         for text in texts:
             terms = set(normalized_tokens(text))
             codes = {course_code_key(m[0]) for m in re.finditer(r'(?<!\w)' + COURSE_CODE + r'(?!\w)', text, re.I)}
+            # Short programme identifiers such as CN2 and D01 are not course
+            # codes. Resolve them through declared table identity columns so
+            # lexical overlap with a neighbouring row cannot choose the quote.
+            codes.update(m.group().upper() for m in _TABLE_IDENTIFIER.finditer(text))
             pools = []
             for code in sorted(codes):
-                matching = [i for i, row in enumerate(rows) if any(
-                    course_code_key(row[column]) == code for column in
-                    (identity_columns if identity_columns else range(len(row))) if column < len(row))]
+                matching = []
+                for i, row in enumerate(rows):
+                    columns = identity_columns if identity_columns else range(len(row))
+                    cells = (row[column] for column in columns if column < len(row))
+                    if any(code in {m.group().upper() for m in _TABLE_IDENTIFIER.finditer(cell)}
+                           or course_code_key(cell.strip()) == code for cell in cells):
+                        matching.append(i)
                 if matching:
                     pools.append(matching)
             for pool in pools or [range(len(rows))]:
@@ -84,16 +97,31 @@ def source_quote(result, claims, question=''):
     # hide the actual supporting condition from the public citation.
     compact=lambda value:' '.join(unicodedata.normalize('NFC',value).split())
     source=unicodedata.normalize('NFC',body)
-    matches=[re.search(r'\s+'.join(re.escape(part) for part in compact(text).split()),source,re.I)
-             for text in texts]
+    boundaries=list(re.finditer(r'[.!?](?:\s+|$)',source))
+    question_ids = set(re.findall(r'\b[A-Z][A-Z0-9]{1,11}\b', question))
+    def sentence_bounds(match):
+        left=max((m.end() for m in boundaries if m.end()<=match.start()),default=0)
+        right=next((m.end() for m in boundaries if m.end()>=match.end()),len(source))
+        return left,right
+    matches=[]
+    for text in texts:
+        candidates=list(re.finditer(r'\s+'.join(re.escape(part) for part in compact(text).split()),source,re.I))
+        # Repeated clauses can describe different entities in the same chunk.
+        # Prefer the occurrence whose own source sentence names the requested
+        # identifier; a SAT question must not quote an identical HSA condition.
+        def occurrence_rank(match):
+            left,right=sentence_bounds(match)
+            present=set(re.findall(r'\b[A-Z][A-Z0-9]{1,11}\b',source[left:right]))
+            return len(question_ids & present),-match.start()
+        matches.append(max(candidates,key=occurrence_rank) if candidates else None)
     if all(matches):
         start=min(m.start() for m in matches);end=max(m.end() for m in matches)
-        boundaries=list(re.finditer(r'[.!?](?:\s+|$)',source))
         left=max((m.end() for m in boundaries if m.end()<=start),default=0)
         right=next((m.end() for m in boundaries if m.end()>=end),len(source))
         # A period in a short article heading is a locator boundary, not a
         # separate supporting sentence. Keep that actual adjacent heading.
-        headings = list(re.finditer(r'(?mi)^[ \t]*(?:article|\u0111i\u1ec1u|dieu)\s+\d+[.:)]\s*', source[:left]))
+        headings = list(re.finditer(r'(?mi)^[ \t]*(?:(?:article|\u0111i\u1ec1u|dieu)\s+\d+[.:)]|'
+                                    r'\d+(?:\.\d+)+\.?)[ \t]*(?:\n[ \t]*)?', source[:left]))
         if headings and not source[headings[-1].end():left].strip():
             if right - headings[-1].start() <= 1200:
                 left = headings[-1].start()

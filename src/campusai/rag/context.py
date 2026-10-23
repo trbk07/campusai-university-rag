@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v10"
+CONTEXT_VERSION = "request-context-v11"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -34,6 +34,10 @@ def meaningless_fragment(question):
 
 def depends_on_previous_topic(question):
     """Require a reference or ellipsis; brevity alone never inherits a topic."""
+    # A selected file identifies the source, not the antecedent of "it".
+    # Inspect the actual question before applying the document-scope exemption.
+    question = re.sub(r'^(?:use only (?:the )?uploaded|chỉ dùng tài liệu đã tải lên)\s+'
+                      r'[\w.-]+\.pdf\.\s*', '', question, flags=re.I)
     text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
     if missing_topic_reference(question):
         return True

@@ -26,7 +26,9 @@ def admission_field_request(question):
         return None
     patterns = (
         ('discipline', r'which national discipline code is listed for (?:admission )?programme (' + IDENTIFIER + r')'),
+        ('discipline', r'ma nganh (?:theo danh muc quoc gia )?cua ma xet tuyen (' + IDENTIFIER + r') la gi'),
         ('quota', r'what is the (?:proposed )?admission quota for (' + IDENTIFIER + r')(?: [a-z -]{1,80})?(?: in the programme table)?'),
+        ('quota', r'what (?:proposed )?(?:(?:19|20)\d{2} )?admission quota is listed for (' + IDENTIFIER + r')'),
         ('quota', r'chi tieu tuyen sinh(?: du kien)?(?: nam (?:19|20)\d{2})? cua ma (' + IDENTIFIER + r') la bao nhieu'),
     )
     for kind, pattern in patterns:
@@ -130,7 +132,9 @@ def deterministic_admission_field(question, results, language, *, calibrator=Non
     if len(values) != 1:
         return _abstention('conflicting_evidence', language=language)
     value = next(iter(values))
-    if not value.isascii() or not value.isdigit() or not 1 <= len(value) <= (9 if kind == 'discipline' else 6):
+    valid_value = (bool(re.fullmatch(r'[0-9][0-9A-Za-z]{3,8}', value)) if kind == 'discipline'
+                   else value.isascii() and value.isdigit() and 1 <= len(value) <= 6)
+    if not valid_value:
         return _abstention('unsupported_claim', language=language)
     result, row, _ = matches[0]
     quote = json.dumps(row, ensure_ascii=False)
@@ -143,7 +147,8 @@ def deterministic_admission_field(question, results, language, *, calibrator=Non
     if not validate_citation(citation, result, require_quote=True).valid:
         return _abstention('invalid_citation', language=language)
     if language.casefold().startswith('en'):
-        answer = f'Programme {code} has ' + (f'national discipline code {value}.' if kind == 'discipline' else f'an admission quota of {value}.')
+        label = 'national discipline code' if kind == 'discipline' else 'admission quota'
+        answer = f'The {label} for {code} is {value}.'
     else:
         answer = (f'Mã ngành của mã xét tuyển {code} là {value}.' if kind == 'discipline'
                   else f'Chỉ tiêu tuyển sinh của mã {code} là {value}.')

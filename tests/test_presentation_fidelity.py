@@ -12,6 +12,15 @@ def supported(text):
     return [Claim('one', text, citation_ids=('c1',), status='supported')]
 
 
+def test_requested_admission_notice_year_is_scope_not_an_unproved_quantity():
+    question = 'What institution code is stated in the 2025 undergraduate admission notice?'
+    claim = supported('Mã cơ sở đào tạo trong tuyển sinh: QHI')
+    answer = 'The 2025 undergraduate admission notice specifies institution code QHI.'
+    assert not presentation_conflicts(answer, claim, question=question)
+    assert presentation_conflicts(answer.replace('2025', '2026'), claim, question=question)
+    assert presentation_conflicts('The institution offers 2025 credits.', claim, question=question)
+
+
 @pytest.mark.parametrize('answer,claim', [
     ('The deadline is 17:00 on August 30, 2022.', 'The deadline is 17h00 on 30/08/2022.'),
     ('The result is announced on 9 September 2022.', 'The result is announced on 09/09/2022.'),

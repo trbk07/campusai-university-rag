@@ -79,6 +79,32 @@ def test_table_quote_is_one_original_row_not_stitched_cells():
     assert source_quote(row, []) is None
 
 
+def test_admission_table_quote_uses_short_programme_code_not_nearby_row_words():
+    table = {'headers': ['TT', 'Mã xét tuyển', 'Tên ngành1 xét tuyển', 'Mã ngành2',
+                         'Tên chương trình', 'Chỉ tiêu', 'Phương thức tuyển sinh', 'Ghi chú'],
+             'rows': [['1.', 'CN1', 'Công nghệ thông tin', '7480201', 'Công nghệ thông tin', '420',
+                       'Phương thức xét tuyển thẳng – Mã : 301; ĐGNL (HSA) – Mã : 401; '
+                       'CCQT SAT – Mã : 415; phương thức khác – Mã : 500; THPT – Mã : 100; '
+                       'riêng CN10 và CN21 thêm tổ hợp B00', ''],
+                      ['2.', 'CN2', 'Kỹ thuật máy tính', '7480106', 'Kỹ thuật máy tính', '420', '', '']]}
+    row = replace(evidence(content=json.dumps(table, ensure_ascii=False)), content_type='table')
+    claims = [{'text': 'Mã ngành theo danh mục quốc gia của mã xét tuyển CN2 là 7480106.',
+               'citation_ids': ['c1']}]
+    assert json.loads(source_quote(row, claims)) == table['rows'][1]
+
+
+@pytest.mark.parametrize('identifier', ['HSA', 'SAT'])
+def test_repeated_source_clause_is_bound_to_the_requested_admission_test(identifier):
+    phrase = 'còn thời hạn sử dụng trong vòng 2 năm kể từ ngày dự thi'
+    source = f'2.3.\nXét tuyển theo HSA: {phrase}.\n2.4.\nXét tuyển theo SAT: {phrase}.'
+    row = evidence(content=source)
+    claims = [{'text': phrase, 'citation_ids': ['c1']}]
+    quote = source_quote(row, claims, question=f'What test-age limit applies to {identifier} results?')
+    heading = '2.3.' if identifier == 'HSA' else '2.4.'
+    assert quote == f'{heading}\nXét tuyển theo {identifier}: {phrase}.'
+    assert validate_citation({'chunk_id': 'c1', 'page': 3, 'quote': quote}, row, require_quote=True).valid
+
+
 def test_scoped_table_quote_keeps_the_requested_semester_and_contiguous_source_rows():
     table = {'headers': ['№', 'Discipline', 'Credits', 'Resources'], 'rows': [
         ['Semester 1', '', '', ''], ['', 'Compulsory Subjects', '', ''],

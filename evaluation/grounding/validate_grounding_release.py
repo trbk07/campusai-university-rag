@@ -133,6 +133,18 @@ def _verify_bindings(report: dict, root: Path) -> list[str]:
             continue
         native_runs.append(native)
         predictions.extend(batch_predictions)
+        packet_value = native.get('egress_packet_path')
+        packet_path = (root / packet_value).resolve() if isinstance(packet_value, str) and packet_value else None
+        if packet_path is None or not packet_path.is_relative_to(root) or not packet_path.is_file():
+            errors.append('native_egress_packet_path_invalid')
+        else:
+            if hashlib.sha256(packet_path.read_bytes()).hexdigest() != native.get('egress_packet_sha256'):
+                errors.append('native_egress_packet_checksum_mismatch')
+            packet = json.loads(packet_path.read_text(encoding='utf-8'))
+            for field in ('source_identity', 'benchmark_sha256', 'config_sha256',
+                          'index_manifest_sha256', 'model', 'document_scope_policy'):
+                if field not in packet or packet[field] != native.get(field):
+                    errors.append(f'native_egress_packet_{field}_mismatch')
         if native.get('http503_recovery_policy'):
             authority = native.get('http503_recovery_authorization') or {}
             declared = authority.get('path')

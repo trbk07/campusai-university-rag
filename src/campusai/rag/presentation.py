@@ -112,7 +112,11 @@ _SCOPE_CUES = re.compile(
     r"dieu chinh|cap nhat)\b",
     re.I,
 )
-_SCOPE_CUES_AFTER = re.compile(r"^\s*(?:curriculum|programme|program|academic year|school year)\b", re.I)
+_SCOPE_CUES_AFTER = re.compile(
+    r"^\s*(?:curriculum|programme|program|academic year|school year|"
+    r"(?:(?:undergraduate|graduate|postgraduate)\s+)?admissions?\s+(?:notice|plan|quota|intake|regulations?))\b",
+    re.I,
+)
 _VERIFICATION_QUESTION = re.compile(
     r"\b(?:is that correct|is this correct|is that right|is this right|am i right|"
     r"co dung khong|dung khong|co chinh xac khong)\b",

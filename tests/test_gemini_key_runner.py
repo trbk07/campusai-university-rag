@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+import sys
 
 import pytest
 
@@ -47,10 +49,13 @@ def test_module_key_environment_is_scoped_and_restored(tmp_path, monkeypatch):
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("RUN_LLM_INTEGRATION", raising=False)
     observed = []
+    previous_path = sys.path[:]
     def run_module(*args, **kwargs):
+        assert sys.path[0] == str(Path(__file__).resolve().parents[1] / 'src')
         observed.append((os.environ["GEMINI_API_KEY"], os.environ["RUN_LLM_INTEGRATION"]))
     monkeypatch.setattr("scripts.operations.with_gemini_key.runpy.run_module", run_module)
     assert main(["--key-file", str(path), "--key-name", "key_2",
                  "--live-tests", "pytest", "-q"]) == 0
     assert observed == [("local-example-key", "1")]
+    assert sys.path == previous_path
     assert "GEMINI_API_KEY" not in os.environ and "RUN_LLM_INTEGRATION" not in os.environ
