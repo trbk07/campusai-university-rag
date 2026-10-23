@@ -49,6 +49,12 @@ def job_identity(digest,options):
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
+def legacy_job_identity(digest, options):
+    """Validate original ledger rows only; new work must use job_identity."""
+    return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options},
+        sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
 
 
 def recoverable_source(job,options):

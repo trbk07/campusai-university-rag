@@ -7,7 +7,7 @@ import re
 import sqlite3
 import time
 
-from .state import ACTIVE, TERMINAL, IngestionJob, JobStoreUnavailable, normalize_options, job_identity, recoverable_source
+from .state import ACTIVE, TERMINAL, IngestionJob, JobStoreUnavailable, normalize_options, job_identity, legacy_job_identity, recoverable_source
 
 
 class JobJournal:
@@ -76,7 +76,8 @@ class JobJournal:
                     if (saved_options != normalized or not Path(job.source_path).is_absolute()
                             or not re.fullmatch('[0-9a-f]{32}',job.job_id)
                             or not re.fullmatch('[0-9a-f]{64}',job.source_sha256)
-                            or job.identity != job_identity(job.source_sha256,normalized)
+                            or job.identity not in (job_identity(job.source_sha256,normalized),
+                                                    legacy_job_identity(job.source_sha256,normalized))
                             or job.state not in ACTIVE|TERMINAL
                             or not math.isfinite(job.progress) or not 0 <= job.progress <= 1):
                         raise ValueError('invalid job ledger state')

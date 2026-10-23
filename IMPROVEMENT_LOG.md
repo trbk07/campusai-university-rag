@@ -54,6 +54,29 @@ remove intermediate stores/exports. Full-app goal remains active: end-to-end
 OCR/index resource measurements, partially text-bearing scan pages, OCR/table
 quality, UI OCR opt-in and native model quality still require work.
 
+## 2026-10-23 — preserve existing journal compatibility
+
+Restarting the actual idle local app exposed an upgrade failure that isolated
+fresh-store tests missed: changing the job identity salt made the journal reject
+old valid rows. Fixed validation to accept only the exact canonical legacy or
+current identity; preserve historical rows unchanged, and use only current
+identities for new admission. Corrupt identities continue to fail closed.
+Migration/PDF/jobs regression: 33 PASS. The actual app was restored on port 8000,
+with two documents still ready and five historical jobs retained. No journal
+reset, document deletion, credential change or provider request was used.
+
+Post-upgrade final regression: **2,378 PASS / 2 live SKIP**, 254.39 s. Clean
+staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
+12.94 s. Current receipt replaces the pre-compatibility receipt at the same path;
+the earlier 2,376-test receipt remains in commit `12ed6bd9`. Live local backend
+coverage fields and exact UTF-8 frontend asset bytes were verified after restart.
+
+Post-upgrade final regression: **2,378 PASS / 2 live SKIP**, 254.39 s. Clean
+staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
+12.94 s. Current receipt replaces the pre-compatibility receipt at the same path;
+the earlier 2,376-test receipt remains in commit `12ed6bd9`. Live local backend
+coverage fields and exact UTF-8 frontend asset bytes were verified after restart.
+
 Final worktree regression: **2,376 PASS, 2 opt-in live SKIP** in 255.80 s;
 focused 52 PASS. Exact staged Git source exported without local files:
 **106 app tests PASS** in 11.68 s. Preserve final JUnit and parser-run evidence;

@@ -14,6 +14,9 @@ Cycle: 2026-10-23. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 | Large/scan PDF load | Verify extraction/table/OCR and latency/RSS under five realistic PDFs plus query load. | OPEN for current app performance cycle; unit PDF regressions alone do not prove this workload. |
 | Mixed text/scan and legacy cache | Preserve native text and physical pages; never mark partial extraction ready; detect old incomplete success flags. OCR budget applies only to selected pages. | `tests/test_mixed_pdf.py`; 8 tests PASS, included in the 52-test focused PDF/web/jobs run. Real local OCR of page 2 independently verified. |
 | Real-PDF parser RSS | Compare identical input hashes and preserve exact native text/layout while reducing image-buffer overhead. | Three fresh-process runs per version, five PDFs/104 pages; `docs/ui/evidence/pdf-parser-batch.json`. Parser scope only. |
+| Upgrade existing job ledger | Prior identity rows remain readable; new work gets the new identity; fabricated legacy identity still fails closed. | `tests/test_job_identity_migration.py`; 33-test migration/PDF/jobs group PASS; actual existing local journal startup verified. |
+| Clean app after compatibility upgrade | No missing runtime modules; mixed-PDF/legacy-ledger behavior works from Git source alone. | Tree `4b9e11da8779b74f20893baf959dcdc9114757e9`, clean exported source: 108/108 app tests PASS; final whole-worktree suite 2,378 PASS / 2 live SKIP. |
+| Clean app after compatibility upgrade | No missing runtime modules; mixed-PDF/legacy-ledger behavior works from Git source alone. | Tree `4b9e11da8779b74f20893baf959dcdc9114757e9`, clean exported source: 108/108 app tests PASS; final whole-worktree suite 2,378 PASS / 2 live SKIP. |
 
 All current-cycle API/worker scenarios use isolated local test stores and no
 external provider. Existing production/user documents must not be deleted.
