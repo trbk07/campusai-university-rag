@@ -42,10 +42,14 @@ def test_ui_distinguishes_provider_overload_from_missing_evidence(tmp_path):
     service.retriever.index_root = tmp_path
     response = call(make_wsgi_app(CampusAIApplication(service)), "/")
     page = response['body'].decode('utf-8')
-    assert "d.answer.abstention_reason==='provider_abstention'" in page
-    assert "AbortSignal.timeout(45000)" in page
-    assert "err.name==='TimeoutError'||err.name==='AbortError'" in page
-    assert "Chưa đủ bằng chứng." in page
+    assert '/assets/scripts/app.js' in page
+    app = make_wsgi_app(CampusAIApplication(service))
+    chat = call(app, '/assets/features/chat.js')['body'].decode('utf-8')
+    api = call(app, '/assets/scripts/api.js')['body'].decode('utf-8')
+    assert "answer.abstention_reason === 'provider_abstention'" in chat
+    assert '45000' in api and 'controller.abort()' in api
+    assert "error.name === 'TimeoutError' || error.name === 'AbortError'" in api
+    assert 'Chưa đủ bằng chứng trong tài liệu đã chọn.' in chat
 
 
 def test_wsgi_telemetry_is_request_local_and_not_exposed_in_answer(tmp_path):
@@ -92,15 +96,58 @@ def test_threaded_wsgi_http_transport_records_matching_request_id(tmp_path):
             thread.join(timeout=5)
 
 
+def test_four_natural_language_queries_can_run_in_parallel_without_corpus_race(tmp_path):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    from types import SimpleNamespace
+
+    rendezvous = threading.Barrier(4)
+
+    class Answer:
+        def __init__(self, question): self.question = question
+        def to_dict(self):
+            return {'answer': self.question, 'citations': [], 'abstained': False}
+
+    class ConcurrentService:
+        metrics = type('Metrics', (), {'as_dict': lambda self: {}})()
+        retriever = type('Retriever', (), {'index_root': tmp_path, '_indexes': {}})()
+        answer_generator = SimpleNamespace(llm=object())
+        _request_local = threading.local()
+        last_cache_hit = False
+        def ask(self, question, **_kwargs):
+            rendezvous.wait(timeout=5)
+            return Answer(question)
+
+    app = make_wsgi_app(CampusAIApplication(ConcurrentService()), max_concurrent_queries=4)
+    questions = [
+        'Could you tell me what this policy says?',
+        'Mình muốn hỏi tài liệu giải thích quy định này thế nào?',
+        'Can you walk me through the relevant requirement?',
+        'Cho mình hỏi, nội dung này áp dụng ra sao vậy?',
+    ]
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        responses = list(pool.map(lambda question: call(app, '/api/query', 'POST',
+            {'question': question, 'language': 'en' if question.startswith('Could') or question.startswith('Can') else 'vi'}), questions))
+    assert all(response['status'].startswith('200') for response in responses)
+    answers = [json.loads(response['body'])['answer']['answer'] for response in responses]
+    assert answers == questions
+
+
 def test_unconfigured_server_abstains_over_http_without_a_provider_exception(tmp_path, monkeypatch):
     from scripts.operations import serve
     from tests.test_basic_rag import evidence
 
     monkeypatch.delenv("CAMPUSAI_LLM_CONFIG", raising=False)
-    monkeypatch.setenv("CAMPUSAI_INDEX_DIR", str(tmp_path))
+    (tmp_path/"index").mkdir()
+    monkeypatch.setenv("CAMPUSAI_INDEX_DIR", str(tmp_path/"index"))
+    monkeypatch.setenv("CAMPUSAI_STORE_DIR", str(tmp_path/"store"))
     monkeypatch.setenv("CAMPUSAI_RETRIEVAL_CALIBRATION", str(tmp_path / "missing.json"))
+    monkeypatch.delenv("CAMPUSAI_INGESTION_WORKERS", raising=False)
+    monkeypatch.delenv("CAMPUSAI_INGESTION_PENDING", raising=False)
     monkeypatch.setenv("RERANKER_ENABLED", "false")
     application = serve.build_application()
+    assert application.jobs.max_workers == 3
+    assert application.jobs.max_pending == 8
     monkeypatch.setattr(application.query_service.retriever, "search", lambda *_args, **_kwargs: [evidence()])
     try:
         app = make_wsgi_app(application)

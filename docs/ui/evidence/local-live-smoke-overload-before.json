@@ -1,0 +1,15 @@
+{
+  "status": "NOT_PASSED",
+  "scope": "live local-app Vietnamese answer on English PDF; not a provider SLO",
+  "http_status": 200,
+  "response_id": "3c7fd8c003f14cd7904565e8b317fe5d",
+  "cache_hit": false,
+  "abstained": true,
+  "abstention_reason": "provider_abstention",
+  "citation_count": 0,
+  "elapsed_seconds": 2.56,
+  "doc_id": "b9b9e88d93fdc12e1a0d4ec6ad30f86980fb2d95610ecdbfb2a284da224e64fb",
+  "question_sha256": "2c9815573a74b3e5f8efc6f565509dc0a235928ab2125399d505baa3f86d43ad",
+  "answer_sha256": "e57869e3d451d82b5da555e8c78022ad543c2ac519d02257cc23a4798c1f3782",
+  "citations": []
+}

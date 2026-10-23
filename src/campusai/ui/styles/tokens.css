@@ -1,0 +1,35 @@
+:root {
+  color-scheme: light;
+  --primary:#2563EB; --primary-hover:#1D4ED8; --primary-soft:#EFF6FF; --primary-dark:#1E40AF;
+  --background:#F7F9FC; --surface:#FFFFFF; --surface-muted:#F1F5F9;
+  --text-primary:#0F172A; --text-secondary:#475569; --text-muted:#64748B; --border:#E2E8F0;
+  --success:#15803D; --success-soft:#F0FDF4; --warning:#B45309; --warning-soft:#FFFBEB;
+  --danger:#DC2626; --danger-soft:#FEF2F2; --info:#2563EB; --violet:#6D28D9; --violet-soft:#F5F3FF;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px; --space-12:48px;
+  --radius:14px; --control-radius:10px; --shadow:0 2px 8px rgb(15 23 42 / 3%);
+  --header-height:68px; --sidebar-width:264px; --source-width:328px;
+  font-family:Inter,"Be Vietnam Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px; line-height:1.6; color:var(--text-primary); background:var(--background);
+}
+* {box-sizing:border-box}
+body {margin:0}
+button,input,textarea,select {font:inherit;color:inherit}
+button,a,input,textarea,select,summary { -webkit-tap-highlight-color:transparent }
+button {cursor:pointer}
+button:disabled {cursor:not-allowed;opacity:.5}
+a {color:var(--primary);text-decoration:none}
+button,a {transition:background-color 150ms,color 150ms,border-color 150ms,box-shadow 150ms}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,select:focus-visible {outline:3px solid var(--primary);outline-offset:3px}
+h1,h2,h3,p {margin:0}
+h1 {font-size:30px;line-height:1.3;letter-spacing:-.8px;font-weight:750}
+h2 {font-size:18px;line-height:1.4;font-weight:650}
+svg {width:20px;height:20px;flex-shrink:0;vertical-align:middle}
+[data-icon] {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+[hidden] {display:none!important}
+.sr-only {position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.muted {color:var(--text-muted)}
+.eyebrow {font-size:10px;letter-spacing:1.7px;font-weight:700;color:var(--primary);margin-bottom:12px}
+.skip-link {position:fixed;left:16px;top:-80px;background:var(--surface);padding:12px;z-index:100}
+.skip-link:focus {top:12px}
+.file-name {overflow-wrap:anywhere}
+@media(prefers-reduced-motion:reduce) {* {animation:none!important;transition:none!important;scroll-behavior:auto!important}}

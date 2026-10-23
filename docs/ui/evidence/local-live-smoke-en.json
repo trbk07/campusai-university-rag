@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "scope": "live local-app English-source smoke; not a provider SLO",
+  "http_status": 200,
+  "response_id": "c89c488d5684417aa99be9ac8ee78c09",
+  "cache_hit": false,
+  "abstained": false,
+  "abstention_reason": null,
+  "citation_count": 1,
+  "elapsed_seconds": 5.05,
+  "doc_id": "b9b9e88d93fdc12e1a0d4ec6ad30f86980fb2d95610ecdbfb2a284da224e64fb",
+  "question_sha256": "4f97a2b9793494d026fbf2f2a1d243d4374fcdb1c523e881b67ed230b2461a6a",
+  "answer_sha256": "be6e86d4b00c7b985d77964002bf811c062c7d26fc10157fa6b97a9c8fc8c190",
+  "citations": [
+    {
+      "doc_id": "b9b9e88d93fdc12e1a0d4ec6ad30f86980fb2d95610ecdbfb2a284da224e64fb",
+      "page": 1,
+      "quote_sha256": "aa2ceb9b7e785bfd83b532845def479adee6aa765591e2413de6416acf92778e"
+    }
+  ]
+}

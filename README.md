@@ -87,14 +87,89 @@ Naming and artifact rules are in [the contribution guide](docs/contributing.md).
 
 ## Run locally
 
+On Windows, double-click **`start-campusai.cmd`** to start CampusAI and open the
+browser. The launcher loads `.env` and your existing ignored `configs/key.yaml`
+when needed, using the checked-in `free_llm.yaml` profile (Gemini 3.5 Flash-Lite). It never prints
+keys, rotates credentials or enables billing. Existing environment settings
+take priority. Keep its console open while using the app.
+
+Gemini 503 responses open a shared 60–300 second cooldown. During a provider
+failure, the local app can show up to three verified original-source excerpts
+with PDF links, so document lookup remains usable. The UI labels this degraded
+view explicitly; the AI answer stays abstained, and excerpts are neither cached
+as generated answers nor included in conversation history. Further lookups during
+the cooldown do not call Gemini. The next user query after cooldown can recover
+normal generation; the app never automatically resends a question.
+
+A 429 response identifies an API quota/rate limit or a busy local query separately.
+One active query is admitted per local instance; health, UI, document polling
+and source lookup continue while that query waits. Corpus deletion waits for
+the query to finish using its sources. No provider error is cached as an answer.
+The [source-excerpt review](docs/deployment/phase13/provider-continuity.md) records
+the failed live Flash-Lite experiment and the separate offline recovery tests.
+Free API availability and unlimited generated answers have not been established.
+
+Phase 13 targets [free cloud deployment](docs/deployment/phase13/profile-decision.md)
+on Oracle Always Free, independently of the development laptop. Provisioning and
+cloud acceptance are still pending; the detailed tasks remain in [plan.md](plan.md#phase-13--deployment).
+
+The [cloud configuration/preflight guide](docs/deployment/phase13/runtime-configuration.md)
+defines external state/config/model/release paths and pinned encoder identity.
+`python -m scripts.operations.preflight --config /etc/campusai/deployment.json`
+audits prerequisites without provider calls; it does not accept deployment.
+
 ```powershell
-.venv\Scripts\python.exe -m scripts.operations.serve
+.venv\Scripts\python.exe -m scripts.operations.local --open-browser
 .venv\Scripts\python.exe -m scripts.retrieval.build_index --help
 .venv\Scripts\python.exe -m scripts.retrieval.warm_retrieval --help
 ```
 
-The demo uses a dependency-free WSGI UI. Production hosting still requires
-provider configuration and managed process/storage services.
+Open **http://127.0.0.1:8000** for the CampusAI UI: AI assistant, document
+library, metadata collections and guide. Upload a PDF, wait for **Sẵn sàng**,
+select the source, ask a question, then open its citation or submit feedback.
+The HTML/CSS/JavaScript frontend lives in `src/campusai/ui/`; no Node/build step
+is needed to run the application. Assets are included in the Python package.
+
+The default free profile admits one model request at a time, paced at ten
+requests per minute with a bounded wait. New questions asked immediately after
+one another can take about 6 seconds; an exact-context cache hit is much faster.
+Validated answers are stored locally in `data/cache/grounded-answers.sqlite3`
+across app restarts. Set `CAMPUSAI_RAG_CACHE_PATH=:memory:` to keep answer bodies
+only until the process exits. Document deletion clears stored answers.
+
+The profile retrieves up to eight ordinary-query candidates and fits verbatim
+source windows into an 8,000-character evidence budget. Tables retain their
+serialization; temporal/multi-hop requests retain the established serializer.
+Durable admission and separate 429/503 cooldowns prevent repeated sends during
+known faults. The owner confirmed Free tier; a bounded probe observed a Free
+limit of 15 RPM and stopped at the first 429. Production stays at 10 RPM;
+TPM/RPD ceilings remain unverified. During cooldown, manual local lookups stay
+available and failed-question retries wait. See [quota result and handoff](docs/deployment/phase13/quota-exhaustion.md),
+[model qualification and limits](docs/deployment/phase13/model-selection.md)
+and [applied repository ideas](docs/deployment/phase13/repo-application-review.md).
+The historical `product_llm.yaml` stays unchanged for explicit evaluation;
+explicit environment/.env profile choices continue to take priority.
+
+Questions about an uploaded PDF such as “tài liệu có mấy trang” are answered directly
+from PDF metadata. Natural follow-ups keep their topic; a complete new question
+starts a new topic. Section summaries retain more relevant source context, and
+the active Free profile resolves model-selected citation IDs to original source
+pages/quotes. See [natural conversation checks and fixes](docs/deployment/phase13/natural-conversation.md).
+
+The local MVP is single-user. Set `CAMPUSAI_LLM_CONFIG` to select a different
+existing provider configuration. Without credentials, the launcher shows setup
+instructions. The advanced `scripts.operations.serve` transport still requires
+explicit environment settings; it does not auto-load credentials. Real
+embedding uploads need the optional `feasibility` dependencies and the model
+available locally. The app uses `CAMPUSAI_STORE_DIR` / `CAMPUSAI_INDEX_DIR` for runtime
+storage. An evaluation calibration is no longer selected implicitly for user
+uploads; set `CAMPUSAI_RETRIEVAL_CALIBRATION` only to a calibration matching your
+runtime corpus. Explicit calibration fingerprint checks remain enforced.
+
+See [UI architecture, API mapping and acceptance](docs/ui/phase12-ui.md) for
+screenshots, offline test results, clean setup and browser test commands.
+Production hosting still requires provider configuration, authentication and
+managed process/storage services; R-01/R-02 remain open in [plan.md](plan.md).
 
 The default PDF path uses PyMuPDF and a SHA-256 cache. Docling is an optional
 layout/table review tool. Scan-only PDFs require explicit bounded OCR; otherwise
@@ -109,7 +184,7 @@ The Makefile selects the virtual environment's Python for the current platform.
 | Task | Make target | Python module |
 | --- | --- | --- |
 | Offline tests | `make test` | `pytest -q` |
-| Grounding evaluation | `make grounding-eval` | `evaluation.grounding.run_grounding_eval` |
+| Grounding fixture diagnostics | `make grounding-eval` | `evaluation.grounding.run_grounding_eval` (gold-derived; not release evidence) |
 | Grounding report validation | `make release-validate` | `evaluation.grounding.validate_grounding_release` |
 | Grounding package validation | `make grounding-package-validate` | `scripts.release.package_grounding_release` |
 | Hybrid benchmark construction | `make hybrid-benchmark` | `scripts.benchmarks.build_hybrid_benchmark` |
@@ -119,6 +194,10 @@ The Makefile selects the virtual environment's Python for the current platform.
 | Hybrid release validation | `make hybrid-validate` | `evaluation.retrieval.validate_hybrid_release` |
 | Student query dataset | `make student-natural-benchmark` | `evaluation.benchmarks.build_student_natural_benchmark` |
 | Reranker release stages | `make reranker-<stage>` | `evaluation.reranker.release_workflow <stage>` |
+
+Phase 5 native inference, benchmark repair and independent-review requirements:
+[current audit and handoff](docs/grounding/phase5_completion.md),
+[operations workflow](docs/operations/grounding_operations.md).
 
 Reranker stages are `baseline`, `human-freeze`, `candidate`, `model`, `route`,
 `calibration`, `quality`, `performance`, `security`, `faults`, `rollback`,

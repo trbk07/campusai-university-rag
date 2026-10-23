@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "method": "uv build --wheel --out-dir .tmp/ui-wheel --offline",
+  "ui_assets": {
+    "campusai/ui/features/chat.js": "6ecfa934f17928b0c2e7497053da09f64fe53b9adcf88d29301c54bd6ba5c2dd",
+    "campusai/ui/features/documents.js": "3932269ccb4048639ebf00bf33b93a68220587b45dede4e1dd8ef7a710dfeea3",
+    "campusai/ui/pages/index.html": "919de5175d5c6b0b6fb2ad876c555d758647c8c9e459f5541be462c4b960ae6b",
+    "campusai/ui/scripts/api.js": "8eac61ddad2dcb807ed492d66d2745dd11d1da04f59ea6dce3f90ee44266c29c",
+    "campusai/ui/scripts/app.js": "a8187ca128ad3bd384f60fa97b0b9049d7837f9cd3fcc0a8109d67fe01c4476c",
+    "campusai/ui/scripts/shared.js": "d3f7c363504e837ea50cd908a1305b059ce1e4b845b75d925ddc8f0ae39254b9",
+    "campusai/ui/styles/components.css": "8ba51d66a3bf0bd3afaaf8dc3729e8a1201f3e041f7d2199a6ebb987038c2b35",
+    "campusai/ui/styles/layout.css": "900f569c4a8597f7e899cc6f9ccaeb29284d14397915740911ee8e3a9d241f47",
+    "campusai/ui/styles/responsive.css": "c414bc508f929957209fa77f159f906c0f17072a86a7a0a5515d80a04e77d7e0",
+    "campusai/ui/styles/tokens.css": "ac9f163fb35a5203ed1055885f594c21e16b75e8f7a087ef15f6b079ad830724"
+  },
+  "wheel_sha256": "271d22439b9be7b512c7d7394987dfc7edd2efe4e9a4c9384d93944255632409"
+}

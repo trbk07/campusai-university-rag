@@ -1,0 +1,28 @@
+# Local continuity profile; same model/generation settings as the frozen product-quality profile.
+# Model reference: https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash
+llm:
+  provider: gemini
+  model: gemini-3.8-flash
+  api_key_env: GEMINI_API_KEY
+  timeout_seconds: 15
+  max_retries: 0
+  # Shared by all keys/workers; 503 opens a durable 60-300s cooldown.
+  # Recovery uses one subsequent real request, never a paid/probe request.
+  overload_circuit_path: .tmp/gemini-provider-health.sqlite3
+  retry_only_503: true
+  retry_min_wait_seconds: 1
+  retry_max_wait_seconds: 3
+  requests_per_minute: 10
+  # Durable operator RPM/concurrency cap, shared across owner credentials.
+  # Account TPM/RPD remain UNKNOWN; do not invent limits or free entitlement.
+  quota:
+    state_path: data/operations/gemini-quota.sqlite3
+    scope: gemini:owner:gemini-3.8-flash
+    max_in_flight: 1
+    max_wait_seconds: 2
+  cache_path: ':memory:'
+  generation_config:
+    temperature: 1
+    maxOutputTokens: 1024
+    thinkingConfig:
+      thinkingLevel: low

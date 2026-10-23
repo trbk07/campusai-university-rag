@@ -1,0 +1,66 @@
+"""Bounded, concurrent loopback transport for local use, not public hosting."""
+import threading
+from socketserver import ThreadingMixIn
+from wsgiref.simple_server import (ServerHandler, WSGIRequestHandler, WSGIServer,
+                                 make_server)
+
+
+class LocalRequestHandler(WSGIRequestHandler):
+    def handle(self):
+        self.raw_requestline = self.rfile.readline(65537)
+        if len(self.raw_requestline) > 65536:
+            self.requestline = self.request_version = self.command = ''
+            self.send_error(414)
+            return
+        if not self.parse_request():
+            return
+        handler = ServerHandler(self.rfile, self.wfile, self.get_stderr(),
+                                self.get_environ(), multithread=True)
+        handler.request_handler = self
+        handler.run(self.server.get_app())
+
+
+class LocalHTTPServer(ThreadingMixIn, WSGIServer):
+    """At most eight HTTP handlers; query admission is separately limited."""
+    block_on_close = True
+    request_queue_size = 8
+
+    def __init__(self, *args, **kwargs):
+        self._slots = threading.BoundedSemaphore(8)
+        super().__init__(*args, **kwargs)
+
+    def get_request(self):
+        request, address = super().get_request()
+        request.settimeout(30)
+        return request, address
+
+    def process_request(self, request, address):
+        if not self._slots.acquire(blocking=False):
+            body = b'{"ok":false,"error_code":"query_busy","retry_after_seconds":1}'
+            try:
+                request.sendall(b'HTTP/1.1 503 Service Unavailable\r\nConnection: close\r\n'
+                    b'Content-Type: application/json\r\nRetry-After: 1\r\nContent-Length: '
+                    + str(len(body)).encode('ascii') + b'\r\n\r\n' + body)
+            except OSError:
+                pass
+            finally:
+                self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, address)
+        except BaseException:
+            self._slots.release()
+            raise
+
+    def process_request_thread(self, request, address):
+        try:
+            super().process_request_thread(request, address)
+        finally:
+            self._slots.release()
+
+
+def make_local_server(host, port, app):
+    if host not in {'127.0.0.1', '::1'}:
+        raise ValueError('Local transport must bind loopback')
+    return make_server(host, port, app, server_class=LocalHTTPServer,
+                       handler_class=LocalRequestHandler)

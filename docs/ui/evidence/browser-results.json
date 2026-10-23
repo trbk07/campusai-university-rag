@@ -1,0 +1,168 @@
+{
+  "status": "PASS",
+  "browser": "155.0.8059.79",
+  "provider": "local test fixture; no live LLM calls",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    },
+    {
+      "width": 1024,
+      "height": 768,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    },
+    {
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    },
+    {
+      "width": 360,
+      "height": 800,
+      "overflow": false,
+      "composerVisible": true,
+      "axeViolations": 0
+    }
+  ],
+  "checks": [
+    {
+      "name": "empty composer cannot submit",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 1440x900",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 1280x800",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 1024x768",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 768x1024",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 390x844",
+      "passed": true
+    },
+    {
+      "name": "responsive and axe 360x800",
+      "passed": true
+    },
+    {
+      "name": "mobile drawer keyboard focus and Escape",
+      "passed": true
+    },
+    {
+      "name": "all four navigation routes",
+      "passed": true
+    },
+    {
+      "name": "axe upload dialog",
+      "passed": true
+    },
+    {
+      "name": "real PDF upload and background ready",
+      "passed": true
+    },
+    {
+      "name": "axe document library",
+      "passed": true
+    },
+    {
+      "name": "axe scope dialog",
+      "passed": true
+    },
+    {
+      "name": "search filter selection and scope keyboard",
+      "passed": true
+    },
+    {
+      "name": "answer language is sent to the actual API",
+      "passed": true
+    },
+    {
+      "name": "axe grounded answer and source panel",
+      "passed": true
+    },
+    {
+      "name": "real grounded answer citation and single submit",
+      "passed": true
+    },
+    {
+      "name": "citation opens exact physical PDF page",
+      "passed": true
+    },
+    {
+      "name": "feedback persisted through actual API",
+      "passed": true
+    },
+    {
+      "name": "mobile citation drawer and focus return",
+      "passed": true
+    },
+    {
+      "name": "abstention clears stale sources and escapes unsafe HTML",
+      "passed": true
+    },
+    {
+      "name": "503 finishes loading and explicit retry succeeds",
+      "passed": true
+    },
+    {
+      "name": "provider overload differs from missing evidence",
+      "passed": true
+    },
+    {
+      "name": "45-second client timeout completes without claiming server cancellation",
+      "passed": true
+    },
+    {
+      "name": "axe guide",
+      "passed": true
+    },
+    {
+      "name": "axe collections",
+      "passed": true
+    },
+    {
+      "name": "collections filter and guide FAQ",
+      "passed": true
+    },
+    {
+      "name": "delete confirmation and no stale source access",
+      "passed": true
+    },
+    {
+      "name": "no browser script errors",
+      "passed": true
+    }
+  ],
+  "browserErrors": []
+}

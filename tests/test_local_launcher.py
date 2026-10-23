@@ -1,0 +1,128 @@
+"""Local launch config and lifecycle; these tests never call a provider."""
+import json
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from scripts.operations import local
+
+
+@pytest.fixture
+def configured_root(tmp_path):
+    (tmp_path/'configs').mkdir()
+    (tmp_path/'configs/product_llm.yaml').write_text(json.dumps({'llm':{
+        'provider':'gemini','model':'fixture-model','api_key_env':'GEMINI_API_KEY'}}))
+    return tmp_path
+
+
+def test_local_launcher_loads_existing_owner_key_and_approved_profile(configured_root):
+    root = configured_root
+    (root/'configs/key.yaml').write_text('key_1: fixturecredential123\nkey_2: othercredential456\n')
+    (root/'configs/gemini.yaml').write_text('llm: {model: obsolete-preview}')
+    env = {}
+    result = local.configure_local(root,env)
+    assert env['GEMINI_API_KEY'] == 'fixturecredential123'
+    assert env['CAMPUSAI_LLM_CONFIG'] == str(root/'configs/product_llm.yaml')
+    assert result == {'ai_configured':True,'provider':'gemini','model':'fixture-model'}
+    assert 'credential' not in json.dumps(result)
+
+
+def test_continuity_profile_is_default_and_explicit_profile_still_wins(configured_root):
+    root = configured_root
+    (root/'configs/continuity_llm.yaml').write_text(json.dumps({'llm':{
+        'provider':'gemini','model':'continuity-model','api_key_env':'GEMINI_API_KEY'}}))
+    env = {'GEMINI_API_KEY':'fake'}
+    assert local.configure_local(root,env)['model'] == 'continuity-model'
+    assert env['CAMPUSAI_LLM_CONFIG'] == str(root/'configs/continuity_llm.yaml')
+    explicit = {'GEMINI_API_KEY':'fake','CAMPUSAI_LLM_CONFIG':'configs/product_llm.yaml'}
+    assert local.configure_local(root,explicit)['model'] == 'fixture-model'
+
+
+def test_qualified_free_profile_is_preferred_without_overriding_explicit_choice(configured_root):
+    root = configured_root
+    (root/'configs/free_llm.yaml').write_text(json.dumps({'llm':{
+        'provider':'gemini','model':'selected-free-model','api_key_env':'GEMINI_API_KEY'}}))
+    env = {'GEMINI_API_KEY':'fake'}
+    assert local.configure_local(root,env)['model'] == 'selected-free-model'
+    assert env['CAMPUSAI_RAG_CACHE_PATH'] == str(root/'data/cache/grounded-answers.sqlite3')
+    explicit = {'GEMINI_API_KEY':'fake','CAMPUSAI_LLM_CONFIG':'configs/product_llm.yaml'}
+    assert local.configure_local(root,explicit)['model'] == 'fixture-model'
+
+
+def test_explicit_environment_profile_and_key_take_priority_over_dotenv(configured_root,monkeypatch):
+    root = configured_root
+    (root/'custom.yaml').write_text('llm: {provider: gemini, model: chosen-model}')
+    (root/'.env').write_text('CAMPUSAI_LLM_CONFIG=configs/product_llm.yaml\nGEMINI_API_KEY=dotenvcredential123\n')
+    env = {'CAMPUSAI_LLM_CONFIG':'custom.yaml','GEMINI_API_KEY':'existingcredential123'}
+    monkeypatch.setattr(local,'read_key',lambda *_a,**_k:pytest.fail('must not rotate key'))
+    result = local.configure_local(root,env)
+    assert result['model'] == 'chosen-model' and env['GEMINI_API_KEY'] == 'existingcredential123'
+
+
+def test_dotenv_values_are_literal_and_do_not_execute_shell_code(tmp_path):
+    env = {}
+    path = tmp_path/'.env'
+    path.write_text('export GEMINI_API_KEY="quotedcredential123"\nCAMPUSAI_INDEX_DIR=$(create-unwanted-file) # comment\n')
+    local.load_local_env(path,env)
+    assert env['CAMPUSAI_INDEX_DIR'] == '$(create-unwanted-file)'
+    assert env['GEMINI_API_KEY'] == 'quotedcredential123'
+    path.write_text('=private-credential-must-not-appear')
+    with pytest.raises(local.LocalSetupError) as error:
+        local.load_local_env(path,{})
+    assert 'private-credential' not in str(error.value)
+
+
+def test_missing_or_unignored_credential_has_safe_actionable_error(configured_root,monkeypatch):
+    root = configured_root
+    with pytest.raises(local.LocalSetupError,match='GEMINI_API_KEY'):
+        local.configure_local(root,{})
+    (root/'configs/key.yaml').write_text('key_1: fixturecredential123')
+    (root/'.git').mkdir()
+    monkeypatch.setattr(local.subprocess,'run',lambda *_a,**_k:SimpleNamespace(returncode=1))
+    with pytest.raises(local.LocalSetupError,match='Git ignore'):
+        local.configure_local(root,{})
+
+
+def test_second_launch_reuses_configured_app_without_loading_models(configured_root,monkeypatch):
+    monkeypatch.chdir(configured_root)
+    monkeypatch.setattr(local,'ROOT',configured_root)
+    monkeypatch.setattr(local,'running_app',lambda:{'runtime':{'ai_configured':True}})
+    monkeypatch.setattr(local,'build_application',lambda:pytest.fail('duplicate app load'))
+    opened=[]
+    monkeypatch.setattr(local.webbrowser,'open',opened.append)
+    assert local.main(['--open-browser']) == 0
+    assert opened == [local.URL]
+
+
+def test_old_unconfigured_app_is_not_misreported_as_ready(configured_root,monkeypatch,capsys):
+    monkeypatch.chdir(configured_root)
+    monkeypatch.setattr(local,'ROOT',configured_root)
+    monkeypatch.setattr(local,'running_app',lambda:{'documents':[]})
+    assert local.main([]) == 1
+    assert 'Ctrl+C' in capsys.readouterr().out
+
+
+def test_port_is_reserved_before_model_load_and_resources_close(configured_root,monkeypatch):
+    monkeypatch.chdir(configured_root)
+    monkeypatch.setattr(local,'ROOT',configured_root)
+    monkeypatch.setattr(local,'running_app',lambda:None)
+    monkeypatch.setattr(local,'configure_local',lambda:{'model':'fixture-model'})
+    calls=[]
+    class Server:
+        def __enter__(self): calls.append('bound'); return self
+        def __exit__(self,*_args): calls.append('server_closed')
+        def set_app(self,app): calls.append('set_app')
+        def serve_forever(self): calls.append('serve'); raise KeyboardInterrupt
+    def build():
+        assert calls == ['bound']
+        calls.append('model_loaded')
+        return SimpleNamespace(close=lambda:calls.append('app_closed'))
+    monkeypatch.setattr(local,'make_server',lambda *_args:Server())
+    monkeypatch.setattr(local,'build_application',build)
+    web_options=[]
+    monkeypatch.delenv('CAMPUSAI_QUERY_WORKERS', raising=False)
+    monkeypatch.setattr(local,'make_wsgi_app',lambda app, **kwargs:(web_options.append(kwargs) or object()))
+    assert local.main([]) == 0
+    assert calls == ['bound','model_loaded','set_app','serve','server_closed','app_closed']
+    assert web_options == [{'max_concurrent_queries':4}]

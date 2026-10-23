@@ -44,6 +44,7 @@ evaluation/results/reranker_release_manifest.json
 # Local dependency and ingestion caches.
 .uv-cache*/
 data/cache/
+/data/operations/
 
 # Evidence storage: canonical summaries/manifests stay in Git; raw bytes do not.
 /.local_artifacts/
@@ -1404,3 +1405,6 @@ data/cache/
 /evaluation/results/phase7-live-integration-20261013/collector-regression-tests.xml
 /evaluation/results/phase7-live-integration-20261013/verified-live.xml
 /evaluation/results/phase7-live-integration-20261013/verified-preflight.xml
+
+# Optional UI test dependencies (not shipped with the app).
+/tests/ui/node_modules/

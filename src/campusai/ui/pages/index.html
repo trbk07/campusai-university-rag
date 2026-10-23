@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#2563EB">
+  <meta name="description" content="CampusAI — Hỏi đáp tài liệu đại học với nguồn trích dẫn có thể kiểm chứng.">
+  <title>CampusAI · Trợ lý tài liệu đại học</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/assets/styles/tokens.css">
+  <link rel="stylesheet" href="/assets/styles/layout.css">
+  <link rel="stylesheet" href="/assets/styles/components.css">
+  <link rel="stylesheet" href="/assets/styles/responsive.css">
+  <script type="module" src="/assets/scripts/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Đi đến nội dung chính</a>
+  <header class="topbar">
+    <div class="brand-area">
+      <button class="icon-button mobile-menu" id="menu-toggle" aria-label="Mở danh mục tài liệu" aria-expanded="false" aria-controls="sidebar"><span data-icon="menu"></span></button>
+      <a class="brand" href="#assistant" aria-label="CampusAI — Trang chủ"><span class="brand-mark" data-icon="cap"></span><span>Campus<span class="brand-ai">AI</span></span></a>
+    </div>
+    <nav class="topnav" aria-label="Điều hướng chính">
+      <a href="#assistant" class="nav-item active" aria-current="page"><span data-icon="chat"></span><span>Trợ lý AI</span></a>
+      <a href="#documents" class="nav-item"><span data-icon="file"></span><span>Tài liệu của tôi</span></a>
+      <a href="#collections" class="nav-item"><span data-icon="collection"></span><span>Bộ sưu tập</span></a>
+      <a href="#guide" class="nav-item"><span data-icon="help"></span><span>Hướng dẫn</span></a>
+    </nav>
+    <form id="global-search-form" class="global-search" role="search">
+      <span data-icon="search"></span><label class="sr-only" for="global-search">Tìm kiếm tài liệu</label>
+      <input id="global-search" type="search" placeholder="Tìm kiếm tài liệu..." autocomplete="off">
+      <kbd>/</kbd>
+    </form>
+    <span class="local-badge"><span data-icon="monitor"></span>Không gian cá nhân</span>
+  </header>
+  <div class="app-layout">
+    <aside class="sidebar" id="sidebar" aria-label="Thư viện tài liệu">
+      <div class="sidebar-heading"><strong>Thư viện của bạn</strong><button class="icon-button" id="menu-close" aria-label="Đóng danh mục"><span data-icon="close"></span></button></div>
+      <button class="button primary upload-trigger upload-main"><span data-icon="plus"></span>Tải tài liệu mới</button>
+      <div class="sidebar-section"><h2>TÀI LIỆU CỦA TÔI</h2><div id="categories" class="category-list"><p class="muted">Đang tải thư viện...</p></div></div>
+      <div class="sidebar-section recent-section"><div class="section-label"><h2>TÀI LIỆU GẦN ĐÂY</h2><a href="#documents">Xem tất cả</a></div><div id="recent-documents"></div></div>
+      <div id="sidebar-jobs" class="sidebar-jobs" role="region" aria-label="Tiến độ xử lý"></div>
+      <div class="sidebar-footer"><span class="footer-mark" data-icon="shield"></span><div><strong>Tri thức có căn cứ</strong><p>Mỗi câu trả lời, một nguồn xác thực.</p></div><a class="icon-button" href="#guide" aria-label="Tìm hiểu cách sử dụng"><span data-icon="arrow-right"></span></a></div>
+    </aside>
+    <main id="main" class="workspace" tabindex="-1">
+      <section id="view-assistant" class="view assistant-view" aria-label="Trợ lý AI">
+        <div class="workspace-toolbar"><span class="workspace-label"><span data-icon="sparkles"></span>Không gian hỏi đáp</span><div class="toolbar-actions"><button class="text-button" id="new-chat"><span data-icon="plus"></span>Cuộc trò chuyện mới</button><button class="icon-button source-toggle" id="source-toggle" aria-label="Mở nguồn tham khảo" aria-expanded="false" aria-controls="sources"><span data-icon="panel"></span></button></div></div>
+        <div class="runtime-notice" id="runtime-notice" role="status" aria-live="polite" hidden></div>
+        <div class="chat-scroll" id="chat-scroll">
+          <div class="welcome" id="welcome">
+            <div class="welcome-emblem" data-icon="cap"></div>
+            <div class="eyebrow">HỌC TẬP CÙNG NGUỒN TIN CẬY</div>
+            <h1>Chào mừng bạn đến với <span>CampusAI</span></h1>
+            <p class="welcome-subtitle">Hỏi đáp tài liệu đại học với nguồn trích dẫn có thể kiểm chứng.</p>
+            <div class="feature-grid">
+              <article class="feature-card"><span class="feature-icon blue" data-icon="file"></span><h2>Trả lời có căn cứ</h2><p>Dựa trên tài liệu bạn chọn,<br>tập trung vào điều bạn cần.</p></article>
+              <article class="feature-card"><span class="feature-icon green" data-icon="shield"></span><h2>Nguồn trích dẫn rõ ràng</h2><p>Kiểm tra từng câu trả lời<br>đến đúng trang tài liệu.</p></article>
+              <article class="feature-card"><span class="feature-icon violet" data-icon="layers"></span><h2>Kết nối nhiều tài liệu</h2><p>Tra cứu và đối chiếu<br>các nguồn trong cùng câu hỏi.</p></article>
+            </div>
+            <div class="suggestions-heading"><span data-icon="sparkles"></span><h2>Bắt đầu từ một câu hỏi</h2><span>Dành cho tài liệu đã chọn</span></div>
+            <div class="suggestion-grid" id="suggestions"></div>
+            <div class="welcome-upload" id="welcome-upload"><div class="upload-outline" data-icon="upload"></div><div><h2>Thêm tài liệu, mở rộng tri thức</h2><p>Tải PDF đầu tiên để bắt đầu hỏi đáp cùng CampusAI.</p></div><button class="button secondary upload-trigger">Chọn tài liệu<span data-icon="arrow-right"></span></button></div>
+          </div>
+          <div id="conversation" class="conversation" role="log" aria-label="Nội dung cuộc trò chuyện" aria-live="polite" aria-relevant="additions"></div>
+        </div>
+        <div class="composer-area">
+          <div id="context-bar" class="context-bar"><button class="scope-button" id="scope-open"><span data-icon="collection"></span><span id="scope-label">Chọn tài liệu để hỏi đáp</span><span data-icon="chevron-down"></span></button><label class="sr-only" for="reply-language">Ngôn ngữ trả lời</label><select id="reply-language" class="language-select"><option value="vi">Tiếng Việt</option><option value="en">English</option></select><span class="composer-privacy"><span data-icon="shield"></span>Dựa trên nguồn bạn chọn</span></div>
+          <form id="query-form" class="composer"><button type="button" class="icon-button upload-trigger" aria-label="Đính kèm tài liệu PDF"><span data-icon="paperclip"></span></button><label class="sr-only" for="question">Câu hỏi</label><textarea id="question" name="question" rows="1" maxlength="6000" placeholder="Nhập câu hỏi của bạn..." aria-describedby="composer-hint" required></textarea><button class="send-button" id="send" type="submit" aria-label="Gửi câu hỏi" disabled><span data-icon="send"></span></button></form>
+          <div class="composer-bottom"><span id="composer-hint"><kbd>Enter</kbd> để gửi · <kbd>Shift + Enter</kbd> để xuống dòng</span><span>Luôn kiểm tra nguồn trích dẫn.</span></div>
+          <div id="query-status" class="query-status" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+      <section id="view-documents" class="view page-view" aria-labelledby="documents-title" hidden><div class="page-heading"><div><div class="eyebrow">THƯ VIỆN CÁ NHÂN</div><h1 id="documents-title">Tài liệu của tôi</h1><p>Quản lý tài liệu và chọn nguồn cho những câu hỏi tiếp theo.</p></div><button class="button primary upload-trigger"><span data-icon="plus"></span>Tải tài liệu</button></div><div id="document-controls"></div><div id="document-jobs"></div><div id="document-list"></div></section>
+      <section id="view-collections" class="view page-view" aria-labelledby="collections-title" hidden><div class="page-heading"><div><div class="eyebrow">SẮP XẾP TRI THỨC</div><h1 id="collections-title">Bộ sưu tập</h1><p>Tìm tài liệu theo nhóm thông tin được nhận diện từ nguồn.</p></div></div><div id="collection-list" class="collection-grid"></div></section>
+      <section id="view-guide" class="view page-view" aria-labelledby="guide-title" hidden><div class="page-heading"><div><div class="eyebrow">LÀM QUEN VỚI CAMPUSAI</div><h1 id="guide-title">Từ tài liệu đến câu trả lời</h1><p>5 bước để tra cứu dễ dàng và kiểm chứng thông tin.</p></div><span class="feature-icon blue" data-icon="help"></span></div><div class="guide-steps">
+        <article><span class="step-number">01</span><div><h2>Tải tài liệu PDF</h2><p>Chọn file hoặc kéo thả PDF vào cửa sổ tải lên. Giữ bản gốc để đối chiếu.</p></div><span data-icon="upload"></span></article>
+        <article><span class="step-number">02</span><div><h2>Chờ tài liệu sẵn sàng</h2><p>CampusAI đọc nội dung và chuẩn bị chỉ mục. Xử lý xong chưa đồng nghĩa với sẵn sàng hỏi đáp; PDF scan có thể cần kiểm tra thêm.</p></div><span data-icon="check-circle"></span></article>
+        <article><span class="step-number">03</span><div><h2>Chọn nguồn và đặt câu hỏi</h2><p>Chọn một hoặc nhiều tài liệu đã sẵn sàng. Nêu rõ học phần, chương trình hoặc năm cần tra cứu.</p></div><span data-icon="chat"></span></article>
+        <article><span class="step-number">04</span><div><h2>Kiểm chứng nguồn trích dẫn</h2><p>Bấm số trích dẫn trong câu trả lời, đọc đoạn trích và mở đúng trang PDF gốc.</p></div><span data-icon="source"></span></article>
+        <article><span class="step-number">05</span><div><h2>Chia sẻ phản hồi</h2><p>Chọn “Hữu ích” hoặc “Chưa chính xác” bên dưới đáp án để ghi nhận chất lượng câu trả lời.</p></div><span data-icon="thumb-up"></span></article>
+      </div><h2 class="faq-heading">Bạn có thể đang thắc mắc</h2><div class="faq-list">
+        <details><summary>CampusAI lấy câu trả lời từ đâu?</summary><p>Từ nội dung tài liệu đã lập chỉ mục trong phạm vi bạn chọn. Mỗi kết luận được hỗ trợ bằng trích dẫn có thể mở để kiểm tra.</p></details>
+        <details><summary>Vì sao AI chưa thể trả lời?</summary><p>Nguồn có thể thiếu bằng chứng, mâu thuẫn hoặc câu hỏi chưa rõ phạm vi. Dịch vụ AI chưa cấu hình hay đang quá tải cũng có thể khiến yêu cầu chưa hoàn tất.</p></details>
+        <details><summary>Tại sao tài liệu cần được xử lý?</summary><p>Nội dung, bảng và thông tin trang cần được trích xuất rồi lập chỉ mục để tìm kiếm và dẫn nguồn chính xác.</p></details>
+        <details><summary>Làm thế nào để kiểm tra nguồn?</summary><p>Mở trích dẫn, so sánh đoạn trích nguyên văn với trang PDF. Trang hiển thị là số trang vật lý trong file.</p></details>
+        <details><summary>Nếu có hai phiên bản quy định khác nhau thì sao?</summary><p>Chọn đúng tài liệu và nêu rõ năm cần so sánh. CampusAI không tự xác định quy định mới nhất ngoài các nguồn được chọn.</p></details>
+        <details><summary>Tài liệu scan được xử lý như thế nào?</summary><p>PDF không có lớp chữ sẽ được đánh dấu cần kiểm tra khi OCR chưa được bật. Ứng dụng không coi tài liệu đó là nguồn sẵn sàng.</p></details>
+      </div><div class="notice"><span data-icon="info"></span><p>AI có thể sai hoặc chưa đủ bằng chứng. Hãy kiểm chứng trích dẫn trước khi dùng thông tin cho quyết định học tập. MVP hiện phục vụ một người dùng trên máy local.</p></div></section>
+    </main>
+    <aside class="source-panel" id="sources" aria-label="Nguồn tham khảo"><div class="source-heading"><div><span data-icon="source"></span><h2>Nguồn tham khảo <span id="source-count" class="count">0</span></h2></div><button class="icon-button" id="source-close" aria-label="Đóng nguồn tham khảo"><span data-icon="close"></span></button></div><div id="source-content" class="source-content"></div><div class="source-footer"><span data-icon="shield"></span>Nguồn gốc rõ ràng, học tập vững vàng.</div></aside>
+  </div>
+  <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+  <dialog id="upload-dialog" aria-labelledby="upload-title"><div class="modal-header"><div><div class="eyebrow">THÊM NGUỒN TRI THỨC</div><h2 id="upload-title">Tải tài liệu mới</h2></div><button class="icon-button dialog-close" aria-label="Đóng cửa sổ tải lên"><span data-icon="close"></span></button></div><p class="muted">Tài liệu của bạn là điểm bắt đầu cho mỗi câu trả lời.</p><label class="dropzone" id="dropzone" for="file-input"><span class="feature-icon blue" data-icon="upload"></span><strong>Kéo thả tối đa 5 PDF vào đây</strong><span>hoặc <span class="link">chọn tối đa 5 file từ thiết bị</span></span><small id="upload-limits">Tối đa 5 PDF mỗi lượt · 50 MB / 218 trang mỗi file</small><input type="file" id="file-input" accept=".pdf,application/pdf" multiple class="sr-only"></label><div id="upload-selection"></div><p id="upload-status" class="inline-status" role="status" aria-live="polite"></p><div class="modal-actions"><button class="button secondary dialog-close">Đóng</button><button class="button primary" id="upload-submit" disabled><span data-icon="upload"></span>Tải lên và xử lý</button></div></dialog>
+  <dialog id="scope-dialog" aria-labelledby="scope-title"><div class="modal-header"><div><div class="eyebrow">NGUỒN CHO CÂU HỎI</div><h2 id="scope-title">Chọn tài liệu</h2></div><button class="icon-button dialog-close" aria-label="Đóng bộ chọn tài liệu"><span data-icon="close"></span></button></div><p class="muted">Chỉ những tài liệu sẵn sàng mới có thể dùng để hỏi đáp.</p><div id="scope-documents" class="scope-documents"></div><div class="modal-actions"><button class="text-button" id="clear-scope">Bỏ chọn tất cả</button><button class="button primary dialog-close">Xong</button></div></dialog>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="modal-header"><h2 id="detail-title">Chi tiết tài liệu</h2><button class="icon-button dialog-close" aria-label="Đóng chi tiết"><span data-icon="close"></span></button></div><div id="detail-content"></div></dialog>
+  <dialog id="delete-dialog" class="small-dialog" aria-labelledby="delete-title"><div class="modal-header"><h2 id="delete-title">Xóa tài liệu?</h2><button class="icon-button dialog-close" aria-label="Đóng xác nhận"><span data-icon="close"></span></button></div><p id="delete-name" class="file-name"></p><p class="muted">File gốc, dữ liệu xử lý và chỉ mục của tài liệu sẽ được xóa. Bạn cần tải lại để tiếp tục hỏi đáp.</p><p id="delete-status" role="status" aria-live="polite"></p><div class="modal-actions"><button class="button secondary dialog-close">Giữ tài liệu</button><button class="button danger" id="delete-confirm"><span data-icon="trash"></span>Xóa tài liệu</button></div></dialog>
+  <dialog id="preview-dialog" class="preview-dialog" aria-labelledby="preview-title"><div class="modal-header"><div><h2 id="preview-title">Tài liệu nguồn</h2><span id="preview-page" class="muted"></span></div><div class="toolbar-actions"><a id="preview-external" class="button secondary" target="_blank" rel="noopener">Mở riêng<span data-icon="external"></span></a><button class="icon-button dialog-close" aria-label="Đóng bản xem PDF"><span data-icon="close"></span></button></div></div><div id="preview-body"></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+</body>
+</html>

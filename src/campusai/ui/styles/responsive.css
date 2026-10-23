@@ -1,0 +1,58 @@
+@media(min-width:1280px) {body.sources-hidden .source-toggle {display:inline-flex}}
+@media(max-width:1439px) {.local-badge {display:none}.global-search {margin-right:20px}.nav-item {padding:0 12px}.topnav {padding-left:12px}}
+@media(max-width:1279px) {
+  :root {--sidebar-width:240px}
+  .app-layout,body.other-view .app-layout,body.sources-hidden .app-layout {grid-template-columns:var(--sidebar-width) minmax(0,1fr)}
+  .source-panel {display:none;position:fixed;right:0;top:var(--header-height);bottom:0;width:360px;max-width:100%;margin:0;border-radius:0;z-index:40}
+  body.sources-open .source-panel {display:flex}
+  .brand-area {padding:0 22px}.brand {font-size:23px}.global-search {width:180px}.global-search kbd {display:none}
+  .nav-item {padding:0 10px;font-size:12px;gap:6px}.nav-item svg {width:15px;height:15px}
+  .welcome {margin-top:20px}.welcome h1 {font-size:27px}.feature-card {padding:18px 8px}.feature-card h2 {font-size:12px}
+  .chat-scroll {padding:0 24px 24px}.composer-area {padding-right:24px;padding-left:24px}
+}
+@media(max-width:1023px) {
+  :root {--sidebar-width:224px}
+  .topbar {flex-wrap:wrap}.global-search {display:none}.topnav {flex:1;justify-content:center;padding-left:0}
+  .brand-area {padding:0 16px}.nav-item {padding:0 10px}.nav-item svg {display:none}
+  .sidebar {padding:20px 14px 16px}.category-button {padding:9px 8px;font-size:11px;gap:8px}
+  .chat-scroll {padding:0 20px 20px}.workspace-toolbar {padding:10px 20px}.welcome {margin-top:12px}
+  .welcome h1 {font-size:25px}.welcome .eyebrow {font-size:9px}.welcome-subtitle {font-size:12px}
+  .feature-grid {gap:8px}.feature-card p {font-size:11px}.feature-card h2 {font-size:11px}
+  .suggestion {font-size:11px;padding:10px}.welcome-upload {padding:16px;gap:12px;flex-wrap:wrap}.welcome-upload .button {margin-left:52px}
+  .composer-privacy {display:none}.composer-bottom>span:last-child {display:none}.composer-area {padding:8px 20px 12px}
+  .page-view {padding:24px}.page-heading {align-items:flex-start}.page-heading .button {font-size:11px;padding:10px}
+  .document-card {gap:10px;flex-wrap:wrap}.document-actions {margin-left:27px}.collection-grid {grid-template-columns:1fr}
+}
+@media(max-width:767px) {
+  :root {--header-height:108px}
+  .topbar {height:var(--header-height);align-content:flex-start}.brand-area {width:100%;height:60px;border-right:0;padding:0 16px;gap:10px}
+  .brand {font-size:23px}.brand-mark svg {width:30px;height:30px}.mobile-menu {display:inline-flex!important;width:32px}
+  .topnav {height:48px;flex-basis:100%;gap:0;border-top:1px solid var(--border);justify-content:space-evenly}
+  .nav-item {font-size:11px;padding:0 10px}.nav-item.active:after {left:10px;right:10px}.nav-item svg {display:none}
+  .app-layout,body.other-view .app-layout,body.sources-hidden .app-layout {display:block}
+  .sidebar {display:none;position:fixed;top:var(--header-height);left:0;bottom:0;width:280px;max-width:85vw;z-index:40;border-right:1px solid var(--border);padding:16px;background:var(--surface)}
+  body.menu-open .sidebar {display:flex}.sidebar-heading {display:flex!important;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:12px}
+  .sidebar-heading .icon-button {height:32px}.upload-main {margin-bottom:24px}.sidebar-footer {padding-top:12px}
+  .workspace {height:100%}.workspace-toolbar {padding:6px 16px}.workspace-toolbar .text-button {font-size:10px}.workspace-label {font-size:10px}
+  .chat-scroll {padding:0 16px 20px}.welcome {margin-top:12px}.welcome-emblem {width:48px;height:48px;margin-bottom:16px;border-radius:14px}.welcome-emblem svg {width:30px;height:30px}
+  .welcome .eyebrow {font-size:8px;letter-spacing:1.3px}.welcome h1 {font-size:25px;line-height:1.4;max-width:320px;margin:0 auto;letter-spacing:-.6px}
+  .welcome-subtitle {font-size:12px;line-height:1.8;margin:12px 12px 20px}
+  .feature-grid {gap:8px}.feature-card {padding:12px 6px;border-radius:10px}.feature-icon {width:32px;height:32px;border-radius:10px}.feature-icon svg {width:17px;height:17px}
+  .feature-card h2 {font-size:10px;margin:10px 0 4px;line-height:1.6}.feature-card p {font-size:9px;line-height:1.8}.feature-card p br {display:none}
+  .suggestions-heading {margin-top:20px}.suggestions-heading>span:last-child {display:none}.suggestion-grid {grid-template-columns:1fr;gap:8px}.suggestion {font-size:12px;min-height:44px;padding:10px 12px}
+  .welcome-upload {margin-top:20px;padding:16px;gap:12px}.welcome-upload>div:nth-child(2) {flex:1}.welcome-upload h2 {font-size:12px}.welcome-upload p {font-size:10px}.welcome-upload .button {margin:0 0 0 52px}.upload-outline {padding:10px}
+  .composer-area {padding:8px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border)}
+  .composer {padding:5px;gap:4px;border-radius:12px}.composer textarea {font-size:16px;line-height:22px}.composer .icon-button {width:34px}
+  .context-bar {margin-bottom:8px}.scope-button {max-width:100%;min-height:32px;font-size:10px}.composer-bottom {font-size:8px;margin-top:6px}
+  .query-status {font-size:11px}.source-panel {width:100%;max-width:100%;border:0}.source-content {padding:20px}
+  .source-empty {padding:32px 20px}.source-footer {font-size:10px}
+  .page-view {padding:24px 16px}.page-heading {flex-wrap:wrap;gap:14px;margin-bottom:24px}.page-heading h1 {font-size:26px}.page-heading p {font-size:12px}
+  .page-heading .button {font-size:12px;padding:10px 16px}.filter-bar {gap:8px}.filter-bar input {min-width:100%;font-size:16px}.filter-bar select {flex:1;font-size:13px}
+  .document-card {padding:14px;gap:10px}.document-card .pdf-icon {width:28px;height:36px}.document-info {flex-basis:calc(100% - 80px)}.document-info h3 {font-size:12px}.document-actions {margin-left:26px}.document-actions .icon-button {width:44px}
+  .collection-card {min-height:180px}.guide-steps article {padding:16px;gap:14px}.guide-steps article>span:last-child {display:none}.step-number {font-size:18px}.guide-steps h2 {font-size:13px}.guide-steps p {font-size:11px}
+  .faq-list {padding:0 16px}.faq-list summary {font-size:12px}.notice {font-size:11px}
+  dialog {padding:20px;max-width:calc(100vw - 24px)}.modal-header h2 {font-size:18px}.modal-actions .button {font-size:11px}.dropzone {padding:24px 12px}.dropzone strong {font-size:13px}
+  .preview-dialog {max-width:calc(100vw - 12px);height:calc(100dvh - 24px);padding:12px}.preview-dialog .modal-header {gap:8px}.preview-dialog h2 {font-size:13px}.preview-dialog .button {font-size:10px;padding:8px}.preview-dialog .muted {font-size:10px}
+  .message {gap:7px}.message-avatar {width:26px;height:26px}.message-avatar svg {width:19px;height:19px}.message-bubble {padding:14px 12px;font-size:14px}.user-message {padding-left:20px}.user-message .message-bubble {padding:10px 12px}.conversation {gap:20px}
+  .message-actions .text-button {min-height:44px;font-size:9px}.claim-sources {font-size:11px}.detail-grid {grid-template-columns:90px minmax(0,1fr)}
+}

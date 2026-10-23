@@ -516,6 +516,12 @@ class GroundedAnswerGenerator:
             'the question explicitly asks for them.'
         )
         instructions += (
+            '\nFor a source bullet that contains several roles, occupations, groups, or '
+            'alternatives, keep claims[] limited to the clause(s) that answer the question. '
+            'Do not copy a neighboring role or list item into a claim just because it shares '
+            'the same source sentence.'
+        )
+        instructions += (
             '\nSTRICT SCOPE AND CITATIONS: report only the fact directly requested; do not add '
             'neighboring list entries or other true but unrequested facts. Keep each verification '
             'claim to the shortest complete source-faithful statement that answers the question. '
@@ -542,7 +548,10 @@ class GroundedAnswerGenerator:
                 '\nThe requested response language applies to answer. In claims[].text, '
                 'retain the language and wording of the cited evidence, preferably a short exact '
                 'source statement. Do not translate verification claims. Every fact in answer '
-                'must be covered by these source-faithful claims and their direct citations.'
+                'must be covered by these source-faithful claims and their direct citations. '
+                'Keep claims and answer within the same factual scope: a claim must not add any '
+                'fact that the answer omits. If the answer names only the roles asked about, do '
+                'not copy other roles from the same source bullet into claims[].text.'
             )
         from .course_credits import folded
         if explicit_comparison_request(question) and re.search(r'\b(?:credits?|tin chi)\b', folded(question)):
@@ -695,8 +704,16 @@ class GroundedAnswerGenerator:
             if pdf_documents is None else None)
         if calculated is not None:
             return calculated
-        if (pdf_documents is None and temporal_context is None and multi_hop_context is None
-                and document_scope_context is None):
+        temporal_scope_is_single_source = False
+        if isinstance(temporal_context, dict):
+            selected_ids = temporal_context.get('selected_doc_ids')
+            result_ids = {result.doc_id for result in results}
+            temporal_scope_is_single_source = (
+                isinstance(selected_ids, list) and len(selected_ids) == 1
+                and isinstance(selected_ids[0], str) and result_ids == {selected_ids[0]})
+        if (pdf_documents is None and multi_hop_context is None
+                and document_scope_context is None
+                and (temporal_context is None or temporal_scope_is_single_source)):
             from .multi_hop_evidence import deterministic_direct_prerequisite_code
             calculated = deterministic_direct_prerequisite_code(
                 question, results, language, calibrator=self.calibrator)

@@ -1,6 +1,6 @@
 # CampusAI — Kế hoạch phát triển dự án
 
-Cập nhật: **14/10/2026 — Asia/Bangkok**. Đây là roadmap hiện hành của dự án.
+Cập nhật: **23/10/2026 — Asia/Bangkok**. Đây là roadmap hiện hành của dự án.
 `plan.md` luôn ở root và được Git theo dõi. Nhật ký thử nghiệm nằm trong hồ sơ
 bằng chứng, không được nối thêm vào roadmap này.
 
@@ -16,6 +16,70 @@ Luồng MVP: **upload PDF → xử lý nền → tài liệu sẵn sàng → h�
 gửi phản hồi**. Tài liệu mẫu trong repository phục vụ đánh giá; sản phẩm phải
 hoạt động trên tài liệu người dùng tải lên, không phụ thuộc tên/hash của mẫu.
 
+### Ưu tiên hiện tại — hỏi liên tục, không quá tải, chi phí dịch vụ 0
+
+**GOAL COMPLETE — phạm vi local đã đo, ngày 16/10/2026.** Đã nghiên cứu và áp
+dụng nhiều repo/ý tưởng, bật Gemini 3.5 Flash-Lite Free ở 10 RPM, kiểm chứng
+hội thoại qua app thật và dừng phép đo ngay khi Google báo quota. Giới hạn
+Free thực quan sát được: 15 RPM; TPM/RPD chưa đo, không cam kết hỏi vô hạn.
+
+| Bước | Trạng thái | Điều kiện hoàn tất |
+|---|---|---|
+| GQ-01 — Baseline và chẩn đoán | DONE — phạm vi quan sát | Giữ lỗi provider 503 câu ba; tách lỗi quota/overload với lỗi chọn evidence rank 6 và guard “thế nào” quá rộng. Không suy nguyên nhân nội bộ Google. Phép đo riêng nhận typed Free RPM 15 từ lỗi 429. |
+| GQ-02 — Nghiên cứu giải pháp | DONE — source review | So sánh source chính thức của nhiều repo, ghi ý tưởng áp dụng/loại bỏ và chi phí/giới hạn; xem [hồ sơ nghiên cứu](docs/deployment/phase13/free-continuity-goal.md). |
+| GQ-03 — Giảm số lần gọi và token | DONE — workload đã khóa | Cache bền qua restart, scope/version/history/provider giữ tách biệt. Tám candidates/cửa sổ nguyên văn: đủ facts 10/10; giảm 20,9% ký tự offline và 9,58% input token ở sáu câu live đối sánh. Cache/negative 20 lượt dùng 0 provider calls, tách khỏi 10 đáp án mới. |
+| GQ-04 — Quản lý quota và tải | DONE — giới hạn quan sát + bảo vệ quota | Dừng đúng 429 đầu tiên, metadata Free 15 RPM; 35 POST trên cap 60, không gửi mới sau lỗi. Runtime 10 RPM/1 sender, giữ counter 70 qua restart. Quota ngày/DST/recovery kiểm giả lập; TPM/RPD UNKNOWN. Theo yêu cầu owner, không gọi tiếp để đo quota ngày. |
+| GQ-05 — Đường sinh đáp án miễn phí bền vững | SELECTED — bounded local PASS | `configs/free_llm.yaml`: Gemini 3.5 Flash-Lite, một inference, operator 10 RPM, chờ tối đa 6s; owner xác nhận Free. Đã bật default và chạy app. Giữ lỗi Gemma/lượt ngắt; không nhận quota cao nhất toàn cầu hoặc miễn phí vô hạn. |
+| GQ-06 — Kiểm chứng hội thoại | DONE — 30/30 ở 10 RPM | 10 đáp án mới qua API thật, 10 cache, 10 negative; đúng 10 POST, không 429/503. Report/quality review riêng từng run, giữ 37 attempts selection gồm lỗi/ngắt; không gộp thành SLO. Bổ sung smoke scope trên app đang chạy, 0 provider attempts. |
+| GQ-07 — Bàn giao và cleanup | DONE — goal local | App localhost/hướng dẫn, receipt mới ràng buộc source và 1.770 offline PASS/2 live SKIP, 18 targeted PASS, 37 browser checks. Package đủ source/UI, test/build/dependency tạm đã dọn. Giữ failures/receipts/archive/wheel và plan.md tracked. |
+
+Mỗi kết quả chỉ áp dụng scope đã ghi. Một chuỗi chỉ trả cache,
+negative hoặc trích đoạn không hoàn tất GQ-06. Nếu budget đã xác minh không đủ
+cho workload mục tiêu thì báo giới hạn và đánh giá phương án khác, không ép
+Free Tier thành cam kết hỏi vô hạn. R-01/R-02 và các gate cloud vẫn giữ trạng thái
+cũ; kết quả local không thay cho cloud acceptance. Chi tiết quyết định, nguồn
+tham khảo và phần còn thiếu nằm trong hồ sơ liên kết, không nối log vào roadmap.
+
+GQ-04 đã triển khai admission SQLite dùng chung qua worker/restart, reservation
+RPM/input TPM/RPD/token ngày và circuit phân biệt 429/503. Default hiện là
+`configs/free_llm.yaml`; `continuity_llm.yaml` và receipt quota cũ là mốc lịch sử,
+profile nghiệm thu cũ giữ nguyên byte/hash. Admission/state, fault/cache/recovery,
+config/package và runtime/hội thoại đã có bằng chứng. RPM Free thực quan sát là
+15, runtime giữ 10; TPM/RPD chưa đo và đã dừng theo chỉ thị owner. Xem
+[quota và bàn giao](docs/deployment/phase13/quota-exhaustion.md),
+[review model](docs/deployment/phase13/model-selection.md)
+và [receipt hiện hành](docs/deployment/phase13/evidence/quota-exhaustion-20261016/receipt.json). Chưa tăng %
+Phase 13, chưa đổi R-01/R-02 hoặc nhận là đã hết overload provider.
+
+Đối chiếu [repo → phần áp dụng và kiểm thử](docs/deployment/phase13/repo-application-review.md)
+và [sàng lọc/kiểm chứng model](docs/deployment/phase13/model-selection.md).
+Không cập nhật receipts lịch sử để gắn chúng vào source mới; kết quả model và
+hồi quy mới được ghi riêng. Source cũ có archive đúng hash; goal local đã đóng,
+các giới hạn chưa đo được ghi rõ trong hồ sơ bàn giao.
+
+### Sửa hiểu câu hỏi và tổng hợp tài liệu — 16/10/2026
+
+**DONE — phạm vi kiểm tra đã ghi.** Đã tái hiện 16/21 lỗi mới và sửa route số
+trang PDF, topic/history, tổng hợp theo phần, trích dẫn từ nguồn, chào/cảm ơn,
+fragment vô nghĩa trước dense retrieval và thuật ngữ thứ tự. Không FAQ gắn PDF
+hoặc hạ validator. Kết quả cuối: 1.827 regression PASS/2 live SKIP, 39 browser
+checks; tám loại câu hỏi model thật có evidence, lượt kiểm cuối 3/3 dùng 1 POST,
+24 replay turns dùng 0 external POST. Giữ các run native NOT PASSED, tổng đợt
+16 POST; không gộp thành native 24/24/SLO. App đã restart ở 10 RPM/1 sender.
+Xem [ma trận, kết quả và giới hạn](docs/deployment/phase13/natural-conversation.md)
+và [receipt hiện tại](docs/deployment/phase13/evidence/natural-conversation-20261016/receipt.json).
+Các receipt chọn model/quota phía trên là mốc lịch sử có source archive;
+nghiệm thu cloud/R-01/R-02 và % phase không thay đổi.
+
+### Kiểm tra mở rộng human-natural — 16/10/2026
+
+**IN PROGRESS.** Mở rộng khỏi workload một PDF: câu nhiều ý/tự có chủ đề,
+viết tắt và câu hỏi tiếp, nhiều tài liệu, phạm vi trang, gây nhiễu và kiểm phần
+trả lời hiển thị so với claims. Đã tái hiện thêm 28/32 lỗi mới; đang sửa và
+chạy chẩn đoán 480 raw queries/7 PDF offline. Bộ 480 là AI-authored, chưa được
+human review; không gọi là 480 đáp án model thật hoặc nghiệm thu toàn diện.
+Giữ profile Free, quota/state và lịch sử thất bại; không đổi % các phase cloud.
+
 ## 2. Trạng thái hiện tại
 
 | Phase | Phạm vi | Trạng thái hiện hành | Căn cứ / giới hạn |
@@ -25,15 +89,15 @@ hoạt động trên tài liệu người dùng tải lên, không phụ thuộc
 | 2 | Chunking, bảng, provenance | DONE — acceptance đã có | Golden fixtures, giới hạn chunk và citation nằm trong acceptance Phase 1/2. |
 | 3 | Embedding, dense index, persistence | IMPLEMENTED; report gốc CONDITIONAL | Báo cáo dense độc lập còn giới hạn corpus/negative; hybrid có evidence riêng ở Phase 6. Không tự đổi report gốc thành PASS. |
 | 4 | Basic RAG, context budget, cache | DONE — offline contract | Benchmark 30 câu PASS; chất lượng model được kiểm tra riêng trong Phase 7/8. |
-| 5 | Citation, grounding, abstention | IMPLEMENTED; quality đã kiểm chứng ở Phase 7/8 | Giữ contract/validator và evidence hiện có; không tự nhận mọi checklist hardening cũ đã hoàn tất. |
+| 5 | Citation, grounding, abstention | **IN PROGRESS - 70%, 7/10 tasks DONE** | Offline contracts and P5-08d regression are complete: 2,368 PASS, 2 live SKIP; focused web/document-scope/native-PDF/ingestion suite 90 PASS. Current source/runtime is `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` / `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`. The previously approved r5 dev packet SHA-256 `7b8fe9b8e0170a14b61f1007c9f701b9dce35bfe8dd8c0457c7d554094346edd` binds older source/runtime and is stale after Phase 12 upload/concurrency changes; retain for audit only. No new native predictions or provider calls were created. Current-source quality, calibration, test/holdout and release gates remain open; thresholds unchanged. |
 | 6 | BM25 + dense + RRF | DONE — release lịch sử | RC3 PASS trên profile đã khóa; không thay cho qualification của deployment mới. |
 | 7 | Hoàn thiện core product quality | **DONE — 100% scope Chat** | 68/68 trường hợp đúng; live performance chuyển sang điều kiện release bên dưới. |
 | 8 | Benchmark và đánh giá sản phẩm | **DONE — 100% scope Chat** | 300/300 trường hợp đúng nội dung/negative qua replay ứng dụng. |
 | 9 | Temporal RAG | **DONE — 100% scope Phase 9** | 6/6 task DONE, 5/5 gate PASS; 24/24 quality/replay, tests/coverage/regression và cleanup đã kiểm tra. |
 | 10 | Multi-document / multi-hop | DONE — 5/5 task (100%), 5/5 gate PASS | Actual replay/source review 24/24; 1.550 tests PASS, coverage 91,09%; raw/normalization và API limitations báo riêng. |
 | 11 | Knowledge Graph có nguồn chứng minh | **DONE — 5/5 task (100%), 5/5 gate PASS** | Candidate16/16, quality benefit, hồi quy68/300/24/24, 1.582 tests PASS, coverage90,99%; opt-in, mặc định OFF. |
-| 12 | Web app MVP | PLANNED — chưa nghiệm thu phase | Tái sử dụng API/web hiện có, hoàn thiện luồng người dùng đầu cuối. |
-| 13 | Deployment | PLANNED — chưa nghiệm thu phase | Một profile Free Tier, có smoke test và rollback. |
+| 12 | Web app MVP | **DONE - 100% (5/5 task, 8/8 UI work item)** | Local MVP remains accepted through `start-campusai.cmd`. Post-acceptance batch optimization supports up to 5 concurrent PDF uploads, per-file progress/failure retention, 3 ingestion workers + 8 queued jobs, and 4 concurrent queries. Latest local verification: 2,368 offline PASS, 2 opt-in live SKIP, 39 browser checks PASS (including six-PDF rejection and five-PDF upload/ready), plus a BGE-M3 offline 5-PDF/100-question HTTP workload. Real provider quality and public SLO remain separate and unqualified. |
+| 13 | Deployment cloud miễn phí | **IN PROGRESS — 5/64 tiêu chí (7,8%), 0/16 task DONE** | Target Oracle Always Free; provider/UX recovery đã kiểm tra offline, chưa thay cloud acceptance. |
 | 14 | Production hardening | PLANNED — chưa nghiệm thu phase | Vận hành, dữ liệu, bảo mật, quan sát và độ tin cậy trước public release. |
 
 `IMPLEMENTED` nghĩa là đã có code, chưa đủ căn cứ đóng mọi yêu cầu nghiệm thu
@@ -371,14 +435,153 @@ tests and offline report in `evaluation/results/basic_rag_report.json`.
 
 ### Phase 5 — Citation, grounding và abstention
 
-**IMPLEMENTED; chất lượng được kiểm chứng ở Phase 7/8. Không tự nhận các checklist hardening độc lập cũ đều PASS.**
+**IN PROGRESS — mục tiêu hoàn thiện 100% Phase 5, mở ngày 16/10/2026.**
+100% chỉ được ghi sau khi 10/10 task và toàn bộ gate dưới đây có bằng chứng
+kiểm chứng được trên source hiện hành. Chất lượng Phase 7/8 được kế thừa khi
+đúng source/population; không đổi report lịch sử, gold, split hoặc ngưỡng để đóng phase.
 
-- output schema bắt buộc `answer`, `citations`, `confidence`, `abstained`;
-- citation phải trỏ đến chunk tồn tại và page hợp lệ;
-- claim không có evidence bị loại hoặc chuyển thành abstention;
-- phân biệt “không tìm thấy” với “tài liệu không đề cập”.
+**Mục tiêu làm việc cập nhật theo owner ngày22/10:** hoàn thiện Phase5 trên
+pipeline CampusAI hiện hành, đóng ngay task đã đạt chuẩn và chỉ sửa lỗi còn cản
+nghiệm thu. Bảo toàn các phase khác và bằng chứng hiện có; không mở rộng phạm vi
+hoặc tạo tài liệu không cần thiết. Thứ tự còn lại: hoàn tất dev120 → fit/pin
+calibration → nghiệm thu test130/holdout150 → kiểm gates và đóng phase.
 
-Exit criteria: citation precision và abstention precision được đo tự động trên test set.
+Goal hệ thống mới đã được tạo ACTIVE sau khi goal cũ không còn trong thread.
+Không đánh dấu goal cũ Complete giả; lô inference đã được owner duyệt tiếp tục
+với nguyên code/index/payload và ngân sách hiện có.
+
+#### Phạm vi và nguyên tắc nghiệm thu
+
+- Bắt buộc `answer`, `citations`, `confidence`, `abstained`; public v2 có
+  `claims`, `abstention_reason`, `schema_version`, không lộ internal trace.
+- Mọi citation có chunk/document tồn tại trong evidence của request, page/range
+  hợp lệ, quote đúng nguồn và mapping đến claim thực sự được hỗ trợ.
+- Unsupported/contradicted/ambiguous claims không được hiển thị. Kiểm tra cả
+  nội dung `answer`, không chỉ danh sách `claims`; provider không tự quyết định PASS.
+- `no_evidence_found` chỉ kết luận về việc tìm kiếm. `document_does_not_mention`
+  phải có cơ sở kiểm tra phạm vi tài liệu, không suy từ một top-k không chứa đáp án.
+- Giữ benchmark tối thiểu 400 mẫu, dev ≥120/test ≥130/holdout ≥150, đủ positive/
+  negative mỗi split, categories và kiểm soát leakage theo release contract.
+  Công khai AI/engineering review, exposure và nguồn output; fixture/replay không
+  được gắn nhãn live model hoặc human review. Phase 5 dùng independent AI review
+  + owner sign-off theo lựa chọn rõ ràng ngày 16/10/2026; human production sign-off, cloud
+  acceptance và R-01/R-02 vẫn được báo riêng theo yêu cầu tương ứng.
+
+#### Task chi tiết và thứ tự thực hiện
+
+| ID | Task / phụ thuộc | Đầu ra và điều kiện DONE | Trạng thái |
+|---|---|---|---|
+| P5-01 | Audit baseline, contract và evidence hiện có | Lập inventory code/schema/policy/calibration/dataset/report với SHA-256; đối chiếu từng yêu cầu, phân biệt legacy/runtime/fixture/replay, giữ thay đổi có sẵn trong workspace. | DONE |
+| P5-02 | Siết public/internal schema; sau P5-01 | Validator không crash với JSON sai kiểu, bool giả int, NaN, duplicate/empty ID, thiếu claim/citation, unmapped citations hoặc nested internal fields; HTTP luôn trả public contract hợp lệ. Regression âm và dương đạt. | DONE (offline contract) |
+| P5-03 | Citation/provenance integrity; sau P5-01 | Kiểm chunk/doc/page/range/table/quote, request isolation, evidence trùng ID hoặc metadata lỗi; không nhận quote ngoài nguồn hay coordinate giả. Có test adversarial qua generator/API. | DONE (offline provenance) |
+| P5-04 | Claim grounding và nội dung hiển thị; sau P5-02/03 | Claim/evidence alignment kiểm số, mã, năm, đơn vị, phủ định, multi-claim và partial; chặn answer chứa fact không nằm trong supported claims, kể cả provider khai báo an toàn. Leakage bằng 0 trên bộ kiểm tra. | DONE (offline claim/display contract; G5-02 official quality pending) |
+| P5-05 | Abstention taxonomy và phạm vi kiểm tra; sau P5-03/04 | Phân biệt thiếu retrieval với tài liệu đã kiểm tra không đề cập; xử lý unsupported, contradiction, ambiguity, conflict, provider/citation errors bằng reason và thông báo VI/EN phù hợp; không khẳng định vắng mặt toàn tài liệu từ top-k. | DONE (bounded abstention/scope contract; G5-03 official reason accuracy pending) |
+| P5-06 | Audit benchmark và phép chấm; sau P5-01 | Kiểm 400 mẫu, split/group/category/source quotes/review metadata; sửa metric đếm nhầm/missing values/fail-open. Citation precision và abstention precision đo tự động trên test và holdout, có denominator; giữ gold và lịch sử exposure. | DONE (reviewed400 frozen; Phase5 owner approval; disclosed exposure; physical validation PASS) |
+| P5-07 | Confidence/calibration và cache version; sau P5-04/05/06 | Không tin confidence của provider; fit dev-only, kiểm artifact version/checksum và chống non-finite values; ECE/Brier/risk báo đúng population. Cache không tái dùng kết quả sai schema/policy/source/scope. | DONE (implementation, cache/pinning tests and actual dev120 fit; held-out calibration quality remains G5-04/P5-08/09) |
+| P5-08 | Current-source runtime qualification and regression; after P5-02..07 | Run evaluation on current source; retain raw output/source bindings; compare quality with Phase 7/8 review; run focused and full offline suites; separate fixture/replay/native evidence and preserve failures/skips. | IN PROGRESS - P5-08d offline regression DONE on current source/runtime `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` / `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`: 2368 PASS, 2 live SKIP; focused web/document-scope/native-PDF/ingestion suite 90 PASS. The current-source native run still awaits execution. |
+| P5-09 | Release validator and independent report validation; after P5-06..08 | Validator recalculates metrics from rows, checks config/checksum/split/population, and rejects edited, incomplete or inconsistent reports. All quality/calibration gates must PASS; do not assume a clean Git tree. | BLOCKED - no native predictions bind current source/runtime `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` / `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`. The previously approved r5 packet `evaluation/results/phase5-current-native-qualification-20261023/dev-egress-current-source-r5-91f4f5dd-7ab27310-20261023/egress.json` (SHA-256 `7b8fe9b8e0170a14b61f1007c9f701b9dce35bfe8dd8c0457c7d554094346edd`) is stale after the Phase 12 upload/concurrency changes and must not be used for this source. No new packet or provider calls were created. Rebuild a packet bound to the current source/runtime and obtain exact approval before inference. Current-source calibration, complete dev output, test/holdout and release gates remain open; thresholds unchanged. |
+| P5-10 | Handoff, đồng bộ roadmap và cleanup; sau P5-09 | Tài liệu contract/operations/release hiện hành, lệnh tái hiện, completion receipt ràng buộc source/config/dataset/results; chỉ xóa file tạm không còn tham chiếu, giữ baseline và `plan.md` tracked. Chỉ cập nhật DONE/100% sau khi audit đủ 10 task và gates. | IN PROGRESS — handoff và release status đã đồng bộ; full offline suite DONE; đóng phase còn phụ thuộc native quality và cả năm release gates. |
+
+#### Current status as of 23/10/2026
+
+**7/10 task DONE = 70%; Phase 5 remains incomplete.** Current source/runtime SHA-256 is `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` / `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250` (project `.venv`, commit `9ba97af0`). Current-source offline regression is 2,368 PASS / 2 live SKIP; focused web/document-scope/native-PDF/ingestion tests are 90 PASS and Phase 12 browser smoke is 39/39 PASS. Previously approved native packets bind earlier source/runtime identities and are stale after the current web/upload changes; no provider calls or native predictions were created in this task. Current-source native dev evaluation, calibration, test/holdout and release gates remain open; rebuild and authorize an exact current packet before inference. Thresholds unchanged.
+
+#### Earlier failed attempt - 22/10/2026 (historical)
+
+Phase 5 vẫn 7/10 task DONE; chưa nâng task nào chỉ từ capture dở dang. Pre-repair v14 dev run dùng packet `60fd3232aefa1c4b124eee457efa7ba3f31fcba11bea90954e0e8d47c2fb3d23`, source `86a177edbc458ccd8d9c07cc88f1ecebf156d36bbbc5a0020c4e9496ba5aa564`, runtime `be93b3be2b1bee1c37b98992eadc32aa70f56a51fd226dba45679bf9b12e347f`, index manifest `13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a`. Journal có87 provider POSTs và105 prediction rows; collector mất tiến trình trước `run.json`, nên official predictions vẫn0. Chấm chẩn đoán tạm 105 rows: grounded claim P/R91.07%/89.47%, unsupported leakage5.36%, citation P/R90.20%/89.47%, abstention P/R98.15%/100%, reason accuracy96.23%, Brier0.045637, ECE0.055831; chưa đo holdout calibration/risk và các metric tạm không thay thế gate. Auto-review chặn việc gửi tiếp15 dev rows (tối đa27 POSTs) vì chưa nhận diện được ủy quyền chính xác trong yêu cầu hiện tại; không dùng đường vòng. Giữ nguyên journal gốc; test/holdout chưa gửi.
+P5-02…05 đóng ở phạm vi code/contract đã kiểm thử; chất lượng official vẫn phải
+qua P5-06…09 và G5-01…05, không suy từ fixture hoặc replay.
+
+#### Current-source remediation and native evidence - 23/10/2026
+
+Targeted fixes now handle exact prerequisite-table lookup deterministically, constrain answer scope in the grounding prompt, prune unrelated citations only when a perfect supporting citation is present, and invalidate old grounding cache entries. Current committed source identity is commit 9ba97af0aceb78c93e22a3011abb56f4dc5e539b; source SHA-256 0f975a8879652de73d94a8d5f6205562ede915076a08a6bfb365aa2b174bda36; runtime SHA-256 db454eb10dc74bf3bd6b277fbef8450016f03a4feb50a01bb02560a8e3c3723a. The full offline regression completed with 2352 PASS and 2 opt-in live SKIP; source and runtime fingerprints match before and after the run. Receipt: `evaluation/results/phase5-acceptance-20261021/current-source-full-regression-20261023.json`.
+
+The approved v2 packet and its native captures bind the earlier source SHA 91a68a42c1bac692eb7d34e942da3574a2f30810d2e63699e6587491cf36e5c4 and runtime SHA cd001c4d3d7683c90ef13d21ea21d3ae1b1e3878bdc6e7096bd8ea8fe6fc04a2. Across disjoint runs it touched 103/120 dev rows, with 57 distinct IDs having a successful real model JSON capture and 99 journaled provider POST starts. The 95 evaluable rows show diagnostic grounded claim P/R 97.96%/96.00%, unsupported leakage 2.04%, contradicted leakage 0%, citation P/R/completeness 95.56%/96.00%/96.00%, citation coordinate validity 100%, abstention P/R 98.04%/100%, reason accuracy 100%, ECE 0.039699 and Brier 0.015304. These are partial, pre-fix diagnostics; the residual unsupported claim and incomplete population fail qualification. No prediction was generated by the repaired source, so the old captures are not relabeled or reused as current-source evidence.
+
+The owner-pasted Gemini Chat result is retained as supplementary source review: 33/33 IDs returned, but its local audit found 13 records with issues (5 records with quote corrections, 6 absence claims without enough declared full-source inspection, 5 reason mismatches, and 1 out-of-bounds page; categories overlap). The model/session identity was not verifiable. It contains 0 CampusAI predictions and cannot qualify runtime quality.
+
+For current commit `9ba97af0`, official_predictions=0; no current-source calibration artifact or test/holdout run exists. The prepared packet SHA `49c57804767a8c4ef62763b76732c55defbb9e03777b5c5e1fc4d6b368630345` has matching source/runtime hashes but embeds the earlier commit label; it has 0 posts and remains unapproved. A fresh current-commit capture must preserve the exact prompt and HTTP-body bindings.
+Historical r2 only: P5-07 implementation and artifact had120/120 dev outcomes and a dev-only
+isotonic fit, payload checksum `1ff16439e70251cdf7e92770c8371547ec3d7807f8dd7edbad13632d862d03ca`.
+Giữ1 timeout trong dev; không tuyên bố quality PASS. Test130 hoàn tất; holdout
+dừng139/150 ởHTTP429, provider xác nhận500 requests/ngày. Tổng389 outcomes,
+402POSTs,400 phản hồi model thành công;11 câu chưa chạy, official0. Grounding
+precision53,06%, citation precision55,93%, abstention precision70% trên baseline
+chưa đạt ngưỡng. Không quy mọi lỗi chất lượng thành lỗi quota hoặc lỗi grader.
+Bản sửa mới chặn chọn nhầm bảng chỉ tiêu và suy hồ sơ cá nhân từ quy định chung;
+baseline native cũ không được ghi thành kiểm chứng source mới.
+
+- Đã đóng thêm P5-04 và P5-05: kiểm claim theo quote hiển thị, số/mã/đơn vị/phủ
+  định, no-partial requests, reason VI/EN và phạm vi whole-document có giới hạn.
+  Quote rỗng không vào cache; locator Điều/Article không được dùng thành quantity.
+- [Focused281 PASS](evaluation/results/phase5-remaining56-20261021-v11/contract-closure.xml);
+  full regression: **2182 PASS,2 live SKIP**, source đầu-cuối trùng nhau
+  ([run](evaluation/results/phase5-remaining56-20261021-v11/full-closure-run.json)).
+  Parser/chunker được sửa đồng bộ; các phase khác giữ trạng thái/evidence lịch sử.
+- [Replay42/42 đúng hành vi](evaluation/results/phase5-remaining56-20261021-v11/dev66-closure-replay.json):
+  unsupported/contradicted leakage0 trên phần có prompt trùng.24 ca không có
+  capture khớp prompt mới không được chấm. Đây không phải inference mới.
+- Benchmark gốc400/400 được giữ; candidate680 có680 source findings dùng được,
+ 23/23 temporal legacy có status; cross-split family leakage0. Owner đã review
+ nội dung và cho phép nghiệm thu Phase5 với exposure công khai; public release
+ vẫn cần fresh holdout. [Frozen400 và physical validation](evaluation/results/phase5-acceptance-20261021/benchmark-validation.json).
+- Native dev66 giữ24 outputs từ batch dừng và31 outputs từ45 ID chưa từng gửi;
+  không retry ID cũ, không dùng gold làm input. Official predictions=0.
+- Đã dọn helper/draft/fixture tạm không cần; source, raw captures, baseline và
+  evidence vẫn giữ. [Handoff hiện hành](docs/grounding/phase5_completion.md).
+
+#### Gate đóng Phase 5
+
+Chuẩn review hiện hành: [phase5-ai-owner-v1](docs/grounding/phase5_ai_review.md),
+được owner chọn rõ ràng ngày 16/10/2026. Đây là thay đổi yêu cầu người review của
+Phase 5; không đổi thresholds hoặc các yêu cầu human ở phase khác. Owner đã
+cho phép dùng benchmark đã review có exposure cho Phase5; public release vẫn
+bắt buộc fresh holdout.
+Ủy quyền policy không tự phê duyệt benchmark chưa hoàn tất.
+
+| Subtask tiếp theo | Đầu ra / phụ thuộc | Trạng thái |
+|---|---|---|
+| P5-06a — AI/owner review contract | Giữ đường human; AI identity, source findings và artifact hashes, per-row decisions, owner policy authorization tách khỏi approval bản frozen; fail closed và CLI pending template. | DONE — 50 focused PASS |
+| P5-06b — Audit tái sử dụng | Giữ 400/400; triage từng annotation; source review đủ 23 temporal gồm 21 warnings; xuất correction proposals riêng và recompute 15 leakage families. | DONE — audit, source reviews và owner content approval |
+| P5-05a — Source-scope integration | Physical source/hash/authorized roots/full-text budget; tối đa1 follow-up; giữ page/cache/temporal scope và provider errors; thiếu text/hình fail closed. Implementation contract đóng tại P5-05; official native reason accuracy tiếp tục ở P5-08/G5-03. | DONE —281 focused PASS; full regression PASS; replay/source-scope diagnostics có giới hạn công khai |
+| P5-06c — Benchmark revision và families | Hoàn tất sửa/review 400 legacy proposals và5 fresh atomic corrections; giữ ancestry/gold gốc. Giữ lịch sử exposure của test/holdout; fresh study dành cho public release theo lựa chọn owner. | DONE —680/680 findings; leakage0; acceptance400 frozen |
+| P5-06d — Review độc lập bản sửa và owner sign-off | Reviewer AI khác annotation author kiểm từng dòng, atomicity, temporal scope và inspected pages; owner content/exposure decision gắn benchmark và review bundle cụ thể. | DONE —9 actual reviewer tasks; owner-approved Phase5 scope; physical validation PASS |
+| P5-07a/08a - Native and calibration | Freeze source/config/index; run dev, fit a dev-only calibrator, pin it, then run test/holdout; preserve failures/exposure and never send gold in inference. | Calibration implementation DONE; previous-source v2 has 103/120 dev rows and 57 distinct successful real-output IDs across 99 journaled POST starts. Repaired current source has no native predictions, calibrator, or held-out run. |
+| P5-09a — Validator implementation | Tự tính lại metrics/bindings/population; thiếu review, source, calibration hoặc quality phải fail closed. | DONE —regression PASS; không đồng nghĩa release PASS |
+| P5-08b — PDF scope implementation | Opt-in tối đa4 PDF/100 trang/8MiB; đo token trước inference; khóa binary và HTTP body, journal bền, không retry. | DONE —95 kiểm thử native/scope/integrity PASS; provider probe PASS2/2 POSTs,4 trang hình đối chiếu đúng; native quality còn mở |
+| P5-08c — Truy hồi đúng PO/PLO | Câu hỏi chỉ rõ namespace phải nhận định nghĩa từ source body đúng loại, giữ scope/filter và candidate-generation của phase khác. | DONE —131 focused PASS cùng nhánh PDF; không tính là model inference mới |
+| P5-08d - Current-source regression | Run offline suite after fixes; keep live SKIP separate and verify source identity. | DONE - current commit `9ba97af0`; 2368 PASS, 2 live SKIP; source SHA `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21`, runtime SHA `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`; focused web/document-scope/native-PDF/ingestion suite 90 PASS. Phase 12 browser smoke: 39/39 checks PASS. |
+| P5-08e — Tên môn, ngày giờ và giá trị trả lời | Giữ proof cột tín chỉ theo tên chính xác; chuẩn hóa ngày/giờ theo toàn giá trị; chặn heading không có số và giữ phạm vi yêu cầu quote-only. | DONE —265 focused PASS; full2305 PASS/2 live SKIP; cần qualification native mới |
+| P5-08f — Giữ liền nhãn và giá trị khi chunking | Sửa nhận diện nhầm dòng đơn vị thành heading, kiểm corpus thật và tạo index mới; giữ nguyên index/captures baseline. | DONE — structure-v5/table-v3; 246 focused PASS; v14 rebuilt 14/14 source PDFs, 528 chunks/79 tables, manifest integrity PASS; MAI Semester 4 “Strength of Materials — 3 credits” retrieved top-1 with explicit header/scope; v13 baseline retained |
+| P5-08g — Freeze source nghiệm thu mới | Tạo candidate riêng có Git sạch, source/runtime khớp bản đã kiểm thử; giữ chung quota/circuit gốc và bảo toàn candidate cũ. | DONE —candidate-r3, 576 file source khớp; bundle tái dựng đã lưu; 0 provider calls; không thay cho native quality PASS |
+| P5-09b - Release quality validation | BLOCKED - no native quality run binds current source/runtime `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` / `5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`. Prior-source captures remain audit-only. The approved r5 packet is stale after the Phase 12 web/upload update; do not run it against this source. No native prediction, current calibrator, test/holdout run or release-gate result has been fabricated. Rebuild a current-source packet and re-authorize its exact hash before inference; thresholds unchanged. |
+| P5-10a - Handoff checkpoint and cleanup | Synchronize roadmap/contract/operations, retain raw evidence/source reconstruction and baseline, clean temporary fixtures. | DONE - roadmap, grounding handoff and Phase 12 handoff synchronized; historical r5 packet retained for audit but stale; current source/runtime recorded above; generated browser/UI fixtures and Playwright install removed. |
+| P5-10b — Đóng10/10 và goal | Chỉ đóng khi P5-08/09 và đủ5 gates đã đạt. | PENDING —không tự nâng70% thành100% |
+
+Gemini Chat returned supplementary source-review results for 33/33 priority cases.
+The audit found 20 source-supported answer contents and 33 answer/abstain decisions
+matching gold, but 13 records have issues: 5 quote corrections, 6 absence claims without
+enough declared full-source inspection, 5 reason mismatches, and 1 out-of-bounds page
+(overlapping categories). Model/session identity was not verifiable. These results are
+source review only, with 0 CampusAI predictions; they do not replace native qualification.
+[Audit](evaluation/results/phase5-acceptance-20261021/gemini-chat-review33-audit.json)
+
+Owner đã cho phép giảm nhẹ chuẩn nếu cần; numeric thresholds chưa đổi.
+Owner content/exposure approval và dev calibration đã hoàn tất. Native quality
+gates còn phải đạt trước khi Phase5 PASS; public release cần fresh holdout.
+
+| Gate | Điều kiện bắt buộc |
+|---|---|
+| G5-01 — Schema và provenance | Required public fields hợp lệ 100%; citation coordinates/quotes/mapping hợp lệ 100%; internal-field leakage = 0; malformed JSON không làm crash validator/API. |
+| G5-02 — Grounding | Unsupported/contradicted public-claim leakage = 0; grounded claim precision ≥99%, recall ≥95%; claim-citation precision/recall/F1 ≥95%; kiểm cả `answer` và claims. |
+| G5-03 — Citation và abstention | Citation precision ≥99%, recall/completeness ≥98%; abstention precision ≥99%, recall ≥98%, reason accuracy ≥95%; test/holdout và từng category có số lượng mẫu rõ ràng. |
+| G5-04 — Dataset và confidence | ≥400 mẫu đúng split/group contract; calibration count ≥400, dev-only fit, holdout ECE ≤0,05/Brier ≤0,08; risk tại coverage 80%/90% ≤1%/2% trên publishable holdout; checksum/version hợp lệ. |
+| G5-05 — Reproducibility và regression | Report được tái tính/kiểm bindings tự động, source fingerprint đúng cả workspace hiện tại; focused/full offline checks đạt, không tính live SKIP là PASS; handoff/cleanup và audit 10/10 task hoàn tất. |
+
+Nguồn chuẩn: [grounding contract](docs/architecture/grounding_contract.md),
+[ngưỡng đã khóa](configs/grounding_release.json),
+[release gates](docs/grounding/grounding_release_gates.md).
+Tiến độ tính theo task có evidence DONE / 10, không suy 100% từ việc code đã tồn tại.
 
 ### Phase 6 — BM25 + hybrid + RRF
 
@@ -1290,34 +1493,335 @@ không tạo report cho từng retry hoặc commit sidecar/corpus/model weights 
 
 ### Phase 12 — Web app MVP
 
-Trạng thái: **PLANNED — chưa nghiệm thu phase**. Tái sử dụng `api.py`, `web.py`,
-registry/job và UI hiện có. Phụ thuộc core quality; phần temporal/multihop chỉ
-hiển thị khi contract tương ứng đã ổn định.
+Trạng thái: **DONE — 100% (5/5 task, 8/8 UI work item; 15/10/2026)**.
+Phạm vi hoàn tất: Web app MVP chạy local, nghiệm thu bằng kiểm thử offline.
+Tái sử dụng application/query/registry/job, giữ public answer schema. UI riêng
+trong `src/campusai/ui/`, chia pages/styles/scripts/features, không thêm build
+system hoặc frontend dependency vào runtime.
 
-1. Hoàn thiện upload, file validation, job progress, ready/failed/review states.
-2. Hoàn thiện chọn tài liệu, hỏi đáp, citation cards và xem đúng trang/đoạn trích.
-3. Hiển thị thiếu bằng chứng, quá tải, quota và lỗi provider rõ ràng; request
-   kết thúc trong deadline, người dùng không phải chờ vô hạn.
-4. Thêm feedback tối thiểu về đáp án/citation; kiểm tra scope và xóa tài liệu.
-5. Chạy smoke đầu cuối trên tài liệu upload thật, kiểm tra error states và quota.
+1. DONE — upload PDF thật, signature/size/encryption validation, tiến độ worker,
+   ready khác ingestion complete; failed/review/cancel và retry có kiểm thử.
+2. DONE — chọn nguồn chính xác, hỏi đáp, citation doc/page/quote, PDF đúng trang;
+   source bytes phải khớp document hash, không dùng highlight giả.
+3. DONE — phân biệt thiếu bằng chứng/quá tải/lỗi, một request mỗi lần gửi,
+   timeout client 45 giây có giải thích không hủy server work; không retry tự động.
+4. DONE — feedback lưu thật, scope tại server, delete source/store/index/cache,
+   eviction retriever và bindings job; không còn stale source/citation.
+5. DONE — E2E PDF upload thật với provider local chỉ trong test; cả bốn tab,
+   keyboard/drawer/dialog, XSS/scope/junction và sáu viewport đã kiểm tra.
 
-Exit: upload → ready → chat → source preview → feedback/delete hoạt động;
-không lộ secret, không truy cập tài liệu ngoài scope, không crash ở lỗi phổ biến.
-Chỉ làm dashboard nhỏ cần cho các luồng này; chưa mở workflow/tính năng phụ.
+Evidence: [UI architecture/API/acceptance](docs/ui/phase12-ui.md),
+[source/artifact receipt](docs/ui/evidence/acceptance.json),
+[browser checks](docs/ui/evidence/browser-results.json).
+Kết quả hiện hành: **1.604 offline PASS, 2 opt-in live SKIP; 38 focused PASS**;
+**29 browser checks PASS**, axe không có lỗi A/AA trong các trạng thái đã audit.
+Reviewer: **Codex — Automated AI Review**, không thay chữ ký con người.
+
+23/10/2026 — tối ưu throughput sau nghiệm thu MVP, không đổi grounding/citation/
+abstention thresholds: mặc định chạy **3 PDF ingestion workers + 8 queued jobs**
+và tối đa **4 query workers**. Năm PDF có thể được chọn/tải đồng thời; mỗi file
+có tiến độ riêng, file lỗi được giữ để thử lại. Upload body, kiểm tra PDF và ghi
+file không còn bị tuần tự hóa bởi UI lock; job capacity, registry và publish index
+vẫn có đồng bộ riêng. Các câu hỏi đọc corpus dùng shared access; thao tác thay/xóa
+tài liệu vẫn được bảo vệ. Danh sách nhiều tài liệu lấy một snapshot job thay vì
+quét lại lịch sử cho từng PDF. Hai PDF thật (34 và 13 trang) hoàn tất upload/index
+trong 4,515 ms song song so với 4,980 ms tuần tự (~9,3% nhanh hơn) là baseline
+trước khi tăng worker count, trên profile local hash-model.
+
+Kiểm thử browser E2E mới nhất đạt **39/39 checks**, gồm sáu PDF bị từ chối đúng
+giới hạn, năm PDF upload đồng thời và chuyển sang ready, các luồng chat/source/
+delete, sáu viewport và axe A/AA. Full regression hiện hành: **2.368 PASS, 2
+opt-in live SKIP**. HTTP workload cục bộ, offline với BGE-M3 trên năm PDF fixture
+1 trang (4,749 bytes): cả năm được nhận trong 0,113 giây và ready trong 9,619 giây
+kể cả nạp model lạnh. Tiếp đó 100 câu EN/VI tự nhiên chạy qua bốn query workers:
+100/100 HTTP/API success trong 4,853 giây, p95 0,324 giây; deterministic test
+provider trả citation đúng cho 72 câu và fail-closed abstention cho 28 câu (13
+unsupported claim, 15 ambiguous). Đây là kiểm tra pipeline/retrieval/concurrency,
+không phải đánh giá chất lượng model thật; không có Gemini/provider call và không
+hạ threshold. Live quota/latency/answer quality chưa được đo. Source/runtime SHA
+hiện hành: `b1fdca19c001869299f5ae1c7f2b464605ad3ccdf113ab3edd3c920b570dce21` /
+`5839bcbc50add4523cebc055d90617025ccded42b7e8d7d5ba671e3f7a2be250`.
+
+Exit local MVP đạt: upload → ready → chat → source → feedback/delete.
+Local startup đã hoàn thiện bằng `start-campusai.cmd`: tự đọc cấu hình/credential
+local đã có, không in key/đổi key/model/bật billing. PDF owner đã index xong;
+đáp án thật bằng VI/EN trên nguồn tiếng Anh và mở đúng trang quote đã kiểm tra.
+Năm lần query ứng dụng được giữ đủ: hai đáp án có căn cứ, một claim bị từ chối
+trước sửa prompt và hai phản hồi lỗi provider/kết nối; xem evidence UI. Không
+suy lượt smoke nhỏ thành nghiệm thu quota provider, SLO hay public deployment;
+**R-01/R-02 vẫn DEFERRED — NOT PASSED**. Single-user loopback, chưa có account
+authentication/multi-user ownership. Job history hiện theo vòng đời process;
+thiết bị mobile thật và public vận hành thuộc Phase 13/14.
 
 ### Phase 13 — Deployment
 
-Trạng thái: **PLANNED — chưa nghiệm thu phase**. Phụ thuộc MVP có smoke PASS.
+Trạng thái: **IN PROGRESS — 6/64 tiêu chí (9,4%), 0/16 task DONE**.
+Mỗi task có bốn tiêu chí bắt buộc bên dưới; tỷ lệ phase = số tiêu chí có evidence
+đã kiểm tra / 64. Không tính thời gian chờ tài khoản hoặc code chưa chạy thành DONE.
+Phụ thuộc MVP Phase 12; lỗi vận hành local được sửa trước khi mang lên cloud.
 
-1. Chọn một profile Free Tier phù hợp RAM/model/worker/storage, ghi giới hạn thật.
-2. Cấu hình secrets, persistence, queue/bounded concurrency và cold start.
-3. Chạy health/readiness, smoke, restart/restore và rollback từ checkout sạch
-   kèm artifact bundle cần thiết; không tải model nặng trong mỗi request.
-4. Hoàn tất R-01/R-02 hoặc có quyết định thay scope deployment được ghi rõ,
-   vẫn giữ đầy đủ bằng chứng thất bại cũ.
+#### Phạm vi và quyết định hạ tầng ngày 15/10/2026
 
-Exit: deployment tái lập được, dữ liệu không mất sau restart, rollback hoạt động,
-runtime được đo đúng profile. Chưa public release khi điều kiện bắt buộc còn mở.
+Owner yêu cầu **cloud miễn phí hoàn toàn, không phụ thuộc máy cá nhân**, và xác nhận
+chưa có Oracle account nhưng có thể tự đăng ký/xác thực thẻ. Owner xác nhận lại
+ngày 15/10: chưa đăng ký, sẽ cung cấp thông tin sau. Tiếp tục code/test/docs độc lập;
+không hỏi lại cho đến khi owner cập nhật và không coi đây là yêu cầu pause goal.
+Không đưa self-host
+laptop vào phương án nghiệm thu. Target ưu tiên: **một OCI Ampere A1 Always Free VM,
+2 OCPU / 12 GB RAM**, Linux ARM64; tổng boot + data volume tối đa 200 GB trong home
+region, cấu hình ban đầu 50 GB boot + 50 GB data nếu quota thực tế cho phép.
+Đây là target cần preflight tài khoản/capacity, chưa phải VM đã cấp thành công.
+
+Một process ứng dụng dùng chung BGE-M3 CPU; một worker ingestion; giới hạn query
+đồng thời bằng 1, từ chối nhanh request vượt tải. Giữ UI tĩnh cùng origin với API,
+JSON indexes + SQLite metadata/job/budget cần thiết; không thêm Kubernetes, Redis,
+vector DB, GPU thuê, frontend hosting hoặc managed database khi chưa cần.
+Ưu tiên virtualenv + systemd trực tiếp trên VM để giảm RAM/build/storage overhead.
+Container chỉ thêm khi chứng minh lợi ích, không phải chuẩn đầu ra bắt buộc.
+Reranker/KG giữ OFF; không thay model/quality contract để vừa hạ tầng.
+
+Chi phí thuê compute, storage, ingress/DNS và provider trong profile phải là
+**0 USD/tháng trong quota đã kiểm chứng**. Không dùng trial credit làm điều kiện
+chạy app, không nâng PAYG/bật billing, không tự chuyển paid hardware/service/key/model.
+Budget alert không thay hard limit. Khi hết quota/capacity: báo rõ và dừng phần
+phụ thuộc, vẫn làm code/test/docs độc lập. Không tạo tải giả để chống thu hồi VM.
+
+Ingress mặc định cho Phase 13: HTTPS riêng cho owner trên VM qua Tailscale Personal
+và Serve; không cần tên miền trả phí, app chỉ bind loopback và ACL giới hạn owner.
+Máy cá nhân chỉ là client, không chạy backend. Public URL cho mọi người thuộc Phase 14,
+sau authentication/ownership/abuse/privacy/release gates. Nếu owner cần public staging,
+phải khóa phương án DNS/TLS miễn phí và xác thực trước khi mở ingress.
+
+Các hạn mức được kiểm tra từ nguồn chính thức ngày 15/10/2026:
+
+| Phương án | Đánh giá cho backend hiện tại | Quyết định |
+|---|---|---|
+| [OCI Always Free](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm) | A1 Free tenancy hiện là 2 OCPU/12 GB, 200 GB block volume; có thể thiếu capacity/thu hồi VM idle. [Đăng ký yêu cầu thẻ xác thực](https://www.oracle.com/cloud/free/faq/). | Target có điều kiện; xác nhận Console/account trước provision. Không dùng số 4 OCPU/24 GB cũ. |
+| [Hugging Face Spaces](https://huggingface.co/docs/hub/spaces-overview) | Tạo Docker/Gradio compute Space mới yêu cầu paid plan, ngoại lệ ZeroGPU có điều kiện riêng. | Không dùng Docker CPU Basic làm mặc định miễn phí; quyết định GPU Phase 7 là lịch sử. |
+| [Render Free](https://render.com/docs/free), [compute](https://render.com/docs/compute-plans) | 512 MB RAM, disk ephemeral, không có persistent disk miễn phí; không phù hợp model hiện tại. | Loại khỏi profile chính. |
+| [Tailscale Personal](https://tailscale.com/pricing), [Serve](https://tailscale.com/docs/features/tailscale-serve) | Personal 0 USD, tối đa 6 users; HTTPS trong tailnet, cần account/client và ACL. | Ingress riêng cho owner; không suy thành public hosting hay SLA. |
+
+Snapshot local chỉ dùng capacity estimate, không thay số đo ARM64/cloud:
+[infrastructure audit](docs/deployment/phase13/evidence/infrastructure-audit.json).
+
+#### Danh sách task và chuẩn đầu ra
+
+**C13-01 — Khóa profile và điều kiện miễn phí. IN PROGRESS — 2/4 (50%).**
+Phụ thuộc: Phase 12. Đầu ra: `docs/deployment/phase13/profile-decision.md` và
+`evidence/infrastructure-audit.json`, sau đó bổ sung receipt quota Console đã che dữ liệu riêng.
+
+- [x] Kiểm kê runtime/model/storage và gap thật: server local, queue/job, restart/rollback checker.
+- [x] Đối chiếu nguồn chính thức; ghi yêu cầu cloud-only, zero-cost, target và phương án bị loại.
+- [ ] Owner hoàn tất account; kiểm tra home region, Always Free entitlement, usage hiện có và khả năng cấp A1; lưu kết quả thật.
+- [ ] Khóa một profile triển khai với quota/cost hard stops, RAM/disk/worker budget và giới hạn sleep/reclaim; không còn prerequisite không rõ.
+
+**C13-02 — Runtime và cấu hình triển khai. IN PROGRESS — 1/4 (25%).**
+Phụ thuộc: C13-01 cho target thật; thiết kế có thể chuẩn bị trước account.
+Đầu ra: `configs/deployment/`, `src/campusai/deployment/` chia module theo trách nhiệm.
+
+- [ ] Validate env/schema: absolute data paths, allowed hosts/origins, timeout, concurrency, quota; sai cấu hình phải fail startup rõ.
+- [ ] Tách state `/var/lib/campusai`, model cache, config/secrets và immutable release; không ghi dữ liệu người dùng vào source checkout.
+- [ ] Khóa CPU/model revision, runtime/Python/dependency identity và flags OFF; startup không nạp corpus evaluation hay gọi provider.
+- [x] Tests cấu hình hợp lệ/sai/missing secret/path và contract local hiện có PASS; có lệnh preflight không lộ secret.
+
+[Configuration/preflight guide](docs/deployment/phase13/runtime-configuration.md),
+[109 focused PASS](docs/deployment/phase13/evidence/cloud-runtime-focused.xml) và
+[source/artifact receipt](docs/deployment/phase13/evidence/cloud-config-receipt.json)
+ghi **1.676 regression PASS / 2 opt-in live SKIP**. Template chưa điền owner/identity
+phải bị từ chối exit 2. Cấu hình tách state/cache/config/release, validate env roots,
+loopback host/origin, timeout/worker caps, flags OFF và quota receipt; không đọc key
+local, tạo data root, load model hoặc gọi provider trong preflight.
+
+Đã thêm opt-in pinned BGE cho cả ingestion/index/query: manifest đủ 11 file và
+commit `5617a9f61b028005a4858fdac845db406aefb181`; index lưu revision thật và từ chối
+legacy/missing dense khi chạy profile pin. [Native offline check](docs/deployment/phase13/evidence/dense-model/offline-windows.json)
+dùng BGE thật trên **Windows AMD64**, CPU, một encoder, vector 1.024 chiều,
+12,48 giây cho fixture nhỏ, zero socket/API attempts. Đây không phải ARM64/cloud
+hoặc SLO; chưa rewrite index của owner. Production entrypoint, supervisor,
+resource controls, durable jobs/budgets và volume thật chưa nối đủ, nên ba tiêu
+chí runtime/startup còn mở; không lấy preflight làm deployment acceptance.
+
+**C13-03 — Gói cài đặt tái lập trên ARM64. TODO — 0/4.**
+Phụ thuộc: C13-02. Đầu ra: lock/constraints ARM64, wheel + manifest, script install/preflight.
+
+- [ ] Cài đúng Python/PyTorch CPU/BGE-M3 trên ARM64 thật; xác minh wheel availability, không giả PASS bằng máy AMD64.
+- [ ] Pin dependency/model revision và hashes; gói chỉ có runtime/UI assets cần thiết, không chứa key, PDF riêng, venv hoặc benchmark nặng.
+- [ ] Clean checkout + artifact manifest dựng được runtime trên VM; BGE tải/cache một lần, offline warm restart không tải lại.
+- [ ] Artifact manifest ràng buộc source/config/lock/model/package; giữ bản trước để rollback, kiểm tra license và install verification.
+
+**C13-04 — HTTP server và service supervisor. TODO — 0/4.**
+Phụ thuộc: C13-02/03. Đầu ra: production WSGI entrypoint + systemd unit/runbook.
+
+- [ ] Thay wsgiref ở deployment bằng WSGI server phù hợp, một process/model, HTTP threads có giới hạn, bind loopback.
+- [ ] systemd chạy user riêng, restart có backoff/start limit, graceful shutdown và startup timeout; không tạo restart loop do provider 503.
+- [ ] Health/UI/document polling vẫn phản hồi khi một query đang chờ API; thêm request phải nhận busy response có hạn thay vì xếp hàng vô hạn.
+- [ ] Test hai HTTP request đồng thời, process exit/restart thật, model singleton và shutdown không mất job/state PASS.
+
+Local follow-up ngày 15/10: query không giữ khóa metadata khi chờ provider.
+Health/UI/document polling/readiness và POST quote lookup vẫn phản hồi;
+corpus writes giữ lease đến khi query kết thúc. [40 focused tests](docs/deployment/phase13/evidence/ui-polling-focused-final.xml)
+kiểm request đồng thời qua HTTP thật; xóa hai method shadowed giống hệt trong
+WebDocuments. Chưa thay production WSGI/systemd hoặc đo ARM64/VM, nên chưa
+đánh dấu tiêu chí production đạt chỉ bằng server loopback.
+
+**C13-05 — Secrets và ingress HTTPS riêng. TODO — 0/4.**
+Phụ thuộc: C13-01/04. Đầu ra: env template, ingress/ACL config và access evidence.
+
+- [ ] Secrets chỉ từ env/file quyền hạn chế ngoài release; thiếu/sai credential báo mã an toàn; không đọc key local hoặc lộ qua UI/log/package.
+- [ ] Tailscale Personal trên VM, Serve HTTPS và ACL chỉ owner hoạt động; xác minh đúng gói miễn phí, không dùng trial/business paid plan.
+- [ ] Backend không mở Internet/LAN trực tiếp; chặn giả identity/proxy headers, cross-origin writes; health/metrics và PDF không rò ra ngoài quyền.
+- [ ] Client được phép truy cập đủ luồng; client không được phép bị chặn; TLS và secret redaction được kiểm tra thực tế.
+
+**C13-06 — Persistence và giới hạn dung lượng. TODO — 0/4.**
+Phụ thuộc: C13-02/03. Đầu ra: data layout/volume mount + consistency checks.
+
+- [ ] PDF, registry, chunks, BM25/dense indexes, job ledger và provider cooldown/budget nằm trên persistent volume đã xác nhận miễn phí.
+- [ ] Mount thiếu/read-only/thiếu disk thì fail closed, không âm thầm ghi vào ephemeral root; atomic writes và checksum được giữ.
+- [ ] Cap storage app ban đầu 10 GiB và tối đa 80% data volume; upload kiểm tra chỗ trống gồm staging/index overhead, trả lỗi trước khi ghi thiếu.
+- [ ] Upload/index/delete qua HTTP rồi restart process và reboot VM: doc_id/hash/page/ready giữ đúng, không hồi sinh tài liệu đã xóa.
+
+**C13-07 — Job bền vững và hàng đợi hữu hạn. TODO — 0/4.**
+Phụ thuộc: C13-06. Đầu ra: SQLite/job journal gọn, recovery contract + fault tests.
+
+- [ ] Một ingestion worker, tối đa 2 job chờ; kiểm tra admission trước tạo file/job; queue đầy trả 429/busy có hướng dẫn.
+- [ ] Persist job/source/options/progress/terminal state và dedupe identity; API/UI đọc được history sau restart.
+- [ ] Khi process chết giữa job: đánh dấu interrupted/retryable hoặc resume idempotent theo checkpoint; không báo ready khi index chưa commit.
+- [ ] Kill/restart ở upload/parse/index, retry/cancel/delete và duplicate concurrent upload PASS; không có orphan/corpus lẫn hoặc job treo vĩnh viễn.
+
+**C13-08 — Provider failure, quota và UX chờ. IN PROGRESS — 3/4 (75%).**
+Phụ thuộc: C13-02 cho profile; sửa regression local độc lập được làm ngay.
+Đầu ra: bounded query admission, provider fault/cache fix và quota receipt; tham khảo repo owner yêu cầu.
+
+- [x] Không cache provider lỗi tạm thời; phân biệt 503/cooldown, 429/quota, timeout, credential/format với thiếu bằng chứng; retry sau hồi phục dùng lại câu hỏi được.
+- [x] UI nhận error code/Retry-After, báo thời gian chờ và retry thủ công; history không đưa lỗi hệ thống vào hội thoại; không tự gửi retry/key/model fallback.
+- [ ] Persistent call/token budget dùng giới hạn nhỏ hơn quota account và cap cấu hình; restart/cache/concurrency không vượt budget; provider không billing, max_retries=0.
+- [x] Fault tests success→503→cooldown→recovery, 429/timeout, cached success, hai request đồng thời và no-extra-call PASS; giữ nguyên grounding/citation validator.
+
+Evidence C13-08: [repo review](docs/deployment/phase13/repository-review.md),
+[81 focused tests](docs/deployment/phase13/evidence/provider-recovery-tests.xml),
+[32 browser checks](docs/deployment/phase13/evidence/provider-recovery-browser/browser-results.json).
+Historical source-bound [recovery receipt](docs/deployment/phase13/evidence/provider-recovery-receipt.json)
+có 1.613 regression PASS / 2 opt-in live SKIP và kiểm wheel UI 10/10 assets.
+Đây là fault injection/offline + loopback, **0 live provider calls**; không phải
+cloud smoke hoặc availability/SLO. Cache đã loại lỗi API từ trước; thay đổi mới
+là HTTP error classification, cooldown UX/history và local HTTP/query admission.
+
+Owner yêu cầu thử chuyển Gemini 2.5 Flash nếu tiết kiệm token (15/10/2026).
+Candidate dùng `thinkingBudget=0`; GET metadata 2.5/3.8 đều 200 nhưng một lần
+inference 2.5 qua credential hiện có trả **404**, protocol dừng, không retry/key
+rotation/paid OpenRouter fallback. [Candidate evidence](docs/deployment/phase13/evidence/model25/candidate-smoke.json)
+giữ nguyên failure; chưa so sánh được token giữa hai model, chưa đổi active profile.
+Google hiện hạn chế dòng 2.5 cho người đã dùng trước; không suy metadata PASS
+thành quyền inference hay kết luận 404 chắc chắn do entitlement.
+
+Owner tiếp tục yêu cầu hỏi được nhiều câu liên tiếp. Thử Gemini 3.5 Flash-Lite
+`thinkingLevel=minimal`: hai native calls ban đầu trả về nhưng một đáp án VI bị
+validator từ chối; giữ [candidate failure](docs/deployment/phase13/evidence/flash-lite-candidate/candidate-smoke.json).
+Một sequence HTTP riêng qua app đầy đủ đạt 2 câu có nguồn (~6,4/6,5 giây),
+câu thứ ba trả **503**; dừng ở 3/10, không resume/retry/rotate key và **không đổi
+model mặc định**. [Live report](docs/deployment/phase13/evidence/flash-lite-candidate/http-sequence-initial/report.json).
+Đổi model nhẹ hơn chưa đủ chứng minh hết overload hoặc tiết kiệm token.
+
+Bổ sung fallback local opt-in tại product entrypoint: đáp án AI vẫn abstained,
+trả riêng tối đa 3 trích đoạn nguyên văn đã kiểm quote/page theo request scope;
+UI ghi rõ chế độ đọc nguồn, cho tra cứu tiếp và mở PDF. Không sinh nội dung mới,
+không cache excerpt/fault hoặc đưa degraded turns vào history. Trong cooldown,
+lookup không gọi Gemini; không dùng paid provider/model fallback.
+[Review](docs/deployment/phase13/provider-continuity.md) và
+[receipt hiện tại](docs/deployment/phase13/evidence/source-excerpts-receipt.json):
+**1.621 regression PASS / 2 live SKIP, 40 focused PASS, 36 browser checks,
+wheel UI 11/11 assets**. Fault test kiểm 20 HTTP lookup → một injected 503 →
+19 lookup local → hồi phục và cache thành công; đây không phải 20 Gemini answers.
+Hai receipt Phase 12/provider recovery trước đó giữ nguyên identity lịch sử.
+Không tăng % Phase 13 hoặc đánh dấu C13-08 DONE: persistent budget/quota thật và
+độ sẵn sàng provider vẫn chưa được nghiệm thu.
+
+**C13-09 — Startup, health, readiness và cold start. TODO — 0/4.**
+Phụ thuộc: C13-04/06/08. Đầu ra: lifecycle probes + source-bound measurements.
+
+- [ ] `/live` chỉ process; `/ready` 503 đến khi model/index/storage sẵn sàng; provider outage hiển thị degraded mà không restart toàn app.
+- [ ] Không tải model mỗi request; kiểm checksum/model identity khi start, cache warm load và missing/corrupt index fail closed.
+- [ ] Đo ít nhất 3 cold starts + 3 warm restarts trên cùng VM/profile; ghi download/startup/ready time, RSS, CPU, disk và mọi lần thất bại.
+- [ ] Warm restart từ model cache ≤120 giây, readonly health/UI p95 ≤1 giây khi query chờ; không PASS dựa vào probe gọi provider.
+
+**C13-10 — Provision và deploy cloud thật. TODO — 0/4.**
+Phụ thuộc: C13-01/03–09. Đầu ra: idempotent bootstrap/deploy script và VM receipt đã redaction.
+
+- [ ] Provision đúng A1/region/quota và network/volume miễn phí; estimate + thực trạng 0 USD, không dùng trial/PAYG/paid resource.
+- [ ] Deploy release có identity, model cache và env template bằng lệnh tài liệu hóa; tắt app nếu preflight thiếu điều kiện.
+- [ ] Service chạy sau logout SSH và reboot VM; URL HTTPS owner dùng được từ client khác khi máy phát triển không chạy backend.
+- [ ] Redeploy cùng release idempotent, không ghi đè state/key, không nhân bản model/worker; ghi cấu hình thật và lệnh tái lập.
+
+**C13-11 — Smoke đầu-cuối trên URL cloud. TODO — 0/4.**
+Phụ thuộc: C13-10. Đầu ra: `evidence/cloud-smoke.json` + browser evidence.
+
+- [ ] Empty state → upload PDF được phép dùng → job progress → ready → chọn scope → chat hoạt động trên HTTPS thật.
+- [ ] Ít nhất một câu VI và một câu EN có đáp án qua provider thật, claim/quote/trang đối chiếu PDF; negative phải abstain đúng.
+- [ ] Preview/locate, feedback, retry/cancel, dedupe, delete và thay scope/cache được kiểm tra; không dùng tài liệu riêng đang có để upload công khai.
+- [ ] Browser desktop/mobile viewport không lỗi JS/overflow; provider lỗi được báo rõ và UI còn thao tác được; fake/replay ghi riêng, không tính là live.
+
+**C13-12 — Backup và restore sạch. TODO — 0/4.**
+Phụ thuộc: C13-06/07/10. Đầu ra: backup/restore CLI, manifest và actual recovery receipt.
+
+- [ ] Backup nhất quán khi quiesce writes: PDF/registry/index/jobs/schema/version/checksum; secret không nằm trong backup công khai.
+- [ ] Bản sao độc lập khỏi VM/volume đang chạy trên storage miễn phí trong quota; retention tối đa 3 bản theo disk budget, có restore command.
+- [ ] Restore vào data root sạch rồi chạy process mới: list/ready/query/source/quote/delete-state đúng; dữ liệu hỏng/path traversal bị từ chối.
+- [ ] Mục tiêu RPO ≤24 giờ, RTO ≤30 phút trên dataset acceptance ≤100 MiB; đo thực tế, không suy thành SLA. VM reclaim không mất mọi bản sao.
+
+**C13-13 — Rollback release và dữ liệu. TODO — 0/4.**
+Phụ thuộc: C13-03/10/12. Đầu ra: release manifest, rollback command + real HTTP receipt.
+
+- [ ] Giữ current + previous release immutable, checksum/config/schema compatibility và snapshot trước migration; không rollback mù vào schema mới.
+- [ ] Tạo lỗi release thử trong staging, chuyển về previous bằng quy trình có maintenance/quiesce; không đụng app local của owner.
+- [ ] Process cũ chạy lại thật, health/ready/upload/query/source/citation và cache invalidation đúng sau rollback; không chỉ kiểm dense.json load được.
+- [ ] Rollback hoàn tất ≤10 phút trên dataset acceptance; kiểm doc_id/delete state, báo downtime/mất dữ liệu nếu có và lưu mọi failure.
+
+**C13-14 — Đo runtime và sức chứa profile. TODO — 0/4.**
+Phụ thuộc: C13-10/11. Đầu ra: workload manifest khóa trước run và `evidence/runtime-report.json`.
+
+- [ ] Khóa dataset, câu hỏi, seed, request groups, concurrency 1/2/4, cold/warm/cache on-off, deadline và API-call cap trước đo; benchmark test không dùng để tune.
+- [ ] Tối thiểu 100 HTTP gồm read-only/query/cache/busy/error cases; tối đa 10 provider attempts miễn phí cho smoke deployment, ≥6 giây spacing; dừng khi 503/429/cap, không tự resume run để làm đẹp report.
+- [ ] Báo denominator đầy đủ: success/expected rejection/unexpected error/timeout, p50/p95/p99 theo nhóm, peak RSS/CPU/disk, queue/model count và token/call budget; cached/replay tách live.
+- [ ] Peak app RSS ≤75% RAM VM, không OOM; query concurrency cap giữ health/UI p95 ≤1 giây, query deadline ≤30 giây. Live nhỏ chỉ là staging measurement; workload bị dừng chưa đủ mẫu không PASS.
+
+**C13-15 — Đối soát R-01/R-02 và phạm vi release. TODO — 0/4.**
+Phụ thuộc: C13-14. Đầu ra: `release-conditions.md`, decision record có tác giả/role.
+
+- [ ] Đối chiếu nguyên workload/ngưỡng/bindings R-01/R-02; giữ historical failures và trạng thái NOT PASSED nếu chưa đủ phép đo.
+- [ ] Chọn và ghi rõ: qualification theo protocol cũ, hoặc staging deployment scope riêng. Thay điều kiện public release cần owner chấp thuận cụ thể, không tự giảm SLO.
+- [ ] Run mới/cũ khác profile hoặc workload không gộp denominator; proxy recovery/rollback cũ không thay kiểm process thật.
+- [ ] Mọi điều kiện bắt buộc của scope Phase 13 đã xử lý; phần public còn mở chuyển rõ sang Phase 14/R-03, không gọi app là production/SLA đã đạt.
+
+**C13-16 — Acceptance, bàn giao và cleanup. TODO — 0/4.**
+Phụ thuộc: C13-01–15. Đầu ra: `acceptance.json`, vận hành/triển khai/runbook và cập nhật README/plan.
+
+- [ ] 15 task trước đủ evidence; manifest ràng buộc source/config/model/runtime/artifact identity, xác minh hashes và link tái lập.
+- [ ] Focused tests + regression phù hợp PASS, cloud smoke/restart/restore/rollback PASS; ghi chính xác skip, failed run và giới hạn chưa đo.
+- [ ] Hướng dẫn owner mở URL, start/stop/redeploy, xem lỗi/quota, backup/restore/rollback; xác minh profile 0 USD và không phụ thuộc laptop backend.
+- [ ] Xóa temp/build/draft không còn binding; giữ code/tests/evidence/baseline, `plan.md` ở root tracked Git; chỉ sau đó ghi Phase 13 DONE 64/64 = 100%.
+
+#### Thứ tự thực hiện và gate đóng phase
+
+Ưu tiên: sửa provider error UX/HTTP blocking đang ảnh hưởng local trong C13-08/04;
+chuẩn bị C13-02/03/06/07/09 trong lúc owner đăng ký account; sau preflight cloud
+thực hiện C13-10 → 11/12 → 13/14 → 15 → 16. Phụ thuộc account/capacity không ngăn
+việc làm code/test độc lập, nhưng không được thay bằng local để đóng deployment.
+
+| Gate | Chuẩn PASS | Task |
+|---|---|---|
+| G13-01 | Cloud-only profile và entitlement/0 USD được xác minh thực tế | 01/02/10 |
+| G13-02 | Runtime ARM64 tái lập, một model/process, HTTP không đứng khi query chờ | 03/04/09 |
+| G13-03 | HTTPS chỉ owner, secrets riêng, kiểm unauthorized không rò dữ liệu | 05 |
+| G13-04 | Data và jobs đúng sau restart/reboot, queue/disk hữu hạn | 06/07 |
+| G13-05 | Không cache fault, lỗi/Retry-After rõ, không vượt quota/call budget | 08 |
+| G13-06 | Upload/chat VI/EN/source/feedback/delete PASS trên cloud thật | 11 |
+| G13-07 | Backup độc lập, restore sạch và rollback process thật PASS | 12/13 |
+| G13-08 | Runtime workload đủ mẫu, tài nguyên đạt, R-01/R-02/scope được đối soát | 14/15 |
+| G13-09 | 64/64 tiêu chí, acceptance source-bound, runbook/cleanup hoàn tất | 16 |
+
+Exit: **16/16 task, 64/64 tiêu chí, 9/9 gate PASS** trên cùng profile cloud miễn phí.
+Chưa public release khi Phase 14/điều kiện public bắt buộc còn mở. Reviewer tự động
+ghi đúng **Codex — Automated AI Review**, không thay chữ ký hay quyết định owner.
 
 ### Phase 14 — Production hardening
 
@@ -1374,7 +1878,7 @@ DONE không đồng nghĩa toàn dự án hoặc deployment đã hoàn thành.
 | Phase 1/2 | [Acceptance](evaluation/results/ingestion_acceptance.json), [hướng dẫn](docs/ingestion/ingestion_acceptance.md) |
 | Phase 3 | [Report dense độc lập — conditional](evaluation/results/retrieval_acceptance.json) |
 | Phase 4 | [Basic RAG report](evaluation/results/basic_rag_report.json), [contract](docs/grounding/basic_rag_release.md) |
-| Phase 5 | [Grounding contract](docs/architecture/grounding_contract.md), [release thresholds](configs/grounding_release.json) |
+| Phase 5 | [Grounding contract](docs/architecture/grounding_contract.md), [release thresholds](configs/grounding_release.json), [audit/handoff](docs/grounding/phase5_completion.md), [manifest hiện hành](evaluation/results/phase5-acceptance-20261021/manifest.json) |
 | Phase 6 | [Release manifest](evaluation/results/hybrid_release_manifest.json), [release contract](docs/retrieval/hybrid_release.md) |
 | Phase 7/8 hiện hành | [Completion audit](evaluation/results/phase78-chat-quality-completion-20261013.json), [Phase 7 handoff](docs/phase7_product_handoff.md), [Phase 8 evaluation](docs/phase8_evaluation.md) |
 | Phase 7 quality | [Paired review](evaluation/results/phase7-chat-quality-20261013/paired-quality-review.json) |

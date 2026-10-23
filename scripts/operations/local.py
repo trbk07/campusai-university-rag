@@ -1,0 +1,158 @@
+"""Start the local app with existing credentials, without printing secrets."""
+from __future__ import annotations
+
+import argparse
+import ast
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+from urllib.error import URLError
+from urllib.request import urlopen
+import webbrowser
+from campusai.deployment.local_server import make_local_server as make_server
+
+from campusai.llm.factory import _read_config
+from campusai.web import make_wsgi_app
+from .serve import build_application
+from .with_gemini_key import read_key
+
+ROOT = Path(__file__).resolve().parents[2]
+URL = 'http://127.0.0.1:8000'
+
+
+class LocalSetupError(ValueError):
+    """An actionable startup error whose message contains no private values."""
+
+
+def load_local_env(path: Path, environ: dict) -> None:
+    """Read key=value settings without executing shell expressions."""
+    if not path.is_file():
+        return
+    for raw in path.read_text(encoding='utf-8-sig').splitlines():
+        line = raw.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('export '):
+            line = line[7:]
+        name, separator, value = line.partition('=')
+        name = name.strip()
+        if not separator or not re.fullmatch(r'[A-Z][A-Z0-9_]*', name):
+            raise LocalSetupError('File .env có dòng cấu hình không hợp lệ.')
+        value = value.strip()
+        if value.startswith(('"', "'")):
+            try:
+                value = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                raise LocalSetupError('File .env có giá trị đặt trong dấu nháy không hợp lệ.') from None
+            if not isinstance(value, str):
+                raise LocalSetupError('Giá trị trong .env phải là chuỗi.')
+        else:
+            value = re.split(r'\s+#', value, maxsplit=1)[0].rstrip()
+        if value and not environ.get(name):
+            environ[name] = value
+
+
+def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
+    """Use explicit environment settings first, then the owner's local key.
+
+    Startup makes no provider requests and never rotates keys/models or billing.
+    """
+    env = os.environ if environ is None else environ
+    load_local_env(root / '.env', env)
+    default_profile = root / 'configs/free_llm.yaml'
+    if not default_profile.is_file():
+        default_profile = root / 'configs/continuity_llm.yaml'
+    if not default_profile.is_file():
+        default_profile = root / 'configs/product_llm.yaml'
+    profile = Path(env.get('CAMPUSAI_LLM_CONFIG') or default_profile)
+    if not profile.is_absolute():
+        profile = root / profile
+    try:
+        config = _read_config(profile)['llm']
+        provider = config.get('provider', 'gemini')
+        key_name = config.get('api_key_env', {'gemini':'GEMINI_API_KEY','groq':'GROQ_API_KEY'}.get(provider, 'OPENAI_API_KEY'))
+    except (ValueError, KeyError, AttributeError):
+        raise LocalSetupError('Không đọc được cấu hình AI. Kiểm tra CAMPUSAI_LLM_CONFIG.') from None
+    if provider == 'gemini' and not env.get(key_name):
+        credential = Path(env.get('CAMPUSAI_KEY_FILE') or root / 'configs/key.yaml')
+        if not credential.is_absolute():
+            credential = root / credential
+        if credential.is_file():
+            if (root / '.git').exists():
+                ignored = subprocess.run(['git','check-ignore','--quiet','--no-index','--',str(credential)], cwd=root, capture_output=True, check=False)
+                if ignored.returncode != 0:
+                    raise LocalSetupError('File credential phải được Git ignore trước khi chạy ứng dụng.')
+            try:
+                env[key_name] = read_key(credential, env.get('CAMPUSAI_KEY_NAME'))
+            except ValueError:
+                raise LocalSetupError('Credential Gemini chưa hợp lệ. Kiểm tra file key local.') from None
+    if not env.get(key_name):
+        raise LocalSetupError(f'Chưa có credential AI. Đặt {key_name} trong .env hoặc dùng file key local đã được Git ignore.')
+    env['CAMPUSAI_LLM_CONFIG'] = str(profile)
+    env.setdefault('CAMPUSAI_RAG_CACHE_PATH', str(root / 'data/cache/grounded-answers.sqlite3'))
+    model = env.get('CAMPUSAI_DENSE_MODEL', 'BAAI/bge-m3')
+    cache = Path(env.get('HF_HUB_CACHE') or env.get('HUGGINGFACE_HUB_CACHE') or Path(env.get('HF_HOME', Path.home()/'.cache/huggingface'))/'hub')
+    snapshots = cache / ('models--' + model.replace('/', '--')) / 'snapshots'
+    if snapshots.is_dir() and any(snapshots.iterdir()):
+        env.setdefault('HF_HUB_OFFLINE', '1')
+    return {'ai_configured':True, 'provider':provider, 'model':str(config.get('model',''))}
+
+
+def running_app() -> dict | None:
+    try:
+        with urlopen(URL + '/health', timeout=1) as response:
+            health = json.load(response)
+        if health.get('service') != 'campusai':
+            raise ValueError('Cổng 8000 đang được ứng dụng khác sử dụng.')
+        with urlopen(URL + '/api/documents', timeout=1) as response:
+            return json.load(response)
+    except (URLError, TimeoutError, OSError):
+        return None
+
+
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--open-browser', action='store_true')
+    args = parser.parse_args(argv)
+    os.chdir(ROOT)
+    existing = running_app()
+    if existing is not None:
+        if not existing.get('runtime', {}).get('ai_configured'):
+            print('CampusAI cũ chưa cấu hình AI đang dùng cổng 8000. Dừng terminal cũ bằng Ctrl+C rồi mở lại app.')
+            return 1
+        print(f'CampusAI đang chạy: {URL}')
+        if args.open_browser:
+            webbrowser.open(URL)
+        return 0
+    application = None
+    try:
+        configured = configure_local()
+        # Bind first so repeated launches cannot load duplicate large models.
+        with make_server('127.0.0.1',8000,lambda _env, _start: []) as server:
+            print(f'Đang khởi động CampusAI · {configured["model"]} · giữ cửa sổ này mở...', flush=True)
+            application = build_application()
+            server.set_app(make_wsgi_app(application,
+                max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4'))))
+            print(f'CampusAI đã sẵn sàng: {URL}', flush=True)
+            print('Chọn tài liệu sẵn sàng trong Trợ lý AI rồi đặt câu hỏi. Ctrl+C để dừng.', flush=True)
+            if args.open_browser:
+                webbrowser.open(URL)
+            server.serve_forever()
+    except KeyboardInterrupt:
+        print('\nĐã dừng CampusAI.')
+    except LocalSetupError as error:
+        print('Không khởi động được CampusAI. ' + str(error))
+        return 1
+    except (OSError, ValueError):
+        print('Không khởi động được CampusAI. Kiểm tra cấu hình/credential local, cổng 8000 và model đã tải.')
+        return 1
+    finally:
+        if application is not None:
+            application.close()
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
