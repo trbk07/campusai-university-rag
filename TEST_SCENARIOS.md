@@ -28,3 +28,6 @@ Git tree `d4fa931f219a8b47423474e9a10003fb55089917`: 114 app tests PASS; full
 worktree 2,384 PASS / 2 live SKIP. Browser E2E 41/41 PASS includes axe OCR dialog
 and actual local OCR/recovery without reupload. Six established responsive
 viewports remain covered; the OCR action itself was exercised at desktop size.
+
+
+2026-10-23 batch/delete/chunking cycle: two concurrent five-file batches accumulate ten ready sources; all ten can be queried in one conversation. Twenty consecutive integration repetitions accepted/indexed 200 PDFs. Browser smoke has 43 PASS checks, including second-batch conversation preservation and deletion of a failed upload without a registry record. `tests/test_web_deletions.py` covers active parsing/index publication, queued work behind another PDF, authorized scope, failed/cancelled uploads, durable recovery, failure/retry, reupload and an in-flight answer. `tests/test_chunker_progress.py` bounds formerly infinite heading-continuation cases with child-process deadlines. Current app group: 54 PASS; full worktree: 2,399 PASS / 2 live SKIP; frozen Phase 5 group: 186 PASS on each of three consecutive runs.

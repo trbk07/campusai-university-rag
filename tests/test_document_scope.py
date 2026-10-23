@@ -386,12 +386,14 @@ def test_unapproved_followup_fails_before_second_transport(tmp_path):
     service.answer_generator.llm = llm
     row = {"id": "offline-bounded", "question": QUESTION, "selected_doc_ids": [doc_id], "language": "en"}
     try:
-        packet = prepare_egress(service, [row], llm, tmp_path / "egress", 1)
-        assert len(packet["cases"]) == 1
+        packet = prepare_egress(service, [row], llm, tmp_path / "egress", 3)
+        assert [case["stage"] for case in packet["cases"]] == [
+            "initial", "complete_document_scope"]
         def transport(*_args, **_kwargs):
             return {"candidates": [{"content": {"parts": [{"text": json.dumps(absent())}]}}]}
         report = collect(service, [row], llm, max_provider_calls=2, output=tmp_path / "native",
-            transport=transport, egress_prompts={row["id"]: packet["cases"][0]["prompt_sha256"]})
+            transport=transport, egress_prompts={row["id"]: packet["cases"][0]["prompt_sha256"]},
+            egress_requests={row["id"]: packet["cases"][0]["http_requests"]})
         assert report["provider_posts"] == 1 and report["stop_reason"] == "provider_failure"
     finally:
         service.close()

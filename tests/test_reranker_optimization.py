@@ -230,6 +230,7 @@ def test_server_factory_uses_guarded_activation_and_configured_llm(tmp_path, mon
     monkeypatch.setattr(serve, "build_phase7_retriever", activate)
     llm = SimpleNamespace(generate_json=lambda *_args, **_kwargs: {})
     monkeypatch.setattr(serve, "create_llm", lambda config: llm if config == "configured.yaml" else None)
+    monkeypatch.setattr(serve, "_read_config", lambda _config: {"llm": {}})
     app = serve.build_application()
     try:
         assert calls[0][:2] == (tmp_path / "uploads", calibration)
@@ -406,6 +407,7 @@ def test_server_factory_warms_retrieval_without_asking_llm_and_closes_on_failure
     calibration.write_text("{}")
     monkeypatch.setenv("CAMPUSAI_RETRIEVAL_CALIBRATION", str(calibration))
     monkeypatch.setenv("CAMPUSAI_LLM_CONFIG", "configured.yaml")
+    monkeypatch.setenv("CAMPUSAI_JOB_DB", str(tmp_path / "jobs.sqlite3"))
     events = []
     llm = SimpleNamespace(generate_json=lambda *_a, **_kw: pytest.fail("startup must not call LLM"),
                           close=lambda: events.append("llm_closed"))
@@ -415,6 +417,7 @@ def test_server_factory_warms_retrieval_without_asking_llm_and_closes_on_failure
     retriever = SimpleNamespace(phase7_enabled=False, phase7_provider=None, warm_up=warm)
     monkeypatch.setattr(serve, "build_phase7_retriever", lambda *_a, **_kw: retriever)
     monkeypatch.setattr(serve, "create_llm", lambda _config: llm)
+    monkeypatch.setattr(serve, "_read_config", lambda _config: {"llm": {}})
     with pytest.raises(RuntimeError, match="encoder initialization"):
         serve.build_application()
     assert events == ["warm", "llm_closed"]

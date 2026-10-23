@@ -78,6 +78,8 @@ def test_selected_ocr_budget_applies_to_selected_physical_pages(mixed_pdf, monke
     from types import SimpleNamespace
     calls = []
     class Engine:
+        def __init__(self, **options):
+            assert options == {'intra_op_num_threads':1, 'inter_op_num_threads':1}
         def __call__(self, image):
             calls.append(image.shape)
             return [[None, 'recognized scan', .99]], None

@@ -7,7 +7,7 @@ from dataclasses import asdict, dataclass, replace
 import json
 import re
 
-from .course_credits import course_code_key, folded, headed_credit_rows
+from .course_credits import COURSE_CODE, course_code_key, folded, headed_credit_rows
 from .multi_hop import CODE, PDF
 
 
@@ -112,8 +112,8 @@ def deterministic_direct_prerequisite_code(question, results, language='vi', *, 
 
     from .grounding import Citation, _grounding_finalize, validate_citation
     from .source_citations import source_quote
-    claim_text = (f'Course {bridge} is a direct prerequisite of {target}.' if language.startswith('en')
-                  else f'Mon {bridge} la tien quyet truc tiep cua {target}.')
+    claim_text = (f'{target} lists {bridge} as its prerequisite.' if language.startswith('en')
+                  else f'{target} liet ke {bridge} la mon tien quyet.')
     raw_claim = {'claim_id': 'direct-prerequisite-code', 'text': claim_text,
                  'citation_ids': [premise.result.chunk_id]}
     quote = source_quote(premise.result, [raw_claim], question=raw)
@@ -217,6 +217,17 @@ def prerequisite_claim_support(text, evidence):
     value = folded(text)
     if not re.search(r'\b(?:prerequisites?|tien quyet)\b', value):
         return None
+    code = r'(?<![\w.])(' + COURSE_CODE + r')(?!\w)'
+    listed = (re.fullmatch(r'(?:course |mon |hoc phan )?' + code + r' lists '
+               r'(?:course |mon |hoc phan )?' + code + r' as (?:its |the )?prerequisite[.!]?', value)
+              or re.fullmatch(r'(?:mon |hoc phan )?' + code + r' liet ke '
+               r'(?:mon |hoc phan )?' + code + r' la (?:mon )?tien quyet[.!]?', value))
+    if listed:
+        target, bridge = map(course_code_key, listed.groups())
+        used = [record.chunk_id for record in evidence
+                if (premise := find_premise([record], record.doc_id, code=target, require_credits=False))
+                and prerequisite(premise) == bridge]
+        return bool(used), tuple(dict.fromkeys(used))
     codes = [course_code_key(m[1]) for m in CODE.finditer(value)]
     if len(codes) != 2:
         # Existing single-code requirements use their established grounding.

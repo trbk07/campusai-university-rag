@@ -73,6 +73,11 @@ class CorpusAccessLock:
                 self._writer = False
                 self._condition.notify_all()
 
+    @property
+    def busy(self):
+        with self._condition:
+            return bool(self._readers or self._writer or self._waiting_writers)
+
 
 def contained(root: Path, path: Path) -> Path:
     """Reject symlinks and junction escapes, including intermediate parents."""
@@ -124,6 +129,8 @@ class WebDocuments:
         self.corpus_lock = CorpusAccessLock()
         self.responses: dict[str, tuple[float, set[str]]] = {}
         self._legacy_coverage = {}
+        from .web_deletions import DocumentDeletions
+        self.deletions = DocumentDeletions(self)
 
     @property
     def registry(self):
@@ -138,6 +145,8 @@ class WebDocuments:
     def record(self, doc_id, environ):
         if not re.fullmatch(r"[0-9a-f]{64}", doc_id) or not self.allowed(doc_id, environ):
             raise WebError("not_found", 404)
+        if doc_id in self.deletions.pending:
+            raise WebError('document_deleting', 409)
         record = self.registry.get(doc_id)
         if record is None:
             raise WebError("not_found", 404)
@@ -173,7 +182,8 @@ class WebDocuments:
                 unread = cached[1]
         ready = record.get("status") == "succeeded" and self.index is not None and all(
             contained(self.index, self.index / doc_id / name).is_file() for name in ("bm25.json", "dense.json"))
-        ready = ready and not unread
+        deleting = doc_id in self.deletions.pending
+        ready = ready and not unread and not deleting
         safe_meta = {key: meta[key] for key in ("document_type", "academic_year", "program", "university", "version", "semester")
                      if isinstance(meta.get(key), (str, int))}
         if latest_job is ...:
@@ -181,10 +191,11 @@ class WebDocuments:
         if latest_job is not None and (latest_job['state'] != 'succeeded' or not latest_job.get('ready')):
             ready = False
         return {"doc_id": doc_id, "name": source.name, "page_count": record.get("page_count", 0),
+                "deleting": deleting, "delete_failed": doc_id in self.deletions.failed,
                 "metadata": safe_meta, "ready": ready, "status": "review_required" if unread else "ready" if ready else record.get("status", "review_required"),
                 "review_reason": 'ocr_required' if unread else record.get('review_reason'),
                 "unread_pages": unread,
-                "ocr_available": self.application.jobs is not None and available and not ready
+                "ocr_available": self.application.jobs is not None and available and not ready and not deleting
                     and bool(unread or record.get('review_reason') in {'ocr_required','ocr_unavailable'}),
                 "file_available": available, "size_bytes": source.stat().st_size if available else None,
                 "uploaded_at": source.stat().st_mtime if available else None}
@@ -332,6 +343,8 @@ class WebDocuments:
                   "created_at", "updated_at", "ingestion_status", "index_status")
         value = {key: job.get(key) for key in fields}
         value["name"] = source.name
+        value['deleting'] = doc_id in self.deletions.pending
+        value['delete_failed'] = doc_id in self.deletions.failed
         value["error_code"] = ("processing_interrupted" if job.get('error_code')=='processing_interrupted' else
                                "processing_failed" if job.get("state") == "failed" else None)
         return value
@@ -347,6 +360,14 @@ class WebDocuments:
         return values
 
     def upload(self, data, name, environ):
+        digest = hashlib.sha256(data).hexdigest()
+        with self.deletions.file_lock(digest):
+            with self.lock:
+                if digest in self.deletions.pending:
+                    raise WebError('document_deleting', 409)
+            return self._upload(data, name, environ)
+
+    def _upload(self, data, name, environ):
         if "campusai.authorized_doc_ids" in environ:
             # Assignment of a new document to a user requires real ownership
             # middleware; a caller cannot self-extend a trusted allowlist.
@@ -431,6 +452,8 @@ class WebDocuments:
     def job_action(self, job_id, action, environ):
         job = self.application.job(job_id).get("job")
         self.public_job(job, environ)
+        if job.get('document_id') in self.deletions.pending:
+            raise WebError('document_deleting', 409)
         if action == "cancel":
             accepted = self.application.jobs.cancel(job_id)
             if not accepted:
@@ -487,20 +510,49 @@ class WebDocuments:
                     return {'ok':True, 'page':page, 'matched':True, 'page_range':interval}
         return {'ok':True, 'page':interval[0], 'matched':False, 'page_range':interval}
 
+    def cancel_document_jobs(self, doc_id):
+        active = False
+        for job in self.application.jobs_snapshot()['jobs']:
+            if (job.get('document_id') == doc_id and job['state'] in {'staging','queued','running'}):
+                active = True
+                self.application.jobs.cancel(job['job_id'])
+        return active
+
     def delete(self, doc_id, environ):
-        record = self.record(doc_id, environ)
-        if any(job.get("document_id") == doc_id or Path(job["source_path"]).parent.name == doc_id
-               for job in self.application.jobs_snapshot()["jobs"] if job["state"] in {"staging", "queued", "running"}):
-            raise WebError("document_busy", 409)
+        if not re.fullmatch('[0-9a-f]{64}', doc_id) or not self.allowed(doc_id, environ):
+            raise WebError('not_found', 404)
+        with self.deletions.file_lock(doc_id):
+            with self.lock:
+                record = self.registry.get(doc_id)
+                jobs = [job for job in self.application.jobs_snapshot()['jobs']
+                        if job.get('document_id') == doc_id]
+                if not record and not jobs and doc_id not in self.deletions.pending:
+                    raise WebError('not_found', 404)
+                # Check every root before recording the irreversible intent.
+                contained(self.store, self.store / doc_id)
+                contained(self.store, self.uploads / doc_id)
+                if self.index is not None:
+                    contained(self.index, self.index / doc_id)
+                self.deletions.mark(doc_id)
+                if self.cancel_document_jobs(doc_id) or self.corpus_lock.busy:
+                    self.deletions.start()
+                    return {'ok':True, 'deleting':True}
+            with self.corpus_lock.write(), self.lock:
+                try:
+                    result = self._delete_artifacts(doc_id)
+                    self.deletions.finish(doc_id)
+                    return result
+                except Exception:
+                    self.deletions.failed.add(doc_id)
+                    raise
+
+    def _delete_artifacts(self, doc_id):
         # Validate *all* artifact bindings before removing any data.
         contained(self.store, self.store / doc_id)
         if self.index is not None:
             contained(self.index, self.index / doc_id)
-        source = None
-        try:
-            source = contained(self.store, Path(record["source_path"]))
-        except WebError:
-            pass
+        # Only remove managed uploads; historical sources elsewhere are retained.
+        uploads = contained(self.store, self.uploads / doc_id)
         delete_document_full(doc_id, store_dir=self.store, index_dir=self.index, registry=self.registry)
         self._legacy_coverage.pop(doc_id, None)
         retriever = self.application.query_service.retriever
@@ -518,8 +570,8 @@ class WebDocuments:
         if self.index is not None:
             from .retrieval.index_builder import _write_corpus_manifest
             _write_corpus_manifest(self.index, doc_id, [], {})
-        if source is not None and source.parent == self.uploads / doc_id:
-            shutil.rmtree(contained(self.store, source.parent))
+        if uploads.is_dir():
+            shutil.rmtree(uploads)
         if self.application.jobs is not None:
             self.application.jobs.forget_document(doc_id)
         for key, (_, ids) in list(self.responses.items()):

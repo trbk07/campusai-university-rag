@@ -25,6 +25,7 @@ def test_vietnamese_answer_keeps_verifiable_original_english_claim():
     assert not answer.abstained and answer.to_public_dict()['citations'][0]['page'] == 3
     assert answer.claims[0].text == 'A stack uses LIFO, last in first out.'
     assert 'Do not translate verification claims' in provider.prompts[0]
+    assert 'a claim must not add any fact that the answer omits' in provider.prompts[0]
     assert 'ngắn gọn' in provider.prompts[0]
 
 
@@ -39,6 +40,8 @@ def test_source_wording_guidance_applies_to_same_language_without_translation_in
     generator = GroundedAnswerGenerator(None)
     assert 'Do not translate verification claims' not in generator.prompt('What order?',[evidence()],language='en')
     assert 'exact wording of the cited evidence' in generator.prompt('What order?',[evidence()],language='en')
+    assert 'Do not copy a neighboring role or list item' in generator.prompt(
+        'Which roles are listed?',[evidence()],language='en')
     item = evidence()
     item.metadata['language'] = 'vi'
     assert 'Do not translate verification claims' not in generator.prompt('Thứ tự nào?',[item],language='vi')

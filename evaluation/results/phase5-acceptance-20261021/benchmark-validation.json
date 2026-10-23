@@ -1,0 +1,32 @@
+{
+  "status": "pass",
+  "acceptance_scope": "phase5_acceptance",
+  "errors": [],
+  "public_review_errors": [
+    "independent_ai_exposure_audit_content_invalid",
+    "independent_holdout_exposure_review_missing_or_stale"
+  ],
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "records": 400,
+  "source_reviewed_reusable_records": 680,
+  "provider_calls": 0,
+  "split_counts": {
+    "dev": 120,
+    "test": 130,
+    "holdout": 150
+  },
+  "answerable_counts": {
+    "dev": {
+      "True": 60,
+      "False": 60
+    },
+    "test": {
+      "True": 78,
+      "False": 52
+    },
+    "holdout": {
+      "True": 90,
+      "False": 60
+    }
+  }
+}

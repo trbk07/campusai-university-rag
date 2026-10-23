@@ -48,6 +48,13 @@ def test_unspecified_prerequisite_does_not_prove_directness():
                             'CS101 is a prerequisite of CS201.') == 0
 
 
+def test_listed_prerequisite_wording_matches_the_reviewed_answer_contract():
+    result = metrics('PEC1008 lists PHI1006 as its prerequisite.',
+                     'PEC1008 lists PHI1006 as its prerequisite.')
+    assert result['grounded_claim_precision'] == 1
+    assert result['grounded_claim_recall'] == 1
+
+
 @pytest.mark.parametrize('predicted,gold', [
     ('The corrected code for ELT3213 is ELT3067.', 'The corrected code for ELT3067 is ELT3213.'),
     ('ELT3213 is corrected to ELT3067.', 'ELT3067 is corrected to ELT3213.'),

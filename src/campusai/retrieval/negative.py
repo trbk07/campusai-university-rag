@@ -26,7 +26,10 @@ def negative_query_reason(query: str, *, max_chars: int = 2000) -> str | None:
         return "query_too_long"
     if INJECTION_RE.search(value):
         return "prompt_injection"
-    if re.search(r"\b(?:cái\s+đó|cai\s+do|thế\s+nào|the\s+nao)\b", value, re.I):
+    # 'Thế nào' is also an ordinary interrogative inside a fully specified
+    # question. Reject a bare fragment, not a named subject's complete query.
+    if (re.search(r"\b(?:cái\s+đó|cai\s+do)\b", value, re.I)
+            or re.fullmatch(r"(?:thế\s+nào|the\s+nao)[\s?!.]*", value, re.I)):
         return "ambiguous_query"
     meaningful = {token for token in normalized_tokens(value) if token.casefold() not in STOPWORDS and len(token) >= 2}
     if not meaningful or (len(meaningful) == 1 and re.fullmatch(r"xq\d+", next(iter(meaningful)), re.I)):

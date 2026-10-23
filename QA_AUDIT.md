@@ -33,3 +33,10 @@ viewports, no script errors, including real local OCR and a simulated admission
 failure followed by manual recovery. [Browser evidence](docs/ui/evidence/ocr-browser-results.json).
 No external provider requests were made. Full-pipeline load/OCR-table accuracy
 and current-source native answer quality remain open; the full-app goal is active.
+
+
+2026-10-23 current-source checkpoint: full offline suite **2,399 PASS / 2 live SKIP** (516.42 s); Phase 5 suite **186 PASS x3** in frozen candidate-r4. Source/runtime identity and native qualification progress are in plan.md. Browser batch/delete smoke: 43/43 PASS, six viewports, no script errors.
+
+Additional repaired findings: shared registry read/write leases prevent Windows atomic-replacement races (five concurrency/path cases); bounded ONNX thread pools avoid multiplying OCR workers; failed/cancelled/unregistered and active uploads can be deleted with durable intents and deferred safe cleanup; a numbered heading followed by ordinary text previously looped forever in chunking (isolated two-second timeout reproduced; two progress regressions now PASS). Two batches of five preserve ten selectable PDFs and the conversation. A natural Vietnamese selected-document page-count query now routes to trusted metadata.
+
+The full five-PDF/104-page BGE/OCR run is measured, not passed: both versions ready only 3/5 documents; two large scans still exceed the OCR budget. Native Phase 5 inference is underway; whole-app AI accuracy/OCR/streaming/concurrency acceptance remains open.

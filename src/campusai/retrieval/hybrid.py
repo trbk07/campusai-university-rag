@@ -84,10 +84,16 @@ class HybridRetriever:
         phase7_policy: Phase7Policy | None = None,
         phase7_enabled: bool = False,
         dense_device: str | None = None,
+        dense_model_name: str | None = None,
+        dense_model_revision: str | None = None,
     ) -> None:
         if dense_device not in {None, "cpu", "cuda", "cuda:0"}:
             raise ValueError("unsupported dense serving device")
         self._dense_device = dense_device
+        if (dense_model_name is None) != (dense_model_revision is None):
+            raise ValueError('dense model name and revision must be pinned together')
+        self._expected_dense_model = dense_model_name
+        self._expected_dense_revision = dense_model_revision
         self.index_root = Path(index_root)
         self.rrf_k = rrf_k
         self.reranker = reranker
@@ -138,10 +144,13 @@ class HybridRetriever:
         root = self.index_root / doc_id
         bm25 = BM25Index.load(root / "bm25.json")
         try:
-            dense = DenseIndex.load(root / "dense.json")
+            dense = DenseIndex.load(root / "dense.json", expected_model_name=self._expected_dense_model,
+                                    expected_model_revision=self._expected_dense_revision)
             if self.dense_device is not None:
                 dense.device = self.dense_device
         except IndexNotFoundError:
+            if self._expected_dense_revision is not None:
+                raise
             dense = None
         self._indexes[doc_id] = (bm25, dense)
         self._body_indexes[doc_id] = BM25Index([
@@ -189,7 +198,7 @@ class HybridRetriever:
         Startup remains a measured cost. A fixed non-user query initializes the
         encoder and index matrices only; no ranking policy or corpus is changed.
         """
-        doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
+        doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir() and not path.name.startswith(".")) if self.index_root.exists() else []
         self._ensure_loaded(doc_ids)
         vectors = {}
         for _bm25, dense in self._indexes.values():
@@ -238,7 +247,7 @@ class HybridRetriever:
         }.get(route, route)
         parse_ms = (time.perf_counter() - parse_started) * 1000
         if doc_ids is None:
-            doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir()) if self.index_root.exists() else []
+            doc_ids = sorted(path.name for path in self.index_root.iterdir() if path.is_dir() and not path.name.startswith(".")) if self.index_root.exists() else []
         if not doc_ids or top_k <= 0:
             self.last_trace = RoutingTrace(route=route, detected_codes=codes, filters_applied=bool(normalized_filters),
                                            abstained=True, abstention_reason="no_candidate", latency_ms={"parse": round(parse_ms, 3), "total": round((time.perf_counter()-total_started)*1000, 3)})
@@ -347,9 +356,31 @@ class HybridRetriever:
             return []
         from .table_links import table_acronym_expansion
         search_query = table_acronym_expansion(search_query, records)
+        from .table_links import outcome_namespace_sources
+        outcome_pool = (outcome_namespace_sources(query, records) if len(doc_ids) == 1
+            and mode in {'auto', 'hybrid', 'hybrid_rrf'} and not _candidate_generation else None)
+        if outcome_pool is not None and len(outcome_pool[0]) <= top_k:
+            eligible_ids = set(outcome_pool[0])
+            records = {key: records[key] for key in outcome_pool[0]}
+            search_query += ' ' + ' '.join(outcome_pool[1])
+        from ..rag.table_fields import admission_candidates, admission_field_request
+        field_ids = (admission_candidates(query, records) if len(doc_ids) == 1
+                     and mode in {'auto', 'hybrid', 'hybrid_rrf', 'exact_code'} and not _candidate_generation else None)
+        if field_ids is not None:
+            if not field_ids or len(field_ids) > top_k:
+                self.last_trace = RoutingTrace(route='exact_code', detected_codes=codes,
+                    filters_applied=bool(normalized_filters), abstained=True,
+                    abstention_reason='no_candidate' if not field_ids else 'ambiguous_table_field',
+                    candidate_count=len(field_ids), final_count=0)
+                return []
+            eligible_ids = set(field_ids)
+            records = {key: records[key] for key in field_ids}
+            effective_mode = route = 'exact_code'
         # Program abbreviations and semester labels describe context. They
         # must not turn a natural course-name request into an exact lookup.
         course_codes = detected_course_codes(query)
+        if field_ids is not None:
+            course_codes = (admission_field_request(query)[1],)
         code_patterns = [re.compile(r"(?<![\w])" + r"\s*".join(re.escape(c) for c in code)
                                     + r"(?![\w])", re.I) for code in course_codes]
         exact_candidate_ids = {
@@ -359,6 +390,8 @@ class HybridRetriever:
                     or (_candidate_generation and pattern.search(retrieval_text(item)))
                     for pattern in code_patterns)
         }
+        if field_ids is not None:
+            exact_candidate_ids = set(field_ids)
         # A candidate pool can retain metadata-linked source context for the
         # reranker. Answer lookup requires the actual source-body code. The
         # common scope guard above still rejects codes absent from the sources.

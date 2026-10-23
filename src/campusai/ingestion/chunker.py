@@ -214,6 +214,9 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
                 elif len(lines) > 1:
                     lines.pop(-2)
                 break
+            # No continuation was consumed. Repeating the same last heading
+            # forever prevents ingestion from reaching its cancellation checkpoint.
+            break
 
     for page_number, lines, metas in normalized_pages:
         if not lines:

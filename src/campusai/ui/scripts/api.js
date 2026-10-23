@@ -1,4 +1,5 @@
 const messages = {
+  document_deleting:'PDF đang được xóa. Hãy chờ hoàn tất trước khi tải lại hoặc dùng tài liệu này.',
   ocr_unavailable:'Tài liệu này hiện không cần hoặc chưa thể xử lý OCR. Hãy cập nhật trạng thái tài liệu.',
   ocr_page_limit:'Số trang cần OCR vượt giới hạn của máy chủ (tối đa 50). Hãy chia PDF thành phần nhỏ hơn.',
   invalid_pdf:'File không phải PDF hợp lệ, bị hỏng, được mã hóa hoặc vượt giới hạn số trang.',

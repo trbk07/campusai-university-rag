@@ -21,7 +21,7 @@ def main():
     args.root.mkdir(parents=True, exist_ok=True)
     mixed_pdf.__wrapped__(args.root)
     (args.root/'Enrollment.pdf').write_bytes(pdf_bytes())
-    for number in range(2, 6):
+    for number in range(2, 11):
         (args.root/f'Enrollment-{number}.pdf').write_bytes(pdf_bytes(
             f'Enrollment requires approval from the academic advisor. Fixture source {number} has independent content.'))
     provider = LocalEvidenceLLM()

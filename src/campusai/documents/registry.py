@@ -6,8 +6,29 @@ import json
 import os
 import threading
 import contextlib
+import weakref
 from pathlib import Path
 from typing import Any
+
+
+_LOCKS = weakref.WeakValueDictionary()
+_LOCKS_GUARD = threading.Lock()
+
+
+def _path_lock(path):
+    key = str(path.resolve())
+    if os.name == 'nt':
+        if key.startswith('\\\\?\\UNC\\'):
+            key = '\\\\' + key[8:]
+        elif key.startswith('\\\\?\\'):
+            key = key[4:]
+    key = os.path.normcase(key)
+    with _LOCKS_GUARD:
+        lock = _LOCKS.get(key)
+        if lock is None:
+            lock = threading.RLock()
+            _LOCKS[key] = lock
+        return lock
 
 
 class DocumentRegistry:
@@ -16,8 +37,9 @@ class DocumentRegistry:
     def __init__(self, path: str | Path = "data/store/registry.json") -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self._lock = threading.RLock()
-        self.items: dict[str, dict[str, Any]] = self._load()
+        self._lock = _path_lock(self.path)
+        with self._lock, self._process_lock():
+            self.items: dict[str, dict[str, Any]] = self._load()
 
     @contextlib.contextmanager
     def _process_lock(self):
@@ -31,21 +53,26 @@ class DocumentRegistry:
         lock_path = self.path.with_suffix(self.path.suffix + ".lock")
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         handle = lock_path.open("a+b")
+        locked = False
         try:
             if os.name == "nt":
                 import msvcrt
                 handle.seek(0)
-                handle.write(b"0")
-                handle.flush()
+                if not handle.read(1):
+                    handle.write(b"0")
+                    handle.flush()
                 handle.seek(0)
                 msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
             else:
                 import fcntl
                 fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+            locked = True
             yield
         finally:
             try:
-                if os.name == "nt":
+                if not locked:
+                    pass
+                elif os.name == "nt":
                     import msvcrt
                     handle.seek(0)
                     msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
@@ -82,14 +109,14 @@ class DocumentRegistry:
     def get(self, doc_id: str) -> dict[str, Any] | None:
         """Return one document record by id."""
 
-        with self._lock:
+        with self._lock, self._process_lock():
             self.items = self._load()
             return self.items.get(doc_id)
 
     def list(self) -> list[dict[str, Any]]:
         """Return all registered document records."""
 
-        with self._lock:
+        with self._lock, self._process_lock():
             self.items = self._load()
             return list(self.items.values())
 
@@ -106,6 +133,6 @@ class DocumentRegistry:
     def contains(self, doc_id: str) -> bool:
         """Return whether a document is registered."""
 
-        with self._lock:
+        with self._lock, self._process_lock():
             self.items = self._load()
             return doc_id in self.items

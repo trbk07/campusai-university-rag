@@ -46,3 +46,10 @@ server caps of at most 50 scan pages / 120 seconds. Its browser flow was verifie
 with actual OCR and error recovery (41/41 E2E checks). No matched throughput
 measurement was performed for this UI change, and test-suite duration is not
 reported as OCR latency. Full upload/OCR/index load remains outstanding.
+
+
+## Full five-PDF BGE/OCR measurement
+
+Same public inputs (104 pages, 28,184,916 bytes), three workers, offline BGE-M3 and real local OCR; one fresh-process run per version. Upload acceptance: 0.154 to 0.165 s. Overall terminal time: 212.73 to 226.62 s; **no overall speedup and only 3/5 ready in either run**. The fixed run has zero failed jobs, but the 32/35-page scans remain in review after exhausting the OCR attempt budget. Peak sampled RSS: 3.51 to 3.48 GB, not a meaningful memory improvement from one run. Library probe p95: 0.360 to 0.136 s. Six-page OCR phase: 102.14 to 39.03 s, with matching recognized text/chunk count. A separate three-page OCR comparison went from 28.47 s / 167 process threads to 10.83 s / 50 threads; all three text hashes/confidence values match exactly. These are bounded observations, not general OCR accuracy or p95 SLO claims.
+
+Raw before/after reports, hardware, input hashes, original registry-race reproduction and instrumentation caveats: [runtime evidence](docs/ui/evidence/pdf-runtime-load.json). A probe-relative stage timestamp bug in the historical report is explicitly excluded from timing conclusions; the reusable benchmark script is corrected. Large-scan completion and OCR/table fidelity remain open.

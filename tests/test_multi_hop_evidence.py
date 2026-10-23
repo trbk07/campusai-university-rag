@@ -91,10 +91,41 @@ def test_direct_prerequisite_code_lookup_uses_the_reviewable_source_row_without_
         'Use only alpha.pdf. Which prerequisite code is listed for PEC1008?',
         [evidence], 'en')
     assert not answer.abstained
-    assert answer.answer == 'Course PHI1006 is a direct prerequisite of PEC1008.'
+    assert answer.answer == 'PEC1008 lists PHI1006 as its prerequisite.'
     assert answer.citations[0].chunk_id == evidence.chunk_id
     assert json.loads(answer.citations[0].quote) == ['PEC1008', 'Example', '2', 'PHI1006']
     assert model.calls == 0
+
+
+@pytest.mark.parametrize('context', [
+    {'intent': 'cohort', 'selected_doc_ids': ['a']},
+    {'intent': 'latest', 'selected_doc_ids': ['a']},
+])
+def test_temporally_resolved_single_source_allows_direct_prerequisite_lookup(context):
+    evidence = row('a', 'PEC1008', 2, 'PHI1006')
+    model = Model()
+    answer = GroundedAnswerGenerator(model).answer(
+        'Which prerequisite code is listed for PEC1008?', [evidence], 'en',
+        temporal_context=context)
+    assert not answer.abstained
+    assert answer.answer == 'PEC1008 lists PHI1006 as its prerequisite.'
+    assert answer.citations[0].chunk_id == evidence.chunk_id
+    assert model.calls == 0
+
+
+def test_temporal_scope_must_match_the_single_retrieved_document_before_local_lookup():
+    evidence = row('a', 'PEC1008', 2, 'PHI1006')
+    model = Model({'answer': 'PEC1008 lists PHI1006 as its prerequisite.',
+                   'confidence': 'high', 'abstained': False,
+                   'claims': [{'claim_id': 'listed-prerequisite',
+                               'text': 'PEC1008 lists PHI1006 as its prerequisite.',
+                               'citation_ids': [evidence.chunk_id]}],
+                   'citations': [{'chunk_id': evidence.chunk_id,
+                                  'quote': json.dumps(json.loads(evidence.content)['rows'][0])}]})
+    answer = GroundedAnswerGenerator(model).answer(
+        'Which prerequisite code is listed for PEC1008?', [evidence], 'en',
+        temporal_context={'intent': 'latest', 'selected_doc_ids': ['a', 'b']})
+    assert model.calls == 1
 
 
 @pytest.mark.parametrize('question,results', [
@@ -124,6 +155,15 @@ def test_endpoint_cooccurrence_does_not_prove_a_prerequisite_edge():
     assert prerequisite_claim_support(text,[row('a','CS201',4,'CS101')])[0]
     assert not prerequisite_claim_support('Course CS201 is a prerequisite of course CS101.',
         [row('a','CS201',4,'CS101')])[0]
+
+
+@pytest.mark.parametrize('text', [
+    'PEC1008 lists PHI1006 as its prerequisite.',
+    'Mon PEC1008 liet ke PHI1006 la mon tien quyet.',
+])
+def test_listed_prerequisite_wording_is_proved_by_the_exact_dependent_row(text):
+    assert prerequisite_claim_support(text, [row('a', 'PEC1008', 2, 'PHI1006')])[0]
+    assert not prerequisite_claim_support(text, [row('a', 'PHI1006', 3, 'PEC1008')])[0]
 
 
 def test_exact_direct_source_statement_still_proves_edge():

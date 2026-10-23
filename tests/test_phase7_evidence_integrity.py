@@ -154,7 +154,7 @@ def test_answer_report_rejects_output_overwriting_its_raw_input(tmp_path):
 def test_context_gate_requires_explicit_source_leakage_observations():
     key = {"question": "Credits?", "language": "en", "doc_ids": None, "filters": {}, "top_k": 5,
            "mode": "auto", "corpus_version": "fixture", "model": "fixture", "context_budget": {}}
-    cases = [{"case": name, "request": {"question": "Credits?"}, "resolved": "Credits?", "clarification": False,
+    cases = [{"case": name, "request": {"question": "Credits?"}, "resolved": "Credits?", "clarification": True,
               "out_of_scope_citations": 0, "unverified_selection_citations": 0}
              for name in ("different_history", "different_selection", "empty_scope", "missing_history", "selection_not_evidence")]
     lifecycle = {"startup_loads": 1, "request_loads": 0, "request_inference_calls": 1, "closed_new_inference": 0,

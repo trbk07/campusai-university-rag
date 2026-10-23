@@ -23,7 +23,7 @@ async function main() {
   };
   try {
     const existing = await (await context.request.get(`${baseUrl}/api/documents`)).json();
-    const fixtureNames = new Set(['Enrollment.pdf','Enrollment-2.pdf','Enrollment-3.pdf','Enrollment-4.pdf','Enrollment-5.pdf','mixed.pdf']);
+    const fixtureNames = new Set(['Enrollment.pdf',...Array.from({length:9},(_,i)=>`Enrollment-${i+2}.pdf`),'mixed.pdf']);
     for (const doc of existing.documents) {
       assert(fixtureNames.has(doc.name),`Refusing to clean non-fixture document ${doc.name}`);
       assert.equal((await context.request.delete(`${baseUrl}/api/documents/${doc.doc_id}`)).status(),200);
@@ -94,6 +94,32 @@ async function main() {
     await page.getByText('Chào bạn! Bạn muốn tìm hiểu phần nào trong tài liệu đã chọn?',{exact:true}).waitFor();
     assert.equal(await page.locator('.citation-marker').count(),0);
     check('natural greeting answers locally without fake citations');
+    // Adding another batch keeps the current conversation and all first-batch PDFs.
+    await page.locator('.upload-main').click();
+    assert((await page.locator('#upload-limits').textContent()).includes('mỗi lượt'));
+    await page.locator('#file-input').setInputFiles(Array.from({length:5},(_,i)=>path.join(fixtureDir,`Enrollment-${i+6}.pdf`)));
+    await page.locator('#upload-submit').click();
+    await page.waitForFunction(() => {
+      const cards = [...document.querySelectorAll('#document-list .document-card')];
+      return cards.length === 10 && cards.every(card => card.textContent.includes('Sẵn sàng'));
+    }, undefined, {timeout:30000});
+    listing.documents = (await (await context.request.get(`${baseUrl}/api/documents`)).json()).documents;
+    await page.locator('#ask-selected').click();
+    assert(await page.getByText('Chào bạn! Bạn muốn tìm hiểu phần nào trong tài liệu đã chọn?',{exact:true}).isVisible());
+    await page.locator('#scope-open').click();
+    for (const checkbox of await page.locator('#scope-documents input[data-select]').all()) await checkbox.check();
+    assert.equal(await page.locator('#scope-documents input:checked').count(),10);
+    await page.keyboard.press('Escape');
+    const multiQuery = page.waitForRequest('**/api/query');
+    await page.locator('#question').fill('Tổng số trang của tất cả tài liệu đã chọn?');
+    await page.locator('#send').click();
+    assert.equal((await multiQuery).postDataJSON().doc_ids.length,10);
+    await page.waitForFunction(() => document.querySelector('.answer-body:last-child')?.textContent.includes('Tổng cộng: 10 trang.')
+      || [...document.querySelectorAll('.answer-body')].some(body=>body.textContent.includes('Tổng cộng: 10 trang.')));
+    await page.locator('#scope-open').click();
+    for (const checkbox of await page.locator(`#scope-documents input:not([data-select="${docId}"])`).all()) await checkbox.uncheck();
+    await page.keyboard.press('Escape');
+    check('second batch of five preserves chat and all ten PDFs can be queried together');
     await page.locator('#question').fill('tài liệu có mấy trang'); await page.locator('#send').click();
     await page.locator('.document-info-card').waitFor();
     assert.equal((await page.locator('.answer-body').last().textContent()).trim(),'Enrollment.pdf: 1 trang.');
@@ -262,6 +288,19 @@ async function main() {
     await page.getByText('Bạn chưa có tài liệu nào.',{exact:true}).waitFor();
     assert.equal((await context.request.get(`${baseUrl}/api/documents/${docId}/file`)).status(),404);
     assert.equal(await page.locator('.source-card').count(),0); check('delete confirmation and no stale source access');
+    const invalidUpload = await context.request.post(`${baseUrl}/api/documents/upload`,{
+      headers:{'Content-Type':'application/pdf','X-Filename':'invalid.pdf'},data:Buffer.from('%PDF-broken')});
+    assert.equal(invalidUpload.status(),400);
+    await page.reload();
+    const orphanDelete = page.locator('#document-jobs [data-delete]');
+    await orphanDelete.waitFor();
+    assert.equal(await page.locator('#document-list .document-card').count(),0);
+    await orphanDelete.click();
+    assert.equal(await page.locator('#delete-name').textContent(),'invalid.pdf');
+    await page.locator('#delete-confirm').click();
+    await orphanDelete.waitFor({state:'detached'});
+    assert.equal((await (await context.request.get(`${baseUrl}/api/documents`)).json()).jobs.length,0);
+    check('failed upload without a registry document can be deleted from its job card');
     await page.locator('#clear-filters').click();
     await page.locator('.upload-main').click();
     await page.locator('#file-input').setInputFiles(path.join(fixtureDir,'mixed.pdf'));

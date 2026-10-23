@@ -85,7 +85,8 @@ class SentenceTransformerEmbeddingProvider:
 
     def _encoder(self):
         if self._model is None:
-            self._model = retrieval_runtime().get_encoder(self.model_name, device=self.device)
+            options = {'revision':self.version} if self.version not in {'1','runtime'} else {}
+            self._model = retrieval_runtime().get_encoder(self.model_name, device=self.device, **options)
             probe = self._model.encode(["dimension probe"], normalize_embeddings=True)
             self.dimension = len(probe[0])
         return self._model

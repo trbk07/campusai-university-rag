@@ -61,6 +61,40 @@ def test_pdf_native_request_binds_exact_binary_measurement_and_http_bodies(tmp_p
     assert started['egress_requests'] == run['egress_requests']
 
 
+def test_pdf_egress_budget_keeps_conditional_followup_with_initial_request(tmp_path):
+    service, _, doc_id, _ = scope_service(tmp_path, [], image=True,
+        reader_options={'allow_pdf_scope': True}, pdf_client=True)
+    llm = client(tmp_path)
+    service.answer_generator.llm = llm
+    rows = [{'id': f'offline-pdf-{n}', 'question': QUESTION, 'language': 'en',
+             'selected_doc_ids': [doc_id]} for n in (1, 2)]
+    try:
+        packet = prepare_egress(service, rows, llm, tmp_path/'egress', 3)
+        assert packet['planned_provider_calls'] == 3
+        assert [case['stage'] for case in packet['cases']] == [
+            'initial', 'complete_document_scope']
+        assert {case['id'] for case in packet['cases']} == {'offline-pdf-1'}
+        assert sum(len(case['http_requests']) for case in packet['cases']) == 3
+        assert packet['provider_posts'] == packet['model_predictions'] == 0
+    finally:
+        service.close()
+
+
+def test_pdf_egress_rejects_cap_that_cannot_cover_initial_and_followup(tmp_path):
+    service, _, doc_id, _ = scope_service(tmp_path, [], image=True,
+        reader_options={'allow_pdf_scope': True}, pdf_client=True)
+    llm = client(tmp_path)
+    service.answer_generator.llm = llm
+    row = {'id': 'offline-pdf', 'question': QUESTION, 'language': 'en',
+           'selected_doc_ids': [doc_id]}
+    try:
+        with pytest.raises(ValueError, match='no complete request path'):
+            prepare_egress(service, [row], llm, tmp_path/'egress', 2)
+        assert not (tmp_path/'egress'/'egress.json').exists()
+    finally:
+        service.close()
+
+
 def test_prompt_permission_does_not_authorize_pdf_http_requests(tmp_path):
     directory, _, calls = run_fixture(tmp_path, exact=False)
     assert len(calls) == 1

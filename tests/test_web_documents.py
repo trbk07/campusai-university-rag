@@ -151,13 +151,22 @@ def test_contained_normalizes_root_after_a_windows_directory_is_created(tmp_path
     assert contained(unresolved_store, registry) == registry.resolve()
 
 
-def test_five_real_pdf_uploads_are_accepted_concurrently_and_indexed(tmp_path, monkeypatch):
+def test_two_batches_of_five_pdfs_accumulate_and_can_be_queried_together(tmp_path, monkeypatch):
     from concurrent.futures import ThreadPoolExecutor
     from threading import Barrier
     from campusai.web_documents import WebDocuments
 
     index = tmp_path / 'index'
     manager = IngestionJobManager(max_workers=3, max_pending=8)
+    failures = []
+    original_update = manager._update
+
+    def track_failure(job_id, **values):
+        if values.get('state') == 'failed':
+            import traceback
+            failures.append(traceback.format_exc())
+        return original_update(job_id, **values)
+    monkeypatch.setattr(manager, '_update', track_failure)
     service = CampusAIQueryService(HybridRetriever(index), GroundedAnswerGenerator(None), default_mode='bm25')
     application = CampusAIApplication(service, jobs=manager,
         ingestion_defaults={'store_dir':tmp_path/'store','index_dir':index,'dense_model':'fallback-hash-256'})
@@ -177,6 +186,7 @@ def test_five_real_pdf_uploads_are_accepted_concurrently_and_indexed(tmp_path, m
     try:
         with ThreadPoolExecutor(max_workers=5) as pool:
             responses = list(pool.map(send, range(5)))
+            responses += list(pool.map(send, range(5, 10)))
         assert all(response['status'] == 202 for response in responses), responses
         job_ids = [response['body']['job']['job_id'] for response in responses]
         deadline = time.monotonic() + 15
@@ -186,10 +196,23 @@ def test_five_real_pdf_uploads_are_accepted_concurrently_and_indexed(tmp_path, m
                 pytest.fail('five-file upload batch did not finish indexing')
             time.sleep(.02)
             jobs = [manager.get(job_id) for job_id in job_ids]
-        assert all(job['state'] == 'succeeded' and job['ready'] for job in jobs), jobs
+        assert all(job['state'] == 'succeeded' and job['ready'] for job in jobs), failures
         manifest = json.loads((index/'manifest.json').read_text(encoding='utf-8'))
         assert manifest['documents'] == sorted(job['document_id'] for job in jobs)
-        assert len(manifest['document_manifests']) == 5
+        assert len(manifest['document_manifests']) == 10
+        doc_ids = [job['document_id'] for job in jobs]
+        assert len(call(web, '/api/documents')['body']['documents']) == 10
+        answer = call(web, '/api/query', 'POST', {'question':'How many pages in all selected documents?',
+            'language':'en', 'doc_ids':doc_ids,
+            'history':[{'role':'user','content':'I have just added another batch of PDFs.'}]})
+        assert answer['status'] == 200, answer
+        assert sum(doc['page_count'] for doc in answer['body']['document_info']['documents']) == 10
+        assert len(answer['body']['document_info']['documents']) == 10
+        vietnamese = call(web, '/api/query', 'POST', {'question':'Tổng số trang của tất cả tài liệu đã chọn?',
+            'doc_ids':doc_ids})
+        assert vietnamese['status'] == 200, vietnamese
+        assert len(vietnamese['body']['document_info']['documents']) == 10
+        assert not vietnamese['body']['answer']['abstained']
     finally:
         application.close()
 

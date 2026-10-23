@@ -1,7 +1,7 @@
 # Phase 5 — audit và handoff hiện hành, 23/10/2026
 
-**Phase 5 is not 100% complete; grounding release remains BLOCKED.** Current source/runtime SHA is `1fb81a44911c1c708937f46af28ba893e6639deef7bc425a692f980ea67d337e` / `c068e789bf859f5fd838542d747698f92b1ae3cd5bbef23be1ab69b2e536f246`; full offline regression is 2,384 PASS, 2 live SKIP and focused OCR/web/PDF/jobs tests are 37 PASS. Phase 12 upload/concurrency changes do not change grounding thresholds, but invalidate predictions tied to the earlier source identity. No native quality run, calibration, test or holdout binds this current source.
-[Plan](../../plan.md) giữ 10 task và 5 gates; hiện 7 DONE, P5-08 IN PROGRESS, P5-09 BLOCKED và P5-10 IN PROGRESS chờ đóng gates.
+**Phase 5 remains 70% complete; native quality qualification is IN PROGRESS.** Frozen candidate-r4 `ac9cc4c635bc6c551d0307e9d4883aeaf752eb96` matches main code: source `d531563c32cfca89d081d81d16b82461246a96299568285846eef0729b91894d`, runtime `2554b054a90db099335aea0d384a9e137f124692f78ba788cf9bac3063de010a`. Full offline regression: 2,399 PASS / 2 live SKIP; Phase 5 suite: 186 PASS on each of three consecutive runs. The reviewed 400-record benchmark and physical owner/reviewer bindings validate successfully. Current-source dev collection has started; calibration and all-population quality gates remain open.
+[Plan](../../plan.md) giữ 10 task và 5 gates; hiện 7 DONE, P5-08 IN PROGRESS, P5-09 IN PROGRESS và P5-10 IN PROGRESS chờ đóng gates.
 Owner đã chọn [independent AI review + owner sign-off](phase5_ai_review.md) cho
 riêng Phase5. Ngưỡng số, gold gốc và trạng thái các phase khác được giữ nguyên.
 [Checkpoint hiện hành](../../evaluation/results/phase5-acceptance-20261021/manifest.json)
@@ -328,3 +328,6 @@ Directory junctions share the original quota/circuit state; no counters were
 copied or reset. This source freeze is not native quality evidence.
 
 The PDF capability probe passed separately. Earlier native captures remain bound to their recorded source versions. The owner-approved current-source dev packet is exact and still unrun because the observed Pacific daily quota is 483/500; wait until the quota day resets, then run only this packet with retries disabled. Test/holdout remain unstarted.
+
+
+23/10/2026 final qualification checkpoint: candidate-r4 isolates inference from later UI edits. All 138 dev prompt/HTTP-body/PDF payloads match the unused owner-approved packet `0ab4dd33f612a8735d802093c9c4a21009ff49f63193c3f5294b027278d14345`; its exact bytes and original 207-call limit are reused. The runtime identity is recorded separately as r4, never inherited from historical egress metadata. The original source store and shared quota/circuit are retained. No retries or key rotation. Held-out payloads are prepared; no held-out inference begins before dev calibration is fitted and pinned.

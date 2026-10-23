@@ -18,6 +18,7 @@ const MAX_UPLOAD_FILES = 5;
 let files = [], uploading = false, deleteId = null, pollingTimer = null, pollingStarted = 0, refreshing = false;
 
 export function badge(doc) {
+  if (doc.deleting) return `<span class="status-badge status-pending">${icon('info')}${doc.delete_failed ? 'Xóa chưa thành công' : 'Đang xóa...'}</span>`;
   const ready = doc.ready, review = doc.status === 'review_required';
   return `<span class="status-badge ${ready ? 'status-ready' : review ? 'status-review' : 'status-pending'}">${icon(ready ? 'check-circle' : 'info')}${ready ? 'Sẵn sàng' : review ? 'Cần kiểm tra' : 'Chưa sẵn sàng'}</span>`;
 }
@@ -44,7 +45,7 @@ function renderList() {
   if (state.error) { target.innerHTML = empty('Chưa tải được thư viện', state.error, '<button class="button secondary" data-refresh>Thử lại</button>'); return; }
   if (!state.documents.length) { target.innerHTML = empty('Bạn chưa có tài liệu nào.', 'Tải PDF đầu tiên. CampusAI sẽ chuẩn bị nội dung để bạn hỏi đáp và xem nguồn.', state.uploadAvailable ? uploadButton : '<p>Chức năng tải lên chưa khả dụng trong phiên này.</p>'); return; }
   const docs = filtered();
-  target.innerHTML = `<p class="list-summary">${docs.length} tài liệu${state.category !== 'all' ? ` trong ${groups.find(g => g.id === state.category).label}` : ''} · ${readySelected().length} đã chọn để hỏi AI</p>` + (docs.length ? docs.map(doc => `<article class="document-card"><input type="checkbox" data-select="${esc(doc.doc_id)}" aria-label="Chọn ${esc(doc.name)}" ${state.selected.has(doc.doc_id) ? 'checked' : ''} ${doc.ready ? '' : 'disabled'}>${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3><p>${esc(groupFor(doc).label)}${doc.metadata.academic_year ? ' · '+esc(doc.metadata.academic_year) : ''} · ${doc.page_count} trang${doc.size_bytes ? ' · '+bytes(doc.size_bytes) : ''}</p><p>${date(doc.uploaded_at)}</p></div><div class="document-actions">${badge(doc)}<button class="icon-button" data-detail="${doc.doc_id}" aria-label="Chi tiết ${esc(doc.name)}" title="Chi tiết tài liệu">${icon('info')}</button><button class="icon-button" data-preview="${doc.doc_id}" aria-label="Xem PDF ${esc(doc.name)}" title="Xem PDF gốc" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}</button><button class="icon-button" data-delete="${doc.doc_id}" aria-label="Xóa ${esc(doc.name)}" title="Xóa tài liệu">${icon('trash')}</button></div></article>`).join('') : empty('Không tìm thấy tài liệu phù hợp', 'Thử đổi từ khóa hoặc xóa bộ lọc.'));
+  target.innerHTML = `<p class="list-summary">${docs.length} tài liệu${state.category !== 'all' ? ` trong ${groups.find(g => g.id === state.category).label}` : ''} · ${readySelected().length} đã chọn để hỏi AI</p>` + (docs.length ? docs.map(doc => `<article class="document-card"><input type="checkbox" data-select="${esc(doc.doc_id)}" aria-label="Chọn ${esc(doc.name)}" ${state.selected.has(doc.doc_id) ? 'checked' : ''} ${doc.ready ? '' : 'disabled'}>${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3><p>${esc(groupFor(doc).label)}${doc.metadata.academic_year ? ' · '+esc(doc.metadata.academic_year) : ''} · ${doc.page_count} trang${doc.size_bytes ? ' · '+bytes(doc.size_bytes) : ''}</p><p>${date(doc.uploaded_at)}</p></div><div class="document-actions">${badge(doc)}<button class="icon-button" data-detail="${doc.doc_id}" aria-label="Chi tiết ${esc(doc.name)}" title="Chi tiết tài liệu">${icon('info')}</button><button class="icon-button" data-preview="${doc.doc_id}" aria-label="Xem PDF ${esc(doc.name)}" title="Xem PDF gốc" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}</button><button class="icon-button" data-delete="${doc.doc_id}" aria-label="Xóa ${esc(doc.name)}" title="Xóa tài liệu" ${doc.deleting && !doc.delete_failed ? 'disabled' : ''}>${icon('trash')}</button></div></article>`).join('') : empty('Không tìm thấy tài liệu phù hợp', 'Thử đổi từ khóa hoặc xóa bộ lọc.'));
 }
 function renderCollections() {
   const actual = groups.slice(1).filter(group => groupCount(group));
@@ -59,14 +60,15 @@ function renderScope() {
 }
 const stageLabels = {receiving:'Đang nhận và lưu PDF',interrupted:'Tác vụ bị gián đoạn. Thử xử lý lại hoặc tải lại PDF gốc.',queued:'Đang chờ xử lý',validating:'Đang kiểm tra PDF',parsing:'Đang đọc nội dung',ocr:'Đang nhận diện chữ',detecting_metadata:'Đang nhận diện thông tin',extracting_tables:'Đang trích xuất bảng',chunking:'Đang tổ chức nội dung',persisting:'Đang lưu tài liệu',indexing:'Đang chuẩn bị tài liệu để hỏi đáp...',done:'Đã xử lý tài liệu',review_required:'Tài liệu cần được kiểm tra thêm',failed:'Xử lý chưa thành công. Hãy kiểm tra PDF.',cancelled:'Đã hủy xử lý'};
 function renderJobs() {
-  const jobs = state.jobs.filter(job => job.state !== 'succeeded' && !state.documents.some(doc => doc.doc_id === job.document_id && job.state === 'review_required'));
-  const cards = jobs.map(job => `<article class="job-card"><strong>${esc(job.name)}</strong><p>${stageLabels[job.stage] || 'Đang xử lý tài liệu...'}</p><progress value="${Number(job.progress) || 0}" max="1" aria-label="Tiến độ xử lý ${esc(job.name)}"></progress>${['staging','queued','running'].includes(job.state) ? `<button class="text-button" data-job-cancel="${esc(job.job_id)}">Yêu cầu hủy</button>` : ''}${job.state === 'failed' && job.retryable ? `<button class="text-button" data-job-retry="${esc(job.job_id)}">Thử xử lý lại</button>` : ''}</article>`).join('');
+  const jobs = state.jobs.filter(job => (job.state !== 'succeeded' || job.deleting) && !state.documents.some(doc => doc.doc_id === job.document_id && job.state === 'review_required'));
+  const cards = jobs.map(job => `<article class="job-card"><strong>${esc(job.name)}</strong><p>${job.deleting ? job.delete_failed ? 'Xóa chưa thành công. Bạn có thể thử xóa lại.' : 'Đang dừng xử lý để xóa PDF...' : stageLabels[job.stage] || 'Đang xử lý tài liệu...'}</p><progress value="${Number(job.progress) || 0}" max="1" aria-label="Tiến độ xử lý ${esc(job.name)}"></progress>${!job.deleting && ['staging','queued','running'].includes(job.state) ? `<button class="text-button" data-job-cancel="${esc(job.job_id)}">Yêu cầu hủy</button>` : ''}${!job.deleting && job.state === 'failed' && job.retryable ? `<button class="text-button" data-job-retry="${esc(job.job_id)}">Thử xử lý lại</button>` : ''}<button class="text-button" data-delete="${esc(job.document_id)}" ${job.deleting && !job.delete_failed ? 'disabled' : ''}>${icon('trash')} ${job.delete_failed ? 'Thử xóa lại' : 'Xóa PDF'}</button></article>`).join('');
   $('#sidebar-jobs').innerHTML = cards; $('#document-jobs').innerHTML = cards;
 }
 function renderAll() { renderSidebar(); renderControls(); renderList(); renderScope(); renderCollections(); renderJobs(); notify('documents'); }
 function schedulePoll() {
   clearTimeout(pollingTimer);
-  const active = state.jobs.some(job => ['staging','queued','running'].includes(job.state));
+  const active = state.jobs.some(job => ['staging','queued','running'].includes(job.state) || (job.deleting && !job.delete_failed))
+    || state.documents.some(doc => doc.deleting && !doc.delete_failed);
   if (!active) { pollingStarted = 0; return; }
   if (!pollingStarted) pollingStarted = Date.now();
   if (document.hidden) return;
@@ -221,7 +223,7 @@ export function initDocuments() {
     const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; state.search = ''; state.year = ''; state.program = ''; state.status = 'all'; renderControls(); renderList(); renderSidebar(); route('documents'); }
     const details = event.target.closest('[data-detail]'); if (details) detail(details.dataset.detail);
     const source = event.target.closest('[data-preview]'); if (source) preview(source.dataset.preview);
-    const deletion = event.target.closest('[data-delete]'); if (deletion) { deleteId = deletion.dataset.delete; $('#delete-name').textContent = state.documents.find(doc => doc.doc_id === deleteId)?.name || ''; $('#delete-status').textContent = ''; showDialog('delete-dialog'); }
+    const deletion = event.target.closest('[data-delete]'); if (deletion && !deletion.disabled) { deleteId = deletion.dataset.delete; $('#delete-name').textContent = state.documents.find(doc => doc.doc_id === deleteId)?.name || state.jobs.find(job => job.document_id === deleteId)?.name || ''; $('#delete-status').textContent = ''; showDialog('delete-dialog'); }
     if (event.target.closest('[data-refresh]')) { pollingStarted = 0; refreshDocuments(); }
     if (event.target.closest('#ask-selected')) route('assistant');
     if (event.target.closest('#clear-filters')) { state.category = 'all'; state.search = ''; state.year = ''; state.program = ''; state.status = 'all'; renderControls(); renderList(); renderSidebar(); }
@@ -244,7 +246,7 @@ export function initDocuments() {
   $('#delete-confirm').addEventListener('click', async () => {
     if (!deleteId || $('#delete-confirm').disabled) return;
     $('#delete-confirm').disabled = true;
-    try { await request(`/api/documents/${deleteId}`, {method:'DELETE'}); state.selected.delete(deleteId); notify('deleted'); closeDialog($('#delete-dialog')); await refreshDocuments(); toast('Đã xóa tài liệu và dữ liệu liên quan.'); }
+    try { const result = await request(`/api/documents/${encodeURIComponent(deleteId)}`, {method:'DELETE'}); state.selected.delete(deleteId); notify('deleted'); closeDialog($('#delete-dialog')); pollingStarted = 0; await refreshDocuments(); toast(result.deleting ? 'Đã nhận yêu cầu xóa. PDF sẽ được xóa khi tác vụ dừng an toàn.' : 'Đã xóa tài liệu và dữ liệu liên quan.'); }
     catch (error) { $('#delete-status').textContent = errorText(error); }
     finally { $('#delete-confirm').disabled = false; }
   });

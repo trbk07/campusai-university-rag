@@ -73,7 +73,10 @@ def ocr_pdf(
             from rapidocr_onnxruntime import RapidOCR
         except ImportError as error:  # pragma: no cover - environment dependent
             raise OCRUnavailable("install rapidocr-onnxruntime to enable OCR") from error
-        engine = RapidOCR()
+        # Each document already occupies an ingestion worker. ONNX's default
+        # per-model pools multiply across detector/classifier/recognizer and
+        # concurrent documents, starving each other and interactive requests.
+        engine = RapidOCR(intra_op_num_threads=1, inter_op_num_threads=1)
         for page_number in selected:
             if time.perf_counter() - started > timeout_seconds:
                 raise OCRLimitExceeded("OCR time limit exceeded")

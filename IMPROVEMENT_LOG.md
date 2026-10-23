@@ -47,3 +47,10 @@ The new browser flow needed scoped selectors and a wait for dialog loading.
 Full-app goal remains active: full upload/OCR/index load and RSS, partially
 text-bearing scan pages, OCR/table fidelity and current-source native model
 quality remain open. Grounding thresholds and release status are unchanged.
+
+
+## 2026-10-23 - repeated batches, safe deletion and stalled chunking
+
+Five PDFs is a per-upload limit. Two five-file batches keep ten ready/selectable sources and preserve chat; actual browser query sends all ten IDs. Added deletion on orphan/failed/cancelled and active-job cards; running work cancels at a checkpoint, with a durable deletion intent, safe index/source/cache cleanup, restart recovery and visible retry on failure. Existing answers retain their source until they finish. Fixed the non-progressing page-ending heading loop, registry reader/writer replacement race and Windows path aliases; bound ONNX threads per OCR engine. Source extraction/provenance thresholds stay unchanged.
+
+Full offline regression: 2,399 PASS / 2 live SKIP; Phase 5: 186 PASS x3; app-focused: 54 PASS; browser: 43/43 PASS. Large-PDF before/after evidence is in PERFORMANCE_REPORT.md; two large scans remain incomplete. Candidate-r4 freezes the actual Phase 5 runtime separately from web edits, validates the existing reviewed 400 rows, and starts current-source native dev inference using the byte-identical previously authorized 207-call packet. Native qualification, calibration and final quality gates remain in progress.

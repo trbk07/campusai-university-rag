@@ -106,11 +106,12 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
             parts = path.strip("/").split("/")
             if len(parts) in {3, 4} and parts[:2] == ["api", "documents"]:
                 doc_id = parts[2]
+                if len(parts) == 3 and method == 'DELETE':
+                    value = documents.delete(doc_id, environ)
+                    return _json_response(value, start_response, 202 if value.get('deleting') else 200)
                 with documents.lock:
                     if len(parts) == 3 and method == "GET":
                         return _json_response({"ok": True, "document": documents.public_document(documents.record(doc_id, environ))}, start_response)
-                    if len(parts) == 3 and method == "DELETE":
-                        return _json_response(documents.delete(doc_id, environ), start_response)
                     if len(parts) == 4 and parts[3] == 'ocr' and method == 'POST':
                         if _payload(environ):
                             raise WebError('invalid_json')
@@ -151,6 +152,8 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                 try:
                     with documents.corpus_lock.read():
                         with documents.lock:
+                            if documents.deletions.pending and 'doc_ids' not in options:
+                                raise WebError('document_deleting', 409)
                             if "doc_ids" in options and getattr(application, "jobs", None) is not None:
                                 if not options["doc_ids"]:
                                     raise WebError("empty_scope")
@@ -203,8 +206,9 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
         path = environ.get('PATH_INFO', '')
         source_lookup = path.startswith('/api/documents/') and path.endswith('/locate')
         upload_route = path == '/api/documents/upload'
+        delete_route = path.startswith('/api/documents/') and environ.get('REQUEST_METHOD', '').upper() == 'DELETE'
         if (environ.get('REQUEST_METHOD', 'GET').upper() in {'POST', 'DELETE'}
-                and path != '/api/query' and not source_lookup and not upload_route):
+                and path != '/api/query' and not source_lookup and not upload_route and not delete_route):
             with documents.corpus_lock.write():
                 return dispatch(environ, start_response)
         return dispatch(environ, start_response)

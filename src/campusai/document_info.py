@@ -28,7 +28,7 @@ def page_count_request(question, documents):
     if not re.search(quantity, text):
         return None
     remaining = re.sub(quantity, ' ', text).split()
-    allowed = set(('tai lieu file pdf tep nay do no cua co gom dai trong la tong tat ca cac vay nhi ban cho minh t toi em va and bao nhieu may bn cong nhe oi dem the ko khong cu '
+    allowed = set(('tai lieu file pdf tep nay do no cua co gom dai trong la tong tat ca cac vay nhi ban cho minh t toi em va and bao nhieu may bn cong nhe oi dem the ko khong cu da chon '
                    'biet hoi voi xin giup a please how many pages page count number what is the in this that document '
                    'documents have has does do it are there total all selected uploaded tell me can could you of length long').split())
     if any(word not in allowed for word in remaining):

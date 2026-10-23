@@ -97,8 +97,8 @@ def test_ocr_page_budget_cannot_be_raised_by_client(ocr_app, mixed_pdf):
     assert result['status']==413 and result['body']['error_code']=='ocr_page_limit'
 
 
-def test_ocr_duplicate_and_delete_are_blocked_while_worker_is_active(ocr_app, monkeypatch):
-    web, _app, doc_id, _root=ocr_app
+def test_duplicate_ocr_is_blocked_but_active_pdf_can_be_deleted(ocr_app, monkeypatch):
+    web, app, doc_id, root=ocr_app
     entered, release=threading.Event(), threading.Event()
     def blocking(*a, **kw):
         entered.set(); assert release.wait(5); return recognized(*a, **kw)
@@ -108,10 +108,15 @@ def test_ocr_duplicate_and_delete_are_blocked_while_worker_is_active(ocr_app, mo
         response=call(web,url,'POST',{})
         assert entered.wait(5)
         assert call(web,url,'POST',{})['status']==409
-        assert call(web,f'/api/documents/{doc_id}','DELETE')['status']==409
+        assert call(web,f'/api/documents/{doc_id}','DELETE')['status']==202
         assert call(web,'/api/query','POST',{'question':'What needs approval?','doc_ids':[doc_id]})['status']==409
     finally: release.set()
-    assert wait_job(web,response['body']['job']['job_id'])['ready']
+    deadline=time.monotonic()+5
+    while app.jobs.list() or (root/'store/.deletions'/doc_id).exists():
+        assert time.monotonic()<deadline
+        time.sleep(.02)
+    assert not (root/'store/uploads'/doc_id).exists()
+    assert call(web,'/api/documents')['body']['documents']==[]
 
 
 def test_ocr_queue_full_is_reported_without_extra_work(ocr_app, monkeypatch):

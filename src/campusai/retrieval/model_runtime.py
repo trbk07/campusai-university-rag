@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from threading import RLock
 from typing import Any
 
@@ -22,6 +23,7 @@ class RuntimeKey:
     max_length: int | None = None
     snapshot_sha256: str | None = None
     dtype: str = "float32"
+    revision: str | None = None
 
 
 class RetrievalModelRuntime:
@@ -31,14 +33,33 @@ class RetrievalModelRuntime:
         self._lock = RLock()
         self._models: dict[RuntimeKey, Any] = {}
         self._leases: dict[RuntimeKey, int] = {}
+        self._encoder_snapshots: dict[tuple[str,str], tuple[Path,str]] = {}
 
-    def get_encoder(self, model_name: str, device: str = "cpu") -> Any:
-        key = RuntimeKey("encoder", model_name, device)
+    def register_encoder_snapshot(self, model_name, revision, snapshot_dir, manifest_sha256):
+        """Bind an already verified snapshot; never change an active identity."""
+        path = Path(snapshot_dir).resolve()
+        if (not path.is_dir() or not re.fullmatch('[0-9a-f]{40}',revision)
+                or not re.fullmatch('[0-9a-f]{64}',manifest_sha256)):
+            raise ValueError('verified encoder identity required')
+        identity = (path,manifest_sha256)
         with self._lock:
+            previous = self._encoder_snapshots.get((model_name,revision))
+            if previous is not None and previous != identity:
+                raise ValueError('encoder revision already bound to another snapshot')
+            self._encoder_snapshots[(model_name,revision)] = identity
+
+    def get_encoder(self, model_name: str, device: str = "cpu", *, revision: str | None = None) -> Any:
+        with self._lock:
+            snapshot = self._encoder_snapshots.get((model_name,revision)) if revision else None
+            if revision and (snapshot is None or device != 'cpu'):
+                raise ValueError('pinned encoder requires its verified CPU snapshot')
+            key = RuntimeKey("encoder",model_name,device,
+                             snapshot_sha256=snapshot[1] if snapshot else None,revision=revision)
             if key not in self._models:
                 from sentence_transformers import SentenceTransformer
-
-                self._models[key] = SentenceTransformer(model_name, device=device)
+                self._models[key] = (SentenceTransformer(str(snapshot[0]),device='cpu',
+                    local_files_only=True,trust_remote_code=False,model_kwargs={'torch_dtype':'float32'})
+                    if snapshot else SentenceTransformer(model_name,device=device))
             return self._models[key]
 
     def get_reranker(self, model_name: str, device: str = "cpu") -> Any:
@@ -77,6 +98,7 @@ class RetrievalModelRuntime:
                     "kind": key.kind,
                     "model_name": "[local-snapshot]" if Path(key.model_name).is_absolute() else key.model_name,
                     "device": key.device,
+                    **({"revision":key.revision} if key.revision else {}),
                 }
                 for key in self._models
             ]
@@ -106,6 +128,7 @@ class RetrievalModelRuntime:
             if self._leases:
                 raise RuntimeError("cannot clear models while active providers hold leases")
             self._models.clear()
+            self._encoder_snapshots.clear()
 
 
 _RUNTIME = RetrievalModelRuntime()

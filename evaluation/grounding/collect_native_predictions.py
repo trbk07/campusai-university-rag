@@ -289,12 +289,10 @@ def prepare_egress(service, rows: list[dict], llm, output: Path, maximum: int) -
     llm.generate_json = capture
     try:
         for row in rows:
-            if len(prompts) >= maximum:
-                break
             active.update(id=row["id"], request=inference_request(row))
             before = len(prompts)
             service.ask(**active["request"])
-            if len(prompts) > before and len(prompts) < maximum:
+            if len(prompts) > before:
                 try:
                     followup = service.prepare_document_scope_prompt()
                 except DocumentScopeUnavailable:
@@ -305,21 +303,59 @@ def prepare_egress(service, rows: list[dict], llm, output: Path, maximum: int) -
                     "prompt": prompt, "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), **followup})
     finally:
         llm.generate_json = original
-    pdf_sources = {}
+    # A row that can request complete-document review must carry both its
+    # initial prompt and the exact conditional follow-up. Reserving initial
+    # calls first can leave selected rows without an authorized follow-up,
+    # which makes a legitimate absence response fail closed mid-run. Budget
+    # whole request paths, counting PDF token measurement and generation.
+    selected_prompts = set()
+    request_plans = {}
+    planned_calls = 0
     for case in prompts:
         plan = _http_plan(llm, case)
-        if plan is not None: case['http_requests'] = plan
+        call_count = len(plan) if plan is not None else 1
+        request_plans[id(case)] = plan
+        case["planned_http_call_count"] = call_count
+    initial_by_id = {case["id"]: case for case in prompts if case.get("stage") == "initial"}
+    followup_by_id = {case["id"]: case for case in prompts
+                      if case.get("stage") == "complete_document_scope"}
+    if len(initial_by_id) != sum(case.get("stage") == "initial" for case in prompts):
+        raise ValueError("duplicate benchmark question IDs in egress selection")
+    for case in prompts:
+        if case.get("stage") != "initial":
+            continue
+        path = [case]
+        followup = followup_by_id.get(case["id"])
+        if followup is not None:
+            path.append(followup)
+        call_count = sum(item["planned_http_call_count"] for item in path)
+        if planned_calls + call_count > maximum:
+            continue
+        selected_prompts.update(id(item) for item in path)
+        planned_calls += call_count
+    bounded_prompts = [case for case in prompts if id(case) in selected_prompts]
+    if prompts and not bounded_prompts:
+        raise ValueError("no complete request path fits the provider call cap")
+    for case in bounded_prompts:
+        plan = request_plans[id(case)]
+        if plan is not None:
+            case["http_requests"] = plan
+        case.pop("planned_http_call_count", None)
+    prompts = bounded_prompts
+    pdf_sources = {}
+    for case in prompts:
         documents = case.get('generation_arguments', {}).get('pdf_documents', [])
         for doc in documents:
             pdf_sources[doc['sha256']] = {'data':doc['data']}
         if documents:
             case['generation_arguments']['pdf_documents'] = [{'sha256':doc['sha256']} for doc in documents]
-    if sum(len(case.get('http_requests', [None])) for case in prompts) > maximum:
-        raise ValueError('egress call cap is below the planned HTTP requests including token measurements')
+    if planned_calls > maximum:
+        raise AssertionError('bounded egress requests exceeded the provider call cap')
     output.mkdir(parents=True, exist_ok=True)
     packet = {"status": "EGRESS_PERMISSION_PENDING", "provider_posts": 0, "model_predictions": 0,
         "not_an_annotation_approval": True, "destination": llm.endpoint,
-        "model": llm.model, "max_provider_calls": maximum, "cases": prompts,
+        "model": llm.model, "max_provider_calls": maximum, "planned_provider_calls": planned_calls,
+        "cases": prompts,
         **({'pdf_sources':pdf_sources} if pdf_sources else {}),
         "document_scope_policy": (service.document_scope_reader.policy_identity()
                                   if service.document_scope_reader is not None else None)}
