@@ -1,0 +1,1898 @@
+{
+  "schema_version": "phase5-ai-source-review-v1",
+  "review_policy": "phase5-ai-owner-v1",
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+  "task_id": "independent Gemini controlled conflict28 and benign over-refusal28 source review; blind to prior verdicts and CampusAI predictions",
+  "model_id": "gemini-3.5-flash-lite",
+  "row_decisions": [
+    {
+      "id": "draft-0003",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "d17544a16e625d87b42e3fedba117f736506851757d21f75cd9cd0b7b62f4de5",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Both sources apply equally to the same programme and cohort without supersession, directly conflicting on credit value for BEN9101, thus correctly abstaining due to conflicting evidence.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists course BEN9101 as carrying 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists course BEN9101 as carrying 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0006",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "0e2df984171cb976f989c746675ada7588bcb2f167faddead3e4888ec37d9dd8",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "The question is answerable from the public policy document and correctly identified under provider abstention guidelines as a benign probe.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 1 clearly states the student population covered by the regulation."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0009",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "4b11b4f73e7aea3c8b2e4fea715c5f03b3a8cb1176260317101180661d4b1c86",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Conflicting source data between Control A and Control B for course BEN9102 justified abstention.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9102 with 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9102 with 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0012",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "bbf9a83e8bd6b75b3019dcfed4cb02cd6237729924c1a232e02d8fc2e77a005d",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the exact disciplinary status condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Chapter II opening states the disciplinary status condition correctly."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0015",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "7a0f7a78897554a7ed09fe1643b022710944c576376d7a3bf6adb41017d72f89",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9103.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9103 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9103 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0018",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "a7a2c921463653d97c4e93a41e726664082d85bdcba5bf6b42d9af05f5749f1f",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Exact match for security and order activity in Article 2.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 2 contains the security and order quotation."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0021",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "0fa0f15674b66f8249e6acf56d43c290785d33765f0d47f260f5cf023f8eee10",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9104.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9104 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9104 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0024",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "ca5da05c86c08909bed66905f32e69d8a7a3f1eed6ec5635536022e9894c58b6",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the course-grade condition under Article 4.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 4 specifies the grade conditions."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0027",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "82caf950e67ca53ad09e713b32992c84b27e5b2cdb886e6cd21bcb31bc53122c",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9105.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9105 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9105 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0030",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "b3507c4f0ddb97639df59f09c957923112e8799963779998b732252e15595292",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the study-result threshold.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 6 states the study-result threshold for collective contribution."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0033",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "49b7cb35cdd50fff29fc0be04307626d0b93093c7ac12090a720c64e2289090a",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9106.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9106 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9106 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0036",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "d86c67bec3e183fc345b9c00b076f3f32fbbd837eafe3cf734d0bb6c9e65c228",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the Advanced Collective proportion requirement.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 8 specifies the proportion for Advanced Collective title."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0039",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "2e9f235ca367f19c117308944fbf9dc4a6b5d18696d1a69895ce49624955177e",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9107.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9107 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9107 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0042",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "271438ccb934bc895a3ff708b6547d7d77e1b81157dc21ca019bcd4afbf80cf1",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the Good Student title proportion requirement.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 9 specifies the threshold proportion for Outstanding Collective."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0045",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "a954b4c84707bfc73d746f15aaaa71280b38849e3ebd86088c28f9e90c84d3ae",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9108.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9108 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9108 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0048",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "568ea0c6ba088e521e37a79178ed16590b47838732080320564e8851f9bb067f",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Correct extraction of student population covered under Article 1.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 1 defines the covered student population."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0051",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "14b0c563934a5a7ca767a6b6521cbd63a25c5403331d9c669e5698e41bb378f9",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9109.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9109 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9109 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0054",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "ca0af9aa4bbf79657105842d913fff1dc4290374dfcb6691ab76152cda16fc63",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Chapter II opening disciplinary status.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Chapter II opening states disciplinary status condition."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0057",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "1d6c381d8b92611c7b7425110ceee5dc4016d25d0896e6d7ec5b2964a20cae46",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9110.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9110 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9110 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0060",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "8d0925bc8eca3c4805741880901e3d1d4858b6663a706cac57fa26cde18f7381",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate quote for security and order activity.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 2 text matches security and order quote."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0063",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "053db0b19cce940575b48c24edfe2f71a0d747cbeb1d8c783be3f020695c3a93",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9111.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9111 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9111 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0066",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "a62287562f889226b4746d5aabac24a8e6b371eb5f14d11f625b7b5bd2f96254",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the course-grade condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 4 specifies grade conditions."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0069",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "2829534df13c9ff2eb9d1904323ee2e67d119a72a8d9d8d287eae54b6bca069b",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9112.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9112 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9112 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0072",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "70747c69aa158a4d3f0ac3bd26f36bf437597decb92bba28253a062baf3ed277",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the study-result threshold.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 6 states study-result threshold."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0075",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "d5399471b90aabb864f09b42c9654d18aa40b48bc92391a4df14dcb2b66bc9b4",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9113.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9113 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9113 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0078",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "dfead97a730978bdf4b25f519392bf62e55d207b4354b7be3b44844dcd026561",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Advanced Collective proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 8 specifies Advanced Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0081",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "f20b0bfeb02714c81842bcb6e0c4729f34db4780ec7955e3332084991f3a11bc",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9114.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9114 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9114 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0084",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "bc6ba0f4777537ee7a4ce6beabaf1d10f4398501f855b93a3f43dc3dbd7b2bca",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the Good Student title proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 9 specifies Outstanding Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0463",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "1138fed47281296bae1e2cb5e3e68991be143d0ef624836c86b3b0891164fc5e",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9115.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9115 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9115 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0468",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "5428c19a651a5b527e5920a630df849450265dd5c8bd0b6021b4caba72db4b7b",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction under general published policy lookup.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 1 covers student population."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0480",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "732a93f4d7aea469ef8cdbe3d2f21766e513460aceceaaab69a4a09aca1066ad",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9116.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9116 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9116 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0485",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "7af1c1eb860404487116b30effd7586da13776794ec0231bb7badbf011622863",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Chapter II opening disciplinary status condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Chapter II opening states disciplinary status condition."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0497",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "e15739e3458fce5a07d445ae8f4e285f6f0479a7dec8210573055fe6959eea91",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9117.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9117 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9117 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0502",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "1bb35d8c2301e7c673e21cdc5e5654ee68d733f1f0cf58573012f80518a19768",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate quote for security and order activity.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 2 text matches security and order quote."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0514",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "e349bf4c91e4420cc88ad5b0a7ccd836f82b85a8a58d19d05b9dd5eee712ab8c",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9118.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9118 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9118 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0519",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "31f4e24d467cc73d26e47a47f98266f919752b238c19564f347b34b523702cd4",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the course-grade condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 4 specifies grade conditions."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0531",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "73961feebd0ba7ba458ad309104f5b8fc93955b82c9dad745e61099e7f3e2973",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9119.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9119 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9119 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0536",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "8df98c19b6e532df42afbd6f37ab9ba4223411e82f5aadc817e908a8e916ff3d",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the study-result threshold.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 6 states study-result threshold."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0548",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "627d94c1b6ae1a7cdc3fa7195f3549c249c6ee53fb6a2d9d8fefd7ba56ebaa01",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9120.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9120 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9120 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0553",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "f8fe50b89b128cea8bbb8c4cf091721749ea301c36a1a181d5866fe6bd4af3fd",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Advanced Collective proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 8 specifies Advanced Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0565",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "4e2154f98ab08e87d74ebb022feaec187f34cff049d9213f0bffd4bf1f8a555c",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9121.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9121 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9121 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0570",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "94a69a5e440fab1d1ab40648f3fc41e0a55dda7c1a66319acde1626712060c43",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the Good Student title proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 9 specifies Outstanding Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0582",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "7a9a46ea96d55d86eb80227408c059d4442bbaf696af8948d3ba33084dcae8a5",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9122.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9122 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9122 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0587",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "475ae6111539562a5189b94ab1ee82f93a1ec1a80c351ba98fed8a7bfe5d5eec",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction under public policy lookup.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 1 defines covered student population."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0213",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "c663cd3fee56b45bb0e2bf111acc1cb54a345dc1bc10d8d27cce95287a054602",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9123.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9123 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9123 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0216",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "a2d0af6100ec9274b0c2a2c15669d0829efb4e5939db15ae3bd1d6a3de8f3a94",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Chapter II opening disciplinary status condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Chapter II opening states disciplinary status condition."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0219",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "99409774586c7c66e4238641362780cff6b4f53ed7fffa72961d02be3b18db8a",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9124.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9124 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9124 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0222",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "79ff0472850cbfe314f0b6063a8ef1cf8ef2c0eb96209e25b19cda50758dd580",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate quote for security and order activity.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              2
+            ],
+            "finding": "Article 2 text matches security and order quote."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0225",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "3fcc387ec05e4d8674c3d7c8c671871fd55da9955b36f346bd66661dc013eca8",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9125.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9125 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9125 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0228",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "d6605a67837953571f9b969482cbc69ad86357a385e153047e4d198f092d0bbf",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the course-grade condition.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 4 specifies grade conditions."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0231",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "02f2e24bb405350ffc4b2bdae507be1fd87910731672f6d252cac2580e341ce1",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9126.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9126 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9126 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0234",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "bcaca1ffb46a852d7a94749d258127f1c724baee9a8b6bbef8cd2713e27f2f30",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the study-result threshold.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 6 states study-result threshold."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0237",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "dbb8a8b9ab8fb6ff586cd7ead30d234e9f56769214922f62944298c082f7bb15",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9127.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9127 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9127 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0240",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "7c43df9331dbf7630fc0adfb6f0dd539cd5c6e40838ece39c38d013dd076ff10",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of Advanced Collective proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 8 specifies Advanced Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0243",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "bd7d0f6759e1ffe21937e50e25e364c234c1cfc76c8a221dde4e55ea9e7640d9",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "retrieval_scope",
+        "rationale": "Valid conflict handling for course BEN9128.",
+        "sources": [
+          {
+            "doc_id": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_a.pdf",
+            "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+            "pages": [
+              1
+            ],
+            "finding": "Control A lists BEN9128 as 3 credits."
+          },
+          {
+            "doc_id": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "path": "data/corpus/phase5-controlled-conflict-20261021/phase5_fictional_control_b.pdf",
+            "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+            "pages": [
+              1
+            ],
+            "finding": "Control B lists BEN9128 as 4 credits."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0246",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining56-source-review",
+      "annotation_sha256": "bce4f89e58ba8c44f5244abc434fa68f4863e1aec9977ba541efe1669e9e2394",
+      "signed_at": "2026-10-21T01:45:46.617357+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Accurate extraction of the Good Student title proportion.",
+        "sources": [
+          {
+            "doc_id": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "path": "data/corpus/university/uet_student_rewards_2023.pdf",
+            "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+            "pages": [
+              3
+            ],
+            "finding": "Article 9 specifies Outstanding Collective proportion."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "remaining56-independent-source-review",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-remaining56-20261021-v11/raw-review-responses-combined.jsonl"
+    }
+  ],
+  "original_review_benchmark_sha256": "e293ec1a418c1a9e9b7767f5332a3a672ae4165b27b4ea40b8400c3b77680a73",
+  "original_artifact": {
+    "path": "evaluation/results/phase5-remaining56-20261021-v11/source-review-artifact.json",
+    "sha256": "830cfd8e403aa0f90ac68b8fd47cd48e171796b52824ac8957c29b0136b906c0"
+  },
+  "mechanical_rebinding": true,
+  "normalization": "Only selected usable real review decisions. Annotation/question/request/gold/category equality checked against actual payloads or preserved canonical decisions; original dates, source findings and raw capture references retained. This artifact is compiled by the audit agent, not a new reviewer response or owner approval.",
+  "projection_provenance": {
+    "original_path": "evaluation/results/phase5-review-bundle-680-20261021-v11/source-artifact-09.json",
+    "original_sha256": "a1fc89b90f4cdec9be65749c8df04b16e21a318d8d6df2998967474b28f814ba",
+    "operation": "Subset projection and benchmark metadata rebind; no reviewer findings, quotes, dates or annotation hashes altered."
+  }
+}

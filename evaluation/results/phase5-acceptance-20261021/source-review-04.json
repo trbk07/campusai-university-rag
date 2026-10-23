@@ -1,0 +1,3932 @@
+{
+  "schema_version": "phase5-ai-source-review-v1",
+  "review_policy": "phase5-ai-owner-v1",
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+  "task_id": "independent Gemini followup91 source review; blind to prior verdicts and CampusAI predictions",
+  "model_id": "gemini-3.5-flash-lite",
+  "row_decisions": [
+    {
+      "id": "phase5-fresh-holdout-001",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "a9ea0c189c67d16ee1bd428c676201330f16858109630e3b0c1bbc0fd1748784",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "full_documents",
+        "rationale": "The claims are fully supported by page 34 of the document, perfectly answering the temporal question with correct citations and independent atomic claims.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Verified effective date and replaced regulation accurately from page 34."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Article 48 explicitly states the regulation takes effect starting from semester 1 of academic year 2025-2026 and replaces Decision 4600/QĐ-ĐHBK dated 09/6/2023.",
+        "effective_date": "Semester 1 of academic year 2025-2026",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_and_consistent",
+        "source_period_status": "established_in_source",
+        "source_period": "2025-2026 academic year",
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-095",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "2560621481878c69b3e5594af34862882298c8aad30329915e7450e156090897",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The document contains institutional academic regulations and does not mention personal student grades or CPA, making abstention correct.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Verified that individual student GPA/CPA records are absent from the document."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-096",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "71ffd27797c1d4ccfd34d060b2a49c3390ec8d0027c5d3c0cea13d308bda6168",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal credit debt is outside the scope of the regulatory document, properly categorized as document_does_not_mention.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal credit debt records."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-097",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "aace5cba62cafaac9c418d902fd1118886ae95b35a9057c8fd29fc0a1c2c8a01",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal course grades are not covered in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of individual student course letter grades."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-098",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "0e3f9dc24518ebec80f4512f14265f1d152508c3ab7447809cc7b82a7cc3d870",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal attendance records are not in the regulatory text.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of attendance records."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-099",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "7ebe164b50416b1eb38c5d52fcdc8dea174a364e58509a9533c0fcb27a96c804",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal tuition status is absent from the document.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal tuition payment statuses."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-100",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "e57e35f48fac629fcc9876d54862a48593833b0e85fdb347745b61a4db5c8473",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal grade review records are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal grade review requests."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-101",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "10962b7294c0430508c05444b720b0b662902d37fad88e7deebc7bfeca8880b7",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal class assignments are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal lab/practical class assignments."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-102",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "f2801548ebe6de845cbc1c2656220ef33bb0ee33530ba2b64009423d941de939",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Specific exam dates for individual courses are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of specific course exam schedules."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-103",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "dd56f97ee36a684a2bc05698bbe09a4c16dcc46ca2ee7bb8a81ba3f8467f789f",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Exam rooms are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal exam room assignments."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-104",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "1a0d026b78179c2985297ebdd063864cf93631c4a6d5435a0cb04a20333badbc",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Exam paper codes are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of exam paper codes."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-105",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "5b13ddbbcced00fcb4960230abb06a77546779a7e47f76a1b267f60916dccc9c",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Thesis scores are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of individual thesis defense scores."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-106",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "4e0c44d9fa2244c949c3f3b8dd8ff229854053033d9bb1d806ffa7d7151a5815",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Supervisor feedback is absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal supervisor feedback."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-107",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "e9e05a5738d42f4fed1160a58476521ca5de48a6f869c4e3580b4f0209180fc6",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Individual publication records are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of individual publication records."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-108",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "3d59a030350d3f04529bfa853070cfb24ee712aaee8c83f870aa40f32f8ed254",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal transfer approval dates are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal transfer approval dates."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-109",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "9be4bdd9fc218e329339bcd5b3454ce23c81b939cab09b1cf88cff0a4af39781",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal suspension numbers are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal suspension decision numbers."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-110",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "d73ce9f80a5618886899b6ae72cb2f6fbfdc8fb81f377bd704c158f3654ccd45",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal defense dates are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal second-defense dates."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-111",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "54277ac642cc58b600a2dc4f06ad028111f6ed1ff6815ecbf26b13b03b852211",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Specific committee names are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of specific committee member names."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-112",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "5de73be3e8150f2f48a52de27ba9c7345c160841966df246169971126e958bd9",
+      "signed_at": "2026-10-20T10:28:30.900027+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal journal confirmations are absent.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Confirmed absence of personal journal confirmation records."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-followup91-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-113",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "4b7d4e9b62e6ae79a254b1f907a7baa4fea42c1425f02b556cad95786a7bb809",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The question asks for a personal submission date, which is not mentioned in the document. The document covers academic regulations generally. Correctly classified as unanswerable/document_does_not_mention.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document specifies thesis submission rules and library deposit timelines for general categories (e.g., 20 days after successful defense, or public posting), but does not contain personal submission dates for the user."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The regulations are set to take effect starting in the 2025-2026 academic year, but personal records/dates are not addressed anywhere.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-114",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "42ea1e0735956d32cd8fffab8cdfa0b1e8376f5e26bdfc8b4317432d21287bd1",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The question inquires about personal diploma custody, which is outside the scope of institutional academic regulations. Correctly abstained.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The regulations mention diploma issuance and graduation recognition conditions, but contain no information regarding where an individual user's physical diploma is currently held."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Document effective from the 2025-2026 academic year; personal custody is not a regulated entity topic.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-115",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "288c4363e5d8d0e44e8af2986d679f320ef6dce6c18ed2085c02503a758c2579",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The question asks about the status of a specific user's registered class enrollment, which is unanswerable from the regulatory text.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document specifies general criteria for opening short classes (e.g., Article 10, Article 27), but does not state whether a specific user's registered short class has met the enrollment threshold."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Regulations apply from the 2025-2026 academic year onward; specific real-time class enrollments are unmentioned.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-116",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "1908d34b08779206fcd4da60ce9cc5703394d2e3dd598362ca578a00cce7e0ca",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal academic standing/warning level cannot be determined from general regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 19 defines academic warning levels, but the document does not contain individual student records or warning statuses."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "General rules effective 2025-2026; personal records absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-117",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "fa992f525be9062bdbe070c7f560a7432eb7a131049f8484ef2258f37d66acdd",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal academic file impact is unanswerable from the rules alone.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 15 specifies conditions for graduation rank reduction due to retakes, but provides no data on the user's specific retake history or personal outcome."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "General rules apply to cohorts starting from 2022 (Article 48), but individual records are absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-118",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "80d128ab3354531c087ddcb59d6fd810531d1511641bd1420dead0f33994772c",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal fulfillment of foreign language requirements is not mentioned in the source.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document lists foreign language exit requirements generally (e.g., Article 14, Article 24, Article 31), but contains no personal student compliance data."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective from 2025-2026; personal student records are absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-119",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "5699e88d75fad8a0ab5a062e34d86cf439f25cc757f263b7d0592e27d00b0f25",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Individual credit exemptions are personal data not found in policy documents.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document outlines general rules for credit recognition and exemption (e.g., Article 11, Article 28), but does not state individual exemptions."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; personal exemptions unmentioned.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-120",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "d9bd7805ef559d342f02f84b7a4ffcf80c67b7b493d6b22d6fb3a2e559b93401",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Individual progress report evaluations are personal records not present in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 37 outlines the requirement for PhD students to submit 6-month progress reports, but does not contain evaluations for individual students."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; personal reports absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-121",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "b39c867a5be59dfeb3a576a05e4b61ecc1d0276bceffacb840449fe7569715c2",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Class-specific teaching assignments are personal/operational data not in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document specifies organizational structures and responsibilities broadly (e.g., departments, academic units), but contains no faculty assignments for individual classes."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; specific class rosters/instructors are unmentioned.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-122",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "96d4b731b082ef815db5d481409db5c452d298eeb83b019896c741d0f0083a1e",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal pickup dates are not specified in general regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document mentions a 3-month timeframe for diploma issuance after graduation conditions are met (e.g., Article 14, Article 23), but does not give specific personal appointment dates."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; personal schedules absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-123",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "2d7e262b537c7eaf30cbc7607e286be9773a4f77e8b4df57aeff2cf6e40bcfaf",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal invoice amounts are unanswerable from general tuition rules.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 9 outlines tuition obligations, reductions, and calculation rules, but contains no individual fee balances."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; personal billing figures absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-124",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "f7ac96181b8287dbe79b3279fde49304be74eb9937f79fcbe9ad37c9442b3361",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Transcript download URLs are not part of the academic regulations document.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document contains academic regulations, but no URL or link for downloading transcripts."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; web links/URLs absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-125",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "fcb8ba2696eee33344fd6e89bb9eef4d703cd5ea03d6d75b5a96e07cae459f21",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Defense room schedules are personal/operational data not found in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document specifies thesis defense conditions and procedures (e.g., Articles 31, 41, 42), but does not state room assignments for individual defenses."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; specific defense schedules absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-126",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "891b66658d548d4d352654a6277049aa83a1eca2feeab9c8b8baf0c9aef0a3ad",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Course textbook editions are not specified in the institutional regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document mentions that course syllabi specify textbooks and reference materials (Article 4), but does not list textbooks for specific classes."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; textbook lists absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-127",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "e2c38c82e7d4598ea8877c702ede5acb0f1963f0a1a1e41df3e0b3e77d6530c4",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Midterm examination scores are personal data not present in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 5 outlines grading rules (scale of 10, rounding, etc.), but contains no individual student exam results."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; individual grades absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-128",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "8cc8a64520ff0559ff3152082c8999e948f830ed15ed7dbc5bbee6f2426c7a4e",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Personal attendance records are not part of the academic regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 5 specifies attendance impact on process grades (+1 to -2 points), but does not record individual attendance or missed lectures."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; personal attendance logs absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-129",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "8a2519208c527117d9ae76ccaa4d70e2ccf52d67ca5507fb848709ab09bcb06d",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Adviser meeting schedules are personal/operational data not in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document outlines general supervisory responsibilities for graduate/PhD students (e.g., Articles 29, 37), but contains no individual meeting schedules."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; specific meeting calendars absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-130",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "08e74794773c38ce2086cc7c7d1acb8c23af61ef472632e5aa063716aed36ffa",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Independent reviewer comments on a specific student's thesis are personal evaluation records not found in policy documents.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "The document specifies thesis evaluation rules (e.g., reviewer roles, council voting), but contains no review comments for individual theses."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; individual thesis evaluations absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-holdout-131",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "89b49262c5852f4ccbe9985fc2d5d374b798f2066935642c476749ec1f98759f",
+      "signed_at": "2026-10-20T10:28:50.775827+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Council member scores for a specific student's graduation project are personal data not present in the regulations.",
+        "sources": [
+          {
+            "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "path": "data/corpus/phase5-fresh-study-20261016/hust_academic_regulations_2025.pdf",
+            "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18,
+              19,
+              20,
+              21,
+              22,
+              23,
+              24,
+              25,
+              26,
+              27,
+              28,
+              29,
+              30,
+              31,
+              32,
+              33,
+              34
+            ],
+            "finding": "Article 13 and Article 15 outline graduation project evaluation rules (e.g., supervisor, reviewer, and council scoring), but do not record individual scores for students."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Effective 2025-2026; individual scoring data absent.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "not_specified",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-02",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-065",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "68b953ab64a40a92a3025c1e5e5369a4c051509c6dbe711985dc904cde0dc930",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "The source explicitly provides the date before which 2025 admission entry thresholds will be published.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              3
+            ],
+            "finding": "Section 3.2 states that entry thresholds will be published before 21/7/2025."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Section 3.2 mentions publication before 21/7/2025 for the 2025 admission cycle.",
+        "effective_date": "21/7/2025",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2025",
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-083",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "7742ab1fbe823688179d0d9c7a134425c7bd10803ac49cddbdc726931eeb46d2",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The document does not state final 2025 admission scores, and abstention is correct.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "The document provides quotas and historical scores for 2023/2024 but does not mention the final admission cutoff scores for 2025."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The question asks for final 2025 admission scores which are not yet established or mentioned in the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-084",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "cb01ba1f9f9ef737c17416d24ad20b2fee30bd4de9f5ef5e9ca59b233604fd08",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN2.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN2 are absent from the document."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-085",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "66ab29358e881a66a32884b8eb1e99b589aae5b6b668bf7be09b76e3b21db820",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN3.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN3 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-086",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "5397a41c800035ab364ec99327b6c2cae56d80f4d6bb1247fd2bc3d8a29a787d",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN4.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN4 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-087",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "94d9ae58d7f871661cd71497aa5501393675518545a53632694d30d20e9f76f3",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN5.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN5 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-088",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "0f0deaac7ed9e825fab021b2dee3be5d8ad39bfdd95db4c6791c09b83587714d",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN6.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN6 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-089",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "2ed9fe2c9899b458a0f18fd4449a407f1327d4802a535494724ad8c87cbd1dd0",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN7.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN7 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-090",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "b2be5e0fe928e3f64be2204ab7b873f3cf417c973765eaae2f29c88d0482de4f",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN8.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN8 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-091",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "b1513f3dbc4a6fffd5af39d80de5f621d79eb35fc8fb74d57c9943dbdfaa13f1",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN9.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN9 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-092",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "3f5dcaa85db905ee908c03b16fce8aa5163295228e07c9aee8378bd57a999cfb",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN10.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN10 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-093",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "2e7c379d8565dae83292289580d8674eb868ad7577795b58cf56f409ec15adf4",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN11.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN11 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-094",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "c3fa67e36f494e04b970b250bfed7d2cf6550f21cbe2d8eef1a1f7d482ae1bc3",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN12.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN12 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-095",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "e8a7a177adb604e9ebff25a34a55d2b9957447c6f3d829a38fbfe22dd69f2d56",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN13.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN13 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-096",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "65cae6b8ca918d0fc55aeba37e5253212e5c1a51eec2f9b795d3997af8b7ad30",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN15.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN15 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-097",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "d6be51cd55cfadbb458876a56ad9b69574ad2184274a020cec5187a7987b7e3d",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN17.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN17 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-098",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "0eca86845e58f65e7e27cef42f3c9cc9ad60b2cd1875efbe3662562d42f2cde4",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN18.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN18 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-099",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "8970e64e3f616db1db3c4bfa22fe5ff21f45a09c09cf5309a5558ae368391887",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN19.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN19 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-100",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "cde7e2cf0df2b06fe21bda42e8e89d36862a7a2c12d1ae34a2ae8e43a626c073",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN20.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN20 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-101",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "6a00cf1bbd7e186d0ba4c659bbad363dcfd8f80fbfb20ed9906b5125fee9c391",
+      "signed_at": "2026-10-20T10:32:37.112893+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Document does not mention 2025 final scores for CN21.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "Final 2025 scores for CN21 are absent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Requested 2025 score is absent from the source document.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "undated_in_reviewed_source",
+        "source_period": null,
+        "requested_period": "2025",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-04",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0738",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "ba1b61fd9fb2b357e30d7ee231172a86287a03cb7a488b359ff4b0f59f94c567",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "The drafted claim accurately reflects the source text on page 1 regarding foreign language exit requirements for 2022 admissions.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              1
+            ],
+            "finding": "Verified that masters cohorts admitted from 2022 require a foreign language exit level of at least Level 4 or equivalent."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The notice explicitly regulates admissions and cohorts starting from 2022.",
+        "effective_date": "2022",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2022",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0755",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "7ff7cb1f2ebdc794686674048cab41aec69b689e523ea9d5e16c45c38bd026eb",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Page 2 explicitly states that language certificates must be valid up to the application registration date.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              2
+            ],
+            "finding": "Verified that language certificates must be valid up to the application registration date."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The source specifies validity conditions relative to application registration.",
+        "effective_date": "application registration date",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2022",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0772",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "51be438d2af7796f74ac2a0dd6f321493c9581a864a1cdf3670ddd22cad1bdba",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "The text on page 3 explicitly provides the closing date and time for physical applications.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              3
+            ],
+            "finding": "Verified submission of physical direct-admission applications closes at 17:00 on 30 August 2022."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Specific deadline dates are stated for the 2022 admission round.",
+        "effective_date": "30 August 2022",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2022",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0789",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "72ee00c58d7685c6163610c8d5747a75e989a26ab5b8ff98374f46b218cb6447",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Page 4 states the exact announcement date for direct admission results.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              4
+            ],
+            "finding": "Verified direct-admission results are scheduled to be announced on 9 September 2022."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "An explicit announcement date is provided in the source.",
+        "effective_date": "9 September 2022",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2022",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0806",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "a5122142ba9f7169e3e6602a5800fe574ef94cb0f068762150b4168b69e9b003",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Page 5 explicitly details the tuition amount and covered months.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              5
+            ],
+            "finding": "Verified tuition fee of VND 30,000,000 for 10 months for the 2022-2023 academic year."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Academic year tuition is explicitly defined for 2022-2023.",
+        "effective_date": "2022-2023 academic year",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022-2023",
+        "requested_period": "2022-2023",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0840",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "cd41dbd689812f493bd554fffc7c3fc01adda2273075f026ddf4ff2db374f1ce",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Matches the exact source text on page 1.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              1
+            ],
+            "finding": "Verified foreign language exit level requirement for 2022 cohorts."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Cohort requirement stated for admissions from 2022.",
+        "effective_date": "2022",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2022",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0874",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "8124e5dfa96aa0ebb7e9864bb53257c6ee9b6ba1453fb55d231f080ea83623e1",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "factual",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_gold",
+        "scope": "cited_pages",
+        "rationale": "Footnote on page 9 confirms the date for institutions 1 through 8.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              9
+            ],
+            "finding": "Verified footnote states 15 May 2019 for institutions 1 through 8."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Explicit issue/validity date stated in footnote.",
+        "effective_date": "15 May 2019",
+        "effective_date_status": "established_in_source",
+        "conclusion": "supported_fact",
+        "source_period_status": "established_in_source",
+        "source_period": "2019",
+        "requested_period": "2019",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-1044",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "e9cdafc404045abd3596936decf3a6a94497976a70eae8b811d6de12503436ec",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Ambiguous question about current academic year is correctly handled via abstention.",
+        "sources": [
+          {
+            "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "path": "data/corpus/university/uet_program_adjustments_2021.pdf",
+            "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "pages": [
+              1,
+              2,
+              3
+            ],
+            "finding": "Reviewed full document. The document is an administrative correction notice from 2021 and does not explicitly declare applicability to the current academic year without external temporal anchoring."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Document dates to 2021 and lacks explicit applicability rules for the current academic year.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "established_in_source",
+        "source_period": "2021",
+        "requested_period": "current academic year",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-1061",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "83fd2ab14ba0ce005faa38f5f677d86a5a35411fe5177c668a66340246b42102",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Correctly abstains on ambiguous current-year applicability.",
+        "sources": [
+          {
+            "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "path": "data/corpus/university/uet_program_adjustments_2021.pdf",
+            "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "pages": [
+              1,
+              2,
+              3
+            ],
+            "finding": "Reviewed full document. Document date is 2021; current academic year applicability is indeterminate from text alone."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Source is a 2021 document without explicit current-year mapping.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "established_in_source",
+        "source_period": "2021",
+        "requested_period": "current academic year",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-1078",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-followup91-source-review",
+      "annotation_sha256": "fcba8f40ef068f0440fc6f2c30234f4c4234ff1f6aea6c9a423085f8cf68db39",
+      "signed_at": "2026-10-20T10:33:34.844000+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "Correctly abstains on ambiguous current-year applicability.",
+        "sources": [
+          {
+            "doc_id": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "path": "data/corpus/university/uet_program_adjustments_2021.pdf",
+            "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+            "pages": [
+              1,
+              2,
+              3
+            ],
+            "finding": "Reviewed full document. Document date is 2021; current academic year applicability is indeterminate."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "Source is a 2021 document without explicit current-year mapping.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "established_in_source",
+        "source_period": "2021",
+        "requested_period": "current academic year",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-followup91-review-05",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/raw-review-responses-combined.jsonl"
+    }
+  ],
+  "original_review_benchmark_sha256": "17e0cea6c130c915359d5b254874c84b4fab34399800ce52daa3a9805896f2ed",
+  "original_artifact": {
+    "path": "evaluation/results/phase5-independent-ai-review-followup91-20261020/source-review-artifact.json",
+    "sha256": "0ab9b2a82406e5ff45756f71f230eef94529457e92d7cca7fb52bd9dd4e341b0"
+  },
+  "mechanical_rebinding": true,
+  "normalization": "Only selected usable real review decisions. Annotation/question/request/gold/category equality checked against actual payloads or preserved canonical decisions; original dates, source findings and raw capture references retained. This artifact is compiled by the audit agent, not a new reviewer response or owner approval.",
+  "projection_provenance": {
+    "original_path": "evaluation/results/phase5-review-bundle-680-20261021-v11/source-artifact-04.json",
+    "original_sha256": "f81e9bbecaa0a597def13bd3e90229fb2ad76865553044cfbeda7ac1e2d223bc",
+    "operation": "Subset projection and benchmark metadata rebind; no reviewer findings, quotes, dates or annotation hashes altered."
+  }
+}

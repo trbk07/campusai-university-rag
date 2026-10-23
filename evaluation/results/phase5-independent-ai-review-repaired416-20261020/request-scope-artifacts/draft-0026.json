@@ -1,0 +1,10 @@
+{
+  "id": "draft-0026",
+  "request": {
+    "question": "No documents are selected for this request. Using only selected documents, what is the required language level?",
+    "language": "en",
+    "doc_ids": [],
+    "history": [],
+    "selected_text": null
+  }
+}

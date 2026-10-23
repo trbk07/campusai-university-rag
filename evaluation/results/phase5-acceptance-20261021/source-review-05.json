@@ -1,0 +1,173 @@
+{
+  "schema_version": "phase5-ai-source-review-v1",
+  "review_policy": "phase5-ai-owner-v1",
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "reviewer_id": "ai:gemini:phase5-remaining22-source-review",
+  "task_id": "independent Gemini remaining22 source review; blind to prior verdicts and CampusAI predictions",
+  "model_id": "gemini-3.5-flash-lite",
+  "row_decisions": [
+    {
+      "id": "draft-0823",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining22-source-review",
+      "annotation_sha256": "6dce56d786d256ee3ccc618e1ade7847ad0174bad0b7a4124a26035ccfec4614",
+      "signed_at": "2026-10-20T10:54:02.580848+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The question asks for 2026-2027 tuition based on a 2022 admission notice, which is unanswerable and correctly abstained from as unsupported/stale source.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "finding": "The document specifies tuition for the 2022-2023 academic year but contains no information regarding tuition for the 2026-2027 academic year."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The source is an admission notice for round 2 of 2022, so future tuition for 2026-2027 cannot be determined from it.",
+        "effective_date": null,
+        "effective_date_status": "not_determinable_for_question",
+        "conclusion": "abstention_supported",
+        "source_period_status": "established_in_source",
+        "source_period": "2022-2023 academic year",
+        "requested_period": "2026-2027 academic year",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-remaining22-source-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-remaining22-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "draft-0857",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining22-source-review",
+      "annotation_sha256": "5e541dc72eaf77e53b82c5cb2dbf8bf4de34d21e2623d09c801583798965ea57",
+      "signed_at": "2026-10-20T10:54:02.580848+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The 2022 notice cannot establish current rules for a 2026 admission round, making abstention correct under temporal/stale source grounds.",
+        "sources": [
+          {
+            "doc_id": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "path": "data/corpus/university/uet_masters_admission_2022.pdf",
+            "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17,
+              18
+            ],
+            "finding": "The source provides language certificate thresholds for the 2022 admission round and does not establish their applicability to future years like 2026."
+          }
+        ]
+      },
+      "temporal_review": {
+        "basis": "The source document dates from 2022 and cannot establish the validity of rules for 2026.",
+        "effective_date": null,
+        "effective_date_status": "not_established_for_requested_period",
+        "conclusion": "abstention_supported",
+        "source_period_status": "established_in_source",
+        "source_period": "2022",
+        "requested_period": "2026",
+        "status": "resolved"
+      },
+      "raw_batch_id": "phase5-remaining22-source-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-remaining22-20261020/raw-review-responses-combined.jsonl"
+    },
+    {
+      "id": "phase5-fresh-test-009",
+      "status": "approved",
+      "reviewer_id": "ai:gemini:phase5-remaining22-source-review",
+      "annotation_sha256": "80d6ebd7bb9192df32110c3d5827858fbf0cb1ac2ca83e8d38c6356db3d5519a",
+      "signed_at": "2026-10-20T10:54:02.580848+00:00",
+      "decision_type": "abstention",
+      "source_review": {
+        "status": "verified",
+        "finding": "supports_abstention",
+        "scope": "full_documents",
+        "rationale": "The user asks for the admission quota of 'it' without specifying any program, making the question ambiguous. Abstention is correctly categorized and supported.",
+        "sources": [
+          {
+            "doc_id": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "path": "data/corpus/phase5-fresh-study-20261016/uet_undergraduate_admission_2025.pdf",
+            "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+            "pages": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              10,
+              11,
+              12,
+              13
+            ],
+            "finding": "The question is ambiguous as no specific programme or major has been selected or named by the user."
+          }
+        ]
+      },
+      "temporal_review": null,
+      "raw_batch_id": "phase5-remaining22-source-review-01",
+      "raw_verdict": "approved",
+      "raw_artifact_path": "evaluation/results/phase5-independent-ai-review-remaining22-20261020/raw-review-responses-combined.jsonl"
+    }
+  ],
+  "original_review_benchmark_sha256": "17e0cea6c130c915359d5b254874c84b4fab34399800ce52daa3a9805896f2ed",
+  "original_artifact": {
+    "path": "evaluation/results/phase5-independent-ai-review-remaining22-20261020/source-review-artifact.json",
+    "sha256": "27535bc9813dd66aa8fa337924e89b5fc9b4ecc827d325f5c87520a7768b5c6c"
+  },
+  "mechanical_rebinding": true,
+  "normalization": "Only selected usable real review decisions. Annotation/question/request/gold/category equality checked against actual payloads or preserved canonical decisions; original dates, source findings and raw capture references retained. This artifact is compiled by the audit agent, not a new reviewer response or owner approval.",
+  "projection_provenance": {
+    "original_path": "evaluation/results/phase5-review-bundle-680-20261021-v11/source-artifact-05.json",
+    "original_sha256": "d7d854bb376a32e39d2fe68b7d58395aba9b83842425b5661c40c7593597169a",
+    "operation": "Subset projection and benchmark metadata rebind; no reviewer findings, quotes, dates or annotation hashes altered."
+  }
+}
