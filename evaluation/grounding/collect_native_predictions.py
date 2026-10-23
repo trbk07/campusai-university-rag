@@ -300,9 +300,12 @@ def prepare_egress(service, rows: list[dict], llm, output: Path, maximum: int) -
     active = {"id": None, "request": None}
     original = llm.generate_json
     def capture(prompt, schema=None, **kwargs):
+        audit = getattr(getattr(service, '_request_local', None), 'document_scope_audit', None)
+        complete_scope = isinstance(audit, dict) and audit.get('status') == 'inference_started'
         prompts.append({"id": active["id"], "request": active["request"], "prompt": prompt,
                         "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(), "answer_schema": schema,
-                        "stage": "initial", **({'generation_arguments':kwargs} if kwargs else {})})
+                        "stage": "complete_document_scope" if complete_scope else "initial",
+                        **({'generation_arguments':kwargs} if kwargs else {})})
         raise LLMError("egress preflight only; no model inference")
     llm.generate_json = capture
     try:
@@ -310,7 +313,7 @@ def prepare_egress(service, rows: list[dict], llm, output: Path, maximum: int) -
             active.update(id=row["id"], request=inference_request(row))
             before = len(prompts)
             service.ask(**active["request"])
-            if len(prompts) > before:
+            if len(prompts) > before and all(case['stage'] == 'initial' for case in prompts[before:]):
                 try:
                     followup = service.prepare_document_scope_prompt()
                 except DocumentScopeUnavailable:
@@ -339,12 +342,14 @@ def prepare_egress(service, rows: list[dict], llm, output: Path, maximum: int) -
                       if case.get("stage") == "complete_document_scope"}
     if len(initial_by_id) != sum(case.get("stage") == "initial" for case in prompts):
         raise ValueError("duplicate benchmark question IDs in egress selection")
+    selected_ids = set()
     for case in prompts:
-        if case.get("stage") != "initial":
+        if case['id'] in selected_ids:
             continue
+        selected_ids.add(case['id'])
         path = [case]
         followup = followup_by_id.get(case["id"])
-        if followup is not None:
+        if followup is not None and followup is not case:
             path.append(followup)
         call_count = sum(item["planned_http_call_count"] for item in path)
         if planned_calls + call_count > maximum:

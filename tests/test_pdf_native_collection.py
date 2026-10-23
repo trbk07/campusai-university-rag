@@ -95,6 +95,52 @@ def test_pdf_egress_rejects_cap_that_cannot_cover_initial_and_followup(tmp_path)
         service.close()
 
 
+def test_empty_retrieval_plans_one_direct_pdf_scope_call_and_collects_exactly_it(tmp_path):
+    service, _, doc_id, _ = scope_service(tmp_path, [], image=True,
+        reader_options={'allow_pdf_scope': True}, pdf_client=True)
+    service.retriever.result = []
+    llm = client(tmp_path)
+    service.answer_generator.llm = llm
+    row = {'id': 'direct-scope', 'question': QUESTION, 'language': 'en', 'selected_doc_ids': [doc_id]}
+    calls = []
+    def transport(request, *args, **kwargs):
+        calls.append(request.full_url)
+        if request.full_url.endswith(':countTokens'):
+            return {'totalTokens': 100}
+        return {'candidates': [{'content': {'parts': [{'text': json.dumps(absent())}]}}]}
+    try:
+        packet = prepare_egress(service, [row], llm, tmp_path/'egress', 2)
+        assert packet['planned_provider_calls'] == 2 and len(packet['cases']) == 1
+        assert packet['cases'][0]['stage'] == 'complete_document_scope'
+        requests = {row['id']: packet['cases'][0]['http_requests']}
+        result = collect(service, [row], llm, output=tmp_path/'native', max_provider_calls=2,
+            transport=transport, egress_requests=requests,
+            egress_prompts={row['id']: [packet['cases'][0]['prompt_sha256']]})
+        assert result['provider_posts'] == len(calls) == 2 and not result['stop_reason']
+        assert result['pipeline_predictions'] == result['real_json_predictions_successful'] == 1
+    finally:
+        service.close()
+
+
+def test_mixed_initial_and_direct_scope_paths_fit_their_actual_combined_budget(tmp_path):
+    service, _, doc_id, _ = scope_service(tmp_path, [], image=True,
+        reader_options={'allow_pdf_scope': True}, pdf_client=True)
+    original_search = service.retriever.search
+    service.retriever.search = lambda query, **kwargs: [] if 'weekend' in query else original_search(query, **kwargs)
+    llm = client(tmp_path)
+    service.answer_generator.llm = llm
+    rows = [{'id': f'path-{i}', 'question': question, 'language': 'en', 'selected_doc_ids': [doc_id]}
+            for i, question in enumerate((QUESTION, 'What time does the library close at the weekend?'))]
+    try:
+        packet = prepare_egress(service, rows, llm, tmp_path/'egress', 5)
+        assert packet['planned_provider_calls'] == 5
+        assert [(case['id'], case['stage']) for case in packet['cases']] == [
+            ('path-0', 'initial'), ('path-0', 'complete_document_scope'), ('path-1', 'complete_document_scope')]
+        assert sum(len(case['http_requests']) for case in packet['cases']) == 5
+    finally:
+        service.close()
+
+
 def test_prompt_permission_does_not_authorize_pdf_http_requests(tmp_path):
     directory, _, calls = run_fixture(tmp_path, exact=False)
     assert len(calls) == 1

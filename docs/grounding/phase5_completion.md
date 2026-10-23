@@ -21,6 +21,14 @@ predictions. `phase5-fresh-test-007` still returns the wrong abstention reason;
 previously and is excluded rather than synthesized. Reason accuracy is66.67%
 over3 replayable negatives. This is diagnostic evidence;400 current-source
 native outcomes, dev-only calibration and physical release validation remain open.
+
+Follow-up **P5-08j DONE;807 affected tests PASS**
+([XML](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/source-scope-egress-cross-phase.xml)).
+Preflight now distinguishes a direct complete-source call from an ordinary
+initial inference and does not invent a second follow-up. Exact HTTP-body
+authorization and whole-path caps remain enforced:2 POSTs for direct PDF scope,
+5 for one initial/conditional path plus one direct path. This fixes a locally
+detected omission before any additional provider request was sent.
 Owner đã chọn [independent AI review + owner sign-off](phase5_ai_review.md) cho
 riêng Phase5. Ngưỡng số, gold gốc và trạng thái các phase khác được giữ nguyên.
 [Checkpoint hiện hành](../../evaluation/results/phase5-acceptance-20261021/manifest.json)
