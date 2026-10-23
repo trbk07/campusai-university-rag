@@ -1,115 +1,49 @@
 # App improvement log
 
-## 2026-10-23 — clean-source reproducibility
+## 2026-10-23 - clean-source reproducibility
 
-Detected a P1 packaging failure after exporting pushed commit `0ef54f90`:
-`campusai.web` could not import because `ingestion.background` was not tracked.
-Other app runtime modules were also local-only. Adding these dependencies exposed
-a second integration mismatch: the worker passes the model revision/corpus
-identity to an index builder whose published signature was older.
+Exporting pushed commit 0ef54f90 exposed missing runtime dependencies and an
+older worker/index-builder interface. Fix commit 3a04b7f1 retains the runtime
+modules in Git. Exact clean staged source passed 98 app tests in 11.49 s;
+the minimal candidate previously passed 98 tests in 10.62 s. The original
+import failure is retained in QA history; no live provider was called.
 
-Repair: retain the existing implemented runtime modules in Git and include the
-compatible index-builder signature, without changing grounding thresholds or
-provider authorization. Validate from an isolated source export so editable
-imports cannot hide missing files. The minimal repaired candidate passes all 98
-local app/upload/conversation/page-scope tests.
+## 2026-10-23 - mixed PDFs and parser memory
 
-The exact staged Git tree `360f670b2d5b078e11afa6a27fac4f6c8300d273` was then
-exported independently and passed the same 98 tests in 11.49 s. QA-01 is fixed
-on this verified runtime source. Other Phase 5 edits/results remain separate.
+Commit 12ed6bd9 detects unread image/vector pages, selectively OCRs physical
+pages, preserves native content and rejects incomplete OCR. Four pre-fix
+failures reproduced silent missing scan content. Cache/job identities and
+legacy readiness are checked. Five real public PDFs (104 pages, 28,184,916
+bytes) retained exact native text/layout hashes while median parser time
+fell from 0.8493 to 0.1194 s and sampled peak RSS from 93,302,784 to 76,345,344
+bytes. Real local OCR recovered the expected advisor text on page 2, retained
+native page 1 and skipped blank page 3. See PERFORMANCE_REPORT.md for limits.
+Pre-compatibility regression: 2,376 PASS / 2 live SKIP; focused 52 PASS;
+clean Git source 106 app tests PASS. Receipt retained by commit 12ed6bd9.
 
-Prior cycle: five-file upload with per-file progress, three ingestion workers,
-eight queued jobs and four query slots; 2,368 offline regression tests and 39
-browser checks passed. Details and measurement limits are in
-[PERFORMANCE_REPORT.md](PERFORMANCE_REPORT.md) and the Phase 12 handoff.
+## 2026-10-23 - preserve existing job journals
 
-Next priorities: representative large/scan PDF latency and memory; live answer
-quality remains tracked by Phase 5. The full-app goal stays active.
+The real local restart exposed a policy-upgrade failure missed by fresh-store
+tests: new job identity validation rejected valid historical journal rows.
+Commit 49a0fe52 accepts only exact canonical old/current identities, retains
+history and uses current identities for new work; forged identities fail closed.
+Existing app recovered with two ready PDFs and five jobs. No reset/deletion or
+credential change. Migration/PDF/jobs 33 PASS; whole worktree 2,378 PASS /
+2 live SKIP in 254.39 s; clean Git app source 108 PASS in 12.94 s. Receipt:
+docs/ui/evidence/pdf-ingestion-tests.xml.
 
-## 2026-10-23 — mixed PDF correctness and parser memory
+## 2026-10-23 - manual local OCR on the web
 
-Reproduced four failures before repair: scan page undetected, mixed document
-incorrectly succeeded, scan content omitted despite OCR opt-in, and empty OCR
-output accepted. The parser now excludes unused image bytes and marks no-text
-pages containing images/vector content. The pipeline requests bounded OCR only
-for those physical pages, preserves native page content, and rejects incomplete
-OCR. Blank pages in mixed documents need no OCR. OCR warnings survive metadata
-assembly; old extraction caches and job identities cannot bypass the new policy.
+Commit 6ce75659 adds the document-detail OCR action without a second upload.
+Explicit retry preserves job history; no automatic resend. Server-owned caps
+are at most 50 scan pages/120 seconds. Source hash, trusted scope, active/ready
+state and queue admission are checked; client limit overrides are rejected.
+Admission errors remain visible and allow manual recovery. Recognition is local.
+Focused OCR/web/PDF/jobs 37 PASS; full worktree 2,384 PASS / 2 live SKIP in
+258.03 s; clean Git app source 114 PASS in 11.95 s. Browser E2E 41/41 PASS,
+including axe OCR dialog and real local OCR after simulated admission failure.
+The new browser flow needed scoped selectors and a wait for dialog loading.
 
-Legacy ready sources without coverage metadata receive a cached local page audit;
-incomplete documents cannot enter query scope. Document details explain which
-pages need OCR. Existing fully readable PDFs avoid re-embedding. Web OCR opt-in
-controls remain QA-05, not implicitly completed by this backend fix.
-
-Focused PDF/web/job regression: 52 PASS. Real local OCR recovered the expected
-advisor text on physical page 2 while preserving page 1. Parser benchmark on
-five real PDFs/104 pages: median wall 0.8493 to 0.1194 s, sampled peak RSS
-93,302,784 to 76,345,344 bytes; exact native text/layout hashes unchanged.
-See PERFORMANCE_REPORT.md for scope and measurement limits. No provider egress.
-
-Final worktree regression: **2,376 PASS, 2 opt-in live SKIP** in 255.80 s;
-focused 52 PASS. Exact staged Git source exported without local files:
-**106 app tests PASS** in 11.68 s. Preserve final JUnit and parser-run evidence;
-remove intermediate stores/exports. Full-app goal remains active: end-to-end
-OCR/index resource measurements, partially text-bearing scan pages, OCR/table
-quality, UI OCR opt-in and native model quality still require work.
-
-## 2026-10-23 — preserve existing journal compatibility
-
-Restarting the actual idle local app exposed an upgrade failure that isolated
-fresh-store tests missed: changing the job identity salt made the journal reject
-old valid rows. Fixed validation to accept only the exact canonical legacy or
-current identity; preserve historical rows unchanged, and use only current
-identities for new admission. Corrupt identities continue to fail closed.
-Migration/PDF/jobs regression: 33 PASS. The actual app was restored on port 8000,
-with two documents still ready and five historical jobs retained. No journal
-reset, document deletion, credential change or provider request was used.
-
-Post-upgrade final regression: **2,378 PASS / 2 live SKIP**, 254.39 s. Clean
-staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
-12.94 s. Current receipt replaces the pre-compatibility receipt at the same path;
-the earlier 2,376-test receipt remains in commit `12ed6bd9`. Live local backend
-coverage fields and exact UTF-8 frontend asset bytes were verified after restart.
-
-## 2026-10-23 — manual local OCR in the web app
-
-Added the document-detail OCR action for scan/mixed PDFs in review. It schedules
-bounded local work on the existing source (no second upload), preserves native
-pages and job history, and allows deliberate retry after OCR is unavailable.
-The server owns limits (at most 50 scan pages and 120 seconds), rejects client
-option overrides, verifies source hash/authorization, and handles busy documents
-and queue exhaustion. Admission errors remain visible and permit manual retry.
-
-Validation: focused OCR/web/PDF/jobs 37 PASS; full worktree 2,384 PASS / 2 live
-SKIP in 258.03 s; clean staged Git app export 114 PASS in 11.95 s. Browser E2E
-41/41 PASS, including axe OCR dialog and actual local OCR after simulated
-admission failure and manual retry. Harness selectors/dialog waiting were fixed
-before the successful run. No provider calls or grounding-threshold changes.
-
-## 2026-10-23 — manual local OCR in the web app
-
-Added the document-detail OCR action for scan/mixed PDFs in review. It schedules
-bounded local work on the existing source (no second upload), preserves native
-pages and job history, and allows deliberate retry after OCR is unavailable.
-The server owns limits (at most 50 scan pages and 120 seconds), rejects client
-option overrides, verifies source hash/authorization, and handles busy documents
-and queue exhaustion. Admission errors remain visible and permit manual retry.
-
-Validation: focused OCR/web/PDF/jobs 37 PASS; full worktree 2,384 PASS / 2 live
-SKIP in 258.03 s; clean staged Git app export 114 PASS in 11.95 s. Browser E2E
-41/41 PASS, including axe OCR dialog and actual local OCR after simulated
-admission failure and manual retry. Harness selectors/dialog waiting were fixed
-before the successful run. No provider calls or grounding-threshold changes.
-
-Post-upgrade final regression: **2,378 PASS / 2 live SKIP**, 254.39 s. Clean
-staged tree `4b9e11da8779b74f20893baf959dcdc9114757e9`: **108 app tests PASS**,
-12.94 s. Current receipt replaces the pre-compatibility receipt at the same path;
-the earlier 2,376-test receipt remains in commit `12ed6bd9`. Live local backend
-coverage fields and exact UTF-8 frontend asset bytes were verified after restart.
-
-Final worktree regression: **2,376 PASS, 2 opt-in live SKIP** in 255.80 s;
-focused 52 PASS. Exact staged Git source exported without local files:
-**106 app tests PASS** in 11.68 s. Preserve final JUnit and parser-run evidence;
-remove intermediate stores/exports. Full-app goal remains active: end-to-end
-OCR/index resource measurements, partially text-bearing scan pages, OCR/table
-quality, UI OCR opt-in and native model quality still require work.
+Full-app goal remains active: full upload/OCR/index load and RSS, partially
+text-bearing scan pages, OCR/table fidelity and current-source native model
+quality remain open. Grounding thresholds and release status are unchanged.
