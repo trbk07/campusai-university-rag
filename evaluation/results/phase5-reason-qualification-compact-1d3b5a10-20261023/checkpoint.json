@@ -1,0 +1,296 @@
+{
+  "kind": "phase5-compact-native-probe-checkpoint",
+  "diagnostic_only": true,
+  "owner_authorization": {
+    "source": "owner conversation reply",
+    "question_id": "call_22f1db499baa4f91a48a92eee8a8ebb0",
+    "decision": "Duy?t g?i g?n, t?i ?a 5 POSTs",
+    "packet_sha256": "1fef86cbfd1ee6398d157063d1078a8bc9b0b12f9a9e70ddc11d77c274866893",
+    "max_provider_posts": 5,
+    "key_slot": "key_2",
+    "retry_allowed": false,
+    "stop_at_first_provider_error": true
+  },
+  "artifact_integrity": "PASS",
+  "source_identity": {
+    "commit": "1d3b5a1094db14ce6ae62100b944b2ac84a81392",
+    "source_sha256": "d51caa9ff77d511866329022afd136e131c309e7aaff496ddd67d5a0fdb2edd8",
+    "runtime_sha256": "83c431f19ee6f03d7d65c35c7fcd3ac22dda6b23dd94117c9ddc120250735a2c"
+  },
+  "provider_posts": 5,
+  "successful_json_responses": 3,
+  "pipeline_records": 2,
+  "evaluable_records": 2,
+  "official_native_predictions": 0,
+  "probe_status": "PASS",
+  "stop_reason": null,
+  "outcomes": [
+    {
+      "id": "phase5-fresh-test-007",
+      "actual_reason": "document_does_not_mention",
+      "reviewed_gold_reason": "document_does_not_mention",
+      "schema_valid": true,
+      "scope_status": "checked",
+      "scope_coverage": "complete_pdf_bytes_with_extracted_text_index",
+      "physical_pages": 13
+    },
+    {
+      "id": "phase5-fresh-test-008",
+      "actual_reason": "document_does_not_mention",
+      "reviewed_gold_reason": "document_does_not_mention",
+      "schema_valid": true,
+      "scope_status": "checked",
+      "scope_coverage": "complete_pdf_bytes_with_extracted_text_index",
+      "physical_pages": 13
+    }
+  ],
+  "metrics": {
+    "records": 2,
+    "excluded_native_failures": 0,
+    "claim_count": 0,
+    "predicted_claim_count": 0,
+    "matched_predicted_claim_count": 0,
+    "gold_claim_count": 0,
+    "matched_gold_claim_count": 0,
+    "grounded_claim_precision": 0.0,
+    "grounded_claim_recall": 0.0,
+    "unsupported_claim_leakage": 0.0,
+    "contradicted_claim_leakage": 0.0,
+    "citation_precision": 0.0,
+    "citation_coordinate_validity": 0.0,
+    "citation_recall": 0.0,
+    "citation_completeness": 0.0,
+    "claim_citation_precision": 0.0,
+    "claim_citation_recall": 0.0,
+    "claim_citation_f1": 0.0,
+    "abstention_precision": 1.0,
+    "abstention_recall": 1.0,
+    "reason_accuracy": 1.0,
+    "brier_score": 0.0,
+    "ece": 0.0,
+    "calibration_count": 2,
+    "schema_invalid_rate": 0.0,
+    "abstention_reason_counts": {
+      "document_does_not_mention": 2
+    },
+    "denominators": {
+      "records": 2,
+      "predicted_claims": 0,
+      "gold_claims": 0,
+      "citations": 0,
+      "gold_citation_links": 0,
+      "predicted_citation_links": 0,
+      "predicted_abstentions": 2,
+      "gold_abstentions": 2,
+      "abstention_reasons": 2
+    }
+  },
+  "metric_limit": "Two negative cases only; positive claim/citation metrics have denominator zero and do not qualify release.",
+  "run_path": "evaluation\\results\\phase5-reason-qualification-compact-1d3b5a10-20261023\\native\\run.json",
+  "run_sha256": "060631ad64c38f200fc0b8b0d582a1d44273f9d6906ee51c4a7ec55dd38dd7c7",
+  "artifact_hashes": {
+    "raw-model.jsonl": "95495c8bf4c0bcb871677be70a34cc837460d51893105887c1dafc8f59c49a9b",
+    "predictions.jsonl": "0d1d8a4545b40880bd4eb7b1d590eea4c0c947acb7b94dffc74ff09e0772c0f2",
+    "provider-posts.jsonl": "bbde5d6746bbb52d8754380311439c499299c133019f90cb2a716d895c773709"
+  },
+  "quota_after": {
+    "day": "2026-10-23",
+    "day_timezone": "America/Los_Angeles",
+    "reserved_attempts_today": 258,
+    "accounted_tokens_today": 3750001,
+    "reserved_attempts_last_minute": 5,
+    "accounted_input_tokens_last_minute": 38088,
+    "in_flight": 0,
+    "observed_provider_limits": {
+      "input_tokens_per_minute": {
+        "value": 250000,
+        "observed_at": 1792492131.5001512
+      },
+      "requests_per_day": {
+        "value": 500,
+        "observed_at": 1792601412.4684098
+      },
+      "requests_per_minute": {
+        "value": 15,
+        "observed_at": 1792118946.562993
+      }
+    }
+  },
+  "pdf_token_measurements": [
+    {
+      "id": "phase5-fresh-test-007",
+      "count_tokens": 10132,
+      "generation_prompt_tokens": 9612
+    },
+    {
+      "id": "phase5-fresh-test-008",
+      "count_tokens": 10120,
+      "generation_prompt_tokens": 9600
+    }
+  ],
+  "regression": {
+    "passed": 819,
+    "xml_path": "evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/compact-pdf-cross-phase.xml",
+    "xml_sha256": "81ad9c445900848a09f1e6b18b9b4527e5acc491e3c587d176ac18f2416d51fa"
+  },
+  "offline_dev_replay": {
+    "diagnostic_only": true,
+    "new_posts": 0,
+    "official_predictions": 0,
+    "attempted_dev_records": 120,
+    "replayable_records": 108,
+    "reused_responses": 67,
+    "issues": [],
+    "method": "Current pipeline, original frozen index, previously captured actual Gemini responses only when prompt SHA-256, native JSON options/schema and PDF arguments match exactly. Changed paths excluded; no calibrator.",
+    "requires_fresh_inference": [
+      {
+        "id": "draft-0001",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0007",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0013",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0019",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0025",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0460",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0466",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0477",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0483",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0551",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0823",
+        "reason": "prompt_schema_or_scope_changed"
+      },
+      {
+        "id": "draft-0857",
+        "reason": "prompt_schema_or_scope_changed"
+      }
+    ],
+    "observed_metrics": {
+      "grounded_claim_precision": 1.0,
+      "grounded_claim_recall": 1.0,
+      "citation_precision": 1.0,
+      "citation_recall": 1.0,
+      "citation_completeness": 1.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "reason_accuracy": 1.0,
+      "unsupported_claim_leakage": 0.0,
+      "schema_invalid_rate": 0.0,
+      "predicted_claims": 58,
+      "gold_claims": 58,
+      "citations": 55,
+      "predicted_abstentions": 53,
+      "gold_abstentions": 53
+    },
+    "original_native_runs": [
+      {
+        "path": "evaluation\\results\\phase5-current-source-e6134dc-qualification-20261023\\dev-1-native\\run.json",
+        "sha256": "39adca4c6660744c039f7ea6b2d7f2979ee7b1fbb127a661bd27993e38f280f8"
+      },
+      {
+        "path": "evaluation\\results\\phase5-current-source-e6134dc-qualification-20261023\\dev-2-native\\run.json",
+        "sha256": "33b46b9434201d557c50676a4fd3f578db15149290f41f73b330e7db118fa2e5"
+      },
+      {
+        "path": "evaluation\\results\\phase5-current-source-e6134dc-qualification-20261023\\dev-3-native\\run.json",
+        "sha256": "d74c25034fecac0ae450a0ad01e6e87cd3b01a76694fb1cd7308b35983e41c62"
+      }
+    ]
+  },
+  "release_status": "INCOMPLETE: current-source dev120, new dev-only calibration, pinned test130/holdout150 and physical release validation remain open",
+  "release_errors": [
+    "annotation_records_approved_population_mismatch",
+    "annotation_records_reviewed_population_mismatch",
+    "annotation_records_total_population_mismatch",
+    "benchmark_row_population_mismatch",
+    "calibration_artifact_path_missing",
+    "calibration_benchmark_checksum_mismatch",
+    "calibration_dev_brier_score_invalid",
+    "calibration_dev_ece_invalid",
+    "calibration_dev_label_degenerate",
+    "calibration_dev_missing",
+    "calibration_holdout_brier_score_invalid",
+    "calibration_holdout_ece_invalid",
+    "calibration_holdout_label_degenerate",
+    "calibration_holdout_missing",
+    "calibration_sample_too_small",
+    "calibration_test_brier_score_invalid",
+    "calibration_test_ece_invalid",
+    "calibration_test_label_degenerate",
+    "calibration_test_missing",
+    "citation_completeness",
+    "citation_coordinate_validity",
+    "citation_precision",
+    "citation_recall",
+    "claim_citation_f1",
+    "claim_citation_precision",
+    "claim_citation_recall",
+    "dataset_dataset_requires_at_least_400_records",
+    "dataset_missing_category_adversarial",
+    "dataset_missing_category_ambiguous",
+    "dataset_missing_category_answerable",
+    "dataset_missing_category_conflict",
+    "dataset_missing_category_multi_evidence",
+    "dataset_missing_category_no_evidence",
+    "dataset_missing_category_numeric_contradiction",
+    "dataset_missing_category_partial_support",
+    "dataset_missing_category_provider_abstention",
+    "dataset_missing_category_table",
+    "dataset_missing_category_temporal/stale_source",
+    "dataset_missing_split_dev",
+    "dataset_missing_split_holdout",
+    "dataset_split_dev_requires_abstention_cases",
+    "dataset_split_dev_requires_answerable_cases",
+    "dataset_split_dev_requires_at_least_120",
+    "dataset_split_holdout_requires_abstention_cases",
+    "dataset_split_holdout_requires_answerable_cases",
+    "dataset_split_holdout_requires_at_least_150",
+    "dataset_split_test_abstention_below_32",
+    "dataset_split_test_answerable_below_32",
+    "dataset_split_test_requires_answerable_cases",
+    "dataset_split_test_requires_at_least_130",
+    "dataset_too_small_for_release",
+    "grounded_claim_precision",
+    "grounded_claim_recall",
+    "holdout_brier_score",
+    "holdout_ece",
+    "independent_ai_exposure_audit_content_invalid",
+    "independent_holdout_exposure_review_missing_or_stale",
+    "independent_row_decision_population_mismatch",
+    "independent_row_decision_unapproved_or_stale",
+    "risk_at_80_coverage_missing",
+    "risk_at_90_coverage_missing",
+    "runtime_calibration_checksum_missing",
+    "runtime_calibration_missing",
+    "split_metrics_dev_missing",
+    "split_metrics_holdout_missing",
+    "working_tree_dirty"
+  ]
+}

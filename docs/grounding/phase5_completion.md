@@ -1,22 +1,27 @@
 # Phase 5 — audit và handoff hiện hành, 23/10/2026
 
-**7/10 task DONE = 70%; Phase 5 remains incomplete.** The latest owner-approved
-2-case packet `9f00be14761e71f341d83ea075a033e901f588569b86e2ca3fc94defc7aff726`
-bound the actual source/runtime of `ebf1fd3a` correctly. It used3/5 POSTs:
-1 successful initial JSON,1 token measurement and1 full-PDF generation that
-failed HTTP503. Collection stopped immediately; test-008 was not sent,2 unused
-POSTs were discarded, and0 pipeline outcomes are evaluable. Shared quota at the
-stop is253/500. [Actual authorization, native failure and local checks](../../evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/checkpoint.json)
-retain the original packet/run/captures without relabelling failures as negatives.
+**7/10 task DONE = 70%; Phase 5 remains incomplete.** The compact PDF probe on
+source `1d3b5a10` completed all5 approved POSTs using fixed `key_2`, with3 actual
+JSON responses and no provider error. Both `phase5-fresh-test-007/008` correctly
+return `document_does_not_mention`, matching reviewed gold after complete13-page
+PDF inspection. Native source/packet/body/counter integrity PASS. These are
+2 diagnostic native outcomes, not the full calibrated400-row qualification.
+[Authorization, results and physical bindings](../../evaluation/results/phase5-reason-qualification-compact-1d3b5a10-20261023/checkpoint.json)
+retain the exact packet and raw captures. Shared quota is258/500; no retry,
+rotation or reset occurred. The earlier3-POST HTTP503 remains in the
+[previous checkpoint](../../evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/checkpoint.json).
 
-The next method keeps the exact original PDF and all13 pages, but replaces the
-duplicate full transcription with physical page/chunk locators; the full text
-index and citation verification stay local. Textual prompt size drops30,772 to
-7,082 characters (76.99%), with identical PDF bytes.819 affected tests PASS
+P5-08k is DONE in its bounded scope: the original PDF and all pages remain,
+while physical page/chunk locators replace duplicate transcription. Local
+textual prompt size drops30,772 to7,082 characters (76.99%). The actual token
+measurement for test-007 drops20,121 to10,132; these are separate requests,
+not a controlled latency or availability study.819 affected tests PASS
 ([XML](../../evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/compact-pdf-cross-phase.xml)).
-This has not yet proved provider reliability or model quality. A new authorized
-run, current dev-only calibration and400 native outcomes are still required;
-P5-08/09/10 and all-population acceptance remain open. Thresholds are unchanged.
+Strict offline dev replay reuses108/120 outcomes with no observed grounding,
+citation, abstention or reason errors;12 changed prompt/scope paths are excluded.
+It uses0 new POSTs and supplies0 official native predictions. Current-source
+dev120, a fresh dev-only calibrator, pinned test130/holdout150 and physical
+release validation remain required. P5-08/09/10 stay open; thresholds are unchanged.
 
 Latest focused repair checkpoint: **P5-08i/P5-09c DONE;805 affected tests PASS**
 ([XML](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/admission-facts-cross-phase.xml)).
@@ -31,10 +36,11 @@ physically proves each span; gold denominators and thresholds are unchanged.
 has65 replayable records out of66 attempted:63/63 grounded claims, citation
 precision/recall/completeness100%, unsupported leakage0. It reused18 captured
 responses with identical prompt hashes;0 new provider POSTs and0 official native
-predictions. `phase5-fresh-test-007` still returns the wrong abstention reason;
-`phase5-fresh-test-008` needs a new full-source response, which was not captured
-previously and is excluded rather than synthesized. Reason accuracy is66.67%
-over3 replayable negatives. This is diagnostic evidence;400 current-source
+predictions. At that older replay checkpoint, `phase5-fresh-test-007` returned
+the wrong abstention reason and `phase5-fresh-test-008` lacked a captured
+full-source response. Both have now passed the separate compact native probe
+above. The old replay's reason accuracy remains66.67% over3 negatives; its
+historical outputs are not rewritten. This is diagnostic evidence;400 current-source
 native outcomes, dev-only calibration and physical release validation remain open.
 
 Follow-up **P5-08j DONE;807 affected tests PASS**
@@ -240,6 +246,11 @@ Unneeded completed test fixtures are removed after reference and path checks;
 root plan.md remains tracked. No additional TXT/helper files are needed.
 
 ## 6. Gates and completed work
+
+The five release gate results below describe the historical389-row attempt.
+Current compact diagnostics resolve the two absence reasons but cannot qualify
+the full population, calibration or release gates. Current qualification remains
+incomplete; do not carry historical failed metric values onto the new source.
 
 | Gate or component | Status | Evidence or remaining work |
 |---|---|---|

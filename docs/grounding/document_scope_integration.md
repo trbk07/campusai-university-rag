@@ -150,6 +150,10 @@ full transcription; the complete extracted index stays local for source hashes,
 coverage checks and claim/citation verification. Text-only scope is unchanged.
 PDF-coverage metadata without actual PDF attachments fails before inference.
 On the13-page UET source the textual prompt shrinks30,772→7,082 characters
-(76.99%); original PDF bytes are identical. This is a local reduction, not a
-provider token/latency measurement or a503 recovery result.819 affected tests
-PASS. Exact native egress approval and all previous bounds still apply.
+(76.99%); original PDF bytes are identical.819 affected tests PASS. The separately
+approved compact native probe then completed5/5 POSTs without provider failure;
+both absence cases match reviewed gold after complete source inspection. For
+test-007, countTokens measured10,132 input tokens versus20,121 in the previous
+request. This is a bounded capability/quality result, not a reliability or
+latency guarantee. [Actual probe and bindings](../../evaluation/results/phase5-reason-qualification-compact-1d3b5a10-20261023/checkpoint.json).
+Exact native egress approval and all previous bounds still apply.
