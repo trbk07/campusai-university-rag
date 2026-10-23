@@ -468,6 +468,16 @@ class GroundedAnswerGenerator:
         context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens,
             question=question, balanced=self.balanced_context and temporal_context is None and multi_hop_context is None,
             synthesis=synthesis)
+        pdf_scope = (document_scope_context is not None
+            and document_scope_context.get('coverage') == 'complete_pdf_bytes_with_extracted_text_index')
+        if pdf_scope:
+            # The attached original PDF already contains every source page.
+            # Do not send a second full transcription (especially duplicated
+            # historical tables). Keep the physical text index locally for
+            # claim/citation verification and expose its exact page locators.
+            context = '[PDF PAGE LOCATORS]\n' + json.dumps([
+                {'chunk_id': result.chunk_id, 'doc_id': result.doc_id, 'page': result.page}
+                for result in results], ensure_ascii=False, separators=(',', ':'))
         if language.casefold().startswith("en"):
             instructions = (
                 "You are CampusAI, an evidence-grounded university knowledge assistant.\n"
@@ -567,14 +577,17 @@ class GroundedAnswerGenerator:
                 "Chỉ lấy cột tín chỉ đúng hàng môn của mỗi nguồn; thiếu một hàng thì abstain."
             )
         if document_scope_context is not None:
-            pdf_scope = document_scope_context.get('coverage') == 'complete_pdf_bytes_with_extracted_text_index'
             instructions += (('\nCOMPLETE CHECKED PDF SOURCE SCOPE:\n' if pdf_scope else '\nCOMPLETE CHECKED DOCUMENT TEXT SCOPE:\n')
                 + json.dumps(document_scope_context, ensure_ascii=False, sort_keys=True)
                 + ('\nThe exact original selected PDFs are attached, including images and vector graphics. '
                    'Review every physical page and graphical content, not only the extracted text below. '
                    'If any required page/content cannot be read, use unsupported_claim, never certify absence. '
-                   'For positive claims cite only verifiable text in the supplied physical-page evidence; '
-                   'do not fabricate a quote for image-only content. ' if pdf_scope else
+                   'The EVIDENCE section maps physical PDF pages to exact chunk_id values; '
+                   'it is a locator index, not a transcription. Read the attached PDF for source facts. '
+                   'For positive claims cite only source text verifiable on the mapped physical page; '
+                   'do not fabricate a quote for image-only content. '
+                   'Distinguish actual results from planned publication dates and entry thresholds. '
+                   'Results for another year do not establish the requested year. ' if pdf_scope else
                    '\nEvery page of the selected textual sources is supplied below. Review the entire scope. ')
                 +
                   'Use document_does_not_mention only when the requested information is absent throughout it. '
@@ -647,6 +660,10 @@ class GroundedAnswerGenerator:
 
         if not question.strip():
             return abstain("empty_question", language=language)
+        if (document_scope_context is not None
+                and document_scope_context.get('coverage') == 'complete_pdf_bytes_with_extracted_text_index'
+                and not pdf_documents):
+            return abstain('unsupported_claim')
         if not results:
             return abstain("no_retrieval_evidence", language=language)
         try:

@@ -141,3 +141,15 @@ varies PDF token allocation with the model/resolution, so the old text byte
 estimate must not be blindly reused for binary PDFs. Support on the pinned
 model/endpoint must be established by the bounded probe, not assumed from
 examples using a newer model. If it fails, retain the failure and change method.
+
+## 23/10 compact PDF follow-up
+
+The original full PDF is still sent, with all physical pages and graphical
+content. Its prompt now contains exact page/chunk locators instead of a second
+full transcription; the complete extracted index stays local for source hashes,
+coverage checks and claim/citation verification. Text-only scope is unchanged.
+PDF-coverage metadata without actual PDF attachments fails before inference.
+On the13-page UET source the textual prompt shrinks30,772→7,082 characters
+(76.99%); original PDF bytes are identical. This is a local reduction, not a
+provider token/latency measurement or a503 recovery result.819 affected tests
+PASS. Exact native egress approval and all previous bounds still apply.

@@ -277,9 +277,43 @@ def test_opted_in_pdf_followup_passes_binary_only_to_checked_scope_call(tmp_path
         docs=llm.arguments[1]['pdf_documents']
         assert docs[0]['sha256']==doc_id and base64.b64decode(docs[0]['data'])==path.read_bytes()
         assert 'COMPLETE CHECKED PDF SOURCE SCOPE' in llm.prompts[1]
+        assert '[PDF PAGE LOCATORS]' in llm.prompts[1]
+        assert f'{doc_id}_physical_page_1' in llm.prompts[1]
+        assert 'The library opens in the morning.' not in llm.prompts[1]
+        assert 'The library closes at midnight.' not in llm.prompts[1]
         assert 'pdf_documents' not in json.dumps(answer.to_public_dict())
         assert 'data' not in service._request_local.document_scope_audit['documents'][0]
     finally:service.close()
+
+
+def test_pdf_page_locators_still_resolve_a_positive_claim_against_original_text(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [], image=True,
+        reader_options={'allow_pdf_scope': True}, pdf_client=True)
+    final = {'answer': 'The library closes at midnight.', 'confidence': 'high', 'abstained': False,
+        'claims': [{'claim_id': 'closing', 'text': 'The library closes at midnight.',
+                    'citation_ids': [f'{doc_id}_physical_page_2']}],
+        'citations': [{'chunk_id': f'{doc_id}_physical_page_2', 'page': 2,
+                       'quote': 'The library closes at midnight.'}]}
+    llm.payloads = iter([absent(), final])
+    try:
+        answer = ask_scope(service, doc_id)
+        assert not answer.abstained and answer.source_scope_checked
+        assert answer.citations[0].quote == 'The library closes at midnight.'
+        assert answer.citations[0].page == 2
+        assert 'The library closes at midnight.' not in llm.prompts[1]
+        assert '[PDF PAGE LOCATORS]' in llm.prompts[1] and llm.arguments[1]['pdf_documents']
+    finally:
+        service.close()
+
+
+def test_pdf_coverage_metadata_without_actual_attachments_cannot_certify_absence():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from tests.test_basic_rag import FakeLLM, evidence
+    llm = FakeLLM(absent())
+    answer = GroundedAnswerGenerator(llm).answer(QUESTION, [evidence()], 'en',
+        verified_document_absence=True,
+        document_scope_context={'coverage': 'complete_pdf_bytes_with_extracted_text_index'})
+    assert answer.abstained and answer.reason == 'unsupported_claim' and llm.calls == 0
 
 
 def test_pdf_does_not_fabricate_citation_text_for_blank_physical_pages(tmp_path):

@@ -1,7 +1,22 @@
 # Phase 5 — audit và handoff hiện hành, 23/10/2026
 
-**7/10 task DONE = 70%; Phase 5 remains incomplete.** The owner approved exact held-out packet `206f1efc05deb5bff634a8e6a088b08f2ba52c694c40702db6080495ac8616a5`. Test shard key_1 completed44/44 rows with33 POSTs and29 JSON responses; key_2 stopped at `phase5-fresh-test-067` HTTP503 after23/43 rows,34 POSTs and26 JSON responses. Total:67 pipeline rows,66 evaluable,55 JSON responses across45 question IDs; key_3 and holdout were not sent. Shared quota is250/500; no retry or key rotation occurred. These test runs imported checkout-main runtime `35752c5d1cc2d02a56f0371c40fbb89cf876416dbffe0ce4ed10421f8c56dabc`, whereas the approved candidate packet binds `af6fe8bc37eb0469ac7dd0fbfaacfc078962d6d35e351addcc939664b069f7a2`; keep them as diagnostic evidence only. The patched working source has no accepted native qualification. New fixes cover exact table-row citations, natural admission lookups, alphanumeric discipline codes, source-scoped missing subjects, notice-year presentation and repeated HSA/SAT clauses. Collector/validator now reject foreign imports and packet/source/config/index mismatches. Full regression before the final follow-up fixes:2410 PASS/2 opt-in live SKIP; latest affected cross-phase suite:805 PASS. Do not reuse the historical dev calibrator to certify this patched runtime. P5-08/09/10 and all-population acceptance remain open; thresholds are unchanged.
-[Plan](../../plan.md) giữ 10 task và 5 gates; hiện 7 DONE, P5-08 IN PROGRESS, P5-09 IN PROGRESS và P5-10 IN PROGRESS chờ đóng gates.
+**7/10 task DONE = 70%; Phase 5 remains incomplete.** The latest owner-approved
+2-case packet `9f00be14761e71f341d83ea075a033e901f588569b86e2ca3fc94defc7aff726`
+bound the actual source/runtime of `ebf1fd3a` correctly. It used3/5 POSTs:
+1 successful initial JSON,1 token measurement and1 full-PDF generation that
+failed HTTP503. Collection stopped immediately; test-008 was not sent,2 unused
+POSTs were discarded, and0 pipeline outcomes are evaluable. Shared quota at the
+stop is253/500. [Actual authorization, native failure and local checks](../../evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/checkpoint.json)
+retain the original packet/run/captures without relabelling failures as negatives.
+
+The next method keeps the exact original PDF and all13 pages, but replaces the
+duplicate full transcription with physical page/chunk locators; the full text
+index and citation verification stay local. Textual prompt size drops30,772 to
+7,082 characters (76.99%), with identical PDF bytes.819 affected tests PASS
+([XML](../../evaluation/results/phase5-reason-qualification-ebf1fd3a-20261023/compact-pdf-cross-phase.xml)).
+This has not yet proved provider reliability or model quality. A new authorized
+run, current dev-only calibration and400 native outcomes are still required;
+P5-08/09/10 and all-population acceptance remain open. Thresholds are unchanged.
 
 Latest focused repair checkpoint: **P5-08i/P5-09c DONE;805 affected tests PASS**
 ([XML](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/admission-facts-cross-phase.xml)).
