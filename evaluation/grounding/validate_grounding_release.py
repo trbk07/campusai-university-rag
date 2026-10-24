@@ -83,6 +83,9 @@ def _verify_bindings(report: dict, root: Path) -> list[str]:
     )
     errors = []
     root = root.resolve()
+    from evaluation.grounding.scoring_provenance import source_tree_dirty
+    if source_tree_dirty(root):
+        errors.append('working_tree_dirty')
     if report.get("source_identity") != source_identity(root):
         errors.append("current_source_identity_mismatch")
     paths = {"benchmark": report.get("benchmark"),

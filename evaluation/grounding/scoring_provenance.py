@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+import subprocess
 
 from evaluation.common.release_artifacts import source_identity
 
@@ -13,6 +14,23 @@ SCORER_FILES = frozenset({
     "evaluation/grounding/validate_grounding_release.py",
     "evaluation/grounding/scoring_provenance.py",
 })
+
+
+def source_tree_dirty(root: Path) -> bool:
+    """Generated evidence is bound as data; edited or untracked source is dirty."""
+    if subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'],
+                               cwd=root, text=True).strip():
+        return True
+    untracked = subprocess.check_output(['git', 'ls-files', '--others', '--exclude-standard', '-z'],
+                                        cwd=root).decode('utf-8').split('\0')
+    manifests = {'plan.md', 'pyproject.toml', 'requirements.txt', 'requirements-dev.txt', 'uv.lock', 'poetry.lock'}
+    for name in filter(None, untracked):
+        path = Path(name)
+        if name in manifests or path.parts[0] in {'src', 'scripts', 'tests', 'configs'}:
+            return True
+        if path.parts[0] == 'evaluation' and not name.startswith('evaluation/results/'):
+            return True
+    return False
 
 
 def _source_files(root: Path) -> dict[str, str]:

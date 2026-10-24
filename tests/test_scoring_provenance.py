@@ -105,3 +105,20 @@ def test_native_validator_requires_physical_scorer_binding_for_old_source(native
     assert 'scoring_source_binding_invalid' in validate(forged, root=root)
     path = root / 'src/changed_runtime.py'; path.parent.mkdir(exist_ok=True); path.write_text('changed')
     assert 'scoring_source_binding_invalid' in validate(bound, root=root)
+
+
+@pytest.mark.parametrize('name', ['src/new.py', 'scripts/new.py', 'configs/new.yaml',
+                                'evaluation/grounding/new.py', 'tests/new.py', 'plan.md'])
+def test_untracked_source_cannot_be_hidden_as_generated_evidence(monkeypatch, tmp_path, name):
+    monkeypatch.setattr(provenance.subprocess, 'check_output',
+        lambda args, **kwargs: '' if 'status' in args else (name+'\0').encode())
+    assert provenance.source_tree_dirty(tmp_path)
+
+
+def test_data_artifacts_are_separate_from_git_source_cleanliness(monkeypatch, tmp_path):
+    monkeypatch.setattr(provenance.subprocess, 'check_output', lambda args, **kwargs:
+        '' if 'status' in args else b'evaluation/results/raw.json\0data/corpus/source.pdf\0')
+    assert not provenance.source_tree_dirty(tmp_path)
+    monkeypatch.setattr(provenance.subprocess, 'check_output', lambda args, **kwargs:
+        ' M plan.md' if 'status' in args else b'')
+    assert provenance.source_tree_dirty(tmp_path)

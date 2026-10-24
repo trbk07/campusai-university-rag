@@ -151,3 +151,10 @@ match after accent removal, with unchanged numeric/role checks and every
 condition retained. Citation quotes remain literal and their physical source
 coordinates must still match. This does not introduce accent-insensitive
 fuzzy matching, alter gold or change any threshold.
+
+Git cleanliness covers every tracked edit and untracked source/configuration,
+including the root plan. Generated evaluation results and corpus/data files
+are data artifacts: their own physical hashes and review bindings are checked
+separately, and retaining an untracked raw result does not imply edited code.
+The physical validator recomputes source cleanliness instead of trusting the
+report's declaration. This rule never ignores an edited tracked file.

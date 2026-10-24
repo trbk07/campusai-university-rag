@@ -6,7 +6,6 @@ from copy import deepcopy
 import hashlib
 import json
 from pathlib import Path
-import subprocess
 
 from campusai.rag.schemas import validate_response, validate_release_response
 from campusai.rag.calibration import load_calibration_artifact, IsotonicCalibrator
@@ -62,6 +61,7 @@ def score(benchmark: Path, native_dir: Path | list[Path], root: Path, signoff: P
     evaluable_ids = {row["id"] for row in rows if not is_native_evaluation_failure(row)}
     failed_ids = sorted(row["id"] for row in rows if is_native_evaluation_failure(row))
     current = source_identity(root)
+    from evaluation.grounding.scoring_provenance import source_tree_dirty
     native_bindings = [{"path": str(path / "run.json"),
                         "sha256": hashlib.sha256((path / "run.json").read_bytes()).hexdigest()}
                        for path in directories]
@@ -90,8 +90,8 @@ def score(benchmark: Path, native_dir: Path | list[Path], root: Path, signoff: P
         "missing_prediction_ids": sorted(set(gold) - evaluable_ids),
         "failed_prediction_ids": failed_ids,
         "dataset": {"sha256": benchmark_hash}, "policy_version": "grounding-v1",
-        "metadata": {"commit": current["commit"], "working_tree": bool(subprocess.check_output(
-            ["git", "status", "--porcelain"], cwd=root, text=True).strip())},
+        "metadata": {"commit": current["commit"], "working_tree": source_tree_dirty(root),
+                     "working_tree_scope": "tracked-files-and-untracked-source-v1"},
         "source_identity": current, "inference_source_identity": run.get("source_identity"),
         "generation": {"kind": "native", "gold_seeded": False, "model": run.get("model"),
                        "calibration_protocol": calibration_protocol,

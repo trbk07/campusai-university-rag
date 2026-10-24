@@ -660,5 +660,28 @@
     "full_suite_passed": 2560,
     "new_tests_passed": 13,
     "real_model_requests_for_scorer_repair": 0
+  },
+  "scorer_source_clean_regression": {
+    "exit_code": 0,
+    "source_identity_before": {
+      "commit": "a91142f20bcea54b50653e1a4f88eb9b308a1c2a",
+      "source_sha256": "fe0d9512439beb6474363b0229d1f1601e1748cffbfa6925ca71273cf4651752",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "source_identity_after": {
+      "commit": "a91142f20bcea54b50653e1a4f88eb9b308a1c2a",
+      "source_sha256": "fe0d9512439beb6474363b0229d1f1601e1748cffbfa6925ca71273cf4651752",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "source_unchanged": true,
+    "tests": {
+      "tests": 2569,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "xml_path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\scorer-source-clean-full.xml",
+    "xml_sha256": "418869b93fbac408a7210f4c480cdcc7c9836f5fcd8058d220836b28c782a01d",
+    "new_inference_requests": 0
   }
 }
