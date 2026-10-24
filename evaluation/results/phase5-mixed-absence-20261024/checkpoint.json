@@ -477,7 +477,7 @@
     "official_native_predictions": 0
   },
   "qualification_b1ab8adc": {
-    "status": "frozen source matches full regression physical hashes; exact packets prepared; budget pending",
+    "status": "52 local dev outcomes complete, 400 review records physically valid; API budget pending; dev68 and heldout280 still required",
     "source_identity": {
       "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
       "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
@@ -518,6 +518,32 @@
       "gemini:owner-project-key_2:gemini-3.5-flash-lite",
       "gemini:owner-project-key_3:gemini-3.5-flash-lite"
     ],
-    "native_outcomes_on_this_source": 0
+    "native_outcomes_on_this_source": 52,
+    "local_dev": {
+      "status": "DONE",
+      "pipeline_outcomes": 52,
+      "provider_posts": 0,
+      "real_model_outputs": 0,
+      "capture_integrity": "PASS",
+      "report_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-local-native\\run.json",
+      "report_sha256": "58d415f68fb62d19bd67dbf6e68400eb67975b8cf16e814e4823e09640550542",
+      "score_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-local-score.json",
+      "score_sha256": "9cf101b1bcf8e86bb405bbd514208d5193be27b67593d6bc0dd165ced9a1a9c9",
+      "grounded_precision": 1,
+      "grounded_recall": 1,
+      "citation_precision": 1,
+      "citation_recall": 1,
+      "abstention_precision": 1,
+      "abstention_recall": 1,
+      "reason_accuracy": 1,
+      "not_full_release_acceptance": true
+    },
+    "physical_review_validation": {
+      "records": 400,
+      "errors": [],
+      "physical_source_pdfs": 10,
+      "worktree_normalized_index_matches_HEAD": true,
+      "source_runtime_hashes_unchanged": true
+    }
   }
 }

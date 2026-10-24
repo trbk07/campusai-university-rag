@@ -41,6 +41,15 @@ Exact new packets are prepared: dev204 planned POSTs/cap216 and held-out617
 planned/cap735. Both have0 POSTs pending the new scoped budget; original
 spent budgets remain accounted. Packet hashes and bindings are in the checkpoint.
 
+On `b1ab8adc`,52 local dev outcomes are now complete with network forbidden,
+0 POSTs and native capture integrity PASS. Applicable grounding/citation/
+abstention precision and recall, and reason accuracy, are all100%. These are
+actual application outcomes, with0 model outputs. The remaining68 dev model
+questions and280 held-out outcomes have not run. All400 independent review
+records validate against their physical evidence with0 review errors; all10
+required PDF sources are hash verified in the frozen checkout. No release
+quality gate is claimed from the52-row subset.
+
 The dev120 result below belongs to the frozen candidate; it does not certify
 subsequent runtime or evaluator changes. P5-08/09/10 remain open.
 
