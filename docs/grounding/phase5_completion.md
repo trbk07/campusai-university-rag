@@ -271,6 +271,30 @@ acceptance only for Phase5.
 
 ## 7. Concrete next work and owner actions
 
+Current frozen candidate: `6f634bb8bbb06237d30f4b7037572d276aee0861` at
+`.release/grounding/phase5-compact-04bb0ccb`. It is Git-clean and has the exact
+physical source/runtime bytes of the819-test checkpoint. Own-checkout imports,
+index integrity and full400 annotation/sign-off validation PASS. Existing
+canonical review attachments and empty-scope evidence are now tracked; no new
+review decisions or approval identities were created. The original shared
+quota/circuit state is used without copying or resetting counters.
+
+The prepared [dev120 packet](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-egress/egress.json)
+has SHA `c2540baa41559ab7fa74ae254fd7504d90238d916a8ff6cfb5ee17f03aa510b8`,
+68 model paths/52 local cases,204 planned POSTs and216 cap. The
+[test130/holdout150 packet](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/heldout-egress/egress.json)
+has SHA `064cd1d672d506db0bf92c3eb2929b1a9b183e935162becb61e37fc3a40ec0a4`,
+219 model paths/61 local cases,651 planned POSTs and675 cap. Both had0 POSTs
+when approved; all prompt/PDF/exact HTTP-body hashes PASS. Owner reply to
+`call_a9e99c801e1347a08696a027485c3106` is **“Duyệt cả hai gói, dừng ngay mọi lỗi”**.
+No503 recovery or retry is authorized. Dev collection has started. Dev must
+finish first, then its new calibrator must be
+fitted and pinned before any test/holdout collection. Use non-overlapping key
+shards and quota-bounded batches; preserve failures and actual source identity.
+
+The following paragraphs retain earlier qualification checkpoints for audit;
+they do not authorize or qualify the current frozen candidate.
+
 Benchmark content and disclosed exposure are already owner-approved; no additional annotation review is required. The r5 dev packet cited in the historical notes below is stale and was not used. Current-source results are in [the physical dev score](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/dev-score-physical.json); the exact held-out packet and approval state are recorded in the following handoff entry.
 
 **7/10 task DONE = 70%; Phase 5 remains incomplete.** The owner approved exact held-out packet `206f1efc05deb5bff634a8e6a088b08f2ba52c694c40702db6080495ac8616a5`. Test shard key_1 completed44/44 rows with33 POSTs and29 JSON responses; key_2 stopped at `phase5-fresh-test-067` HTTP503 after23/43 rows,34 POSTs and26 JSON responses. Total:67 pipeline rows,66 evaluable,55 JSON responses across45 question IDs; key_3 and holdout were not sent. Shared quota is250/500; no retry or key rotation occurred. These test runs imported checkout-main runtime `35752c5d1cc2d02a56f0371c40fbb89cf876416dbffe0ce4ed10421f8c56dabc`, whereas the approved candidate packet binds `af6fe8bc37eb0469ac7dd0fbfaacfc078962d6d35e351addcc939664b069f7a2`; keep them as diagnostic evidence only. The patched working source has no accepted native qualification. New fixes cover exact table-row citations, natural admission lookups, alphanumeric discipline codes, source-scoped missing subjects, notice-year presentation and repeated HSA/SAT clauses. Collector/validator now reject foreign imports and packet/source/config/index mismatches. Full regression before the final follow-up fixes:2410 PASS/2 opt-in live SKIP; latest affected cross-phase suite:805 PASS. Do not reuse the historical dev calibrator to certify this patched runtime. P5-08/09/10 and all-population acceptance remain open; thresholds are unchanged. Evidence: [`test-diagnostic.json`](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/test-diagnostic.json), [`test-native-key-1/run.json`](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/test-native-key-1/run.json), [`test-native-key-2/run.json`](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/test-native-key-2/run.json), [`post-heldout-cross-phase.xml`](../../evaluation/results/phase5-current-source-e6134dc-qualification-20261023/post-heldout-cross-phase.xml). Intermediate offline replay is engineering evidence only,0 new provider posts, and predates the final citation-selection fixes.
