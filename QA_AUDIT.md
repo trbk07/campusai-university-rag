@@ -1,8 +1,26 @@
 # Full-app QA audit
 
-Current cycle: 2026-10-23. Goal: autonomous full-app testing and UX optimization.
+Current cycle: 2026-10-24. Goal: autonomous full-app testing and UX optimization.
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
+
+Current source `3fcd4a46`: 2,570 offline tests PASS/2 opt-in live SKIP;
+43/43 browser checks PASS on Chrome155, including two batches of five PDFs,
+deletion, six viewports, accessibility and actual local OCR recovery. The browser
+uses a deterministic test provider; it does not measure live AI quality.
+[Current browser evidence](docs/ui/evidence/phase5-v27-20261024/browser-results.json).
+The parser inventory covers34 distinct PDFs with physical page counts/sequences
+preserved. Its0.542-second parser-only measurement is not full ingestion latency
+or independent extraction/OCR accuracy.
+[PDF inventory](docs/ui/evidence/phase5-v27-20261024/pdf-parser.json).
+
+Twenty simultaneous read workers exposed a P2 transport-capacity issue:197/200
+requests succeeded, two returned503 and one connection failed; p95 was525ms.
+The loopback HTTP server currently limits active handlers and its backlog to8.
+This is a failed load check, measured alongside native qualification/regression,
+not a controlled SLO result. A transport fix and a controlled remeasurement
+remain open; the frozen Phase5 inference source is retained.
+[Load evidence](docs/ui/evidence/phase5-v27-20261024/read-concurrency.json).
 
 | ID | Severity | Finding | Status and evidence |
 |---|---|---|---|

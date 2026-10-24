@@ -1,0 +1,615 @@
+{
+  "workers": 3,
+  "seconds": 0.5419,
+  "initial_rss_bytes": 64503808,
+  "peak_sampled_rss_bytes": 88055808,
+  "documents": [
+    {
+      "name": "phase5_fictional_control_a.pdf",
+      "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+      "bytes": 22572,
+      "pages": 1,
+      "text_characters": 1736
+    },
+    {
+      "name": "phase5_fictional_control_b.pdf",
+      "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+      "bytes": 22572,
+      "pages": 1,
+      "text_characters": 1736
+    },
+    {
+      "name": "hust_academic_regulations_2025.pdf",
+      "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+      "bytes": 1604879,
+      "pages": 34,
+      "text_characters": 76749
+    },
+    {
+      "name": "uet_undergraduate_admission_2025.pdf",
+      "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+      "bytes": 914918,
+      "pages": 13,
+      "text_characters": 21659
+    },
+    {
+      "name": "uet_admission_2024.pdf",
+      "sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "bytes": 10050693,
+      "pages": 35,
+      "text_characters": 0
+    },
+    {
+      "name": "uet_admission_2025.pdf",
+      "sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "bytes": 13037919,
+      "pages": 32,
+      "text_characters": 0
+    },
+    {
+      "name": "uet_computer_engineering_program.pdf",
+      "sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "bytes": 1178167,
+      "pages": 6,
+      "text_characters": 0
+    },
+    {
+      "name": "uet_cs_curriculum_2019.pdf",
+      "sha256": "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+      "bytes": 491709,
+      "pages": 18,
+      "text_characters": 26111
+    },
+    {
+      "name": "uet_cs_progression.pdf",
+      "sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "bytes": 84506,
+      "pages": 1,
+      "text_characters": 1143
+    },
+    {
+      "name": "uet_electronics_course_map.pdf",
+      "sha256": "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+      "bytes": 91183,
+      "pages": 1,
+      "text_characters": 1155
+    },
+    {
+      "name": "uet_electronics_program_2023.pdf",
+      "sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "bytes": 3489029,
+      "pages": 13,
+      "text_characters": 16191
+    },
+    {
+      "name": "uet_mai_joint_curriculum_2022.pdf",
+      "sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+      "bytes": 452176,
+      "pages": 3,
+      "text_characters": 3880
+    },
+    {
+      "name": "uet_masters_admission_2022.pdf",
+      "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "bytes": 429108,
+      "pages": 18,
+      "text_characters": 25437
+    },
+    {
+      "name": "uet_mechatronics_curriculum_2023.pdf",
+      "sha256": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "bytes": 849988,
+      "pages": 15,
+      "text_characters": 15031
+    },
+    {
+      "name": "uet_program_adjustments_2021.pdf",
+      "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "bytes": 119441,
+      "pages": 3,
+      "text_characters": 3283
+    },
+    {
+      "name": "uet_student_rewards_2023.pdf",
+      "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+      "bytes": 1695286,
+      "pages": 4,
+      "text_characters": 7590
+    },
+    {
+      "name": "uet_training_regulation_2014.pdf",
+      "sha256": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+      "bytes": 107111,
+      "pages": 1,
+      "text_characters": 1958
+    },
+    {
+      "name": "uet_bionanotechnology_masters_curriculum_2015.pdf",
+      "sha256": "90be663882058bb1909a4078ff5a8cf8e83d6156f7cbd956f13b34b88f9c4ac9",
+      "bytes": 8330085,
+      "pages": 12,
+      "text_characters": 0
+    },
+    {
+      "name": "uet_electronics_masters_curriculum_2022.pdf",
+      "sha256": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "bytes": 469084,
+      "pages": 9,
+      "text_characters": 16107
+    },
+    {
+      "name": "uet_robotics_curriculum_2020.pdf",
+      "sha256": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "bytes": 823108,
+      "pages": 16,
+      "text_characters": 24004
+    },
+    {
+      "name": "uet_engineering_mechanics_masters_schedule_2019_publication.pdf",
+      "sha256": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d",
+      "bytes": 111638,
+      "pages": 2,
+      "text_characters": 1492
+    },
+    {
+      "name": "uet_telecommunications_masters_curriculum_2022.pdf",
+      "sha256": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+      "bytes": 474253,
+      "pages": 10,
+      "text_characters": 16076
+    },
+    {
+      "name": "uet_robotics_curriculum_qh2025_snapshot-v2.pdf",
+      "sha256": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "bytes": 1218646,
+      "pages": 7,
+      "text_characters": 19313
+    },
+    {
+      "name": "Enrollment-10.pdf",
+      "sha256": "214e69ec66bd49e811d52412f01ebd043d2567019e2461a3e93d677f4b245a6d",
+      "bytes": 914,
+      "pages": 1,
+      "text_characters": 98
+    },
+    {
+      "name": "Enrollment-2.pdf",
+      "sha256": "a0c8790923bc7ce7bc775ae0844c65aebddaac9ffc1dd3d83ab30113cf51e23b",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-3.pdf",
+      "sha256": "ba261069eea231b5a74c17a0a251b6c6b808f17a4657245644c07b9d5751aba2",
+      "bytes": 912,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-4.pdf",
+      "sha256": "58cde80823ac114dcd8a04b7488da128f882a10948aa61aa62f2a94cf7a63337",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-5.pdf",
+      "sha256": "946fd67c216d306ef6db992b8b288ece74f47e82c917245d57176958c18212c0",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-6.pdf",
+      "sha256": "ce1792651699d2b37334c72c1ce3e7028637bcb618cd7cbb37b007ee25f7b8f3",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-7.pdf",
+      "sha256": "e7d7b2feb2e2342abcccb2db1328e7ac5ba4b9ae21ba3d1822c08595fd973061",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-8.pdf",
+      "sha256": "045915f561d082dcc0b9bda8610d1db25e3a85ea8052d83a985bd7a8681237b5",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment-9.pdf",
+      "sha256": "bb04c823ba21d776a62c7207cfcb46429a1ca371a24c7e3dd09c9dadd0c1c5ba",
+      "bytes": 913,
+      "pages": 1,
+      "text_characters": 97
+    },
+    {
+      "name": "Enrollment.pdf",
+      "sha256": "6b60dbe8a5592f7dcd4b987d42a67924461c1e77a0ada61c7688c823bdc09d56",
+      "bytes": 927,
+      "pages": 1,
+      "text_characters": 106
+    },
+    {
+      "name": "mixed.pdf",
+      "sha256": "8aaff547f32865f78a406df13678d33308c755bffda24434bec26d4d17b2ed27",
+      "bytes": 6016138,
+      "pages": 3,
+      "text_characters": 64
+    }
+  ],
+  "scope": "Parser-only inventory of34 distinct existing PDFs; independent extraction/OCR accuracy and end-to-end ingestion latency remain unmeasured",
+  "integrity": [
+    {
+      "path": "data\\corpus\\phase5-controlled-conflict-20261021\\phase5_fictional_control_a.pdf",
+      "sha256": "50e39413b3d2a77bffc868e48fe5fb56653e88368e3716247f5c968886a52710",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase5-controlled-conflict-20261021\\phase5_fictional_control_b.pdf",
+      "sha256": "3abe187edd47a8732ad7a2a6fba44934ce745f4ea5e177c91790c078591344f5",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase5-fresh-study-20261016\\hust_academic_regulations_2025.pdf",
+      "sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+      "expected_pages": 34,
+      "parsed_pages": 34,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase5-fresh-study-20261016\\uet_undergraduate_admission_2025.pdf",
+      "sha256": "32af040e742fc443f2836ee6e320007271abb3d796eafd8790ceb2e0f8cd26b6",
+      "expected_pages": 13,
+      "parsed_pages": 13,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_admission_2024.pdf",
+      "sha256": "39f15c619431a3fdd8e357d17124fb7a4c91ce1d2956d2d8cae91dab2dbdf1d9",
+      "expected_pages": 35,
+      "parsed_pages": 35,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35
+      ]
+    },
+    {
+      "path": "data\\corpus\\university\\uet_admission_2025.pdf",
+      "sha256": "096c6bac40069130d9e6bec2343f9936ed41b308f4f9ec533b29bd70eb3003a7",
+      "expected_pages": 32,
+      "parsed_pages": 32,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32
+      ]
+    },
+    {
+      "path": "data\\corpus\\university\\uet_computer_engineering_program.pdf",
+      "sha256": "26f367c7ce47b6227a87b0bfa131e53bda521afd5b5e6d93ca25df542aa01967",
+      "expected_pages": 6,
+      "parsed_pages": 6,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "path": "data\\corpus\\university\\uet_cs_curriculum_2019.pdf",
+      "sha256": "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+      "expected_pages": 18,
+      "parsed_pages": 18,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_cs_progression.pdf",
+      "sha256": "c3220664c5737cd12e6fdaa1077d92ef7598ff3af25ca80e9f366b2f0021d0f8",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_electronics_course_map.pdf",
+      "sha256": "b1fac148da7bd730e1ff68e6b591f6a4af05c2d87f417fef2e262a2276a79c7a",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_electronics_program_2023.pdf",
+      "sha256": "cb9a88c6025b61c4545a2bd9b4e89678873a583ee8fa45a1cc9b01795be7e1a6",
+      "expected_pages": 13,
+      "parsed_pages": 13,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_mai_joint_curriculum_2022.pdf",
+      "sha256": "667de97d9bc8cf4749eaac42a0f1ea3418c80544836708a576d545ecf5635e13",
+      "expected_pages": 3,
+      "parsed_pages": 3,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_masters_admission_2022.pdf",
+      "sha256": "242faf4504a48503dce8821b53e5ae6b909a370725062a2855886b8593c34a59",
+      "expected_pages": 18,
+      "parsed_pages": 18,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_mechatronics_curriculum_2023.pdf",
+      "sha256": "c64064b1854fe6e98b3278d038e6b1aa03356d00483caa18194e6215e6654850",
+      "expected_pages": 15,
+      "parsed_pages": 15,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_program_adjustments_2021.pdf",
+      "sha256": "fbeadda5107e0b43a293d245333e9565d531cd75a9f961df4b2ac516b5391d79",
+      "expected_pages": 3,
+      "parsed_pages": 3,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_student_rewards_2023.pdf",
+      "sha256": "7489db58974835607085d5244795f2e9ca4ba4f137bc2f7ce0b1fc1358ec6c2b",
+      "expected_pages": 4,
+      "parsed_pages": 4,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\university\\uet_training_regulation_2014.pdf",
+      "sha256": "3d2d91de10423ddd460d64aa7ddeea48af872d97a52eb8dfe716940da99748e1",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261004\\uet_bionanotechnology_masters_curriculum_2015.pdf",
+      "sha256": "90be663882058bb1909a4078ff5a8cf8e83d6156f7cbd956f13b34b88f9c4ac9",
+      "expected_pages": 12,
+      "parsed_pages": 12,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ]
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261004\\uet_electronics_masters_curriculum_2022.pdf",
+      "sha256": "1d782088cffaa263149ede526bc0ddfd82693ce42f76986c82cb64a43bfe6cbf",
+      "expected_pages": 9,
+      "parsed_pages": 9,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261004\\uet_robotics_curriculum_2020.pdf",
+      "sha256": "d39c59d1f20bd87275cbe8758d179ac90cd1e2045ef07f7270830bb167540e09",
+      "expected_pages": 16,
+      "parsed_pages": 16,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261004b\\uet_engineering_mechanics_masters_schedule_2019_publication.pdf",
+      "sha256": "65fe5e6b410c04f51b2b1e0c1081450add5dd56ce35fb3faced7e7852c1beb1d",
+      "expected_pages": 2,
+      "parsed_pages": 2,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261004b\\uet_telecommunications_masters_curriculum_2022.pdf",
+      "sha256": "e7e5444554d2e0aff3f306e6b65f4ecc739ee3d92b9bcc6e0e45f0351306a52e",
+      "expected_pages": 10,
+      "parsed_pages": 10,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": "data\\corpus\\phase7_source_expansion\\20261005\\uet_robotics_curriculum_qh2025_snapshot-v2.pdf",
+      "sha256": "1cb9ffe7c5e7524b641b2811bcfcd181b6666f56450c8278abb6db284042236d",
+      "expected_pages": 7,
+      "parsed_pages": 7,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-10.pdf",
+      "sha256": "214e69ec66bd49e811d52412f01ebd043d2567019e2461a3e93d677f4b245a6d",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-2.pdf",
+      "sha256": "a0c8790923bc7ce7bc775ae0844c65aebddaac9ffc1dd3d83ab30113cf51e23b",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-3.pdf",
+      "sha256": "ba261069eea231b5a74c17a0a251b6c6b808f17a4657245644c07b9d5751aba2",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-4.pdf",
+      "sha256": "58cde80823ac114dcd8a04b7488da128f882a10948aa61aa62f2a94cf7a63337",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-5.pdf",
+      "sha256": "946fd67c216d306ef6db992b8b288ece74f47e82c917245d57176958c18212c0",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-6.pdf",
+      "sha256": "ce1792651699d2b37334c72c1ce3e7028637bcb618cd7cbb37b007ee25f7b8f3",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-7.pdf",
+      "sha256": "e7d7b2feb2e2342abcccb2db1328e7ac5ba4b9ae21ba3d1822c08595fd973061",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-8.pdf",
+      "sha256": "045915f561d082dcc0b9bda8610d1db25e3a85ea8052d83a985bd7a8681237b5",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment-9.pdf",
+      "sha256": "bb04c823ba21d776a62c7207cfcb46429a1ca371a24c7e3dd09c9dadd0c1c5ba",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\Enrollment.pdf",
+      "sha256": "6b60dbe8a5592f7dcd4b987d42a67924461c1e77a0ada61c7688c823bdc09d56",
+      "expected_pages": 1,
+      "parsed_pages": 1,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": []
+    },
+    {
+      "path": ".tmp\\phase5-ui-20261024\\mixed.pdf",
+      "sha256": "8aaff547f32865f78a406df13678d33308c755bffda24434bec26d4d17b2ed27",
+      "expected_pages": 3,
+      "parsed_pages": 3,
+      "physical_page_sequence_valid": true,
+      "ocr_required_pages": [
+        2
+      ]
+    }
+  ],
+  "distinct_sha256": 34,
+  "physical_page_inventory_pass": true,
+  "python": "3.14.6"
+}
