@@ -477,7 +477,7 @@
     "official_native_predictions": 0
   },
   "qualification_b1ab8adc": {
-    "status": "52 local dev outcomes complete, 400 review records physically valid; API budget pending; dev68 and heldout280 still required",
+    "status": "118 dev outcomes successfully scored; dev collection stopped at socket10054; owner network-recovery decision pending",
     "source_identity": {
       "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
       "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
@@ -497,8 +497,8 @@
         "prepared_prompts": 136,
         "planned_posts": 204,
         "cap": 216,
-        "provider_posts": 0,
-        "status": "new scoped budget requested; not sent"
+        "provider_posts": 92,
+        "status": "authorized under new independent budget; historical usage preserved"
       },
       "heldout": {
         "path": ".release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\heldout-egress\\egress.json",
@@ -509,7 +509,7 @@
         "planned_posts": 617,
         "cap": 735,
         "provider_posts": 0,
-        "status": "new scoped budget requested; not sent"
+        "status": "authorized under new independent budget; historical usage preserved"
       }
     },
     "separate_project_quota_owner_confirmation": "call_d68d1849049147ff8590872b1a5556ce",
@@ -518,7 +518,7 @@
       "gemini:owner-project-key_2:gemini-3.5-flash-lite",
       "gemini:owner-project-key_3:gemini-3.5-flash-lite"
     ],
-    "native_outcomes_on_this_source": 52,
+    "native_outcomes_on_this_source": 118,
     "local_dev": {
       "status": "DONE",
       "pipeline_outcomes": 52,
@@ -544,6 +544,74 @@
       "physical_source_pdfs": 10,
       "worktree_normalized_index_matches_HEAD": true,
       "source_runtime_hashes_unchanged": true
+    },
+    "new_budget_owner_decision_reference": "conversation:request_user_input_async:call_cc8892158aa1465f827759789da01de3:user-reply",
+    "new_budget_owner_decision_quote": "Duy?t c? hai g?i v? ng?n s?ch m?i",
+    "current_dev_collection": {
+      "attempted_records": 119,
+      "successful_outcomes": 118,
+      "planned_dev_records": 120,
+      "provider_posts": 92,
+      "provider_posts_cap": 216,
+      "real_json_outputs": 78,
+      "failed_id": "draft-0240",
+      "unstarted_id": "draft-0246",
+      "error_type": "URLError",
+      "network_winerror": 10054,
+      "http_status": null,
+      "http503_recovery_not_applicable": true,
+      "same_key_network_recovery_requires_owner_decision": true,
+      "metrics": {
+        "records": 118,
+        "excluded_native_failures": 1,
+        "claim_count": 63,
+        "predicted_claim_count": 63,
+        "matched_predicted_claim_count": 63,
+        "gold_claim_count": 63,
+        "matched_gold_claim_count": 63,
+        "grounded_claim_precision": 1.0,
+        "grounded_claim_recall": 1.0,
+        "unsupported_claim_leakage": 0.0,
+        "contradicted_claim_leakage": 0.0,
+        "citation_precision": 1.0,
+        "citation_coordinate_validity": 1.0,
+        "citation_recall": 1.0,
+        "citation_completeness": 1.0,
+        "claim_citation_precision": 1.0,
+        "claim_citation_recall": 1.0,
+        "claim_citation_f1": 1.0,
+        "abstention_precision": 1.0,
+        "abstention_recall": 1.0,
+        "reason_accuracy": 0.966667,
+        "brier_score": 0.005266,
+        "ece": 0.041223,
+        "calibration_count": 118,
+        "schema_invalid_rate": 0.0,
+        "abstention_reason_counts": {
+          "ambiguous_question": 12,
+          "no_evidence_found": 5,
+          "conflicting_evidence": 28,
+          "document_does_not_mention": 7,
+          "unsupported_claim": 8
+        },
+        "denominators": {
+          "records": 118,
+          "predicted_claims": 63,
+          "gold_claims": 63,
+          "citations": 58,
+          "gold_citation_links": 63,
+          "predicted_citation_links": 63,
+          "predicted_abstentions": 60,
+          "gold_abstentions": 60,
+          "abstention_reasons": 60
+        }
+      },
+      "score_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-partial-score.json",
+      "score_sha256": "3f0da86f4c08038b1a26ed6a00493e278b32c3604160a1fe767e519d91b2efba",
+      "failed_capture_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-model-native\\118-draft-0240\\run.json",
+      "failed_capture_sha256": "531fe2fe2031c887603906a604614e71cc389812afad5b80be8b8657de5bc331",
+      "failed_attempt_retained": true,
+      "heldout_posts": 0
     }
   }
 }

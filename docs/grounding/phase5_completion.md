@@ -1,6 +1,13 @@
 # Phase 5 — audit và handoff hiện hành, 24/10/2026
 
-Latest qualification checkpoint: frozen `cb7220d4` completed309/400 pipeline
+Current qualification: `b1ab8adc` has118 successful dev outcomes,92 POSTs
+and78 real JSON outputs. Its measured grounding/citation/abstention P/R are
+100%, leakage0, reason96.67%. Two dev outcomes remain before dev-only fit: one
+socket10054 failure retained and one unstarted question. Held-out has0 POSTs;
+the new owner-approved budgets are216/735. The additional network-recovery
+decision is pending because the approved automatic recovery is503-only.
+
+Historical checkpoint: frozen `cb7220d4` completed309/400 pipeline
 outcomes (dev120, test130, holdout59). Dev meets the unchanged thresholds;
 test130 does not: grounded precision90%, citation precision92.21%, unsupported
 leakage10%, abstention precision90.57%, reason accuracy77.08%. Collection was
@@ -49,6 +56,16 @@ questions and280 held-out outcomes have not run. All400 independent review
 records validate against their physical evidence with0 review errors; all10
 required PDF sources are hash verified in the frozen checkout. No release
 quality gate is claimed from the52-row subset.
+
+The new owner-authorized dev collection reached118 successful outcomes before
+stopping on Windows socket10054 at `draft-0240`; `draft-0246` is unstarted.
+Actual spending:92/216 POSTs,78 real JSON outputs,119 attempted pipeline rows
+including the failure. The independent score excludes that provider failure:
+grounding/citation/abstention P/R100%, leakage0, reason96.67%. The failure is
+retained without relabeling it HTTP503; the current503-only recovery grant
+does not authorize retrying10054. The remaining network-recovery decision is
+pending. Calibration is not fitted from this incomplete dev population;
+held-out has0 POSTs. Exact capture/report hashes are in the checkpoint.
 
 The dev120 result below belongs to the frozen candidate; it does not certify
 subsequent runtime or evaluator changes. P5-08/09/10 remain open.
