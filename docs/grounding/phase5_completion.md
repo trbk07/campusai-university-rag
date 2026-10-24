@@ -33,6 +33,14 @@ The concurrent two-batch10-PDF registry race is fixed with bounded Windows
 publication retries;15 stress iterations and the full regression passed.
 [Counts, physical bindings and regression](../../evaluation/results/phase5-mixed-absence-20261024/checkpoint.json).
 
+The repaired source is committed and pushed as `b1ab8adc`. Its isolated
+qualification checkout matches the tested physical source/runtime hashes
+`d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109` /
+`268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9`.
+Exact new packets are prepared: dev204 planned POSTs/cap216 and held-out617
+planned/cap735. Both have0 POSTs pending the new scoped budget; original
+spent budgets remain accounted. Packet hashes and bindings are in the checkpoint.
+
 The dev120 result below belongs to the frozen candidate; it does not certify
 subsequent runtime or evaluator changes. P5-08/09/10 remain open.
 

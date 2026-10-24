@@ -475,5 +475,49 @@
     "post_journal_path": "evaluation\\results\\phase5-mixed-absence-20261024\\live-opt-in-posts.jsonl",
     "post_journal_sha256": "a314f72cad38c5d1c7aa060dd7186fd9d07b15a2a349658a48a581c1c42df3bf",
     "official_native_predictions": 0
+  },
+  "qualification_b1ab8adc": {
+    "status": "frozen source matches full regression physical hashes; exact packets prepared; budget pending",
+    "source_identity": {
+      "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
+      "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "runtime_import_checkout_verified": true,
+    "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+    "index_manifest_sha256": "13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a",
+    "config_sha256": "c03e67c8c745be958f2f8968ad1fdc113af9ab7dd988f83f5d6d0b685527ce19",
+    "source_pushed_to_origin_main": true,
+    "packets": {
+      "dev": {
+        "path": ".release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-egress\\egress.json",
+        "sha256": "741e46423b4d8fc6c1c9cc33155929d546882277f2616d660da7ad5b27cda460",
+        "questions": 120,
+        "model_question_ids": 68,
+        "prepared_prompts": 136,
+        "planned_posts": 204,
+        "cap": 216,
+        "provider_posts": 0,
+        "status": "new scoped budget requested; not sent"
+      },
+      "heldout": {
+        "path": ".release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\heldout-egress\\egress.json",
+        "sha256": "3ad8fc93821f74ba78fd205b19f8a28d8cc70a807aeb9d923665149e04ca7969",
+        "questions": 280,
+        "model_question_ids": 208,
+        "prepared_prompts": 409,
+        "planned_posts": 617,
+        "cap": 735,
+        "provider_posts": 0,
+        "status": "new scoped budget requested; not sent"
+      }
+    },
+    "separate_project_quota_owner_confirmation": "call_d68d1849049147ff8590872b1a5556ce",
+    "independent_project_scopes": [
+      "gemini:owner-project-key_1:gemini-3.5-flash-lite",
+      "gemini:owner-project-key_2:gemini-3.5-flash-lite",
+      "gemini:owner-project-key_3:gemini-3.5-flash-lite"
+    ],
+    "native_outcomes_on_this_source": 0
   }
 }
