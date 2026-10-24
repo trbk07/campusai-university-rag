@@ -104,6 +104,13 @@ def _verify_bindings(report: dict, root: Path) -> list[str]:
                     (json.loads(line) for line in resolved["benchmark"].read_text(encoding="utf-8").splitlines()
                      if line.strip())}
     generation = report.get("generation", {})
+    expected_native_source = report.get('source_identity')
+    if generation.get('scoring_source_binding') is not None:
+        from evaluation.grounding.scoring_provenance import verify_scoring_source
+        try:
+            expected_native_source = verify_scoring_source(generation['scoring_source_binding'], root)
+        except (OSError, ValueError, TypeError, KeyError):
+            errors.append('scoring_source_binding_invalid')
     bindings = generation.get("native_runs")
     if bindings is None:
         bindings = [{"path": generation.get("native_run_path"), "sha256": generation.get("native_run_sha256")}]
@@ -158,7 +165,7 @@ def _verify_bindings(report: dict, root: Path) -> list[str]:
             calibrated_predictions.extend(batch_predictions)
         if native.get("benchmark_sha256") != report.get("benchmark_sha256"):
             errors.append("native_benchmark_checksum_mismatch")
-        if native.get("source_identity") != report.get("source_identity"):
+        if native.get("source_identity") != expected_native_source:
             errors.append("native_source_identity_mismatch")
         if not native_calibration_matches(native, batch_predictions, expected,
                 report.get("calibration_artifact_sha256"), generation.get("calibration_protocol")):

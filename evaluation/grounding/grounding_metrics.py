@@ -14,7 +14,7 @@ from campusai.rag.abstention import canonicalize_abstention_reason
 from campusai.rag.claims import _exact_markers, _markers_match
 from evaluation.grounding.claim_roles import canonical_pair, roles_compatible
 
-CITATION_QUOTE_POLICY = "reviewed-span-coverage-v5"
+CITATION_QUOTE_POLICY = "reviewed-span-coverage-v6"
 
 
 def _without_layout_ordinal(span: str, fact: str | None) -> str:
@@ -209,6 +209,13 @@ def _text_similarity(left: str, right: str) -> float:
     if (not _markers_match(_metric_markers(left), _metric_markers(right))
             or not roles_compatible(left, right)):
         return 0.0
+    # ASCII Vietnamese claims may preserve the entire reviewed statement while
+    # omitting accents. Require the same ordered tokens, including all words,
+    # values and qualifiers; this is not accent-insensitive fuzzy matching.
+    if left.isascii() != right.isascii():
+        from campusai.rag.course_credits import folded
+        if _quote_tokens(folded(left)) == _quote_tokens(folded(right)):
+            return 1.0
     a, b = _tokens(left), _tokens(right)
     return len(a & b) / max(1, len(a | b))
 

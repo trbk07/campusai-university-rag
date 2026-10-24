@@ -477,7 +477,7 @@
     "official_native_predictions": 0
   },
   "qualification_b1ab8adc": {
-    "status": "118 dev outcomes successfully scored; dev collection stopped at socket10054; owner network-recovery decision pending",
+    "status": "120 native dev outcomes complete; scorer-only transliteration correction passed full2560 regression; fit/pin next",
     "source_identity": {
       "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
       "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
@@ -497,7 +497,7 @@
         "prepared_prompts": 136,
         "planned_posts": 204,
         "cap": 216,
-        "provider_posts": 92,
+        "provider_posts": 96,
         "status": "authorized under new independent budget; historical usage preserved"
       },
       "heldout": {
@@ -518,7 +518,7 @@
       "gemini:owner-project-key_2:gemini-3.5-flash-lite",
       "gemini:owner-project-key_3:gemini-3.5-flash-lite"
     ],
-    "native_outcomes_on_this_source": 118,
+    "native_outcomes_on_this_source": 120,
     "local_dev": {
       "status": "DONE",
       "pipeline_outcomes": 52,
@@ -612,6 +612,53 @@
       "failed_capture_sha256": "531fe2fe2031c887603906a604614e71cc389812afad5b80be8b8657de5bc331",
       "failed_attempt_retained": true,
       "heldout_posts": 0
+    },
+    "network_recovery_owner_decision_reference": "conversation:request_user_input_async:call_9de854318dd94db09b9ca706228481d4:user-reply",
+    "network_recovery_owner_decision_quote": "Cho ph?p ph?c h?i10054 t?i ?a1 l?n/c?u",
+    "dev_recovery": {
+      "successful_ids": [
+        "draft-0240",
+        "draft-0246"
+      ],
+      "campaign_posts_including_prior_failure": 96,
+      "retained_prior_failure": "URLError WinError10054 at draft-0240",
+      "recovered_same_key": "key_1",
+      "successful_questions_not_repeated": true,
+      "additional_budget": 0
     }
+  },
+  "scorer_only_regression": {
+    "exit_code": 0,
+    "source_identity_before": {
+      "commit": "dd547dbd1f54cc0fefdc4043685f6df43875c92e",
+      "source_sha256": "c692c377adf826fa559de75273a8b0274114a839a26e6c24e192cb469fee91cd",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "source_identity_after": {
+      "commit": "dd547dbd1f54cc0fefdc4043685f6df43875c92e",
+      "source_sha256": "c692c377adf826fa559de75273a8b0274114a839a26e6c24e192cb469fee91cd",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "source_unchanged": true,
+    "tests": {
+      "tests": 2562,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "xml_path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\scorer-only-full.xml",
+    "xml_sha256": "5f665da4fb99e1e062b0546cf9a7e37cd9b5129beb3f7121f38ca64b95391627",
+    "new_inference_requests": 0
+  },
+  "scorer_only_correction": {
+    "policy": "reviewed-span-coverage-v6",
+    "source_compatibility_policy": "physical-scorer-only-v1",
+    "runtime_unchanged": true,
+    "production_source_edited": false,
+    "gold_or_thresholds_edited": false,
+    "native_raw_outputs_edited": false,
+    "full_suite_passed": 2560,
+    "new_tests_passed": 13,
+    "real_model_requests_for_scorer_repair": 0
   }
 }

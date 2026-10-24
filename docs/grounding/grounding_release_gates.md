@@ -133,3 +133,21 @@ packet binds the actual source/runtime identity. Physical release validation
 also verifies the packet hash and its source, benchmark, config, index, model
 and document-scope bindings against every native run. A mismatch is diagnostic
 evidence only and cannot be relabelled as a qualified candidate capture.
+
+A scorer-only repair may retain native inference from its original immutable
+checkout under `physical-scorer-only-v1`. This does not relabel any capture:
+the report binds the separate inference and scoring identities and retains
+the producer checkout physically inside the scoring workspace. The validator
+recomputes both complete source fingerprints and every changed-file hash.
+Only the four explicitly named scoring modules and tests may differ; changes
+to application code, collector, scripts, configuration, dependencies or any
+other fingerprinted input require new inference. Native batches still share
+one original producer identity and match their original packets exactly.
+Calibration is fitted with the repaired scorer before held-out collection.
+
+Quote policy `reviewed-span-coverage-v6` additionally recognizes an ASCII
+transliteration of a complete reviewed claim only when all ordered tokens
+match after accent removal, with unchanged numeric/role checks and every
+condition retained. Citation quotes remain literal and their physical source
+coordinates must still match. This does not introduce accent-insensitive
+fuzzy matching, alter gold or change any threshold.

@@ -23,7 +23,7 @@ from evaluation.grounding.validate_grounding_release import validate
 
 def score(benchmark: Path, native_dir: Path | list[Path], root: Path, signoff: Path | None = None,
           calibration: Path | None = None, calibration_sha256: str | None = None,
-          *, acceptance_scope: str = "public_release") -> dict:
+          *, acceptance_scope: str = "public_release", inference_checkout: Path | None = None) -> dict:
     directories = [native_dir] if isinstance(native_dir, Path) else list(native_dir)
     if not directories or len({path.resolve() for path in directories}) != len(directories):
         raise ValueError("native batches must be non-empty and unique")
@@ -123,6 +123,12 @@ def score(benchmark: Path, native_dir: Path | list[Path], root: Path, signoff: P
             ("pipeline_predictions", "provider_posts", "real_model_outputs_successful",
              "real_json_predictions_successful", "official_predictions")}}
     report["acceptance_scope"] = acceptance_scope
+    if inference_checkout is not None:
+        from evaluation.grounding.scoring_provenance import bind_scoring_source
+        binding = bind_scoring_source(inference_checkout, root)
+        if binding['inference_source_identity'] != run.get('source_identity'):
+            raise ValueError('native captures do not belong to the retained inference checkout')
+        report['generation']['scoring_source_binding'] = binding
     report["release_errors"] = validate(report, root=root, acceptance_scope=acceptance_scope)
     report["release_status"] = "BLOCKED" if report["release_errors"] else "PASS"
     return report
@@ -138,9 +144,12 @@ def main():
     parser.add_argument("--calibration-sha256")
     parser.add_argument("--acceptance-scope", choices=("public_release", "phase5_acceptance"), default="public_release")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--inference-checkout", type=Path,
+                        help="Retained physical inference checkout for an explicit scorer-only repair")
     args = parser.parse_args()
     report = score(args.benchmark, args.native_dir, Path.cwd(), args.annotation_signoff,
-                   args.calibration_artifact, args.calibration_sha256, acceptance_scope=args.acceptance_scope)
+                   args.calibration_artifact, args.calibration_sha256, acceptance_scope=args.acceptance_scope,
+                   inference_checkout=args.inference_checkout)
     write_json(args.output, report)
     print(json.dumps({"release_status": report["release_status"], "predictions": report["dataset_count"],
                       "population": report["benchmark_population"], "release_errors": report["release_errors"]}, indent=2))
