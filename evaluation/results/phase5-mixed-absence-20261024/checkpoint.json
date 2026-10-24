@@ -477,7 +477,7 @@
     "official_native_predictions": 0
   },
   "qualification_b1ab8adc": {
-    "status": "120 native dev outcomes complete; scorer-only transliteration correction passed full2560 regression; fit/pin next",
+    "status": "dev120 DONE and fresh dev-only calibration pinned; held-out native collection running in two disjoint workers across3 projects",
     "source_identity": {
       "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
       "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
@@ -548,27 +548,27 @@
     "new_budget_owner_decision_reference": "conversation:request_user_input_async:call_cc8892158aa1465f827759789da01de3:user-reply",
     "new_budget_owner_decision_quote": "Duy?t c? hai g?i v? ng?n s?ch m?i",
     "current_dev_collection": {
-      "attempted_records": 119,
-      "successful_outcomes": 118,
+      "attempted_records": 121,
+      "successful_outcomes": 120,
       "planned_dev_records": 120,
-      "provider_posts": 92,
+      "provider_posts": 96,
       "provider_posts_cap": 216,
-      "real_json_outputs": 78,
+      "real_json_outputs": 81,
       "failed_id": "draft-0240",
       "unstarted_id": "draft-0246",
       "error_type": "URLError",
       "network_winerror": 10054,
       "http_status": null,
       "http503_recovery_not_applicable": true,
-      "same_key_network_recovery_requires_owner_decision": true,
+      "same_key_network_recovery_requires_owner_decision": false,
       "metrics": {
-        "records": 118,
-        "excluded_native_failures": 1,
-        "claim_count": 63,
-        "predicted_claim_count": 63,
-        "matched_predicted_claim_count": 63,
-        "gold_claim_count": 63,
-        "matched_gold_claim_count": 63,
+        "records": 120,
+        "excluded_native_failures": 0,
+        "claim_count": 65,
+        "predicted_claim_count": 65,
+        "matched_predicted_claim_count": 65,
+        "gold_claim_count": 65,
+        "matched_gold_claim_count": 65,
         "grounded_claim_precision": 1.0,
         "grounded_claim_recall": 1.0,
         "unsupported_claim_leakage": 0.0,
@@ -583,9 +583,9 @@
         "abstention_precision": 1.0,
         "abstention_recall": 1.0,
         "reason_accuracy": 0.966667,
-        "brier_score": 0.005266,
-        "ece": 0.041223,
-        "calibration_count": 118,
+        "brier_score": 0.00532,
+        "ece": 0.042036,
+        "calibration_count": 120,
         "schema_invalid_rate": 0.0,
         "abstention_reason_counts": {
           "ambiguous_question": 12,
@@ -595,23 +595,24 @@
           "unsupported_claim": 8
         },
         "denominators": {
-          "records": 118,
-          "predicted_claims": 63,
-          "gold_claims": 63,
-          "citations": 58,
-          "gold_citation_links": 63,
-          "predicted_citation_links": 63,
+          "records": 120,
+          "predicted_claims": 65,
+          "gold_claims": 65,
+          "citations": 60,
+          "gold_citation_links": 65,
+          "predicted_citation_links": 65,
           "predicted_abstentions": 60,
           "gold_abstentions": 60,
           "abstention_reasons": 60
         }
       },
-      "score_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-partial-score.json",
-      "score_sha256": "3f0da86f4c08038b1a26ed6a00493e278b32c3604160a1fe767e519d91b2efba",
+      "score_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-score-v6.json",
+      "score_sha256": "b739e5135210f8b9af289cc76d25a03c541bf38da6c7b4b87a9d485e6ec4f3a0",
       "failed_capture_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-model-native\\118-draft-0240\\run.json",
       "failed_capture_sha256": "531fe2fe2031c887603906a604614e71cc389812afad5b80be8b8657de5bc331",
       "failed_attempt_retained": true,
-      "heldout_posts": 0
+      "heldout_posts": 0,
+      "network_recovery_owner_reference": "call_9de854318dd94db09b9ca706228481d4"
     },
     "network_recovery_owner_decision_reference": "conversation:request_user_input_async:call_9de854318dd94db09b9ca706228481d4:user-reply",
     "network_recovery_owner_decision_quote": "Cho ph?p ph?c h?i10054 t?i ?a1 l?n/c?u",
@@ -625,6 +626,45 @@
       "recovered_same_key": "key_1",
       "successful_questions_not_repeated": true,
       "additional_budget": 0
+    },
+    "calibration": {
+      "artifact_path": "D:\\Project\\.release\\grounding\\phase5-b1ab8adc\\.release\\grounding\\qualification\\dev-calibration.json",
+      "artifact_sha256": "34b8e1251ba0796beb4833f09b183124b60a6691bec071e153384c7f630da831",
+      "physical_file_sha256": "f230c41dfdbc228b227e950ec4073f8c3635acc644c4d93411e67b60ebb7e0e7",
+      "fit_split": "dev",
+      "fit_records": 120,
+      "locked_before_heldout": true,
+      "scoring_source_identity": {
+        "commit": "523971f726fc8f3373a9b8f84187ad550290d3af",
+        "source_sha256": "fe0d9512439beb6474363b0229d1f1601e1748cffbfa6925ca71273cf4651752",
+        "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+      },
+      "inference_source_identity": {
+        "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
+        "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
+        "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+      }
+    },
+    "heldout_workers": {
+      "a": {
+        "keys": [
+          "key_1",
+          "key_3"
+        ],
+        "questions": 148,
+        "planned_posts": 309,
+        "shard_cap": 368
+      },
+      "b": {
+        "keys": [
+          "key_2"
+        ],
+        "questions": 132,
+        "planned_posts": 308,
+        "shard_cap": 367
+      },
+      "aggregate_cap": 735,
+      "assignment": "deterministic balancing by exact packet request counts; no overlapping question IDs"
     }
   },
   "scorer_only_regression": {

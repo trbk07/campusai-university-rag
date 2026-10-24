@@ -1,11 +1,22 @@
 # Phase 5 — audit và handoff hiện hành, 24/10/2026
 
-Current qualification: `b1ab8adc` has118 successful dev outcomes,92 POSTs
-and78 real JSON outputs. Its measured grounding/citation/abstention P/R are
-100%, leakage0, reason96.67%. Two dev outcomes remain before dev-only fit: one
-socket10054 failure retained and one unstarted question. Held-out has0 POSTs;
-the new owner-approved budgets are216/735. The additional network-recovery
-decision is pending because the approved automatic recovery is503-only.
+Current qualification: dev120 DONE on immutable producer `b1ab8adc`.
+Grounding/citation/abstention P/R100%, leakage0, reason96.67%;81 real model
+JSON responses and96 campaign POSTs including the retained10054 failure.
+No successful question was rerun. Independent dev-only calibration
+`34b8e1251ba0796beb4833f09b183124b60a6691bec071e153384c7f630da831`
+was fitted from these120 captures and locked before held-out. Test130/holdout150
+now run in two disjoint workers across3 owner-confirmed projects, with
+subcaps368+367=735. Both scoped budgets and one same-key10054 recovery per
+question are owner-authorized; all old quota and failures remain.
+
+The v6 scorer repairs complete ASCII Vietnamese transliterations while keeping
+ordered words, values, conditions and literal source quotes. Production code
+and inference runtime are unchanged. Physical proof separately binds the
+retained inference checkout and scoring checkout; only named scorer modules
+and tests differ. Full regression2567 PASS/2 live opt-in SKIP; the two earlier
+real Gemini smoke tests passed on the identical production runtime.
+[Current checkpoint](../../evaluation/results/phase5-mixed-absence-20261024/checkpoint.json).
 
 Historical checkpoint: frozen `cb7220d4` completed309/400 pipeline
 outcomes (dev120, test130, holdout59). Dev meets the unchanged thresholds;
