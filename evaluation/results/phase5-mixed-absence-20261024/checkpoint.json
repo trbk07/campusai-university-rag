@@ -1,0 +1,43 @@
+{
+  "kind": "phase5-mixed-positive-absence-repair",
+  "diagnostic_only": true,
+  "failed_native_source_commit": "6f634bb8bbb06237d30f4b7037572d276aee0861",
+  "native_completed_case_checkpoints": 74,
+  "native_packet_posts_spent": 75,
+  "native_collection_stop": "Operator stopped the run after independently detecting a real quality error, preserving all complete and interrupted captures. No test/holdout inference was sent.",
+  "actual_failure": {
+    "id": "draft-0477",
+    "run_path": ".release\\grounding\\phase5-compact-04bb0ccb\\.release\\grounding\\qualification\\dev-cases\\060-draft-0477\\run.json",
+    "run_sha256": "b7e358cc40ade18f4b07d5c2f115a87ea05369987e2b331d4f60da97e18bfcd2",
+    "issue": "Positive programme-code fragment from page3 was published with an unverified assertion that Articles1/2 and the admission cohort were absent, although reviewed source page2 contains them."
+  },
+  "captured_response_recheck": {
+    "new_provider_posts": 0,
+    "official_predictions": 0,
+    "abstained": true,
+    "reason": "unsupported_claim",
+    "document_absence_requested": true,
+    "published_claims": 0,
+    "raw_capture_sha256": "c63fb140f27a96886134ccc4934d55a463dc1f7dfa56c40da7d57cabc7c9aa22"
+  },
+  "regression": {
+    "passed": 835,
+    "xml_path": "evaluation/results/phase5-mixed-absence-20261024/cross-phase.xml",
+    "xml_sha256": "ea9ae12d3b2e73366f5aa964161ccf7fae0efd6dff5cc3a2a578bc07bf2052e8"
+  },
+  "owner_http503_recovery": {
+    "decision_reference": "conversation:request_user_input_async:call_653852b7f3da4a5f8c192b389996263d:user-reply",
+    "decision_quote": "Cho ph?p ph?c h?i503 t?i ?a1 l?n/c?u",
+    "max_per_case": 1,
+    "same_key": true,
+    "packet_caps": {
+      "dev": 216,
+      "heldout": 675
+    }
+  },
+  "owner_quota_project_confirmation": {
+    "decision_reference": "conversation:request_user_input_async:call_d68d1849049147ff8590872b1a5556ce:user-reply",
+    "decision_quote": "Ba project kh?c nhau"
+  },
+  "release_status": "INCOMPLETE: source repair passed tests; current-source native qualification and calibration required; numeric quality thresholds unchanged."
+}

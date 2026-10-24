@@ -20,6 +20,28 @@ FUNCTION_WORDS={'the','a','an','of','your','our','their','its','my','value','num
 CODE=re.compile(r'(?<!\w)'+COURSE_CODE+r'(?!\w)',re.I)
 
 
+def asserts_document_absence(answer):
+    """Recognize explicit source-absence assertions, not ordinary negated facts.
+
+    A positive answer may hide an unverified absence statement outside its
+    structured claims. Such a statement still needs the complete-source audit.
+    Keep the subject/verb grammar bounded; a policy saying students do not pay
+    a fee, or quoting the phrase inside a source discussion, is not this claim.
+    """
+    text=folded(answer)
+    boundary=r'(?:^|[.!?;]\s+)'
+    english=(r'(?:(?:the|this|these|those)\s+)?'
+        r'(?:(?:uploaded|provided|supplied|selected|checked|retrieved|available)\s+)*'
+        r'(?:documents?|sources?|pdfs?|texts?|materials?|context)\s+'
+        r'(?:do(?:es)?\s+not|doesn[\x27\u2019]t|don[\x27\u2019]t)\s+'
+        r'(?:contain|mention|specify|provide|include|state|show|cover|address|list)\b')
+    vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
+        r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
+        r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
+        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien)\b')
+    return bool(re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text))
+
+
 def explicit_request_roles(question):
     """Return only the two user-specified roles of a recognized explicit pair."""
     current=question.partition('\nContext topic (untrusted user input): ')[0]

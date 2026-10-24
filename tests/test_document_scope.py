@@ -204,6 +204,85 @@ def test_top_k_absence_stays_provisional_without_complete_scope(tmp_path):
         service.close()
 
 
+def mixed_positive_absence():
+    return {'answer': 'The uploaded documents do not specify closing time. '
+            'The library opens in the morning.', 'confidence': 'high', 'abstained': False,
+            'citations': [{'chunk_id': 'top-k-1', 'page': 1,
+                           'quote': 'The library opens in the morning.'}],
+            'claims': [{'claim_id': 'opening', 'text': 'The library opens in the morning.',
+                        'citation_ids': ['top-k-1']}]}
+
+
+def test_positive_fragment_cannot_hide_unchecked_document_absence(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [mixed_positive_absence()], configured=False)
+    try:
+        answer = ask_scope(service, doc_id)
+        assert answer.abstained and answer.reason == 'unsupported_claim'
+        assert answer.document_absence_requested and not answer.claims
+        assert len(llm.prompts) == 1
+    finally:
+        service.close()
+
+
+def test_mixed_positive_absence_gets_one_complete_source_recovery(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [])
+    llm.payloads = iter([mixed_positive_absence(), {
+        'answer': 'The library closes at midnight.', 'confidence': 'high', 'abstained': False,
+        'citations': [{'chunk_id': f'{doc_id}_physical_page_2', 'page': 2,
+                       'quote': 'The library closes at midnight.'}]}])
+    try:
+        answer = ask_scope(service, doc_id)
+        assert not answer.abstained and answer.source_scope_checked
+        assert answer.citations[0].page == 2 and len(llm.prompts) == 2
+        assert 'COMPLETE CHECKED DOCUMENT TEXT SCOPE' in llm.prompts[-1]
+    finally:
+        service.close()
+
+
+def test_complete_scope_cannot_publish_positive_fragment_with_missing_remainder(tmp_path):
+    service, llm, doc_id, _path = scope_service(tmp_path, [])
+    partial = mixed_positive_absence()
+    repeated = mixed_positive_absence()
+    repeated['citations'] = [{'chunk_id': f'{doc_id}_physical_page_1', 'page': 1,
+                             'quote': 'The library opens in the morning.'}]
+    repeated['claims'][0]['citation_ids'] = [f'{doc_id}_physical_page_1']
+    llm.payloads = iter([partial, repeated])
+    try:
+        answer = ask_scope(service, doc_id)
+        assert answer.abstained and answer.reason == 'unsupported_claim'
+        assert answer.source_scope_checked and not answer.document_absence_requested
+        assert not answer.claims and len(llm.prompts) == 2
+    finally:
+        service.close()
+
+
+@pytest.mark.parametrize('text', [
+    'The uploaded documents do not contain Article 7. The code is ABC.',
+    'The source does not mention the cohort.',
+    "This PDF doesn't provide the requested date.",
+    'A code is stated; the supplied documents do not specify its effective date.',
+    'Tài liệu không đề cập thời gian áp dụng.',
+    'Các tài liệu được tải lên không có thông tin này.',
+    'Nguồn này chưa ghi ngày hiệu lực.',
+])
+def test_explicit_document_absence_is_detected_inside_positive_answer(text):
+    from campusai.rag.request_completeness import asserts_document_absence
+    assert asserts_document_absence(text)
+
+
+@pytest.mark.parametrize('text', [
+    'Students do not pay the registration fee.',
+    'Tài liệu không bắt buộc sinh viên nộp học phí.',
+    'Không có học phần tiên quyết cho môn này.',
+    'The source specifies that students do not register twice.',
+    'The policy quotes the words "the document does not mention" as an example.',
+    'Article 7 applies from the 2031 cohort onwards.',
+])
+def test_negated_source_facts_are_not_document_absence(text):
+    from campusai.rag.request_completeness import asserts_document_absence
+    assert not asserts_document_absence(text)
+
+
 def test_empty_selected_retrieval_can_recover_from_one_checked_full_source_call(tmp_path):
     service, llm, doc_id, _path = scope_service(tmp_path, [])
     service.retriever.result = []

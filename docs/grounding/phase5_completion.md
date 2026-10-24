@@ -1,4 +1,22 @@
-# Phase 5 — audit và handoff hiện hành, 23/10/2026
+# Phase 5 — audit và handoff hiện hành, 24/10/2026
+
+Latest repair: mixed positive/document-absence answers must not bypass the
+complete-source audit. Current dev source6f634bb8 yielded74 complete per-question
+checkpoints, but independent scoring found `draft-0477` falsely claiming that
+Articles1/2 and the cohort were absent while publishing only a programme-code
+fragment. The run was stopped;75 dev packet POSTs remain accounted, with141
+of the original216 cap unused and0 held-out POSTs. Historical captures remain.
+The guard now requests one complete-source check before publishing such an
+answer and rejects a mixed partial answer even after that check. The actual
+captured response is blocked offline;835 affected cross-phase tests PASS.
+[Repair, actual failure and bindings](../../evaluation/results/phase5-mixed-absence-20261024/checkpoint.json).
+This closes the code repair, not full current-source native qualification.
+
+Owner subsequently authorized one same-key HTTP503 recovery per question and
+confirmed that the three configured keys belong to three distinct projects.
+Future operator quota scopes must preserve the old shared ledger, conservatively
+carry prior usage into project accounting and retain global packet caps216/675.
+No default web-app profile, gold or numeric quality threshold changes.
 
 **7/10 task DONE = 70%; Phase 5 remains incomplete.** The compact PDF probe on
 source `1d3b5a10` completed all5 approved POSTs using fixed `key_2`, with3 actual

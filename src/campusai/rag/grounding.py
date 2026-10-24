@@ -843,7 +843,13 @@ class GroundedAnswerGenerator:
                     str(result.metadata.get("source_hash", "")),
                 )
             )
-        from .request_completeness import explicit_request_roles, roles_covered
+        from .request_completeness import asserts_document_absence, explicit_request_roles, roles_covered
+        if not payload['abstained'] and asserts_document_absence(payload['answer']):
+            # Verifying the positive fragment does not prove a separate claim
+            # that the source lacks the rest. Audit once before publishing;
+            # even complete-source review must not publish a mixed partial answer.
+            return replace(abstain('unsupported_claim', language=language),
+                           document_absence_requested=not verified_document_absence)
         required_roles = explicit_request_roles(question)
         claim_texts = [claim.text for claim in extract_claims(str(payload['answer']), raw_claims)]
         # A provider's absence label cannot bypass an explicit requirement to
@@ -858,7 +864,6 @@ class GroundedAnswerGenerator:
                 provider_reason = "provider_abstained"
             # A model sees selected spans, not an exhaustive document audit.
             if provider_reason in {"document_does_not_mention", "no_evidence_found"} and not verified_document_absence:
-                from dataclasses import replace
                 return replace(abstain("unsupported_claim", language=language), document_absence_requested=True)
             # Provider labels are accepted only after deterministic policy
             # checks above have had the opportunity to classify conflict and
