@@ -13,6 +13,59 @@ def payload(text='MATH101 is required.', chunk='c1'):
             'citations': [{'chunk_id': chunk}]}
 
 
+def test_programme_group_is_preserved_when_adjacent_degrees_share_identical_values():
+    headers = ['Chương trình', 'Người học', 'Thời gian', 'Khối lượng tối thiểu']
+    rows = [['Kỹ sư', 'Tốt nghiệp cử nhân theo chương trình tích hợp', '1,5 năm', '48 tín chỉ'],
+            ['Thạc sĩ', 'Tốt nghiệp cử nhân', '2 năm', '60 tín chỉ'],
+            ['', 'Tốt nghiệp cử nhân theo chương trình tích hợp', '1,5 năm', '48 tín chỉ'],
+            ['Tiến sĩ', 'Tốt nghiệp thạc sĩ', '3 năm', '106 tín chỉ']]
+    item = replace(evidence(content=json.dumps({'headers': headers, 'rows': rows}, ensure_ascii=False)),
+                   content_type='table')
+    claim = {'text': 'Thạc sĩ | Tốt nghiệp cử nhân theo chương trình tích hợp | 1,5 năm | 48 tín chỉ',
+             'citation_ids': [item.chunk_id]}
+    quote = source_quote(item, [claim], question='Khối lượng của chương trình thạc sĩ trong bảng là bao nhiêu?')
+    assert json.loads(quote) == {'scope': 'Thạc sĩ', 'headers': headers, 'rows': rows[1:3]}
+    assert validate_citation({'chunk_id': item.chunk_id, 'page': item.page, 'quote': quote}, item).valid
+    assert source_quote(item, [claim], question='Khối lượng của chương trình tiến sĩ trong bảng là bao nhiêu?') is None
+    other = {**claim, 'text': 'Khối lượng của chương trình kỹ sư dành cho người tốt nghiệp cử nhân là 60 tín chỉ.'}
+    quote = source_quote(item, [other], question='Khối lượng của chương trình kỹ sư là bao nhiêu?')
+    assert quote is None  # No engineer row has that value in this source.
+
+
+@pytest.mark.parametrize('quote', ['["ALP301", "3"]', 'ALP301 3', 'ALP301 | 3', '3'])
+def test_cited_table_row_cannot_borrow_a_value_from_an_uncited_neighbour(quote):
+    item = replace(evidence(content=json.dumps({'headers': ['Course code', 'Credits'],
+        'rows': [['ALP301', '3'], ['BET401', '4']]})), content_type='table')
+    bad = {'answer': 'BET401 has 4 credits.', 'confidence': 'high', 'abstained': False,
+        'claims': [{'claim_id': 'one', 'text': 'BET401 has 4 credits.', 'citation_ids': ['c1']}],
+        'citations': [{'chunk_id': 'c1', 'page': item.page, 'quote': quote}]}
+    answer = GroundedAnswerGenerator(FakeLLM(bad)).answer('What is the credit value of BET401?', [item], 'en')
+    assert answer.abstained and not answer.to_public_dict()['claims']
+
+
+def test_legacy_identity_only_quote_uses_its_own_row_and_keeps_conflicting_duplicates():
+    item = replace(evidence(content=json.dumps({'headers': ['Course code', 'Credits'],
+        'rows': [['ALP301', '3'], ['BET401', '4']]})), content_type='table')
+    good = {'answer':'ALP301 has 3 credits.', 'confidence':'high', 'abstained':False,
+        'claims':[{'claim_id':'one','text':'ALP301 has 3 credits.','citation_ids':['c1']}],
+        'citations':[{'chunk_id':'c1','page':item.page,'quote':'ALP301'}]}
+    generator = GroundedAnswerGenerator(FakeLLM(good))
+    assert not generator.answer('What are the credits?', [item], 'en').abstained
+    conflict = replace(item, content=json.dumps({'headers':['Course code','Credits'],
+        'rows':[['ALP301','3'],['ALP301','4']]}))
+    assert generator.answer('What are the credits?', [conflict], 'en').abstained
+
+
+def test_different_grade_in_another_clause_cannot_validate_a_missing_f_grade():
+    item = evidence(content='Điểm D là đạt. Điểm C là điều kiện tốt nghiệp. Người học được hoãn thi.')
+    text = 'Điểm học phần là điểm F.'
+    result = GroundedAnswerGenerator(FakeLLM(payload(text)), source_citations=True).answer('Khi nào điểm học phần là điểm F?', [item], 'vi')
+    assert result.abstained and result.reason == 'contradicted_claim'
+    actual = replace(item, content='Điểm học phần là điểm F.')
+    result = GroundedAnswerGenerator(FakeLLM(payload(text)), source_citations=True).answer('Khi nào điểm học phần là điểm F?', [actual], 'vi')
+    assert not result.abstained
+
+
 def test_source_protocol_builds_verified_quote_and_page_without_model_guessing():
     llm = FakeLLM(payload())
     row = evidence(content='Opening.\n' * 100 + 'MATH101 is required.\n' + 'Closing.\n' * 100)
@@ -22,6 +75,27 @@ def test_source_protocol_builds_verified_quote_and_page_without_model_guessing()
     assert citation.page == row.page and citation.quote in row.content
     assert 'MATH101 is required.' in citation.quote
     assert validate_citation(citation, row, require_quote=True).valid
+
+
+@pytest.mark.parametrize('other_doc,repeated,complete', [(False,False,True), (True,False,True),
+                                                       (False,True,True), (False,False,False)])
+def test_page_id_can_move_only_to_unique_literal_proof_in_complete_same_document(other_doc, repeated, complete):
+    wrong = evidence(content='The graduate office opens on Monday.')
+    exact = replace(wrong, chunk_id='exact', page=8,
+        metadata={**wrong.metadata, 'page_range': [8,8]}, content='The application closes on Friday.',
+        doc_id='other-doc' if other_doc else wrong.doc_id)
+    results = [wrong, exact]
+    if repeated: results.append(replace(exact, chunk_id='repeated', page=9, metadata={**exact.metadata, 'page_range':[9,9]}))
+    original = payload('The application closes on Friday.')
+    result = GroundedAnswerGenerator(FakeLLM(original), source_citations=True).answer(
+        'When does the application close?', results, 'en', verified_document_absence=complete)
+    if complete and not other_doc and not repeated:
+        assert not result.abstained and result.citations[0].page == 8
+        assert result.claims[0].citation_ids == ('exact',)
+    else:
+        assert not any(c.chunk_id == 'exact' for c in result.citations)
+    assert original['citations'] == [{'chunk_id':'c1'}]
+    assert original['claims'][0]['citation_ids'] == ['c1']
 
 
 @pytest.mark.parametrize(('reason', 'verified', 'expected'), [

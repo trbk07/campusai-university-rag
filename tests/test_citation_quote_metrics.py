@@ -6,6 +6,93 @@ import pytest
 from evaluation.grounding.grounding_metrics import evaluate_grounding,is_grounded_answer
 
 
+def composite_row():
+    source = 'The programme lasts 4 years and requires 132 credits.'
+    return {'answerable': True, 'abstained': False,
+        'claims': [{'claim_id': 'combined', 'text': source, 'status': 'supported', 'citation_ids': ['c']}],
+        'citations': [{'chunk_id': 'c', 'doc_id': 'doc', 'page': 3, 'quote': source}],
+        'gold_claims': [{'claim_id': 'duration', 'text': 'The programme lasts 4 years.',
+                        'evidence': [{'doc_id': 'doc', 'page': 3, 'quote': source}]},
+                       {'claim_id': 'credits', 'text': 'The programme requires 132 credits.',
+                        'evidence': [{'doc_id': 'doc', 'page': 3, 'quote': source}]}]}
+
+
+def test_one_reviewed_composite_claim_can_prove_two_atomic_facts_without_changing_denominators():
+    row = composite_row()
+    metrics = evaluate_grounding([row], allow_reviewed_source_subspan=True)
+    assert metrics['predicted_claim_count'] == metrics['matched_predicted_claim_count'] == 1
+    assert metrics['gold_claim_count'] == metrics['matched_gold_claim_count'] == 2
+    for field in ['grounded_claim_precision', 'grounded_claim_recall', 'citation_precision',
+                  'citation_recall', 'citation_completeness']:
+        assert metrics[field] == 1, (field, metrics)
+    assert is_grounded_answer(row, allow_reviewed_source_subspan=True)
+
+
+@pytest.mark.parametrize('mutation', ['wrong_value', 'wrong_page', 'missing_quote', 'extra_fact'])
+def test_composite_coverage_cannot_hide_bad_values_sources_or_extra_claims(mutation):
+    row = composite_row()
+    if mutation == 'wrong_value': row['claims'][0]['text'] = row['claims'][0]['text'].replace('132', '133')
+    if mutation == 'wrong_page': row['citations'][0]['page'] = 4
+    if mutation == 'missing_quote': row['citations'][0]['quote'] = 'The programme lasts 4 years.'
+    if mutation == 'extra_fact': row['claims'].append({'claim_id': 'extra', 'text': 'Tuition is free.', 'status': 'supported', 'citation_ids': ['c']})
+    metrics = evaluate_grounding([row], allow_reviewed_source_subspan=True)
+    assert not is_grounded_answer(row, allow_reviewed_source_subspan=True)
+    assert metrics['citation_recall'] < 1 or metrics['unsupported_claim_leakage'] > 0
+
+
+def test_repeated_model_claims_cannot_inflate_gold_recall_or_citation_recall():
+    row = composite_row()
+    row['claims'].append({**row['claims'][0], 'claim_id': 'repeat'})
+    metrics = evaluate_grounding([row], allow_reviewed_source_subspan=True)
+    assert metrics['matched_gold_claim_count'] == 2
+    assert metrics['grounded_claim_recall'] == metrics['citation_recall'] == 1
+    assert metrics['claim_citation_precision'] == .5
+
+
+def test_identical_wording_in_an_uncited_second_source_does_not_gain_composite_credit():
+    row = composite_row()
+    row['gold_claims'] = [row['gold_claims'][0], deepcopy(row['gold_claims'][0])]
+    row['gold_claims'][1]['claim_id'] = 'other-source'
+    row['gold_claims'][1]['evidence'][0]['doc_id'] = 'other-doc'
+    row['claims'][0]['text'] = 'The programme lasts 4 years.'
+    metrics = evaluate_grounding([row], allow_reviewed_source_subspan=True)
+    assert metrics['matched_gold_claim_count'] == 1
+    assert metrics['grounded_claim_precision'] == metrics['citation_precision'] == 1
+    assert metrics['grounded_claim_recall'] == .5
+
+
+@pytest.mark.parametrize('mutation,expected', [('none',1), ('number',0), ('negation',0), ('extra',0), ('page',0)])
+def test_literal_context_extension_preserves_the_reviewed_quantity_and_scope(mutation, expected):
+    claim = 'tích lũy trước tối thiểu 03 học phần trong chương trình đại học'
+    source = 'Thí sinh đủ điều kiện và '+claim+'.'
+    row = {'answerable': True, 'abstained': False,
+        'claims': [{'text': claim, 'status': 'supported', 'citation_ids': ['c']}],
+        'citations': [{'chunk_id': 'c', 'doc_id': 'doc', 'page': 9, 'quote': source}],
+        'gold_claims': [{'text': 'At least 3 prior courses are required.',
+            'evidence': [{'doc_id': 'doc', 'page': 9, 'quote': 'và tích lũy trước tối thiểu 03 học phần'}]}]}
+    if mutation == 'number': row['claims'][0]['text'] = claim.replace('03', '04')
+    if mutation == 'negation': row['claims'][0]['text'] = 'không '+claim
+    if mutation == 'extra': row['claims'][0]['text'] += '. Tuition is free.'
+    if mutation == 'page': row['citations'][0]['page'] = 8
+    metrics = evaluate_grounding([row], allow_reviewed_source_subspan=True)
+    assert metrics['grounded_claim_precision'] == expected
+
+
+@pytest.mark.parametrize('claim,expected', [
+    ('Những học phần có điểm đánh giá từ điểm C trở lên.', 1),
+    ('Những học phần có điểm đánh giá từ điểm D trở lên.', 0),
+    ('Những học phần có điểm đánh giá điểm C.', 0),
+])
+def test_letter_grade_minimum_cannot_be_lost_or_replaced_in_reviewed_source_subspan(claim, expected):
+    source = 'Quy định. Những học phần có điểm đánh giá từ điểm C trở lên.'
+    row = {'answerable': True, 'abstained': False,
+        'claims': [{'text': claim, 'status': 'supported', 'citation_ids': ['c']}],
+        'citations': [{'chunk_id':'c','doc_id':'doc','page':2,'quote':source}],
+        'gold_claims': [{'text':'A grade of at least C is required.',
+            'evidence':[{'doc_id':'doc','page':2,'quote':source}]}]}
+    assert evaluate_grounding([row], allow_reviewed_source_subspan=True)['grounded_claim_precision'] == expected
+
+
 @pytest.mark.parametrize('label,actual,claim,gold,doc,page,expected',[
     ('5. ','Admissions contact phone: 02437547865 (business hours).',None,None,'source',1,1),
     ('5. ','Admissions contact phone: 02437547865 (business hours).',

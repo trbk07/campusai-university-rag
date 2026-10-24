@@ -520,6 +520,8 @@ class GeminiClient(OpenAICompatibleClient):
         if quota_governor is not None and self.max_retries:
             raise ValueError('quota admission requires max_retries=0; each attempt needs a reservation')
         self.quota_governor = quota_governor
+        self._count_tokens_governor = None
+        self._count_tokens_governor_identity = None
         if (type(allow_pdf_scope) is not bool or (allow_pdf_scope and
                 (self.max_retries != 0 or quota_governor is None))):
             raise ValueError('PDF scope requires explicit opt-in, durable quota and max_retries=0')
@@ -527,14 +529,40 @@ class GeminiClient(OpenAICompatibleClient):
         self.overload_circuit = (OverloadCircuit(overload_circuit_path, _safe_endpoint(endpoint))
                                  if overload_circuit_path else None)
 
+    @property
+    def count_tokens_quota_governor(self):
+        """Durable project-scoped tokenization quota, separate from inference.
+
+        Google documents countTokens as outside model RPM/TPM/RPD. HTTP
+        collection budgets still count both endpoints. Derive from the active
+        governor so an operator's explicit project selection remains correct.
+        """
+        base = self.quota_governor
+        if base is None:
+            return None
+        identity = (str(base.path.resolve()), base.scope, base.identity)
+        if identity != self._count_tokens_governor_identity:
+            from .quota import QuotaGovernor, QuotaPolicy
+            scope = base.scope + ':countTokens'
+            if len(scope) > 200:
+                scope = 'countTokens:' + hashlib.sha256(base.scope.encode()).hexdigest()
+            self._count_tokens_governor = QuotaGovernor(base.path, scope,
+                QuotaPolicy(3000, max_in_flight=base.policy.max_in_flight),
+                max_wait_seconds=base.max_wait_seconds)
+            self._count_tokens_governor_identity = identity
+        return self._count_tokens_governor
+
     def _send(self, request, *, token_budget=None):
         circuit = self.overload_circuit
+        governor = self.quota_governor
         generation = None
         reservation = None
         attempted = False
         result = None
         try:
-            if self.quota_governor is not None:
+            if urllib.parse.urlsplit(request.full_url).path.endswith(':countTokens'):
+                governor = self.count_tokens_quota_governor
+            if governor is not None:
                 try:
                     if token_budget is None:
                         input_tokens, output_tokens = estimate_gemini_tokens(json.loads(request.data))
@@ -548,8 +576,8 @@ class GeminiClient(OpenAICompatibleClient):
                     raise LLMProviderError('request cannot be admitted under the text token budget') from None
             if circuit:
                 generation = circuit.acquire(self.timeout)
-            if self.quota_governor is not None:
-                reservation = self.quota_governor.reserve(input_tokens, output_tokens,
+            if governor is not None:
+                reservation = governor.reserve(input_tokens, output_tokens,
                     lease_seconds=self.timeout + 5,
                     check=(lambda: circuit.check(generation)) if circuit else None)
             elif self.limiter is not None:
@@ -593,9 +621,9 @@ class GeminiClient(OpenAICompatibleClient):
                         error.retry_after_seconds = circuit.remaining_seconds()
                 except sqlite3.Error:
                     raise LLMProviderError("provider health state unavailable; request stopped") from None
-            if observations and self.quota_governor is not None:
+            if observations and governor is not None:
                 try:
-                    self.quota_governor.observe(observations)
+                    governor.observe(observations)
                 except sqlite3.Error:
                     # The circuit already protects the exhausted window. A
                     # broken quota store will fail closed on next admission.
@@ -613,7 +641,7 @@ class GeminiClient(OpenAICompatibleClient):
         finally:
             if reservation is not None:
                 try:
-                    self.quota_governor.finish(reservation, result.get('usageMetadata') if result else None)
+                    governor.finish(reservation, result.get('usageMetadata') if result else None)
                 except sqlite3.Error:
                     # Counters remain charged; the crash-safe lease expires.
                     pass
@@ -694,8 +722,9 @@ class GeminiClient(OpenAICompatibleClient):
                 count_request = urllib.request.Request(count_endpoint,
                     data=json.dumps(count_body).encode('utf-8'),
                     headers={'Content-Type': 'application/json', 'x-goog-api-key': self.api_key})
-                # Tokenization is not generation. Charge its HTTP request to
-                # the shared RPM/RPD ledger, with no invented model usage.
+                # Tokenization is not generation. Its separate durable ledger
+                # must not consume model inference RPM/TPM/RPD. The collector
+                # still charges every HTTP POST to the approved egress cap.
                 counts = self._send(count_request, token_budget=(0, 0))
                 try:
                     budget = measured_budget(body, counts.get('totalTokens'))

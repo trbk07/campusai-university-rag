@@ -7,6 +7,8 @@ import os
 import threading
 import contextlib
 import weakref
+import tempfile
+import time
 from pathlib import Path
 from typing import Any
 
@@ -91,12 +93,27 @@ class DocumentRegistry:
 
     def _save(self) -> None:
         """Write the current registry to disk."""
-        temporary = self.path.with_suffix(self.path.suffix + ".tmp")
-        temporary.write_text(
-            json.dumps(self.items, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        os.replace(temporary, self.path)
+        fd, name = tempfile.mkstemp(prefix='.' + self.path.name + '.', suffix='.tmp', dir=self.path.parent)
+        temporary = Path(name)
+        try:
+            with os.fdopen(fd, 'w', encoding='utf-8') as stream:
+                json.dump(self.items, stream, ensure_ascii=False, indent=2)
+                stream.flush()
+                os.fsync(stream.fileno())
+            # Windows readers/scanners can briefly hold a non-delete-sharing
+            # handle even after the registry writer lock is acquired. Retry
+            # only that OS sharing/access conflict, keeping the same atomic
+            # snapshot and writer lock; other I/O failures remain immediate.
+            for attempt in range(6):
+                try:
+                    os.replace(temporary, self.path)
+                    break
+                except PermissionError as error:
+                    if os.name != 'nt' or getattr(error, 'winerror', None) not in {5,32,33} or attempt == 5:
+                        raise
+                    time.sleep(min(.005 * 2**attempt, .05))
+        finally:
+            temporary.unlink(missing_ok=True)
 
     def add(self, document) -> None:
         """Add or replace a document using its SHA256 id."""

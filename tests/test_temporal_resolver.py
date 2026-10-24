@@ -47,6 +47,27 @@ def test_intent_does_not_turn_a_mentioned_fact_year_into_filter():
         assert parse_temporal_intent(text,reference_date=date(2026,10,14)).kind=='none'
 
 
+@pytest.mark.parametrize('question', [
+    'Use only the uploaded notice.pdf. What is my admission probability given my current examination result?',
+    'Use only the uploaded notice.pdf. What was my personal GPA in semester 2 of academic year 2029-2030?',
+    'Chỉ dùng tài liệu đã tải lên notice.pdf. Học phí năm học 2030-2031 là bao nhiêu?',
+    'Chỉ dùng tài liệu đã tải lên notice.pdf. Hạn nộp đơn đăng ký ký túc xá cho tân sinh viên khóa 2030 là ngày nào?',
+])
+def test_selected_source_fact_date_does_not_select_an_unrequested_document_version(question):
+    assert parse_temporal_intent(question, reference_date=date(2030, 1, 1)).kind == 'none'
+
+
+@pytest.mark.parametrize('question,kind', [
+    ('Use only the uploaded notice.pdf. Is this tuition policy currently effective?', 'as_of'),
+    ('Use only the uploaded notice.pdf. What are the current examination result requirements?', 'as_of'),
+    ('Use only the uploaded notice.pdf. According to version 2030, what is tuition?', 'explicit_period'),
+    ('Chỉ dùng tài liệu đã tải lên notice.pdf. Theo bản quy chế năm 2030 học phí là bao nhiêu?', 'explicit_period'),
+    ('What tuition applies for academic year 2030-2031?', 'explicit_period'),
+])
+def test_actual_version_and_effectiveness_requests_still_need_temporal_proof(question, kind):
+    assert parse_temporal_intent(question, reference_date=date(2030, 1, 1)).kind == kind
+
+
 @pytest.mark.parametrize('day,want',[('2025-08-31','old'),('2025-09-01','new'),('2025-09-02','new')])
 def test_as_of_boundaries_include_start_exclude_end(day,want):
     docs=[document('old','2020','2020-01-01','2025-09-01'),document('new','2025','2025-09-01')]

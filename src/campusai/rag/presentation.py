@@ -17,8 +17,9 @@ NUMBER = re.compile(r'(?<!\w)\d+(?:[.,]\d+)?')
 UNIT = re.compile(r'(?<!\w)(\d+(?:[.,]\d+)?)\s*(%|percent\b|phan tram\b|credits?\b|tin chi\b|vnd\b|usd\b|dollars?\b|dong\b)')
 NEGATION = re.compile(r'\b(?:not|khong)\b')
 COURSE_MARKER = re.compile(r'(?<!\w)' + COURSE_CODE + r'(?!\w)', re.I)
-LOCATION = re.compile(r'\b(article|dieu|section|muc|chapter|chuong|page|trang)\s+([0-9]+)\b')
-VISIBLE_LOCATION = re.compile(r'\b(article|điều|dieu|section|mục|muc|chapter|chương|chuong|page|trang)\s+([0-9]+)\b',re.I)
+LOCATION_VALUE = r'[0-9]+(?:\.[0-9]+)*(?:\([a-z]\))?'
+LOCATION = re.compile(r'\b(article|dieu|section|muc|chapter|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)')
+VISIBLE_LOCATION = re.compile(r'\b(article|điều|dieu|section|mục|muc|chapter|chương|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)',re.I)
 CALENDAR_DATE = re.compile(r'(?<!\w)(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{1,2})/(\d{1,2})/(\d{4}))(?!\w)')
 CLOCK_TIME = re.compile(r'(?<!\w)([0-9]{1,2})(?::|h)([0-9]{2})(?!\w)', re.I)
 MONTHS = {name: index for index, name in enumerate(('january','february','march','april','may',
@@ -108,13 +109,13 @@ def quantities(text):
 
 _SCOPE_CUES = re.compile(
     r"\b(?:admission|cohort|intake|academic year|school year|curriculum|programme|program|"
-    r"issued|published|effective|version|ban hanh|nam hoc|khoa tuyen sinh|khoa|ap dung|"
+    r"issued|published|effective|version|regulations?|policy|quy che|quy dinh|ban hanh|nam hoc|khoa tuyen sinh|khoa|ap dung|"
     r"dieu chinh|cap nhat)\b",
     re.I,
 )
 _SCOPE_CUES_AFTER = re.compile(
     r"^\s*(?:curriculum|programme|program|academic year|school year|"
-    r"(?:(?:undergraduate|graduate|postgraduate)\s+)?admissions?\s+(?:notice|plan|quota|intake|regulations?))\b",
+    r"regulations?|policy|(?:(?:undergraduate|graduate|postgraduate)\s+)?admissions?\s+(?:notice|plan|quota|intake|regulations?))\b",
     re.I,
 )
 _VERIFICATION_QUESTION = re.compile(
@@ -125,7 +126,7 @@ _VERIFICATION_QUESTION = re.compile(
 _AFFIRMATIVE = re.compile(r"^\s*(?:yes|correct|that is correct|that's correct|đúng|chính xác)\b", re.I)
 _NEGATIVE_CORRECTION = re.compile(r"\b(?:no|not correct|incorrect|không đúng|sai)\b", re.I)
 _QUESTION_SCOPE_NUMBER = re.compile(
-    r"\b(admission\s+cohort|cohort|semester|term|article|dieu|section|muc|chapter|chuong|page|trang)\s+(\d{1,4})\b",
+    r"\b(admission\s+cohort|cohort|semester|term|article|dieu|section|muc|chapter|chuong|page|trang)\s+("+LOCATION_VALUE+r")(?![\w(]|\.\d)",
     re.I,
 )
 
@@ -150,7 +151,7 @@ def _scope_number_key(label, value):
         label = "cohort"
     if label == "term":
         label = "semester"
-    return label, str(int(value))
+    return label, re.sub(r'\d+', lambda match: str(int(match[0])), value.casefold())
 
 
 def _question_scope_numbers(text):
@@ -196,7 +197,7 @@ def code_markers(text):
         course_code_key(m[0]).casefold() for m in COURSE_MARKER.finditer(text) if not re.search(r'\s', m[0])}
 
 
-def presentation_conflicts(answer, claims, *, locations=(), question=None):
+def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=()):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
@@ -230,7 +231,11 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None):
     visible = canonical_code_spacing(visible, anchors)
     supported = [canonical_code_spacing(text, anchors) for text in supported]
     support = '\n'.join(supported)
-    if code_markers(visible) - code_markers(support):
+    # An identifier repeated as question scope is permitted only when the
+    # physically validated cited passage also names it. It cannot authorize a
+    # different ID or an arbitrary number elsewhere in the answer.
+    scope_codes = code_markers(str(question or '')) & set(source_scope_codes)
+    if code_markers(visible) - code_markers(support) - scope_codes:
         return True
     visible_numbers = {number(v) for v in NUMBER.findall(visible)}
     supported_numbers = {number(v) for v in NUMBER.findall(support)}

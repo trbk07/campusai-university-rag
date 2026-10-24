@@ -30,6 +30,8 @@ def admission_fact_request(question):
     if re.fullmatch(r'for hsa (?:or|and) sat applicants, name both required online registration systems and the university-system registration window', text):
         return 'registration', ()
     patterns = (
+        ('bonus_accumulation', r'(?:du nhieu dien duoc cong diem thi cac khoan duoc gop the nao|(?:neu )?(?:thi sinh )?du dieu kien cong diem theo nhieu dien thi (?:tinh|cong) the nao|how are bonus points combined when an applicant qualifies under multiple categories)'),
+        ('graduation_registration', r'(?:on which system must applicants using high-school graduation examination results register|thi sinh (?:xet tuyen )?bang ket qua thi tot nghiep thpt (?:phai )?dang ky (?:xet tuyen )?tren he thong nao)'),
         ('total_quota', r'(?:tong chi tieu tuyen sinh dai hoc(?: du kien)?(?: nam (?:19|20)\d{2})? la bao nhieu|what is the (?:total (?:proposed )?|proposed total )(?:undergraduate )?admission quota)'),
         ('entry_deadline', r'before which date does the notice plan to publish (?:(?:19|20)\d{2} )?admission entry thresholds'),
         ('entry_deadline', r'(?:nguong dau vao|nguong diem dau vao)(?: nam (?:19|20)\d{2})? (?:du kien )?duoc cong bo truoc ngay nao'),
@@ -50,7 +52,15 @@ def admission_fact_request(question):
 def _source_facts(content, kind):
     body = sanitize_evidence_text(source_body({'content': content}, decode_tables=False))
     text, offsets = _fold_with_offsets(body)
-    if kind == 'registration':
+    if kind == 'bonus_accumulation':
+        pattern = (r'(?P<statement>thi\s+sinh\s+dat\s+nhieu\s+thanh\s+tich'
+            r'[^.;]{0,110}?chi\s+duoc\s+tinh(?:\s+diem\s+cong)?\s+'
+            r'(?P<value>mot|hai|\d{1,2})\s+lan[^.;]{0,60}?cao\s+nhat)')
+    elif kind == 'graduation_registration':
+        pattern = (r'(?P<statement>voi\s+xet\s+tuyen\s+bang\s+ket\s+qua\s+thi\s+tot\s+nghiep\s+thpt:'
+            r'\s*thi\s+sinh\s+dang\s+ky\s+xet\s+tuyen\s+tren\s+he\s+thong\s+cua\s+'
+            r'bo\s+gd\s*&\s*dt)(?P<value>)')
+    elif kind == 'registration':
         calendar = r'\d{1,2}/\d{1,2}/\d{4}'
         pattern = (r'(?P<statement>doi\s+voi\s+cac\s+phuong\s+thuc\s+xet\s+tuyen\s+gom:'
             r'[^:]{1,550}?dang\s+ky\s+xet\s+tuyen\s+dong\s+thoi\s+tren\s+hai\s+he\s+thong\s+sau:'
@@ -116,6 +126,10 @@ def _source_facts(content, kind):
         if prefix.strip() in {'-', '*', '•', '', '', '–'}:
             start = text.rfind('\n', 0, match.start()) + 1 + len(prefix) - len(prefix.lstrip())
         value = match['value']
+        if kind == 'bonus_accumulation':
+            value = {'mot': '1', 'hai': '2'}.get(value, value)
+        elif kind == 'graduation_registration':
+            value = '1'  # One explicitly named system; never an inferred URL.
         if kind == 'registration':
             intro = statement_text.split('dang')[0]
             if not {'hsa', 'sat'} <= set(re.findall(r'\b[a-z]+\b', intro)):
@@ -198,8 +212,11 @@ def deterministic_admission_fact(question, results, language, *, calibrator=None
     # Prefer a complete statement on one physical page, with the original
     # section heading; a clipped multi-page chunk must not replace it.
     result, statement, value = min(matches, key=lambda item: (
+        not bool(re.search(r'chi\s+duoc\s+tinh\s+diem\s+cong', folded(item[1])))
+            if kind == 'bonus_accumulation' else False,
         item[0].metadata.get('page_range', [item[0].page, item[0].page])[1]
         - item[0].metadata.get('page_range', [item[0].page, item[0].page])[0],
+        item[0].page if kind in {'bonus_accumulation', 'graduation_registration'} else 0,
         -bool(re.match(r'\d+(?:\.\d+)+', item[1])), -bool(re.match(r'\d+\s+', item[1])), -item[0].score))
     if len(statement) > 1200:
         return _abstention('context_budget_exceeded', language=language)
@@ -223,7 +240,9 @@ def deterministic_admission_fact(question, results, language, *, calibrator=None
         'points_scale': (f'The university uses a {value}-point scale.', f'Trường sử dụng thang điểm {value}.'),
     }
     claim_text = statement
-    if kind == 'registration':
+    if kind in {'bonus_accumulation', 'graduation_registration'}:
+        labels[kind] = (statement, statement)
+    elif kind == 'registration':
         first, clock, last = value.split('|')
         claim_text = ('HSA and SAT applicants must register simultaneously on the university '
                       'and Ministry of Education and Training systems.')

@@ -10,6 +10,12 @@ def docs():
             for d,name in [('A','alpha_2023.pdf'),('B','beta_2020.pdf')]]
 
 
+def test_conditional_prerequisite_definition_does_not_become_a_course_graph_lookup():
+    question = 'Chỉ dùng tài liệu đã tải lên alpha_2023.pdf. Nếu A là học phần tiên quyết của B thì sinh viên phải đáp ứng điều kiện gì với A?'
+    assert plan_request(question, docs()[:1]).kind == 'single'
+    assert plan_request('Theo alpha_2023.pdf, tiên quyết của môn này là gì?', docs()[:1]).kind == 'unresolved'
+
+
 def test_direct_prerequisite_question_does_not_require_a_credit_hop():
     plan = plan_request('Use only the uploaded alpha_2023.pdf. Which prerequisite code is listed for CS201?', docs()[:1])
     assert plan.kind == 'single' and plan.problem is None

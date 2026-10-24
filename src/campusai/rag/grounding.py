@@ -713,6 +713,11 @@ class GroundedAnswerGenerator:
         if calculated is not None:
             return calculated
         if pdf_documents is None and multi_hop_context is None and temporal_context is None:
+            from .regulation_facts import deterministic_regulation_fact
+            calculated = deterministic_regulation_fact(question, results, language, calibrator=self.calibrator)
+            if calculated is not None:
+                return calculated
+        if pdf_documents is None and multi_hop_context is None and temporal_context is None:
             from .admission_facts import deterministic_admission_fact
             calculated = deterministic_admission_fact(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
@@ -796,6 +801,21 @@ class GroundedAnswerGenerator:
                 if not isinstance(citation_ids, list) or not citation_ids or any(not isinstance(item, str) or not item.strip() for item in citation_ids):
                     return abstain("unsupported_claim")
 
+        if (payload['abstained'] and isinstance(payload.get('abstention_reason'), str)
+                and payload['abstention_reason'] in {'document_does_not_mention','no_evidence_found'}):
+            from .request_completeness import explicit_request_roles
+            if not explicit_request_roles(question):
+                # An abstention publishes no factual claims. Dangling IDs in
+                # its diagnostic claims cannot establish or invalidate an
+                # absence finding; complete authorized source inspection is
+                # what distinguishes absence from a top-k retrieval miss.
+                if verified_document_absence:
+                    return abstain('document_does_not_mention', language=language)
+                return replace(abstain('unsupported_claim', language=language), document_absence_requested=True)
+        if self.source_citations and verified_document_absence:
+            from .source_citations import relocate_literal_page_references
+            payload = relocate_literal_page_references(payload, results)
+            raw_claims = payload.get('claims')
         citations: list[Citation] = []
         seen_chunks: set[str] = set()
         for raw in payload.get("citations", []):
@@ -844,13 +864,15 @@ class GroundedAnswerGenerator:
                 )
             )
         from .request_completeness import asserts_document_absence, explicit_request_roles, roles_covered
+        required_roles = explicit_request_roles(question)
         if not payload['abstained'] and asserts_document_absence(payload['answer']):
             # Verifying the positive fragment does not prove a separate claim
             # that the source lacks the rest. Audit once before publishing;
             # even complete-source review must not publish a mixed partial answer.
-            return replace(abstain('unsupported_claim', language=language),
+            reason = ('document_does_not_mention' if verified_document_absence and not required_roles
+                      else 'unsupported_claim')
+            return replace(abstain(reason, language=language),
                            document_absence_requested=not verified_document_absence)
-        required_roles = explicit_request_roles(question)
         claim_texts = [claim.text for claim in extract_claims(str(payload['answer']), raw_claims)]
         # A provider's absence label cannot bypass an explicit requirement to
         # establish both requested facts. This also applies to source-scope
@@ -865,6 +887,10 @@ class GroundedAnswerGenerator:
             # A model sees selected spans, not an exhaustive document audit.
             if provider_reason in {"document_does_not_mention", "no_evidence_found"} and not verified_document_absence:
                 return replace(abstain("unsupported_claim", language=language), document_absence_requested=True)
+            if provider_reason == 'no_evidence_found' and verified_document_absence:
+                # The provider has now inspected every authorized page, so its
+                # negative finding is scoped document absence, not a top-k miss.
+                provider_reason = 'document_does_not_mention'
             # Provider labels are accepted only after deterministic policy
             # checks above have had the opportunity to classify conflict and
             # ambiguity. Unknown or unsupported labels remain generic.
@@ -874,7 +900,8 @@ class GroundedAnswerGenerator:
             return abstain('unsupported_claim', language=language)
         cited_docs = {citation.doc_id for citation in citations}
         if personal_event_requires_record(question, [r for r in results if r.doc_id in cited_docs]):
-            return abstain('unsupported_claim', language=language)
+            return replace(abstain('unsupported_claim', language=language),
+                           document_absence_requested=not verified_document_absence)
         answer = _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
                                      question=question,
                                      calibrator=self.calibrator)
@@ -917,9 +944,49 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     quote_by_id = {citation.chunk_id:citation.quote for citation in citations}
     if any(not quote.strip() for quote in quote_by_id.values()):
         return _abstention('invalid_citation', language=language)
-    visible_registry = EvidenceRegistry([replace(result,content=quote_by_id[result.chunk_id])
-        if result.content_type != 'table' else result
-        for result in results if result.chunk_id in quote_by_id])
+    def visible_evidence(result):
+        quote = quote_by_id[result.chunk_id]
+        if result.content_type != 'table':
+            return replace(result, content=quote)
+        # Keep the original headed-column proof, but only for rows actually
+        # exposed in this citation. A number in an uncited neighbouring row
+        # must not validate the model's claimed programme or credit value.
+        try:
+            source = json.loads(result.content[result.content.index('{"headers"'):])
+        except (ValueError, TypeError):
+            # Some provider contracts label a literal prose relationship as
+            # table content. It has no headed-column proof; verify only the
+            # actual quoted prose, never the rest of that chunk.
+            return replace(result, content=quote, content_type='text')
+        try:
+            selected = json.loads(quote)
+        except (ValueError, TypeError):
+            compact = lambda text: ' '.join(unicodedata.normalize('NFC', text).split())
+            selected = [row for row in source.get('rows', [])
+                        if isinstance(row, list) and row and all(isinstance(c, str) for c in row)
+                        and compact(quote) in {compact(' '.join(row)), compact(' | '.join(row))}]
+            if not selected:
+                # Legacy citations may quote just an exact declared row
+                # identity. Keep all rows with that identity (including
+                # conflicting duplicates), never rows sharing only a number.
+                from .course_credits import folded
+                identities = [i for i, h in enumerate(source.get('headers', []))
+                    if isinstance(h, str) and folded(h) in {'course code', 'ma hoc phan',
+                        'ma so hoc phan', 'ma so', 'course name', 'discipline', 'hoc phan',
+                        'ten hoc phan', 'ma xet tuyen', 'programme code'}]
+                selected = [row for row in source.get('rows', [])
+                    if isinstance(row, list) and all(isinstance(c, str) for c in row)
+                    and any(i < len(row) and compact(row[i]) == compact(quote) for i in identities)]
+        rows = (selected.get('rows') if isinstance(selected, dict) else
+                [selected] if isinstance(selected, list) and all(isinstance(c, str) for c in selected)
+                else selected)
+        if isinstance(rows, list) and rows:
+            return replace(result, content=json.dumps({'headers': source['headers'], 'rows': rows}, ensure_ascii=False))
+        return None
+    visible_results = [visible_evidence(result) for result in results if result.chunk_id in quote_by_id]
+    if any(result is None for result in visible_results):
+        return _abstention('invalid_citation', language=language)
+    visible_registry = EvidenceRegistry(visible_results)
     claims = align_claims(claims, visible_registry, citation_map)
     # Phase 5 is fail-closed: a partially supported answer can hide an
     # unsupported number, code, date, or polarity change.
@@ -933,9 +1000,10 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
     used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
-    from .presentation import presentation_conflicts, location_proofs
+    from .presentation import presentation_conflicts, location_proofs, code_markers
+    source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
     if presentation_conflicts(answer, claims, locations=location_proofs(citations, registry),
-                               question=question):
+                               question=question, source_scope_codes=source_scope_codes):
         return _abstention('unsupported_claim', language=language)
     if used_citation_ids:
         citations = tuple(citation for citation in citations if citation.chunk_id in used_citation_ids)

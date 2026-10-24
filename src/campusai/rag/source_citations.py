@@ -2,12 +2,48 @@
 import json
 import re
 import unicodedata
+from decimal import Decimal
 from .policies import sanitize_evidence_text
 from .source_windows import verbatim_window
 from ..retrieval.tokenizer_vi import normalized_tokens, source_body
 from .course_credits import COURSE_CODE, course_code_key, folded
 
 _TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,5}[A-Za-z]?(?![A-Za-z0-9])')
+
+
+def relocate_literal_page_references(payload, results):
+    """Resolve a wrong page ID only through unique literal same-PDF proof.
+
+    Called only after the complete authorized source was checked. Original
+    provider captures stay unchanged. Unknown IDs, repeated text, edited claims
+    and cross-document matches retain the normal verification path.
+    """
+    claims, citations = payload.get('claims'), payload.get('citations')
+    if not isinstance(claims, list) or not isinstance(citations, list) or payload.get('abstained'):
+        return payload
+    by_id = {r.chunk_id: r for r in results}
+    compact = lambda text: ' '.join(unicodedata.normalize('NFC', text).casefold().split())
+    remap = {}
+    for citation in citations:
+        if not isinstance(citation, dict) or set(citation) != {'chunk_id'}:
+            continue
+        identity = citation['chunk_id']
+        original = by_id.get(identity)
+        selected = [c['text'] for c in claims if identity in c.get('citation_ids', [])]
+        if original is None or original.content_type != 'text' or not selected:
+            continue
+        if all(compact(text) in compact(original.content) for text in selected):
+            continue
+        candidates = [r for r in results if r.doc_id == original.doc_id and r.content_type == 'text'
+                      and all(compact(text) in compact(r.content) for text in selected)]
+        if len(candidates) == 1:
+            remap[identity] = candidates[0].chunk_id
+    if not remap:
+        return payload
+    return {**payload,
+        'claims': [{**c, 'citation_ids': [remap.get(i, i) for i in c.get('citation_ids', [])]} for c in claims],
+        'citations': [{**c, 'chunk_id': remap.get(c.get('chunk_id'), c.get('chunk_id'))}
+                      if isinstance(c, dict) else c for c in citations]}
 
 
 def source_quote(result, claims, question=''):
@@ -36,6 +72,25 @@ def source_quote(result, claims, question=''):
                                                    'ma xet tuyen', 'admission code', 'programme code',
                                                    'program code', 'discipline code'}
                                  or re.fullmatch(r'ma nganh\d*', folded(header)))]
+        programme_columns = [i for i, header in enumerate(headers)
+                             if folded(header) in {'chuong trinh', 'programme', 'program'}]
+        degree = r'(?:cu nhan|ky su|thac si|tien si|bachelor|engineer|master|doctorate)'
+        scopes = {}
+        if len(programme_columns) == 1:
+            column = programme_columns[0]
+            start = None
+            for i, row in enumerate(rows):
+                cell = folded(row[column]) if column < len(row) else ''
+                if cell:
+                    start = i if re.fullmatch(degree, cell) else None
+                if start is not None:
+                    scopes[i] = (start, folded(rows[start][column]))
+        def degree_request(text):
+            value = folded(text)
+            match = re.search(r'\b(?:chuong trinh|programme|program)\s+('+degree+r')\b', value)
+            match = match or re.match(r'^('+degree+r')(?:\s*\||\s+t[oố]t nghiep|\s*$)', value)
+            return match[1] if match else None
+        requested_degree = degree_request(question)
         selected = set()
         for text in texts:
             terms = set(normalized_tokens(text))
@@ -55,13 +110,36 @@ def source_quote(result, claims, question=''):
                         matching.append(i)
                 if matching:
                     pools.append(matching)
+            claim_degree = degree_request(text)
+            if requested_degree and claim_degree and requested_degree != claim_degree:
+                return None
+            target_degree = requested_degree or claim_degree
+            numbers = lambda value: {Decimal(n.replace(',', '.')) for n in
+                re.findall(r'(?<!\w)\d+(?:[.,]\d+)?', value)}
+            required_numbers = numbers(text)
             for pool in pools or [range(len(rows))]:
-                selected.add(max(pool, key=lambda i: len(terms & set(normalized_tokens(' '.join(rows[i]))))))
+                eligible = [i for i in pool if not target_degree or not scopes
+                            or (i in scopes and scopes[i][1] == target_degree)]
+                if len(pools) <= 1:
+                    eligible = [i for i in eligible if required_numbers <= numbers(' '.join(rows[i]))]
+                if not eligible:
+                    return None
+                selected.add(max(eligible, key=lambda i: len(terms & set(normalized_tokens(' '.join(rows[i]))))))
         ordered = [row for i, row in enumerate(rows) if i in selected]
         # Bind a visible row to its physical semester scope when the PDF
         # provides one. Keep row boundaries in JSON; never paraphrase cells.
         scope = result.metadata.get('table_scope')
-        if scope and result.metadata.get('table_scope_provenance') == 'explicit_pdf_marker':
+        selected_scopes = {scopes[i][0] for i in selected if i in scopes}
+        if scopes and len(selected_scopes) == 1 and len(selected & scopes.keys()) == len(selected):
+            start = next(iter(selected_scopes))
+            # Empty programme cells inherit only the nearest original group.
+            # Keep every intervening original row so the visible quotation
+            # proves that scope; never replace an engineer row with a master
+            # label or silently synthesize a filled-in source cell.
+            scope = rows[start][programme_columns[0]]
+            quote = json.dumps({'scope': scope, 'headers': headers,
+                                'rows': rows[start:max(selected)+1]}, ensure_ascii=False)
+        elif scope and result.metadata.get('table_scope_provenance') == 'explicit_pdf_marker':
             quote = json.dumps({'scope': str(scope), 'headers': headers, 'rows': ordered}, ensure_ascii=False)
         else:
             markers = []

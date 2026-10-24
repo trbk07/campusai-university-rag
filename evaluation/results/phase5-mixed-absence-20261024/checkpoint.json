@@ -39,7 +39,7 @@
     "decision_reference": "conversation:request_user_input_async:call_d68d1849049147ff8590872b1a5556ce:user-reply",
     "decision_quote": "Ba project kh?c nhau"
   },
-  "release_status": "INCOMPLETE: source repair passed tests; current-source native qualification and calibration required; numeric quality thresholds unchanged.",
+  "release_status": "INCOMPLETE: historical dev120 passed, test130 failed quality, holdout stopped at59/150; current runtime/scorer repairs need regression and fresh source-bound native qualification. Thresholds and gold unchanged.",
   "native_repaired_case_validation": {
     "id": "draft-0477",
     "status": "PASS",
@@ -95,5 +95,385 @@
       }
     },
     "scope": "Bounded repaired-case validation only; full400 qualification remains open."
+  },
+  "full_regression": {
+    "passed": 2475,
+    "skipped_opt_in_live": 2,
+    "failures": 0,
+    "elapsed_seconds": 278.79,
+    "xml_path": "evaluation\\results\\phase5-mixed-absence-20261024\\full-regression.xml",
+    "xml_sha256": "d275ab8ebce625c8351111761e6a623857e42520063c1a570c836c89eee5d28e",
+    "source_start_end_equal": true,
+    "test_commit": "29ea90db2ffb14dcd3cb917ad0371d6bec6eaa99",
+    "source_sha256": "df723d7b8237e352b09979ffa6d972904554b4c93cce79376f4befacb9bb0e37",
+    "runtime_sha256": "b740ba08d04a15149958312a078447bb2f735cb796b4d033c685e66c3bae3a1b",
+    "native_actor_commit": "cb7220d4b8e10e22114ae11ca353a146d41c1c09",
+    "relation": "Different documentation/evidence commit; identical physical source/runtime bytes."
+  },
+  "qualification_cb7220d4": {
+    "native_actor_commit": "cb7220d4b8e10e22114ae11ca353a146d41c1c09",
+    "groups": {
+      "dev-cases-cb7220d4": {
+        "completed_pipeline_outcomes": 120,
+        "completed_model_questions": 68,
+        "completed_local_questions": 52,
+        "provider_posts": 97,
+        "successful_model_json": 82,
+        "successful_model_json_in_completed_runs": 82,
+        "incomplete_cases": []
+      },
+      "heldout-cases-cb7220d4": {
+        "completed_pipeline_outcomes": 189,
+        "completed_model_questions": 131,
+        "completed_local_questions": 58,
+        "provider_posts": 267,
+        "successful_model_json": 198,
+        "successful_model_json_in_completed_runs": 197,
+        "incomplete_cases": [
+          "309-phase5-fresh-holdout-060"
+        ]
+      }
+    },
+    "completed_splits": {
+      "dev": 120,
+      "test": 130,
+      "holdout": 59
+    },
+    "historical_dev_posts_before_this_source": 75,
+    "aggregate_dev_packet_posts": 172,
+    "aggregate_heldout_packet_posts": 267,
+    "collection_stopped": "Operator stopped after test130 exposed quality failures; interrupted holdout060 remains unaccepted and unchanged. No quota reset.",
+    "test130_report_path": ".release\\grounding\\phase5-compact-04bb0ccb\\.release\\grounding\\qualification\\dev-test-score-cb7220d4.json",
+    "test130_report_sha256": "c9893421d18fc9a0a1564e4943f976aaed6091c9b9fff6b1e441842bc71bd5a7",
+    "test130_metrics": {
+      "records": 130,
+      "excluded_native_failures": 0,
+      "claim_count": 80,
+      "predicted_claim_count": 80,
+      "matched_predicted_claim_count": 72,
+      "gold_claim_count": 79,
+      "matched_gold_claim_count": 72,
+      "grounded_claim_precision": 0.9,
+      "grounded_claim_recall": 0.911392,
+      "unsupported_claim_leakage": 0.1,
+      "contradicted_claim_leakage": 0.0,
+      "citation_precision": 0.922078,
+      "citation_coordinate_validity": 1.0,
+      "citation_recall": 0.91358,
+      "citation_completeness": 0.911392,
+      "claim_citation_precision": 0.902439,
+      "claim_citation_recall": 0.91358,
+      "claim_citation_f1": 0.907975,
+      "abstention_precision": 0.90566,
+      "abstention_recall": 0.923077,
+      "reason_accuracy": 0.770833,
+      "brier_score": 0.046154,
+      "ece": 0.046154,
+      "calibration_count": 130,
+      "schema_invalid_rate": 0.0,
+      "abstention_reason_counts": {
+        "document_does_not_mention": 36,
+        "ambiguous_question": 1,
+        "unsupported_claim": 9,
+        "no_evidence_found": 7
+      },
+      "denominators": {
+        "records": 130,
+        "predicted_claims": 80,
+        "gold_claims": 79,
+        "citations": 77,
+        "gold_citation_links": 81,
+        "predicted_citation_links": 82,
+        "predicted_abstentions": 53,
+        "gold_abstentions": 52,
+        "abstention_reasons": 48
+      }
+    },
+    "official_accepted_predictions": 0,
+    "current_main_requires_new_native_qualification": true
+  },
+  "cross_phase_registry_failure": {
+    "xml_path": "evaluation\\results\\phase5-mixed-absence-20261024\\quality-repair-full-before-registry.xml",
+    "xml_sha256": "08152576964ef360fbaafdd382531a08d03d3be92e9a24f050ba2dc85a881ebd",
+    "passed": 2521,
+    "failed": 1,
+    "skipped_opt_in_live": 2,
+    "failed_test": "tests/test_web_documents.py::test_two_batches_of_five_pdfs_accumulate_and_can_be_queried_together",
+    "reproduced_by_batch_stress": true,
+    "error": "PermissionError WinError5 while atomically replacing registry.json; isolated repetition reproduced it.",
+    "repair": "Unique fsynced snapshot; only Windows sharing/access conflicts retry at most6 attempts under the existing writer lock; all other errors fail immediately; previous registry preserved on failure."
+  },
+  "implementation_repair_20261024": {
+    "status": "DONE code repair and full regression; fresh source-bound native400 still required",
+    "cache_policy": "grounding-v26",
+    "quote_policy": "reviewed-span-coverage-v5",
+    "focused_current_core_tests_passed": 634,
+    "cross_phase_candidate_and_temporal_tests_passed": 48,
+    "web_batch_stress_iterations_passed": 15,
+    "web_batch_documents_per_iteration": 10,
+    "diagnostic_prior_capture_population": 303,
+    "diagnostic_prior_capture_unsupported_claim_leakage": 0,
+    "diagnostic_prior_capture_grounded_precision": 1,
+    "diagnostic_prior_capture_citation_precision": 1,
+    "diagnostic_remaining_eight_recheck": {
+      "records": 8,
+      "errors": 0,
+      "grounded_precision": 1,
+      "grounded_recall": 1,
+      "citation_precision": 1,
+      "citation_recall": 1,
+      "abstention_precision": 1,
+      "abstention_recall": 1,
+      "reason_accuracy": 1,
+      "new_provider_posts": 0,
+      "official_new_predictions": 0
+    },
+    "required_next": "Qualify frozen current source with fresh native dev120, fit/pin dev-only calibration, then test130/holdout150. Retain original caps/usage until any exact new budget is authorized."
+  },
+  "quality_repair_full_regression": {
+    "exit_code": 0,
+    "tests": 2549,
+    "passed": 2547,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2,
+    "xml_path": "evaluation\\results\\phase5-mixed-absence-20261024\\quality-repair-full.xml",
+    "xml_sha256": "b80adecc131e836f332ab0a6273409f6ed81299848560744aac369778b2156da",
+    "source_identity_before": {
+      "commit": "29ea90db2ffb14dcd3cb917ad0371d6bec6eaa99",
+      "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "source_identity_after": {
+      "commit": "29ea90db2ffb14dcd3cb917ad0371d6bec6eaa99",
+      "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    }
+  },
+  "live_opt_in_preflight": {
+    "purpose": "Two owner-authorized live opt-in cache/Basic-RAG tests, using the qualification Free profile; not native400 acceptance",
+    "status": "ATTEMPTED_NO_AUTOMATIC_REPEAT",
+    "model": "gemini-3.5-flash-lite",
+    "key_slot": "key_3",
+    "max_http_posts": 2,
+    "config_path": ".release\\grounding\\phase5-compact-04bb0ccb\\.release\\grounding\\qualification\\config.json",
+    "config_sha256": "c03e67c8c745be958f2f8968ad1fdc113af9ab7dd988f83f5d6d0b685527ce19",
+    "source_identity": {
+      "commit": "29ea90db2ffb14dcd3cb917ad0371d6bec6eaa99",
+      "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
+      "runtime_sha256": "268414bf7b374219981727bab7d6530d05972cb583b9357382a96a3e17ea73e9"
+    },
+    "requests": [
+      {
+        "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        "body_sha256": "22142fccc5d75e3d65ccc78b3102f03918758dfeee2952fb599791760d6fb042",
+        "body": {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "Reply with the word OK."
+                }
+              ]
+            }
+          ],
+          "generationConfig": {
+            "temperature": 1,
+            "maxOutputTokens": 1536,
+            "thinkingConfig": {
+              "thinkingLevel": "minimal"
+            }
+          }
+        }
+      },
+      {
+        "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent",
+        "body_sha256": "3cb6b6723f20addd2da380ea4aebdd2cf8ffeda734b97931ebdafa8d9d281d45",
+        "body": {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "You are CampusAI, an evidence-grounded university knowledge assistant.\nUse only the supplied evidence. Do not use outside knowledge, guess, or infer unsupported facts.\nIf evidence is insufficient, set abstained=true and answer briefly that the documents do not establish it.\nEvery material claim must cite one or more supplied chunk_id values.\nSplit distinct facts into short atomic claims. For course credits use 'Course CODE has N credits.' with the value from that course's own credit column, not hours or prerequisite rows.\nFor tables, quote exact cells from one source row; preserve codes, numbers and accents. Give citation.page from the evidence page field.\nReturn valid JSON only with answer, claims, confidence (high|medium|low), abstained, and citations. Each claim must list citation_ids.\nKeep the answer direct and short (1-3 short paragraphs).\nClaims are verification records. For ordinary factual claims, prefer a short statement in the exact wording of the cited evidence; do not add inferred details or synonyms to claims[].text. Preserve the explicit course-credit and calculation formats above where applicable. Write answer naturally in the requested language.\nHonor explicit requests to quote only one condition or phrase: return the requested words verbatim, with one equally narrow verification claim, and omit neighboring eligibility conditions or explanatory facts. A count question needs an actual supported value; a heading ending in a colon is not an answer. Keep a table row label and its requested cell value together in one claim; do not publish a bare cell number as an independent factual claim.\nAnswer only the requested entity, date, group, or table scope. When a source sentence lists neighboring groups or alternatives, use only the clause that answers this question; omit the other groups, dates, and alternatives unless the question explicitly asks for them.\nFor a source bullet that contains several roles, occupations, groups, or alternatives, keep claims[] limited to the clause(s) that answer the question. Do not copy a neighboring role or list item into a claim just because it shares the same source sentence.\nSTRICT SCOPE AND CITATIONS: report only the fact directly requested; do not add neighboring list entries or other true but unrequested facts. Keep each verification claim to the shortest complete source-faithful statement that answers the question. For each claim, cite only the minimum chunk or chunks that directly prove it; omit retrieved chunks that provide background but do not prove that claim.\nUse one citation entry per chunk_id, reused by all claims from that chunk. citation.page must equal the explicit page= metadata field exactly; never use an internal printed page number or choose another number from page_range. Quote one verbatim contiguous passage.\n\nQUESTION:\nHow many credits and what additional requirement are needed for graduation?\n\nEVIDENCE:\n[EVIDENCE]\nchunk_id=phase4-live-c1\ndocument=Graduation conditions\ndoc_id=golden-graduation\npage=1\npage_range=1-1\nsection=Graduation\ncontent:\nGraduation requires 130 credits and completion of an internship."
+                }
+              ]
+            }
+          ],
+          "generationConfig": {
+            "temperature": 1,
+            "maxOutputTokens": 1536,
+            "thinkingConfig": {
+              "thinkingLevel": "minimal"
+            },
+            "responseMimeType": "application/json",
+            "responseSchema": {
+              "type": "OBJECT",
+              "required": [
+                "answer",
+                "confidence",
+                "abstained",
+                "citations"
+              ],
+              "properties": {
+                "answer": {
+                  "type": "STRING"
+                },
+                "confidence": {
+                  "type": "STRING",
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "abstained": {
+                  "type": "BOOLEAN"
+                },
+                "abstention_reason": {
+                  "type": "STRING",
+                  "enum": [
+                    "no_evidence_found",
+                    "document_does_not_mention",
+                    "conflicting_evidence",
+                    "ambiguous_question",
+                    "unsupported_claim",
+                    "contradicted_claim",
+                    "invalid_citation",
+                    "retrieval_below_threshold",
+                    "context_budget_exceeded",
+                    "provider_error",
+                    "provider_abstention",
+                    "provider_abstained",
+                    "system_error"
+                  ]
+                },
+                "citations": {
+                  "type": "ARRAY",
+                  "items": {
+                    "type": "OBJECT",
+                    "required": [
+                      "chunk_id",
+                      "page",
+                      "quote"
+                    ],
+                    "properties": {
+                      "chunk_id": {
+                        "type": "STRING"
+                      },
+                      "page": {
+                        "type": "INTEGER"
+                      },
+                      "quote": {
+                        "type": "STRING"
+                      }
+                    }
+                  }
+                },
+                "claims": {
+                  "type": "ARRAY",
+                  "items": {
+                    "type": "OBJECT",
+                    "required": [
+                      "claim_id",
+                      "text",
+                      "citation_ids"
+                    ],
+                    "properties": {
+                      "claim_id": {
+                        "type": "STRING"
+                      },
+                      "text": {
+                        "type": "STRING"
+                      },
+                      "type": {
+                        "type": "STRING"
+                      },
+                      "citation_ids": {
+                        "type": "ARRAY",
+                        "items": {
+                          "type": "STRING"
+                        }
+                      },
+                      "required_citations": {
+                        "type": "INTEGER"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "count_token_accounting_path": "evaluation/results/phase5-mixed-absence-20261024/count-token-accounting.json",
+  "live_opt_in_result": {
+    "exit_code": 0,
+    "profile_override": "Existing tests executed under the frozen qualification Free model/generation/retry/quota profile; fixture cache behavior retained.",
+    "provider_posts": 2,
+    "successful_responses": 2,
+    "responses": [
+      {
+        "request_body_sha256": "22142fccc5d75e3d65ccc78b3102f03918758dfeee2952fb599791760d6fb042",
+        "model_version": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 6,
+          "candidatesTokenCount": 1,
+          "totalTokenCount": 7,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "final_text": [
+          "OK"
+        ]
+      },
+      {
+        "request_body_sha256": "3cb6b6723f20addd2da380ea4aebdd2cf8ffeda734b97931ebdafa8d9d281d45",
+        "model_version": "gemini-3.5-flash-lite",
+        "usage": {
+          "promptTokenCount": 643,
+          "candidatesTokenCount": 166,
+          "totalTokenCount": 809,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 643
+            }
+          ],
+          "serviceTier": "standard"
+        },
+        "final_text": [
+          "{\n  \"answer\": \"Graduation requires 130 credits and completion of an internship.\",\n  \"confidence\": \"high\",\n  \"abstained\": false,\n  \"citations\": [\n    {\n      \"chunk_id\": \"phase4-live-c1\",\n      \"page\": 1,\n      \"quote\": \"Graduation requires 130 credits and completion of an internship.\"\n    }\n  ],\n  \"claims\": [\n    {\n      \"claim_id\": \"c1\",\n      \"text\": \"Graduation requires 130 credits and completion of an internship.\",\n      \"citation_ids\": [\n        \"phase4-live-c1\"\n      ]\n    }\n  ]\n}"
+        ]
+      }
+    ],
+    "quota_before": {
+      "day": "2026-10-24",
+      "day_timezone": "America/Los_Angeles",
+      "reserved_attempts_today": 0,
+      "accounted_tokens_today": 0,
+      "reserved_attempts_last_minute": 0,
+      "accounted_input_tokens_last_minute": 0,
+      "in_flight": 0
+    },
+    "quota_after": {
+      "day": "2026-10-24",
+      "day_timezone": "America/Los_Angeles",
+      "reserved_attempts_today": 2,
+      "accounted_tokens_today": 9769,
+      "reserved_attempts_last_minute": 2,
+      "accounted_input_tokens_last_minute": 6697,
+      "in_flight": 0
+    },
+    "source_unchanged": true,
+    "post_journal_path": "evaluation\\results\\phase5-mixed-absence-20261024\\live-opt-in-posts.jsonl",
+    "post_journal_sha256": "a314f72cad38c5d1c7aa060dd7186fd9d07b15a2a349658a48a581c1c42df3bf",
+    "official_native_predictions": 0
   }
 }

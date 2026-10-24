@@ -98,6 +98,11 @@ def has_local_topic_reference(question: str) -> bool:
             r'\b(?:this|that)\s+(?:course|subject)\s*\(?\s*'+COURSE_CODE+r'\b', without_files, re.I):
         return True
     text = _fold(question)
+    local = re.sub(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', '', text)
+    subject_clause = re.match(r'^when does (.{2,100}?) (?:take effect|become effective),?\s+and\b', local)
+    if subject_clause and re.search(r'\b(?:regulation|policy|decision|rule)\b', subject_clause[1]):
+        if not re.search(r'\b(?:it|this|that|and|or)\b', subject_clause[1]):
+            return True
     subject = None
     for pattern in (
         r'^([^;.!?]{1,80}?)\s+la gi\s+(?:va|[,;])',

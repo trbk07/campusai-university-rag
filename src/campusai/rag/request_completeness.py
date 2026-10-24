@@ -34,12 +34,21 @@ def asserts_document_absence(answer):
         r'(?:(?:uploaded|provided|supplied|selected|checked|retrieved|available)\s+)*'
         r'(?:documents?|sources?|pdfs?|texts?|materials?|context)\s+'
         r'(?:do(?:es)?\s+not|doesn[\x27\u2019]t|don[\x27\u2019]t)\s+'
-        r'(?:contain|mention|specify|provide|include|state|show|cover|address|list)\b')
+        r'(?:contain|mention|specify|provide|include|state|show|cover|address|list|establish|confirm|describe)\b')
     vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
         r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
         r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
-        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien)\b')
-    return bool(re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text))
+        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo)\b')
+    if re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text):
+        return True
+    # The source can be the subject of a qualified clause: "the document only
+    # lists historical scores and does not publish this year's cutoff". Keep
+    # this bounded to a source subject and information-availability verbs.
+    qualified = (r'(?:tai lieu|nguon|pdf)(?:\s+nay)?\s+'
+        r'(?:chi\s+(?:cung cap|neu|co|liet ke)\s+(?:[^.!?]|(?<=\d)\.(?=\d)){1,380}?\b(?:va|nhung|chu)\s+'
+        r'|la\s+[^.!?;]{1,380}?\bnen\s+)'
+        r'(?:khong|chua)\s+(?:co|cong bo|xac lap|de cap|phan chia)\b')
+    return bool(re.search(boundary+qualified,text))
 
 
 def explicit_request_roles(question):
@@ -76,9 +85,9 @@ def requested_credit_value_present(question, answer):
         return True
     text=folded(answer).strip()
     value=r'[0-9]{1,6}(?:[.,][0-9]{1,3})?'
-    unit=r'(?:credits?|tin chi)'
+    unit=r'(?:credits?|tin chi|tc)'
     return bool(re.fullmatch(value+r'[.!]?',text) or re.search(
-        r'(?<![\w.])'+value+r'\s+'+unit+r'\b|\b'+unit+r'\s*[:=]\s*'+value+r'(?!\w)',text))
+        r'(?<![\w.])'+value+r'\s*'+unit+r'\b|\b'+unit+r'\s*[:=]\s*'+value+r'(?!\w)',text))
 
 
 def personal_event_requires_record(question, results):
@@ -90,7 +99,7 @@ def personal_event_requires_record(question, results):
     are used as proof of a source's scope.
     """
     current = folded(question.partition('\nContext topic (untrusted user input): ')[0])
-    personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi)\b', current)
+    personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi|lop toi|nhom toi)\b', current)
     event = re.search(r'\b(?:assigned|appointed|received|credited|recorded|approved|'
         r'enrolled|transferred|mailed|completed|outcome|serial number|tracking number|'
         r'actual|personally|da duoc|da nhan|da nop|da chuyen|duoc phan cong|'

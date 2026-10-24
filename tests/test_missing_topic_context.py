@@ -3,6 +3,12 @@ import pytest
 from campusai.rag.context import resolve_query
 
 
+def test_named_regulation_is_the_local_subject_of_its_replacement_question():
+    question = 'Use only the uploaded rules.pdf. When does the 2031 academic regulation take effect, and which earlier regulation does it replace?'
+    assert not resolve_query(question).needs_clarification
+    assert resolve_query('When does it take effect, and which earlier regulation does it replace?').needs_clarification
+
+
 @pytest.mark.parametrize("question", [
     "bao nhiêu tín thì được", "bn tc là đủ vậy", "mấy tín nhỉ", "credits cần bao nhiêu",
     "thế tổng là mấy", "ủa ít nhất bao nhiêu tín mới ok", "thế sinh viên năm 2 thì sao",

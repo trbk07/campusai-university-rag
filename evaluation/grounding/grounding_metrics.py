@@ -14,7 +14,7 @@ from campusai.rag.abstention import canonicalize_abstention_reason
 from campusai.rag.claims import _exact_markers, _markers_match
 from evaluation.grounding.claim_roles import canonical_pair, roles_compatible
 
-CITATION_QUOTE_POLICY = "reviewed-span-coverage-v4"
+CITATION_QUOTE_POLICY = "reviewed-span-coverage-v5"
 
 
 def _without_layout_ordinal(span: str, fact: str | None) -> str:
@@ -153,7 +153,9 @@ def _scoped_table_quote_covers(citation: dict, gold_span: str, fact: str | None)
         return False
     if re.search(r'\b(?:credits?|tín\s*chỉ|tin\s*chi)\b', fact, re.I):
         header_text = ' '.join(value['headers']).casefold()
-        if not re.search(r'\b(?:credits?|tín\s*chỉ|tin\s*chi)\b', header_text):
+        explicit_cell_units = any(re.fullmatch(r'\s*\d+(?:[.,]\d+)?\s*(?:credits?|tín\s+chỉ)\s*',
+                                              cell, re.I) for row in rows for cell in row)
+        if not re.search(r'\b(?:credits?|tín\s*chỉ|tin\s*chi)\b', header_text) and not explicit_cell_units:
             return False
     fact_codes = {marker for marker in _metric_markers(fact) if marker.startswith('code:')}
     source_codes = {marker for marker in _metric_markers(source_text) if marker.startswith('code:')}
@@ -217,6 +219,10 @@ def _canonical_numeric_markers(markers: set[str]) -> set[str]:
     for marker in markers:
         if marker.startswith('value:'):
             value = marker[6:]
+            # Zero-padded counts have the same value; retain the full unit.
+            value = re.sub(r'^0+(?=\d)', '', value)
+            value = re.sub(r'^(\d+),(\d{1,2})(?=\D|$)', r'\1.\2', value)
+            marker = 'value:' + value
             if re.fullmatch(r'\d{1,3}(?:[.,]\d{3}){2,}', value):
                 marker = 'value:' + re.sub(r'[.,]', '', value)
         result.add(marker)
@@ -225,6 +231,10 @@ def _canonical_numeric_markers(markers: set[str]) -> set[str]:
 
 def _metric_markers(text: str) -> set[str]:
     """Canonicalize clearly grouped thousands before exact quantity checks."""
+    # These are explicit academic units, not inferred semantic synonyms. Do
+    # not turn a count, a credit value and a duration into the same marker.
+    text = re.sub(r'(?<=\d)\s*(?:years?|năm)\b', ' năm', text, flags=re.I)
+    text = re.sub(r'(?<=\d)\s*(?:credits?|tín\s+chỉ|tc)\b', ' tín chỉ', text, flags=re.I)
     markers = _exact_markers(text)
     for match in re.finditer(r'(?<!\d)\d{1,3}(?:[.,]\d{3}){2,}(?!\d)', text):
         raw = match.group()
@@ -336,6 +346,19 @@ def _pair_claims(predicted: list[dict], gold: list[dict], row: dict | None = Non
     unused = set(range(len(gold)))
     pairs = []
     for claim in predicted:
+        if allow_reviewed_source_subspan:
+            # Model claims and reviewed annotations need not use the same
+            # sentence boundaries. A literal, reviewed composite span can
+            # prove several atomic annotations; reuse its physical proof, not
+            # a claim ID or a lexical guess. Denominators stay distinct below.
+            literal_matches = [i for i in range(len(gold))
+                if _pair_similarity(claim, gold[i], row,
+                    allow_reviewed_source_subspan=True, literal_only=True) == 1.0]
+            if literal_matches:
+                for index in literal_matches:
+                    unused.discard(index)
+                    pairs.append((claim, gold[index]))
+                continue
         claim_id = claim.get("claim_id")
         if claim_id:
             exact = [i for i in unused if gold[i].get("claim_id") == claim_id
@@ -358,12 +381,12 @@ def _pair_claims(predicted: list[dict], gold: list[dict], row: dict | None = Non
 
 
 def _pair_similarity(predicted: dict, gold: dict, row: dict | None, *,
-                     allow_reviewed_source_subspan: bool = False) -> float:
+                     allow_reviewed_source_subspan: bool = False, literal_only: bool = False) -> float:
     candidate=_comparison_claim(predicted,gold,row)
     if (allow_reviewed_source_subspan
             and _program_code_anchors(str(candidate.get('text', ''))) != _program_code_anchors(str(gold.get('text', '')))):
         return 0.0
-    similarity=_similarity(candidate,gold)
+    similarity=0.0 if literal_only else _similarity(candidate,gold)
     if row is None:return similarity
     required=_quote_tokens(str(gold.get('text','')))
     supplied=_quote_tokens(str(candidate.get('text','')))
@@ -391,6 +414,35 @@ def _pair_similarity(predicted: dict, gold: dict, row: dict | None, *,
                 # The full reviewed heading is still required in the visible
                 # citation above, even when the factual claim omits its label.
                 factual = re.sub(r'^\s*(?:[-*\u2022]\s+)(?=[^\W\d_])', '', str(candidate.get('text', '')))
+                if allow_reviewed_source_subspan:
+                    # A longer, verbatim source statement can contain the
+                    # reviewed fact plus its original context. Require both
+                    # complete literal spans, the same provenance, exact gold
+                    # anchors and unchanged qualification/polarity. An edited
+                    # paraphrase or an appended model assertion cannot pass.
+                    anchor_prefixes = ('code:', 'value:', 'year:', 'date:')
+                    required_anchors = {m for m in _metric_markers(str(gold.get('text', '')))
+                                        if m.startswith(anchor_prefixes)}
+                    actual_anchors = {m for m in _metric_markers(factual) if m.startswith(anchor_prefixes)}
+                    fragment = re.sub(r'^(?:và|and)\s+', '', literal, flags=re.I)
+                    fragment_tokens, factual_tokens = _quote_tokens(fragment), _quote_tokens(factual)
+                    contains = lambda outer, inner: bool(inner) and any(
+                        outer[i:i+len(inner)] == inner for i in range(len(outer)-len(inner)+1))
+                    if (len(fragment_tokens) >= 4 and required_anchors <= actual_anchors
+                            and _source_scope_signature(_quote_tokens(str(gold.get('text', ''))))
+                                == _source_scope_signature(factual_tokens)
+                            and contains(factual_tokens, fragment_tokens)
+                            and any(contains(_quote_tokens(actual), factual_tokens)
+                                    for actual in _quote_spans(str(citation.get('quote', ''))))):
+                        return 1.0
+                    if required_anchors <= actual_anchors and _scoped_table_quote_covers(citation, span, str(gold.get('text', ''))):
+                        try: table = json.loads(citation['quote'])
+                        except (ValueError, TypeError): table = {}
+                        if isinstance(table, dict):
+                            for source_row in table.get('rows', []):
+                                projection = str(table.get('scope', '')) + ' ' + ' '.join(source_row)
+                                if _quote_tokens(projection) == factual_tokens:
+                                    return 1.0
                 if (allow_reviewed_source_subspan
                         and _reviewed_source_subspan(factual, literal, str(gold.get('text', '')))):
                     return 1.0
@@ -437,9 +489,9 @@ def _source_scope_signature(tokens: tuple[str, ...] | list[str]) -> frozenset[st
     signature = {group for group, markers in _SOURCE_SCOPE_GROUPS.items()
                  if token_set.intersection(markers)}
     text = ' '.join(tokens)
-    if re.search(r'\b(?:at least|minimum|min)\b|\b(?:ít nhất|tối thiểu)\b|\btừ\b(?:\s+[^\W\d_]+){0,4}\s+\d+(?:[.,]\d+)?\s+trở lên\b', text):
+    if re.search(r'\b(?:at least|minimum|min)\b|\b(?:ít nhất|tối thiểu)\b|\btừ\b(?:\s+[^\W\d_]+){0,4}\s+(?:\d+(?:[.,]\d+)?|[a-f])\s+(?:hoặc quy đổi tương đương\s+)?trở lên\b', text):
         signature.add('minimum')
-    if re.search(r'\b(?:at most|maximum|max|no more than)\b|\b(?:không quá|tối đa|cao nhất)\b', text):
+    if re.search(r'\b(?:at most|maximum|max|no more than|may not exceed|must not exceed)\b|\b(?:không quá|không (?:được )?vượt quá|tối đa|cao nhất)\b', text):
         signature.add('maximum')
     if re.search(r'\b(?:exactly|precisely)\b|\b(?:chính xác|đúng)\b', text):
         signature.add('exact')
@@ -505,12 +557,20 @@ def is_grounded_answer(row: dict, *, allow_reviewed_source_subspan: bool = False
     gold = _expand_gold(row["gold_claims"])
     pairs = _pair_claims(row.get("claims", []), gold, row,
                          allow_reviewed_source_subspan=allow_reviewed_source_subspan)
-    if not gold or len(pairs) != len(gold):
+    if not gold or not pairs:
         return False
-    return all(g is not None and p.get("status") == "supported"
+    complete = [(p, g) for p, g in pairs if g is not None and p.get('status') == 'supported'
                and _link_counts(row, p, g, allow_reviewed_source_subspan=allow_reviewed_source_subspan)[2] == len(g.get("evidence", []))
-               and _link_counts(row, p, g, allow_reviewed_source_subspan=allow_reviewed_source_subspan)[1] == _link_counts(row, p, g, allow_reviewed_source_subspan=allow_reviewed_source_subspan)[2]
-               for p, g in pairs)
+               and len(g.get('evidence', [])) > 0]
+    if ({id(p) for p, _ in complete} != {id(p) for p in row.get('claims', [])}
+            or {g.get('claim_id') for _, g in complete} != {g.get('claim_id') for g in gold}):
+        return False
+    return all(any(citation.get('chunk_id') in pred.get('citation_ids', pred.get('evidence_ids', []))
+                   and any(_citation_matches_evidence(citation, e, str(g.get('text', '')),
+                           allow_reviewed_source_subspan=allow_reviewed_source_subspan)
+                           for e in g.get('evidence', []))
+                   for pred, g in complete)
+               for citation in row.get('citations', []))
 
 
 def is_native_evaluation_failure(row: dict) -> bool:
@@ -532,19 +592,22 @@ def evaluate_grounding(rows: Iterable[dict], *, allow_reviewed_source_subspan: b
                               allow_reviewed_source_subspan=allow_reviewed_source_subspan) for row in rows]
     pairs = [pair for group in row_pairs for pair in group]
     predicted_claim_count = sum(len(row.get("claims", [])) for row in rows)
-    matched_predicted_claim_count = sum(gold is not None for _, gold in pairs)
+    matched_predicted_claim_count = sum(len({id(pred) for pred, gold in group if gold is not None})
+                                       for group in row_pairs)
     matched_gold_claim_count = sum(len({gold.get("claim_id") for _, gold in group if gold is not None})
                                    for group in row_pairs)
-    grounded = 0
+    grounded_predicted = grounded_gold = 0
     gold_count = sum(len(_expand_gold(row.get("gold_claims", []))) for row in rows)
     leaked = sum(bool(row.get("public", not row.get("abstained", False)))
                  and pred.get("status") != "contradicted"
                  and (gold is None or not bool(gold.get("answerable", True))
                       or pred.get("status") in {"unsupported", "ambiguous", "partial", "partially_supported"})
-                 for row, group in zip(rows, row_pairs) for pred, gold in group)
+                 for row, group in zip(rows, row_pairs)
+                 for pred, gold in {id(p): (p, g) for p, g in group}.values())
     contradicted_leaked = sum(pred.get("status") == "contradicted"
                                and bool(row.get("public", not row.get("abstained", False)))
-                               for row, group in zip(rows, row_pairs) for pred, _ in group)
+                               for row, group in zip(rows, row_pairs)
+                               for pred in {id(p): p for p, _ in group}.values())
 
     citation_total = valid_citations = coordinate_total = coordinate_valid = gold_links = predicted_links = linked_correct = 0
     complete_total = complete_hit = 0
@@ -555,6 +618,7 @@ def evaluate_grounding(rows: Iterable[dict], *, allow_reviewed_source_subspan: b
     complete_total = sum(bool(claim.get("answerable", True)) for row in rows
                          for claim in _expand_gold(row.get("gold_claims", [])))
     for row, pairs_for_row in zip(rows, row_pairs):
+        complete_predictions, complete_annotations, correct_links = set(), set(), set()
         citations = [item for item in row.get("citations", []) if isinstance(item, dict)]
         citation_total += len(citations)
         coordinate_total += len(citations)
@@ -565,11 +629,12 @@ def evaluate_grounding(rows: Iterable[dict], *, allow_reviewed_source_subspan: b
             # A shared citation must support every claim assigned to it. An
             # orphan or a quote for only one of two course rows is not correct.
             valid_citations += bool(mapped) and row.get("citation_valid", True) and all(
-                gold is not None and bool(gold.get("answerable", True))
-                and any(_citation_matches_evidence(citation, evidence, str(gold.get('text', '')),
-                        allow_reviewed_source_subspan=allow_reviewed_source_subspan)
-                        for evidence in gold.get("evidence", []) if isinstance(evidence, dict))
-                for _pred, gold in mapped)
+                any(gold is not None and bool(gold.get('answerable', True))
+                    and any(_citation_matches_evidence(citation, evidence, str(gold.get('text', '')),
+                            allow_reviewed_source_subspan=allow_reviewed_source_subspan)
+                            for evidence in gold.get('evidence', []) if isinstance(evidence, dict))
+                    for candidate, gold in mapped if candidate is pred)
+                for pred in {id(p): p for p, _ in mapped}.values())
         for pred, gold in pairs_for_row:
             if gold is None or not bool(gold.get("answerable", True)):
                 predicted_links += len(set(pred.get("citation_ids", pred.get("evidence_ids", []))))
@@ -578,10 +643,20 @@ def evaluate_grounding(rows: Iterable[dict], *, allow_reviewed_source_subspan: b
                 row, pred, gold, allow_reviewed_source_subspan=allow_reviewed_source_subspan)
             complete = (row_gold_links > 0 and row_matched_links == row_gold_links
                         and pred.get("status") == "supported")
-            grounded += complete
+            if complete:
+                complete_predictions.add(id(pred))
+                complete_annotations.add(gold.get('claim_id'))
             predicted_links += row_predicted_links
-            linked_correct += row_matched_links
-            complete_hit += complete
+            ids = set(pred.get('citation_ids', pred.get('evidence_ids', [])))
+            for index, evidence in enumerate(gold.get('evidence', [])):
+                if any(c.get('chunk_id') in ids and _citation_matches_evidence(c, evidence,
+                        str(gold.get('text', '')),
+                        allow_reviewed_source_subspan=allow_reviewed_source_subspan) for c in citations):
+                    correct_links.add((gold.get('claim_id'), index))
+        grounded_predicted += len(complete_predictions)
+        grounded_gold += len(complete_annotations)
+        complete_hit += len(complete_annotations)
+        linked_correct += len(correct_links)
 
     predicted_abstain = [bool(row.get("abstained")) for row in rows]
     gold_abstain = [not bool(row.get("answerable", True)) for row in rows]
@@ -624,8 +699,8 @@ def evaluate_grounding(rows: Iterable[dict], *, allow_reviewed_source_subspan: b
         "matched_predicted_claim_count": matched_predicted_claim_count,
         "gold_claim_count": gold_count,
         "matched_gold_claim_count": matched_gold_claim_count,
-        "grounded_claim_precision": round(grounded / max(1, predicted_claim_count), 6),
-        "grounded_claim_recall": round(grounded / max(1, gold_count), 6),
+        "grounded_claim_precision": round(grounded_predicted / max(1, predicted_claim_count), 6),
+        "grounded_claim_recall": round(grounded_gold / max(1, gold_count), 6),
         "unsupported_claim_leakage": round(leaked / max(1, predicted_claim_count), 6),
         "contradicted_claim_leakage": round(contradicted_leaked / max(1, predicted_claim_count), 6),
         "citation_precision": round(citation_precision, 6),

@@ -90,6 +90,13 @@ def plan_request(question, documents):
     if len(roles) >= 2 and re.search(r'\b(?:cong nhan thay the|tu dong duoc cong nhan|transferable|automatic equivalence)\b', text):
         return MultiHopRequest('unsupported_relation', tuple(roles), problem='recognition_rule_not_established')
     if prerequisite and roles:
+        if (len(roles) == 1 and not codes and not credit
+                and (re.search(r'\b(?:what does .{0,50}prerequisite mean|tien quyet la gi)\b', text)
+                     or (re.search(r'\b(?:neu|if)\s+[a-z]\s+(?:la|is)\b', text)
+                         and re.search(r'\b(?:dieu kien|condition|requirement)\b', text)))):
+            # A rule explaining generic A/B placeholders does not request a
+            # concrete course-graph lookup or an inferred prerequisite chain.
+            return MultiHopRequest()
         if (len(roles) == 1 and len(codes) == 1 and not credit
                 and not re.search(r'\b(?:courses|all|links|chain|follow|consecutive|dependents|cac|tat ca)\b', text)):
             # A direct prerequisite question is one fact, not a dependent

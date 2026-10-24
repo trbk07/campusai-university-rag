@@ -1,6 +1,42 @@
 # Phase 5 — audit và handoff hiện hành, 24/10/2026
 
-Current-source dev120 is complete and meets the existing thresholds: grounding,
+Latest qualification checkpoint: frozen `cb7220d4` completed309/400 pipeline
+outcomes (dev120, test130, holdout59). Dev meets the unchanged thresholds;
+test130 does not: grounded precision90%, citation precision92.21%, unsupported
+leakage10%, abstention precision90.57%, reason accuracy77.08%. Collection was
+stopped for repair rather than spending the rest of the packet on known errors.
+Dev spending remains172/216 including75 historical POSTs; held-out spending is
+267/675, including the interrupted holdout060 attempt. Raw captures and the
+incomplete directory remain unchanged. Three owner-confirmed independent
+projects have separate quota ledgers; none was reset.
+
+Current main repairs address hierarchical section locators, question-scope
+identifiers, complete-source absence classification, dated facts versus source
+version selection, local pronoun references, generic prerequisite definitions,
+merged programme rows and uncited neighbouring values. A wrong page reference
+can relocate only to unique literal proof in the same fully checked PDF.
+The scorer separately counts model claims and atomic reviewed facts, keeps
+gold/link denominators, and rejects edited values, wrong pages and extra facts.
+It remains a bounded literal evaluator, not a general semantic judge.
+Full regression completed2547 PASS and2 opt-in SKIP on unchanged physical
+source/runtime. Both opt-in tests then passed with2 actual Gemini responses
+under the qualification Free profile; the default product retry profile was
+not exercised. Current-source native400 qualification remains required.
+Diagnostic reprocessing and these smoke tests supply0 official predictions.
+
+countTokens now uses its documented separate tokenization quota, while every
+HTTP POST still consumes the approved packet budget. An endpoint-journal audit
+reclassified218 uniquely proven tokenization reservations without deleting any
+attempt or resetting any inference quota. The original shared ledger is unchanged.
+[Accounting proof](../../evaluation/results/phase5-mixed-absence-20261024/count-token-accounting.json).
+The concurrent two-batch10-PDF registry race is fixed with bounded Windows
+publication retries;15 stress iterations and the full regression passed.
+[Counts, physical bindings and regression](../../evaluation/results/phase5-mixed-absence-20261024/checkpoint.json).
+
+The dev120 result below belongs to the frozen candidate; it does not certify
+subsequent runtime or evaluator changes. P5-08/09/10 remain open.
+
+Historical frozen cb7220d4 dev120 is complete and meets the existing thresholds: grounding,
 citation and abstention precision/recall100%, leakage0, reason accuracy96.67%
 (two wrong reasons retained). Actual counts:120 pipeline outcomes,97 POSTs,
 82 successful JSON responses,120 separately validated per-question captures.

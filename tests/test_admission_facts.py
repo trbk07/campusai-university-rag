@@ -19,6 +19,26 @@ def title(year=2031):
     return source(f'THÔNG TIN TUYỂN SINH NĂM {year} BẬC ĐẠI HỌC', 'title', page=1)
 
 
+@pytest.mark.parametrize('count', ['một', 'hai', '02'])
+def test_bonus_accumulation_uses_the_source_count_and_preserves_its_upper_bound(count):
+    text = f'Thí sinh đạt nhiều thành tích/đủ điều kiện cộng điểm theo nhiều diện chỉ được tính điểm cộng {count} lần, với mức điểm cao nhất.'
+    result = deterministic_admission_fact('Đủ nhiều diện được cộng điểm thì các khoản được gộp thế nào?', [source(text)], 'vi')
+    assert result is not None and not result.abstained
+    assert result.claims[0].text in text and count in result.answer
+    assert 'cao nhất' in result.citations[0].quote
+    assert deterministic_admission_fact('Đủ nhiều diện được cộng điểm thì các khoản được gộp thế nào và học phí là bao nhiêu?', [source(text)], 'vi') is None
+
+
+def test_exam_registration_does_not_borrow_the_two_systems_required_for_other_routes():
+    text = ('Thí sinh HSA và SAT phải đăng ký đồng thời trên hai hệ thống.\n'
+        'Với xét tuyển bằng kết quả thi tốt nghiệp THPT: Thí sinh đăng ký xét tuyển trên hệ thống của Bộ GD&ĐT và theo kế hoạch chung của Bộ GD&ĐT.')
+    result = deterministic_admission_fact('On which system must applicants using high-school graduation examination results register?', [source(text)], 'en')
+    assert result is not None and not result.abstained
+    assert result.claims[0].text.startswith('Với xét tuyển bằng kết quả thi tốt nghiệp THPT:')
+    assert 'hai hệ thống' not in result.citations[0].quote
+    assert result.citations[0].quote in text
+
+
 @pytest.mark.parametrize(('question', 'expected'), [
     ('Before which date does the notice plan to publish 2031 admission entry thresholds?', '19/7/2031'),
     ('Before which date does the notice plan to publish the 2031 final admission cutoff scores?', '24/8/2031'),

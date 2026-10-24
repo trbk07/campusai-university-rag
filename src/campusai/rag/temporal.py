@@ -52,6 +52,10 @@ def parse_temporal_intent(question: str, *, reference_date: date, filters=None):
     # A source table's "current column" is a column label, not a request for
     # legal validity today. Likewise Nhật Bản and khóa luận are not versions.
     text = re.sub(r'\b(?:cot|column)\s+(?:khung\s+)?(?:hien hanh|current)\b', 'source column', text)
+    # A student's current exam result describes their input, not whether a
+    # policy is legally effective today. Explicit "as of" requests below
+    # still require verified temporal provenance.
+    text = re.sub(r'\b(my|your)\s+current\s+(?=(?:examination|exam|test)\s+(?:result|score)\b)', r'\1 ', text)
     if re.search(r'\b(?:tai ngay|as of|on date)\b', text):
         value = _iso_date(text)
         return TemporalIntent('as_of', as_of=value, reference_date=reference_date.isoformat(), conflict=value is None)
@@ -59,6 +63,16 @@ def parse_temporal_intent(question: str, *, reference_date: date, filters=None):
         return TemporalIntent('as_of', as_of=reference_date.isoformat(), reference_date=reference_date.isoformat())
     if re.search(r'\b(?:moi nhat|latest|newest)\b', text):
         return TemporalIntent('latest', reference_date=reference_date.isoformat())
+    selected = re.match(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', text)
+    if selected:
+        content_question = text[selected.end():]
+        # These request a dated fact *inside that source*, not a different
+        # document version. The normal grounding/full-source audit must decide
+        # whether it is present; a filename never proves the requested fact.
+        factual_period = re.search(r'\b(?:hoc phi|tuition|han nop don.*ky tuc xa|dormitory application deadline|my personal gpa|diem (?:trung binh )?ca nhan)\b', content_question)
+        version_request = re.search(r'\b(?:version|ban chuong trinh|ban quy che|ban quy dinh|so sanh|compare)\b', content_question)
+        if factual_period and not version_request:
+            return TemporalIntent()
     framed = re.search(r'\b(?:ban\s+(?:chuong trinh|quy che|quy dinh|nam\s+\d|qh\s*[-–]?\s*\d|\d)|version\b|cohort\s+\d|khoa\s+(?:qh\s*[-–]?\s*)?\d|nam hoc\s+\d|academic year\s+\d)', text)
     if not framed:
         return TemporalIntent()

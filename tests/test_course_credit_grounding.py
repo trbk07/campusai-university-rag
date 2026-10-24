@@ -160,15 +160,16 @@ def named_table():
                   ['3', 'Solid mechanics', '3', '30']])
 
 
-@pytest.mark.parametrize('text', ['Course Algebra has 4 credits.', 'Môn Algebra có 4 tín chỉ.',
-                                 'Course Solid mechanics has 3 credits.', 'Algebra has 4 credits.',
-                                 'Algebra 1 has 3 credits.', 'Solid mechanics has 3 credits.'])
-def test_named_course_credits_use_exact_name_and_credit_column(text):
+@pytest.mark.parametrize('text,identity', [('Course Algebra has 4 credits.', 'Algebra'),
+    ('Môn Algebra có 4 tín chỉ.', 'Algebra'), ('Course Solid mechanics has 3 credits.', 'Solid mechanics'),
+    ('Algebra has 4 credits.', 'Algebra'), ('Algebra 1 has 3 credits.', 'Algebra 1'),
+    ('Solid mechanics has 3 credits.', 'Solid mechanics')])
+def test_named_course_credits_use_exact_name_and_credit_column(text, identity):
     assert course_credit_support(text, named_table()) is True
     result = RetrievalResult('named', 'document', 1, named_table(), 'table', .9, 'hybrid', {})
     answer = GroundedAnswerGenerator(LLM({'answer': text, 'confidence': 'high', 'abstained': False,
         'claims': [{'claim_id': '1', 'text': text, 'citation_ids': ['named']}],
-        'citations': [{'chunk_id': 'named', 'page': 1, 'quote': 'Algebra'}]})).answer('Credits?', [result])
+        'citations': [{'chunk_id': 'named', 'page': 1, 'quote': identity}]})).answer('Credits?', [result])
     assert not answer.abstained
     assert answer.claims[0].status == 'supported'
 

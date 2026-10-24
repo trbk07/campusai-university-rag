@@ -167,6 +167,31 @@ def test_repeated_semester_or_article_scope_is_not_treated_as_an_unverified_answ
                                       supported('The admission cohort is 2022.'), question=question)
 
 
+@pytest.mark.parametrize('locator', ['7.2(a)', '9.1', '12.4.3(b)', '15'])
+def test_hierarchical_source_locator_is_masked_as_one_whole_value(locator):
+    question = f'Under section {locator}, how many bonus points apply?'
+    assert not presentation_conflicts(f'Under section {locator}, 3.0 bonus points apply.',
+        supported('Được cộng 3.0 điểm.'), question=question)
+    assert presentation_conflicts(f'Under section {locator}, 2.0 bonus points apply.',
+        supported('Được cộng 3.0 điểm.'), question=question)
+    assert presentation_conflicts('Under section 99.1, 3.0 bonus points apply.',
+        supported('Được cộng 3.0 điểm.'), question=question)
+    assert not presentation_conflicts(f'Section {locator}. 3.0 bonus points apply.',
+        supported('Được cộng 3.0 điểm.'), question=question)
+
+
+def test_route_identifier_requires_both_question_scope_and_a_physical_quote():
+    question = 'What minimum course count applies for ROUTE19+?'
+    answer = 'For ROUTE19+, at least 04 courses are required.'
+    claims = supported('Tích lũy trước tối thiểu 04 học phần.')
+    assert not presentation_conflicts(answer, claims, question=question, source_scope_codes={'route19'})
+    assert presentation_conflicts(answer, claims, question=question)
+    assert presentation_conflicts(answer.replace('ROUTE19', 'ROUTE20'), claims,
+        question=question, source_scope_codes={'route19'})
+    assert presentation_conflicts(answer.replace('04 courses', '19 courses'), claims,
+        question=question, source_scope_codes={'route19'})
+
+
 def test_affirmative_confirmation_cannot_override_a_contradictory_reviewed_credit_value():
     question='The field knowledge block requires 20 credits. Is that correct? State the source value.'
     answer='Yes, that is correct. The general knowledge block requires 26 credits.'

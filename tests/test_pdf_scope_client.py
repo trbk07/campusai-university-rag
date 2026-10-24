@@ -2,6 +2,7 @@
 import base64
 import hashlib
 import json
+import urllib.request
 
 import pytest
 
@@ -18,7 +19,7 @@ def documents(tmp_path, **options):
 
 def client(tmp_path, *, daily=10):
     governor=QuotaGovernor(tmp_path/'quota.sqlite','test-pdf',QuotaPolicy(0,
-        input_tokens_per_minute=100_000,requests_per_day=daily),max_wait_seconds=0)
+        input_tokens_per_minute=100_000,requests_per_day=daily),max_wait_seconds=.1)
     return GeminiClient('fixture-key',model='gemini-test',max_retries=0,timeout=1,
         generation_config={'maxOutputTokens':32},quota_governor=governor,allow_pdf_scope=True)
 
@@ -48,7 +49,8 @@ def test_pdf_request_is_measured_then_generated_with_two_durable_attempts(tmp_pa
     assert calls[0][1]=={'generateContentRequest':{'model':'models/gemini-test',**expected}}
     assert response.input_measurement['generation_body_sha256']==body_hash(expected)
     assert response.input_measurement['response']=={'totalTokens':100}
-    assert llm.quota_governor.snapshot()['reserved_attempts_today']==2
+    assert llm.quota_governor.snapshot()['reserved_attempts_today']==1
+    assert llm.count_tokens_quota_governor.snapshot()['reserved_attempts_today']==1
 
 
 @pytest.mark.parametrize('count',[None,True,-1,1.2,'100'])
@@ -56,13 +58,44 @@ def test_invalid_measurement_never_starts_generation(tmp_path,monkeypatch,count)
     llm=client(tmp_path);calls=fake_transport(monkeypatch,count)
     with pytest.raises(LLMProviderError,match='measurement'):
         llm.complete('Read.',pdf_documents=documents(tmp_path))
-    assert len(calls)==1 and llm.quota_governor.snapshot()['reserved_attempts_today']==1
+    assert len(calls)==1 and llm.quota_governor.snapshot()['reserved_attempts_today']==0
+    assert llm.count_tokens_quota_governor.snapshot()['reserved_attempts_today']==1
 
 
 def test_measurement_does_not_bypass_daily_generation_admission(tmp_path,monkeypatch):
     llm=client(tmp_path,daily=1);calls=fake_transport(monkeypatch)
-    with pytest.raises(LLMRateLimitError):llm.complete('Read.',pdf_documents=documents(tmp_path))
-    assert len(calls)==1 and llm.quota_governor.snapshot()['reserved_attempts_today']==1
+    docs=documents(tmp_path)
+    llm.complete('Read.',pdf_documents=docs)
+    with pytest.raises(LLMRateLimitError):llm.complete('Read again.',pdf_documents=docs)
+    assert len(calls)==3 and sum(url.endswith(':generateContent') for url,_ in calls)==1
+    assert llm.quota_governor.snapshot()['reserved_attempts_today']==1
+    assert llm.count_tokens_quota_governor.snapshot()['reserved_attempts_today']==2
+
+
+def test_counting_follows_the_selected_project_without_resetting_the_previous_project(tmp_path,monkeypatch):
+    llm=client(tmp_path);calls=fake_transport(monkeypatch);docs=documents(tmp_path)
+    first=llm.quota_governor
+    llm.complete('Read.',pdf_documents=docs)
+    first_count=llm.count_tokens_quota_governor
+    second=QuotaGovernor(first.path,'second-project',first.policy,max_wait_seconds=0)
+    llm.quota_governor=second
+    llm.complete('Read.',pdf_documents=docs)
+    assert len(calls)==4
+    assert first.snapshot()['reserved_attempts_today']==second.snapshot()['reserved_attempts_today']==1
+    assert first_count.snapshot()['reserved_attempts_today']==llm.count_tokens_quota_governor.snapshot()['reserved_attempts_today']==1
+    assert first_count.scope!=llm.count_tokens_quota_governor.scope
+
+
+def test_a_query_suffix_cannot_disguise_generation_as_free_token_counting(tmp_path,monkeypatch):
+    llm=client(tmp_path,daily=1);calls=fake_transport(monkeypatch)
+    request=urllib.request.Request(llm.endpoint+'?label=:countTokens',data=json.dumps({
+        'contents':[{'parts':[{'text':'An ordinary generation request.'}]}],
+        'generationConfig':{'maxOutputTokens':32}}).encode())
+    llm._send(request)
+    assert llm.quota_governor.snapshot()['reserved_attempts_today']==1
+    assert llm.count_tokens_quota_governor.snapshot()['reserved_attempts_today']==0
+    with pytest.raises(LLMRateLimitError):llm._send(request)
+    assert len(calls)==1
 
 
 def test_default_client_and_unverified_parts_fail_before_transport(tmp_path,monkeypatch):

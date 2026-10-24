@@ -147,6 +147,8 @@ def _exact_markers(text: str) -> set[str]:
         | {f"year:{item}" for item in YEAR_RE.findall(text)}
         | {f"date:{normalize_text(item)}" for item in DATE_RE.findall(text)}
     )
+    markers |= {'grade:' + match.casefold() for match in re.findall(
+        r'\b(?:grade|điểm)\s+([ABCDF][+-]?)(?!\w)', text, re.I)}
     if NEGATIVE_POLARITY_RE.search(normalized):
         markers.add("polarity:negative")
     elif POSITIVE_POLARITY_RE.search(normalized):

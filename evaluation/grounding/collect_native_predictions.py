@@ -131,6 +131,10 @@ def collect(service, rows: list[dict], llm, *, max_provider_calls: int,
     if egress_requests is not None:
         started_metadata.update(egress_requests=egress_requests,
                                 http_body_policy='exact-request-bodies-v1')
+    tokenization_governor = (getattr(llm, 'count_tokens_quota_governor', None)
+                            if getattr(llm, 'allow_pdf_scope', False) else None)
+    tokenization_before = tokenization_governor.snapshot() if tokenization_governor is not None else None
+    started_metadata['tokenization_quota_before'] = tokenization_before
     write_json(output / 'run-started.json', started_metadata)
     raw, predictions, posts = [], [], []
     active = {"id": None}
@@ -268,6 +272,10 @@ def collect(service, rows: list[dict], llm, *, max_provider_calls: int,
     report = {**(run_metadata or {}), "status": "PROVISIONAL_NATIVE_RUN", "generation_kind": "native", "gold_seeded": False,
         "planned_records": len(rows), "pipeline_predictions": len(predictions),
         "provider_posts": len(posts), "real_model_outputs_successful": len(successful),
+        "provider_posts_by_endpoint": {name:sum(post['endpoint'].endswith(':'+name) for post in posts)
+                                       for name in ('generateContent','countTokens')},
+        "tokenization_quota_before": tokenization_before,
+        "tokenization_quota_after": tokenization_governor.snapshot() if tokenization_governor is not None else None,
         "real_json_predictions_successful": sum(isinstance(capture.get("parsed_model_json"), dict) for capture in successful),
         "published_answers": sum(pred.get("public_response", {}).get("abstained") is False for pred in predictions),
         "local_pipeline_outcomes_without_model": sum(not pred.get("raw_capture_indices") for pred in predictions),

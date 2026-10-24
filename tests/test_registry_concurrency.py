@@ -8,6 +8,50 @@ import pytest
 from campusai.documents.registry import DocumentRegistry
 
 
+@pytest.mark.skipif(os.name != 'nt', reason='Windows sharing violations')
+def test_atomic_registry_publish_recovers_a_brief_windows_sharing_handle(tmp_path, monkeypatch):
+    import campusai.documents.registry as module
+    path = tmp_path/'registry.json'
+    registry = DocumentRegistry(path)
+    registry.add(SimpleNamespace(doc_id='first', to_dict=lambda:{'doc_id':'first'}))
+    replace = module.os.replace
+    attempted = []
+    def sharing_then_release(source, target):
+        attempted.append(Path(source))
+        if len(attempted) <= 2:
+            assert set(json.loads(path.read_text())) == {'first'}
+            error = PermissionError('temporary Windows sharing conflict')
+            error.winerror = 32
+            raise error
+        return replace(source, target)
+    monkeypatch.setattr(module.os, 'replace', sharing_then_release)
+    monkeypatch.setattr(module.time, 'sleep', lambda _delay: None)
+    registry.add(SimpleNamespace(doc_id='second', to_dict=lambda:{'doc_id':'second'}))
+    assert len(attempted) == 3 and len(set(attempted)) == 1
+    assert set(json.loads(path.read_text())) == {'first', 'second'}
+    assert not list(tmp_path.glob('*.tmp'))
+
+
+@pytest.mark.skipif(os.name != 'nt', reason='Windows sharing violations')
+@pytest.mark.parametrize('winerror,expected_attempts', [(5,6), (32,6), (13,1)])
+def test_failed_registry_publish_is_bounded_and_preserves_the_previous_snapshot(tmp_path, monkeypatch, winerror, expected_attempts):
+    import campusai.documents.registry as module
+    path = tmp_path/'registry.json'; registry = DocumentRegistry(path)
+    registry.add(SimpleNamespace(doc_id='first', to_dict=lambda:{'doc_id':'first'}))
+    calls = []
+    def fail(source, target):
+        calls.append(Path(source))
+        error = PermissionError('publish unavailable'); error.winerror = winerror
+        raise error
+    monkeypatch.setattr(module.os, 'replace', fail)
+    monkeypatch.setattr(module.time, 'sleep', lambda _delay: None)
+    with pytest.raises(PermissionError):
+        registry.add(SimpleNamespace(doc_id='second', to_dict=lambda:{'doc_id':'second'}))
+    assert len(calls) == expected_attempts
+    assert set(json.loads(path.read_text())) == {'first'}
+    assert not list(tmp_path.glob('*.tmp'))
+
+
 @pytest.mark.skipif(os.name != 'nt', reason='Windows extended-path normalization')
 def test_registry_lease_survives_first_file_creation(tmp_path, monkeypatch):
     path = tmp_path/'registry.json'

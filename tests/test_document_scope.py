@@ -249,7 +249,7 @@ def test_complete_scope_cannot_publish_positive_fragment_with_missing_remainder(
     llm.payloads = iter([partial, repeated])
     try:
         answer = ask_scope(service, doc_id)
-        assert answer.abstained and answer.reason == 'unsupported_claim'
+        assert answer.abstained and answer.reason == 'document_does_not_mention'
         assert answer.source_scope_checked and not answer.document_absence_requested
         assert not answer.claims and len(llm.prompts) == 2
     finally:
@@ -259,11 +259,18 @@ def test_complete_scope_cannot_publish_positive_fragment_with_missing_remainder(
 @pytest.mark.parametrize('text', [
     'The uploaded documents do not contain Article 7. The code is ABC.',
     'The source does not mention the cohort.',
+    'The uploaded documents do not establish a personal admission probability.',
     "This PDF doesn't provide the requested date.",
     'A code is stated; the supplied documents do not specify its effective date.',
     'Tài liệu không đề cập thời gian áp dụng.',
     'Các tài liệu được tải lên không có thông tin này.',
     'Nguồn này chưa ghi ngày hiệu lực.',
+    'Tài liệu chưa xác lập được điểm trúng tuyển của năm đó.',
+    'Tài liệu này là thông tin tuyển sinh nên chưa có điểm trúng tuyển chính thức.',
+    'Tài liệu chỉ cung cấp điểm lịch sử và không công bố điểm năm nay.',
+    'Tài liệu chỉ cung cấp điểm lịch sử là 24.75 và không công bố điểm năm nay.',
+    'Tài liệu chỉ cung cấp địa điểm học chung, chứ không phân chia lớp tôi về địa điểm nào.',
+    'Tài liệu chỉ cung cấp địa điểm A; địa điểm B; chứ không phân chia lớp tôi về địa điểm nào.',
 ])
 def test_explicit_document_absence_is_detected_inside_positive_answer(text):
     from campusai.rag.request_completeness import asserts_document_absence
@@ -277,10 +284,38 @@ def test_explicit_document_absence_is_detected_inside_positive_answer(text):
     'The source specifies that students do not register twice.',
     'The policy quotes the words "the document does not mention" as an example.',
     'Article 7 applies from the 2031 cohort onwards.',
+    'Tài liệu chỉ rõ sinh viên không công bố thông tin cá nhân.',
 ])
 def test_negated_source_facts_are_not_document_absence(text):
     from campusai.rag.request_completeness import asserts_document_absence
     assert not asserts_document_absence(text)
+
+
+def test_negative_finding_is_document_absence_only_after_complete_source_audit(tmp_path):
+    provisional = {**absent(), 'abstention_reason': 'no_evidence_found'}
+    service, llm, doc_id, _path = scope_service(tmp_path, [provisional, provisional])
+    try:
+        answer = ask_scope(service, doc_id)
+        assert answer.source_scope_checked and answer.reason == 'document_does_not_mention'
+        assert answer.abstained and not answer.to_public_dict()['claims']
+        assert len(llm.prompts) == 2
+    finally:
+        service.close()
+
+
+def test_negative_finding_discards_unpublished_dangling_claim_references(tmp_path):
+    negative = {**absent(), 'abstention_reason':'no_evidence_found',
+        'claims':[{'claim_id':'diagnostic','text':'An unrelated fact.', 'citation_ids':['not-a-source']}],
+        'citations':[{'chunk_id':'not-a-source'}]}
+    service, llm, doc_id, _path = scope_service(tmp_path,[negative,negative])
+    service.answer_generator.source_citations = True
+    try:
+        answer = ask_scope(service,doc_id)
+        assert answer.source_scope_checked and answer.reason == 'document_does_not_mention'
+        assert answer.to_public_dict()['claims'] == answer.to_public_dict()['citations'] == []
+        assert len(llm.prompts) == 2
+    finally:
+        service.close()
 
 
 def test_empty_selected_retrieval_can_recover_from_one_checked_full_source_call(tmp_path):

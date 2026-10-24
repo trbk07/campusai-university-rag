@@ -365,8 +365,11 @@ class HybridRetriever:
             search_query += ' ' + ' '.join(outcome_pool[1])
         from ..rag.table_fields import admission_candidates, admission_field_request
         from ..rag.admission_facts import admission_fact_candidates
+        from ..rag.regulation_facts import regulation_candidates
         fact_ids = (admission_fact_candidates(query, records) if len(doc_ids) == 1
                     and mode in {'auto', 'hybrid', 'hybrid_rrf'} and not _candidate_generation else None)
+        if fact_ids is None and len(doc_ids) == 1 and mode in {'auto','hybrid','hybrid_rrf'} and not _candidate_generation:
+            fact_ids = regulation_candidates(query, records)
         if fact_ids and len(fact_ids) > top_k:
             self.last_trace = RoutingTrace(route=route, detected_codes=codes,
                 filters_applied=bool(normalized_filters), abstained=True,
