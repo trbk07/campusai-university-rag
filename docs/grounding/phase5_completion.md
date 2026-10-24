@@ -1,12 +1,29 @@
 # Phase 5 — audit và handoff hiện hành, 24/10/2026
 
-Current qualification: dev120 DONE on immutable producer `b1ab8adc`.
+Current qualification: dev120 DONE on immutable producer `3fcd4a46`, cachev27.
+Grounding/citation/abstention P/R100%, leakage0, reason96.67%;81 real JSON
+responses,97 selected-run POSTs and103 campaign POSTs including retained failures.
+The fresh dev-only fit `1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43`
+was pinned before any held-out calls. All120 selected runs preserve their physical
+source/config/index/benchmark identity. Source/runtime hashes are
+`36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa` /
+`65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a`.
+Three consecutive regressions each PASS2,570/2 live opt-in SKIP; browser43/43 PASS.
+Held-out resumed after test-007 HTTP503 failures under owner-authorized isolation:
+finish unattempted cases, then at most one alternate-project attempt per recoverable
+failed case. Quota/auth/other errors still stop; all failures and budgets remain.
+No final400-row release or calibration gate is claimed. Owner budgets216/735
+still include prior96/187 POSTs; no successful current-source case is rerun.
+[Authoritative checkpoint](../../evaluation/results/phase5-mixed-absence-20261024/checkpoint.json)
+contains current bindings. The historical results below remain historical.
+
+Historical qualification: dev120 DONE on immutable producer `b1ab8adc`.
 Grounding/citation/abstention P/R100%, leakage0, reason96.67%;81 real model
 JSON responses and96 campaign POSTs including the retained10054 failure.
 No successful question was rerun. Independent dev-only calibration
 `34b8e1251ba0796beb4833f09b183124b60a6691bec071e153384c7f630da831`
 was fitted from these120 captures and locked before held-out. Test130/holdout150
-now run in two disjoint workers across3 owner-confirmed projects, with
+ran in two disjoint workers across3 owner-confirmed projects, with
 subcaps368+367=735. Both scoped budgets and one same-key10054 recovery per
 question are owner-authorized; all old quota and failures remain.
 

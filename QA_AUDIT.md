@@ -4,7 +4,7 @@ Current cycle: 2026-10-24. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Current source `3fcd4a46`: 2,570 offline tests PASS/2 opt-in live SKIP;
+Current source `3fcd4a46`: three consecutive full regressions each2,570 PASS/2 opt-in live SKIP;
 43/43 browser checks PASS on Chrome155, including two batches of five PDFs,
 deletion, six viewports, accessibility and actual local OCR recovery. The browser
 uses a deterministic test provider; it does not measure live AI quality.

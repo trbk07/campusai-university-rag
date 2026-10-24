@@ -814,5 +814,153 @@
       "dev": 216,
       "heldout": 735
     }
+  },
+  "current_v27_qualification": {
+    "producer": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4",
+    "source_identity": {
+      "commit": "3fcd4a469ed35c037d9ab527dbcdb9d007ba387d",
+      "source_sha256": "36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa",
+      "runtime_sha256": "65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a"
+    },
+    "dev_status": "PASS -120 complete outcomes and fresh dev-only calibration pinned",
+    "dev_metrics": {
+      "records": 120,
+      "excluded_native_failures": 0,
+      "claim_count": 65,
+      "predicted_claim_count": 65,
+      "matched_predicted_claim_count": 65,
+      "gold_claim_count": 65,
+      "matched_gold_claim_count": 65,
+      "grounded_claim_precision": 1.0,
+      "grounded_claim_recall": 1.0,
+      "unsupported_claim_leakage": 0.0,
+      "contradicted_claim_leakage": 0.0,
+      "citation_precision": 1.0,
+      "citation_coordinate_validity": 1.0,
+      "citation_recall": 1.0,
+      "citation_completeness": 1.0,
+      "claim_citation_precision": 1.0,
+      "claim_citation_recall": 1.0,
+      "claim_citation_f1": 1.0,
+      "abstention_precision": 1.0,
+      "abstention_recall": 1.0,
+      "reason_accuracy": 0.966667,
+      "brier_score": 0.005275,
+      "ece": 0.041438,
+      "calibration_count": 120,
+      "schema_invalid_rate": 0.0,
+      "abstention_reason_counts": {
+        "ambiguous_question": 12,
+        "document_does_not_mention": 7,
+        "no_evidence_found": 5,
+        "conflicting_evidence": 28,
+        "unsupported_claim": 8
+      },
+      "denominators": {
+        "records": 120,
+        "predicted_claims": 65,
+        "gold_claims": 65,
+        "citations": 60,
+        "gold_citation_links": 65,
+        "predicted_citation_links": 65,
+        "predicted_abstentions": 60,
+        "gold_abstentions": 60,
+        "abstention_reasons": 60
+      }
+    },
+    "dev_native_counts": {
+      "pipeline_predictions": 120,
+      "provider_posts": 97,
+      "real_model_outputs_successful": 81,
+      "real_json_predictions_successful": 81,
+      "official_predictions": 0
+    },
+    "dev_campaign_posts": 103,
+    "owner_caps": {
+      "dev": 216,
+      "heldout": 735
+    },
+    "prior_spend_preserved": {
+      "dev": 96,
+      "heldout": 187
+    },
+    "bindings": {
+      "dev_score": {
+        "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\dev-score.json",
+        "sha256": "3ed87edfb7b8468798ce8740d6d4202bf0df110894f84bcde56c799e4ccfd18c"
+      },
+      "dev_fit": {
+        "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\dev-calibration.json",
+        "sha256": "2fe13222f55c56b3e4cb3530b90883e69b67badf9e811ed987313323fd7d51f4"
+      },
+      "calibration_pin": {
+        "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\calibration-pin.json",
+        "sha256": "96b099ecf203259419e3b6cb1524db251b80929f101baa976122f5343ef8c3ac"
+      },
+      "dev_packet": {
+        "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\dev-egress\\egress.json",
+        "sha256": "f031366d65668a371a1172050096026ec3d1ea454a78ad992adea8878a639d6f"
+      },
+      "heldout_packet": {
+        "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\heldout-egress\\egress.json",
+        "sha256": "f2a424514c72395f0a7a21b32d5e4942f609971aca25abe05450907fb92f18f4"
+      }
+    },
+    "heldout_status": "Resumed under call_6bc47defa8e94265a9ee9485d05a1dab: collect unattempted cases first, then one alternate-project attempt per503/timeout/10054 failure; retain errors and stop on quota/auth/other failures. Cap735 and all prior spend preserved.",
+    "official_accepted_predictions": 0,
+    "final_gates": "OPEN -400 current-source outcomes required",
+    "thresholds_unchanged": true,
+    "owner_project_recovery_reference": "call_6bc47defa8e94265a9ee9485d05a1dab",
+    "heldout_campaign_program": {
+      "path": "D:\\Project\\.release\\grounding\\phase5-v27-3fcd4a4\\.release\\grounding\\qualification\\run_heldout_campaign.py",
+      "sha256": "37f31eded6ba9f2e0722545ca53acfc034c48b4d72f41aa0c6d744231daf46a4"
+    }
+  },
+  "three_consecutive_regressions": {
+    "status": "PASS",
+    "runs": [
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\minimal-runtime-full.xml",
+        "sha256": "0340b7433cf3f65930bc923531b24718d0366260d06f2c8fa023cedf868f0528",
+        "tests": {
+          "tests": 2572,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "passed": 2570,
+        "seconds": 525.208,
+        "timestamp": "2026-10-24T22:14:31.185807+07:00"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\regression-2.xml",
+        "sha256": "d40814225d54a7f4dd389e5df2b1f20da04e1f7b859b16a5ba7a4344900e3339",
+        "tests": {
+          "tests": 2572,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "passed": 2570,
+        "seconds": 527.742,
+        "timestamp": "2026-10-24T23:02:27.179848+07:00"
+      },
+      {
+        "path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\regression-3.xml",
+        "sha256": "22b512c8ddb46cc141cf35109d012c5f82a4ee609202f0f5578a23b34f552568",
+        "tests": {
+          "tests": 2572,
+          "failures": 0,
+          "errors": 0,
+          "skipped": 2
+        },
+        "passed": 2570,
+        "seconds": 566.285,
+        "timestamp": "2026-10-24T23:11:18.161607+07:00"
+      }
+    ],
+    "source_sha256": "36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa",
+    "runtime_sha256": "65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a",
+    "scope": "Same physical Python/config/dependency bytes as current frozen producer; documentation commits do not change these hashes. Opt-in live tests not enabled in these offline runs."
   }
 }
