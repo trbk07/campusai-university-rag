@@ -21,12 +21,15 @@ class LocalRequestHandler(WSGIRequestHandler):
 
 
 class LocalHTTPServer(ThreadingMixIn, WSGIServer):
-    """At most eight HTTP handlers; query admission is separately limited."""
+    """Bound HTTP handlers while allowing twenty users plus control requests.
+
+    Query and ingestion admission remain independently limited by the app.
+    """
     block_on_close = True
-    request_queue_size = 8
+    request_queue_size = 32
 
     def __init__(self, *args, **kwargs):
-        self._slots = threading.BoundedSemaphore(8)
+        self._slots = threading.BoundedSemaphore(32)
         super().__init__(*args, **kwargs)
 
     def get_request(self):
