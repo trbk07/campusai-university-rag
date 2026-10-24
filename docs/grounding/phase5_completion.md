@@ -1,5 +1,18 @@
 # Phase 5 — audit và handoff hiện hành, 24/10/2026
 
+Current-source dev120 is complete and meets the existing thresholds: grounding,
+citation and abstention precision/recall100%, leakage0, reason accuracy96.67%
+(two wrong reasons retained). Actual counts:120 pipeline outcomes,97 POSTs,
+82 successful JSON responses,120 separately validated per-question captures.
+Packet-lineage spending is172/216, including75 historical POSTs. The fresh
+dev-only calibrator is fitted from these captures and pinned with semantic
+checksum `1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43`.
+Its checksum matches the old mapping mathematically, but its physical artifact
+binds this new dev source/report and120 native runs; the old fit was not reused.
+[Current dev report](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-score-cb7220d4.json)
+and [pinned fit](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-calibration-cb7220d4.json).
+Held-out collection has started; full400 and all5 release gates remain open.
+
 Latest repair: mixed positive/document-absence answers must not bypass the
 complete-source audit. Current dev source6f634bb8 yielded74 complete per-question
 checkpoints, but independent scoring found `draft-0477` falsely claiming that
@@ -289,24 +302,36 @@ acceptance only for Phase5.
 
 ## 7. Concrete next work and owner actions
 
-Current frozen candidate: `6f634bb8bbb06237d30f4b7037572d276aee0861` at
+Current frozen candidate: `cb7220d4b8e10e22114ae11ca353a146d41c1c09` at
 `.release/grounding/phase5-compact-04bb0ccb`. It is Git-clean and has the exact
-physical source/runtime bytes of the819-test checkpoint. Own-checkout imports,
+physical source/runtime bytes of the835-test checkpoint. Own-checkout imports,
 index integrity and full400 annotation/sign-off validation PASS. Existing
 canonical review attachments and empty-scope evidence are now tracked; no new
 review decisions or approval identities were created. The original shared
 quota/circuit state is used without copying or resetting counters.
 
-The prepared [dev120 packet](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-egress/egress.json)
+The original [dev120 packet](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-egress/egress.json)
 has SHA `c2540baa41559ab7fa74ae254fd7504d90238d916a8ff6cfb5ee17f03aa510b8`,
 68 model paths/52 local cases,204 planned POSTs and216 cap. The
 [test130/holdout150 packet](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/heldout-egress/egress.json)
 has SHA `064cd1d672d506db0bf92c3eb2929b1a9b183e935162becb61e37fc3a40ec0a4`,
 219 model paths/61 local cases,651 planned POSTs and675 cap. Both had0 POSTs
-when approved; all prompt/PDF/exact HTTP-body hashes PASS. Owner reply to
+when originally approved; all prompt/PDF/exact HTTP-body hashes PASS. Owner reply to
 `call_a9e99c801e1347a08696a027485c3106` is **“Duyệt cả hai gói, dừng ngay mọi lỗi”**.
-No503 recovery or retry is authorized. Dev collection has started. Dev must
-finish first, then its new calibrator must be
+That initial no-retry choice was superseded by the explicit503-recovery reply
+recorded above. Current metadata-only descendants are [dev](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/dev-egress-cb7220d4/egress.json)
+SHA `f5d7501d8447b2a669eeaa77b6c6650c78824568c7babc343dcebf1e7737f82a`
+and [held-out](../../.release/grounding/phase5-compact-04bb0ccb/.release/grounding/qualification/heldout-egress-cb7220d4/egress.json)
+SHA `53339a1e96dce1f1b828907bc3394caac0bfe5d50fe6d9c77fbf4bc749c502b4`.
+Every request/PDF/schema/HTTP body equals its approved parent; source/execution
+metadata alone is rebound. Original global caps include all ancestor attempts.
+Operator quota policy binds the owner's distinct-project confirmation and
+conservatively seeds each project with333 prior shared reservations; those
+seeds are accounting bounds, not additional API calls. The original333 counter
+remains intact. Current per-question runs record actual effective quota scope
+and policy hash alongside the unchanged base generation profile.
+Dev collection has restarted on the repaired source. Dev must finish first,
+then its new calibrator must be
 fitted and pinned before any test/holdout collection. Use non-overlapping key
 shards and quota-bounded batches; preserve failures and actual source identity.
 

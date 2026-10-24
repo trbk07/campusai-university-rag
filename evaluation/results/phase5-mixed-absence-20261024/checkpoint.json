@@ -39,5 +39,61 @@
     "decision_reference": "conversation:request_user_input_async:call_d68d1849049147ff8590872b1a5556ce:user-reply",
     "decision_quote": "Ba project kh?c nhau"
   },
-  "release_status": "INCOMPLETE: source repair passed tests; current-source native qualification and calibration required; numeric quality thresholds unchanged."
+  "release_status": "INCOMPLETE: source repair passed tests; current-source native qualification and calibration required; numeric quality thresholds unchanged.",
+  "native_repaired_case_validation": {
+    "id": "draft-0477",
+    "status": "PASS",
+    "run_path": "D:\\Project\\.release\\grounding\\phase5-compact-04bb0ccb\\.release\\grounding\\qualification\\dev-cases-cb7220d4\\060-draft-0477\\run.json",
+    "run_sha256": "eb3fdfe5fd735a958d32c47cc25fceacf7d8bcbd8660e60fbdbc1adfe029db2d",
+    "source_identity": {
+      "commit": "cb7220d4b8e10e22114ae11ca353a146d41c1c09",
+      "source_sha256": "df723d7b8237e352b09979ffa6d972904554b4c93cce79376f4befacb9bb0e37",
+      "runtime_sha256": "b740ba08d04a15149958312a078447bb2f735cb796b4d033c685e66c3bae3a1b"
+    },
+    "provider_posts": 3,
+    "successful_json_responses": 2,
+    "required_claims": 2,
+    "matched_claims": 2,
+    "physical_page": 2,
+    "metrics": {
+      "records": 1,
+      "excluded_native_failures": 0,
+      "claim_count": 2,
+      "predicted_claim_count": 2,
+      "matched_predicted_claim_count": 2,
+      "gold_claim_count": 2,
+      "matched_gold_claim_count": 2,
+      "grounded_claim_precision": 1.0,
+      "grounded_claim_recall": 1.0,
+      "unsupported_claim_leakage": 0.0,
+      "contradicted_claim_leakage": 0.0,
+      "citation_precision": 1.0,
+      "citation_coordinate_validity": 1.0,
+      "citation_recall": 1.0,
+      "citation_completeness": 1.0,
+      "claim_citation_precision": 1.0,
+      "claim_citation_recall": 1.0,
+      "claim_citation_f1": 1.0,
+      "abstention_precision": 0.0,
+      "abstention_recall": 0.0,
+      "reason_accuracy": 0.0,
+      "brier_score": 0.0,
+      "ece": 0.0,
+      "calibration_count": 1,
+      "schema_invalid_rate": 0.0,
+      "abstention_reason_counts": {},
+      "denominators": {
+        "records": 1,
+        "predicted_claims": 2,
+        "gold_claims": 2,
+        "citations": 1,
+        "gold_citation_links": 2,
+        "predicted_citation_links": 2,
+        "predicted_abstentions": 0,
+        "gold_abstentions": 0,
+        "abstention_reasons": 0
+      }
+    },
+    "scope": "Bounded repaired-case validation only; full400 qualification remains open."
+  }
 }
