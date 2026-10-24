@@ -812,6 +812,16 @@ class GroundedAnswerGenerator:
                 if verified_document_absence:
                     return abstain('document_does_not_mention', language=language)
                 return replace(abstain('unsupported_claim', language=language), document_absence_requested=True)
+        from .request_completeness import asserts_document_absence, explicit_request_roles, roles_covered
+        required_roles = explicit_request_roles(question)
+        if not payload['abstained'] and asserts_document_absence(payload['answer']):
+            # This path publishes no positive claim or citation. An orphan
+            # citation in an unpublished diagnostic fragment must not prevent
+            # the bounded complete-source audit that establishes absence.
+            reason = ('document_does_not_mention' if verified_document_absence and not required_roles
+                      else 'unsupported_claim')
+            return replace(abstain(reason, language=language),
+                           document_absence_requested=not verified_document_absence)
         if self.source_citations and verified_document_absence:
             from .source_citations import relocate_literal_page_references
             payload = relocate_literal_page_references(payload, results)
@@ -863,16 +873,6 @@ class GroundedAnswerGenerator:
                     str(result.metadata.get("source_hash", "")),
                 )
             )
-        from .request_completeness import asserts_document_absence, explicit_request_roles, roles_covered
-        required_roles = explicit_request_roles(question)
-        if not payload['abstained'] and asserts_document_absence(payload['answer']):
-            # Verifying the positive fragment does not prove a separate claim
-            # that the source lacks the rest. Audit once before publishing;
-            # even complete-source review must not publish a mixed partial answer.
-            reason = ('document_does_not_mention' if verified_document_absence and not required_roles
-                      else 'unsupported_claim')
-            return replace(abstain(reason, language=language),
-                           document_absence_requested=not verified_document_absence)
         claim_texts = [claim.text for claim in extract_claims(str(payload['answer']), raw_claims)]
         # A provider's absence label cannot bypass an explicit requirement to
         # establish both requested facts. This also applies to source-scope
@@ -1002,7 +1002,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
     from .presentation import presentation_conflicts, location_proofs, code_markers
     source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
-    if presentation_conflicts(answer, claims, locations=location_proofs(citations, registry),
+    locations = location_proofs(citations, registry)
+    if presentation_conflicts(answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes):
         return _abstention('unsupported_claim', language=language)
     if used_citation_ids:

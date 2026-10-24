@@ -318,6 +318,26 @@ def test_negative_finding_discards_unpublished_dangling_claim_references(tmp_pat
         service.close()
 
 
+@pytest.mark.parametrize('configured', [True, False])
+def test_absence_in_positive_envelope_audits_before_unpublished_orphan_citations(tmp_path, configured):
+    payload = {'answer': 'The document does not mention cafeteria lunch prices.',
+        'confidence':'high', 'abstained':False,
+        'claims':[{'claim_id':'diagnostic','text':'The library opens in the morning.',
+                   'citation_ids':['unpublished-unknown']}],
+        'citations':[{'chunk_id':'unpublished-unknown'}]}
+    service, llm, doc_id, _path = scope_service(tmp_path, [payload, payload], configured=configured)
+    service.answer_generator.source_citations = True
+    try:
+        answer=service.ask('What is the cafeteria lunch price?', doc_ids=[doc_id], language='en')
+        assert answer.abstained
+        assert answer.reason == ('document_does_not_mention' if configured else 'unsupported_claim')
+        assert answer.source_scope_checked is configured
+        assert answer.to_public_dict()['claims'] == answer.to_public_dict()['citations'] == []
+        assert len(llm.prompts) == (2 if configured else 1)
+    finally:
+        service.close()
+
+
 def test_empty_selected_retrieval_can_recover_from_one_checked_full_source_call(tmp_path):
     service, llm, doc_id, _path = scope_service(tmp_path, [])
     service.retriever.result = []

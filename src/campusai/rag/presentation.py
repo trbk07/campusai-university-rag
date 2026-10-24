@@ -151,6 +151,8 @@ def _scope_number_key(label, value):
         label = "cohort"
     if label == "term":
         label = "semester"
+    if label in {'article', 'dieu', 'section', 'muc', 'chapter', 'chuong', 'page', 'trang'}:
+        label = location_key(label, value)[0]
     return label, re.sub(r'\d+', lambda match: str(int(match[0])), value.casefold())
 
 

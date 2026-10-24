@@ -477,7 +477,7 @@
     "official_native_predictions": 0
   },
   "qualification_b1ab8adc": {
-    "status": "dev120 DONE and fresh dev-only calibration pinned; held-out native collection running in two disjoint workers across3 projects",
+    "status": "historical candidate stopped for4 observed quality failures; all captures and187 held-out POSTs retained; native outputs are not relabeled as repaired-runtime evidence",
     "source_identity": {
       "commit": "b1ab8adc71e29b407e5c20ba649f5ea53f2cfe73",
       "source_sha256": "d54e1726dc29b0795574d21ced1d00143fcfa08d306a1f65927364997f3f5109",
@@ -723,5 +723,96 @@
     "xml_path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\scorer-source-clean-full.xml",
     "xml_sha256": "418869b93fbac408a7210f4c480cdcc7c9836f5fcd8058d220836b28c782a01d",
     "new_inference_requests": 0
+  },
+  "minimal_runtime_repair_diagnostic": {
+    "results": [
+      {
+        "id": "phase5-fresh-test-075",
+        "abstained": false,
+        "reason": null,
+        "recorded_responses": 2,
+        "missing_followups": 0,
+        "new_api_calls": 0,
+        "official_predictions": 0
+      },
+      {
+        "id": "phase5-fresh-test-077",
+        "abstained": false,
+        "reason": null,
+        "recorded_responses": 1,
+        "missing_followups": 0,
+        "new_api_calls": 0,
+        "official_predictions": 0
+      },
+      {
+        "id": "phase5-fresh-test-088",
+        "abstained": true,
+        "reason": "document_does_not_mention",
+        "recorded_responses": 2,
+        "missing_followups": 0,
+        "new_api_calls": 0,
+        "official_predictions": 0
+      },
+      {
+        "id": "phase5-fresh-test-099",
+        "abstained": true,
+        "reason": "document_does_not_mention",
+        "recorded_responses": 2,
+        "missing_followups": 0,
+        "new_api_calls": 0,
+        "official_predictions": 0
+      }
+    ],
+    "new_provider_posts": 0,
+    "official_predictions": 0,
+    "source_identity": {
+      "commit": "c722be6a6ca28047214b341ccb65018a47e01cd7",
+      "source_sha256": "36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa",
+      "runtime_sha256": "65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a"
+    },
+    "scope": "Actual captured provider responses matched by exact HTTP body hash; diagnostic only."
+  },
+  "minimal_runtime_repair_full": {
+    "exit_code": 0,
+    "source_identity_before": {
+      "commit": "c722be6a6ca28047214b341ccb65018a47e01cd7",
+      "source_sha256": "36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa",
+      "runtime_sha256": "65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a"
+    },
+    "source_identity_after": {
+      "commit": "c722be6a6ca28047214b341ccb65018a47e01cd7",
+      "source_sha256": "36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa",
+      "runtime_sha256": "65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a"
+    },
+    "source_unchanged": true,
+    "tests": {
+      "tests": 2572,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2
+    },
+    "xml_path": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\minimal-runtime-full.xml",
+    "xml_sha256": "0340b7433cf3f65930bc923531b24718d0366260d06f2c8fa023cedf868f0528",
+    "new_inference_requests": 0
+  },
+  "minimal_runtime_repair": {
+    "status": "DONE implementation and full regression; new-source native qualification pending",
+    "production_changes": [
+      "Canonicalize bilingual section/article/chapter/page scope aliases without licensing changed values or locators.",
+      "Request bounded complete-source absence audit before validating unpublished diagnostic citations.",
+      "Invalidate stale answers with grounding-v27."
+    ],
+    "focused_tests_passed": 162,
+    "full_tests_passed": 2570,
+    "live_opt_in_skipped": 2,
+    "raw_provider_responses_edited": false,
+    "gold_or_thresholds_edited": false,
+    "prior_candidate_retired_for_quality": true,
+    "prior_dev_posts_preserved": 96,
+    "prior_heldout_posts_preserved": 187,
+    "owner_caps_still_total": {
+      "dev": 216,
+      "heldout": 735
+    }
   }
 }

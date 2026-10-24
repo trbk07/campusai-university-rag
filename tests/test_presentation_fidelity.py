@@ -223,3 +223,16 @@ def test_exact_source_claim_selects_its_own_paragraph_instead_of_a_common_word_w
     result=RetrievalResult('c1','doc',1,text,'text',1.0,'source',{})
     quote=source_quote(result,[{'text':'The student study result threshold is at least 3.0.','citation_ids':['c1']}])
     assert 'Article 6:' in quote and 'at least 3.0.' in quote and len(quote)<=1200
+def test_bilingual_question_scope_keeps_the_same_locator_without_licensing_other_numbers():
+    from campusai.rag.presentation import presentation_conflicts
+    from campusai.rag.claims import Claim
+    claim=Claim('award','A third prize receives 4.5 points.','fact',1,('c',),
+                'supported',1.0,('c',),False)
+    question='Under section 7.2(a), how many bonus points does a third prize receive?'
+    assert not presentation_conflicts('Theo mục 7.2(a), giải ba được cộng 4.5 điểm.',[claim],
+                                      question=question,locations={('page','8')})
+    assert presentation_conflicts('Theo mục 9.9(a), giải ba được cộng 4.5 điểm.',[claim],
+                                  question=question,locations={('page','8')})
+    assert presentation_conflicts('Theo mục 7.2(a), giải ba được cộng 5.5 điểm.',[claim],
+                                  question=question,locations={('page','8')})
+
