@@ -1,5 +1,17 @@
 # App improvement log
 
+## 2026-10-25 - library read latency and loading layout
+
+Removed repeated6MB registry parses from ordinary metadata reads using a compact,
+file-identity-checked projection. Pure PDF page counts retain authorization and
+readiness checks while bypassing model admission;content/composite requests
+remain bounded.20-user workload:166 busy responses to0,p95 2.737s to0.189s,
+all400 requests successful. Reserved initial UI geometry reduces desktop CLS
+0.1022 to0.0109;9/9 lab sessions PASS.2,688 full-suite tests and43 browser checks
+PASS;400 Phase5 capture-regression rows unchanged,0 fresh model calls. The warm
+100-page/6.17MB probe reaches p95 11.506s over20 runs;10MB qualification and
+broader goal gates remain open. [Evidence](docs/ui/evidence/web-read-performance-20261025.json).
+
 ## 2026-10-23 - clean-source reproducibility
 
 Exporting pushed commit 0ef54f90 exposed missing runtime dependencies and an

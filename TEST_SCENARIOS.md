@@ -1,6 +1,20 @@
 # App test scenarios
 
-Cycle: 2026-10-23. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+Latest cycle:2026-10-25. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+
+Current source:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser checks.
+`tests/test_metadata_read_path.py` verifies busy-model admission versus local
+facts,scope isolation,no repeated full-content parses,same-size atomic file
+replacement,deletion,caller mutation and fail-closed corruption. Registry/HTTP
+concurrency checks also PASS. Reproduce the non-model400-request workload with
+`python -m scripts.operations.benchmark_metadata_reads --output <new-report.json>`.
+Use `node tests/ui/measure_web_vitals.cjs` with a new `UI_VITALS_OUTPUT` for the
+read-only layout probe. Exact400-row Phase5 capture regression is unchanged;
+this is reuse of real responses,not new inference. Current evidence and limits:
+[performance receipt](docs/ui/evidence/web-read-performance-20261025.json).
+
+The following scenario table records earlier coverage;its source-specific
+counts do not replace current measurements.
 
 | Flow | Expected behavior | Evidence |
 |---|---|---|

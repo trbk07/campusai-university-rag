@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 import os
 import threading
@@ -40,6 +41,8 @@ class DocumentRegistry:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = _path_lock(self.path)
+        self._metadata_cache = None
+        self._metadata_identity = None
         with self._lock, self._process_lock():
             self.items: dict[str, dict[str, Any]] = self._load()
 
@@ -122,6 +125,36 @@ class DocumentRegistry:
             self.items = self._load()
             self.items[document.doc_id] = document.to_dict()
             self._save()
+
+    def _file_identity(self):
+        try:
+            stat = self.path.stat()
+        except FileNotFoundError:
+            return None
+        return (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+
+    def _metadata_snapshot(self):
+        """Cache only transport metadata, checking the live file under its lock."""
+        fields = {'doc_id','source_path','page_count','language','metadata','status','review_reason','cached'}
+        with self._lock, self._process_lock():
+            identity = self._file_identity()
+            if self._metadata_cache is None or identity != self._metadata_identity:
+                items = self._load()
+                if self._file_identity() != identity:
+                    raise OSError('registry changed during metadata read')
+                self.items = items
+                self._metadata_cache = deepcopy({key:{name:value for name,value in row.items() if name in fields}
+                                                 for key,row in items.items()})
+                self._metadata_identity = identity
+            return self._metadata_cache
+
+    def metadata_get(self, doc_id: str) -> dict[str, Any] | None:
+        """Return an isolated metadata record without parsing all chunk bodies."""
+        return deepcopy(self._metadata_snapshot().get(doc_id))
+
+    def metadata_list(self) -> list[dict[str, Any]]:
+        """Return isolated metadata; external writes and deletions remain visible."""
+        return deepcopy(list(self._metadata_snapshot().values()))
 
     def get(self, doc_id: str) -> dict[str, Any] | None:
         """Return one document record by id."""

@@ -124,6 +124,7 @@ class WebDocuments:
         self.max_mb = int(defaults.get("max_mb", 50))
         self.max_pages = int(defaults.get("max_pages", 218))
         self.lock = threading.RLock()
+        self._registry = None
         # Queries share a read lease. Deletes retain an exclusive lease so a
         # source cannot disappear while an answer is being grounded.
         self.corpus_lock = CorpusAccessLock()
@@ -134,8 +135,11 @@ class WebDocuments:
 
     @property
     def registry(self):
-        contained(self.store, self.store / "registry.json")
-        return DocumentRegistry(self.store / "registry.json")
+        with self.lock:
+            contained(self.store, self.store / "registry.json")
+            if self._registry is None:
+                self._registry = DocumentRegistry(self.store / "registry.json")
+            return self._registry
 
     @staticmethod
     def allowed(doc_id, environ):
@@ -147,7 +151,7 @@ class WebDocuments:
             raise WebError("not_found", 404)
         if doc_id in self.deletions.pending:
             raise WebError('document_deleting', 409)
-        record = self.registry.get(doc_id)
+        record = self.registry.metadata_get(doc_id)
         if record is None:
             raise WebError("not_found", 404)
         return record
@@ -214,10 +218,10 @@ class WebDocuments:
     def documents(self, environ, *, job_rows=None):
         latest_jobs = self.latest_jobs_snapshot(job_rows)
         records = [self.public_document(record, latest_job=latest_jobs.get(record['doc_id']))
-                   for record in self.registry.list() if self.allowed(record["doc_id"], environ)]
+                   for record in self.registry.metadata_list() if self.allowed(record["doc_id"], environ)]
         return sorted(records, key=lambda record: record.get("uploaded_at") or 0, reverse=True)
 
-    def answer_document_info(self, question, options, environ):
+    def answer_document_info(self, question, options, environ, *, metadata_only=False):
         from .document_info import document_info_response
         # Ordinary content queries must not enumerate the upload registry or
         # introduce document-transport dependencies into core API adapters.
@@ -239,6 +243,8 @@ class WebDocuments:
                           requires_context=options.get('requires_context', False))
             self.application.query_service.reset_request_state()
             return response
+        if metadata_only:
+            return None
         # Split only independent explicit clauses. Keep the original question
         # intact when no structural PDF question is present in a component.
         clauses = [p.strip() for p in re.split(r'\?+\s*|;\s*|\s+(?:và|and)\s+', question, flags=re.I) if p.strip()]

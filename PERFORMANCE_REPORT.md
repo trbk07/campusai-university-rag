@@ -1,6 +1,19 @@
 # App performance evidence
 
-Cycle: 2026-10-23. No new speed claim is made for the source-packaging repair.
+Latest cycle:2026-10-25. [Raw measurements, environment and artifact bindings](docs/ui/evidence/web-read-performance-20261025.json).
+
+| Current workload | Before | After | Scope |
+|---|---|---|---|
+|20 users,400 alternating library/local page-count requests|234 HTTP200,166 HTTP429;p95 2.737s|400 HTTP200,0 HTTP429;p95 0.189s|93.1% lower p95 for these ordinary read operations;0 provider calls,all7 original documents retained.|
+|Initial layout,200ms document-response delay on both versions|Desktop CLS0.1022|Desktop CLS0.0109;9/9 viewport sessions PASS|Actual app,Chrome lab;not field/physical-mobile data.|
+|100 native pages,6,171,517 bytes;20 fresh uploads|No matched older end-to-end measurement|20/20 ready;p95 11.506s,max11.700s|Warm CUDA BGE app,100ms polling;source SHA/page count checked,only owned uploads deleted. Does not close100-page/10MB gate.|
+
+Registry reads reuse a compact projection with live file identity checks under
+the existing writer locks. Cheap page counts no longer reserve model slots;
+content/composite queries still do. Real AI streaming latency,larger PDF workload
+qualification and remaining quality/recovery gates stay open.
+
+Historical source-packaging cycle:2026-10-23. No speed claim was made for that repair.
 
 | Workload | Before | After / observation | Limits |
 |---|---|---|---|

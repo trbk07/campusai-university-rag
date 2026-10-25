@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="0.140" timestamp="2026-10-25T17:13:05.419672+07:00" hostname="Bao_Kien"><testcase classname="tests.test_pdf_readiness_benchmark" name="test_probe_does_not_delete_preexisting_duplicate_or_unexpected_document[preexisting]" time="0.049" /><testcase classname="tests.test_pdf_readiness_benchmark" name="test_probe_does_not_delete_preexisting_duplicate_or_unexpected_document[duplicate_race]" time="0.003"><failure message="Failed: A probe must never delete a pre-existing or unexpected source">scripts\operations\benchmark_pdf_readiness.py:50: in measure
+    raise ValueError('A cached upload is not a fresh processing observation')
+E   ValueError: A cached upload is not a fresh processing observation
+
+During handling of the above exception, another exception occurred:
+tests\test_pdf_readiness_benchmark.py:24: in test_probe_does_not_delete_preexisting_duplicate_or_unexpected_document
+    with pytest.raises(ValueError):module.measure(source,1,tmp_path/'report.json')
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+scripts\operations\benchmark_pdf_readiness.py:74: in measure
+    request('/api/documents/'+identifier,method='DELETE')
+tests\test_pdf_readiness_benchmark.py:21: in request
+    pytest.fail('A probe must never delete a pre-existing or unexpected source')
+E   Failed: A probe must never delete a pre-existing or unexpected source</failure></testcase></testsuite></testsuites>

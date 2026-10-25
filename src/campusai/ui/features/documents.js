@@ -31,8 +31,11 @@ function filtered() {
     && (state.status === 'all' || (state.status === 'ready' ? doc.ready : !doc.ready)));
 }
 function renderSidebar() {
-  $('#categories').innerHTML = groups.filter(group => group.id !== 'unclassified' || groupCount(group)).map(group => `<button class="category-button ${state.category === group.id ? 'active' : ''}" data-category="${group.id}" ${state.category === group.id ? 'aria-current="true"' : ''}>${icon(group.icon)}<span>${group.label}</span><span class="count">${groupCount(group)}</span></button>`).join('');
-  $('#recent-documents').innerHTML = state.documents.slice(0,4).map(doc => `<button class="recent-item" data-detail="${esc(doc.doc_id)}">${pdfIcon()}<span class="recent-text"><strong>${esc(doc.name)}</strong><small>${date(doc.uploaded_at)}${state.selected.has(doc.doc_id) ? ' · Đã chọn' : ''}</small></span></button>`).join('') || '<p class="sidebar-empty">Tài liệu bạn tải lên sẽ xuất hiện ở đây.</p>';
+  $('#categories').innerHTML = groups.map(group => `<button class="category-button ${state.category === group.id ? 'active' : ''}" data-category="${group.id}" ${state.loading ? 'disabled' : ''} ${state.category === group.id ? 'aria-current="true"' : ''}>${icon(group.icon)}<span>${group.label}</span><span class="count">${state.loading ? '…' : groupCount(group)}</span></button>`).join('');
+  $('#recent-documents').setAttribute('aria-busy',String(state.loading));
+  $('#recent-documents').innerHTML = state.loading
+    ? Array.from({length:4},() => '<div class="recent-item recent-placeholder" aria-hidden="true"><span class="pdf-icon"></span><span class="recent-text"><span></span><span></span></span></div>').join('')
+    : state.documents.slice(0,4).map(doc => `<button class="recent-item" data-detail="${esc(doc.doc_id)}">${pdfIcon()}<span class="recent-text"><strong>${esc(doc.name)}</strong><small>${date(doc.uploaded_at)}${state.selected.has(doc.doc_id) ? ' · Đã chọn' : ''}</small></span></button>`).join('') || '<p class="sidebar-empty">Tài liệu bạn tải lên sẽ xuất hiện ở đây.</p>';
   $$('.upload-trigger').forEach(button => { button.disabled = !state.uploadAvailable; });
 }
 function options(key) { return [...new Set(state.documents.map(doc => doc.metadata[key]).filter(value => value != null))].sort().map(value => `<option value="${esc(value)}" ${String(value) === state[key === 'academic_year' ? 'year' : key] ? 'selected' : ''}>${esc(value)}</option>`).join(''); }

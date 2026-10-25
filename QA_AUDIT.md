@@ -4,7 +4,18 @@ Current cycle: 2026-10-25. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Current source `a21a4cd5`: three consecutive full regressions each2,663 PASS/2 opt-in live SKIP. Phase5 internal400/400 acceptance and all5 gates PASS. The broader app audit remains open.
+Accepted Phase5 source `a21a4cd5`: three consecutive full regressions each2,663 PASS/2 opt-in live SKIP. Phase5 internal400/400 acceptance and all5 gates PASS. The broader app audit remains open.
+
+Latest web/cache cycle:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser
+checks PASS, including desktop/mobile, ten PDFs, deletion and local OCR recovery.
+Fixed repeated full-registry parsing and expensive-query admission for pure PDF
+metadata.20 concurrent users now receive400/400 HTTP200, p95 0.189s; before,
+166/400 requests returned429 and p95 was2.737s. Existing scopes, deletion intents,
+registry corruption handling and model-query bounds remain tested. Fixed loading
+layout shifts:CLS0.1022 to0.0109, nine lab sessions PASS. All400 Phase5 outputs
+remain exactly unchanged using bound native HTTP captures,0 fresh provider calls.
+The100-page probe is6.17MB, not the full10MB target; whole-app completion stays
+unproven. [Measured evidence](docs/ui/evidence/web-read-performance-20261025.json).
 Historical browser source `3fcd4a46`:
 43/43 browser checks PASS on Chrome155, including two batches of five PDFs,
 deletion, six viewports, accessibility and actual local OCR recovery. The browser

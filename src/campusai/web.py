@@ -9,6 +9,7 @@ from typing import Callable
 from urllib.parse import unquote, urlsplit
 
 from .api import CampusAIApplication
+from .document_info import page_count_request
 from .retrieval.calibration import CalibrationError
 from .request_timings import capture_request, timed_stage
 from .web_documents import WebDocuments, WebError
@@ -146,9 +147,12 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                 options["request_id"] = request_id
                 if "campusai.authorized_doc_ids" in environ:
                     options["authorized_doc_ids"] = environ["campusai.authorized_doc_ids"]
-                if query_slot is not None and not query_slot.acquire(blocking=False):
+                metadata_query = page_count_request(payload.get("question", ""), []) is not None
+                acquired = False
+                if not metadata_query and query_slot is not None and not query_slot.acquire(blocking=False):
                     return _json_response({"ok": False, "error_code": "query_busy", "retry_after_seconds": 1},
                         start_response, 429, extra=[("Retry-After", "1"), ("X-Request-ID", request_id)])
+                acquired = not metadata_query and query_slot is not None
                 try:
                     with documents.corpus_lock.read():
                         with documents.lock:
@@ -163,8 +167,14 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                                             latest_job=latest_jobs.get(doc_id))["ready"]:
                                         raise WebError("document_not_ready", 409)
                         try:
-                            value = documents.answer_document_info(payload.get("question", ""), options, environ)
+                            value = documents.answer_document_info(payload.get("question", ""), options, environ,
+                                                                   metadata_only=metadata_query)
                             if value is None:
+                                if query_slot is not None and not acquired:
+                                    if not query_slot.acquire(blocking=False):
+                                        return _json_response({"ok": False, "error_code": "query_busy", "retry_after_seconds": 1},
+                                            start_response, 429, extra=[("Retry-After", "1"), ("X-Request-ID", request_id)])
+                                    acquired = True
                                 value = application.query(payload.get("question", ""), **options)
                         except TimeoutError:
                             raise WebError("provider_timeout", 504)
@@ -179,7 +189,7 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                             with documents.lock:
                                 documents.remember(request_id, ids)
                 finally:
-                    if query_slot is not None:
+                    if acquired:
                         query_slot.release()
                 status = 200 if value.get("ok") else {
                     "provider_overloaded": 503, "provider_rate_limited": 429,
