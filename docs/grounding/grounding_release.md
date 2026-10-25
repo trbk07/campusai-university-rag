@@ -1,6 +1,14 @@
 # Phase 5 release status
 
-**70%: P5-01 through P5-07 DONE; P5-08 through P5-10 remain open.** Current producer `3fcd4a46`/grounding-v27 has120 successful dev outcomes: grounded/citation/abstention P/R100%, leakage0, reason96.67%;81 real JSON outputs,103 campaign POSTs including retained failures. Fresh dev-only calibration1ad5816b was pinned before held-out. Test/holdout resumed after test-007 HTTP503 failures with owner-approved isolation and one alternate-project attempt per recoverable failed case; final400-row quality gates remain open. Three consecutive current-source regressions each2,570 PASS/2 live opt-in SKIP. Earlier b1ab8adc and other candidate results below are historical. See [completion evidence](phase5_completion.md) and its current checkpoint bindings.
+**70%: P5-01 through P5-07 DONE; P5-08 through P5-10 remain open.**
+On25/10 the owner authorized simpler internal closure with unchanged quality:
+reuse genuine Gemini captures only for exact matching inputs and re-execute the
+current pipeline. The v27 dev120/calibration result remains DONE on its recorded
+source; held-out was stopped for quality defects. v28 repairs and physical
+checkpoint validation are in progress. All400 reviewed cases, numeric quality
+gates and public fresh-holdout requirements remain. Reuse is never reported as
+fresh inference. See [completion evidence](phase5_completion.md) and
+[the closure contract](grounding_release_gates.md).
 [Plan](../../plan.md) is authoritative. Historical frozen candidate `cb7220d4b8e10e22114ae11ca353a146d41c1c09` has source/runtime `df723d7b8237e352b09979ffa6d972904554b4c93cce79376f4befacb9bb0e37` / `b740ba08d04a15149958312a078447bb2f735cb796b4d033c685e66c3bae3a1b`, identical to the835-test source. Model inputs and physical benchmark/index/config are unchanged. Owner now permits one same-key503 recovery per question and confirms3 independent credential projects; conservative quota accounting and original total packet caps remain. Dev collection uses individual checkpoints; its calibrator must be fitted and pinned before held-out inference. Older native attempts retain their actual source, failures and quality findings.
 
 The previous-source v2 packet touched 103/120 dev rows and captured real model JSON

@@ -14,7 +14,7 @@ from campusai.rag.abstention import canonicalize_abstention_reason
 from campusai.rag.claims import _exact_markers, _markers_match
 from evaluation.grounding.claim_roles import canonical_pair, roles_compatible
 
-CITATION_QUOTE_POLICY = "reviewed-span-coverage-v6"
+CITATION_QUOTE_POLICY = "reviewed-span-coverage-v7"
 
 
 def _without_layout_ordinal(span: str, fact: str | None) -> str:
@@ -35,9 +35,10 @@ def _without_layout_ordinal(span: str, fact: str | None) -> str:
         if (int(identity[1]) == int(match[1])
                 and not re.search(r'(?<!\w)'+re.escape(identity[0])+r'(?!\w)', rest, re.I)):
             return span
-    for marker in _exact_markers(fact):
+    for marker in _metric_markers(fact):
         value = re.match(r'value:(\d+)', marker)
-        if value and int(value[1]) == int(match[1]):
+        if (value and int(value[1]) == int(match[1])
+                and marker not in _metric_markers(rest)):
             return span
     if re.match(r'(?:years?|months?|days?|hours?|credits?|percent|năm|tháng|ngày|giờ|tín\s+chỉ)\b', rest, re.I):
         return span
@@ -238,6 +239,13 @@ def _canonical_numeric_markers(markers: set[str]) -> set[str]:
 
 def _metric_markers(text: str) -> set[str]:
     """Canonicalize clearly grouped thousands before exact quantity checks."""
+    from campusai.rag.presentation import calendar_presentation
+    # A calendar's "tháng 6 năm 2031" is not a six-year duration, nor is
+    # "học kỳ 1 năm học ..." a one-year quantity. Whole valid dates retain
+    # their exact day/month/year identity under the existing date parser.
+    text, _calendar = calendar_presentation(text)
+    text = re.sub(r'\b(học\s+kỳ\s+\d+)\s+năm\s+(?:học\s+)?(?=\d{4}\b)',
+                  r'\1 academic year ', text, flags=re.I)
     # These are explicit academic units, not inferred semantic synonyms. Do
     # not turn a count, a credit value and a duration into the same marker.
     text = re.sub(r'(?<=\d)\s*(?:years?|năm)\b', ' năm', text, flags=re.I)
@@ -395,6 +403,11 @@ def _pair_similarity(predicted: dict, gold: dict, row: dict | None, *,
         return 0.0
     similarity=0.0 if literal_only else _similarity(candidate,gold)
     if row is None:return similarity
+    # Lexical overlap must not introduce an unproved bound or condition. A
+    # source-faithful contextual projection can still prove it below.
+    if (_source_scope_signature(_quote_tokens(str(candidate.get('text',''))))
+            != _source_scope_signature(_quote_tokens(str(gold.get('text',''))))):
+        similarity=0.0
     required=_quote_tokens(str(gold.get('text','')))
     supplied=_quote_tokens(str(candidate.get('text','')))
     if not required or not supplied:return similarity
@@ -435,12 +448,24 @@ def _pair_similarity(predicted: dict, gold: dict, row: dict | None, *,
                     fragment_tokens, factual_tokens = _quote_tokens(fragment), _quote_tokens(factual)
                     contains = lambda outer, inner: bool(inner) and any(
                         outer[i:i+len(inner)] == inner for i in range(len(outer)-len(inner)+1))
+                    expected_scope = _source_scope_signature(_quote_tokens(str(gold.get('text', ''))))
+                    actual_scope = _source_scope_signature(factual_tokens)
+                    fragment_ends = [i+len(fragment_tokens) for i in range(len(factual_tokens)-len(fragment_tokens)+1)
+                                     if factual_tokens[i:i+len(fragment_tokens)] == fragment_tokens]
+                    scope_preserved = ((_literal_scope_matches(factual,str(gold.get('text','')))
+                        and not (actual_scope-expected_scope)&{'conditional','exclusion','restriction'}) or (
+                        actual_scope - expected_scope <= {'conditional','exclusion'}
+                        and any(_source_scope_signature(factual_tokens[:end]) == expected_scope
+                                for end in fragment_ends)))
                     if (len(fragment_tokens) >= 4 and required_anchors <= actual_anchors
-                            and _source_scope_signature(_quote_tokens(str(gold.get('text', ''))))
-                                == _source_scope_signature(factual_tokens)
+                            and scope_preserved
                             and contains(factual_tokens, fragment_tokens)
                             and any(contains(_quote_tokens(actual), factual_tokens)
-                                    for actual in _quote_spans(str(citation.get('quote', ''))))):
+                                    for span in _quote_spans(str(citation.get('quote', '')))
+                                    for actual in _literal_source_versions(span))):
+                        return 1.0
+                    if _literal_list_projection(factual, str(citation.get('quote', '')), literal,
+                                                str(gold.get('text', ''))):
                         return 1.0
                     if required_anchors <= actual_anchors and _scoped_table_quote_covers(citation, span, str(gold.get('text', ''))):
                         try: table = json.loads(citation['quote'])
@@ -491,6 +516,108 @@ _SOURCE_SCOPE_GROUPS = {
 _SOURCE_CLAUSE_END = frozenset({'.', ';', ':', '!', '?', ')'})
 
 
+def _literal_source_versions(text: str) -> tuple[str, ...]:
+    """An explicit example list can be omitted, never a scope/value condition."""
+    def example(match):
+        value=match[1]
+        if (_source_scope_signature(_quote_tokens(value)) or _program_code_anchors(value)
+                or any(m.startswith(('value:','date:','year:')) for m in _metric_markers(value))):
+            return match[0]
+        return ' '
+    shortened=re.sub(r'\((\s*(?:bao gồm|including|such as|for example)\b[^()]{0,500})\)',
+                     example,text,flags=re.I)
+    return tuple(dict.fromkeys((text,shortened)))
+
+
+def _quantity_bounds(text: str) -> set[tuple]:
+    """Bind a stated minimum/maximum to its own value and unit, not a word bag."""
+    from campusai.rag.course_credits import folded
+    text=folded(text)
+    result=set()
+    bounds={'minimum':r'at least|minimum|min|toi thieu|it nhat',
+            'maximum':r'at most|maximum|max|no more than|not exceed|khong (?:duoc )?vuot qua|khong qua|toi da'}
+    units={'credit':'credits','credits':'credits','tc':'credits','tin chi':'credits',
+           'hour':'hours','hours':'hours','gio':'hours','month':'months','months':'months',
+           'thang':'months','year':'years','years':'years','nam':'years'}
+    for kind,pattern in bounds.items():
+        for match in re.finditer(r'\b(?:'+pattern+r')\b\s*(?:(?:of|is|la)\s+)?[:=]?\s*'
+                                r'(\d+(?:[.,]\d+)?)(?:\s*(credits?|tin chi|tc|hours?|gio|months?|thang|years?|nam)\b)?',text):
+            result.add((kind,float(match[1].replace(',','.')),units.get(match[2])))
+    for match in re.finditer(r'\b(?:tu\s+(?:diem\s+)?|from\s+(?:grade\s+)?)([a-f]\+?)\s+(?:tro len|or (?:above|higher)|and (?:above|up))\b',text):
+        result.add(('minimum',match[1],None))
+    grades=re.sub(r'\(hoac quy doi tuong duong\)','',text)
+    for match in re.finditer(r'\b(?:at least\s+(?:grade\s+)?|tu\s+(?:diem\s+)?)'
+                            r'([a-f]\+?)(?=\s|[.,;]|$)',grades):
+        if match[0].startswith('at least') or re.match(r'\s+tro len\b',grades[match.end():]):
+            result.add(('minimum',match[1],None))
+    return result
+
+
+def _literal_scope_matches(claim: str, gold: str, *, reviewed_context: str = '') -> bool:
+    """Extra verbatim context is allowed; required values/roles cannot vanish."""
+    from campusai.rag.course_credits import folded
+    left,right=folded(claim),folded(gold)
+    outside=r'\b(?:outside (?:academic )?warning|not under (?:academic )?warning|khong thuoc (?:dien )?canh bao(?: hoc tap)?)\b'
+    bound=r'\b(?:no more than|not exceed|khong (?:duoc )?vuot qua|khong qua)\b'
+    exempt=r'\b(?:exempt(?:ion)?|mien|khong ap dung)\b'
+    def negative(value):
+        value=re.sub(outside,'',re.sub(bound,'',value))
+        return bool(re.search(r'\b(?:not|no|never|khong|chua|chang)\b|'+exempt,value))
+    if negative(left)!=negative(right) or not _quantity_bounds(gold)<=_quantity_bounds(claim):
+        return False
+    roles=(r'\b(?:final[- ]year|last year|nam cuoi)\b',exempt,outside,
+           r'\b(?:annual|yearly|per year|trong (?:mot|1) nam(?: hoc)?)\b',
+           r'\b(?:semester|hoc ky)\b',r'\b(?:bachelor|undergraduate|cu nhan|sinh vien)\b',
+           r'\b(?:engineer|ky su)\b',r'\b(?:master|thac si|hoc vien)\b',
+           r'\b(?:doctoral|doctorate|phd|tien si|ncs|nghien cuu sinh)\b')
+    # A following sentence can refer to the same courses explicitly named in
+    # the reviewed sentence. Permit inheritance only for an anaphoric subject
+    # and one unambiguous academic population in that reviewed context.
+    population=roles[-4:]
+    context=folded(reviewed_context)
+    inherited=(bool(re.match(r'^(?:those|these) courses\b|^nhung hoc phan\b',left))
+        and sum(bool(re.search(role,context)) for role in population)==1)
+    return all(not re.search(role,right) or re.search(role,left)
+               or (inherited and role in population and re.search(role,context)
+                   and not any(re.search(other,left) for other in population if other!=role))
+               for role in roles)
+
+
+def _literal_list_projection(claim: str, quote: str, reviewed: str, gold: str) -> bool:
+    """Prove a shared quantity predicate plus one complete semicolon item.
+
+    No words or values are generated: both parts must reproduce the source in
+    order, and the selected item must contain the entire reviewed evidence.
+    This handles a literal minimum shared by a list without inventing one.
+    """
+    wanted, evidence = _quote_tokens(claim), _quote_tokens(reviewed)
+    if len(evidence) < 4 or not wanted:
+        return False
+    gold_scope, claim_scope = _source_scope_signature(_quote_tokens(gold)), _source_scope_signature(wanted)
+    if not gold_scope <= claim_scope or claim_scope - gold_scope - {'minimum'}:
+        return False
+    anchors = lambda text: {m for m in _metric_markers(text)
+                            if m.startswith(('code:', 'value:', 'year:', 'date:'))}
+    if not anchors(gold) <= anchors(claim):
+        return False
+    contains = lambda outer, inner: any(outer[i:i+len(inner)] == inner
+                                       for i in range(len(outer)-len(inner)+1))
+    for sentence in re.split(r'(?<=[.!?])\s+', quote):
+        if ';' not in sentence or len(sentence) > 2048:
+            continue
+        parts = sentence.split(';')
+        for item in parts[1:]:
+            if not contains(_quote_tokens(item), evidence):
+                continue
+            for value in re.finditer(r'(?<!\w)\d+(?:[.,]\d+)?\s*(?:giờ|hours?|tín\s+chỉ|credits?|tháng|months?|năm|years?)\b',
+                                     parts[0], re.I):
+                projection = _quote_tokens(parts[0][:value.start()] + item.strip())
+                if (contains(projection, wanted)
+                        and _source_scope_signature(projection) == claim_scope):
+                    return True
+    return False
+
+
 def _source_scope_signature(tokens: tuple[str, ...] | list[str]) -> frozenset[str]:
     token_set = set(tokens)
     signature = {group for group, markers in _SOURCE_SCOPE_GROUPS.items()
@@ -526,7 +653,7 @@ def _reviewed_source_subspan(claim: str, reviewed_quote: str, gold_text: str) ->
     """
     claim = re.sub(r'^\s*(?:lưu ý|xin lưu ý|note(?: that)?|please note that)\b\s*[:,;\-]?\s*',
                    '', claim, flags=re.I)
-    source_tokens = _quote_tokens(reviewed_quote)
+    source_versions = [_quote_tokens(value) for value in _literal_source_versions(reviewed_quote)]
     claim_tokens = _quote_tokens(claim)
     if not claim_tokens or len(claim_tokens) < 4:
         return False
@@ -537,19 +664,19 @@ def _reviewed_source_subspan(claim: str, reviewed_quote: str, gold_text: str) ->
     claim_anchors = {marker for marker in _metric_markers(claim) if marker.startswith(anchor_prefixes)}
     if not gold_anchors <= claim_anchors:
         return False
-    gold_markers = _source_scope_signature(_quote_tokens(gold_text))
     claim_markers = _source_scope_signature(claim_tokens)
-    if gold_markers != claim_markers:
+    if not _literal_scope_matches(claim,gold_text,reviewed_context=reviewed_quote):
         return False
-    for start in range(len(source_tokens) - len(claim_tokens) + 1):
-        if source_tokens[start:start + len(claim_tokens)] != claim_tokens:
-            continue
-        clause_start = max((i + 1 for i, token in enumerate(source_tokens[:start])
-                            if token in _SOURCE_CLAUSE_END), default=0)
-        source_prefix_markers = _source_scope_signature(source_tokens[clause_start:start])
-        if source_prefix_markers - claim_markers:
-            continue
-        return True
+    for source_tokens in source_versions:
+        for start in range(len(source_tokens) - len(claim_tokens) + 1):
+            if source_tokens[start:start + len(claim_tokens)] != claim_tokens:
+                continue
+            clause_start = max((i + 1 for i, token in enumerate(source_tokens[:start])
+                                if token in _SOURCE_CLAUSE_END), default=0)
+            source_prefix_markers = _source_scope_signature(source_tokens[clause_start:start])
+            if source_prefix_markers - claim_markers:
+                continue
+            return True
     return False
 
 

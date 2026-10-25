@@ -1,6 +1,24 @@
-# Phase 5 — audit và handoff hiện hành, 24/10/2026
+# Phase 5 — audit và handoff hiện hành, 25/10/2026
 
-Current qualification: dev120 DONE on immutable producer `3fcd4a46`, cachev27.
+Current work: v28 repairs mixed document-absence answers, personal verification
+results and assessment-recency interpretation. The v27 held-out campaign was
+stopped for observed quality defects; it is no longer running. Its successful
+captures, failures, budget usage and original calibration pin remain immutable.
+
+The owner permits simpler internal closure on25/10, with unchanged quality:
+exact-input real Gemini responses may be reused while current CampusAI executes
+again. Reused responses are not fresh inference or live-latency measurements.
+The current diagnostic completed314/400 pipeline outcomes with86 inputs pending.
+All314 evaluable cases meet grounding/citation/abstention P/R100%, leakage0 and
+reason96.55%; the dev-only fit remains identical to its pin.180 metric/capture/
+native-scoring/contract tests PASS, including altered-bound/grade/condition and
+raw-capture tampering controls. This is not final acceptance evidence.
+[Diagnostic receipt](../../evaluation/results/phase5-mixed-absence-20261024/v28-checkpoint-quality.json).
+Physical checkpoint verification and the complete400-case quality gates remain
+open. The numeric thresholds, reviewed gold and public fresh-holdout rule stay
+unchanged. See [closure contract](grounding_release_gates.md).
+
+Historical v27 qualification: dev120 DONE on immutable producer `3fcd4a46`, cachev27.
 Grounding/citation/abstention P/R100%, leakage0, reason96.67%;81 real JSON
 responses,97 selected-run POSTs and103 campaign POSTs including retained failures.
 The fresh dev-only fit `1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43`
@@ -9,7 +27,7 @@ source/config/index/benchmark identity. Source/runtime hashes are
 `36394de4f5be8e7ec7e4afa02245ac2cd49520f7653afcb3dd6a6a09cfa542aa` /
 `65679026a6b1cd2d2858b5ef0a6fb6f9c64ad8f22e6019e647db662d9246eb0a`.
 Three consecutive regressions each PASS2,570/2 live opt-in SKIP; browser43/43 PASS.
-Held-out resumed after test-007 HTTP503 failures under owner-authorized isolation:
+Before its quality stop, held-out resumed after test-007 HTTP503 failures under owner-authorized isolation:
 finish unattempted cases, then at most one alternate-project attempt per recoverable
 failed case. Quota/auth/other errors still stop; all failures and budgets remain.
 No final400-row release or calibration gate is claimed. Owner budgets216/735

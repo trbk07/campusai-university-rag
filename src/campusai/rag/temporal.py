@@ -56,6 +56,13 @@ def parse_temporal_intent(question: str, *, reference_date: date, filters=None):
     # policy is legally effective today. Explicit "as of" requests below
     # still require verified temporal provenance.
     text = re.sub(r'\b(my|your)\s+current\s+(?=(?:examination|exam|test)\s+(?:result|score)\b)', r'\1 ', text)
+    # Recency attached to an assessment is a factual attribute inside a
+    # source, not a request for the newest document version. Explicit document
+    # nouns and independent latest-version phrases keep their normal meaning.
+    text = re.sub(r'\b(?:latest|newest|most recent)\s+'
+        r'(?:(?:process|assessment|examination|exam|test|semester)\s+)?'
+        r'(?:scores?|marks?|results?|gpa)\b'
+        r'(?!\s+(?:policy|regulation|document|version|rules)\b)', 'assessment value', text)
     if re.search(r'\b(?:tai ngay|as of|on date)\b', text):
         value = _iso_date(text)
         return TemporalIntent('as_of', as_of=value, reference_date=reference_date.isoformat(), conflict=value is None)

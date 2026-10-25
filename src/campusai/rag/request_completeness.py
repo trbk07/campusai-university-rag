@@ -38,12 +38,23 @@ def asserts_document_absence(answer):
     vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
         r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
         r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
-        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo)\b')
+        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia)\b')
     if re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text):
         return True
     # The source can be the subject of a qualified clause: "the document only
     # lists historical scores and does not publish this year's cutoff". Keep
     # this bounded to a source subject and information-availability verbs.
+    # A source's title, owner or year can qualify its subject before an
+    # explicit absence/"only" contrast. Do not treat ordinary negative rules
+    # or quoted discussions as assertions about information availability.
+    qualified_subject = (r'(?:tai lieu|nguon|tep pdf|pdf)\s+(?P<subject>[^.!?;]{1,180}?)\s+'
+        r'(?:khong|chua)\s+(?:he\s+)?(?:cong bo|phan chia|de cap|cung cap|xac lap)\b'
+        r'[^.!?;]{0,280}?\b(?:ma\s+)?chi\b')
+    subject_match=re.search(boundary+qualified_subject,text)
+    if subject_match and not re.search(
+            r'\b(?:quy dinh|ghi ro|cho biet|neu rang|trich dan|sinh vien|nguoi hoc)\b',
+            subject_match['subject']):
+        return True
     qualified = (r'(?:tai lieu|nguon|pdf)(?:\s+nay)?\s+'
         r'(?:chi\s+(?:cung cap|neu|co|liet ke)\s+(?:[^.!?]|(?<=\d)\.(?=\d)){1,380}?\b(?:va|nhung|chu)\s+'
         r'|la\s+[^.!?;]{1,380}?\bnen\s+)'
@@ -102,7 +113,7 @@ def personal_event_requires_record(question, results):
     personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi|lop toi|nhom toi)\b', current)
     event = re.search(r'\b(?:assigned|appointed|received|credited|recorded|approved|'
         r'enrolled|transferred|mailed|completed|outcome|serial number|tracking number|'
-        r'actual|personally|da duoc|da nhan|da nop|da chuyen|duoc phan cong|'
+        r'actual|personally|verification|verified|da duoc|da nhan|da nop|da chuyen|duoc phan cong|'
         r'ket qua thuc te|quyet dinh ca nhan)\b', current)
     policy_question = re.search(r'\b(?:must|should|required|requirements|minimum|'
         r'eligible|eligibility|procedure|procedures|can i|may i|how do i|'
@@ -115,7 +126,8 @@ def personal_event_requires_record(question, results):
     def normative(items):
         return any(folded(str(item.metadata.get('document_type', ''))) in {
             'regulation', 'regulations', 'curriculum', 'course_catalog', 'syllabus',
-        } or (item.page in {1, 2} and re.search(
-            r'(?:^|\n)\s*(?:quy che|quy dinh|academic regulations|academic rules)\b',
-            folded(item.content))) for item in items)
+        } or (item.page in {1, 2} and any(re.search(
+            r'^\s*(?:quy che|quy dinh|academic regulations|academic rules|'
+            r'(?:thong tin|chinh sach|de an) tuyen sinh|admissions? (?:information|policy|rules))\b',
+            folded(line)) for line in item.content.splitlines())) for item in items)
     return all(normative(items) for items in by_doc.values())

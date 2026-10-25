@@ -1,6 +1,24 @@
 import pytest
+from datetime import date
 
 from campusai.rag.context import resolve_query
+
+
+@pytest.mark.parametrize('question',[
+    'What minimum latest process score is necessary?',
+    'Which most recent assessment result does the rule use?',
+    'Use only the uploaded rules.pdf. What is the required latest exam score?',
+])
+def test_assessment_recency_does_not_select_a_new_document_version(question):
+    from campusai.rag.temporal import parse_temporal_intent
+    assert parse_temporal_intent(question,reference_date=date(2032,1,1)).kind=='none'
+
+
+def test_a_real_latest_document_request_still_selects_its_version():
+    from campusai.rag.temporal import parse_temporal_intent
+    for question in ['Use the latest regulation to check the process score.',
+                     'What does the latest GPA policy require?']:
+        assert parse_temporal_intent(question,reference_date=date(2032,1,1)).kind=='latest'
 
 
 def test_named_regulation_is_the_local_subject_of_its_replacement_question():

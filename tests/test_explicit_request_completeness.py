@@ -115,6 +115,23 @@ def test_personal_policy_requirements_remain_answerable():
     assert not response.abstained
 
 
+def test_general_policy_cannot_establish_a_personal_verification_result():
+    response=policy_answer('What is the result of verification of my personal priority category?',
+        {'document_type':'regulation'})
+    assert response.abstained and response.document_absence_requested
+    assert not response.to_public_dict()['claims']
+    assert not policy_answer('What verification procedure should I follow?',
+        {'document_type':'regulation'}).abstained
+
+
+def test_complete_source_keeps_its_public_policy_heading_for_personal_scope():
+    from campusai.rag.request_completeness import personal_event_requires_record
+    result=RetrievalResult('c1','doc',1,'EXAMPLE UNIVERSITY\nADMISSIONS INFORMATION\nPriority policy.',
+        'text',1.0,'source',{})
+    assert personal_event_requires_record('What is my personal verification result?',[result])
+    assert not personal_event_requires_record('What verification procedure must I follow?',[result])
+
+
 def test_policy_guard_preserves_verified_absence_and_unknown_personal_sources():
     response=policy_answer('Who was appointed as the supervisor of my thesis?',
         {'document_type':'regulation'},abstained=True,verified=True)

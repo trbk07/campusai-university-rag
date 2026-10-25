@@ -271,6 +271,9 @@ def test_complete_scope_cannot_publish_positive_fragment_with_missing_remainder(
     'Tài liệu chỉ cung cấp điểm lịch sử là 24.75 và không công bố điểm năm nay.',
     'Tài liệu chỉ cung cấp địa điểm học chung, chứ không phân chia lớp tôi về địa điểm nào.',
     'Tài liệu chỉ cung cấp địa điểm A; địa điểm B; chứ không phân chia lớp tôi về địa điểm nào.',
+    'Tài liệu tuyển sinh năm 2032 của trường chưa công bố điểm chính thức mà chỉ nêu lịch công bố.',
+    'Tài liệu không phân chia cụ thể lớp học về từng cơ sở mà chỉ liệt kê các địa điểm chung.',
+    'Nguồn hướng dẫn tuyển sinh chưa đề cập kết quả cá nhân mà chỉ cung cấp chính sách chung.',
 ])
 def test_explicit_document_absence_is_detected_inside_positive_answer(text):
     from campusai.rag.request_completeness import asserts_document_absence
@@ -285,6 +288,8 @@ def test_explicit_document_absence_is_detected_inside_positive_answer(text):
     'The policy quotes the words "the document does not mention" as an example.',
     'Article 7 applies from the 2031 cohort onwards.',
     'Tài liệu chỉ rõ sinh viên không công bố thông tin cá nhân.',
+    'Tài liệu quy định sinh viên không cung cấp mật khẩu mà chỉ cung cấp mã hồ sơ.',
+    'Tài liệu nội bộ ghi rõ người học không công bố số điện thoại mà chỉ dùng email.',
 ])
 def test_negated_source_facts_are_not_document_absence(text):
     from campusai.rag.request_completeness import asserts_document_absence

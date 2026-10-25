@@ -1,5 +1,40 @@
 # Phase 5 release gates
 
+## Internal closure process amendment —25/10/2026
+
+The owner permits lower closure-process gates provided Phase5 quality remains
+unchanged: “có thể hạ thấp gate đóng nhưng phải đảm bảo chất lượng của phase 5
+được giữ nguyên”. The implementation choice is an explicit
+`native-http-checkpoint-v1` path for **Phase5 internal acceptance only**.
+
+All400 reviewed cases, split populations, numeric quality thresholds, physical
+source/citation checks, source review and regression requirements remain.
+This does not authorize gold-derived predictions or invented approval evidence.
+
+A real recorded Gemini response may be reused only for the same case/request,
+model/config/index and exact canonical HTTP body. The original native run,
+raw response, transport journal, producer identity and hashes remain bound.
+Current CampusAI must execute again against those recorded inputs; merely
+editing a stored prediction is insufficient. Selection is fixed by source
+completion/time, never expected correctness. Pinned dev training captures keep
+their original selection. Offline misses remain pending, never negative gold.
+Changed or missing inference inputs require genuine inference within an existing
+valid egress authorization and cumulative quota. Reuse does not refund spending.
+
+Reports distinguish reused native responses, deterministic reprocessing and
+fresh provider POSTs. Reprocessing supplies no new live-latency evidence.
+Calibration uses dev only and is pinned before current held-out reprocessing;
+historical generation/pin times remain explicit and are not relabelled.
+The physical validator must recompute current pipeline outcomes and fail closed
+on missing inputs, altered captures, forged counters or output mismatches.
+Public release retains its fresh-holdout and native-inference requirements;
+checkpoint-only internal acceptance cannot satisfy those gates.
+
+Metric policyv7 fixes calendar/academic-year quantity ambiguity and layout
+ordinals whose value is retained in the fact. A longer literal source condition
+or shared list minimum needs exact source proof; changed bounds, units, dates,
+roles and invented additions remain failures. No numeric threshold is lowered.
+
 The release validator is authoritative; reports cannot contain a manually
 supplied pass flag. A release candidate must use runtime mode and include the
 benchmark checksum, code fingerprint, schema/policy versions and calibration

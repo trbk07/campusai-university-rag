@@ -1,0 +1,73 @@
+{
+  "scope": "Diagnostic only; reprocessed real exact-input HTTP responses, zero new provider calls",
+  "scoring_source_identity": {
+    "commit": "af75a6f223bbe6f2569fef9a041df8f09c73fdea",
+    "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+    "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+  },
+  "pipeline_run_sha256": "bd73afefa6422dec1253233ee29defcd74d2cf3a31a46a5f2ed994389bc72118",
+  "count": 314,
+  "split_counts": {
+    "dev": 120,
+    "test": 128,
+    "holdout": 66
+  },
+  "metrics": {
+    "records": 314,
+    "excluded_native_failures": 0,
+    "claim_count": 208,
+    "predicted_claim_count": 208,
+    "matched_predicted_claim_count": 208,
+    "gold_claim_count": 210,
+    "matched_gold_claim_count": 210,
+    "grounded_claim_precision": 1.0,
+    "grounded_claim_recall": 1.0,
+    "unsupported_claim_leakage": 0.0,
+    "contradicted_claim_leakage": 0.0,
+    "citation_precision": 1.0,
+    "citation_coordinate_validity": 1.0,
+    "citation_recall": 1.0,
+    "citation_completeness": 1.0,
+    "claim_citation_precision": 1.0,
+    "claim_citation_recall": 1.0,
+    "claim_citation_f1": 1.0,
+    "abstention_precision": 1.0,
+    "abstention_recall": 1.0,
+    "reason_accuracy": 0.965517,
+    "brier_score": 0.002016,
+    "ece": 0.015836,
+    "calibration_count": 314,
+    "schema_invalid_rate": 0.0,
+    "abstention_reason_counts": {
+      "ambiguous_question": 13,
+      "document_does_not_mention": 60,
+      "no_evidence_found": 5,
+      "conflicting_evidence": 28,
+      "unsupported_claim": 10
+    },
+    "denominators": {
+      "records": 314,
+      "predicted_claims": 208,
+      "gold_claims": 210,
+      "citations": 199,
+      "gold_citation_links": 212,
+      "predicted_citation_links": 212,
+      "predicted_abstentions": 116,
+      "gold_abstentions": 116,
+      "abstention_reasons": 116
+    }
+  },
+  "bad_ids": [],
+  "dev_fit_sha256": "1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43",
+  "original_dev_fit_sha256": "1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43",
+  "pending_count": 86,
+  "pipeline_run_path": "D:\\Project\\.release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\run.json",
+  "quality_artifact_sha256": "add11f5337a5eac46c0de2ed75457c689224cdf06303ab5094a3233fba6abb75",
+  "official_accepted_predictions": 0,
+  "unfinished_requirements": [
+    "86 missing exact-input real responses",
+    "physical internal acceptance verifier",
+    "complete 400-row gates",
+    "final-source regression"
+  ]
+}

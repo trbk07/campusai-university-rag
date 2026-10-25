@@ -22,6 +22,22 @@ not a controlled SLO result. A transport fix and a controlled remeasurement
 remain open; the frozen Phase5 inference source is retained.
 [Load evidence](docs/ui/evidence/phase5-v27-20261024/read-concurrency.json).
 
+Transport candidate [d2d3626](https://github.com/trbk07/Adaptive-RAG-for-Financial-Business-Reports/commit/d2d3626)
+is prepared on `fix/local-http-capacity`, separate from the frozen inference
+source. It raises bounded HTTP admission/backlog to32 while keeping the app's
+query/ingestion limits. Forty-eight web/recovery tests PASS. In three interleaved
+measurements with explicitly fresh empty stores, the8-handler baseline rejected
+318/600 reads; the candidate served600/600, p95 40.9-42.2ms per run. This proves
+read admission, not20 simultaneous model generations or a production SLO.
+[Before/after evidence](docs/ui/evidence/phase5-v27-20261024/http-capacity-before-after.json).
+The preliminary measurement without an explicit store binding is invalid for
+comparison and retained with that label. Full candidate regression is underway
+using the existing external artifact bundle; initial missing-bundle failures
+are retained. The transport fix is now integrated into main as `af75a6f2`;
+the earlier frozen Phase5 producer is retained separately after its quality
+audit found publication/measurement defects. Current repairs and qualification
+must be verified before final acceptance.
+
 | ID | Severity | Finding | Status and evidence |
 |---|---|---|---|
 | QA-01 | P1 | Published app cannot import on a clean checkout: `campusai.ingestion.background` and other runtime modules were absent from Git. Upload also needs the worker-compatible index-builder signature. | FIXED: runtime dependencies and matching index builder included. Exact staged Git tree `360f670b2d5b078e11afa6a27fac4f6c8300d273` exported to an isolated directory: 98/98 local app tests PASS in 11.49 s, compared with import failure before repair. |
