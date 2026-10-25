@@ -1,5 +1,7 @@
 # CampusAI — Kế hoạch phát triển dự án
 
+Repository chính thức: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
+
 Cập nhật: **25/10/2026 — Asia/Bangkok**. Đây là roadmap hiện hành của dự án.
 `plan.md` luôn ở root và được Git theo dõi. Nhật ký thử nghiệm nằm trong hồ sơ
 bằng chứng, không được nối thêm vào roadmap này.

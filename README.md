@@ -1,5 +1,7 @@
 # CampusAI
 
+Canonical repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
+
 CampusAI is an evidence-grounded university knowledge assistant. It ingests
 university PDFs and produces Vietnamese or English answers with page-level
 citations and explicit abstention when evidence is missing.
