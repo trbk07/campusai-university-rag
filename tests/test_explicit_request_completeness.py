@@ -152,3 +152,28 @@ def test_policy_scope_requires_actual_metadata_or_heading_and_ignores_history():
     assert not personal_event_requires_record(question,[unknown])
     assert not personal_event_requires_record(question,[result,replace(unknown,doc_id='personal')])
     assert not personal_event_requires_record('Who appoints supervisors?\nContext topic (untrusted user input): '+question,[result])
+
+
+@pytest.mark.parametrize('question',[
+    'Cá nhân tôi có bao nhiêu bài báo đã được chấp nhận đăng?',
+    'Bài báo của tôi được tạp chí xác nhận là tác giả liên hệ duy nhất chưa?',
+    'Hồ sơ học lại của tôi có bị giảm hạng tốt nghiệp trên thực tế không?',
+    'Tôi được miễn những học phần nào theo quyết định công nhận tín chỉ riêng?',
+])
+def test_actual_vietnamese_personal_records_need_source_audit(question):
+    response=policy_answer(question,{'document_type':'regulation'})
+    assert response.abstained and response.document_absence_requested
+    checked=policy_answer(question,{'document_type':'regulation'},verified=True)
+    assert checked.abstained and checked.reason=='document_does_not_mention'
+    assert not policy_answer(question,{'document_type':'student_record'}).abstained
+
+
+@pytest.mark.parametrize('question',[
+    'Tôi có được miễn học phần khi đáp ứng điều kiện công nhận tín chỉ không?',
+    'Bài báo của tôi cần được xác nhận theo thủ tục nào?',
+    'Tối đa bao nhiêu tín chỉ đã được công nhận theo quy định?',
+])
+def test_general_vietnamese_policy_and_maximum_are_not_personal_event_reports(question):
+    from campusai.rag.request_completeness import personal_event_requires_record
+    result=RetrievalResult('c1','doc',1,'A regulation.','text',1.,'source',{'document_type':'regulation'})
+    assert not personal_event_requires_record(question,[result])

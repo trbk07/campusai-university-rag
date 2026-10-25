@@ -34,6 +34,19 @@ def regulation_request(question):
         return ('weight', {'hai':'2','ba':'3'}.get(match[1], match[1]))
     if re.fullmatch(r'duoc hoan thi cuoi ky dung ly do thi phai du thi hoan thien trong thoi han nao', text):
         return ('deferral',)
+    if re.fullmatch(r'for (?:the )?reduced[- ]class option, what minimum study[- ]year rank is (?:necessary|required)',text):
+        return ('reduced_class_year',)
+    if re.fullmatch(r'what (?:normal )?minimum size applies to a master (?:programme|program) class taught in a classroom',text):
+        return ('master_class_size',)
+    if re.fullmatch(r'what minimum doctoral[- ]course credits must (?:every|each) doctoral (?:researcher|candidate|student) complete',text):
+        return ('doctoral_credits',)
+    match=re.fullmatch(r'how long is the possible additional coursework[- ]completion period after the initial '
+        r'(one|two|three|four|five|\d+)[- ]year doctoral deadline',text)
+    if match:
+        return ('doctoral_extension',{'one':'1','two':'2','three':'3','four':'4','five':'5'}.get(match[1],match[1]))
+    match=re.fullmatch(r'how many members are on the (institutional|university[- ]level|basic[- ]level) doctoral thesis assessment council',text)
+    if match:
+        return ('doctoral_council','co so' if match[1].replace('-',' ')=='basic level' else 'dai hoc')
     return None
 
 
@@ -63,7 +76,7 @@ def programme_rows(content):
     return found
 
 
-def _assessment_facts(content, request):
+def _assessment_facts(content, request, metadata=None):
     body = sanitize_evidence_text(source_body({'content':content}, decode_tables=False))
     text, offsets = _fold_with_offsets(body)
     if request[0] == 'weight':
@@ -71,14 +84,45 @@ def _assessment_facts(content, request):
         pattern = (r'(?P<whole>mot\s+hoc\s+phan\s+tu\s+'+re.escape(request[1])+r'\s+tc\s+tro\s+len'
             r'[^.;]{1,180}?trong\s+do\s+(?P<fact>diem\s+cuoi\s+ky\s+co\s+trong\s+so\s+tu\s+'
             r'(?P<a>'+decimal+r')\s+den\s+(?P<b>'+decimal+r')))')
-    else:
+    elif request[0]=='deferral':
         pattern = (r'(?P<whole>nguoi\s+hoc\s+khong\s+the\s+du\s+thi\s+cuoi\s+ky\s+mot\s+hoc\s+phan'
             r'[^.;]{1,240}?thi\s+duoc\s+phep\s+hoan\s+thi\s+va\s+'
             r'(?P<fact>duoc\s+du\s+thi\s+cuoi\s+ky\s+hoc\s+phan\s+do\s+trong\s+thoi\s+han\s+'
             r'(?P<a>\d+)\s+hoc\s+ky\s+chinh\s+tiep\s+theo))')
+    elif request[0]=='doctoral_credits':
+        pattern=(r'(?P<whole>(?P<fact>moi\s+ncs\s+phai\s+hoan\s+thanh\s+toi\s+thieu\s+'
+            r'(?P<a>\d+)\s+tc)\s+tuong\s+ung\s+\d+\s*[-–]\s*\d+\s+hoc\s+phan\s+tien\s+si)')
+    elif request[0]=='doctoral_extension':
+        if not re.search(r'hoc\s+phan\s+tien\s+si',text):return []
+        pattern=(r'(?P<whole>trong\s+truong\s+hop\s+qua\s+thoi\s+han\s+'
+            +re.escape(request[1])+r'\s+nam\s+nhung\s+khong\s+the\s+hoan\s+thanh,\s*'
+            r'(?P<fact>ncs\s+co\s+the\s+de\s+nghi\s+xin\s+gia\s+han\s+thoi\s+gian\s+thuc\s+hien\s+'
+            r'trong\s+khoang\s+thoi\s+gian\s+(?P<a>\d+)\s+thang\s+ke\s+tiep))')
+    elif request[0]=='doctoral_council':
+        pattern=(r'(?P<whole>(?P<fact>hoi\s+dong(?:\s+danh\s+gia\s+luan\s+an)?\s+cap\s+'
+            +r'\s+'.join(map(re.escape,request[1].split()))+r'\b[^.;]{0,260}?\bco\s+'
+            r'(?P<a>\d+)\s+thanh\s+vien))')
+    elif request[0]=='master_class_size':
+        headings=(metadata or {}).get('heading_path',[])
+        heading=headings if isinstance(headings,str) else ' '.join(headings) if isinstance(headings,list) and all(isinstance(v,str) for v in headings) else ''
+        if not re.search(r'chuong trinh thac si',folded(heading+' '+content)):return []
+        pattern=(r'(?P<whole>doi\s+voi\s+cac\s+hoc\s+phan\s+duoc\s+giang\s+day\s+tren\s+lop,\s*'
+            r'(?P<fact>quy\s+mo\s+lop\s+hoc\s+phan\s+toi\s+thieu\s+la\s+(?P<a>\d+)\s+hoc\s+vien))')
+    elif request[0]=='reduced_class_year':
+        if not re.search(r'lop\s+hoc\s+phan\s+rut\s+gon',text):return []
+        pattern=(r'(?P<whole>(?P<fact>sinh\s+vien\s+dat\s+trinh\s+do\s+nam\s+hoc\s+tu\s+nam\s+thu\s+'
+            r'(?P<rank>nhat|hai|ba|tu|nam|sau|bay|tam|chin|muoi)\s+tro\s+len))')
+    else:return []
     result = []
-    for match in re.finditer(r'(?m)^[ \t]*(?:\d+[.)]\s*)?'+pattern, text):
-        a = float(match['a'].replace(',','.'))
+    # A period/sentence boundary or an explicit list label must precede a
+    # normative fact. A quoted assertion in the middle of prose is not a rule.
+    prefix=(r'(?m)^[ \t]*(?:\d+[.)]\s*)?' if request[0] in {'weight','deferral'} else
+            r'(?m)(?:^[ \t]*(?:(?:\d+|[a-zđ])[.)]\s*)?|(?<=[.;])\s+)')
+    for match in re.finditer(prefix+pattern, text):
+        if re.search(r'(?m)(?:^|[.;])\s*(?:khong phai|not)\s+\d+[.)]\s*$',text[:match.start('whole')]):
+            continue
+        ranks={'nhat':1,'hai':2,'ba':3,'tu':4,'nam':5,'sau':6,'bay':7,'tam':8,'chin':9,'muoi':10}
+        a = ranks[match['rank']] if request[0]=='reduced_class_year' else float(match['a'].replace(',','.'))
         b = float(match['b'].replace(',','.')) if request[0] == 'weight' else a
         def original(group):
             start, end = match.span(group)
@@ -98,7 +142,7 @@ def regulation_candidates(question, records):
             if (request[0] == 'programme' and item.get('content_type') == 'table'
                 and any((d,p) == request[2:] for d,p,*_ in programme_rows(item.get('content',''))))
             or (request[0] != 'programme' and item.get('content_type') == 'text'
-                and _assessment_facts(item.get('content',''), request))]
+                and _assessment_facts(item.get('content',''), request,item.get('metadata')))]
 
 
 def deterministic_regulation_fact(question, results, language, *, calibrator=None):
@@ -115,7 +159,7 @@ def deterministic_regulation_fact(question, results, language, *, calibrator=Non
     for result in results:
         if request[0] != 'programme':
             if result.content_type == 'text':
-                matches.extend((result, *fact) for fact in _assessment_facts(result.content, request))
+                matches.extend((result, *fact) for fact in _assessment_facts(result.content, request,result.metadata))
             continue
         if result.content_type != 'table':
             continue

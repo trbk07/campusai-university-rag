@@ -900,7 +900,8 @@ class GroundedAnswerGenerator:
             return abstain('unsupported_claim', language=language)
         cited_docs = {citation.doc_id for citation in citations}
         if personal_event_requires_record(question, [r for r in results if r.doc_id in cited_docs]):
-            return replace(abstain('unsupported_claim', language=language),
+            return replace(abstain('document_does_not_mention' if verified_document_absence
+                                   else 'unsupported_claim', language=language),
                            document_absence_requested=not verified_document_absence)
         answer = _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
                                      question=question,

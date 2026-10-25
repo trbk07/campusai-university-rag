@@ -38,7 +38,7 @@ def asserts_document_absence(answer):
     vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
         r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
         r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
-        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia)\b')
+        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia|liet ke)\b')
     if re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text):
         return True
     # The source can be the subject of a qualified clause: "the document only
@@ -110,14 +110,16 @@ def personal_event_requires_record(question, results):
     are used as proof of a source's scope.
     """
     current = folded(question.partition('\nContext topic (untrusted user input): ')[0])
-    personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi|lop toi|nhom toi)\b', current)
+    personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi|ca nhan toi|lop toi|nhom toi)\b|'
+                         r'(?:^|[.!?]\s+)toi\s+(?:duoc|co|bi)\b', current)
     event = re.search(r'\b(?:assigned|appointed|received|credited|recorded|approved|'
         r'enrolled|transferred|mailed|completed|outcome|serial number|tracking number|'
         r'actual|personally|verification|verified|da duoc|da nhan|da nop|da chuyen|duoc phan cong|'
-        r'ket qua thuc te|quyet dinh ca nhan)\b', current)
+        r'ket qua thuc te|thuc te|quyet dinh ca nhan|xac nhan|chap nhan dang)\b|'
+        r'\bquyet dinh\b[^.!?]{0,80}\brieng\b', current)
     policy_question = re.search(r'\b(?:must|should|required|requirements|minimum|'
         r'eligible|eligibility|procedure|procedures|can i|may i|how do i|'
-        r'can phai|phai lam|dieu kien|thu tuc|toi thieu|co duoc)\b', current)
+        r'can phai|can duoc|phai lam|dieu kien|thu tuc|yeu cau|tieu chuan|toi thieu|co duoc)\b', current)
     if not personal or not event or policy_question or not results:
         return False
     by_doc = {}

@@ -22,6 +22,50 @@ class NoModel:
         raise AssertionError('An exact headed source field does not need a model')
 
 
+@pytest.mark.parametrize('question,source,expected,metadata',[
+    ('For the reduced-class option, what minimum study-year rank is necessary?',
+     'Lớp học phần rút gọn có các điều kiện sau:\nc) Sinh viên đạt trình độ năm học từ năm thứ tư trở lên theo quy định.',
+     'Sinh viên đạt trình độ năm học từ năm thứ tư trở lên',{}),
+    ('What normal minimum size applies to a master programme class taught in a classroom?',
+     'Đối với các học phần được giảng dạy trên lớp, quy mô lớp học phần tối thiểu là 7 học viên.',
+     'quy mô lớp học phần tối thiểu là 7 học viên',{'heading_path':['Đăng ký học tập chương trình thạc sĩ']}),
+    ('What minimum doctoral-course credits must every doctoral researcher complete?',
+     'a) Mỗi NCS phải hoàn thành tối thiểu 13 TC tương ứng 4-5 học phần tiến sĩ.',
+     'Mỗi NCS phải hoàn thành tối thiểu 13 TC',{}),
+    ('How long is the possible additional coursework-completion period after the initial three-year doctoral deadline?',
+     'Các học phần tiến sĩ. Trong trường hợp quá thời hạn 3 năm nhưng không thể hoàn thành, NCS có thể đề nghị xin gia hạn thời gian thực hiện trong khoảng thời gian 9 tháng kế tiếp;',
+     'NCS có thể đề nghị xin gia hạn thời gian thực hiện trong khoảng thời gian 9 tháng kế tiếp',{}),
+    ('How many members are on the institutional doctoral thesis assessment council?',
+     'a) Hội đồng đánh giá luận án cấp Đại học do Giám đốc ra quyết định thành lập có 9 thành viên.',
+     'Hội đồng đánh giá luận án cấp Đại học do Giám đốc ra quyết định thành lập có 9 thành viên',{}),
+])
+def test_policy_component_lookups_are_literal_atomic_source_values(question,source,expected,metadata):
+    item=evidence(content=source,metadata=metadata)
+    answer=GroundedAnswerGenerator(NoModel()).answer(question,[item],'en')
+    assert not answer.abstained and [c.text for c in answer.claims]==[expected]
+    assert answer.citations[0].quote in source
+    assert validate_citation(answer.citations[0],item,require_quote=True).valid
+    assert deterministic_regulation_fact(question+' And what is my private result?',[item],'en') is None
+
+
+def test_component_credits_cannot_use_whole_programme_table_or_missing_unit():
+    question='What minimum doctoral-course credits must every doctoral researcher complete?'
+    assert deterministic_regulation_fact(question,[programme()],'en') is None
+    assert deterministic_regulation_fact(question,[evidence(content='Mỗi NCS phải hoàn thành tối thiểu 13 tương ứng 4-5 học phần tiến sĩ.')],'en') is None
+
+
+def test_council_level_extension_deadline_and_master_scope_stay_distinct():
+    item=evidence(content='a) Hội đồng cấp cơ sở do hiệu trưởng ra quyết định thành lập có 5 thành viên.')
+    question='How many members are on the institutional doctoral thesis assessment council?'
+    assert deterministic_regulation_fact(question,[item],'en') is None
+    other=question.replace('institutional','basic-level')
+    assert '5 thành viên' in deterministic_regulation_fact(other,[item],'en').answer
+    extension=evidence(content='Các học phần tiến sĩ. Trong trường hợp quá thời hạn 3 năm nhưng không thể hoàn thành, NCS có thể đề nghị xin gia hạn thời gian thực hiện trong khoảng thời gian 9 tháng kế tiếp;')
+    assert deterministic_regulation_fact('How long is the possible additional coursework-completion period after the initial two-year doctoral deadline?',[extension],'en') is None
+    classroom=evidence(content='Đối với các học phần được giảng dạy trên lớp, quy mô lớp học phần tối thiểu là 7 học viên.',metadata={'heading_path':['A public course']})
+    assert deterministic_regulation_fact('What normal minimum size applies to a master programme class taught in a classroom?',[classroom],'en') is None
+
+
 def test_programme_duration_and_credits_are_separate_atomic_source_projections():
     item = programme()
     question = 'For a high-school graduate entering a regular bachelor programme, what standard duration and minimum credits does the table prescribe?'
