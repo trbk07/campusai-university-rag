@@ -1,0 +1,557 @@
+{
+  "status": "DONE",
+  "phase": 5,
+  "completion_percent": 100,
+  "tasks_done": 10,
+  "task_population": 10,
+  "acceptance_scope": "phase5_acceptance",
+  "policy": "native-http-checkpoint-v1",
+  "created_at": "2026-10-25T05:02:06.854537+00:00",
+  "source_identity": {
+    "commit": "a21a4cd5b36f005680114e1f25d753f63c97bc78",
+    "source_sha256": "f1808350f0dbeb68bef57fba8a0bf09761becf679b68f24b1bdbd2091098001f",
+    "runtime_sha256": "1f8254dec69840c1169d1ed18db71295c9a87921382b4ec8baab5ac415808f1f"
+  },
+  "benchmark_sha256": "880c37921f322d3a946e7644533f82361273b3f2dfcf3b54ae8528d9aa3bea77",
+  "source_reviewed_reusable_records": 680,
+  "accepted_pipeline_outcomes": 400,
+  "splits": {
+    "dev": 120,
+    "test": 130,
+    "holdout": 150
+  },
+  "legacy_template_families_repaired": 15,
+  "cross_split_family_leakage": 0,
+  "legacy_temporal_status_resolved": 23,
+  "calibration_artifact_sha256": "1ad5816bf8985128987fccf3116ab27c14b5905382efd3a770cfcff392817b43",
+  "calibration": {
+    "dev": {
+      "brier_score": 0.0,
+      "ece": 0.0,
+      "count": 120
+    },
+    "test": {
+      "brier_score": 0.0,
+      "ece": 0.0,
+      "count": 130
+    },
+    "holdout": {
+      "brier_score": 0.0,
+      "ece": 0.0,
+      "count": 150
+    }
+  },
+  "risk_at_coverage": {
+    "0.8": 0.0,
+    "0.9": 0.0
+  },
+  "metrics": {
+    "records": 400,
+    "excluded_native_failures": 0,
+    "claim_count": 238,
+    "predicted_claim_count": 238,
+    "matched_predicted_claim_count": 238,
+    "gold_claim_count": 241,
+    "matched_gold_claim_count": 241,
+    "grounded_claim_precision": 1.0,
+    "grounded_claim_recall": 1.0,
+    "unsupported_claim_leakage": 0.0,
+    "contradicted_claim_leakage": 0.0,
+    "citation_precision": 1.0,
+    "citation_coordinate_validity": 1.0,
+    "citation_recall": 1.0,
+    "citation_completeness": 1.0,
+    "claim_citation_precision": 1.0,
+    "claim_citation_recall": 1.0,
+    "claim_citation_f1": 1.0,
+    "abstention_precision": 1.0,
+    "abstention_recall": 1.0,
+    "reason_accuracy": 0.976744,
+    "brier_score": 0.001583,
+    "ece": 0.012431,
+    "calibration_count": 400,
+    "schema_invalid_rate": 0.0,
+    "abstention_reason_counts": {
+      "ambiguous_question": 13,
+      "document_does_not_mention": 116,
+      "no_evidence_found": 5,
+      "conflicting_evidence": 28,
+      "unsupported_claim": 10
+    },
+    "denominators": {
+      "records": 400,
+      "predicted_claims": 238,
+      "gold_claims": 241,
+      "citations": 229,
+      "gold_citation_links": 243,
+      "predicted_citation_links": 243,
+      "predicted_abstentions": 172,
+      "gold_abstentions": 172,
+      "abstention_reasons": 172
+    }
+  },
+  "gates": {
+    "G5-01": "PASS",
+    "G5-02": "PASS",
+    "G5-03": "PASS",
+    "G5-04": "PASS",
+    "G5-05": "PASS"
+  },
+  "validator_report": {
+    "path": "evaluation\\results\\phase5-mixed-absence-20261024\\v29-final-score.json",
+    "sha256": "1ccf41c24503987ce5b31a40e8049b29a531614744c575da1732573e99385bd5",
+    "status": "PASS",
+    "errors": []
+  },
+  "physical_recomputed_outcomes": 400,
+  "checkpoint_input_counts": {
+    "pipeline_outcomes": 400,
+    "reused_gemini_response_uses": 426,
+    "unique_original_responses": 426,
+    "fresh_provider_posts_in_reprocessing": 0,
+    "source_native_runs": 417,
+    "source_native_journal_post_starts": 855
+  },
+  "fresh_generation_in_completion_cycle": {
+    "real_JSON_responses": 159,
+    "actual_HTTP_POST_starts": 241,
+    "real_provider_failures_retained": 1,
+    "owner_reserved_before": 463,
+    "owner_reserved_after": 705,
+    "owner_cap": 735,
+    "reserved_counts_are_not_actual_HTTP_counts": true,
+    "runs": [
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native\\phase5-fresh-holdout-005-0\\run.json",
+        "sha256": "c8b374d649375a9ad657e935f0b1df04eaf686dec431029b586c63745903b854"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native\\phase5-fresh-test-126-0\\run.json",
+        "sha256": "1df1fb2dd3937274784d4c1077b1ba80ca9a39a55c2254435fa488f8f7dbe947"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native\\phase5-fresh-test-127-0\\run.json",
+        "sha256": "7de77cd3ff86cb41f4a08bccca34f58d627d07d64e012f4e5f70e0fd1be04f5a"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-005-0\\run.json",
+        "sha256": "4f49bfe79cf17ad1aef5296d6371926721e00a01fe8224b0f0e8069e7e60609f"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-041-0\\run.json",
+        "sha256": "bc02a03787fb834c1e138478d804810101266e43aa6a39861b5b552a4965d86e"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-060-0\\run.json",
+        "sha256": "660b2125b4dc4827cd2a9f57cef36783b6954639c092a54e600e120e1d42f28a"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-063-0\\run.json",
+        "sha256": "212e2fca7937011b8bc4f15edd2e44a803b798f601395f19f45ec8c08017b4fe"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-066-0\\run.json",
+        "sha256": "567585f8a79aed762c422ee184eb2a41a3850493ae33f407751bf373c4936446"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-067-0\\run.json",
+        "sha256": "5378b4429b5560145463004509501add5027238f73c3c5f6a053e5c46ea2e793"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-069-0\\run.json",
+        "sha256": "29782cd2b63338801b6a9db07cf9691631d81464dbf6173a6046eeac87711e96"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-070-0\\run.json",
+        "sha256": "fd40723d35216fe1ce3c0759bd33b367c37b8c6e7ab95d95608f77a2a285cbe3"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-073-0\\run.json",
+        "sha256": "073e6ac96d27d7142e95deeda09f093f71688d88aa3cf2805271eb5e73427ca8"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-074-0\\run.json",
+        "sha256": "70bfa9efe3144f54e884ade5d92fcc09b9aa215192d9609dae58aaad5bb4ce02"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-075-0\\run.json",
+        "sha256": "1f502ef1dbef4d7d34ac629ecba4f9b1c5d4f4279ad0f0c85046fdfc3bbdc6d1"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-076-0\\run.json",
+        "sha256": "e5117db4e4243e8e89e365a8037d888ae2e31e7b61ff4306d3b35b5952ae4520"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-077-0\\run.json",
+        "sha256": "0dbc2b4ebb81a5a8d0bfdf6b68721a0dcf7c53bb1480923c2f1ffcfa776c96e5"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-078-0\\run.json",
+        "sha256": "802df0bd2ec68aaa660f6b1153614a6e4cf04d426e2093f24708cc17ac6f207f"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-079-0\\run.json",
+        "sha256": "88ee981d3bbe3b4ac0c2f7869b93c37b44c43b74dc8ae6f348db9b08c07e7842"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-080-0\\run.json",
+        "sha256": "3a47fac37633eebebec8fb334b6d7153ae6c09c83c5c9f6ade83df95e004f237"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-081-0\\run.json",
+        "sha256": "e6c0618e969a299cfd2f868bc77a32dfb8e42cde5c8c04005cb70d5af903254d"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-082-0\\run.json",
+        "sha256": "31795f296e7bf2c14d64e50a0a1e6152ddb93a135ef44a8078ebf668711de8c7"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-083-0\\run.json",
+        "sha256": "eb7e5ea0ec5a87376b28a00cbbf826dcf67eb48b52d30e3f856aa4fe4bfa8307"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-084-0\\run.json",
+        "sha256": "710c9abb33c7fad095b9e41bd365e3dfd58cc22cb15bae2813a8bdc370b477cf"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-085-0\\run.json",
+        "sha256": "e3532a585c23f631b2b8ef6c3d8f3447b62463449f3102bf177099e88fe55bef"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-086-0\\run.json",
+        "sha256": "ce190d96ad7c7d01248274348da1ad391e622a09da601629dce2dd9e7eeb5b00"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-087-0\\run.json",
+        "sha256": "8e8609b2d430c678909e1fd9b309242e8dd93cdc7a93a18358cb949b65769596"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-088-0\\run.json",
+        "sha256": "478425d91b1c27754b570fbc575af85f397ce535485371dd59691bfb437c47a8"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-089-0\\run.json",
+        "sha256": "7b82c16a837b09dfcb2d66eaa838471f9cfe4c1ed30c32449fbbed11ffc44788"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-090-0\\run.json",
+        "sha256": "f455ce6a93042d3ef7d5b9b0c58656e83dbc23a0de1408eb1d944a650dbd87ea"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-091-0\\run.json",
+        "sha256": "bbe32e93dfa779e05978e8f367692c67798d509ece2317479694be32d770822e"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-092-0\\run.json",
+        "sha256": "4191dfb341505b9c6e00b245e7b2627ac40772587638c4003fc7e31d50b195a5"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-093-0\\run.json",
+        "sha256": "c5934dcc4ae619a34dcf77f91fd7e0992e0032ce7dd5c1f981ccb96c11093704"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-094-0\\run.json",
+        "sha256": "7a8a09241ac64e67915ba744ad2a4625dd338bf056e3690cf9ab97eaa06f9d39"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-095-0\\run.json",
+        "sha256": "6ec7b2d6cb62c472b0763bd39f41a6c8c6c12f0ddedd28fabd4fbb55550c3bc2"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-096-0\\run.json",
+        "sha256": "abe721849947461a59cc4192159b83c38c3770a2160f7dc076468bb7fac408bb"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-097-0\\run.json",
+        "sha256": "a464dd9d8db942192a1bb8bca9911c2af4f1f67d15dd4a550a54b592094b4630"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-098-0\\run.json",
+        "sha256": "2e357df1880576e0569334e842609736fc241a06d756cb9f2d30fff721b800bb"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-099-0\\run.json",
+        "sha256": "422af30b175bf274033c5be9c8c6ea919960dc6b1fb381afe9477210651b2959"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-100-0\\run.json",
+        "sha256": "84bbd7853f5f204cc1fb314c0f3e20abbe560bb8cc95e48342a2be92746a7cb8"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-101-0\\run.json",
+        "sha256": "89fb31117b5ebaf406166031d983521e4eb6ec5228084c3af7d4b9ad5bda2862"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-102-0\\run.json",
+        "sha256": "2dbdebe25a65338e9b0b624c2ed8f2e73e55aa9928b85ad175d6c14b94057c3c"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-103-0\\run.json",
+        "sha256": "e820b560cbfebfd9ed4142e8bac4aff4336aff3f1d38ceecca421105c05509c0"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-104-0\\run.json",
+        "sha256": "873476df39ac371ec73eea40d6c95894f931f5e942a229c5a2dabb81d8ee6108"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-105-0\\run.json",
+        "sha256": "2a431388143756601e0366e5e35b4110807c758b6d3770c1c81c3be41f5dd872"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-106-0\\run.json",
+        "sha256": "51151cfbe1e6105560cb01304a2e84126aca1a6845ba04445928cd08174b93c9"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-107-0\\run.json",
+        "sha256": "4d954fa7ce9d92fe4c9bfa10f296e5681035b2e4f635a5177acd9cf94c472c99"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-108-0\\run.json",
+        "sha256": "5038bc9157c23f20e759af3485d881ae4567cfef0602292321c58b2c2e6a883f"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-109-0\\run.json",
+        "sha256": "187b7b23ac3cea8f2ea12b7f3b1622bf8caf83d65d0e39d57af8c0f6bfcce42e"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-110-0\\run.json",
+        "sha256": "601bc09d22c9eba8c3875de1a101126b0b4b035fb36d82bb606c867f25ed6b30"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-111-0\\run.json",
+        "sha256": "34e62f574462d3c2fea40dbaf03ea2ae7ec72835da51ae6f9a7689c70cc7f5eb"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-112-0\\run.json",
+        "sha256": "a902b536a26b68b20f256c319fc204ff8a1e6a7e5d3b310c08e907e1da4eceee"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-113-0\\run.json",
+        "sha256": "9a1e2192bac7c03811d050be5033d89dfbbda54292f67ceefb85a9917771af59"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-114-0\\run.json",
+        "sha256": "5b4e146c07938b13bca8b48a989aa892b1f7891617a7d7dcf2420c3587bb6a3c"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-115-0\\run.json",
+        "sha256": "741b839bd2f6db15ce5dcba13a531f4caf0b28c7a9892c72047c16f284d3b78b"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-116-0\\run.json",
+        "sha256": "238716da563ba469039b8545056c3f7e3e8eee92d55af92d56950948e9f724e2"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-117-0\\run.json",
+        "sha256": "6b17818a7d774bff28235d752b599805483dd457748c03aca83991d0d438ce75"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-118-0\\run.json",
+        "sha256": "33a56155f2aab78ea16a0676a900d87dda4946fd502c8f404b3374edd64fdc2b"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-119-0\\run.json",
+        "sha256": "c5317dc150d42c4ec605eb3eb523ef6a0cb4a68cc5067d92131c2fc6a97b3370"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-120-0\\run.json",
+        "sha256": "50d36e1ba50cd66045fc181e0e04ac83f07526fcbf963d87ffde5b182b8f5120"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-121-0\\run.json",
+        "sha256": "dabec88057b11e1dc45fbc3c7efbd52b7538051940aa42fd9ecb905c5b9d71d3"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-122-0\\run.json",
+        "sha256": "fe2b362353503a6dcb3d722b2691efb65241100a381fc02b2ccf71ff1a7f7574"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-123-0\\run.json",
+        "sha256": "6f72892043a4d2124b38a027248b61f596725919bd9850af605e1d7e4849aaef"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-124-0\\run.json",
+        "sha256": "a8d67afc308031f5a76af884229b5d27443ed24c84e34fac93094886fd162d8c"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-125-0\\run.json",
+        "sha256": "3e61d3be10015e95df139f539a4bff0cdf6fd577b3563e3b09dcbb84982d6902"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-126-0\\run.json",
+        "sha256": "c661c99e10b289b66bdec2ebd0c413bcfc7d5eca1b1651f2179d85eee6a8a2d5"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-128-0\\run.json",
+        "sha256": "d4d145f72ba1a42b2281da82ca68d667345e74d8ca87bcf1b24f6dda3066de1d"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-129-0\\run.json",
+        "sha256": "b18ed31a2468867ce529ed31fdb99e3a79a2a9a5d5cf9876d7b61bac6717f30c"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-130-0\\run.json",
+        "sha256": "fbfde2654836fb4845e6c50c7d9c9af76710aba421148c48cec7c31d3c1090fa"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-131-0\\run.json",
+        "sha256": "5a52faca23e41f8bc1c6cd2f0280f1a96dcd90ba90a559ced97e4f221b532a37"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-131-1\\run.json",
+        "sha256": "4ca8bae016001f8cbe988b152b9c4d2e4546ab74695ac0402f307c167e00aaaf"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-132-0\\run.json",
+        "sha256": "bde726b74f115cd921a462f1f7eaaa87eeba00dc6cabd7e2c7699bae1c113624"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-133-0\\run.json",
+        "sha256": "69008fcf4ad5f3769da69e1c35306d0107e916793fbd9b61f1ec938bdb86560d"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-134-0\\run.json",
+        "sha256": "41d832d74b1870c1c7a6728429d577b34d6c439f784bc1be9adbbda0baef9806"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-135-0\\run.json",
+        "sha256": "a8f4ff03a01cd4b551d0651c9d45b4aa80b8941276e66222c70edc178e58168f"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-137-0\\run.json",
+        "sha256": "82024a57f6ee644d01c5594fce38af7ea7388fedbf7a34956b49c1bdb9bea2b0"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-138-0\\run.json",
+        "sha256": "6512064032e6f117281aa6025be063e8c4b740d67e17ce044bfa2eb257c10103"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-139-0\\run.json",
+        "sha256": "85890f2160726db3312da7c7825cf0a4fcc328907549ce4f95eb3cf0563e073a"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-140-0\\run.json",
+        "sha256": "5202f68fe2f6d822925302333635e6adb277b53eb63e541411541cb478037349"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-141-0\\run.json",
+        "sha256": "0330a5c868810de4068eb820d5f2073a535dc0a26f6d57c27491aff2b1768dba"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-142-0\\run.json",
+        "sha256": "44e2ed071fe234c27c8a421c1263616ff302ef61aa5abe79fd78a6835ac636a5"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-143-0\\run.json",
+        "sha256": "582715cddfb0b4e5eaac496dbe61eb2fbf63fd1308f788de5683653fce80f4be"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-144-0\\run.json",
+        "sha256": "7df72fff115c507fc216d4ea0bd8e944c1a4d4b90ec1498e9f14b61ef413fffd"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-145-0\\run.json",
+        "sha256": "954e6346a25f242c739f397b1412f0e41294c4942f5434816ef43de9f95cbe4e"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-146-0\\run.json",
+        "sha256": "728874cb7c8c5d528bd3cf0a46538269e18df626ad63af62e87a6d30aecda3ab"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-147-0\\run.json",
+        "sha256": "58f4e4cb8c1ba33e9aab40273d62a3e86f0637b47e4e17685078bf3df6f0b682"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-148-0\\run.json",
+        "sha256": "321adfc01b138c35b0d637f18e5b699ab1a907e23ed5c2606c6d8cc4953ae72c"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-149-0\\run.json",
+        "sha256": "810fe9629fe39d96528861e9ebaf5f9477b138374230e685f9aba046f029dc1b"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-150-0\\run.json",
+        "sha256": "aa767bc35f7b1006a1a62f7e6d4b547dd7f75ed25e0a3421f015437c1ef5f190"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-test-126-0\\run.json",
+        "sha256": "181b9c2783837a3f04774c2e1e1b55cff2417f98a8cd808941db6cf212229f51"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-test-127-0\\run.json",
+        "sha256": "9b7830c813fcb2d5b8d1240503bafa48a6ec394e388695d8f30cae3d8ec226d0"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v29-checkpoint-diagnostic\\missing-native-v2\\phase5-fresh-holdout-112-0\\run.json",
+        "sha256": "b8fbee516a27e473b6e16db95bc1ec40961e315bf2959738eb975ebf05524b71"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v29-checkpoint-diagnostic\\missing-native-v2\\phase5-fresh-holdout-117-0\\run.json",
+        "sha256": "7ffe0cfa6852cc3d7909fbbaaf7ba36e733e8d661966e91b14585c86158dcc21"
+      },
+      {
+        "path": ".release\\grounding\\phase5-v29-checkpoint-diagnostic\\missing-native-v2\\phase5-fresh-holdout-119-0\\run.json",
+        "sha256": "1fb2ba0e15361576f2a057df48592705158711fd97d4e3a6bec0ec36e50cddc5"
+      }
+    ],
+    "provider_failure_details": [
+      {
+        "id": "phase5-fresh-holdout-131",
+        "http_status": null,
+        "cause_type": "URLError",
+        "run_path": ".release\\grounding\\phase5-v28-checkpoint-diagnostic-r3\\missing-native-v2\\phase5-fresh-holdout-131-0\\run.json",
+        "network_winerror": 10054
+      }
+    ]
+  },
+  "regressions": [
+    {
+      "run": 1,
+      "passed": 2663,
+      "skipped": 2,
+      "path": "evaluation\\results\\phase5-mixed-absence-20261024\\v29-regression-1.xml",
+      "sha256": "66a0d1a73fb887f1c78599470bf5a497ad2197facc5d8b71df4a05b4910064e7"
+    },
+    {
+      "run": 2,
+      "passed": 2663,
+      "skipped": 2,
+      "path": "evaluation\\results\\phase5-mixed-absence-20261024\\v29-regression-2.xml",
+      "sha256": "da900b9c9d6bd1a7fde5c21fd820f3b962682f0e4517ead5c1a303f8f18202f7"
+    },
+    {
+      "run": 3,
+      "passed": 2663,
+      "skipped": 2,
+      "path": "evaluation\\results\\phase5-mixed-absence-20261024\\v29-regression-3.xml",
+      "sha256": "c92c6ff94cbc5bf01eb10abbf74806be034c8c814073e1fb90da1b70d9bd7a55"
+    }
+  ],
+  "focused_policy_tests": {
+    "passed": 184,
+    "path": "evaluation/results/phase5-mixed-absence-20261024/v29-policy-repairs-r2.xml"
+  },
+  "validator_tests": {
+    "passed": 197,
+    "path": "evaluation/results/phase5-mixed-absence-20261024/v28-closure-provenance.xml"
+  },
+  "thresholds_changed": false,
+  "gold_changed": false,
+  "reuse_is_not_fresh_inference": true,
+  "latency_evidence_from_reprocessing": false,
+  "public_release": {
+    "status": "BLOCKED",
+    "reason": "Exposed benchmark accepted for internal Phase5 only; fresh unexposed holdout/public release contract still required."
+  },
+  "human_actions_for_phase5_internal_acceptance": [],
+  "whole_app_goal": "Separate and still active; Phase5 does not certify all OCR/performance/cloud requirements.",
+  "cleanup": {
+    "completed_test_stores_removed": [
+      "phase5-v29-regression-1",
+      "phase5-v29-regression-2",
+      "phase5-v29-regression-3"
+    ],
+    "raw_captures_source_snapshots_grants_and_baselines_retained": true,
+    "plan_md_retained_and_tracked": true
+  }
+}

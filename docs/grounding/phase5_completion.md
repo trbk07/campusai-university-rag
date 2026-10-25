@@ -1,6 +1,39 @@
 # Phase 5 — audit và handoff hiện hành, 25/10/2026
 
-Current work: v28 repairs mixed document-absence answers, personal verification
+**DONE -100%,10/10 tasks; Phase5 internal acceptance,25/10/2026.**
+Producer a21a4cd5 / grounding-v29 has400/400 current-pipeline outcomes:
+dev120/test130/holdout150. Independent offline physical recomputation matches
+all400 outputs. The authoritative validator reports PASS, errors[].
+
+Grounding/citation/abstention P/R are100%, unsupported/contradicted leakage0,
+reason accuracy97.67%; holdout ECE/Brier and risk at80%/90% coverage are0.
+The dev-only fit1ad5816b remains unchanged and was physically reverified.
+Three consecutive final-producer regressions each PASS2,663 tests with2 opt-in
+live tests SKIP per run.184 focused policy tests and197 validator/provenance
+checks PASS. Historical failures below remain failures on their recorded source.
+
+This completion cycle generated159 real model JSON responses in241 actual POST
+starts. Its owner ledger advances463 to705/735 reservations, retaining one
+conservative reservation without a sent POST. Current reprocessing uses426
+unique genuine exact-input Gemini responses and performs0 new provider POSTs;
+these are not400 fresh model generations or new live-latency measurements.
+All model requests are user-input-only projections; gold stays in scoring.
+
+The benchmark reuses680 source-reviewed candidates, selects400 reviewed cases,
+repairs all15 observable leakage families (cross-split leakage0), and resolves
+all23 legacy temporal statuses (21 original warnings plus2 later cases).
+The complete15-family list and temporal row status tables remain below.
+
+[Closure and artifact bindings](../../evaluation/results/phase5-mixed-absence-20261024/phase5-closure.json),
+[authoritative report](../../evaluation/results/phase5-mixed-absence-20261024/v29-final-score.json),
+[three regression receipts](../../evaluation/results/phase5-mixed-absence-20261024/v29-regression.json).
+No human action remains to unblock internal Phase5. Public release is still
+BLOCKED on fresh unexposed holdout/public-release requirements; the broader
+full-app performance/OCR/cloud QA goal remains separate and active.
+
+## Historical qualification work before final acceptance
+
+Historical work: v28 repairs mixed document-absence answers, personal verification
 results and assessment-recency interpretation. The v27 held-out campaign was
 stopped for observed quality defects; it is no longer running. Its successful
 captures, failures, budget usage and original calibration pin remain immutable.

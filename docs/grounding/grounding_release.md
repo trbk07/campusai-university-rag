@@ -1,14 +1,22 @@
 # Phase 5 release status
 
-**70%: P5-01 through P5-07 DONE; P5-08 through P5-10 remain open.**
-On25/10 the owner authorized simpler internal closure with unchanged quality:
-reuse genuine Gemini captures only for exact matching inputs and re-execute the
-current pipeline. The v27 dev120/calibration result remains DONE on its recorded
-source; held-out was stopped for quality defects. v28 repairs and physical
-checkpoint validation are in progress. All400 reviewed cases, numeric quality
-gates and public fresh-holdout requirements remain. Reuse is never reported as
-fresh inference. See [completion evidence](phase5_completion.md) and
-[the closure contract](grounding_release_gates.md).
+**DONE -100%,10/10 tasks; Phase5 internal acceptance on25/10/2026.**
+Producer a21a4cd5 / grounding-v29 qualifies400/400 outcomes (dev120/test130/
+holdout150); independent physical recomputation matches400/400 and the release
+validator reports PASS with no errors. Grounding/citation/abstention P/R100%,
+leakage0, reason97.67%; holdout ECE/Brier/risk0. Three consecutive full suites
+each2,663 PASS/2 opt-in live SKIP. Numeric thresholds and reviewed gold unchanged.
+
+The approved checkpoint process reuses426 genuine exact-input model responses;
+reprocessing is not fresh inference. The completion cycle separately records
+159 newly generated real JSON responses and241 actual POST starts, preserving
+all failures and cumulative quota. No human action remains for internal Phase5.
+Public release still requires fresh unexposed holdout and its separate contract.
+[Closure](../../evaluation/results/phase5-mixed-absence-20261024/phase5-closure.json)
+and [detailed evidence](phase5_completion.md).
+
+The following candidate results are historical and are not relabelled PASS.
+
 [Plan](../../plan.md) is authoritative. Historical frozen candidate `cb7220d4b8e10e22114ae11ca353a146d41c1c09` has source/runtime `df723d7b8237e352b09979ffa6d972904554b4c93cce79376f4befacb9bb0e37` / `b740ba08d04a15149958312a078447bb2f735cb796b4d033c685e66c3bae3a1b`, identical to the835-test source. Model inputs and physical benchmark/index/config are unchanged. Owner now permits one same-key503 recovery per question and confirms3 independent credential projects; conservative quota accounting and original total packet caps remain. Dev collection uses individual checkpoints; its calibrator must be fitted and pinned before held-out inference. Older native attempts retain their actual source, failures and quality findings.
 
 The previous-source v2 packet touched 103/120 dev rows and captured real model JSON

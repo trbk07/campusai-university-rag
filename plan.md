@@ -89,7 +89,7 @@ Giữ profile Free, quota/state và lịch sử thất bại; không đổi % c�
 | 2 | Chunking, bảng, provenance | DONE — acceptance đã có | Golden fixtures, giới hạn chunk và citation nằm trong acceptance Phase 1/2. |
 | 3 | Embedding, dense index, persistence | IMPLEMENTED; report gốc CONDITIONAL | Báo cáo dense độc lập còn giới hạn corpus/negative; hybrid có evidence riêng ở Phase 6. Không tự đổi report gốc thành PASS. |
 | 4 | Basic RAG, context budget, cache | DONE — offline contract | Benchmark 30 câu PASS; chất lượng model được kiểm tra riêng trong Phase 7/8. |
-| 5 | Citation, grounding, abstention | **IN PROGRESS - 70%, 7/10 tasks DONE** | Internal closure may reuse exact-input real Gemini captures under the owner-approved checkpoint contract; quality thresholds and all400 reviewed cases stay unchanged. v27 dev120/calibration DONE; held-out stopped for observed quality defects. v28 repairs and physical reprocessing validation are in progress. |
+| 5 | Citation, grounding, abstention | **DONE -100%,10/10 tasks** | Internal Phase5 acceptance PASS400/400 on a21a4cd5/grounding-v29; all5 gates PASS. Grounding/citation/abstention P/R100%, leakage0, reason97.67%; holdout calibration/risk0. Three consecutive full suites each2,663 PASS/2 live SKIP. Exposed benchmark disclosed; public fresh-holdout requirement stays separate. |
 | 6 | BM25 + dense + RRF | DONE — release lịch sử | RC3 PASS trên profile đã khóa; không thay cho qualification của deployment mới. |
 | 7 | Hoàn thiện core product quality | **DONE — 100% scope Chat** | 68/68 trường hợp đúng; live performance chuyển sang điều kiện release bên dưới. |
 | 8 | Benchmark và đánh giá sản phẩm | **DONE — 100% scope Chat** | 300/300 trường hợp đúng nội dung/negative qua replay ứng dụng. |
@@ -435,20 +435,22 @@ tests and offline report in `evaluation/results/basic_rag_report.json`.
 
 ### Phase 5 — Citation, grounding và abstention
 
-**IN PROGRESS — mục tiêu hoàn thiện 100% Phase 5, mở ngày 16/10/2026.**
-100% chỉ được ghi sau khi 10/10 task và toàn bộ gate dưới đây có bằng chứng
-kiểm chứng được trên source hiện hành. Chất lượng Phase 7/8 được kế thừa khi
-đúng source/population; không đổi report lịch sử, gold, split hoặc ngưỡng để đóng phase.
+**DONE — 100%, 10/10 task; nghiệm thu nội bộ ngày 25/10/2026.**
+Producer `a21a4cd5` / `grounding-v29`: 400/400 đầu ra pipeline đã được chạy lại
+và đối chiếu vật lý độc lập; validator PASS, không có lỗi. Grounding/citation/
+abstention P/R 100%, leakage 0, reason accuracy 97,67%; holdout ECE/Brier và
+risk 80%/90% đều 0. Ba lượt hồi quy liên tiếp: mỗi lượt 2.663 PASS/2 live SKIP.
+Ngưỡng chất lượng, gold và benchmark đã review giữ nguyên. Kết quả tái dùng
+426 phản hồi Gemini thật có cùng đầu vào chính xác; không gọi đó là inference mới.
+[Hồ sơ đóng Phase 5](evaluation/results/phase5-mixed-absence-20261024/phase5-closure.json).
 
-**Mục tiêu làm việc cập nhật theo owner ngày22/10:** hoàn thiện Phase5 trên
-pipeline CampusAI hiện hành, đóng ngay task đã đạt chuẩn và chỉ sửa lỗi còn cản
-nghiệm thu. Bảo toàn các phase khác và bằng chứng hiện có; không mở rộng phạm vi
-hoặc tạo tài liệu không cần thiết. Thứ tự còn lại: hoàn tất dev120 → fit/pin
-calibration → nghiệm thu test130/holdout150 → kiểm gates và đóng phase.
+**Phạm vi đã đóng:** dev120, test130, holdout150 theo contract nội bộ đã được
+owner duyệt, có công khai exposure. Source/config/index/raw captures và lịch sử
+lỗi được giữ. Public release vẫn cần fresh holdout; không dùng kết quả này để
+tự đóng các SLO web/PDF/OCR, cloud hoặc phase khác.
 
-Goal hệ thống mới đã được tạo ACTIVE sau khi goal cũ không còn trong thread.
-Không đánh dấu goal cũ Complete giả; lô inference đã được owner duyệt tiếp tục
-với nguyên code/index/payload và ngân sách hiện có.
+Goal QA toàn ứng dụng là phạm vi riêng và còn ACTIVE. Các mốc thử nghiệm cũ
+bên dưới là lịch sử theo source đã ghi; không thay kết luận hiện hành 25/10.
 
 #### Phạm vi và nguyên tắc nghiệm thu
 
@@ -474,17 +476,17 @@ với nguyên code/index/payload và ngân sách hiện có.
 | P5-01 | Audit baseline, contract và evidence hiện có | Lập inventory code/schema/policy/calibration/dataset/report với SHA-256; đối chiếu từng yêu cầu, phân biệt legacy/runtime/fixture/replay, giữ thay đổi có sẵn trong workspace. | DONE |
 | P5-02 | Siết public/internal schema; sau P5-01 | Validator không crash với JSON sai kiểu, bool giả int, NaN, duplicate/empty ID, thiếu claim/citation, unmapped citations hoặc nested internal fields; HTTP luôn trả public contract hợp lệ. Regression âm và dương đạt. | DONE (offline contract) |
 | P5-03 | Citation/provenance integrity; sau P5-01 | Kiểm chunk/doc/page/range/table/quote, request isolation, evidence trùng ID hoặc metadata lỗi; không nhận quote ngoài nguồn hay coordinate giả. Có test adversarial qua generator/API. | DONE (offline provenance) |
-| P5-04 | Claim grounding và nội dung hiển thị; sau P5-02/03 | Claim/evidence alignment kiểm số, mã, năm, đơn vị, phủ định, multi-claim và partial; chặn answer chứa fact không nằm trong supported claims, kể cả provider khai báo an toàn. Leakage bằng 0 trên bộ kiểm tra. | DONE (offline claim/display contract; G5-02 official quality pending) |
-| P5-05 | Abstention taxonomy và phạm vi kiểm tra; sau P5-03/04 | Phân biệt thiếu retrieval với tài liệu đã kiểm tra không đề cập; xử lý unsupported, contradiction, ambiguity, conflict, provider/citation errors bằng reason và thông báo VI/EN phù hợp; không khẳng định vắng mặt toàn tài liệu từ top-k. | DONE (bounded abstention/scope contract; G5-03 official reason accuracy pending) |
+| P5-04 | Claim grounding và nội dung hiển thị; sau P5-02/03 | Claim/evidence alignment kiểm số, mã, năm, đơn vị, phủ định, multi-claim và partial; chặn answer chứa fact không nằm trong supported claims, kể cả provider khai báo an toàn. Leakage bằng 0 trên bộ kiểm tra. | DONE -G5-02 validated on400 current-pipeline outcomes; unsupported/contradicted leakage0, precision/recall100%. |
+| P5-05 | Abstention taxonomy và phạm vi kiểm tra; sau P5-03/04 | Phân biệt thiếu retrieval với tài liệu đã kiểm tra không đề cập; xử lý unsupported, contradiction, ambiguity, conflict, provider/citation errors bằng reason và thông báo VI/EN phù hợp; không khẳng định vắng mặt toàn tài liệu từ top-k. | DONE -G5-03 abstention P/R100%, reason97.67%; complete-source audit required for document absence. |
 | P5-06 | Audit benchmark và phép chấm; sau P5-01 | Kiểm 400 mẫu, split/group/category/source quotes/review metadata; sửa metric đếm nhầm/missing values/fail-open. Citation precision và abstention precision đo tự động trên test và holdout, có denominator; giữ gold và lịch sử exposure. | DONE (reviewed400 frozen; Phase5 owner approval; disclosed exposure; physical validation PASS) |
-| P5-07 | Confidence/calibration và cache version; sau P5-04/05/06 | Không tin confidence của provider; fit dev-only, kiểm artifact version/checksum và chống non-finite values; ECE/Brier/risk báo đúng population. Cache không tái dùng kết quả sai schema/policy/source/scope. | DONE (implementation, cache/pinning tests and actual dev120 fit; held-out calibration quality remains G5-04/P5-08/09) |
-| P5-08 | Current-source runtime qualification and regression; after P5-02..07 | Capture current-source outputs, fit dev-only calibration and qualify held-out; preserve raw failures and source/config/index bindings. | IN PROGRESS -dev120 DONE on frozen b1ab8adc; repaired scorer validated2567 tests, production runtime unchanged. Dev-only fit34b8e125? pinned before held-out. Test130/holdout150 running in2 disjoint workers over3 projects within cap735. |
-| P5-09 | Release validator and independent report validation; after P5-06..08 | Recompute metrics, physical source/review/config/calibration bindings and population; all5 quality gates required. | IN PROGRESS -physical review400/400 and scorer/inference binding validate; dev120 meets unchanged thresholds. Complete held-out metrics and calibration/risk gates still required. Historical failed evaluations and transport errors retained. |
-| P5-10 | Handoff, đồng bộ roadmap và cleanup; sau P5-09 | Tài liệu contract/operations/release hiện hành, lệnh tái hiện, completion receipt ràng buộc source/config/dataset/results; chỉ xóa file tạm không còn tham chiếu, giữ baseline và `plan.md` tracked. Chỉ cập nhật DONE/100% sau khi audit đủ 10 task và gates. | IN PROGRESS — handoff và release status đã đồng bộ; full offline suite DONE; đóng phase còn phụ thuộc native quality và cả năm release gates. |
+| P5-07 | Confidence/calibration và cache version; sau P5-04/05/06 | Không tin confidence của provider; fit dev-only, kiểm artifact version/checksum và chống non-finite values; ECE/Brier/risk báo đúng population. Cache không tái dùng kết quả sai schema/policy/source/scope. | DONE -unchanged dev-only fit reverified on current120 dev outcomes and pinned; holdout ECE/Brier/risk0. |
+| P5-08 | Current-source runtime qualification and regression; after P5-02..07 | Capture current-source outputs, fit dev-only calibration and qualify held-out; preserve raw failures and source/config/index bindings. | DONE -400 current-pipeline outcomes under exact-input genuine HTTP checkpoint protocol; 3 full regressions each2,663 PASS/2 opt-in SKIP. |
+| P5-09 | Release validator and independent report validation; after P5-06..08 | Recompute metrics, physical source/review/config/calibration bindings and population; all5 quality gates required. | DONE -automatic independent physical recomputation matches400/400; all5 internal gates PASS, thresholds unchanged. |
+| P5-10 | Handoff, đồng bộ roadmap và cleanup; sau P5-09 | Tài liệu contract/operations/release hiện hành, lệnh tái hiện, completion receipt ràng buộc source/config/dataset/results; chỉ xóa file tạm không còn tham chiếu, giữ baseline và `plan.md` tracked. Chỉ cập nhật DONE/100% sau khi audit đủ 10 task và gates. | DONE -roadmap/handoff/closure synchronized, task-owned test scratch cleaned; raw captures, grants, failures and historical baselines retained. |
 
-#### Current status as of 23/10/2026
+#### Historical status as of 23/10/2026
 
-**7/10 task DONE = 70%; Phase 5 remains incomplete.** Source-bound fact/citation repairs and direct-scope preflight are DONE. Strict diagnostic replay has63/63 supported claims over65 replayable rows, but is not native acceptance. Owner-approved packet9f00be14 bound actual source `ebf1fd3a` correctly:1 successful initial JSON,1 token measurement and1 failed full-PDF generation (HTTP503), then stop;0 evaluable outcomes, test-008 unsubmitted. Shared quota at stop:253/500;2 unused POSTs discarded, no retry/key rotation. Compact PDF follow-up removes duplicated text while preserving all13 original pages and citation verification;819 affected tests PASS, provider validation pending. Full400 current-source outcomes, dev-only calibration and all5 gates remain required. Thresholds unchanged. [Current evidence and remaining work](docs/grounding/phase5_completion.md).
+Historical23/10: **7/10 task DONE = 70%; Phase 5 remains incomplete.** Source-bound fact/citation repairs and direct-scope preflight are DONE. Strict diagnostic replay has63/63 supported claims over65 replayable rows, but is not native acceptance. Owner-approved packet9f00be14 bound actual source `ebf1fd3a` correctly:1 successful initial JSON,1 token measurement and1 failed full-PDF generation (HTTP503), then stop;0 evaluable outcomes, test-008 unsubmitted. Shared quota at stop:253/500;2 unused POSTs discarded, no retry/key rotation. Compact PDF follow-up removes duplicated text while preserving all13 original pages and citation verification;819 affected tests PASS, provider validation pending. Full400 current-source outcomes, dev-only calibration and all5 gates remain required. Thresholds unchanged. [Current evidence and remaining work](docs/grounding/phase5_completion.md).
 
 #### Earlier failed attempt - 22/10/2026 (historical)
 
@@ -492,7 +494,7 @@ Phase 5 vẫn 7/10 task DONE; chưa nâng task nào chỉ từ capture dở dang
 P5-02…05 đóng ở phạm vi code/contract đã kiểm thử; chất lượng official vẫn phải
 qua P5-06…09 và G5-01…05, không suy từ fixture hoặc replay.
 
-#### Current-source remediation and native evidence - 23/10/2026
+#### Historical source remediation and native evidence -23/10/2026
 
 Targeted fixes now handle exact prerequisite-table lookup deterministically, constrain answer scope in the grounding prompt, prune unrelated citations only when a perfect supporting citation is present, and invalidate old grounding cache entries. Current committed source identity is commit 9ba97af0aceb78c93e22a3011abb56f4dc5e539b; source SHA-256 0f975a8879652de73d94a8d5f6205562ede915076a08a6bfb365aa2b174bda36; runtime SHA-256 db454eb10dc74bf3bd6b277fbef8450016f03a4feb50a01bb02560a8e3c3723a. The full offline regression completed with 2352 PASS and 2 opt-in live SKIP; source and runtime fingerprints match before and after the run. Receipt: `evaluation/results/phase5-acceptance-20261021/current-source-full-regression-20261023.json`.
 
@@ -570,11 +572,12 @@ bắt buộc fresh holdout.
 | P5-08t - Fix observed bilingual scope and unpublished-citation failures | Preserve section/article/page identity across Vietnamese/English and complete source audit before discarded diagnostic citations. | DONE -minimal3 production-file fix;162 focused and2570 full tests PASS/2 live opt-in SKIP. The4 actual failed captures now produce correct diagnostic outputs with0 new API calls. Cache grounding-v27; no gold, prompt or threshold change. New-runtime native qualification still required. |
 | P5-08u - Qualify current v27 dev and pin calibration | Finish120 current-source dev outcomes, pass the existing dev quality thresholds, fit only these captures and lock before held-out. | DONE -producer `3fcd4a46`:120/120 outcomes; grounded/citation/abstention P/R100%, reason96.67%, leakage0.81 real JSON outputs,97 selected-run POSTs/103 campaign POSTs including retained failures. Fresh dev-only fit1ad5816b… pinned before held-out; identical semantic checksum does not mean an old fit was reused. |
 | P5-08v - Mixed absence and assessment-recency repair | Block unrelated policy answers to personal realised events, recognise qualified source-absence statements and distinguish assessment recency from document-version requests. | DONE -producer f35f3c37,3 consecutive full suites each2,625 PASS/2 opt-in SKIP;180 focused metric/capture/native-scoring tests PASS. Production bytes fixed for qualification; fresh held-out quality remains P5-09b. |
-| P5-09b - Release quality validation | Validate400 current-pipeline outcomes, dev-only calibration and all5 unchanged quality gates. | IN PROGRESS -frozen producer f35f3c37/grounding-v28 passes3 consecutive full regressions,2,625 PASS/2 opt-in SKIP each.314 exact-input checkpoint outcomes have grounding/citation/abstention P/R100%, leakage0;85 old-approved missing cases plus1 specifically approved supplement are collecting under cumulative cap735. Final physical recomputation and all400 gates remain open. |
-| P5-09c - Internal closure contract | Remove redundant inference-only closure work without reducing quality; retain public-release requirements. | DONE -owner25/10 authorization recorded in grounding_release_gates.md: exact case/model/config/index/HTTP-body reuse only, gold-free current reprocessing, deterministic selection and fail-closed physical verification. No numeric thresholds or reviewed population changed; implementation acceptance remains under P5-09b. |
-| P5-09d - Physical checkpoint validator | Recompute current outputs offline from genuine exact-body captures; reject gold injection, altered captures/counters, missing inputs and public-release promotion. | DONE -192 scorer/validator/capture regression tests PASS; pure scorer extension preserves frozen producer runtime. Final400 physical execution remains P5-09b. |
-| P5-10a - Handoff checkpoint and cleanup | Synchronize roadmap/contract/operations, retain raw evidence/source reconstruction and baseline, clean temporary fixtures. | DONE - roadmap and handoff disclose exact approved packet use, HTTP503, foreign-runtime mismatch, source fixes and final535-test evidence. Raw captures, original packet, old dev calibration and historical baselines remain retained; only task-owned test scratch directories may be removed. |
-| P5-10b — Đóng10/10 và goal | Chỉ đóng khi P5-08/09 và đủ5 gates đã đạt. | PENDING —không tự nâng70% thành100% |
+| P5-08w - Atomic policy facts and actual personal events | Resolve component credits, minimum rank/class size, extension deadline and council level from literal fields; require personal records for actual individual outcomes. | DONE -184 focused tests,3 full suites each2,663 PASS; all9 observed v28 quality errors resolved,400/400 v29 internal acceptance PASS. No benchmark IDs/labels/expected values in runtime. |
+| P5-09b - Release quality validation | Validate400 current-pipeline outcomes, dev-only calibration and all5 unchanged quality gates. | DONE -v29-final-score.json PASS, errors[]; dev120/test130/holdout150; grounded/citation/abstention P/R100%, reason97.67%, leakage0, holdout ECE/Brier/risk0. Source a21a4cd5 physically retained; no inference/approval relabeling. |
+| P5-09c - Internal closure contract | Remove redundant inference-only closure work without reducing quality; retain public-release requirements. | DONE -owner25/10 authorization recorded in grounding_release_gates.md: exact case/model/config/index/HTTP-body reuse only, gold-free current reprocessing, deterministic selection and fail-closed physical verification. No numeric thresholds or reviewed population changed; actual physical acceptance PASS400/400 at P5-09b. |
+| P5-09d - Physical checkpoint validator | Recompute current outputs from real exact-body captures; fail closed on missing/tampered inputs and public-release promotion. | DONE -197 focused tests; actual independent recomputation matches400/400 on v29. |
+| P5-10a - Handoff checkpoint and cleanup | Synchronize roadmap/contract/operations and retain reproducible source/raw/baseline evidence. | DONE -phase5-closure.json and completion handoff bind final source,400 outcomes,3 regressions and budget history; temporary test stores removed. |
+| P5-10b - Close10/10 Phase5 | All5 internal gates, qualified400, regression/handoff/cleanup. | DONE -100% Phase5 internal acceptance; whole-app QA goal and public fresh-holdout remain separate. |
 
 Gemini Chat returned supplementary source-review results for 33/33 priority cases.
 The audit found 20 source-supported answer contents and 33 answer/abstain decisions
@@ -588,13 +591,13 @@ Owner đã cho phép giảm nhẹ chuẩn nếu cần; numeric thresholds chưa 
 Owner content/exposure approval và dev calibration đã hoàn tất. Native quality
 gates còn phải đạt trước khi Phase5 PASS; public release cần fresh holdout.
 
-| Gate | Điều kiện bắt buộc |
-|---|---|
-| G5-01 — Schema và provenance | Required public fields hợp lệ 100%; citation coordinates/quotes/mapping hợp lệ 100%; internal-field leakage = 0; malformed JSON không làm crash validator/API. |
-| G5-02 — Grounding | Unsupported/contradicted public-claim leakage = 0; grounded claim precision ≥99%, recall ≥95%; claim-citation precision/recall/F1 ≥95%; kiểm cả `answer` và claims. |
-| G5-03 — Citation và abstention | Citation precision ≥99%, recall/completeness ≥98%; abstention precision ≥99%, recall ≥98%, reason accuracy ≥95%; test/holdout và từng category có số lượng mẫu rõ ràng. |
-| G5-04 — Dataset và confidence | ≥400 mẫu đúng split/group contract; calibration count ≥400, dev-only fit, holdout ECE ≤0,05/Brier ≤0,08; risk tại coverage 80%/90% ≤1%/2% trên publishable holdout; checksum/version hợp lệ. |
-| G5-05 — Reproducibility và regression | Report được tái tính/kiểm bindings tự động, source fingerprint đúng cả workspace hiện tại; focused/full offline checks đạt, không tính live SKIP là PASS; handoff/cleanup và audit 10/10 task hoàn tất. |
+| Gate | Điều kiện bắt buộc | Status |
+|---|---|---|
+| G5-01 — Schema và provenance | Required public fields hợp lệ 100%; citation coordinates/quotes/mapping hợp lệ 100%; internal-field leakage = 0; malformed JSON không làm crash validator/API. | PASS -internal Phase5 |
+| G5-02 — Grounding | Unsupported/contradicted public-claim leakage = 0; grounded claim precision ≥99%, recall ≥95%; claim-citation precision/recall/F1 ≥95%; kiểm cả `answer` và claims. | PASS -internal Phase5 |
+| G5-03 — Citation và abstention | Citation precision ≥99%, recall/completeness ≥98%; abstention precision ≥99%, recall ≥98%, reason accuracy ≥95%; test/holdout và từng category có số lượng mẫu rõ ràng. | PASS -internal Phase5 |
+| G5-04 — Dataset và confidence | ≥400 mẫu đúng split/group contract; calibration count ≥400, dev-only fit, holdout ECE ≤0,05/Brier ≤0,08; risk tại coverage 80%/90% ≤1%/2% trên publishable holdout; checksum/version hợp lệ. | PASS -internal Phase5 |
+| G5-05 — Reproducibility và regression | Report được tái tính/kiểm bindings tự động, source fingerprint đúng cả workspace hiện tại; focused/full offline checks đạt, không tính live SKIP là PASS; handoff/cleanup và audit 10/10 task hoàn tất. | PASS -internal Phase5 |
 
 Nguồn chuẩn: [grounding contract](docs/architecture/grounding_contract.md),
 [ngưỡng đã khóa](configs/grounding_release.json),

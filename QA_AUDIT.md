@@ -1,10 +1,11 @@
 # Full-app QA audit
 
-Current cycle: 2026-10-24. Goal: autonomous full-app testing and UX optimization.
+Current cycle: 2026-10-25. Goal: autonomous full-app testing and UX optimization.
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Current source `3fcd4a46`: three consecutive full regressions each2,570 PASS/2 opt-in live SKIP;
+Current source `a21a4cd5`: three consecutive full regressions each2,663 PASS/2 opt-in live SKIP. Phase5 internal400/400 acceptance and all5 gates PASS. The broader app audit remains open.
+Historical browser source `3fcd4a46`:
 43/43 browser checks PASS on Chrome155, including two batches of five PDFs,
 deletion, six viewports, accessibility and actual local OCR recovery. The browser
 uses a deterministic test provider; it does not measure live AI quality.
@@ -16,10 +17,10 @@ or independent extraction/OCR accuracy.
 
 Twenty simultaneous read workers exposed a P2 transport-capacity issue:197/200
 requests succeeded, two returned503 and one connection failed; p95 was525ms.
-The loopback HTTP server currently limits active handlers and its backlog to8.
+The baseline loopback HTTP server limited active handlers and its backlog to8.
 This is a failed load check, measured alongside native qualification/regression,
-not a controlled SLO result. A transport fix and a controlled remeasurement
-remain open; the frozen Phase5 inference source is retained.
+not a controlled SLO result. The transport fix and controlled read remeasurement
+are complete below; historical inference sources are retained.
 [Load evidence](docs/ui/evidence/phase5-v27-20261024/read-concurrency.json).
 
 Transport candidate [d2d3626](https://github.com/trbk07/Adaptive-RAG-for-Financial-Business-Reports/commit/d2d3626)
@@ -31,17 +32,15 @@ measurements with explicitly fresh empty stores, the8-handler baseline rejected
 read admission, not20 simultaneous model generations or a production SLO.
 [Before/after evidence](docs/ui/evidence/phase5-v27-20261024/http-capacity-before-after.json).
 The preliminary measurement without an explicit store binding is invalid for
-comparison and retained with that label. Full candidate regression is underway
-using the existing external artifact bundle; initial missing-bundle failures
-are retained. The transport fix is now integrated into main as `af75a6f2`;
-the earlier frozen Phase5 producer is retained separately after its quality
-audit found publication/measurement defects. Current repairs and qualification
-must be verified before final acceptance.
+comparison and retained with that label. Initial isolated-candidate missing-bundle
+failures are retained. The transport fix is integrated as `af75a6f2` and the final
+producer a21a4cd5 passes3 complete regression suites. Phase5 internal qualification
+is now PASS400/400; this does not certify unmeasured full-app SLOs.
 
 | ID | Severity | Finding | Status and evidence |
 |---|---|---|---|
 | QA-01 | P1 | Published app cannot import on a clean checkout: `campusai.ingestion.background` and other runtime modules were absent from Git. Upload also needs the worker-compatible index-builder signature. | FIXED: runtime dependencies and matching index builder included. Exact staged Git tree `360f670b2d5b078e11afa6a27fac4f6c8300d273` exported to an isolated directory: 98/98 local app tests PASS in 11.49 s, compared with import failure before repair. |
-| QA-02 | P1 validation gap | Current-source native answer quality, calibration and held-out evaluation are not qualified. Fixture answers and successful HTTP responses do not establish live answer accuracy. | OPEN; tracked by P5-08/P5-09 in plan.md. No provider requests in this QA cycle. |
+| QA-02 | P1 validation gap | Current-source native answer quality, calibration and held-out evaluation are not qualified. Fixture answers and successful HTTP responses do not establish live answer accuracy. | DONE for internal Phase5:400/400 physically recomputed, all5 gates PASS;159 real new JSON responses/241 POST starts in the completion cycle. Public fresh-holdout acceptance stays separate. See phase5-closure.json. |
 | QA-03 | P2 validation gap | Full upload/OCR/index latency and peak RSS for realistic batches remain unqualified. | PARTIAL: parser-only before/after measured on five real PDFs, 104 pages/28,184,916 bytes. Median 0.8493 to 0.1194 s; sampled peak RSS 93,302,784 to 76,345,344 bytes. Exact native text/page/layout hashes unchanged. Full pipeline and OCR-table quality still OPEN. |
 | QA-04 | P1 | Mixed native-text/scan PDF was marked succeeded while image-only pages disappeared from parsed content. | FIXED: detect unread image/vector pages, fail closed until OCR covers them, OCR selected physical pages and preserve native pages. Invalidate old ingestion cache/job identities; audit legacy ready sources once and block incomplete scope. 52 focused PDF/web/job tests PASS; real local OCR recovered page 2, preserved native page 1 and skipped blank page 3. |
 | QA-05 | P2 | Web upload previously had no per-document OCR/reprocessing control. | FIXED: detail-dialog local OCR action; bounded server-side page/time limits; source-hash and authorization checks; manual retry retains history and needs no reupload. Focused 37 PASS; actual local OCR through browser with admission-error recovery and accessibility PASS. |
