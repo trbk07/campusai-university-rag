@@ -14,6 +14,10 @@ reason96.55%; the dev-only fit remains identical to its pin.180 metric/capture/
 native-scoring/contract tests PASS, including altered-bound/grade/condition and
 raw-capture tampering controls. This is not final acceptance evidence.
 [Diagnostic receipt](../../evaluation/results/phase5-mixed-absence-20261024/v28-checkpoint-quality.json).
+The frozen producer f35f3c37 has3 consecutive full regressions, each2,625 PASS/
+2 opt-in live SKIP. The separate scorer-only checkpoint validator passes192
+affected tests and cannot qualify public release.85 existing-authorized missing
+cases plus supplement066 are being collected; failures and original spend stay.
 Physical checkpoint verification and the complete400-case quality gates remain
 open. The numeric thresholds, reviewed gold and public fresh-holdout rule stay
 unchanged. See [closure contract](grounding_release_gates.md).

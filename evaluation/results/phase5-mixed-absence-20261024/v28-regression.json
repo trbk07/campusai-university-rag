@@ -1,0 +1,64 @@
+{
+  "source_identity": {
+    "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+    "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+    "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "seconds": 289.203,
+      "source_before": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "source_after": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "stable_source": true,
+      "xml": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-1.xml",
+      "log": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "seconds": 281.456,
+      "source_before": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "source_after": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "stable_source": true,
+      "xml": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-2.xml",
+      "log": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-2.log"
+    },
+    {
+      "run": 3,
+      "exit_code": 0,
+      "seconds": 279.211,
+      "source_before": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "source_after": {
+        "commit": "f35f3c378b3a542ed509940b1e01a710e734c69a",
+        "source_sha256": "daf0720989e364e67ff8988b250a3154cdbeea59df87221f0568b394d2ff0543",
+        "runtime_sha256": "198bab68a528e817dcaa6c79d48291ddf82b4ec1134745332b9b5685d001404b"
+      },
+      "stable_source": true,
+      "xml": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-3.xml",
+      "log": "D:\\Project\\evaluation\\results\\phase5-mixed-absence-20261024\\v28-regression-3.log"
+    }
+  ],
+  "three_consecutive_pass": true
+}

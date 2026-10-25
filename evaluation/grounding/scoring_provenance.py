@@ -13,6 +13,7 @@ SCORER_FILES = frozenset({
     "evaluation/grounding/score_native_predictions.py",
     "evaluation/grounding/validate_grounding_release.py",
     "evaluation/grounding/scoring_provenance.py",
+    "evaluation/grounding/checkpoint_release.py",
 })
 
 

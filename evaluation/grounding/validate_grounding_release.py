@@ -59,14 +59,26 @@ def validate(report: dict, *, root: Path | None = None,
                     if declared.get(value) != expected:
                         errors.append(f"{group}_recomputed_mismatch_{value}")
         generation = report.get("generation", {})
-        if generation.get("kind") not in {"native", "replay"} or generation.get("gold_seeded") is not False:
+        if generation.get("kind") not in {"native", "replay", "native_checkpoint"} or generation.get("gold_seeded") is not False:
             errors.append("release_requires_non_gold_generation")
-        if generation.get("kind") != "native":
+        checkpoint=generation.get('kind')=='native_checkpoint'
+        if checkpoint:
+            if acceptance_scope!='phase5_acceptance':
+                errors.append('checkpoint_is_internal_acceptance_only')
+            if generation.get('protocol')!='native-http-checkpoint-v1':
+                errors.append('checkpoint_protocol_invalid')
+            if root is None:
+                errors.append('checkpoint_requires_physical_verification')
+        elif generation.get("kind") != "native":
             errors.append("release_requires_native_inference")
         elif not generation.get("native_runs") and (not generation.get("native_run_path") or not generation.get("native_run_sha256")):
             errors.append("native_capture_binding_missing")
         if root is not None:
-            errors.extend(_verify_bindings(report, root))
+            if checkpoint:
+                from evaluation.grounding.checkpoint_release import verify_checkpoint_report
+                errors.extend(verify_checkpoint_report(report,root))
+            else:
+                errors.extend(_verify_bindings(report, root))
         return sorted(set(errors))
     except (TypeError, ValueError, KeyError, AttributeError, OverflowError, OSError):
         return ["report_structure_invalid"]

@@ -30,6 +30,12 @@ on missing inputs, altered captures, forged counters or output mismatches.
 Public release retains its fresh-holdout and native-inference requirements;
 checkpoint-only internal acceptance cannot satisfy those gates.
 
+The production candidate is immutable and keeps its3 consecutive full regression
+receipts. A later scorer-only verifier extension may use focused regression plus
+physical source-tree comparison, provided production runtime and inference inputs
+are byte-identical; it is not reported as3 full suites on the newer scorer source.
+All quality thresholds and complete-population physical validation still apply.
+
 Metric policyv7 fixes calendar/academic-year quantity ambiguity and layout
 ordinals whose value is retained in the fact. A longer literal source condition
 or shared list minimum needs exact source proof; changed bounds, units, dates,
