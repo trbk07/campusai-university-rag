@@ -36,6 +36,14 @@ physical source-tree comparison, provided production runtime and inference input
 are byte-identical; it is not reported as3 full suites on the newer scorer source.
 All quality thresholds and complete-population physical validation still apply.
 
+Internal checkpoint receipts may survive a later documentation/evidence-only
+Git commit when both physical code/runtime hashes remain identical, the recorded
+commit is an ancestor, and the complete commit diff is limited to plan.md,
+QA_AUDIT.md, docs/ and evaluation/results/. Changed benchmark, configuration,
+UI/runtime or scorer bytes fail this check. Native/public validation keeps exact
+commit identity. This avoids invalidating tested code merely by committing its
+own receipt; it does not waive physical recomputation or any quality threshold.
+
 Metric policyv7 fixes calendar/academic-year quantity ambiguity and layout
 ordinals whose value is retained in the fact. A longer literal source condition
 or shared list minimum needs exact source proof; changed bounds, units, dates,

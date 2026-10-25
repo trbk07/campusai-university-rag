@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from pathlib import Path
 import subprocess
 
@@ -67,10 +68,40 @@ def bind_scoring_source(inference_root: Path, scoring_root: Path) -> dict:
             "scoring_source_identity": scorer, "changed_files": changes}
 
 
-def verify_scoring_source(binding: dict, scoring_root: Path) -> dict:
+def same_scoring_bytes(recorded: dict, current: dict, root: Path, *,
+                       allow_document_only_head: bool = False) -> bool:
+    """An evidence/docs commit cannot change accepted executable bytes.
+
+    This opt-in is for internal checkpoint closure; native/public callers keep
+    exact commit identity. Both physical hashes, Git ancestry and changed paths
+    must agree. Benchmark/config/UI/runtime changes are never documentation.
+    """
+    if recorded==current:
+        return True
+    if (not allow_document_only_head or set(recorded)!=set(current)
+            or any(recorded.get(key)!=current.get(key) or not recorded.get(key)
+                   for key in ('source_sha256','runtime_sha256'))
+            or any(not re.fullmatch('[a-f0-9]{40}',str(value.get('commit','')))
+                   for value in (recorded,current))):
+        return False
+    ancestor=subprocess.run(['git','merge-base','--is-ancestor',recorded['commit'],current['commit']],
+        cwd=root,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+    if ancestor.returncode:
+        return False
+    changed=subprocess.check_output(['git','diff','--name-only','-z',recorded['commit'],
+                                     current['commit'],'--'],cwd=root).decode('utf8').split('\0')
+    return all(name in {'plan.md','QA_AUDIT.md'} or name.startswith(('docs/','evaluation/results/'))
+               for name in filter(None,changed))
+
+
+def verify_scoring_source(binding: dict, scoring_root: Path, *,
+                          allow_document_only_head: bool = False) -> dict:
     if not isinstance(binding, dict) or not isinstance(binding.get("inference_checkout"), str):
         raise ValueError("invalid scoring source binding")
     actual = bind_scoring_source(scoring_root / binding["inference_checkout"], scoring_root)
+    if (allow_document_only_head and same_scoring_bytes(binding['scoring_source_identity'],
+            actual['scoring_source_identity'],scoring_root,allow_document_only_head=True)):
+        actual['scoring_source_identity']=binding['scoring_source_identity']
     if actual != binding:
         raise ValueError("physical scoring source binding changed")
     return actual["inference_source_identity"]

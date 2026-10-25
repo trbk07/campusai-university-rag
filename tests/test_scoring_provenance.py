@@ -122,3 +122,31 @@ def test_data_artifacts_are_separate_from_git_source_cleanliness(monkeypatch, tm
     monkeypatch.setattr(provenance.subprocess, 'check_output', lambda args, **kwargs:
         ' M plan.md' if 'status' in args else b'')
     assert provenance.source_tree_dirty(tmp_path)
+
+
+@pytest.mark.parametrize('names,expected',[
+    (['plan.md','docs/grounding/status.md','evaluation/results/receipt.json'],True),
+    (['src/campusai/ui/scripts/app.js'],False),
+    (['data/benchmark/gold.jsonl'],False),
+    (['configs/grounding_release.json'],False),
+])
+def test_internal_document_descendant_needs_unchanged_bytes_and_only_document_paths(monkeypatch,tmp_path,names,expected):
+    from types import SimpleNamespace
+    before={'commit':'a'*40,'source_sha256':'same-code','runtime_sha256':'same-runtime'}
+    after={**before,'commit':'b'*40}
+    monkeypatch.setattr(provenance.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=0))
+    monkeypatch.setattr(provenance.subprocess,'check_output',lambda *a,**k:('\0'.join(names)+'\0').encode())
+    assert provenance.same_scoring_bytes(before,after,tmp_path,allow_document_only_head=True)==expected
+    assert not provenance.same_scoring_bytes(before,after,tmp_path)  # Native/public stays strict.
+    assert not provenance.same_scoring_bytes(before,{**after,'runtime_sha256':'different'},tmp_path,
+                                             allow_document_only_head=True)
+
+
+def test_document_commit_exception_rejects_non_ancestor_or_untrusted_revision(monkeypatch,tmp_path):
+    from types import SimpleNamespace
+    before={'commit':'a'*40,'source_sha256':'same-code','runtime_sha256':'same-runtime'}
+    after={**before,'commit':'b'*40}
+    monkeypatch.setattr(provenance.subprocess,'run',lambda *a,**k:SimpleNamespace(returncode=1))
+    assert not provenance.same_scoring_bytes(before,after,tmp_path,allow_document_only_head=True)
+    assert not provenance.same_scoring_bytes({**before,'commit':'--help'},after,tmp_path,
+                                             allow_document_only_head=True)

@@ -23,7 +23,9 @@ from evaluation.grounding.collect_native_predictions import inference_request
 from evaluation.grounding.grounding_metrics import evaluate_grounding
 from evaluation.grounding.native_artifacts import load_native_run
 from evaluation.grounding.repair_benchmark import load_rows
-from evaluation.grounding.scoring_provenance import bind_scoring_source, source_tree_dirty, verify_scoring_source
+from evaluation.grounding.scoring_provenance import (
+    bind_scoring_source, source_tree_dirty, verify_scoring_source, same_scoring_bytes,
+)
 
 FILES=frozenset({'source-pool.json','predictions.jsonl','pending.jsonl'})
 
@@ -139,10 +141,11 @@ def verify_checkpoint_report(report,root):
         return item
     errors=[]
     if source_tree_dirty(root):errors.append('working_tree_dirty')
-    if report['source_identity']!=source_identity(root):errors.append('current_source_identity_mismatch')
+    if not same_scoring_bytes(report['source_identity'],source_identity(root),root,allow_document_only_head=True):
+        errors.append('current_source_identity_mismatch')
     if report['metadata']['commit']!=report['source_identity']['commit']:
         errors.append('commit_fingerprint_mismatch')
-    producer=verify_scoring_source(generation['scoring_source_binding'],root)
+    producer=verify_scoring_source(generation['scoring_source_binding'],root,allow_document_only_head=True)
     run_path=path(generation['checkpoint_run_path']);plan_path=path(generation['plan_path'])
     if digest(run_path)!=generation['checkpoint_run_sha256'] or digest(plan_path)!=generation['plan_sha256']:
         raise ValueError('Checkpoint run or plan changed')
