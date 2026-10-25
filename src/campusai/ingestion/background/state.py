@@ -20,7 +20,8 @@ class JobStoreUnavailable(RuntimeError):
 DEFAULT_OPTIONS = {'store_dir':'data/store','index_dir':None,
     'dense_model':'fallback-hash-256','dense_model_revision':'1','device':'cpu',
     'batch_size':8,'max_mb':50,'max_pages':218,'enable_ocr':False,
-    'ocr_max_pages':50,'ocr_timeout_seconds':120.0}
+    'ocr_max_pages':50,'ocr_timeout_seconds':120.0,
+    'ocr_backend':'rapidocr','ocr_data_dir':None}
 
 
 def normalize_options(options):
@@ -29,6 +30,12 @@ def normalize_options(options):
     result = {**DEFAULT_OPTIONS,**options}
     result['store_dir'] = str(Path(result['store_dir']).resolve())
     result['index_dir'] = str(Path(result['index_dir']).resolve()) if result['index_dir'] is not None else None
+    if not isinstance(result['ocr_backend'],str) or result['ocr_backend'] not in {'rapidocr','tesseract'}:
+        raise ValueError('unsupported OCR backend')
+    if result['ocr_data_dir'] is not None:
+        if not isinstance(result['ocr_data_dir'],(str,Path)) or not str(result['ocr_data_dir']).strip():
+            raise ValueError('local OCR language data path required')
+        result['ocr_data_dir'] = str(Path(result['ocr_data_dir']).resolve())
     for key in ('batch_size','max_mb','max_pages','ocr_max_pages'):
         if type(result[key]) is not int or result[key] <= 0:
             raise ValueError('positive ingestion limit required')
@@ -53,6 +60,15 @@ def legacy_job_identity(digest, options):
     """Validate original ledger rows only; new work must use job_identity."""
     return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
+def accepted_job_identities(digest, options):
+    """Accept exact historical formats only; new work uses full current options."""
+    variants = [options]
+    if options.get('ocr_backend') == 'rapidocr' and options.get('ocr_data_dir') is None:
+        variants.append({k:v for k,v in options.items() if k not in {'ocr_backend','ocr_data_dir'}})
+    return {function(digest,variant) for variant in variants
+            for function in (job_identity,legacy_job_identity)}
 
 
 

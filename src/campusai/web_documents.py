@@ -170,7 +170,7 @@ class WebDocuments:
         # already readable native PDFs or trusting an old success flag.
         if (available and record.get('status') == 'succeeded'
                 and meta.get('text_coverage_version') != 1
-                and meta.get('parser_version') != 'rapidocr-onnx-v1'):
+                and meta.get('parser_version') not in {'rapidocr-onnx-v1','tesseract-vie-eng-v1'}):
             stat = source.stat()
             identity = (stat.st_mtime_ns, stat.st_size)
             cached = self._legacy_coverage.get(doc_id)

@@ -172,15 +172,22 @@ class IngestionJobManager:
                 'persisting':(.76,.90),'indexing':(.90,.98),'review_required':(.90,1),'done':(1,1)}
             def progress(stage,value):
                 self._checkpoint(job_id)
+                if stage == 'done' and options['index_dir'] is not None:
+                    # Parsing/persistence finished; indexing is still pending.
+                    stage,value = 'persisting',1
                 start,end = stages.get(stage,(.05,.90))
                 value=round(start+(end-start)*max(0,min(1,value)),4)
                 with self._lock:
+                    current = self._jobs[job_id]
+                    if current.stage == stage and value <= current.progress:
+                        return  # Heartbeats check cancellation without rewriting the journal.
                     self._update(job_id,stage=stage,
-                                 progress=max(self._jobs[job_id].progress,value))
+                                 progress=max(current.progress,value))
             document = compatibility.ingest_document(job.source_path,store_dir=options['store_dir'],
                 max_mb=options['max_mb'],max_pages=options['max_pages'],progress=progress,
                 enable_ocr=options['enable_ocr'],ocr_max_pages=options['ocr_max_pages'],
-                ocr_timeout_seconds=options['ocr_timeout_seconds'])
+                ocr_timeout_seconds=options['ocr_timeout_seconds'],
+                ocr_backend=options['ocr_backend'],ocr_data_dir=options['ocr_data_dir'])
             self._checkpoint(job_id)
             if document.doc_id != job.source_sha256: raise ValueError('parsed source identity changed')
             if options['index_dir'] is not None and document.status != 'review_required':

@@ -25,6 +25,7 @@ class OCRDocument:
     engine: str
     average_confidence: float
     elapsed_seconds: float
+    model_identity: dict | None = None
 
 
 def _recognize(engine, image: np.ndarray) -> tuple[str, float]:
@@ -54,11 +55,18 @@ def ocr_pdf(
     scale: float = 1.5,
     page_numbers: list[int] | None = None,
     progress: Callable[[int, int], None] | None = None,
+    backend: str = 'rapidocr',
+    data_dir: str | Path | None = None,
 ) -> OCRDocument:
     """OCR a bounded number of pages using the local RapidOCR ONNX backend."""
 
-    if max_pages <= 0 or timeout_seconds <= 0 or scale <= 0:
+    import math
+    if (type(max_pages) is not int or max_pages <= 0
+            or isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0
+            or isinstance(scale, bool) or not math.isfinite(scale) or not 0 < scale <= 4):
         raise ValueError("OCR limits must be positive")
+    if backend not in {'rapidocr', 'tesseract'}:
+        raise ValueError('unsupported OCR backend')
     started = time.perf_counter()
     pages: list[dict[str, object]] = []
     confidences: list[float] = []
@@ -73,6 +81,10 @@ def ocr_pdf(
             )
         if progress is not None:
             progress(0,len(selected))
+        if backend == 'tesseract':
+            from .tesseract_process import recognize_pdf
+            return recognize_pdf(path, selected, data_dir=data_dir, scale=scale,
+                                 timeout_seconds=timeout_seconds, progress=progress)
         try:
             from rapidocr_onnxruntime import RapidOCR
         except ImportError as error:  # pragma: no cover - environment dependent

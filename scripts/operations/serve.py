@@ -104,6 +104,8 @@ def build_application():
                 "index_dir": index_dir,
                 "dense_model": os.getenv("CAMPUSAI_DENSE_MODEL", "BAAI/bge-m3"),
                 "device": device,
+                "ocr_backend": os.getenv('CAMPUSAI_OCR_BACKEND','rapidocr'),
+                "ocr_data_dir": os.getenv('CAMPUSAI_OCR_DATA_DIR') or None,
             },
             provider_failure_excerpts=True,
         )

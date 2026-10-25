@@ -7,7 +7,8 @@ import re
 import sqlite3
 import time
 
-from .state import ACTIVE, TERMINAL, IngestionJob, JobStoreUnavailable, normalize_options, job_identity, legacy_job_identity, recoverable_source
+from .state import (ACTIVE, TERMINAL, IngestionJob, JobStoreUnavailable, normalize_options,
+                    accepted_job_identities, recoverable_source)
 
 
 class JobJournal:
@@ -73,11 +74,12 @@ class JobJournal:
                     job = IngestionJob(**json.loads(payload))
                     saved_options = json.loads(options)
                     normalized = normalize_options(saved_options)
-                    if (saved_options != normalized or not Path(job.source_path).is_absolute()
+                    legacy_options = {k:v for k,v in normalized.items() if k not in {'ocr_backend','ocr_data_dir'}}
+                    valid_options = saved_options == normalized or saved_options == legacy_options
+                    if (not valid_options or not Path(job.source_path).is_absolute()
                             or not re.fullmatch('[0-9a-f]{32}',job.job_id)
                             or not re.fullmatch('[0-9a-f]{64}',job.source_sha256)
-                            or job.identity not in (job_identity(job.source_sha256,normalized),
-                                                    legacy_job_identity(job.source_sha256,normalized))
+                            or job.identity not in accepted_job_identities(job.source_sha256,normalized)
                             or job.state not in ACTIVE|TERMINAL
                             or not math.isfinite(job.progress) or not 0 <= job.progress <= 1):
                         raise ValueError('invalid job ledger state')

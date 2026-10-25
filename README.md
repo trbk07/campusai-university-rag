@@ -93,6 +93,26 @@ when needed, using the checked-in `free_llm.yaml` profile (Gemini 3.5 Flash-Lite
 keys, rotates credentials or enables billing. Existing environment settings
 take priority. Keep its console open while using the app.
 
+For local Vietnamese/English scan OCR, install the optional package and pinned
+language data once:
+
+```powershell
+uv sync --extra dev --extra feasibility --extra ocr
+uv run python -m scripts.operations.setup_ocr
+```
+
+The launcher selects this backend when its package and language checksums
+validate. OCR runs in a separate bounded process; cancelling or timing out a
+document stops that process. Open document details to start OCR on an existing
+scan or mixed PDF. Uploads never download OCR models or send PDFs to an OCR
+service. Explicit `CAMPUSAI_OCR_BACKEND` settings take priority.
+
+An available CUDA GPU can be selected with `CAMPUSAI_DEVICE=cuda` in `.env`.
+The owner laptop uses this setting after a same-model comparison:five real PDFs
+finish in46.85s versus255.41s on CPU, with matching content hashes and near-identical
+vectors. This is a local workload result; the full-app performance gates remain
+in[the roadmap](plan.md).
+
 Gemini 503 responses open a shared 60–300 second cooldown. During a provider
 failure, the local app can show up to three verified original-source excerpts
 with PDF links, so document lookup remains usable. The UI labels this degraded
@@ -102,7 +122,7 @@ the cooldown do not call Gemini. The next user query after cooldown can recover
 normal generation; the app never automatically resends a question.
 
 A 429 response identifies an API quota/rate limit or a busy local query separately.
-One active query is admitted per local instance; health, UI, document polling
+Four active queries are admitted by default; health, UI, document polling
 and source lookup continue while that query waits. Corpus deletion waits for
 the query to finish using its sources. No provider error is cached as an answer.
 The [source-excerpt review](docs/deployment/phase13/provider-continuity.md) records

@@ -74,6 +74,8 @@ def ingest_document(
     enable_ocr: bool = False,
     ocr_max_pages: int = 50,
     ocr_timeout_seconds: float = 120.0,
+    ocr_backend: str = 'rapidocr',
+    ocr_data_dir: str | Path | None = None,
 ) -> Document:
     """Ingest one PDF and reuse its stored result on repeated uploads."""
 
@@ -97,11 +99,14 @@ def ingest_document(
         document = Document.from_dict(data)
         parser_version = document.metadata.get("parser_version")
         cache_versions_current = (
-            parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1"}
+            parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1", "tesseract-vie-eng-v1"}
             and document.metadata.get("chunker_version") == CHUNKER_VERSION
             and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
             and document.metadata.get("text_coverage_version") == 1
         )
+        cached_ocr = document.metadata.get('ocr')
+        if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
+            cache_versions_current = False
         if enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
             "ocr_unavailable",
@@ -138,14 +143,16 @@ def ingest_document(
         try:
             ocr_result = ocr_pdf(pdf_path, max_pages=ocr_max_pages,
                 timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages,
-                progress=lambda completed,total:report_progress('ocr',completed/total))
+                progress=lambda completed,total:report_progress('ocr',completed/total),
+                backend=ocr_backend, data_dir=ocr_data_dir)
             recognized = {page['page']: page for page in ocr_result.pages
                           if page.get('page') in unread_pages and str(page.get('text', '')).strip()}
             pages = [{**recognized[page['page']], 'lines_meta': [], 'requires_ocr': False}
                      if page['page'] in recognized else page for page in pages]
             ocr_info = {'engine': ocr_result.engine, 'average_confidence': ocr_result.average_confidence,
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
-                'page_numbers': sorted(recognized)}
+                'page_numbers': sorted(recognized), 'backend': ocr_backend,
+                'model_identity': ocr_result.model_identity}
             unread_pages = [number for number in unread_pages if number not in recognized]
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
@@ -185,7 +192,8 @@ def ingest_document(
     metadata["text_coverage_version"] = 1
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
-        metadata["parser_version"] = "rapidocr-onnx-v1"
+        metadata["parser_version"] = ('tesseract-vie-eng-v1' if ocr_backend == 'tesseract'
+                                      else 'rapidocr-onnx-v1')
         metadata["warnings"] = ["ocr_used"]
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)

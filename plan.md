@@ -1574,7 +1574,7 @@ optimization/AI-quality goal. Evidence: [QA audit](QA_AUDIT.md),
 |---|---|---|
 | QA-01 | App works from clean Git source | DONE - clean exported tree has 114 app tests PASS. |
 | QA-02 | Current-source native answer quality | DONE for the accepted Phase5 snapshot:400/400 outputs and all5 gates PASS. See phase5-closure.json; subsequent app changes require their own regression checks. |
-| QA-03 | Realistic full upload/OCR/index load and fidelity | IN PROGRESS - five real PDFs / 104 pages measured before and after; 3/5 ready in both runs. Two large scans still exhaust the OCR budget. Raw benchmark retained in docs/ui/evidence/pdf-runtime-load.json. |
+| QA-03 | Realistic full upload/OCR/index load and fidelity | IN PROGRESS - same five real PDFs/104 pages now5/5 ready with isolated OCR;CPU255.41s, CUDA46.85s (5.45x faster),0 failures. All406 vectors retain content hashes and cosine>=0.999999990. Owner laptop selects existing CUDA mode in ignored.env. Independent real-scan/table fidelity and formal100-page performance gate remain OPEN. Evidence:docs/ui/evidence/ocr-isolation-20261025.json. |
 | QA-04 | Preserve mixed native/scan pages and legacy readiness | DONE - selective OCR, fail closed on unread pages; audit legacy sources/cache/job identity. |
 | QA-05 | Explicit bounded local OCR from document details | DONE - no reupload, manual retry retains history, source/scope checks, server cap 50 scan pages/120 seconds. |
 | QA-06 | Existing job journal survives upgrade | DONE - exact legacy/current identity validation; corrupt rows fail closed; 2 local PDFs and 5 jobs retained. |
@@ -1582,6 +1582,7 @@ optimization/AI-quality goal. Evidence: [QA audit](QA_AUDIT.md),
 | QA-08 | Fixed-environment performance and concurrency | OPEN -20 simultaneous users; ordinary API p95<=500ms, real AI TTFT p95<=5s,100-page/10MB text PDF p95<=15s; LCP<=2.5s, INP<=200ms, CLS<=0.1. Baseline and measured after-state required. |
 | QA-09 | Final stability and recovery | IN PROGRESS -three consecutive full regressions DONE on identical source/runtime bytes:2,570 PASS/2 opt-in SKIP each. Browser43/43 PASS on desktop/mobile. Broader recovery/security and fixed-environment performance acceptance remain open; secret scan PASS. |
 | QA-10 | Cancel OCR promptly and show monotonic progress | DONE -page-boundary cancellation stops remaining OCR pages; physical-page progress is reported and later stages cannot lower it. Two failures reproduced before repair;30 focused tests and2,665 full-suite tests PASS,2 opt-in live SKIP. Evidence:docs/ui/evidence/ocr-evaluation-20261025.json. |
+| QA-11 | Complete bounded Vietnamese/English scan OCR without restricting app indexing | DONE for bounded processing:isolated pinned Tesseract, hard timeout/cancel, preserved old journals/model identity;final handoff no longer reports100% before indexing. Same five-PDF batch5/5 ready instead of3/5;255.41s end-to-end.68 focused and2,681 full-suite PASS. Six known raster layouts97.54% character accuracy; independent real-scan/table validation and faster indexing remain OPEN in QA-03/07/08. |
 
 2026-10-25 app repair regression also reran all400 Phase5 requests against
 their exact native HTTP captures:400/400 complete,0 pending, all output/evidence

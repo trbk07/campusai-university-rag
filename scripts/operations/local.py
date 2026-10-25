@@ -92,6 +92,16 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
         raise LocalSetupError(f'Chưa có credential AI. Đặt {key_name} trong .env hoặc dùng file key local đã được Git ignore.')
     env['CAMPUSAI_LLM_CONFIG'] = str(profile)
     env.setdefault('CAMPUSAI_RAG_CACHE_PATH', str(root / 'data/cache/grounded-answers.sqlite3'))
+    if not env.get('CAMPUSAI_OCR_BACKEND'):
+        from campusai.ingestion.ocr_assets import validate_tesseract_assets
+        data_dir = env.get('CAMPUSAI_OCR_DATA_DIR') or root/'.cache/ocr/tessdata_fast'
+        try:
+            validate_tesseract_assets(data_dir)
+        except ValueError:
+            pass
+        else:
+            env['CAMPUSAI_OCR_BACKEND'] = 'tesseract'
+            env['CAMPUSAI_OCR_DATA_DIR'] = str(Path(data_dir).resolve())
     model = env.get('CAMPUSAI_DENSE_MODEL', 'BAAI/bge-m3')
     cache = Path(env.get('HF_HUB_CACHE') or env.get('HUGGINGFACE_HUB_CACHE') or Path(env.get('HF_HOME', Path.home()/'.cache/huggingface'))/'hub')
     snapshots = cache / ('models--' + model.replace('/', '--')) / 'snapshots'

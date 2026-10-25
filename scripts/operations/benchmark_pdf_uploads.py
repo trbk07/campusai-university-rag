@@ -21,6 +21,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--ocr', action='store_true')
     parser.add_argument('--dense-model', default='BAAI/bge-m3')
+    parser.add_argument('--ocr-backend', choices=('rapidocr','tesseract'), default='rapidocr')
+    parser.add_argument('--ocr-data-dir', type=Path)
     args = parser.parse_args()
     if not 1 <= len(args.pdfs) <= 5:
         parser.error('select one to five PDFs')
@@ -41,10 +43,17 @@ def main():
 
     proc, stop = psutil.Process(), threading.Event()
     initial_rss, samples, probes, thread_counts = proc.memory_info().rss, [], [], []
+    tree_samples,tree_threads=[],[]
     def sample():
         while not stop.wait(.02):
             samples.append(proc.memory_info().rss)
             thread_counts.append(proc.num_threads())
+            children=[]
+            for child in proc.children(recursive=True):
+                try:children.append((child.memory_info().rss,child.num_threads()))
+                except (psutil.NoSuchProcess,psutil.AccessDenied):pass
+            tree_samples.append(samples[-1]+sum(row[0] for row in children))
+            tree_threads.append(thread_counts[-1]+sum(row[1] for row in children))
     sampler = threading.Thread(target=sample, daemon=True); sampler.start()
     print('Loading cached local embedding model; no answer provider configured', flush=True)
     warmed = time.perf_counter()
@@ -54,7 +63,8 @@ def main():
     service = CampusAIQueryService(HybridRetriever(root/'index'), GroundedAnswerGenerator(None))
     app = CampusAIApplication(service, jobs=IngestionJobManager(max_workers=3,max_pending=8,
         journal_path=root/'jobs.sqlite3'), ingestion_defaults={'store_dir':root/'store',
-        'index_dir':root/'index','dense_model':args.dense_model,'device':'cpu'})
+        'index_dir':root/'index','dense_model':args.dense_model,'device':'cpu',
+        'ocr_backend':args.ocr_backend,'ocr_data_dir':args.ocr_data_dir})
     failure_traces, stages = [], {}
     original_update = app.jobs._update
     def trace_update(job_id, **values):
@@ -131,8 +141,11 @@ def main():
         latencies=sorted(p['seconds'] for p in probes)
         report={'scope':'offline loopback HTTP; real embedding/OCR; no answer provider',
             'dense_model':args.dense_model,'workers':3,'queue':8,'initial_rss_bytes':initial_rss,
+            'ocr_backend':args.ocr_backend,
             'warm_seconds':warm_seconds,'warm_idle_rss_bytes':idle_rss,
             'peak_sampled_rss_bytes':max(samples+[initial_rss]),'accepted_seconds':accepted_seconds,
+            'peak_sampled_process_tree_rss_bytes':max(tree_samples+[initial_rss]),
+            'peak_sampled_process_tree_threads':max(tree_threads+[proc.num_threads()]),
             'peak_sampled_process_threads':max(thread_counts+[proc.num_threads()]),
             'initial_terminal_seconds':initial_seconds,'all_terminal_seconds':elapsed,
             'uploads':uploads,'documents':listing['documents'],'jobs':app.jobs.list(),

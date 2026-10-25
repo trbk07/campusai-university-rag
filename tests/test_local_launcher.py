@@ -95,6 +95,19 @@ def test_second_launch_reuses_configured_app_without_loading_models(configured_r
     assert opened == [local.URL]
 
 
+def test_local_ocr_auto_selection_requires_valid_assets_and_respects_explicit_backend(configured_root,monkeypatch):
+    from campusai.ingestion import ocr_assets
+    monkeypatch.setattr(ocr_assets,'validate_tesseract_assets',lambda _: {'languages':'vie+eng'})
+    env={'GEMINI_API_KEY':'fake'}
+    local.configure_local(configured_root,env)
+    assert env['CAMPUSAI_OCR_BACKEND']=='tesseract'
+    assert env['CAMPUSAI_OCR_DATA_DIR']==str(configured_root/'.cache/ocr/tessdata_fast')
+    explicit={'GEMINI_API_KEY':'fake','CAMPUSAI_OCR_BACKEND':'rapidocr'}
+    monkeypatch.setattr(ocr_assets,'validate_tesseract_assets',lambda _:pytest.fail('explicit backend wins'))
+    local.configure_local(configured_root,explicit)
+    assert explicit['CAMPUSAI_OCR_BACKEND']=='rapidocr' and 'CAMPUSAI_OCR_DATA_DIR' not in explicit
+
+
 def test_old_unconfigured_app_is_not_misreported_as_ready(configured_root,monkeypatch,capsys):
     monkeypatch.chdir(configured_root)
     monkeypatch.setattr(local,'ROOT',configured_root)

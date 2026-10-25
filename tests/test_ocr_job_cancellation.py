@@ -5,6 +5,7 @@ import time
 
 import fitz
 from PIL import Image,ImageDraw
+import pytest
 
 from campusai.ingestion.jobs import IngestionJobManager
 
@@ -60,7 +61,8 @@ def test_cancelling_active_ocr_does_not_recognize_remaining_pages(tmp_path,monke
         release.set();manager.shutdown()
 
 
-def test_ocr_exposes_page_progress_and_never_moves_progress_backwards(tmp_path,monkeypatch):
+@pytest.mark.parametrize('index_requested',[False,True])
+def test_ocr_exposes_page_progress_and_never_moves_progress_backwards(tmp_path,monkeypatch,index_requested):
     source=tmp_path/'three-scan-pages.pdf';scanned_pdf(source)
     entered,release,calls=install_engine(monkeypatch,2)
     manager=IngestionJobManager(max_workers=1)
@@ -70,7 +72,8 @@ def test_ocr_exposes_page_progress_and_never_moves_progress_backwards(tmp_path,m
         return original(identifier,**updates)
     manager._update=observe
     try:
-        identifier=manager.submit(source,store_dir=tmp_path/'store',enable_ocr=True)
+        identifier=manager.submit(source,store_dir=tmp_path/'store',enable_ocr=True,
+            index_dir=tmp_path/'index' if index_requested else None)
         assert entered.wait(5)
         active=manager.get(identifier)
         assert active['stage']=='ocr' and active['progress']>.45

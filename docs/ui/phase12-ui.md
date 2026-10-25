@@ -272,3 +272,20 @@ source: 114 app tests PASS. Browser E2E: 41/41 PASS, including OCR dialog axe,
 admission-error recovery and actual local OCR becoming ready. Receipts:
 `evidence/ocr-ui-tests.xml` and `evidence/ocr-browser-results.json`. End-to-end
 load, OCR-table fidelity and native answer quality remain in the full-app audit.
+
+## Isolated Vietnamese/English OCR — 25/10/2026
+
+The local launcher can select pinned Tesseract5.5.3/tesserocr2.12.0 with verified
+`vie+eng` language data. Run `python -m scripts.operations.setup_ocr` after
+installing the `[ocr]` extra; language assets stay in the ignored local cache.
+The worker has its own CPU thread limit, hard deadline and cancellation boundary,
+so its OpenMP settings do not restrict app embeddings. Existing job history is
+validated under its exact historical identity formats and retained on upgrade.
+
+The same five real PDFs/104 pages now finish5/5 ready, with0 job or transport
+failures. Total upload/OCR/BGE indexing time is255.41s; ordinary library polling
+p95 is221.52ms. This fixes incomplete scan processing but does not establish the
+15s text-PDF processing target. On six known raster fixtures, character accuracy
+is97.54% versus74.70% with RapidOCR; all six numeric-token sequences are retained.
+These synthetic fixtures are not independent real-scan review. See
+`evidence/ocr-isolation-20261025.json` for raw results and scope.
