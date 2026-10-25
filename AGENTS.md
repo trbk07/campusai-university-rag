@@ -4,12 +4,6 @@ Commit and push this project to `https://github.com/trbk07/campusai-university-r
 Use `origin` for that repository. The historical financial-report repository
 must not receive project pushes; its legacy remote is fetch-only.
 
-# Canonical repository
-
-Commit and push this project to `https://github.com/trbk07/campusai-university-rag`.
-Use `origin` for that repository. The historical financial-report repository
-must not receive project pushes; its legacy remote is fetch-only.
-
 # Project roadmap
 
 Keep `plan.md` at the repository root and tracked in Git throughout the project.
