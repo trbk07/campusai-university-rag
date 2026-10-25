@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 import fitz
 import numpy as np
@@ -52,6 +53,7 @@ def ocr_pdf(
     timeout_seconds: float = 120.0,
     scale: float = 1.5,
     page_numbers: list[int] | None = None,
+    progress: Callable[[int, int], None] | None = None,
 ) -> OCRDocument:
     """OCR a bounded number of pages using the local RapidOCR ONNX backend."""
 
@@ -69,6 +71,8 @@ def ocr_pdf(
             raise OCRLimitExceeded(
                 f"OCR page limit exceeded: {len(selected)}>{max_pages}"
             )
+        if progress is not None:
+            progress(0,len(selected))
         try:
             from rapidocr_onnxruntime import RapidOCR
         except ImportError as error:  # pragma: no cover - environment dependent
@@ -77,7 +81,7 @@ def ocr_pdf(
         # per-model pools multiply across detector/classifier/recognizer and
         # concurrent documents, starving each other and interactive requests.
         engine = RapidOCR(intra_op_num_threads=1, inter_op_num_threads=1)
-        for page_number in selected:
+        for completed,page_number in enumerate(selected,1):
             if time.perf_counter() - started > timeout_seconds:
                 raise OCRLimitExceeded("OCR time limit exceeded")
             pixmap = document[page_number - 1].get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
@@ -88,6 +92,10 @@ def ocr_pdf(
             pages.append({"page": page_number, "text": text, "confidence": confidence})
             if confidence:
                 confidences.append(confidence)
+            # The ingestion callback also checks cancellation. Do not start
+            # another expensive page after the user cancelled/deleted a PDF.
+            if progress is not None:
+                progress(completed,len(selected))
     elapsed = time.perf_counter() - started
     if elapsed > timeout_seconds:
         raise OCRLimitExceeded("OCR time limit exceeded")

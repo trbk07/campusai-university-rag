@@ -173,7 +173,10 @@ class IngestionJobManager:
             def progress(stage,value):
                 self._checkpoint(job_id)
                 start,end = stages.get(stage,(.05,.90))
-                self._update(job_id,stage=stage,progress=round(start+(end-start)*max(0,min(1,value)),4))
+                value=round(start+(end-start)*max(0,min(1,value)),4)
+                with self._lock:
+                    self._update(job_id,stage=stage,
+                                 progress=max(self._jobs[job_id].progress,value))
             document = compatibility.ingest_document(job.source_path,store_dir=options['store_dir'],
                 max_mb=options['max_mb'],max_pages=options['max_pages'],progress=progress,
                 enable_ocr=options['enable_ocr'],ocr_max_pages=options['ocr_max_pages'],

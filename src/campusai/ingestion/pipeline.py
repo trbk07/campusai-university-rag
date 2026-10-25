@@ -137,7 +137,8 @@ def ingest_document(
         report_progress('ocr', 0.0)
         try:
             ocr_result = ocr_pdf(pdf_path, max_pages=ocr_max_pages,
-                timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages)
+                timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages,
+                progress=lambda completed,total:report_progress('ocr',completed/total))
             recognized = {page['page']: page for page in ocr_result.pages
                           if page.get('page') in unread_pages and str(page.get('text', '')).strip()}
             pages = [{**recognized[page['page']], 'lines_meta': [], 'requires_ocr': False}

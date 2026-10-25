@@ -1573,7 +1573,7 @@ optimization/AI-quality goal. Evidence: [QA audit](QA_AUDIT.md),
 | QA item | Required behavior | Current state |
 |---|---|---|
 | QA-01 | App works from clean Git source | DONE - clean exported tree has 114 app tests PASS. |
-| QA-02 | Current-source native answer quality | OPEN - P5-08/09; preserve thresholds and reviewed gold. |
+| QA-02 | Current-source native answer quality | DONE for the accepted Phase5 snapshot:400/400 outputs and all5 gates PASS. See phase5-closure.json; subsequent app changes require their own regression checks. |
 | QA-03 | Realistic full upload/OCR/index load and fidelity | IN PROGRESS - five real PDFs / 104 pages measured before and after; 3/5 ready in both runs. Two large scans still exhaust the OCR budget. Raw benchmark retained in docs/ui/evidence/pdf-runtime-load.json. |
 | QA-04 | Preserve mixed native/scan pages and legacy readiness | DONE - selective OCR, fail closed on unread pages; audit legacy sources/cache/job identity. |
 | QA-05 | Explicit bounded local OCR from document details | DONE - no reupload, manual retry retains history, source/scope checks, server cap 50 scan pages/120 seconds. |
@@ -1581,8 +1581,17 @@ optimization/AI-quality goal. Evidence: [QA audit](QA_AUDIT.md),
 | QA-07 | Expanded AI/PDF quality | OPEN - at least100 verified AI cases,30 distinct representative PDF fixtures; extraction98%, OCR90%, retrieval95%, context95%, accuracy90%, hallucination<=2%, no document/page loss. Reuse reviewed evidence where applicable; do not count fixture-provider answers as live AI. |
 | QA-08 | Fixed-environment performance and concurrency | OPEN -20 simultaneous users; ordinary API p95<=500ms, real AI TTFT p95<=5s,100-page/10MB text PDF p95<=15s; LCP<=2.5s, INP<=200ms, CLS<=0.1. Baseline and measured after-state required. |
 | QA-09 | Final stability and recovery | IN PROGRESS -three consecutive full regressions DONE on identical source/runtime bytes:2,570 PASS/2 opt-in SKIP each. Browser43/43 PASS on desktop/mobile. Broader recovery/security and fixed-environment performance acceptance remain open; secret scan PASS. |
+| QA-10 | Cancel OCR promptly and show monotonic progress | DONE -page-boundary cancellation stops remaining OCR pages; physical-page progress is reported and later stages cannot lower it. Two failures reproduced before repair;30 focused tests and2,665 full-suite tests PASS,2 opt-in live SKIP. Evidence:docs/ui/evidence/ocr-evaluation-20261025.json. |
 
-Latest full-worktree regression: 2,384 PASS / 2 opt-in live SKIP (258.03 s).
+2026-10-25 app repair regression also reran all400 Phase5 requests against
+their exact native HTTP captures:400/400 complete,0 pending, all output/evidence
+rows identical to the accepted snapshot,0 fresh provider calls. This verifies
+answer behavior after the OCR callback changes; it does not relabel cached
+responses as fresh inference or replace the bound Phase5 release report.
+
+Latest full-worktree regression:2,665 PASS /2 opt-in live SKIP (282.89 s),
+`docs/ui/evidence/ocr-regression-20261025.xml`. The earlier local-OCR UI
+cycle had2,384 PASS /2 opt-in live SKIP (258.03 s).
 Focused OCR/web/PDF/jobs: 37 PASS. Clean Git tree
 `d4fa931f219a8b47423474e9a10003fb55089917`: 114 app tests PASS (11.95 s).
 Browser E2E: 41/41 PASS with actual local OCR, recovery after admission error,
