@@ -1,5 +1,21 @@
 # App improvement log
 
+## 2026-10-26 - physical semester subtotal lookups
+
+Closed QA-07b5. Read explicit labelled subtotal rows only after their physical
+semester marker in the same table chunk, checking intervening scope changes.
+No guessed metadata scope, course-option sums or missing/conflicting values.
+Quotes retain selected original marker/subtotal rows. Grounding-v31 invalidates
+old refusals; SQLite restart reuse is verified. Baseline11 targeted failures
+and2 scope/cache failures are repaired;369 related tests PASS. Current100-case
+replay is complete with69 exact-input captures and31 local outcomes,0 new model
+calls. Five false abstentions are corrected, one already-correct answer becomes
+local, and94 public outcomes are unchanged. The six changed subtotal pairs and
+evidence coordinates match the existing reviewed rubric. False abstentions fall
+20 to15, keeping overall AI quality FAIL. New parser matches0/400 Phase5 requests;
+bounded production-delta reconstruction matches its previously verified runtime.
+[Evidence](evaluation/results/full-app-natural-20261026/semester-totals.json).
+
 ## 2026-10-26 - literal course cells, cache upgrade and ordered source titles
 
 Closed QA-07b4a/b/c/d. Single-course lookups require a unique literal identity

@@ -4,7 +4,23 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest natural100 repair closes QA-07b4a/b/c/d: literal single-course table
+Latest natural100 repair closes QA-07b5: explicit semester subtotal rows are
+bound to their nearest physical marker in the same table chunk, with unknown
+scope switches, wrong columns, missing values and conflicting totals rejected.
+No course options are summed. Grounding-v31 avoids stale cached refusals and
+the corrected result survives SQLite restart.369 related tests PASS. All100
+pipeline cases are complete using69 exact-HTTP captures and31 local outcomes,
+with0 new provider calls. Five false abstentions are fixed, one already-correct
+answer becomes local, and94 other public outputs are unchanged. Six changed
+rows match existing source-reviewed gold subtotal pairs and evidence coordinates.
+There are15 definite false abstentions left (accuracy ceiling85%, not measured
+accuracy); whole-app quality remains FAIL. None of400 accepted Phase5 resolved
+requests matches this new subtotal intent. Reconstructing the runtime without
+the new module/hook/cache namespace matches the previously verified runtime;
+this is a non-interception proof, not a fresh400-case replay.
+[Current evidence](evaluation/results/full-app-natural-20261026/semester-totals.json).
+
+Earlier natural100 repair closes QA-07b4a/b/c/d: literal single-course table
 lookups return explicit credit/prerequisite cells, with complete unconditional
 lists and ambiguity guards. Grounding-v30 bypasses stale refusals; SQLite
 restart reuse is tested. Full literal source titles use ordered folded tokens,

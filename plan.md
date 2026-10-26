@@ -18,7 +18,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-sửa các câu hỏi học kỳ/tổng tín chỉ còn từ chối sai.
+sửa các câu hỏi đơn vị giảng dạy, học phần cuối khóa và thời gian/điều kiện còn từ chối sai.
 Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
@@ -53,8 +53,10 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Đã xong QA-07b4a/4b:** tra cứu tín chỉ/tiên quyết từ hàng bảng có bằng chứng,
    bỏ qua cache từ chối cũ và tái sử dụng kết quả đúng qua restart.
    **Đã xong QA-07b4d:** kiểm chứng bộ chọn đoạn nguồn sau khi siết nhận diện tiêu đề;
-   3 đầu vào đổi đã có phản hồi model thật, 100/100 ca đầy đủ, còn 20 ca từ chối sai.
-   **Còn lại:** sửa các ca học kỳ/tổng tín chỉ và các nhóm còn lỗi
+   3 đầu vào đổi đã có phản hồi model thật, 100/100 ca đầy đủ.
+   **Đã xong QA-07b5:** tra cứu tổng học kỳ từ dòng tổng nguồn; 5 ca từ chối sai được
+   sửa, 1 ca vốn đúng chuyển sang local. Còn 15 ca từ chối sai trên 100 ca hiện hành.
+   **Còn lại:** sửa các ca đơn vị giảng dạy, học phần cuối khóa, thời gian/điều kiện
    và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
@@ -106,6 +108,14 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 
+- [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
+  nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
+  quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua
+  restart (`grounding-v31`). Đủ 100/100 ca, 0 pending; 5 ca từng từ chối sai nay
+  trả lời đúng, 1 ca vốn đúng chuyển sang local; 94 đầu ra public còn lại giữ nguyên.
+  Còn 15 ca từ chối sai thuộc QA-07b. Không gọi model mới; 69 captures khớp HTTP,
+  31 ca local. Cả 400 câu Phase 5 không khớp intent mới; không mở lại nghiệm thu.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/semester-totals.json).
 - [x] **QA-07b4a — Tra cứu một môn từ bảng nguồn.** Xác định duy nhất tên/mã môn,
   đọc đúng cột tín chỉ và đủ mã tiên quyết; không suy từ giờ học, dữ liệu thiếu,
   điều kiện OR hoặc hàng mâu thuẫn. Ba ca nhiều lượt lỗi đã trả đúng bằng chứng;

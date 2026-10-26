@@ -754,6 +754,10 @@ class GroundedAnswerGenerator:
             calculated = deterministic_course_lookup(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
+            from .semester_totals import deterministic_semester_total
+            calculated = deterministic_semester_total(question, results, language, calibrator=self.calibrator)
+            if calculated is not None:
+                return calculated
         if self.llm is None:
             return abstain("llm_not_configured")
         if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens):

@@ -81,3 +81,5 @@
 /src/campusai/rag/cache.py -text
 /src/campusai/rag/grounding.py text eol=crlf whitespace=cr-at-eol
 /tests/test_course_lookup.py -text whitespace=cr-at-eol
+/src/campusai/rag/semester_totals.py -text whitespace=cr-at-eol
+/tests/test_semester_totals.py -text whitespace=cr-at-eol
