@@ -76,14 +76,16 @@ def test_comparison_keeps_both_real_scope_markers_in_one_source_chunk():
     assert validate_citation({'chunk_id':'c1','page':source().page,'quote':quote}, source(), require_quote=True).valid
 
 
-def test_provider_group_cannot_use_one_row_to_hide_a_different_provider():
+@pytest.mark.parametrize('question', ['Which institution teaches semester 5 courses?',
+                                    'Học kỳ 5 thì học bên hay bên Institute Z?'])
+def test_provider_group_cannot_use_one_row_to_hide_a_different_provider(question):
     text = 'Semester 5 Compulsory Subjects 1 Alpha 2 Institute Z'
     payload = {'answer':'All semester 5 courses are taught by Institute Z.', 'claims':claims(text),
                'citations':[{'chunk_id':'c1'}], 'confidence':'high', 'abstained':False}
     generator = GroundedAnswerGenerator(FakeLLM(payload), source_citations=True)
-    bad = generator.answer('Which institution teaches semester 5 courses?', [source('Institute Y')], 'en')
+    bad = generator.answer(question, [source('Institute Y')], 'en')
     assert bad.abstained
-    good = generator.answer('Which institution teaches semester 5 courses?', [source()], 'en')
+    good = generator.answer(question, [source()], 'en')
     assert not good.to_public_dict()['abstained']
     assert 'Beta' in good.citations[0].quote  # Complete provider-group evidence.
 

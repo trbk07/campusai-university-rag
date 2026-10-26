@@ -75,6 +75,27 @@ def test_temporal_scope_negative_precedes_model_and_retrieval(tmp_path):
     finally: service.close()
 
 
+def test_selected_content_reference_uses_same_scope_for_ask_and_retrieve(tmp_path):
+    write_doc(tmp_path, 'chosen', '2020', '2020-01-01')
+    write_doc(tmp_path, 'other', '2025', '2025-01-01')
+    llm = ContractLLM()
+    service = CampusAIQueryService(HybridRetriever(tmp_path), GroundedAnswerGenerator(llm), default_mode='bm25')
+    question = 'Trong bản chương trình này, MATH101 is required?'
+    try:
+        answer = service.ask(question, doc_ids=['chosen'], language='en')
+        assert not answer.abstained and llm.calls == 1
+        assert {c.doc_id for c in answer.citations} == {'chosen'}
+        assert service._request_local.temporal_trace['intent'] == 'none'
+        results = service.retrieve(question, doc_ids=['chosen'])
+        assert results and {r.doc_id for r in results} == {'chosen'}
+        assert not service.retrieve(question, doc_ids=['chosen', 'other'])
+        assert service.ask(question).abstained and llm.calls == 1
+        assert service.ask('Theo bản chương trình năm 2025, MATH101 là gì?',
+                           doc_ids=['chosen']).abstained and llm.calls == 1
+    finally:
+        service.close()
+
+
 def test_retrieve_as_of_does_not_require_query_year_in_fact_chunk(tmp_path):
     write_doc(tmp_path,'old','2020','2020-01-01')
     service=CampusAIQueryService(HybridRetriever(tmp_path),GroundedAnswerGenerator(ContractLLM()),default_mode='bm25')

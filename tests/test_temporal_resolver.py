@@ -18,6 +18,42 @@ import pytest
 from campusai.rag.temporal import TemporalIntent, parse_temporal_intent, resolve_temporal, temporal_fingerprint
 
 
+@pytest.mark.parametrize('question', [
+    'Bản chương trình liên kết tới kỳ năm thì học bên nào?',
+    'Final State Attestation trong bản chương trình liên kết học lúc nào và mấy tín?',
+    'Trong bản quy chế này điểm quá trình được tính thế nào?',
+    'Theo bản quy định đã tải lên, điều kiện học tiếp là gì?',
+    'Bản chương trình đang mở, MATH101 có mấy tín?',
+    'Trong bản chương trình, MATH101 có mấy tín?',
+])
+def test_selected_document_reference_is_not_an_unspecified_version(question):
+    args = dict(reference_date=date(2026, 10, 26))
+    assert parse_temporal_intent(question, source_selected=True, **args).kind == 'none'
+    # Merely mentioning a document cannot choose one in an unselected library.
+    assert parse_temporal_intent(question, **args).conflict
+
+
+@pytest.mark.parametrize('question', [
+    'Theo bản chương trình năm 2025, MATH101 có mấy tín?',
+    'Theo bản chương trình QH-2025, MATH101 có mấy tín?',
+    'Theo bản chương trình năm không rõ, MATH101 có mấy tín?',
+    'Trong bản chương trình này phiên bản không rõ, MATH101 có mấy tín?',
+    'Bản chương trình nào áp dụng cho MATH101?',
+    'Bản chương trình mới nhất có MATH101 không?',
+    'Trong bản chương trình này, MATH101 hiện hành có mấy tín?',
+    'So sánh bản chương trình này với bản năm 2025 về MATH101.',
+    'Trong bản chương trình này khóa 2024 học MATH101 mấy tín?',
+    'Trong bản chương trình này, tại ngày 01/09/2025, MATH101 có mấy tín?',
+    'Theo bản chương trình ABC, MATH101 có mấy tín?',
+    'Theo bản chương trình liên kết năm không rõ, MATH101 có mấy tín?',
+    'Theo bản chương trình này năm XXXX, MATH101 có mấy tín?',
+    'Bản chương trình liên kết cũ có MATH101 không?',
+])
+def test_source_selection_cannot_erase_a_version_or_applicability_request(question):
+    args = dict(reference_date=date(2026, 10, 26))
+    assert parse_temporal_intent(question, source_selected=True, **args) == parse_temporal_intent(question, **args)
+
+
 def document(doc_id, version, start=None, end=None, family='Campus/Engineering', replaces=(), published=None):
     block = dict(family_id=family, version_label=version, proofs={})
     values = dict(family_id=family, version_label=version, effective_start=start,

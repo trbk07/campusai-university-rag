@@ -59,6 +59,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Đã xong QA-07b6b1:** citation theo học kỳ; kiểm đủ 19 ca trên index sửa,
    11 phản hồi model thật, 5 ca từng từ chối sai đã trả lời được, không phát sinh
    từ chối sai mới trong nhóm. Chưa công bố metric 100 ca trên index mới.
+   **Đã xong QA-07b6b2a:** phân biệt tài liệu đang chọn với yêu cầu phiên bản;
+   456 tests PASS, thêm 2 phản hồi model thật. Nhóm 19 ca hiện còn 3 ca từ chối sai.
    **Còn lại:** sửa các ca đơn vị giảng dạy, học phần cuối khóa, thời gian/điều kiện
    và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
@@ -120,7 +122,7 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 - [ ] **QA-07b6b — Nghiệm thu câu trả lời trên nguồn đã sửa.** Index thử chỉ thay
   tài liệu bị ảnh hưởng; 14 tài liệu khác và baseline giữ nguyên byte. Đã chọn
   19 đầu vào cùng tài liệu; cả 19 truy hồi được cột tín chỉ có tiêu đề rõ ràng.
-  Đã kiểm đủ 19 kết quả; còn 4 ca chưa đạt. Chưa coi toàn QA-07b là DONE.
+  Đã kiểm đủ 19 kết quả; còn 3 ca chưa đạt. Chưa coi toàn QA-07b là DONE.
 - [x] **QA-07b6b1 — Citation và nhãn học kỳ.** Ràng đúng hàng/môn/học kỳ,
   giữ phạm vi so sánh, kiểm đủ nhóm đơn vị giảng dạy; phân biệt `Semester8`
   với số tín chỉ và nhãn dòng tổng. Cache `grounding-v32` qua restart đã kiểm.
@@ -129,10 +131,17 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
   sửa, 0 ca vốn trả lời được bị từ chối mới. Năm ca Phase 5 có thể bị ảnh hưởng
   được reprocess và giữ nguyên public/internal; 395 ca còn lại không vào nhánh
   mới. [Bằng chứng](evaluation/results/full-app-natural-20261026/semester-citations.json).
-- [ ] **QA-07b6b2 — Bốn ca còn lại trên tài liệu liên kết.** `0085`: model thiếu
-  claim về đơn vị giảng dạy; `0090`: chưa hiểu viết tắt FSA; `0088/0092`: hiểu
-  “bản chương trình” thành yêu cầu chọn phiên bản. Sửa theo dữ liệu nguồn và ý
-  định câu hỏi, dùng lại captures chỉ khi đầu vào model thực sự không đổi.
+- [x] **QA-07b6b2a — Tham chiếu tài liệu đang chọn.** Khi đã chọn đúng một PDF,
+  “bản chương trình này/liên kết” không tự biến thành yêu cầu chọn phiên bản.
+  Giữ các kiểm tra năm, khóa, phiên bản, so sánh và hiệu lực. Citation “học bên…”
+  phải kiểm đủ nhóm môn; cache `grounding-v33`. 456 tests PASS, thêm 2 calls thật;
+  reprocess 19/19 ca, sửa `0088`, giữ nguyên 15 kết quả đã trả lời được.
+  `0092` đã qua routing nhưng model gắn citation thừa nên vẫn chưa đạt.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/selected-reference.json).
+- [ ] **QA-07b6b2 — Ba ca còn lại trên tài liệu liên kết.** `0085`: model thiếu
+  claim về đơn vị giảng dạy; `0090`: chưa hiểu viết tắt FSA; `0092`: model gắn
+  citation không liên quan. Ưu tiên tra cứu trường dữ liệu có bằng chứng trực tiếp
+  từ bảng nguồn; không lặp prompt cũ hoặc bỏ qua kiểm tra mâu thuẫn.
 - [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
   nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
   quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua
@@ -289,6 +298,9 @@ nhiều môi trường/source để tuyên bố SLO; công bố đúng giới h�
    cấu hình, tests, baseline, lỗi lịch sử và bằng chứng tái hiện.
 8. Giữ `plan.md` ở root và tracked Git. Commit/push qua `origin` tới repo CampusAI
    ở đầu tài liệu; không push sang repo financial cũ.
+9. Chủ dự án cho phép tự chọn phương án và tiếp tục các thao tác đã ủy quyền;
+   không chờ xác nhận lại cho quyết định thông thường. Giữ giới hạn dữ liệu,
+   chi phí và bằng chứng nghiệm thu đã thống nhất.
 
 ## 7. Tra cứu đặc tả và lịch sử
 

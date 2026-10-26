@@ -4,7 +4,23 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest citation repair closes QA-07b6b1 while QA-07b6b remains open. Semester
+Latest routing repair closes QA-07b6b2a. A neutral/deictic reference to one
+UI-selected document is not an unspecified version request. Explicit dates,
+years, cohorts, versions, comparisons and applicability remain on their original
+temporal path; an arbitrary named version is not stripped. Ask and retrieve
+share the same selected-source condition. Natural "hoc ben" provider questions
+now require the complete semester group, with grounding-v33 cache invalidation.
+456 related tests PASS. Two bounded native calls return two genuine JSON outputs;
+current19-case replay uses13 exact HTTP captures and6 local outcomes.0088 is
+corrected with the full source group and unchanged reviewed gold coordinates;
+all15 previously published responses are unchanged.0085/0090/0092 remain failing
+(missing provider claim, acronym interpretation, extraneous conflicting citation).
+0092 now reaches inference; this does not count as a quality pass. All400 accepted
+Phase5 resolved requests retain their temporal intent and none matches the new
+provider-question condition. No full400 generation or whole100 quality metric is
+claimed. [Evidence](evaluation/results/full-app-natural-20261026/selected-reference.json).
+
+Earlier citation repair closes QA-07b6b1 while QA-07b6b remains open. Semester
 locators are checked separately from serial/credit values, named/code rows and
 explicit semester columns stay bound, and complete provider groups cannot hide
 a different source provider. Compact Semester8 labels normalize for verification

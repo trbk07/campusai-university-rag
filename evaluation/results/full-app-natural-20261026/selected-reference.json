@@ -1,0 +1,130 @@
+{
+  "date": "2026-10-26",
+  "status": "QA_07B6B2A_DONE_QA_07B6B_REMAINS_FAIL",
+  "source_identity": {
+    "commit": "75c3af9124738cee803b4da9b43398502b273ebe",
+    "source_sha256": "1d3c9187889212a1ce68f27631a4390abecfe1560b48d33d8749791c55769897",
+    "runtime_sha256": "78b6340acf8ea64800844339043780db80f93b71b508a8c0987d0c67b9847abe"
+  },
+  "completed_task": "QA-07b6b2a",
+  "scope": "Single selected-source references and complete provider citation group; not full100 or public-release acceptance.",
+  "changes": [
+    "Neutral/deictic references to one UI-selected source do not require an unspecified version. Arbitrary named versions, years, dates, cohorts, comparisons and applicability keep the original temporal path.",
+    "Ask and retrieve pass the same scope condition; unselected/multiple-source questions do not gain a source from their wording.",
+    "Natural hoc-ben provider questions require the complete physical semester group, rejecting mixed providers hidden by a single quoted course.",
+    "grounding-v33 invalidates older cached responses."
+  ],
+  "tests": {
+    "selected-reference-before-20261026.xml": {
+      "path": ".tmp/selected-reference-before-20261026.xml",
+      "sha256": "22694b082965dcbc48a83f3cc068b20aee35ee45fde844b418311f42e0f7a1cd",
+      "counts": {
+        "tests": "46",
+        "failures": "18",
+        "errors": "0",
+        "skipped": "0"
+      }
+    },
+    "selected-reference-final-20261026.xml": {
+      "path": ".tmp/selected-reference-final-20261026.xml",
+      "sha256": "1a4fdfe376962655a1fe3e8a09dde02fc621d962191fda326563ad0467f5f74f",
+      "counts": {
+        "tests": "456",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0"
+      }
+    }
+  },
+  "before_note": "Before snapshot: the integration behavior failed;17 additional parser tests failed because the new source_selected argument did not exist. Do not count these as18 independent production faults.",
+  "inference": {
+    "new_provider_posts": 2,
+    "new_genuine_json_outputs": 2,
+    "provider_faults": 0,
+    "model": "gemini-3.5-flash-lite",
+    "config_sha256": "69050a324afdc50a2cda7848370e420d14a2226e6e4e3ebfa32a349572ac388c",
+    "egress_sha256": "b23c365c5eb0e50b40c1fb4a51fad27725260c68119526c9321ffedc033bff50",
+    "retried": false,
+    "key_rotated": false,
+    "gold_injected": false,
+    "native_source_identity": {
+      "commit": "75c3af9124738cee803b4da9b43398502b273ebe",
+      "source_sha256": "e2dc6e86b5231def5d4dea5363da6babea177a4ccc1e8e2a0a8cc040e52995c7",
+      "runtime_sha256": "1469c615f19e74609a3fe81052231513e53a48fec1041748adcac89e4bbf1115"
+    },
+    "note": "Native producer bytes remain unchanged; subsequent postprocessing uses exact HTTP captures on the current runtime."
+  },
+  "current_targeted": {
+    "pipeline_cases": 19,
+    "pending": 0,
+    "capture_uses": 13,
+    "local_cases": 6,
+    "fresh_posts_in_replay": 0,
+    "published_answers": 16,
+    "definite_false_abstentions": 3,
+    "new_fixed_ids": [
+      "human-candidate-0088"
+    ],
+    "previous_positives_unchanged": 15,
+    "new_false_abstentions": [],
+    "remaining": {
+      "human-candidate-0085": "Provider assertion missing from model claims.",
+      "human-candidate-0090": "FSA interpreted as a programme instead of a source-derived acronym.",
+      "human-candidate-0092": "Routing fixed; model adds an extraneous conflicting citation. Retain failed quality status."
+    }
+  },
+  "gold_field_check": {
+    "id": "human-candidate-0088",
+    "expected_semester": 5,
+    "actual_semester": 5,
+    "expected_provider": "MAI",
+    "actual_providers": [
+      "MAI"
+    ],
+    "source_coordinates_match": true,
+    "quote_covers_full_literal_group": true,
+    "quote_rows": 15,
+    "method": "Separate exact comparison with unchanged reviewed gold and literal source rows after inference; not a complete semantic or hallucination score.",
+    "review_records_created": 0
+  },
+  "phase5_delta": {
+    "source_identity": {
+      "commit": "75c3af9124738cee803b4da9b43398502b273ebe",
+      "source_sha256": "1d3c9187889212a1ce68f27631a4390abecfe1560b48d33d8749791c55769897",
+      "runtime_sha256": "78b6340acf8ea64800844339043780db80f93b71b508a8c0987d0c67b9847abe"
+    },
+    "accepted_phase5_cases": 400,
+    "temporal_intent_changed_ids": [],
+    "fresh_provider_posts": 0,
+    "method": "Compare old and new temporal intents for all400 actual resolved requests with unchanged request filters and date. Only single selected source can enter the new branch.",
+    "new_hoc_ben_condition_matches": 0
+  },
+  "quality_gates": {
+    "whole100_accuracy": null,
+    "whole100_hallucination": null,
+    "whole100_context": null,
+    "last_complete100_false_abstentions": 15,
+    "final_full_suite_sequence": "OPEN",
+    "thresholds_modified": false,
+    "gold_modified": false,
+    "phase5_internal_acceptance_reopened": false
+  },
+  "bindings": {
+    "src/campusai/rag/temporal.py": "728a598812ef577f37c837111f63b5c07351985eace87c9f7dd15aa416465566",
+    "src/campusai/rag/service.py": "c2d2927d8cee068d7af4853f13557082bab9f3eece067cfd099e208989c3f487",
+    "src/campusai/rag/semester_citations.py": "c53763da6690ec28c5fd1f326d575167ef9ec57e4ba8c3eceaf0b20efd99d7c5",
+    "src/campusai/rag/cache.py": "0ec21a2517dc724392e87d5709136a18d7e61ef1b75aaaee9224948fdcf88cfb",
+    "tests/test_temporal_resolver.py": "98cd6cf1282eefc6468b4cb56deb894fc578e6bd2bc39d9eeedc30879b29424b",
+    "tests/test_temporal_application.py": "29826c95c97238f8d46f2ef4c45f5536e2e7df7ddbf0cf2fabe210b7d491cb6e",
+    "tests/test_semester_citations.py": "b058012b1d37eeb04b30c1ced72b090d9ae8cf5595ee1f019d2b2d38ae570d06",
+    "evaluation/results/full-app-natural-20261026/selected-reference-inputs.jsonl": "ba51cc4d24d166d9ef562c4d25c45b193853dfc4df0edfde46bc998c456b2478",
+    "evaluation/results/full-app-natural-20261026/source-scope-inputs.jsonl": "6248657d7a09187954fc0bad5cf47c8d1532021420475e25093ecdc3ab05b904",
+    "evaluation/results/phase7-completion-20261004/p7-06-dev-source-rubric-20261007-v2.json": "e8b36b665c19bae4baf06219f8fdac9a5ea281423d5e5537c7d6c23023ca8516",
+    "evaluation/results/full-app-natural-20261026/checkpoint-selected-reference/run.json": "1d02977da3769122e1a32bca296fdfe9ceea43c4043fd6978b38bae99e9b016c",
+    "evaluation/results/full-app-natural-20261026/checkpoint-selected-reference/source-pool.json": "b6db9a6c978aae9cea1d662c34e561ccfab3bbcd73fb917858841d24fc7657da",
+    "evaluation/results/full-app-natural-20261026/selected-reference-native/run.json": "c3d60f1e32fcd5b17173ec46c0fff7cc007ff13a615376a3e03bd374c03b4ba8",
+    "evaluation/results/full-app-natural-20261026/selected-reference-egress/egress.json": "b23c365c5eb0e50b40c1fb4a51fad27725260c68119526c9321ffedc033bff50",
+    ".tmp/selected-reference-phase5-20261026.json": "0799d190aad6565184aef0d0fef02f3d51e404027c4dfe17071fd5aeafaeeeff"
+  },
+  "raw_storage": "Exact provider/preflight/checkpoint and XML bytes are archived by identity in evaluation/artifacts/manifest.json; no generated model output is relabelled as a new call."
+}

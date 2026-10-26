@@ -281,7 +281,8 @@ class CampusAIQueryService:
             return []
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
-        temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters)
+        temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
+                                               source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
         self._request_local.temporal_trace = dict(status=temporal.status, reason=temporal.reason,
             eligible_doc_ids=list(temporal.eligible_doc_ids), intent=temporal_intent.kind,
@@ -415,7 +416,8 @@ class CampusAIQueryService:
                                   reason="ambiguous_question", evidence_status="ambiguous")
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
-        temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters)
+        temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
+                                               source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
         self._request_local.temporal_trace = dict(status=temporal.status, reason=temporal.reason,
             eligible_doc_ids=list(temporal.eligible_doc_ids), intent=temporal_intent.kind,

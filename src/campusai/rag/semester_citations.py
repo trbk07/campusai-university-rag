@@ -136,7 +136,7 @@ def scoped_quote(result, rows, headers, texts, question):
         terms = set(normalized_tokens(text))
         selected.add(max(eligible,key=lambda i:len(terms & set(normalized_tokens(' '.join(rows[i]))))))
     provider_question = (_named_rows(rows,headers,question) is None and re.search(
-        r'\b(?:institution|provider|resources|taught|teaches|truong nao|ben nao|don vi)\b',folded(question)))
+        r'\b(?:institution|provider|resources|taught|teaches|truong nao|ben nao|hoc ben|don vi)\b',folded(question)))
     selected_scopes = {locations[i][0] for i in selected}
     if provider_question and len(selected_scopes)==1:
         columns = [i for i,h in enumerate(headers) if folded(h) in {'resources','resource','provider','institution'}]

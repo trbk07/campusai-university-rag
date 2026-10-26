@@ -93,3 +93,7 @@
 /src/campusai/rag/semester_citations.py -text whitespace=cr-at-eol
 /src/campusai/rag/presentation.py text eol=crlf whitespace=cr-at-eol
 /tests/test_semester_citations.py -text whitespace=cr-at-eol
+/src/campusai/rag/temporal.py text eol=crlf whitespace=cr-at-eol
+/src/campusai/rag/service.py text eol=crlf whitespace=cr-at-eol
+/tests/test_temporal_resolver.py text eol=crlf whitespace=cr-at-eol
+/tests/test_temporal_application.py text eol=crlf whitespace=cr-at-eol

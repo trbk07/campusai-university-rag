@@ -47,7 +47,7 @@ class TemporalResolution:
     policy_version: str = POLICY_VERSION
 
 
-def parse_temporal_intent(question: str, *, reference_date: date, filters=None):
+def parse_temporal_intent(question: str, *, reference_date: date, filters=None, source_selected=False):
     text = fold(question)
     # A source table's "current column" is a column label, not a request for
     # legal validity today. Likewise Nhật Bản and khóa luận are not versions.
@@ -80,6 +80,18 @@ def parse_temporal_intent(question: str, *, reference_date: date, filters=None):
         version_request = re.search(r'\b(?:version|ban chuong trinh|ban quy che|ban quy dinh|so sanh|compare)\b', content_question)
         if factual_period and not version_request:
             return TemporalIntent()
+    # A UI-selected source already establishes the referent of "this copy".
+    # Only neutral/deictic references are stripped, never an arbitrary named
+    # version. Keep unknown labels and explicit selection/applicability cues
+    # on the original fail-closed path. The caller must establish one selected
+    # document; words in the question cannot grant that scope.
+    if source_selected and not re.search(
+            r'\b(?:\d{4}|qh|phien ban|version|cohort|so sanh|compare|comparison|'
+            r'versus|ap dung|hieu luc|effective|valid|applicable)\b', text):
+        text = re.sub(r'\bban\s+(?:chuong trinh|quy che|quy dinh)\b'
+            r'(?!\s+(?:nay|lien ket|dang mo|da (?:chon|tai len))\s+(?:nam|so|nao|cu|moi)\b)'
+            r'(?=\s+(?:nay|dang mo|da (?:chon|tai len)|lien ket)\b|\s*[,.:;!?]|\s*$)',
+            'tai lieu', text)
     framed = re.search(r'\b(?:ban\s+(?:chuong trinh|quy che|quy dinh|nam\s+\d|qh\s*[-–]?\s*\d|\d)|version\b|cohort\s+\d|khoa\s+(?:qh\s*[-–]?\s*)?\d|nam hoc\s+\d|academic year\s+\d)', text)
     if not framed:
         return TemporalIntent()

@@ -1,5 +1,21 @@
 # App improvement log
 
+## 2026-10-26 - selected-source references preserve content questions
+
+Closed QA-07b6b2a. Neutral/deictic document references use the single UI-selected
+source instead of demanding an unspecified version. Explicit temporal requests
+and unknown version labels retain their original checks, shared by ask/retrieve.
+Natural "hoc ben" provider questions quote the complete source semester group;
+grounding-v33 invalidates older cached responses.456 related tests PASS. Two
+new bounded Gemini calls succeeded. Current19-case exact-HTTP replay has13
+capture uses and6 local outcomes;0088 is repaired and15 earlier public answers
+are unchanged. Three false abstentions remain:0085,0090,0092. The last case now
+reaches inference but its extraneous citation remains rejected. No repeated
+same-prompt call, invented support, altered gold or lowered quality gate.
+All400 accepted Phase5 intents are unchanged and none enters the added provider
+condition; this is a bounded delta check, not400 fresh predictions or a new
+whole100 metric. [Evidence](evaluation/results/full-app-natural-20261026/selected-reference.json).
+
 ## 2026-10-26 - source-bound semester citations and location wording
 
 Closed QA-07b6b1. Bind scope, named/code row and explicit column before numeric
