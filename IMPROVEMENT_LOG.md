@@ -1,5 +1,21 @@
 # App improvement log
 
+## 2026-10-26 - complete current-index natural100 campaign
+
+Closed QA-07b7a/b. An opt-in offline adapter proves complete selected BM25/dense
+byte equality across corpus manifests, while preserving exact HTTP inputs,
+model/config identity, source artifacts and default whole-manifest rejection.
+107 evidence-integrity tests PASS. A separate store copies81 files exactly,
+preserves baseline statuses and overlays only the repaired curriculum.
+Current100 is complete with64 bound captures and36 local outcomes,0 pending.
+97 completed cases are retained. Three missing responses need4 actual POSTs:
+one20s timeout is preserved and a bounded key_2 batch completes the remainder.
+No quota reset, changed model/payload, failed-provider negative or new gold review
+record.100 public schemas and79 literal quote/source bindings validate. Five
+false abstentions remain;95% is a ceiling, not measured accuracy. Full semantic,
+hallucination/context metrics and final full regressions remain open. No runtime
+or accepted Phase5 gate changes. [Evidence](evaluation/results/full-app-natural-20261026/current100.json).
+
 ## 2026-10-26 - complete-source curriculum field lookups
 
 Closed QA-07b6b2 and the bounded19-case QA-07b6b. Unique course identities and

@@ -1422,3 +1422,6 @@ data/cache/
 /evaluation/results/full-app-natural-20261026/source-scope-native/
 /evaluation/results/full-app-natural-20261026/selected-reference-egress/
 /evaluation/results/full-app-natural-20261026/selected-reference-native/
+/evaluation/results/full-app-natural-20261026/current100-*-egress/
+/evaluation/results/full-app-natural-20261026/current100-*-native/
+/evaluation/results/full-app-natural-20261026/current100-*-inputs.jsonl

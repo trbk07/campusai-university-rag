@@ -99,3 +99,5 @@
 /tests/test_temporal_application.py text eol=crlf whitespace=cr-at-eol
 /src/campusai/rag/curriculum_lookup.py -text whitespace=cr-at-eol
 /tests/test_curriculum_lookup.py -text whitespace=cr-at-eol
+/evaluation/grounding/scoped_checkpoint.py -text whitespace=cr-at-eol
+/tests/test_scoped_checkpoint.py -text whitespace=cr-at-eol

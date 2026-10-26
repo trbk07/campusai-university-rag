@@ -4,7 +4,27 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest curriculum lookup closes QA-07b6b2 and the bounded19-case QA-07b6b.
+Latest campaign closes QA-07b7a/b:100/100 current-index pipeline cases,0 pending.
+64 exact HTTP captures and36 local outcomes run on one repaired index.56 captures
+additionally prove selected-document BM25/dense bytes unchanged across global
+corpus manifests; original model/config/request/body, producer identities and
+artifacts stay bound and revalidated. The normal NativeCapturePool remains
+whole-manifest strict.107 evidence-integrity regression tests PASS.
+
+A separate source store preserves all baseline records/statuses and overlays
+only the repaired curriculum;81 copied files were byte-verified.97 completed
+cases are retained, not generated again. Three missing model responses needed4
+real POSTs: one20s timeout remains journalled; a bounded new batch with configured
+key_2 completes the two remaining cases. No quota reset or failed-provider row is
+counted as a correct negative. All100 public schemas and79 literal citation/source
+bindings validate. Five known false abstentions remain:0111/0112/0121/0128/0160;
+zero negative gold cases are answered.95% is only an accuracy ceiling from these
+errors, not a measured accuracy score. Full semantic, hallucination and15-case
+context scoring remain OPEN. App runtime is byte-identical to the preceding
+curriculum fix; no accepted Phase5 evidence or gate is reopened.
+[Evidence](evaluation/results/full-app-natural-20261026/current100.json).
+
+Earlier curriculum lookup closes QA-07b6b2 and the bounded19-case QA-07b6b.
 Complete selected-document tables establish a unique literal/source-derived
 course acronym, explicit credit cell and physical semester marker. Provider
 lookups require a complete group with one consistent, nonempty source provider.

@@ -18,7 +18,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-kiểm đủ 100 ca trên index đã sửa và xử lý các câu thời gian/điều kiện còn lại.
+sửa 5 ca từ chối sai còn lại và chấm đầy đủ accuracy/hallucination/context.
 Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
@@ -55,7 +55,7 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Đã xong QA-07b4d:** kiểm chứng bộ chọn đoạn nguồn sau khi siết nhận diện tiêu đề;
    3 đầu vào đổi đã có phản hồi model thật, 100/100 ca đầy đủ.
    **Đã xong QA-07b5:** tra cứu tổng học kỳ từ dòng tổng nguồn; 5 ca từ chối sai được
-   sửa, 1 ca vốn đúng chuyển sang local. Lượt 100 ca đầy đủ gần nhất còn 15 ca từ chối sai.
+   sửa, 1 ca vốn đúng chuyển sang local. Tại mốc đó, bộ 100 ca còn 15 ca từ chối sai.
    **Đã xong QA-07b6b1:** citation theo học kỳ; kiểm đủ 19 ca trên index sửa,
    11 phản hồi model thật, 5 ca từng từ chối sai đã trả lời được, không phát sinh
    từ chối sai mới trong nhóm. Chưa công bố metric 100 ca trên index mới.
@@ -63,8 +63,11 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    456 tests PASS, thêm 2 phản hồi model thật.
    **Đã xong QA-07b6b/6b2:** 19/19 ca trên tài liệu liên kết khớp trường gold và
    document/page đã review; không còn ca từ chối sai trong nhóm. 607 tests PASS.
-   **Còn lại:** kiểm đủ 100 ca trên index mới, sửa các ca thời gian/điều kiện khác
-   và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
+   **Đã xong QA-07b7a/7b:** đủ 100/100 ca trên cùng index mới, 0 pending;
+   64 captures thật được kiểm chứng đầu vào và 36 ca local. Còn 5 ca từ chối sai;
+   chưa coi mức trần 95% là accuracy đã đo.
+   **Còn lại:** sửa 5 ca này và chấm đủ accuracy/hallucination/context,
+   không hạ ngưỡng hoặc gọi lại ca đã có capture hợp lệ.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
@@ -140,7 +143,7 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
   Giữ các kiểm tra năm, khóa, phiên bản, so sánh và hiệu lực. Citation “học bên…”
   phải kiểm đủ nhóm môn; cache `grounding-v33`. 456 tests PASS, thêm 2 calls thật;
   reprocess 19/19 ca, sửa `0088`, giữ nguyên 15 kết quả đã trả lời được.
-  `0092` đã qua routing nhưng model gắn citation thừa nên vẫn chưa đạt.
+  Lỗi citation thừa của `0092` tại mốc này đã được đóng ở QA-07b6b2.
   [Bằng chứng](evaluation/results/full-app-natural-20261026/selected-reference.json).
 - [x] **QA-07b6b2 — Tra cứu đơn vị và học phần từ bảng nguồn.** Sửa đủ
   `0085/0090/0092`. Đọc bảng của toàn PDF đã chọn, suy viết tắt từ tên nguồn và
@@ -151,6 +154,21 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
   và 5 captures khớp HTTP, 0 calls mới, 0 ca đã trả lời được bị từ chối mới.
   Cả 400 ca Phase 5 không vào nhánh tra cứu mới, không mở lại nghiệm thu nội bộ.
   [Bằng chứng](evaluation/results/full-app-natural-20261026/curriculum-lookup.json).
+- [x] **QA-07b7a — Kiểm chứng capture khi phần corpus khác thay đổi.** Adapter
+  offline chỉ dùng lại khi model/config/user input/HTTP body khớp, toàn bộ BM25
+  và dense của các tài liệu được chọn giữ nguyên byte, manifest còn nguyên.
+  Corpus/model/scope thiếu bằng chứng thì từ chối; cơ chế mặc định vẫn giữ
+  strict whole-manifest. 107 tests PASS, không sửa runtime hoặc gates Phase 5.
+- [x] **QA-07b7b — Đủ 100 ca trên index hiện hành.** 100/100 hoàn tất,
+  64 captures được kiểm chứng (56 qua proof của scope), 36 local; giữ nguyên 97
+  ca đã xong, chỉ bổ sung 3 ca thiếu. Thêm 4 POSTs thật: 3 phản hồi thành công,
+  1 timeout được giữ nguyên; project/key thứ hai hoàn tất hai ca còn lại.
+  100 schema và 79 quote-source bindings hợp lệ; chưa phải điểm semantic quality.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/current100.json).
+- [ ] **QA-07b8 — Năm ca từ chối sai và chấm chất lượng đầy đủ.**
+  `0111/0112/0128`: ngày/giờ tuyển sinh thạc sĩ; `0121`: điều kiện học phần dưới
+  C+ của danh hiệu Xuất sắc; `0160`: tên/tín chỉ EMA3143. Đối chiếu raw prediction
+  với nguồn trước khi sửa; sau đó chấm đủ accuracy, hallucination và 15 ca context.
 - [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
   nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
   quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua

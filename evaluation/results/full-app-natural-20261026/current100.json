@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-26",
+  "status": "QA_07B7A_B_DONE_100_COMPLETE_QA_07B_QUALITY_STILL_OPEN",
+  "source_identity": {
+    "commit": "bc3b9f57325b609fd1504db943ea4f0796840249",
+    "source_sha256": "1875b2303b27a5e15b18b583b9c6ba1904774b42c3c35bc7bf506c9d2ea728bf",
+    "runtime_sha256": "2ea516e9b9dabda4f9f5f15aafc29074a9e885adcd41b5a3d4580b5a952116ea"
+  },
+  "completed_tasks": [
+    "QA-07b7a",
+    "QA-07b7b"
+  ],
+  "scope": "Complete natural100 pipeline qualification on one repaired index, with hash-proved capture reuse; not a new semantic/public-release acceptance.",
+  "protocol": {
+    "name": "selected-index-scope-reuse-v1",
+    "opt_in": true,
+    "default_native_pool_unchanged": true,
+    "requirements": [
+      "Exact original user-input projection, model/config identity and native HTTP request body.",
+      "Every selected document BM25/dense file unchanged between valid immutable manifests; same retrieval-model descriptors.",
+      "Original producer run/raw/journal and selected index files revalidated at lookup.",
+      "Missing/changed/unsafe scope remains CaptureMissing outside provider errors; cannot become a correct negative."
+    ],
+    "producer_metadata_rewritten": false,
+    "source_corpus_mixed_in_current_pipeline": false
+  },
+  "campaign": {
+    "pipeline_cases": 100,
+    "pending": 0,
+    "positive_gold": 80,
+    "negative_gold": 20,
+    "history_cases": 15,
+    "typo_cases": 10,
+    "ascii_cases": 9,
+    "exact_http_capture_uses": 64,
+    "capture_uses_with_scope_equivalence_proof": 56,
+    "local_outcomes_without_model": 36,
+    "completed_cases_retained": 97,
+    "only_missing_cases_reprocessed": 3,
+    "index_manifest_sha256": "4ac6d64e77d5d71c7402397a04613c8ea674fc488c61a16e5d494239c32b179a",
+    "predictions_sha256": "d1f666a49e69441081e0fbb677062a0bfb96625e7222e15e8e37dcc76db0ee78",
+    "fresh_posts_in_replay": 0,
+    "fresh_outputs_in_replay": 0
+  },
+  "new_native_collection": {
+    "actual_posts": 4,
+    "genuine_successful_json_outputs": 3,
+    "unique_completed_missing_ids": [
+      "human-candidate-0027",
+      "human-candidate-0030",
+      "human-candidate-0123"
+    ],
+    "provider_timeouts": 1,
+    "initial_packet_cap": 3,
+    "initial_posts": 2,
+    "initial_unused_calls_abandoned": 1,
+    "recovery_packet_cap": 2,
+    "recovery_posts": 2,
+    "recovery_key_reference": "key_2 via scripts.operations.with_gemini_key; no credential value stored",
+    "credential_rotation_within_a_run": false,
+    "quota_reset": false,
+    "automatic_retries": 0,
+    "successful_case_regeneration": 0,
+    "failed_provider_prediction_used_as_gold_negative": false,
+    "historical_natural_campaign_posts_total": 102,
+    "historical_successful_outputs_total": 101
+  },
+  "source_store": {
+    "separate_candidate": true,
+    "registered_records": 13,
+    "verified_copied_files": 81,
+    "only_repaired_document_overlaid": true,
+    "baseline_and_original_sources_unchanged": true,
+    "statuses_preserved": true,
+    "target_registry_sha256": "7da3934a201fe3756e88c50e76507906bd0a26247992f9608c16c847bf8a9a85"
+  },
+  "diagnostic": {
+    "source_identity": {
+      "commit": "bc3b9f57325b609fd1504db943ea4f0796840249",
+      "source_sha256": "1875b2303b27a5e15b18b583b9c6ba1904774b42c3c35bc7bf506c9d2ea728bf",
+      "runtime_sha256": "2ea516e9b9dabda4f9f5f15aafc29074a9e885adcd41b5a3d4580b5a952116ea"
+    },
+    "pipeline_cases": 100,
+    "positive_gold": 80,
+    "negative_gold": 20,
+    "history_cases": 15,
+    "false_abstention_ids": [
+      "human-candidate-0111",
+      "human-candidate-0112",
+      "human-candidate-0121",
+      "human-candidate-0128",
+      "human-candidate-0160"
+    ],
+    "false_answer_on_negative_ids": [],
+    "public_schema_valid": 100,
+    "literal_citation_quotes_valid": 79,
+    "citation_binding_errors": [],
+    "accuracy_ceiling_from_observed_errors": 0.95,
+    "actual_semantic_accuracy": null,
+    "hallucination_rate": null,
+    "context_accuracy": null,
+    "quality_status": "OPEN_FULL_SEMANTIC_AND_CONTEXT_SCORING_REQUIRED",
+    "rubric_sha256": "e8b36b665c19bae4baf06219f8fdac9a5ea281423d5e5537c7d6c23023ca8516",
+    "predictions_sha256": "d1f666a49e69441081e0fbb677062a0bfb96625e7222e15e8e37dcc76db0ee78",
+    "method": "Only count definite false abstentions against existing reviewed answerability and exact public-schema/quote-source bindings. A95% ceiling is not95% measured accuracy."
+  },
+  "checks": {
+    "evidence_integrity_tests": {
+      "tests": "107",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    "app_runtime_sha256_unchanged_from_previous_fix": true,
+    "app_runtime_preceding_related_tests_passed": 607,
+    "phase5_reopened": false,
+    "full_regression_sequence": "OPEN",
+    "thresholds_modified": false,
+    "gold_modified": false,
+    "review_records_created": 0,
+    "semantic_accuracy": null,
+    "hallucination_rate": null,
+    "context_accuracy": null,
+    "accuracy_ceiling_is_not_measured_accuracy": true
+  },
+  "next": [
+    "Trace and repair0111/0112/0128 admission dates,0121 C+ reward condition and0160 course-name/credit binding.",
+    "Score all100 semantic correctness and hallucination plus15 contextual cases against unchanged reviewed gold/source; retain valid captures."
+  ],
+  "bindings": {
+    "evaluation/grounding/scoped_checkpoint.py": "1e23cbb4ee7b11d5e055b65e87db7b985951a223655cc4918066552516e4edd5",
+    "tests/test_scoped_checkpoint.py": "65b9031aae0e20c9d64594f9cf97f515de1dd2598845e55ecbf9b259c1713128",
+    "evaluation/grounding/checkpoint.py": "9e13917676623387223b09cb1d42105c9e18542a3d41fa4fcb32978b2602288b",
+    "configs/free_llm.yaml": "69050a324afdc50a2cda7848370e420d14a2226e6e4e3ebfa32a349572ac388c",
+    "evaluation/results/full-app-natural-20261026/inputs.jsonl": "431199aba4cec6451c2d6e5d22ec416c325c64474d88ae6274dec297c7f65363",
+    "evaluation/results/full-app-natural-20261026/selection.json": "18dc6919ca098d98fc32eeffd667433ac5b25de313ae3247f84d7746acddd46e",
+    "evaluation/results/full-app-natural-20261026/checkpoint-current100/run.json": "8754cef47f58fef26f1aa7046088c51d18aa00e7ea7d606cb72634496d67a173",
+    "evaluation/results/full-app-natural-20261026/checkpoint-current100-complete/run.json": "0b579c4087a1f6c6e707f895766c5e47bdd9cc62cb7683c461f3f6a3f60dc617",
+    "evaluation/results/full-app-natural-20261026/checkpoint-current100-complete/source-pool.json": "a4767f921a6b316b516a10a93fbd152867cda76c82586918ff36ef93960f2092",
+    ".tmp/current100-diagnostic-20261026.json": "23ff622de936cb2f98eab5ebfbcbe983724d3a69d1b01b8a4cd1b4bc4a5d4a5d",
+    ".tmp/full-app-natural-qualification-20261026/store-build.json": "0e4c44470d07de4a3bb740f91e1780478ff84319f7cfee81c82249b66badbefa",
+    "D:/Project/.tmp/full-app-natural-qualification-20261026/store/registry.json": "7da3934a201fe3756e88c50e76507906bd0a26247992f9608c16c847bf8a9a85",
+    ".tmp/scoped-checkpoint-regression-20261026.xml": "feefbf5073e98552cbcdeca9474194c7bb5ae67fe505249b19a04fd8196476f5",
+    "evaluation/results/phase7-completion-20261004/p7-06-dev-source-rubric-20261007-v2.json": "e8b36b665c19bae4baf06219f8fdac9a5ea281423d5e5537c7d6c23023ca8516",
+    "evaluation/results/full-app-natural-20261026/curriculum-lookup.json": "8e060dd31fa92ff955634627110e439f6f49f68f8a2b2f39cd091538991ad8ef",
+    "evaluation/results/full-app-natural-20261026/current100-missing-native/run.json": "3f68042e206c9447c39ca7ededa29b722fbedf43dc3003be917e1c16d03aae45",
+    "evaluation/results/full-app-natural-20261026/current100-recovery-native/run.json": "b6aada40ff23b46d035c9eb6143bbf9f40f63ca096d8dd9ec2d0eb2f79111831",
+    "evaluation/results/full-app-natural-20261026/current100-missing-egress/egress.json": "678186b48ee8f329757e23da8c6efa4c54364a5c34b495bc24585ed970e6adce",
+    "evaluation/results/full-app-natural-20261026/current100-recovery-egress/egress.json": "2305380e663a76d90f1fa1fd2ded1fe027f71963c7d4e6937db856759f6feae5"
+  },
+  "raw_storage": "All original timeout/success journals, exact egress, projected inputs, checkpoint artifacts, store-build proof and test XML retained by hash in evaluation/artifacts/manifest.json; original native producers and corpus baselines are unchanged."
+}
