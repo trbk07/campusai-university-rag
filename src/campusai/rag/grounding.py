@@ -750,6 +750,10 @@ class GroundedAnswerGenerator:
                 question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
+            from .course_lookup import deterministic_course_lookup
+            calculated = deterministic_course_lookup(question, results, language, calibrator=self.calibrator)
+            if calculated is not None:
+                return calculated
         if self.llm is None:
             return abstain("llm_not_configured")
         if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens):

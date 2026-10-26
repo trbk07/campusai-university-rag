@@ -1414,4 +1414,7 @@ data/cache/
 /evaluation/results/full-app-natural-20261026/egress-r2/
 /evaluation/results/full-app-natural-20261026/native/
 /evaluation/results/full-app-natural-20261026/native-r2/
-/evaluation/results/full-app-natural-20261026/checkpoint-r2/
+/evaluation/results/full-app-natural-20261026/checkpoint-*/
+/evaluation/results/full-app-natural-20261026/egress-r3/
+/evaluation/results/full-app-natural-20261026/egress-r3-changed/
+/evaluation/results/full-app-natural-20261026/native-r3/

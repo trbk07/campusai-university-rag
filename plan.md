@@ -18,8 +18,8 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-ưu tiên các câu hỏi bảng tín chỉ/tiên quyết còn bị từ chối sai. Đã có đủ 100 ca
-pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
+sửa các câu hỏi học kỳ/tổng tín chỉ còn từ chối sai.
+Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
 Đi đến: [Việc còn lại](#viec-con-lai) · [Đã DONE](#da-done) ·
@@ -50,8 +50,12 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Tái sử dụng dữ liệu đã review; fixture provider hoặc AI tự chấm không đủ để đóng.
    **Đã xong QA-07b1:** sửa bỏ ngữ cảnh ở câu hỏi lược chủ thể; giữ chủ đề 15/15 ca.
    **Đã xong QA-07b2/3:** thu đủ 100 ca thật và sửa lỗi cắt mất điều kiện sau tên điều khoản.
-   **Còn lại:** 23 ca từ chối sai; accuracy tối đa hiện tại 77%, context tối đa 80%,
-   chưa đạt ngưỡng. Sửa lỗi rồi chấm đầy đủ accuracy/hallucination/context.
+   **Đã xong QA-07b4a/4b:** tra cứu tín chỉ/tiên quyết từ hàng bảng có bằng chứng,
+   bỏ qua cache từ chối cũ và tái sử dụng kết quả đúng qua restart.
+   **Đã xong QA-07b4d:** kiểm chứng bộ chọn đoạn nguồn sau khi siết nhận diện tiêu đề;
+   3 đầu vào đổi đã có phản hồi model thật, 100/100 ca đầy đủ, còn 20 ca từ chối sai.
+   **Còn lại:** sửa các ca học kỳ/tổng tín chỉ và các nhóm còn lỗi
+   và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
@@ -70,7 +74,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
    Bản trước có 1 full run **2.718 PASS / 2 live SKIP**. Bản sửa nguồn mới nhất
-   ngày 26/10 có **531 tests liên quan PASS**; chưa chạy chuỗi full cuối trên bản này.
+   ngày 26/10 có **740 tests liên quan PASS**; phần sửa thứ tự từ trong tiêu đề
+   có thêm **217 focused PASS**. Đây không phải hai full runs; chưa chạy chuỗi full cuối.
    Không cộng các run trên source khác.
 
 <a id="da-done"></a>
@@ -101,6 +106,23 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 
+- [x] **QA-07b4a — Tra cứu một môn từ bảng nguồn.** Xác định duy nhất tên/mã môn,
+  đọc đúng cột tín chỉ và đủ mã tiên quyết; không suy từ giờ học, dữ liệu thiếu,
+  điều kiện OR hoặc hàng mâu thuẫn. Ba ca nhiều lượt lỗi đã trả đúng bằng chứng;
+  thêm một ca vốn đúng chuyển sang xử lý local, không gọi model.
+- [x] **QA-07b4b — Xử lý cache từ chối cũ.** Version `grounding-v30` bỏ qua kết quả
+  cũ; kiểm thử SQLite xác nhận trả đáp án đúng ở lượt đầu và cache đúng sau restart.
+- [x] **QA-07b4c — Hồi quy phần tra cứu và các phase liên quan.** 740 tests PASS;
+  lượt tương thích đã ghi nhận 400/400 ca Phase 5, 0 pending, đầu ra public,
+  đáp án/claims nội bộ giữ nguyên. Chỉ số cosine/chấm điểm truy hồi có sai khác
+  số học nhỏ; không gọi đó là dữ liệu raw giống từng byte. Không mở lại nghiệm thu Phase 5.
+- [x] **QA-07b4d — Nghiệm thu bộ chọn đoạn nguồn mới.** Chặn khớp nhầm một
+  phần tiêu đề, giữ thứ tự từ Việt/không dấu; 217 focused PASS. Chỉ gọi thêm đúng
+  3 đầu vào đổi: 3/3 phản hồi thật thành công và có nguồn. Pipeline hiện hành đủ
+  100/100 ca, 0 pending, dùng 75 captures thật khớp HTTP và 25 ca local. Còn 20
+  ca từ chối sai thuộc việc QA-07b đang mở; không coi đây là PASS chất lượng toàn bộ.
+  [Bằng chứng và test](evaluation/results/full-app-natural-20261026/course-lookup.json).
+
 | Đã DONE | Kết quả và phạm vi |
 |---|---|
 | QA-03a — Đo/sửa OCR và index, bật GPU | Đối sánh CPU/CUDA trên 5 PDF / 104 trang; có số đo reindex thực tế. Chưa thay phép đo fresh upload 100 trang / 10 MB. |
@@ -110,7 +132,7 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 | QA-07b3 — Giữ đủ điều kiện sau tiêu đề nguồn | DONE · 531 tests liên quan PASS; gọi mới đúng 3 ca đổi payload, dùng lại 76 captures khớp HTTP. Cả 3 ca trả đáp án có nguồn; 100/100 ca pipeline đầy đủ, tổng 82 POSTs thật. Không hạ gate. [Kết quả](evaluation/results/full-app-natural-20261026/repair.json). |
 | QA-08a — API thường, 20 người đồng thời | 400/400 HTTP 200; p95 tổng 0,478 giây, thư viện 0,429 giây, fact PDF 0,497 giây trên workload local 7 tài liệu / 17 jobs. |
 | QA-08b — Web Vitals trong lab | 9/9 sessions đạt trên desktop/tablet/mobile; max LCP 308 ms, INP 104 ms, CLS 0,0109. |
-| QA-09a — Unit/integration đã chốt | Bản 25/10: 2.718 full PASS / 2 opt-in live SKIP. Ngữ cảnh 26/10: 429 tests liên quan PASS; sửa đoạn nguồn tiếp theo: 531 PASS. Chuỗi full cuối thực hiện tại QA-09d. |
+| QA-09a — Unit/integration đã chốt | Bản 25/10: 2.718 full PASS / 2 opt-in live SKIP. Các lượt focused sau đó: 429, 531, 740 PASS; bộ chọn đoạn nguồn mới: 217 PASS. Không cộng các lượt chồng lấn thành số test riêng biệt. Chuỗi full cuối thực hiện tại QA-09d. |
 | QA-09b — Luồng browser cốt lõi | 43/43 PASS; gồm hai lượt thêm 5 PDF, chat, nguồn, xóa, OCR, responsive và accessibility. |
 | QA-09c1 — Recovery đã có | Busy/quota/503/timeout, hủy/retry OCR, đọc nguồn khi provider lỗi và worker không đọc stdin lớn. |
 

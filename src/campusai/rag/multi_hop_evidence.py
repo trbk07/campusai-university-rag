@@ -48,8 +48,17 @@ def name_matches(name, cell):
     # its English translation. Accept a complete language segment, never an
     # arbitrary substring such as 'Điện tử' inside 'Điện tử y sinh'.
     lines = str(cell).splitlines()
-    return any(label(name) == label(' '.join(lines[:i]))
-               and ' '.join(lines[i:]).isascii() for i in range(1, len(lines)))
+    if any(not ' '.join(lines[:i]).isascii()
+           and label(name) == label(' '.join(lines[:i]))
+           and ' '.join(lines[i:]).isascii() for i in range(1, len(lines))):
+        return True
+    # The earliest complete ASCII suffix is the English language segment;
+    # accepting each trailing line would turn a partial name into an alias.
+    for i in range(1, len(lines)):
+        prefix, suffix = ' '.join(lines[:i]), ' '.join(lines[i:])
+        if not prefix.isascii() and suffix.isascii():
+            return label(name) == label(suffix)
+    return False
 
 
 def find_premise(results, doc_id, *, code=None, name=None, require_credits=True):
@@ -77,6 +86,12 @@ def find_premise(results, doc_id, *, code=None, name=None, require_credits=True)
 
 
 def prerequisite(premise):
+    codes = prerequisite_codes(premise)
+    return codes[0] if codes and len(codes) == 1 else None
+
+
+def prerequisite_codes(premise):
+    """A bounded, unconditional source-cell AND list, not an inferred chain."""
     cols = [i for i, h in enumerate(premise.headers)
             if folded(h) in {'ma so hoc phan tien quyet', 'ma hoc phan tien quyet',
                              'hoc phan tien quyet', 'prerequisite', 'prerequisites',
@@ -84,9 +99,12 @@ def prerequisite(premise):
     if len(cols) != 1 or len(premise.row) <= cols[0]:
         return None
     cell = str(premise.row[cols[0]]).strip()
-    # Only a single explicit identifier is supported as a dependent hop. OR,
-    # several prerequisites, blank and prose do not become an invented edge.
-    return course_code_key(cell) if CODE.fullmatch(cell) else None
+    if len(cell) > 512 or not re.fullmatch(
+            COURSE_CODE + r'(?:(?:\s*[,;+\n]\s*|\s+(?:and|và|va)\s+|\s+)'
+            + COURSE_CODE + r')*', cell, re.I):
+        return None
+    codes = tuple(course_code_key(m[0]) for m in re.finditer(COURSE_CODE, cell, re.I))
+    return codes if 0 < len(codes) <= 20 and len(codes) == len(set(codes)) else None
 
 
 def deterministic_direct_prerequisite_code(question, results, language='vi', *, calibrator=None):
@@ -226,7 +244,7 @@ def prerequisite_claim_support(text, evidence):
         target, bridge = map(course_code_key, listed.groups())
         used = [record.chunk_id for record in evidence
                 if (premise := find_premise([record], record.doc_id, code=target, require_credits=False))
-                and prerequisite(premise) == bridge]
+                and bridge in (prerequisite_codes(premise) or ())]
         return bool(used), tuple(dict.fromkeys(used))
     codes = [course_code_key(m[1]) for m in CODE.finditer(value)]
     if len(codes) != 2:
@@ -242,7 +260,7 @@ def prerequisite_claim_support(text, evidence):
     used = []
     for record in evidence:
         p = find_premise([record], record.doc_id, code=codes[1],require_credits=False)
-        if p and prerequisite(p) == codes[0]:
+        if p and codes[0] in (prerequisite_codes(p) or ()):
             used.append(record.chunk_id)
         # Exact standalone source statements also prove an edge; two separate
         # endpoint statements never do. No metadata or generated table header.

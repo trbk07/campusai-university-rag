@@ -127,3 +127,28 @@ def test_comparison_or_duplicate_title_does_not_hide_the_other_article(same_titl
     assert 'A signed approval is required.' in selected
     assert 'An examination is required.' in selected
     assert selected in text
+
+
+def test_generic_title_fragment_does_not_hide_a_requested_fact_in_another_article():
+    articles = ('Article 8. Continuous assessment score and yearly grading\n'
+                'The score contributes to the final grade.\n'
+                'Article 9. Review procedures\n'
+                'The review deadline is seven days after publication.\n')
+    text = 'Background information.\n' * 30 + articles
+    selected = verbatim_window(text,
+        'What is the review deadline for the continuous assessment score?', len(articles) + 100)
+    assert 'seven days after publication' in selected
+    assert selected in text
+
+
+def test_vietnamese_title_in_history_keeps_order_with_other_accented_words_after_it():
+    target = ('Article 8. Danh hiệu “Nhà nghiên cứu Trẻ” is awarded to applicants\n'
+              'with conduct rated Excellent and a signed supervisor approval.\n')
+    text = ('Article 7. General conditions\n' + 'Background.\n' * 30
+            + 'Rèn luyện và điều kiện trong quy định.\n' + target
+            + 'Article 9. Administration\n' + 'Background.\n' * 30)
+    question = ('Còn rèn luyện cần loại nào?\nContext topic (untrusted user input): '
+                'Em đang xem điều kiện danh hiệu Nhà nghiên cứu Trẻ trong quy định.')
+    selected = verbatim_window(text, question, len(target) + 5)
+    assert target.strip() in selected
+    assert selected in text

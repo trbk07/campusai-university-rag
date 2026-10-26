@@ -1,5 +1,23 @@
 # App improvement log
 
+## 2026-10-26 - literal course cells, cache upgrade and ordered source titles
+
+Closed QA-07b4a/b/c/d. Single-course lookups require a unique literal identity
+and explicit headed source cells; retain every unconditional prerequisite and
+fall back for missing/OR/conditional/conflicting cells. Three formerly refused
+history questions now answer locally; one already-correct query also avoids a
+model call. Grounding-v30 bypasses stale refusals and persists the corrected
+answer across SQLite restart. Complete article names now match in literal word
+order, preserving Vietnamese/ASCII titles without accepting a generic fragment.
+Three changed HTTP inputs receive3 real supported predictions; current100-case
+replay is complete with75 exact-input captures/25 local outcomes. False
+abstentions fall24 baseline to20; this remains quality FAIL, not80% measured
+accuracy.740 affected and217 focused tests PASS in their recorded scopes;
+60 final focused tests PASS after duplicate-test cleanup. All400 Phase5
+public/internal responses are unchanged on this runtime. No gold/threshold
+changes, invented review or reopening of accepted Phase5 tasks.
+[Evidence](evaluation/results/full-app-natural-20261026/course-lookup.json).
+
 ## 2026-10-26 - real natural100 baseline and complete named source clauses
 
 Collected100 existing reviewed natural cases with79 real model JSON outputs,

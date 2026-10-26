@@ -4,7 +4,23 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Natural100 actual inference is complete:80 positive/20 negative cases,15 with
+Latest natural100 repair closes QA-07b4a/b/c/d: literal single-course table
+lookups return explicit credit/prerequisite cells, with complete unconditional
+lists and ambiguity guards. Grounding-v30 bypasses stale refusals; SQLite
+restart reuse is tested. Full literal source titles use ordered folded tokens,
+not the retrieval token bag.740 affected tests and217 focused tests PASS at
+their recorded source versions; removing an identical duplicate test leaves
+60 focused PASS on the final source. Only3 new HTTP inputs were sent, all3
+published supported answers. Current100-case replay has0 pending,75 exact-input
+captures and25 local paths;20 definite false abstentions remain (accuracy
+ceiling80%). No known context false abstentions is not a full context score;
+hallucination remains unmeasured. All400 Phase5 public/internal responses stay
+unchanged on this production runtime, with no new provider calls for that
+compatibility check. Whole-app AI quality remains FAIL. Next: semester/table
+scope and the remaining date/condition errors. No thresholds/gold were changed.
+[Current evidence](evaluation/results/full-app-natural-20261026/course-lookup.json).
+
+Earlier natural100 inference baseline:80 positive/20 negative cases,15 with
 history,10 typo cases,79 successful real JSON model outputs plus21 local paths;
 79 POSTs,0 provider faults. This baseline definitely false-abstains24 positives,
 so accuracy cannot exceed76%, irrespective of remaining semantic review. A
@@ -13,7 +29,7 @@ line predicate. Source windows now retain the complete specifically named
 article, all equally named/compared clauses within budget and explicit numeric
 locators.531 affected tests PASS. Only3 HTTP inputs changed:3 new real calls
 produce supported answers;76 existing captures remain exact-input reusable.
-Current100-case reprocessing is complete with0 pending and23 definite false
+That recorded100-case reprocessing has0 pending and23 definite false
 abstentions (accuracy ceiling77%, context ceiling80%). Hallucination remains
 unmeasured. Quality is FAIL, not accepted; next work is structured course/table
 false-abstentions. No gold/review/threshold changes and no Phase5 reopening.

@@ -3,6 +3,7 @@ import re
 from collections import Counter
 import math
 from ..retrieval.tokenizer_vi import normalized_tokens
+from .course_credits import folded
 
 _STOP = set('a an the and or of to in on for is are was were be does do did what which how why when '
             'should would could called this that these those it its la cua va hay cho nhung gi nao '
@@ -36,17 +37,24 @@ def verbatim_window(text: str, question: str, limit: int) -> str:
     if not requested:
         headings = list(re.finditer(
             r'(?mi)^[ \t]*(?:article|điều|dieu)\s+\d+\s*[:.)]\s*([^\r\n]*)', text))
-        query_tokens = normalized_tokens(question)
-        phrases = {tuple(query_tokens[i:i + size])
-                   for size in range(3, 9) for i in range(len(query_tokens) - size + 1)}
-        matches = []
+        # Retrieval tokens append accentless aliases; they are a bag, not an
+        # ordered phrase. Literal title matching must preserve word order.
+        ordered_tokens = lambda value: tuple(re.findall(r'[^\W_]+', folded(value)))
+        query_tokens = ordered_tokens(question)
+        labels = []
         for heading in headings:
             label = re.split(r'\b(?:is|are|shall|must|được|duoc|có|co)\b',
                              heading[1], maxsplit=1, flags=re.I)[0]
-            tokens = normalized_tokens(label)
-            matches.append({tuple(tokens[i:i + size]) for size in range(3, 9)
-                            for i in range(len(tokens) - size + 1)
-                            if tuple(tokens[i:i + size]) in phrases})
+            # Match the complete title (or a complete quoted name in it).
+            # A generic three-word fragment of a longer heading is not an
+            # explicit locator and must not hide facts from another article.
+            titles = [label, *re.findall(r'["“]([^"”]+)["”]', label)]
+            labels.append({tokens for title in titles
+                           if 3 <= len(tokens := ordered_tokens(title)) <= 32})
+        sizes = {len(title) for group in labels for title in group}
+        phrases = {tuple(query_tokens[i:i + size]) for size in sizes
+                   for i in range(len(query_tokens) - size + 1)}
+        matches = [group & phrases for group in labels]
         found = set().union(*matches) if matches else set()
         # A shared title prefix is not a second named object. E.g. the prefix
         # "student award" must not outrank a complete, explicitly named award.

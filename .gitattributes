@@ -76,3 +76,8 @@
 /evaluation/results/full-app-natural-20261026/** -text whitespace=cr-at-eol
 /src/campusai/rag/source_windows.py -text
 /tests/test_source_windows.py -text
+/src/campusai/rag/course_lookup.py -text
+/src/campusai/rag/multi_hop_evidence.py -text
+/src/campusai/rag/cache.py -text
+/src/campusai/rag/grounding.py text eol=crlf whitespace=cr-at-eol
+/tests/test_course_lookup.py -text whitespace=cr-at-eol
