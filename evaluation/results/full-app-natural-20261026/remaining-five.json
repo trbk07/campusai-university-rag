@@ -1,0 +1,291 @@
+{
+  "date": "2026-10-26",
+  "status": "QA_07B8A_DONE_QUALITY_SCORING_STILL_OPEN",
+  "completed_tasks": [
+    "QA-07b8a"
+  ],
+  "source_identity": {
+    "commit": "1383063d0fb5b9c312d08731475774452a15c80b",
+    "source_sha256": "8f18d028c3008e99d9b491fdcd8b49ad74dd86b949de028438e63b859c63299e",
+    "runtime_sha256": "5c086e180a51f0aa9d9e7c8302538a375d68a8850a5b7c1dec49c002a94cad28"
+  },
+  "fixes": {
+    "notice_dates": [
+      "human-candidate-0111",
+      "human-candidate-0112",
+      "human-candidate-0128"
+    ],
+    "named_award_necessary_grade": [
+      "human-candidate-0121"
+    ],
+    "course_name_credits": [
+      "human-candidate-0160"
+    ],
+    "method": "Read actual selected-source fields; require unambiguous round/year, complete normative conditions and consistent headed course rows. No gold enters runtime; ambiguous or unsupported requests fall back.",
+    "cache_policy": "grounding-v35",
+    "grounding_presentation_thresholds_changed": false
+  },
+  "campaign": {
+    "pipeline_cases": 100,
+    "pending_cases": 0,
+    "fresh_provider_posts": 0,
+    "fresh_model_outputs": 0,
+    "selected_capture_uses": 54,
+    "local_cases_without_model": 46,
+    "index_manifest_sha256": "4ac6d64e77d5d71c7402397a04613c8ea674fc488c61a16e5d494239c32b179a"
+  },
+  "post_inference_checks": {
+    "valid_public_schemas": 100,
+    "valid_literal_citation_bindings": 82,
+    "false_abstention_ids": [],
+    "negative_gold_answered_ids": [],
+    "public_responses_unchanged": 90,
+    "changed_field_checks": [
+      {
+        "id": "human-candidate-0111",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0111-c1",
+            "field": "explicit_date_and_clock",
+            "reviewed_values": [
+              "17/09/2022"
+            ],
+            "matches": true
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0112",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0112-c1",
+            "field": "explicit_date_and_clock",
+            "reviewed_values": [
+              "30/08/2022",
+              "17h00"
+            ],
+            "matches": true
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0121",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0121-c1",
+            "field": "necessary_grade_condition_for_named_award",
+            "matches": true,
+            "no_actual_student_revocation_asserted": true
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0128",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0128-c1",
+            "field": "explicit_date_and_clock",
+            "reviewed_values": [
+              "30/08/2022",
+              "17h00"
+            ],
+            "matches": true
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0156",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0156-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 3,
+            "actual_page": 3
+          },
+          {
+            "claim_id": "human-candidate-0156-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 3,
+            "actual_page": 3
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0157",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0157-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 3,
+            "actual_page": 3
+          },
+          {
+            "claim_id": "human-candidate-0157-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 3,
+            "actual_page": 3
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0159",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0159-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 7,
+            "actual_page": 7
+          },
+          {
+            "claim_id": "human-candidate-0159-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 7,
+            "actual_page": 7
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0160",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0160-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 9,
+            "actual_page": 6
+          },
+          {
+            "claim_id": "human-candidate-0160-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 9,
+            "actual_page": 6
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0165",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0165-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 5,
+            "actual_page": 5
+          },
+          {
+            "claim_id": "human-candidate-0165-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 5,
+            "actual_page": 5
+          }
+        ]
+      },
+      {
+        "id": "human-candidate-0177",
+        "requested_fields": [
+          {
+            "claim_id": "human-candidate-0177-c1",
+            "field": "course_name",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 6,
+            "actual_page": 6
+          },
+          {
+            "claim_id": "human-candidate-0177-c2",
+            "field": "credits",
+            "value_matches_unchanged_gold": true,
+            "same_selected_document": true,
+            "gold_page": 6,
+            "actual_page": 6
+          }
+        ]
+      }
+    ],
+    "alternate_page_note": "0160 uses literal EMA3143 row on page6 of the same selected PDF; code/name/credits equal reviewed page9 row. No new page review or approval record created."
+  },
+  "tests": {
+    "related_passed": 721,
+    "failed": 0,
+    "skipped": 0,
+    "is_full_suite": false,
+    "before_regressions": {
+      "notice_date_lookup": {
+        "tests": 3,
+        "failures": 3
+      },
+      "unknown_or_invalid_date_conflicts": {
+        "tests": 3,
+        "failures": 2
+      },
+      "unparsed_grade_modifiers": {
+        "tests": 3,
+        "failures": 2
+      }
+    }
+  },
+  "phase5_compatibility": {
+    "source_identity": {
+      "commit": "1383063d0fb5b9c312d08731475774452a15c80b",
+      "source_sha256": "8f18d028c3008e99d9b491fdcd8b49ad74dd86b949de028438e63b859c63299e",
+      "runtime_sha256": "5c086e180a51f0aa9d9e7c8302538a375d68a8850a5b7c1dec49c002a94cad28"
+    },
+    "accepted_cases": 400,
+    "source_lookup_matches": [],
+    "fresh_provider_posts": 0,
+    "index_manifest_sha256": "13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a",
+    "accepted_prediction_sha256": "1afe33c603c724783f411360b44308a2adea84849a39144056b08e71362e62e0",
+    "method": "Run all current local-field predicates against 400 accepted resolved requests and complete selected frozen-index documents; unchanged generator/prompt outside these predicates."
+  },
+  "quality_gates": {
+    "five_false_abstention_fixes": "DONE",
+    "whole100_accuracy": null,
+    "whole100_hallucination": null,
+    "whole100_context": null,
+    "whole100_semantic_scoring": "OPEN",
+    "final_full_suite_sequence": "OPEN",
+    "gold_modified": false,
+    "review_records_created": 0,
+    "phase5_internal_acceptance_reopened": false
+  },
+  "next": "QA-07b8b: complete semantic accuracy/hallucination/context scoring against unchanged reviewed gold. Keep completed tasks closed.",
+  "bindings": {
+    "evaluation/results/full-app-natural-20261026/checkpoint-remaining-five-final/run.json": "0ee144fd605a8e2c2314ea9931e35aae9b880bbd387305f5fb4718cf7280c837",
+    ".tmp/remaining-five-field-checks-20261026.json": "a7b5b1f5fbe10e66c65c984484b23f00467d6cbc2d96556c6b304f1ad6440a71",
+    ".tmp/remaining-five-phase5-final-20261026.json": "b1a1ecd92f07876930a14ef3b56becf63b98d4394ecaa3369c3fab5b12184d50",
+    ".tmp/remaining-five-verified-20261026.xml": "6486b4a31e2a41a78e928a3882194996b752e17a7c8843c82222bb2593d4720f",
+    "evaluation/results/full-app-natural-20261026/inputs.jsonl": "431199aba4cec6451c2d6e5d22ec416c325c64474d88ae6274dec297c7f65363",
+    "evaluation/results/phase7-completion-20261004/p7-06-dev-source-rubric-20261007-v2.json": "e8b36b665c19bae4baf06219f8fdac9a5ea281423d5e5537c7d6c23023ca8516",
+    "configs/free_llm.yaml": "69050a324afdc50a2cda7848370e420d14a2226e6e4e3ebfa32a349572ac388c",
+    "src/campusai/rag/cache.py": "3082981fb04623bbbd27c1121bee8a7a3fecfb0a038be567ad1d0b0db0aab4cb",
+    "src/campusai/rag/service.py": "c05b1d3852d739fedb91aa1cbbb968ab0075c80ada9bc30d1d6f2ab29456d362",
+    "src/campusai/rag/curriculum_lookup.py": "f8e6efc8326fb481533919f7e2806189603b843de9bf495d4090d4327f7c5d6c",
+    "src/campusai/rag/notice_dates.py": "9d55ee31b9e5e965bbecfdf073bd33b06cde53571506f63d8381a8d79ca57b21",
+    "src/campusai/rag/award_conditions.py": "ee62e71cad5577649ae47575780cf16ee6e0e24b2196b24f2169abbc5dcd404b",
+    "tests/test_curriculum_lookup.py": "9d4a89db1291adfc36e3c1cde45291f86b635b1e19d6cd76f5141b8dcea65939",
+    "tests/test_notice_dates.py": "4cb3fa79993dbf35416bdf5e8055e93e7110baf3d3d7ca59f4b4d376ca9960aa",
+    "tests/test_award_conditions.py": "356bf0250e5f87744a6b6c453bb15181dbcf834cdd5dfa4cf6e842b8d42142c9",
+    "evaluation/results/full-app-natural-20261026/checkpoint-remaining-five-final/predictions.jsonl": "31a86fa3a8c6a10bd55af3f71f777cabb6aa7d8513eb68ebd24355d9ff1f5a05",
+    "evaluation/results/full-app-natural-20261026/checkpoint-remaining-five-final/pending.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluation/results/full-app-natural-20261026/checkpoint-remaining-five-final/source-pool.json": "5a8a7b159e41a522a17f04fb038259c64c18ce949e53633e07aeced792cb4706"
+  },
+  "raw_storage": "Exact checkpoint, field checks, compatibility scan and test XMLs retained via evaluation/artifacts/manifest.json; original native producer metadata remains unchanged."
+}

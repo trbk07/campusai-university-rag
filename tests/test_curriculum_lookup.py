@@ -208,6 +208,41 @@ def test_index_change_during_projection_is_not_published_or_cached(tmp_path, mon
         service.close()
 
 
+def code_document():
+    doc=document()
+    doc['items'][0]['content']=json.dumps({'headers':['Hours','Course name','Course code','Credits'],
+        'rows':[['90','Terminal Research Assessment','XYZ304','7']]})
+    return doc
+
+
+def test_code_name_and_credits_use_the_literal_headed_row(tmp_path):
+    service=application(tmp_path,[code_document()])
+    try:
+        result=service.ask('môn XYZ304 trong chương trình là môn gì và có bao nhiêu tín chỉ vậy?',doc_ids=['plan'])
+        assert not result.abstained and 'Terminal Research Assessment' in result.answer
+        assert '7 tín chỉ' in result.answer and '90 tín chỉ' not in result.answer
+        assert 'XYZ304' in result.citations[0].quote
+    finally:service.close()
+
+
+@pytest.mark.parametrize('mutate',[
+    lambda t:t['headers'].__setitem__(3,'Contact hours'),
+    lambda t:t['rows'][0].__setitem__(3,''),
+    lambda t:t['rows'][0].__setitem__(2,'XYZ304 / XYZ305'),
+    lambda t:t['rows'].append(['90','Different Course Name','XYZ304','7']),
+    lambda t:t['rows'].append(['90','Terminal Research Assessment','XYZ304','8']),
+])
+def test_code_projection_rejects_ambiguous_identity_name_or_unit(mutate):
+    doc=code_document(); data=json.loads(doc['items'][0]['content']); mutate(data)
+    doc['items'][0]['content']=json.dumps(data)
+    assert project('môn XYZ304 trong chương trình là môn gì và có bao nhiêu tín chỉ vậy?',doc) is None
+
+
+def test_code_projection_does_not_drop_an_extra_requested_field():
+    question='môn XYZ304 trong chương trình là môn gì và có bao nhiêu tín chỉ và học phí bao nhiêu?'
+    assert project(question,code_document()) is None
+
+
 def test_source_changes_invalidate_cached_projection(tmp_path):
     service = application(tmp_path)
     try:

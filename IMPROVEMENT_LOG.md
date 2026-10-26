@@ -1,5 +1,18 @@
 # App improvement log
 
+## 2026-10-26 - close five remaining natural100 false abstentions
+
+Closed QA-07b8a: three notice date/deadline questions, one named-award necessary
+grade condition and one course name/credits lookup. Values come from selected
+source fields; no benchmark input, answer constants or gate changes enter runtime.
+721 related tests PASS. The final100-case pipeline has0 pending/false abstentions,
+0 negative gold cases answered,100 valid public schemas and82 valid citations.
+Changed requested fields match unchanged reviewed gold;90 public responses stay
+unchanged.54 exact native captures and46 local outcomes require0 new API calls.
+All400 accepted Phase5 requests miss the new predicates; keep internal Phase5 DONE.
+Full semantic/hallucination/context scoring remains the next task, not a claimed
+100% quality score. [Evidence](evaluation/results/full-app-natural-20261026/remaining-five.json).
+
 ## 2026-10-26 - complete current-index natural100 campaign
 
 Closed QA-07b7a/b. An opt-in offline adapter proves complete selected BM25/dense

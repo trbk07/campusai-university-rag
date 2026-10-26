@@ -18,7 +18,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-sửa 5 ca từ chối sai còn lại và chấm đầy đủ accuracy/hallucination/context.
+chấm đầy đủ accuracy/hallucination/context. Đã sửa và đóng 5 ca từ chối sai còn lại.
 Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
@@ -66,7 +66,11 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Đã xong QA-07b7a/7b:** đủ 100/100 ca trên cùng index mới, 0 pending;
    64 captures thật được kiểm chứng đầu vào và 36 ca local. Còn 5 ca từ chối sai;
    chưa coi mức trần 95% là accuracy đã đo.
-   **Còn lại:** sửa 5 ca này và chấm đủ accuracy/hallucination/context,
+   **Đã xong QA-07b8a:** sửa đủ 5 ca từ chối sai về ngày/hạn tuyển sinh, điều kiện
+   danh hiệu và tên/tín chỉ học phần; đối chiếu trường trả lời với gold đã review.
+   Bộ 100 ca hiện đủ kết quả, 0 từ chối sai, 0 câu thiếu dữ liệu bị trả lời;
+   82 citation hợp lệ, 721 tests liên quan PASS, không gọi thêm API.
+   **Còn lại QA-07b8b:** chấm đủ accuracy/hallucination/context,
    không hạ ngưỡng hoặc gọi lại ca đã có capture hợp lệ.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
@@ -92,6 +96,13 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-07b8a — Sửa 5 ca từ chối sai cuối của natural100.** Ngày/hạn từ thông báo
+  đúng đợt/năm; điều kiện điểm từ đúng danh hiệu; tên và tín chỉ từ cột bảng nguồn.
+  Đã kiểm lại đủ 100 ca trên cùng index; 90 phản hồi công khai giữ nguyên, 5 ca sửa
+  đúng và 5 ca vốn đúng chuyển sang local. 721 tests PASS. Tra cứu mới không khớp
+  ca nào trong 400 ca Phase 5 đã nghiệm thu; giữ đóng Phase 5 nội bộ.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/remaining-five.json).
 
 - [x] **QA-01 — Đóng gói và khởi động từ Git.** Đã sửa lỗi thiếu module;
   bản export có 114 app tests PASS.

@@ -1,5 +1,23 @@
 # Full-app QA audit
 
+## 2026-10-26 - close the remaining five false abstentions
+
+QA-07b8a DONE. Source-owned lookups read the literal notice round/year and full
+date/window, apply only an explicit necessary grade condition for the named award,
+and resolve code/name/credits from consistent headed source rows. Unknown dates,
+grade modifiers, exceptions, conflicting rows and extra intents fall back to RAG.
+No presentation/grounding threshold was relaxed. Cache policy v35 bypasses old
+refusals. 721 related tests PASS, including source conflicts and restart behavior.
+The final same-index100 pipeline uses54 exact HTTP captures and46 local outcomes,
+with0 fresh calls,0 pending,0 false abstentions and0 negative gold rows answered.
+All100 public schemas and82 literal citation bindings validate. A separate
+post-inference check matches changed requested fields to unchanged reviewed gold;
+90 public responses are unchanged. EMA3143 uses the same literal row on page6
+instead of reviewed page9; this is not a new review record. All400 accepted Phase5
+requests miss these source lookups, preserving its internal acceptance. Whole100
+semantic accuracy, hallucination/context scoring and final full regressions remain
+OPEN. [Evidence](evaluation/results/full-app-natural-20261026/remaining-five.json).
+
 Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization.
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.

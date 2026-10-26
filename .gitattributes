@@ -101,3 +101,7 @@
 /tests/test_curriculum_lookup.py -text whitespace=cr-at-eol
 /evaluation/grounding/scoped_checkpoint.py -text whitespace=cr-at-eol
 /tests/test_scoped_checkpoint.py -text whitespace=cr-at-eol
+/src/campusai/rag/notice_dates.py -text whitespace=cr-at-eol
+/src/campusai/rag/award_conditions.py -text whitespace=cr-at-eol
+/tests/test_notice_dates.py -text whitespace=cr-at-eol
+/tests/test_award_conditions.py -text whitespace=cr-at-eol

@@ -575,6 +575,14 @@ class CampusAIQueryService:
                     documents = self._temporal_documents(doc_ids, filters)
                     projection = lookup_curriculum(question, documents, doc_ids=doc_ids,
                         language=language, calibrator=self.answer_generator.calibrator)
+                    if projection is None:
+                        from .notice_dates import lookup_notice_date
+                        projection = lookup_notice_date(question, documents, doc_ids=doc_ids,
+                            language=language, calibrator=self.answer_generator.calibrator)
+                    if projection is None:
+                        from .award_conditions import lookup_award_condition
+                        projection = lookup_award_condition(question, documents, doc_ids=doc_ids,
+                            language=language, calibrator=self.answer_generator.calibrator)
                 if projection is not None:
                     # An ingest/index replacement must not bind an older table
                     # snapshot to a newer cache identity (or vice versa).
@@ -585,7 +593,7 @@ class CampusAIQueryService:
                             abstention_reason='insufficient_evidence', fallback='source_changed_during_lookup')
                         return _abstention('insufficient_evidence', language=language)
                     answer, self.last_retrieval = projection
-                    self.retriever.last_trace = RoutingTrace(route='source_table_lookup', exact_match=True,
+                    self.retriever.last_trace = RoutingTrace(route=self.last_retrieval[0].retriever, exact_match=True,
                         filters_applied=bool(filters), candidate_count=len(self.last_retrieval),
                         final_count=len(self.last_retrieval), abstained=False)
                     self.cache.put(key, answer)

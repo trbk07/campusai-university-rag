@@ -8,7 +8,7 @@ import json
 import re
 from decimal import Decimal
 
-from .course_credits import folded
+from .course_credits import folded, COURSE_CODE, course_code_key
 from .multi_hop_evidence import table
 from .semester_citations import _marker, _subtotal
 from .semester_totals import _SEMESTER, _NUMBERS
@@ -169,6 +169,39 @@ def _course(tables, question):
                   'rows':data['rows'][scope[2]:row_index+1]}, label, scope[0], value
 
 
+def _code_request(question):
+    text = folded(question).strip(' .?!')
+    patterns = (
+        r'(?:mon|hoc phan) ('+COURSE_CODE+r')(?: trong chuong trinh)? la (?:mon|hoc phan) gi va co (?:bao nhieu|may|bn) tin chi(?: vay| nhi)?',
+        r'what (?:is|are) the name and credits of course ('+COURSE_CODE+r')',
+    )
+    for pattern in patterns:
+        if match := re.fullmatch(pattern,text,re.I):
+            return course_code_key(match[1])
+
+
+def _code_course(tables, code):
+    records = []
+    for item,data,name in tables:
+        identity = _column(data['headers'],{'course code','ma hoc phan','ma so hoc phan'})
+        credit = _column(data['headers'],{'credits','so tin chi'})
+        if identity is None or credit is None:
+            return None
+        for row in data['rows']:
+            cell = row[identity].strip()
+            if code not in {course_code_key(m[0]) for m in re.finditer(COURSE_CODE,cell,re.I)}:
+                continue
+            value = row[credit].strip()
+            if (course_code_key(cell)!=code or not row[name].strip()
+                    or not re.fullmatch(r'[0-9]{1,3}(?:[.,][0-9]{1,2})?',value)):
+                return None
+            records.append((item,row,' '.join(row[name].split()),Decimal(value.replace(',','.'))))
+    if not records or len({(folded(p[2]),p[3]) for p in records})!=1:
+        return None
+    item,row,label,value = records[0]
+    return item,row,label,format(value.normalize(),'f')
+
+
 def lookup_curriculum(question, documents, *, doc_ids, language='vi', calibrator=None):
     """Return an answer and exact indexed proof, only for one selected source."""
     if doc_ids is None or len(doc_ids) != 1 or len(documents) != 1 or documents[0]['doc_id'] != doc_ids[0]:
@@ -177,14 +210,22 @@ def lookup_curriculum(question, documents, *, doc_ids, language='vi', calibrator
     if topic and re.search(r'\b(?:neu|if|unless|mien|waiver|transfer|chuyen nganh|so sanh|compare|versus)\b', folded(topic)):
         return None
     semester = _provider_request(question)
-    if semester is None and not (re.search(r'\b(?:tin|tc|credits)\b', folded(question))
+    code = _code_request(question)
+    if code is None and semester is None and not (re.search(r'\b(?:tin|tc|credits)\b', folded(question))
                                 and re.search(r'\b(?:ky|hk|semester|luc nao)\b', folded(question))):
         return None
     tables = _tables(documents[0])
     if not tables:
         return None
     english = language.casefold().startswith('en')
-    if semester is not None:
+    if code is not None:
+        projection = _code_course(tables,code)
+        if projection is None:
+            return None
+        item,quote,label,credits = projection
+        facts = ([f'Course {code} is {label}.',f'Course {code} has {credits} credits.'] if english else
+                 [f'Môn {code} là {label}.',f'Môn {code} có {credits} tín chỉ.'])
+    elif semester is not None:
         projection = _provider(tables, semester)
         if projection is None:
             return None
