@@ -2,6 +2,20 @@
 
 Latest cycle:2026-10-26. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+Actual natural100:80 positives,20 negatives,15 contextual and10 typo cases from
+the existing owner-approved dataset. No gold/labels enter inference. Baseline
+completes100 pipeline cases using79 real model outputs/POSTs and21 local paths.
+Named-article source-window tests reproduce loss of the predicate after its
+title; retain comparisons, duplicate titles and explicit article precedence.
+The final531-test affected suite PASS includes grounding, citation, arithmetic,
+temporal, multi-hop and relation checks. Only3 changed prompts need fresh
+inference; all3 return supported answers. The current100-case checkpoint uses
+76 unchanged real captures plus these3, with21 local paths and0 pending. These
+are genuine captured responses, not79 new generations on the final source.
+Quality still FAIL:23 definite false abstentions; the repair does not establish
+the remaining answers' correctness or hallucination rate.
+[Evidence](evaluation/results/full-app-natural-20261026/repair.json).
+
 Natural-context cycle:429 affected tests PASS across request completeness, API,
 Phase7 candidate generation, source-course generation, relations, multi-hop,
 temporal and routing.16 accented/accentless ellipsis cases check user-only

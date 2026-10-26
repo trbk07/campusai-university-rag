@@ -4,6 +4,29 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
+Natural100 actual inference is complete:80 positive/20 negative cases,15 with
+history,10 typo cases,79 successful real JSON model outputs plus21 local paths;
+79 POSTs,0 provider faults. This baseline definitely false-abstains24 positives,
+so accuracy cannot exceed76%, irrespective of remaining semantic review. A
+confirmed P1 truncation ended at a named article's title and omitted its next-
+line predicate. Source windows now retain the complete specifically named
+article, all equally named/compared clauses within budget and explicit numeric
+locators.531 affected tests PASS. Only3 HTTP inputs changed:3 new real calls
+produce supported answers;76 existing captures remain exact-input reusable.
+Current100-case reprocessing is complete with0 pending and23 definite false
+abstentions (accuracy ceiling77%, context ceiling80%). Hallucination remains
+unmeasured. Quality is FAIL, not accepted; next work is structured course/table
+false-abstentions. No gold/review/threshold changes and no Phase5 reopening.
+[Baseline](evaluation/results/full-app-natural-20261026/diagnostic-score.json),
+[repair and trace bindings](evaluation/results/full-app-natural-20261026/repair.json).
+
+Storage check: the new natural100 raw payloads are archived and hash-verified,
+with only compact inputs/reports staged. The repository-wide artifact guard
+still flags two pre-existing frozen reports, `phase5-mixed-absence-20261024/`
+`v28-final-score.json` and `v29-final-score.json`, as full observations. Their
+accepted bytes/bindings are retained unchanged; this storage-policy finding
+does not reopen Phase5 quality acceptance and remains for artifact cleanup.
+
 Natural-context repair: the existing180 owner-approved inputs include15 history
 cases. Eight lost their topic before retrieval (7/15 retained); bounded whole-
 utterance ellipsis detection now retains15/15, including accentless forms.

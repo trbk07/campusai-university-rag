@@ -1,0 +1,52 @@
+{
+  "status": "FAIL_BASELINE_DEFINITE_FALSE_ABSTENTIONS",
+  "scope": "Current actual CampusAI service; previously exposed reviewed natural100",
+  "pipeline_cases": 100,
+  "successful_real_json_outputs": 79,
+  "provider_posts": 79,
+  "provider_faults": 0,
+  "definite_false_abstention_ids": [
+    "human-candidate-0052",
+    "human-candidate-0056",
+    "human-candidate-0057",
+    "human-candidate-0058",
+    "human-candidate-0077",
+    "human-candidate-0080",
+    "human-candidate-0081",
+    "human-candidate-0082",
+    "human-candidate-0083",
+    "human-candidate-0084",
+    "human-candidate-0085",
+    "human-candidate-0086",
+    "human-candidate-0088",
+    "human-candidate-0090",
+    "human-candidate-0091",
+    "human-candidate-0092",
+    "human-candidate-0093",
+    "human-candidate-0094",
+    "human-candidate-0111",
+    "human-candidate-0112",
+    "human-candidate-0121",
+    "human-candidate-0123",
+    "human-candidate-0128",
+    "human-candidate-0160"
+  ],
+  "accuracy_upper_bound": 0.76,
+  "context_cases": 15,
+  "context_false_abstention_ids": [
+    "human-candidate-0052",
+    "human-candidate-0056",
+    "human-candidate-0057",
+    "human-candidate-0058"
+  ],
+  "context_accuracy_upper_bound": 0.7333333333333333,
+  "not_a_complete_semantic_or_hallucination_score": true,
+  "gold_and_review_unchanged": true,
+  "phase5_reopened": false,
+  "source_identity": {
+    "commit": "842435eae6920475f978bc80b936ace2684c1f12",
+    "source_sha256": "65cba5e914a53a551cf135f005a3a8c6801471bdef1f74e8d3e7431191004dea",
+    "runtime_sha256": "d077ada78bdf224be72154014b1a6b0e9d967a293fe6f8759bb7fc1d442fd193"
+  },
+  "next_fix": "Preserve the full specifically named article in a bounded source window; source currently ends after the target heading and omits its predicate in case0052"
+}

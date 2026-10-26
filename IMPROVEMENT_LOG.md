@@ -1,5 +1,19 @@
 # App improvement log
 
+## 2026-10-26 - real natural100 baseline and complete named source clauses
+
+Collected100 existing reviewed natural cases with79 real model JSON outputs,
+21 local outcomes and0 provider faults.24 false abstentions make the baseline
+quality FAIL. Fixed a confirmed context-window truncation:the named article's
+heading survived while its next-line condition disappeared. Selection now keeps
+complete explicitly named clauses, including duplicate titles/comparisons;
+numbered locators take precedence.531 affected tests PASS. Exactly3 HTTP inputs
+change;3 fresh predictions now publish supported answers,76 existing captures
+are reused only on exact request/model/config/index/body match. Total82 actual
+POSTs,100 current pipeline outcomes,0 pending.23 false abstentions remain;
+accuracy/context gates stay open. No benchmark/gold/threshold changes.
+[Evidence](evaluation/results/full-app-natural-20261026/repair.json).
+
 ## 2026-10-26 - retain implicit conversational subjects
 
 Fixed eight previously reviewed follow-ups losing their user topic before

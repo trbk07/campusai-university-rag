@@ -17,9 +17,10 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Triển khai cloud miễn phí | **ĐANG LÀM** · 6/64 tiêu chí, 0/16 task hoàn tất |
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
-**Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai).
-Chọn các ca còn thiếu predictions hoặc số đo từ dữ liệu đã review; chỉ bù khoảng
-trống, không review lại gold đã đạt và không làm lại các task DONE.
+**Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
+ưu tiên các câu hỏi bảng tín chỉ/tiên quyết còn bị từ chối sai. Đã có đủ 100 ca
+pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
+Không review lại gold đã đạt hoặc làm lại task DONE.
 
 Đi đến: [Việc còn lại](#viec-con-lai) · [Đã DONE](#da-done) ·
 [Phase 5](#phase-5) · [Toàn bộ phase](#cac-phase) · [Cloud](#phase-13--deployment) ·
@@ -48,7 +49,9 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **accuracy ≥90%, hallucination ≤2%, context ≥95%**.
    Tái sử dụng dữ liệu đã review; fixture provider hoặc AI tự chấm không đủ để đóng.
    **Đã xong QA-07b1:** sửa bỏ ngữ cảnh ở câu hỏi lược chủ thể; giữ chủ đề 15/15 ca.
-   **Còn lại:** predictions và phép chấm chất lượng đáp án AI thật.
+   **Đã xong QA-07b2/3:** thu đủ 100 ca thật và sửa lỗi cắt mất điều kiện sau tên điều khoản.
+   **Còn lại:** 23 ca từ chối sai; accuracy tối đa hiện tại 77%, context tối đa 80%,
+   chưa đạt ngưỡng. Sửa lỗi rồi chấm đầy đủ accuracy/hallucination/context.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
@@ -66,8 +69,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Bản trước có 1 full run **2.718 PASS / 2 live SKIP**. Bản sửa ngữ cảnh ngày
-   26/10 có **429 tests liên quan PASS**; chưa chạy chuỗi full cuối trên bản này.
+   Bản trước có 1 full run **2.718 PASS / 2 live SKIP**. Bản sửa nguồn mới nhất
+   ngày 26/10 có **531 tests liên quan PASS**; chưa chạy chuỗi full cuối trên bản này.
    Không cộng các run trên source khác.
 
 <a id="da-done"></a>
@@ -103,9 +106,11 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 | QA-03a — Đo/sửa OCR và index, bật GPU | Đối sánh CPU/CUDA trên 5 PDF / 104 trang; có số đo reindex thực tế. Chưa thay phép đo fresh upload 100 trang / 10 MB. |
 | QA-07a — Kiểm kê PDF | 34 SHA khác nhau; đã kiểm số trang và thứ tự trang vật lý. Chưa đồng nghĩa đạt mọi ngưỡng chất lượng PDF. |
 | QA-07b1 — Giữ chủ đề của câu hỏi lược chủ thể | DONE · 15/15 ca đã review, trước sửa 7/15. Hybrid truy hồi đủ các trang gold ở top 8: 14/15 → 15/15; chưa phải accuracy đáp án AI. [Bằng chứng](docs/ui/evidence/natural-context-20261026.json). |
+| QA-07b2 — Chạy bộ 100 câu tự nhiên thật | DONE · 80 câu có đáp án, 20 negative, gồm 15 nhiều lượt và 10 lỗi gõ. Baseline có 79 phản hồi JSON model thật, 21 ca local, không lỗi provider; chất lượng còn FAIL. [Baseline](evaluation/results/full-app-natural-20261026/diagnostic-score.json). |
+| QA-07b3 — Giữ đủ điều kiện sau tiêu đề nguồn | DONE · 531 tests liên quan PASS; gọi mới đúng 3 ca đổi payload, dùng lại 76 captures khớp HTTP. Cả 3 ca trả đáp án có nguồn; 100/100 ca pipeline đầy đủ, tổng 82 POSTs thật. Không hạ gate. [Kết quả](evaluation/results/full-app-natural-20261026/repair.json). |
 | QA-08a — API thường, 20 người đồng thời | 400/400 HTTP 200; p95 tổng 0,478 giây, thư viện 0,429 giây, fact PDF 0,497 giây trên workload local 7 tài liệu / 17 jobs. |
 | QA-08b — Web Vitals trong lab | 9/9 sessions đạt trên desktop/tablet/mobile; max LCP 308 ms, INP 104 ms, CLS 0,0109. |
-| QA-09a — Unit/integration đã chốt | Bản 25/10: 2.718 full PASS / 2 opt-in live SKIP. Bản sửa ngữ cảnh 26/10: 429 tests liên quan PASS. Chuỗi full cuối thực hiện tại QA-09d. |
+| QA-09a — Unit/integration đã chốt | Bản 25/10: 2.718 full PASS / 2 opt-in live SKIP. Ngữ cảnh 26/10: 429 tests liên quan PASS; sửa đoạn nguồn tiếp theo: 531 PASS. Chuỗi full cuối thực hiện tại QA-09d. |
 | QA-09b — Luồng browser cốt lõi | 43/43 PASS; gồm hai lượt thêm 5 PDF, chat, nguồn, xóa, OCR, responsive và accessibility. |
 | QA-09c1 — Recovery đã có | Busy/quota/503/timeout, hủy/retry OCR, đọc nguồn khi provider lỗi và worker không đọc stdin lớn. |
 

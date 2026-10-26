@@ -71,3 +71,8 @@
 # Preserve physical hashes in the hybrid-PDF QA receipts on every checkout.
 /docs/ui/evidence/hybrid-* -text whitespace=cr-at-eol
 /docs/ui/evidence/hybrid-*/** -text whitespace=cr-at-eol
+
+# Keep natural-query inference captures and their producing source byte-exact.
+/evaluation/results/full-app-natural-20261026/** -text whitespace=cr-at-eol
+/src/campusai/rag/source_windows.py -text
+/tests/test_source_windows.py -text

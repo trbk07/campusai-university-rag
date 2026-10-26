@@ -87,3 +87,43 @@ def test_inline_article_reference_cannot_hide_the_actual_heading():
     selected = verbatim_window(text, 'What is required under Article 6?', 140)
     assert 'A signed form is required.' in selected and 'Definitions' not in selected
     assert selected in text and len(selected) <= 140
+
+
+@pytest.mark.parametrize('title', [
+    'Advanced Research Medal', 'Community Service Award',
+    'Danh hiệu Sinh viên Giỏi', 'Danh hiệu Nhà nghiên cứu Trẻ',
+])
+def test_named_article_keeps_its_predicate_instead_of_ending_at_the_heading(title):
+    target = f'Article 8. {title} is awarded to applicants\nwith conduct rated Excellent and a signed supervisor approval.\n'
+    text = ('Article 6. General eligibility\n' + 'Applicant conduct and awards.\n' * 30
+            + 'Article 7. General awards\n' + 'Research awards and service eligibility.\n' * 15
+            + 'Required conduct and approval for awards.\n'
+            + target + 'Article 9. Administration\n' + 'Administrative background.\n' * 20)
+    limit = len(target) + 5
+    selected = verbatim_window(text, f'What conduct and approval are required for {title}?', limit)
+    assert target.strip() in selected
+    assert selected in text and len(selected) <= limit
+
+
+def test_explicit_article_number_wins_over_a_different_named_title():
+    text = ('Article 4. Ordinary Research Medal\nA signed letter is required.\n'
+            + 'Background.\n' * 30
+            + 'Article 8. Advanced Research Medal\nAn exam is required.\n')
+    selected = verbatim_window(text, 'Under Article 4, is the Advanced Research Medal exam required?', 150)
+    assert 'A signed letter is required.' in selected
+    assert 'An exam is required.' not in selected
+
+
+@pytest.mark.parametrize('same_title', [False, True])
+def test_comparison_or_duplicate_title_does_not_hide_the_other_article(same_title):
+    first = 'Advanced Graduate Research Medal'
+    second = first if same_title else 'Community Service Award'
+    articles = (f'Article 8. {first}\nA signed approval is required.\n'
+                + f'Article 9. {second}\nAn examination is required.\n')
+    text = 'Background information.\n' * 30 + articles
+    question = (f'What is required for {first}?' if same_title else
+                f'Compare the requirements for {first} and {second}.')
+    selected = verbatim_window(text, question, len(articles) + 5)
+    assert 'A signed approval is required.' in selected
+    assert 'An examination is required.' in selected
+    assert selected in text

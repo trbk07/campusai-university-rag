@@ -28,6 +28,40 @@ def verbatim_window(text: str, question: str, limit: int) -> str:
             text = text[headings[index].start():end]
             if len(text) <= limit:
                 return text
+    # A named article also identifies the requested source clause. Generic
+    # words in neighbouring articles must not win a window that ends at the
+    # target title and drops its predicate on the next line. Keep every equally
+    # specific match: duplicate titles may disagree, and comparisons need both
+    # clauses. Explicit article numbers retain priority above.
+    if not requested:
+        headings = list(re.finditer(
+            r'(?mi)^[ \t]*(?:article|điều|dieu)\s+\d+\s*[:.)]\s*([^\r\n]*)', text))
+        query_tokens = normalized_tokens(question)
+        phrases = {tuple(query_tokens[i:i + size])
+                   for size in range(3, 9) for i in range(len(query_tokens) - size + 1)}
+        matches = []
+        for heading in headings:
+            label = re.split(r'\b(?:is|are|shall|must|được|duoc|có|co)\b',
+                             heading[1], maxsplit=1, flags=re.I)[0]
+            tokens = normalized_tokens(label)
+            matches.append({tuple(tokens[i:i + size]) for size in range(3, 9)
+                            for i in range(len(tokens) - size + 1)
+                            if tuple(tokens[i:i + size]) in phrases})
+        found = set().union(*matches) if matches else set()
+        # A shared title prefix is not a second named object. E.g. the prefix
+        # "student award" must not outrank a complete, explicitly named award.
+        specific = {p for p in found if not any(len(q) > len(p) and any(
+                    q[i:i + len(p)] == p for i in range(len(q) - len(p) + 1)) for q in found)}
+        selected = [i for i, group in enumerate(matches) if group & specific]
+        comparison = re.search(r'\b(?:compare|comparison|difference|versus|so sánh|so sanh)\b', question, re.I)
+        if selected and (not comparison or len(selected) > 1):
+            first, last = min(selected), max(selected)
+            end = headings[last + 1].start() if last + 1 < len(headings) else len(text)
+            section = text[headings[first].start():end]
+            if len(section) <= limit:
+                return section
+            if len(selected) == 1:
+                text = section
     terms = {t for t in normalized_tokens(question) if len(t) >= 2 and t not in _STOP}
     lines = []
     offset = 0
