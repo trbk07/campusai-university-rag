@@ -9,7 +9,7 @@ from typing import Any
 
 from ..schemas import Chunk
 
-CHUNKER_VERSION = "structure-v5"
+CHUNKER_VERSION = "structure-v6"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -289,14 +289,36 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
     """Pack complete table rows into bounded payloads without changing values."""
     batches: list[list[list[str]]] = []
     current: list[list[str]] = []
+    scope_marker = None
+    closed_scope = False
     for row in rows:
+        cells = [cell for cell in row if isinstance(cell, str) and cell.strip()]
+        marker = len(cells) == 1 and re.fullmatch(r'semester\s*\d+', cells[0], re.I)
+        if closed_scope and not marker and current:
+            batches.append(current)
+            current = []
+        closed_scope = False
+        if marker:
+            scope_marker = row
+        elif any(re.match(r'^semester(?:\s|\d|$)', cell, re.I) for cell in cells):
+            scope_marker = None
         candidate = current + [row]
         encoded = json.dumps({"headers": headers, "rows": candidate}, ensure_ascii=False)
         if current and len(encoded) > budget:
             batches.append(current)
             current = [row]
+            if scope_marker is not None and scope_marker is not row:
+                scoped = [scope_marker, row]
+                if len(json.dumps({"headers": headers, "rows": scoped}, ensure_ascii=False)) <= budget:
+                    # Repeat only an actual original marker as context; never
+                    # invent a section or duplicate a course/credit row.
+                    current = scoped
         else:
             current = candidate
+        if scope_marker is not None and any(re.fullmatch(r'credits?\s*per\s+semester', cell, re.I)
+                                            for cell in cells):
+            scope_marker = None
+            closed_scope = True
     if current or not batches:
         batches.append(current)
     return batches
@@ -408,6 +430,7 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
             (table_header, table_scope_line, table_header_line) if part)
         table_budget = max(1, _MAX_CHARS - len(table_prefix) - 3)
         batches = _table_row_batches(table.headers, table.rows, table_budget)
+        row_indices = {id(row): index for index, row in enumerate(table.rows)}
         for part, rows in enumerate(batches, start=1):
             table_chunk_id = table.table_id if len(batches) == 1 else f"{table.table_id}_part{part}"
             payload = json.dumps({"headers": table.headers, "rows": rows}, ensure_ascii=False)
@@ -429,6 +452,9 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                 "heading_path": HeadingPath(table_headings),
                 "table_scope": table_scope if table_scope_line else None,
                 "table_scope_provenance": ("explicit_pdf_marker" if table_scope_line else None),
+                "table_row_indices": [row_indices[id(row)] for row in rows],
+                **({"table_header_source": table.schema['header_source']}
+                   if table.schema.get('header_source') else {}),
                 "citation": {
                     "chunk_id": table_chunk_id,
                     "doc_id": doc_id,

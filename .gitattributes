@@ -83,3 +83,8 @@
 /tests/test_course_lookup.py -text whitespace=cr-at-eol
 /src/campusai/rag/semester_totals.py -text whitespace=cr-at-eol
 /tests/test_semester_totals.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/table_extractor.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/chunker.py -text whitespace=cr-at-eol
+/tests/test_unruled_credit_table.py -text whitespace=cr-at-eol
+/tests/test_course_table_scope.py -text whitespace=cr-at-eol
+/tests/deployment/test_provider_recovery.py text eol=crlf whitespace=cr-at-eol

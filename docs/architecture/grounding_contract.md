@@ -110,10 +110,15 @@ or invalid dates and changed times cannot pass by reusing the same number set.
 A credit-count question cannot publish only an empty source heading in place of
 its value. These checks preserve source proof and all release thresholds.
 
-Ingestion producer `structure-v5` keeps a standalone credit quantity with its
-preceding source label, including emphasized lines. It also restores a split
-multi-page course table only when a prior explicit credits header and an
-explicit semester marker establish the columns and scope. A quantity such as
+Ingestion producer `structure-v6` retains `structure-v5` standalone credit
+quantities with their preceding source labels, including emphasized lines.
+`table-v4-physical-course-scope` restores continuing course-table columns only
+from a prior explicit header with matching physical column widths. It preserves
+all original marker, subtotal and spillover rows. Unknown leading rows remain
+unscoped; a subtotal is never a semester marker, and a table with several
+semesters never receives the last semester as its global scope. Table chunks
+repeat actual markers where needed and retain original row indices and header
+provenance. A quantity such as
 `19 credits` is not a numbered heading. Explicit Markdown and actual structural
 headings remain intact. Stored documents are reparsed when their parser,
 chunker or table-extractor version is stale; rebuild the retrieval index after

@@ -36,8 +36,8 @@ def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_p
     path=tmp_path/'ingested.pdf';source(path,boxed_bands=True)
     store=tmp_path/'store'
     document=ingest_document(path,store_dir=store)
-    assert document.metadata['chunker_version']=='structure-v5'
-    assert document.metadata['table_extractor_version']=='table-v3-inherited-multipage-course-columns'
+    assert document.metadata['chunker_version']=='structure-v6'
+    assert document.metadata['table_extractor_version']=='table-v4-physical-course-scope'
     tables=[c for c in document.chunks if c.content_type=='table']
     assert len(tables)==1 and len(headed_credit_rows(tables[0].content))==5
     assert not any(c.metadata.get('heading_path')==['ZEN3101'] for c in document.chunks)
@@ -50,7 +50,7 @@ def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_p
     metadata_path.write_text(json.dumps(payload),encoding='utf-8')
     refreshed=ingest_document(path,store_dir=store)
     assert not refreshed.cached
-    assert refreshed.metadata['table_extractor_version']=='table-v3-inherited-multipage-course-columns'
+    assert refreshed.metadata['table_extractor_version']=='table-v4-physical-course-scope'
     assert len([c for c in refreshed.chunks if c.content_type=='table'])==1
 
 
@@ -75,16 +75,20 @@ def test_split_single_row_fragments_inherit_only_verified_semester_course_header
         pages=[{'page':number,'text':page.get_text()} for number,page in enumerate(document,start=1)]
     tables=extract_tables(pages,'mai-joint',source_pdf)
     semester_four=[table for table in tables if table.pages==[2] and
-                   table.schema.get('parser')=='pdfplumber-inherited-course-columns-v1']
+                   table.schema.get('parser')=='pdfplumber-inherited-course-columns-v2']
 
     assert len(semester_four)==3
     assert all('Credits' in table.headers for table in semester_four)
     rows=[row for table in semester_four for row in table.rows]
     assert ['2','Strength of Materials','3','VNU-UET'] in rows
     assert ['1','History of Vietnam Communist Party','2','VNU-UET'] in rows
-    # The prior-semester spillover precedes the page's Semester 4 marker and
-    # must not acquire the new section's scope when headers are inherited.
-    assert not any('Fluid mechanics' in cell for row in rows for cell in row)
+    # Preserve the prior-semester spillover as unscoped; it must never acquire
+    # the later Semester 4 marker merely because both share one table fragment.
+    spillover = next(table for table in semester_four if
+                     any('Fluid mechanics' in cell for row in table.rows for cell in row))
+    assert not spillover.schema.get('section')
+    fluid_index = next(i for i, row in enumerate(spillover.rows) if 'Fluid mechanics' in row)
+    assert spillover.schema['row_scopes'][fluid_index] is None
     from campusai.ingestion.chunker import make_chunks
     chunks=make_chunks(pages,'mai-joint',{},tables)
     strength_chunk=next(chunk for chunk in chunks if chunk.content_type=='table' and

@@ -108,6 +108,17 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 
+- [x] **QA-07b6a — Giữ phạm vi học kỳ khi đọc bảng tiếp trang.** Sửa mất 17 dòng
+  và gán nhầm dòng tổng thành “Semester 29”. Giữ đủ 111/111 dòng bảng của PDF
+  3 trang, kiểm hình học cột trước khi kế thừa tiêu đề, giữ marker khi chia chunk.
+  Full regression trước guard đóng phạm vi cuối: 2.836 PASS / 2 live SKIP;
+  sau guard cuối: 119 tests liên quan PASS. Không tính thành full run cuối goal.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/source-scope.json).
+- [ ] **QA-07b6b — Nghiệm thu câu trả lời trên nguồn đã sửa.** Index thử chỉ thay
+  tài liệu bị ảnh hưởng; 14 tài liệu khác và baseline giữ nguyên byte. Đã chọn
+  19 đầu vào cùng tài liệu; cả 19 truy hồi được cột tín chỉ có tiêu đề rõ ràng.
+  Còn sửa liên kết claim/citation với học kỳ trước khi chạy predictions mới cho
+  index này; chưa coi chất lượng câu trả lời hoặc toàn QA-07b là DONE.
 - [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
   nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
   quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua

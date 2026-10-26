@@ -101,7 +101,10 @@ def test_local_http_health_and_second_query_do_not_wait_for_first(tmp_path):
             return super().ask(*args, **kwargs)
     service = SlowService()
     service.retriever.index_root = tmp_path
-    app = make_wsgi_app(CampusAIApplication(service), max_concurrent_queries=1)
+    # Library reads must use this test's empty store, never the owner's actual
+    # registry and PDF history. Keep the real concurrency deadline unchanged.
+    app = make_wsgi_app(CampusAIApplication(service, ingestion_defaults={
+        'store_dir': tmp_path/'store', 'index_dir': tmp_path/'index'}), max_concurrent_queries=1)
     with make_local_server('127.0.0.1', 0, app) as server, ThreadPoolExecutor(max_workers=1) as executor:
         worker = threading.Thread(target=server.serve_forever,daemon=True)
         worker.start()
@@ -118,7 +121,8 @@ def test_local_http_health_and_second_query_do_not_wait_for_first(tmp_path):
             with urlopen(base+'/',timeout=1) as response:
                 assert response.status == 200
             with urlopen(base+'/api/documents',timeout=1) as response:
-                assert json.load(response)['ok']
+                library = json.load(response)
+                assert library['ok'] and library['documents'] == [] and library['jobs'] == []
             # This fixture has no configured provider; readiness must still
             # respond immediately with its truthful not-ready status.
             with pytest.raises(HTTPError) as not_ready:

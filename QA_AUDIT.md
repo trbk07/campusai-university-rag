@@ -4,7 +4,28 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest natural100 repair closes QA-07b5: explicit semester subtotal rows are
+Latest source repair closes QA-07b6a. Physical review of the three-page public
+curriculum and an exact raw-row multiset check exposed17 dropped rows and a
+subtotal mislabelled as Semester29. Producer structure-v6/table-v4 retains
+111/111 rows, checks inherited-header column geometry, keeps unknown spillover
+unscoped and never applies the last marker to a multi-semester table. Chunks
+retain original marker/row/header provenance and close scope at a subtotal.
+A full run after HTTP-fixture isolation passed2836/2 opt-in live SKIP before
+the last closing-scope guard;119 related tests PASS after that guard. These
+are not the three final full regressions. The HTTP test previously read the
+actual data/store, making its deadline depend on workspace history; it now
+uses an empty temporary library with unchanged response deadlines.
+
+A separate index candidate updates only this one public PDF, preserving the
+baseline and all14 other documents. Current code reproduces its47 stored
+chunks;19/19 targeted requests retrieve an explicitly headed credit table.
+QA-07b6b remains OPEN: finish semester-aware claim/citation resolution and then
+collect predictions on the new index.0 new provider calls and no new answers
+are claimed. The last complete natural100 quality measurement remains15 false
+abstentions. Owner PDFs/jobs/live store and accepted Phase5 evidence are intact.
+[Source integrity evidence](evaluation/results/full-app-natural-20261026/source-scope.json).
+
+Earlier natural100 repair closes QA-07b5: explicit semester subtotal rows are
 bound to their nearest physical marker in the same table chunk, with unknown
 scope switches, wrong columns, missing values and conflicting totals rejected.
 No course options are summed. Grounding-v31 avoids stale cached refusals and

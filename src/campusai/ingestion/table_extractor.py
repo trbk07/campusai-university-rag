@@ -11,7 +11,7 @@ _COLUMN_SEPARATOR = re.compile(r"\s{2,}|\|")
 _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.I)
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
-TABLE_EXTRACTOR_VERSION = "table-v3-inherited-multipage-course-columns"
+TABLE_EXTRACTOR_VERSION = "table-v4-physical-course-scope"
 
 
 def _word_lines(words):
@@ -132,91 +132,93 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str) -> list[Table]:
     import pdfplumber
 
     tables: list[Table] = []
-    course_headers = None
-    course_columns = None
+    course_headers = course_columns = header_source = header_edges = None
+    def marker(row):
+        cells = [c for c in row if c.strip()]
+        match = re.fullmatch(r'semester\s*(\d+)', ' '.join(cells), re.I) if len(cells) == 1 else None
+        return f'Semester {match[1]}' if match else None
+    def subtotal(row):
+        return any(re.fullmatch(r'credits?\s*per\s+semester', c, re.I) for c in row)
+    def known_row(row):
+        label = re.fullmatch(r'(?:compulsory|elective|optional) subjects',
+                             ' '.join(c for c in row if c.strip()), re.I)
+        return marker(row) or subtotal(row) or label or _course_rows([row], course_columns)
+    def compatible(edges):
+        if not header_edges or len(edges) != len(header_edges):
+            return False
+        # A whole fragment may shift horizontally. Its column widths must
+        # still match the actual explicit header's physical grid.
+        return all(abs((b-a)-(d-c)) <= 1.0 for a,b,c,d in
+                   zip(edges, edges[1:], header_edges, header_edges[1:]))
     with pdfplumber.open(str(pdf_path)) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
             page_start=len(tables)
-            active_course_section = False
             active_course_section_label = None
-            raw_tables=page.extract_tables() or []
-            for table_number, raw_table in enumerate(raw_tables, start=1):
+            raw_tables=page.find_tables() or []
+            for table_number, physical in enumerate(raw_tables, start=1):
+                raw_table = physical.extract()
                 rows = [["" if cell is None else str(cell).strip() for cell in row] for row in raw_table]
                 rows = [row for row in rows if any(row)]
-                if len(rows) < 2:
-                    # Some PDF table finders split a visually continuous table
-                    # into one-row fragments. Reuse only a prior explicit
-                    # course/credits header, and only after a semester marker
-                    # has established the page's active table section.
-                    if course_headers and course_columns and active_course_section:
-                        inherited_rows = _course_rows(rows, course_columns)
-                        if inherited_rows:
-                            width = len(course_headers)
-                            tables.append(Table(
-                                table_id=f"{doc_id}_p{page_number}_t{table_number}",
-                                doc_id=doc_id,
-                                pages=[page_number],
-                                headers=list(course_headers),
-                                rows=inherited_rows,
-                                schema={"columns": width, "row_count": len(inherited_rows),
-                                        "parser": "pdfplumber-inherited-course-columns-v1",
-                                        "pages": [page_number], "warnings": [],
-                                        "raw_preserved": True,
-                                        "section": active_course_section_label,
-                                        "section_provenance": "explicit_pdf_marker"},
-                            ))
+                if not rows:
                     continue
                 width = max(map(len, rows))
                 rows = [row + [""] * (width - len(row)) for row in rows]
+                edges = sorted({float(cell[i]) for cell in physical.cells for i in (0, 2)})
                 explicit_course_columns = _inherited_course_columns(rows[0])
+                identity = f"{doc_id}_p{page_number}_t{table_number}"
                 if explicit_course_columns:
                     course_headers = list(rows[0])
                     course_columns = explicit_course_columns
+                    header_edges = edges if len(edges) == width + 1 else None
+                    header_source = {"page": page_number, "table_id": identity,
+                                     "column_edges": edges, "headers": list(course_headers)}
+                    active_course_section_label = None
+                    headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+                else:
+                    inherited = (course_headers and course_columns and width == len(course_headers)
+                        and compatible(edges) and all(known_row(row) for row in rows))
+                    if inherited:
+                        # The first source row is data, not a replacement
+                        # header. Keep every marker, subtotal and spillover row.
+                        headers, body, parser = list(course_headers), rows, 'pdfplumber-inherited-course-columns-v2'
+                    else:
+                        course_headers = course_columns = header_source = header_edges = None
+                        active_course_section_label = None
+                        if len(rows) < 2:
+                            continue
+                        headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+                scopes = []
+                course_scopes = set()
+                if course_columns:
+                    for row in body:
+                        label = marker(row)
+                        if label:
+                            active_course_section_label = label
+                        scopes.append(active_course_section_label)
+                        if _course_rows([row], course_columns):
+                            course_scopes.add(active_course_section_label)
+                        if subtotal(row):
+                            active_course_section_label = None
+                    # Multiple scopes and unknown leading course rows cannot
+                    # acquire the last marker as one table-wide section.
+                schema = {"columns": len(headers), "row_count": len(body),
+                          "parser": parser, "pages": [page_number],
+                          "warnings": [], "raw_preserved": True, "column_edges": edges}
+                if header_source:
+                    schema['header_source'] = dict(header_source)
+                    schema['row_scopes'] = scopes
+                if len(course_scopes) == 1 and None not in course_scopes:
+                    schema.update(section=next(iter(course_scopes)), section_provenance='explicit_pdf_marker')
                 tables.append(Table(
-                    table_id=f"{doc_id}_p{page_number}_t{table_number}",
+                    table_id=identity,
                     doc_id=doc_id,
                     pages=[page_number],
-                    headers=rows[0],
-                    rows=rows[1:],
-                    schema={"columns": width, "row_count": len(rows) - 1,
-                            "parser": "pdfplumber", "pages": [page_number],
-                            "warnings": [], "raw_preserved": True},
+                    headers=headers,
+                    rows=body,
+                    schema=schema,
                 ))
-                if course_headers and course_columns and not explicit_course_columns:
-                    # A fragment with a real prior header can restore column
-                    # meaning without treating its first data row as headers.
-                    # Retain only rows in the explicitly marked semester.
-                    inherited_rows = []
-                    for row in rows:
-                        row_text = " ".join(row).casefold()
-                        semester = re.search(r"\bsemester\s*(\d+)\b", row_text)
-                        if semester:
-                            active_course_section = True
-                            active_course_section_label = f"Semester {semester.group(1)}"
-                            continue
-                        if re.search(r"\bcredits?\s+per\s+semester\b", row_text):
-                            continue
-                        if not active_course_section:
-                            continue
-                        inherited_rows.extend(_course_rows([row], course_columns))
-                    if inherited_rows:
-                        tables[-1] = Table(
-                            table_id=f"{doc_id}_p{page_number}_t{table_number}",
-                            doc_id=doc_id,
-                            pages=[page_number],
-                            headers=list(course_headers),
-                            rows=inherited_rows,
-                            schema={"columns": len(course_headers), "row_count": len(inherited_rows),
-                                    "parser": "pdfplumber-inherited-course-columns-v1",
-                                    "pages": [page_number], "warnings": [],
-                                    "raw_preserved": True,
-                                    "section": active_course_section_label,
-                                    "section_provenance": "explicit_pdf_marker"},
-                        )
-                    else:
-                        tables.pop()
-                        # Keep page-level raw text extraction as the fallback
-                        # for fragments outside a verified course section.
+            if not raw_tables:
+                course_headers = course_columns = header_source = header_edges = None
             # Shaded header/row bands can look like a one-column ruled table
             # to pdfplumber and capture only the first row. Prefer a verified
             # complete aligned-column table; otherwise preserve old behavior.

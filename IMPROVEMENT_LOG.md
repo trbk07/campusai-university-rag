@@ -1,5 +1,24 @@
 # App improvement log
 
+## 2026-10-26 - preserve continuing-table columns and physical semester scope
+
+Closed QA-07b6a. Restored17 dropped source rows (94 to111), including a course,
+semester markers and subtotal rows. A subtotal29 no longer becomes Semester29.
+Inherited headers require an actual prior course/credit/provider header,
+matching physical column widths and recognized source rows; unknown or mixed
+scopes remain unlabelled. Chunk overlap carries only real markers, retains
+original row indices/header provenance and cannot extend a semester past its
+subtotal. Structure-v6/table-v4 versioning refreshes stale results on next
+ingest. Corrected a real HTTP test that used the owner's default library;
+its empty temporary store retains the original concurrency deadlines.
+One broad run passes2836/2 live SKIP before the last scope guard;119 relevant
+tests pass after the guard. The separate candidate keeps14 other documents and
+all baseline files unchanged; current code reproduces47 chunks and all19 scoped
+retrieval probes include explicit credit headers. No new model calls, quality
+acceptance, gold/review edits, owner-data reprocessing or Phase5 reopening.
+QA-07b6b (claim/citation repair and model qualification) remains open.
+[Evidence](evaluation/results/full-app-natural-20261026/source-scope.json).
+
 ## 2026-10-26 - physical semester subtotal lookups
 
 Closed QA-07b5. Read explicit labelled subtotal rows only after their physical
