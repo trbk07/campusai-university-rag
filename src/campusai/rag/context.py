@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v11"
+CONTEXT_VERSION = "request-context-v12"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -165,7 +165,22 @@ def missing_topic_reference(question: str) -> bool:
         r"(?:giay(?: chung minh)?|giay to|chung chi)(?: nay|do)?\s+"
         r"(?:thi\s+)?(?:nop|bo sung)(?: sau)?"
         r"(?:\s+(?:duoc|khong|ko|k|chu|nhi|vay|ban))*", text)
-    return bool(credit or personal or year or document)
+    # These questions name the requested attribute/action but omit its object:
+    # payment for what, prerequisites of which course, rewards for which title,
+    # language level for which programme. Match the whole utterance so a named
+    # subject starts a new topic instead of inheriting an unrelated old one.
+    implicit = re.fullmatch(
+        r"(?:"
+        r"(?:can|phai) (?:dong|nop) (?:bao nhieu|may|bn) tien|"
+        r"chuyen khoan(?: (?:duoc|khong|ko|k|chu|hay|phai|toi|den|nop))*|"
+        r"(?:duoc|se|co the) nhan (?:nhung gi|gi)|"
+        r"thuong hoc phi (?:cua )?nam (?:nao|may)|"
+        r"(?:tieng anh|ngoai ngu) (?:luc |khi )?ra truong can bac (?:nao|may)|"
+        r"can hoc (?:gi truoc|truoc (?:nhung )?mon nao)"
+        r"(?: va (?:may|bao nhieu|bn) (?:tin(?: chi)?|tc))?|"
+        r"(?:hoc )?ky [0-9]+ (?:thi )?ben nao phu trach"
+        r")(?:\s+(?:vay|nhi|the|ban|a|ah|oi|chu|khong|ko|k))*", text)
+    return bool(credit or personal or year or document or implicit)
 
 
 def authorized_scope(doc_ids: list[str] | None, authorized_doc_ids: list[str] | None) -> list[str] | None:

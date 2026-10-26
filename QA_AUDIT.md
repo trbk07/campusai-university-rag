@@ -1,8 +1,23 @@
 # Full-app QA audit
 
-Current cycle: 2026-10-25. Goal: autonomous full-app testing and UX optimization.
+Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization.
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
+
+Natural-context repair: the existing180 owner-approved inputs include15 history
+cases. Eight lost their topic before retrieval (7/15 retained); bounded whole-
+utterance ellipsis detection now retains15/15, including accentless forms.
+Explicit subjects still start a new topic; assistant assertions are excluded
+and missing user anchors request clarification. Cache identity is versioned.
+The identical public-index hybrid probe retrieves all gold pages at8 for15/15
+instead of14/15; the BM25-only control stays14/15. This is page-coordinate and
+request-context coverage, not model answer accuracy.16 new baseline failures,
+153 focused PASS and429 affected cross-phase PASS are retained in one
+[receipt](docs/ui/evidence/natural-context-20261026.json). No external inference,
+gold/review changes or user-document modifications. All400 accepted Phase5
+request resolutions remain identical; its internal acceptance stays closed.
+Whole-app real-model quality and the final stable-source full-suite sequence
+remain open. The full runs below belong to their recorded earlier source.
 
 Accepted Phase5 source `a21a4cd5`: three consecutive full regressions each2,663 PASS/2 opt-in live SKIP. Phase5 internal400/400 acceptance and all5 gates PASS. The broader app audit remains open.
 

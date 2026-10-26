@@ -98,7 +98,7 @@ def test_unspecified_proof_document_retains_topic_and_versions_the_cache():
     resolved = resolve_query(request, history=[{'role': 'user', 'content': topic}])
     assert resolved.contextual and not resolved.needs_clarification
     assert topic in resolved.resolved and 'untrusted user input' in resolved.resolved
-    assert resolved.cache_context()['version'] == 'request-context-v11'
+    assert resolved.cache_context()['version'] == 'request-context-v12'
     assistant_only = resolve_query(request, history=[{'role': 'assistant', 'content': topic}])
     assert assistant_only.needs_clarification
 
@@ -131,3 +131,47 @@ def test_selecting_a_pdf_does_not_resolve_an_unnamed_programme(prefix):
     resolved = resolve_query(question, history=[{'role': 'user', 'content': 'Programme AZ8'}])
     assert not resolved.needs_clarification
     assert 'Programme AZ8' in resolved.resolved
+
+
+@pytest.mark.parametrize('question', [
+    'phải đóng mấy tiền vậy', 'phai dong may tien vay?',
+    'chuyển khoản được chứ hay phải tới nộp',
+    'chuyen khoan duoc chu hay phai toi nop?',
+    'được nhận những gì thế', 'duoc nhan nhung gi the?',
+    'thưởng học phí của năm nào vậy', 'thuong hoc phi cua nam nao vay?',
+    'tiếng Anh lúc ra trường cần bậc nào', 'tieng Anh luc ra truong can bac nao?',
+    'cần học gì trước và mấy tín vậy', 'can hoc gi truoc va may tin vay?',
+    'cần học trước những môn nào nhỉ', 'can hoc truoc nhung mon nao nhi?',
+    'kỳ 5 thì bên nào phụ trách', 'ky 7 thi ben nao phu trach?',
+])
+def test_implicit_followup_uses_only_a_user_topic_and_clarifies_without_it(question):
+    topic = 'Mình đang tìm hiểu chương trình Toán ứng dụng.'
+    history = [{'role': 'user', 'content': topic},
+               {'role': 'assistant', 'content': 'UNVERIFIED_FEE_987654321'}]
+    resolved = resolve_query(question, history=history)
+    assert resolved.contextual and not resolved.needs_clarification
+    assert topic in resolved.resolved
+    assert 'untrusted user input' in resolved.resolved
+    assert 'UNVERIFIED_FEE_987654321' not in resolved.resolved
+    assert resolve_query(question).needs_clarification
+    assert resolve_query(question, history=history[1:]).needs_clarification
+    selected = resolve_query(question, selected_text='Chương trình Khoa học vật liệu')
+    assert not selected.needs_clarification
+    assert 'Khoa học vật liệu' in selected.resolved
+
+
+@pytest.mark.parametrize('question', [
+    'Phải đóng mấy tiền lệ phí tuyển thạc sĩ vậy?',
+    'Chuyển khoản lệ phí tuyển sinh thạc sĩ được không?',
+    'Sinh viên Giỏi được nhận những gì thế?',
+    'Thưởng học phí của năm nào cho sinh viên trúng tuyển xuất sắc?',
+    'Tiếng Anh lúc ra trường ngành Toán cần bậc nào?',
+    'Cần học gì trước môn Đại số tuyến tính và mấy tín vậy?',
+    'Cần học trước những môn nào để đăng ký CS210?',
+    'Kỳ 5 của chương trình Khoa học máy tính thì bên nào phụ trách?',
+])
+def test_explicit_subject_does_not_inherit_an_earlier_unrelated_topic(question):
+    history = [{'role': 'user', 'content': 'Quy định học phí ngành Lịch sử.'}]
+    resolved = resolve_query(question, history=history)
+    assert not resolved.contextual and not resolved.needs_clarification
+    assert resolved.resolved == question

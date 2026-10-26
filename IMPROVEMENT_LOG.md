@@ -1,5 +1,18 @@
 # App improvement log
 
+## 2026-10-26 - retain implicit conversational subjects
+
+Fixed eight previously reviewed follow-ups losing their user topic before
+retrieval. Whole-utterance grammar recognizes omitted objects in payments,
+rewards, prerequisite and programme questions; explicitly named subjects start
+a new topic. No corpus names/benchmark IDs are added to runtime. User history
+remains untrusted and assistant assertions cannot supply evidence. Context
+cache version advances to12. Topic retention7/15 to15/15; identical-index hybrid
+gold-page coverage at8 improves14/15 to15/15 (BM25 control unchanged14/15).
+429 affected tests PASS; all400 accepted Phase5 request resolutions unchanged.
+No external model calls; whole-app AI-quality gates remain open.
+[Evidence](docs/ui/evidence/natural-context-20261026.json).
+
 ## 2026-10-25 - same-page native/raster coverage
 
 Fixed native headers hiding raster bodies. OCR now inspects displayed regions,

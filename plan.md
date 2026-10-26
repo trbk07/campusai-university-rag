@@ -47,6 +47,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    lỗi gõ, hội thoại nhiều lượt, RAG và thiếu dữ liệu. Đo predictions thật:
    **accuracy ≥90%, hallucination ≤2%, context ≥95%**.
    Tái sử dụng dữ liệu đã review; fixture provider hoặc AI tự chấm không đủ để đóng.
+   **Đã xong QA-07b1:** sửa bỏ ngữ cảnh ở câu hỏi lược chủ thể; giữ chủ đề 15/15 ca.
+   **Còn lại:** predictions và phép chấm chất lượng đáp án AI thật.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
@@ -64,8 +66,9 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Hiện có 1 full run trên source
-   hiện hành: **2.718 PASS / 2 live SKIP**; không cộng các run trên source khác.
+   Bản trước có 1 full run **2.718 PASS / 2 live SKIP**. Bản sửa ngữ cảnh ngày
+   26/10 có **429 tests liên quan PASS**; chưa chạy chuỗi full cuối trên bản này.
+   Không cộng các run trên source khác.
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
@@ -99,9 +102,10 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 |---|---|
 | QA-03a — Đo/sửa OCR và index, bật GPU | Đối sánh CPU/CUDA trên 5 PDF / 104 trang; có số đo reindex thực tế. Chưa thay phép đo fresh upload 100 trang / 10 MB. |
 | QA-07a — Kiểm kê PDF | 34 SHA khác nhau; đã kiểm số trang và thứ tự trang vật lý. Chưa đồng nghĩa đạt mọi ngưỡng chất lượng PDF. |
+| QA-07b1 — Giữ chủ đề của câu hỏi lược chủ thể | DONE · 15/15 ca đã review, trước sửa 7/15. Hybrid truy hồi đủ các trang gold ở top 8: 14/15 → 15/15; chưa phải accuracy đáp án AI. [Bằng chứng](docs/ui/evidence/natural-context-20261026.json). |
 | QA-08a — API thường, 20 người đồng thời | 400/400 HTTP 200; p95 tổng 0,478 giây, thư viện 0,429 giây, fact PDF 0,497 giây trên workload local 7 tài liệu / 17 jobs. |
 | QA-08b — Web Vitals trong lab | 9/9 sessions đạt trên desktop/tablet/mobile; max LCP 308 ms, INP 104 ms, CLS 0,0109. |
-| QA-09a — Unit/integration hiện hành | 2.718 PASS / 2 opt-in live SKIP; 126 focused PASS. SKIP không tính là live PASS. |
+| QA-09a — Unit/integration đã chốt | Bản 25/10: 2.718 full PASS / 2 opt-in live SKIP. Bản sửa ngữ cảnh 26/10: 429 tests liên quan PASS. Chuỗi full cuối thực hiện tại QA-09d. |
 | QA-09b — Luồng browser cốt lõi | 43/43 PASS; gồm hai lượt thêm 5 PDF, chat, nguồn, xóa, OCR, responsive và accessibility. |
 | QA-09c1 — Recovery đã có | Busy/quota/503/timeout, hủy/retry OCR, đọc nguồn khi provider lỗi và worker không đọc stdin lớn. |
 

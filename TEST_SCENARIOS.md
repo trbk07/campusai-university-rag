@@ -1,8 +1,18 @@
 # App test scenarios
 
-Latest cycle:2026-10-25. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+Latest cycle:2026-10-26. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
-Current source:2,718 full-suite PASS/2 opt-in live SKIP,126 focused checks,
+Natural-context cycle:429 affected tests PASS across request completeness, API,
+Phase7 candidate generation, source-course generation, relations, multi-hop,
+temporal and routing.16 accented/accentless ellipsis cases check user-only
+topic inheritance, clarification without a user anchor and selected-text
+handling;8 explicit-subject cases prevent previous-topic contamination.
+All15 existing owner-approved history cases retain their topic; actual hybrid
+retrieval reaches all reviewed pages at8 in15/15. No model was called, so these
+checks do not close real-model accuracy or context gates. Baseline/results and
+physical inputs are bound in [one receipt](docs/ui/evidence/natural-context-20261026.json).
+
+Previous hybrid-cycle source:2,718 full-suite PASS/2 opt-in live SKIP,126 focused checks,
 43/43 browser checks and400 unchanged Phase5 capture-regression rows.
 `tests/test_hybrid_pdf.py` covers native headers with raster bodies,known
 Vietnamese/English text,both OCR backends,masked/clipped images,decoder column
@@ -37,7 +47,7 @@ counts do not replace current measurements.
 | Natural phrasing | Accents/no accents, page-count variants, real follow-up versus topic change, ambiguous multi-document scope and injection checks. | `tests/test_natural_conversation.py`; clean candidate PASS. Its 100-turn check is structural PDF metadata, not 100 verified live model answers. |
 | Page/multiple intents | Exact physical page/range, invalid pages and page-count plus content question preserve scope and both intents. | `tests/test_document_question_plans.py`; clean candidate PASS with deterministic local provider. |
 | UI end to end | Six-file rejection, five uploads until ready, chat/citations/source/delete, mobile/desktop and accessibility. | Prior 39/39 browser smoke documented in `docs/ui/phase12-ui.md`; not rerun in this packaging cycle. |
-| Live AI quality | Verify correctness, completeness, groundedness, naturalness and hallucination against reviewed source/gold. | OPEN: P5 native qualification; no new provider calls. |
+| Live AI quality | Verify correctness, completeness, groundedness, naturalness and hallucination against reviewed source/gold. | OPEN: whole-app natural/multi-turn evaluation; Phase5 internal qualification is already DONE. |
 | Large/scan PDF load | Verify extraction/table/OCR and latency/RSS under five realistic PDFs plus query load. | OPEN for current app performance cycle; unit PDF regressions alone do not prove this workload. |
 | Mixed text/scan and legacy cache | Preserve native text and physical pages; never mark partial extraction ready; detect old incomplete success flags. OCR budget applies only to selected pages. | `tests/test_mixed_pdf.py`; 8 tests PASS, included in the 52-test focused PDF/web/jobs run. Real local OCR of page 2 independently verified. |
 | Real-PDF parser RSS | Compare identical input hashes and preserve exact native text/layout while reducing image-buffer overhead. | Three fresh-process runs per version, five PDFs/104 pages; `docs/ui/evidence/pdf-parser-batch.json`. Parser scope only. |
