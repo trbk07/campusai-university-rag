@@ -1,0 +1,194 @@
+{
+  "date": "2026-10-26",
+  "status": "CONTEXT_AND_MULTI_COURSE_FIX_DONE_WHOLE100_SEMANTIC_QUALITY_OPEN",
+  "completed_tasks": [
+    "QA-07b8b1",
+    "QA-07b8b2",
+    "QA-09c2a"
+  ],
+  "pipeline_producer_identity": {
+    "commit": "a92cb1d7e9bb3bda4446106805c54246e2030577",
+    "source_sha256": "2aea4a50cd30823ac3c71afa6877fc29d5836988d8832b098cdceba5b98c9ad8",
+    "runtime_sha256": "116156339c1ffe8c699957c7fc22aee9da68b333f45c5925582ab298b6d4f8f4"
+  },
+  "context_evaluator_identity": {
+    "commit": "a92cb1d7e9bb3bda4446106805c54246e2030577",
+    "source_sha256": "1e48e7214cfcbd23f83faf23010b098ea7d955385df72994f8ac8545eed6f839",
+    "runtime_sha256": "116156339c1ffe8c699957c7fc22aee9da68b333f45c5925582ab298b6d4f8f4"
+  },
+  "final_source_identity_before_commit": {
+    "commit": "a92cb1d7e9bb3bda4446106805c54246e2030577",
+    "source_sha256": "a7853db58b41e94eaefeda11a484c1b69224836f9c7956543a117e2c593d0403",
+    "runtime_sha256": "116156339c1ffe8c699957c7fc22aee9da68b333f45c5925582ab298b6d4f8f4"
+  },
+  "environment": {
+    "python": "3.14.6",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+    "logical_cpu_count": 20,
+    "replay_dense_device": "cpu",
+    "config": "configs/free_llm.yaml",
+    "provider_model": "gemini-3.5-flash-lite",
+    "new_provider_calls": 0
+  },
+  "context": {
+    "cases": 15,
+    "correct": 15,
+    "required_fields": 17,
+    "scored_fields": 17,
+    "score": 1.0,
+    "threshold": 0.95,
+    "gate": "PASS_EXPOSED_INTERNAL_DEV",
+    "method": "Conservative explicit date/value/entity/direction/operator field checks against unchanged reviewed gold, exact history-bearing request identity, validated literal source citations and reviewed document/page scope. Unknown forms and omitted fields fail. Internal exposed dev qualification, not fresh holdout or whole100 semantic accuracy.",
+    "model_judges_used": 0,
+    "baseline": {
+      "path": "evaluation/results/full-app-natural-20261026/native/predictions.jsonl",
+      "sha256": "5fab3ac56ba76222c7c29c8b4895bfe2a1a82ef5e10d7c0a632795eb57b1cbd9",
+      "cases": 15,
+      "same_scorer": true,
+      "method": "Original actual native100 predictions, separately scored using the same17-field context contract; before the accumulated natural-input repairs.",
+      "strict_contract_passed": 9,
+      "semantic_accuracy": null,
+      "not_certified_ids": [
+        "human-candidate-0052",
+        "human-candidate-0056",
+        "human-candidate-0057",
+        "human-candidate-0058",
+        "human-candidate-0059",
+        "human-candidate-0060"
+      ],
+      "definite_false_abstention_ids": [
+        "human-candidate-0052",
+        "human-candidate-0056",
+        "human-candidate-0057",
+        "human-candidate-0058"
+      ],
+      "unscored_paraphrase_ids": [
+        "human-candidate-0059",
+        "human-candidate-0060"
+      ],
+      "limitation": "Two noncanonical but potentially correct old name/provider paraphrases are not certified by this bounded scorer. Nine strict passes are a conservative count, not a claim of60% semantic accuracy."
+    },
+    "gold_modified": false,
+    "new_review_records": 0
+  },
+  "course_schedule_fix": {
+    "repaired_id": "human-candidate-0075",
+    "before": "Only NLP semester answered; the requested advanced-AI semester omitted.",
+    "after_requested_fields": {
+      "INT6146": 1,
+      "INT6152": 2
+    },
+    "source_derived_values": true,
+    "maximum_requested_courses": 4,
+    "all_occurrences_checked": true,
+    "cache_policy": "grounding-v36",
+    "grounding_thresholds_changed": false
+  },
+  "current100": {
+    "pipeline_cases": 100,
+    "pending": 0,
+    "capture_uses": 53,
+    "local_cases": 47,
+    "valid_schemas": 100,
+    "valid_literal_citations": 82,
+    "false_abstentions": [],
+    "negative_gold_answered": [],
+    "changed_public_ids": [
+      "human-candidate-0075"
+    ],
+    "other_public_responses_unchanged": 99,
+    "repaired_requested_fields": {
+      "INT6146": 1,
+      "INT6152": 2
+    },
+    "context_correct": 15,
+    "context_total": 15,
+    "context_required_fields": 17,
+    "fresh_api_calls": 0
+  },
+  "phase5_compatibility": {
+    "source_identity": {
+      "commit": "a92cb1d7e9bb3bda4446106805c54246e2030577",
+      "source_sha256": "1e48e7214cfcbd23f83faf23010b098ea7d955385df72994f8ac8545eed6f839",
+      "runtime_sha256": "116156339c1ffe8c699957c7fc22aee9da68b333f45c5925582ab298b6d4f8f4"
+    },
+    "accepted_cases": 400,
+    "new_course_schedule_matches": [],
+    "accepted_prediction_sha256": "1afe33c603c724783f411360b44308a2adea84849a39144056b08e71362e62e0",
+    "frozen_index_sha256": "13523be6ca09e6e54126ae40c596df00f01cd877f02f5692b0d03045aa38111a",
+    "fresh_model_calls": 0,
+    "method": "All400 accepted resolved requests tested against complete frozen selected source documents; new branch matches none, other branch/prompt code unchanged except cache freshness."
+  },
+  "catalog_repair": {
+    "old_key": "D:/Project/.tmp/full-app-natural-qualification-20261026/store/registry.json",
+    "key": ".tmp/full-app-natural-qualification-20261026/store/registry.json",
+    "raw_sha256": "7da3934a201fe3756e88c50e76507906bd0a26247992f9608c16c847bf8a9a85",
+    "raw_bytes": 8868567,
+    "original_record_and_blob_unchanged": true,
+    "historical_report_bytes_changed": false,
+    "safe_relative_policy_relaxed": false,
+    "whole_catalog_invariant_test_added": true
+  },
+  "tests": {
+    "related": {
+      "tests": 546,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 546
+    },
+    "full_before_catalog_repair": {
+      "tests": 3019,
+      "failures": 4,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 3013
+    },
+    "after_catalog_repair_affected": {
+      "tests": 54,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 54
+    },
+    "new_full_pass_claimed": false,
+    "final_three_run_sequence": "OPEN",
+    "optional_live_skips": "Two opt-in integration tests; not fresh native accuracy/latency evidence."
+  },
+  "remaining": {
+    "whole100_accuracy": null,
+    "whole100_hallucination": null,
+    "semantic_completeness_followup_ids": [
+      "human-candidate-0064",
+      "human-candidate-0142",
+      "human-candidate-0152"
+    ],
+    "followup_note": "Check required eligibility predicates and distinguish required deadlines from optional anticipated-date context; do not assume every gold comment must be repeated verbatim.",
+    "other_full_app_gates": "See plan.md; goal remains active."
+  },
+  "bindings": {
+    "evaluation/results/full-app-natural-20261026/checkpoint-course-schedule-final/run.json": "d2ac2350c1c10883032c5d90fcd8462e5c7b95ed4335eb70a9a8dffa289d10b2",
+    "evaluation/results/full-app-natural-20261026/checkpoint-course-schedule-final/predictions.jsonl": "4eed07eea30753e7582b706a7d0c6dbd05da7e9e12aa7eb9e7d47c324ceb3135",
+    "evaluation/results/full-app-natural-20261026/checkpoint-course-schedule-final/pending.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluation/results/full-app-natural-20261026/checkpoint-course-schedule-final/source-pool.json": "5a8a7b159e41a522a17f04fb038259c64c18ce949e53633e07aeced792cb4706",
+    ".tmp/natural-context-checks-20261026.json": "b553c455747515c217475779b50f7a1c0c12f3eeb5e7380261cf71d97349b021",
+    ".tmp/course-schedule-field-checks-20261026.json": "33bf842f272cb97f53a21857e0f285b2256c0baeac5ad189e25851570586ea94",
+    ".tmp/course-schedule-phase5-checks-20261026.json": "f1132053a74eb96a28d80daeeebc5374ca5adefc6f3e4cf92c0328abd2c33cd8",
+    ".tmp/natural-context-verified-tests-20261026.xml": "1699b6ec58b51fff79a95caa7ead5baa8f1df94e5a5f853ec35441a5c2abae6d",
+    ".tmp/natural-context-full-tests-20261026.xml": "15308fe3273d184fd3cacc769746fa95cf3d5a488aa3c0ce0dce1410d3c92e8a",
+    ".tmp/context-catalog-verified-20261026.xml": "4a610acadb2df9fdfd74842602c3b80f07ecde91518ae7e0384f33c43a9c4e10",
+    "evaluation/results/full-app-natural-20261026/inputs.jsonl": "431199aba4cec6451c2d6e5d22ec416c325c64474d88ae6274dec297c7f65363",
+    "evaluation/results/full-app-natural-20261026/native/predictions.jsonl": "5fab3ac56ba76222c7c29c8b4895bfe2a1a82ef5e10d7c0a632795eb57b1cbd9",
+    "evaluation/results/phase7-completion-20261004/p7-06-dev-source-rubric-20261007-v2.json": "e8b36b665c19bae4baf06219f8fdac9a5ea281423d5e5537c7d6c23023ca8516",
+    "configs/free_llm.yaml": "69050a324afdc50a2cda7848370e420d14a2226e6e4e3ebfa32a349572ac388c",
+    "src/campusai/rag/course_schedule.py": "6bc9c34d8e82d0eed5d8f1dcfe6c94cec60d8203b7b41e9f3598b97193a2f3a9",
+    "src/campusai/rag/service.py": "aecb989935f7c0ca51fd5fec14848200a7ef5bc81a787402df6eafe7f04f8640",
+    "src/campusai/rag/cache.py": "f10eb44dc5c83b63c9c884c00e0c0ea75d253d4245b3a7e09982ab065dc4c957",
+    "evaluation/grounding/natural_context.py": "ba0c99a65003ba247d81aa1b9eca782eb026cf9dc12e3955c0949d02bf4e445e",
+    "tests/test_course_schedule.py": "bad627edd3633e1211cf88f052b5f1cf69fbfda3d5f307bc5ec4f3ff898f1550",
+    "tests/test_natural_context_quality.py": "49b1ed432bb32296fc551302a4faa8d4fc964e07cfd0ce1bc9741e0fd84f0c2c",
+    "tests/test_artifact_store.py": "e83c8e8f2c711ed60f602526a6aee5b35877b33b77babb063de6d01d41226266"
+  },
+  "raw_storage": "Exact checkpoint, original failed full XML, passing related XMLs and independent post-inference field/context comparisons are retained by evaluation/artifacts/manifest.json."
+}

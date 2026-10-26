@@ -1,5 +1,34 @@
 # Full-app QA audit
 
+## 2026-10-26 - qualify context and repair a missing course answer
+
+QA-07b8b1 DONE:15/15 history-bearing requests satisfy all17 reviewed required
+fields (100%, gate95%). An offline evaluator checks explicit values, named roles,
+prerequisite direction, bounds and omissions against unchanged gold. Exact input
+history and literal source citations/document/pages are separately verified.
+Unknown gold forms fail closed; no model judge or new review identity is used.
+This is exposed internal dev evidence, not a fresh-holdout/general-context claim.
+
+QA-07b8b2 DONE:0075 previously answered only NLP while the question also asks
+advanced AI. A bounded2-4-course lookup requires every requested code/title and
+an explicit, consistent semester column across the entire selected document.
+Missing subjects, conditional values, combined identities, contradictory lower
+tables, extra intents and incidental name substrings cannot produce a projection.
+The real source establishes INT6146 in semester1 and INT6152 in semester2.
+Final100 has53 exact captures and47 local outcomes,0 pending/new API calls;
+99 public responses are unchanged,100 schemas and82 literal citations validate.
+Grounding-v36 invalidates the incomplete cached answer.546 related tests PASS.
+The new lookup matches0/400 accepted Phase5 requests. Whole100 semantic accuracy
+and hallucination scoring remain OPEN; completeness checks must still cover
+other conditions and tentative dates. [Evidence](evaluation/results/full-app-natural-20261026/context-quality.json).
+
+The full sweep records3013 PASS/4 FAIL/2 optional live SKIP. All four failures
+are Phase7 validators encountering one absolute catalog key from an earlier
+archive update. QA-09c2a fixes that key to the record's existing relative identity;
+the8,868,567-byte original and compressed hashes remain exact. A catalog-wide
+safety/identity invariant now catches recurrence.54 affected tests PASS after
+repair. This is not a new full-suite PASS or the required final three-run series.
+
 ## 2026-10-26 - close the remaining five false abstentions
 
 QA-07b8a DONE. Source-owned lookups read the literal notice round/year and full

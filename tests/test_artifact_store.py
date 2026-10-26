@@ -11,6 +11,12 @@ from evaluation.common.release_artifacts import read_json, sha256
 from evaluation.reranker.supplemental_gates import raw_reference
 
 
+def test_repository_catalog_keys_are_safe_and_match_logical_identity():
+    for key, record in store.entries().items():
+        assert store.safe_relative(key).as_posix() == key
+        assert record.get('identity', key) == key
+
+
 @pytest.fixture
 def archived(tmp_path, monkeypatch):
     repo = tmp_path / "repo"

@@ -18,7 +18,8 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-chấm đầy đủ accuracy/hallucination/context. Đã sửa và đóng 5 ca từ chối sai còn lại.
+chấm đầy đủ accuracy/hallucination. Ngữ cảnh đã đạt 15/15 hội thoại;
+5 ca từ chối sai và lỗi thiếu vế AI/NLP đã sửa, giữ đóng.
 Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
@@ -70,8 +71,13 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    danh hiệu và tên/tín chỉ học phần; đối chiếu trường trả lời với gold đã review.
    Bộ 100 ca hiện đủ kết quả, 0 từ chối sai, 0 câu thiếu dữ liệu bị trả lời;
    82 citation hợp lệ, 721 tests liên quan PASS, không gọi thêm API.
-   **Còn lại QA-07b8b:** chấm đủ accuracy/hallucination/context,
-   không hạ ngưỡng hoặc gọi lại ca đã có capture hợp lệ.
+   **Đã xong QA-07b8b1:** ngữ cảnh 15/15 hội thoại đúng (100%, ngưỡng ≥95%),
+   đủ 17 trường theo gold, kiểm đúng vai trò/giá trị và citation; không dùng AI tự chấm.
+   **Đã xong QA-07b8b2:** câu hỏi nhiều học phần trả lời đủ cả AI nâng cao và NLP;
+   đọc cột học kỳ nguồn, không trả lời một vế như đã đủ. Kiểm lại 100 ca: 99 phản hồi
+   khác giữ nguyên, không phát sinh từ chối sai, không gọi API mới.
+   **Còn lại QA-07b8b:** chấm accuracy/hallucination toàn bộ 100 câu và xử lý phần
+   trả lời thiếu điều kiện nếu được xác nhận; không hạ ngưỡng hoặc gọi lại capture hợp lệ.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
@@ -85,17 +91,30 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 5. [ ] **QA-09c2 — Recovery và bảo mật còn thiếu.**
    Chỉ bổ sung tình huống chưa được kiểm chứng. Điều kiện đóng: không còn lỗi
    **P0/P1 hoặc High/Critical được xác nhận**, mọi recovery quan trọng có bằng chứng.
+   **Đã xong QA-09c2a:** sửa khóa đường dẫn tuyệt đối trong catalog bằng chứng;
+   validator Phase 7 hoạt động lại, hash/dữ liệu gốc giữ nguyên, 54 tests liên quan PASS.
 6. [ ] **QA-09d — Nghiệm thu cuối goal.**
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Bản trước có 1 full run **2.718 PASS / 2 live SKIP**. Bản sửa nguồn mới nhất
-   ngày 26/10 có **740 tests liên quan PASS**; phần sửa thứ tự từ trong tiêu đề
-   có thêm **217 focused PASS**. Đây không phải hai full runs; chưa chạy chuỗi full cuối.
-   Không cộng các run trên source khác.
+   Lượt full gần nhất: **3.013 PASS / 4 FAIL / 2 live SKIP**. Bốn lỗi cùng do một
+   khóa catalog sai đã được sửa; **54 tests liên quan PASS** sau sửa. Bộ tính năng
+   ngữ cảnh/lịch học có **546 tests liên quan PASS**. Chưa chạy chuỗi 3 full cuối;
+   không cộng các run thành một lượt full PASS.
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-07b8b1 — Metric ngữ cảnh trên bộ natural100.** 15/15 hội thoại đúng,
+  đủ 17 trường được yêu cầu; kiểm tự động với gold đã review, lịch sử đầu vào
+  và nguồn/trang trích dẫn. Phạm vi là bộ dev đã công khai exposure.
+- [x] **QA-07b8b2 — Không bỏ vế ở câu hỏi học kỳ của nhiều học phần.** Mỗi môn
+  phải có mã/tên và học kỳ nhất quán trong toàn tài liệu đã chọn; thiếu hoặc
+  mâu thuẫn một môn thì không tự suy ra đáp án. Cache cũ bị vô hiệu hóa qua v36.
+  [Bằng chứng hai task](evaluation/results/full-app-natural-20261026/context-quality.json).
+- [x] **QA-09c2a — Sửa catalog làm validator Phase 7 lỗi.** Khóa đường dẫn đã khớp
+  identity tương đối trong repo; xác minh lại đủ 8.868.567 byte của artifact gốc.
+  Thêm kiểm tra toàn catalog để ngăn lỗi lặp; 54 tests liên quan PASS.
 
 - [x] **QA-07b8a — Sửa 5 ca từ chối sai cuối của natural100.** Ngày/hạn từ thông báo
   đúng đợt/năm; điều kiện điểm từ đúng danh hiệu; tên và tín chỉ từ cột bảng nguồn.

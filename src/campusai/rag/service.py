@@ -576,6 +576,10 @@ class CampusAIQueryService:
                     projection = lookup_curriculum(question, documents, doc_ids=doc_ids,
                         language=language, calibrator=self.answer_generator.calibrator)
                     if projection is None:
+                        from .course_schedule import lookup_course_schedule
+                        projection = lookup_course_schedule(question, documents, doc_ids=doc_ids,
+                            language=language, calibrator=self.answer_generator.calibrator)
+                    if projection is None:
                         from .notice_dates import lookup_notice_date
                         projection = lookup_notice_date(question, documents, doc_ids=doc_ids,
                             language=language, calibrator=self.answer_generator.calibrator)

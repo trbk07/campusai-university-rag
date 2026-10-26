@@ -2,6 +2,19 @@
 
 Latest cycle:2026-10-26. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+Current natural100:100 complete,53 exact native captures/47 local outcomes,
+0 fresh API calls,0 false abstentions and0 negative gold rows answered.
+All100 schemas/82 literal citations validate. Context is measured separately:
+15/15 history-bearing cases satisfy all17 required reviewed fields (100%).
+The missing advanced-AI half of0075 is repaired from its source semester column;
+99 other public responses are unchanged.546 related tests PASS, including
+wrong-role/value/prerequisite-direction and incomplete/conflicting-course probes.
+Whole100 semantic accuracy/hallucination remain open; answerability alone is not
+their score. [Current evidence](evaluation/results/full-app-natural-20261026/context-quality.json).
+
+Historical baseline and earlier repair coverage follow; these counts do not
+describe the current source.
+
 Actual natural100:80 positives,20 negatives,15 contextual and10 typo cases from
 the existing owner-approved dataset. No gold/labels enter inference. Baseline
 completes100 pipeline cases using79 real model outputs/POSTs and21 local paths.

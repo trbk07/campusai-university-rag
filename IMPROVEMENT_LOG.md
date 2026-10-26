@@ -1,5 +1,25 @@
 # App improvement log
 
+## 2026-10-26 - context qualification and complete course-semester lists
+
+Closed QA-07b8b1 and QA-07b8b2. All15 context cases satisfy17 source-reviewed
+required fields; context point score100% against95% gate. Wrong values/roles,
+reversed prerequisites, missing fields, unknown gold and absent history cannot
+pass the bounded evaluator. No LLM judge or human-review claim is fabricated.
+0075 now answers both course semesters from headed source rows, replacing its
+NLP-only answer. Values/codes are not hardcoded; conflicting or partial source
+identities fall back.546 related tests PASS. On the final100-case pipeline only
+0075 changes;53 exact captures and47 local outcomes need0 new provider calls.
+All100 schemas/82 citations validate. Accepted Phase5 predicates match0/400;
+its internal DONE status is preserved. Whole100 accuracy/hallucination and other
+full-app gates remain open. [Evidence](evaluation/results/full-app-natural-20261026/context-quality.json).
+
+The full sweep finds one catalog-key defect causing all4 Phase7 failures
+(3013 PASS/4 FAIL/2 optional live SKIP). Closed QA-09c2a by correcting only the
+logical key, preserving original registry/blob bytes and all historical report
+hashes.54 affected tests PASS, including a new whole-catalog safety invariant.
+The recorded full failure is retained; no final full-suite sequence is claimed.
+
 ## 2026-10-26 - close five remaining natural100 false abstentions
 
 Closed QA-07b8a: three notice date/deadline questions, one named-award necessary
