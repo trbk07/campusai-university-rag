@@ -55,7 +55,10 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Đã xong QA-07b4d:** kiểm chứng bộ chọn đoạn nguồn sau khi siết nhận diện tiêu đề;
    3 đầu vào đổi đã có phản hồi model thật, 100/100 ca đầy đủ.
    **Đã xong QA-07b5:** tra cứu tổng học kỳ từ dòng tổng nguồn; 5 ca từ chối sai được
-   sửa, 1 ca vốn đúng chuyển sang local. Còn 15 ca từ chối sai trên 100 ca hiện hành.
+   sửa, 1 ca vốn đúng chuyển sang local. Lượt 100 ca đầy đủ gần nhất còn 15 ca từ chối sai.
+   **Đã xong QA-07b6b1:** citation theo học kỳ; kiểm đủ 19 ca trên index sửa,
+   11 phản hồi model thật, 5 ca từng từ chối sai đã trả lời được, không phát sinh
+   từ chối sai mới trong nhóm. Chưa công bố metric 100 ca trên index mới.
    **Còn lại:** sửa các ca đơn vị giảng dạy, học phần cuối khóa, thời gian/điều kiện
    và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
@@ -117,8 +120,19 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
 - [ ] **QA-07b6b — Nghiệm thu câu trả lời trên nguồn đã sửa.** Index thử chỉ thay
   tài liệu bị ảnh hưởng; 14 tài liệu khác và baseline giữ nguyên byte. Đã chọn
   19 đầu vào cùng tài liệu; cả 19 truy hồi được cột tín chỉ có tiêu đề rõ ràng.
-  Còn sửa liên kết claim/citation với học kỳ trước khi chạy predictions mới cho
-  index này; chưa coi chất lượng câu trả lời hoặc toàn QA-07b là DONE.
+  Đã kiểm đủ 19 kết quả; còn 4 ca chưa đạt. Chưa coi toàn QA-07b là DONE.
+- [x] **QA-07b6b1 — Citation và nhãn học kỳ.** Ràng đúng hàng/môn/học kỳ,
+  giữ phạm vi so sánh, kiểm đủ nhóm đơn vị giảng dạy; phân biệt `Semester8`
+  với số tín chỉ và nhãn dòng tổng. Cache `grounding-v32` qua restart đã kiểm.
+  399 tests liên quan và 244 tests chéo phase PASS. Thêm đúng 11 calls thật;
+  reprocess 19/19 ca dùng captures khớp HTTP, 0 pending, 5 ca từ chối sai được
+  sửa, 0 ca vốn trả lời được bị từ chối mới. Năm ca Phase 5 có thể bị ảnh hưởng
+  được reprocess và giữ nguyên public/internal; 395 ca còn lại không vào nhánh
+  mới. [Bằng chứng](evaluation/results/full-app-natural-20261026/semester-citations.json).
+- [ ] **QA-07b6b2 — Bốn ca còn lại trên tài liệu liên kết.** `0085`: model thiếu
+  claim về đơn vị giảng dạy; `0090`: chưa hiểu viết tắt FSA; `0088/0092`: hiểu
+  “bản chương trình” thành yêu cầu chọn phiên bản. Sửa theo dữ liệu nguồn và ý
+  định câu hỏi, dùng lại captures chỉ khi đầu vào model thực sự không đổi.
 - [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
   nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
   quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua

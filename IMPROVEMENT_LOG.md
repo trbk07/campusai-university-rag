@@ -1,5 +1,22 @@
 # App improvement log
 
+## 2026-10-26 - source-bound semester citations and location wording
+
+Closed QA-07b6b1. Bind scope, named/code row and explicit column before numeric
+matching; reject missing/conflicting cells, wrong scope and partial provider
+coverage. Preserve comparison scope and original quoted rows. Compact Semester8
+labels match spaced verification text, while selected-source locations cannot
+lend their number to a factual credit count. Subtotal30 is not semester30.
+Grounding-v32 bypasses stale refusals and survives SQLite restart.399 related
+and244 cross-phase tests PASS. Only11 new native calls were made for19 affected
+inputs; subsequent exact-HTTP replay needs0 new calls. Five prior false
+abstentions are repaired with matching old-gold fields/source coordinates,
+and0 prior positive rows regress. Four targeted failures keep QA-07b6b open;
+no new whole100 accuracy/hallucination/context metric is claimed. Five affected
+Phase5 cases reprocess identically after screening all400;395 are outside new
+conditions. Raw provider captures, benchmark reviews and thresholds are intact.
+[Evidence](evaluation/results/full-app-natural-20261026/semester-citations.json).
+
 ## 2026-10-26 - preserve continuing-table columns and physical semester scope
 
 Closed QA-07b6a. Restored17 dropped source rows (94 to111), including a course,

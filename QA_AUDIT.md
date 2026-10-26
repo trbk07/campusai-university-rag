@@ -4,7 +4,31 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest source repair closes QA-07b6a. Physical review of the three-page public
+Latest citation repair closes QA-07b6b1 while QA-07b6b remains open. Semester
+locators are checked separately from serial/credit values, named/code rows and
+explicit semester columns stay bound, and complete provider groups cannot hide
+a different source provider. Compact Semester8 labels normalize for verification
+while public quotes retain original bytes. Proven selected-table locations can
+explain answer wording without licensing their number as a credit count.
+Subtotal wording is not a thirtieth semester. Grounding-v32 bypasses stale
+refusals and persists corrected results across SQLite restart.399 related and
+244 cross-phase tests PASS; these are not final full runs.
+
+The targeted new-index campaign has19 complete cases,11 genuine JSON responses
+and8 local outcomes,0 provider faults. Current reprocessing reuses exact HTTP
+captures with0 fresh calls: five old false abstentions are corrected and no
+previously answered row becomes a new false abstention. Repaired numeric/provider
+fields and source coordinates match the unchanged reviewed gold. Four cases
+remain failing (provider claim omission, FSA abbreviation, two undated-source
+temporal intents), so qualification is still FAIL. Do not combine these19 with
+81 old-index cases into a new whole100 metric; the last complete100 measurement
+still has15 false abstentions. All400 Phase5 records were inspected for affected
+conditions; five affected cases reprocess with identical public/internal outputs,
+395 are outside the new conditions, and no new provider calls or reopening of
+internal acceptance occurred.
+[Citation evidence](evaluation/results/full-app-natural-20261026/semester-citations.json).
+
+Earlier source repair closes QA-07b6a. Physical review of the three-page public
 curriculum and an exact raw-row multiset check exposed17 dropped rows and a
 subtotal mislabelled as Semester29. Producer structure-v6/table-v4 retains
 111/111 rows, checks inherited-header column geometry, keeps unknown spillover

@@ -5,6 +5,7 @@ cross-language prose while checking numbers, course IDs, units and directly
 opposed wording. List labels and display citation numbers are not factual values.
 """
 from collections import defaultdict
+import json
 from decimal import Decimal
 from datetime import date
 import re
@@ -20,6 +21,8 @@ COURSE_MARKER = re.compile(r'(?<!\w)' + COURSE_CODE + r'(?!\w)', re.I)
 LOCATION_VALUE = r'[0-9]+(?:\.[0-9]+)*(?:\([a-z]\))?'
 LOCATION = re.compile(r'\b(article|dieu|section|muc|chapter|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)')
 VISIBLE_LOCATION = re.compile(r'\b(article|điều|dieu|section|mục|muc|chapter|chương|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)',re.I)
+SEMESTER_LOCATION = re.compile(r'\b(?:semester|(?:học\s+)?k[ỳì]|(?:hoc\s+)?k[yi])\s*'
+                               r'(?:(?:thứ|thu)\s*)?(\d{1,2})\b',re.I)
 CALENDAR_DATE = re.compile(r'(?<!\w)(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{1,2})/(\d{1,2})/(\d{4}))(?!\w)')
 CLOCK_TIME = re.compile(r'(?<!\w)([0-9]{1,2})(?::|h)([0-9]{2})(?!\w)', re.I)
 MONTHS = {name: index for index, name in enumerate(('january','february','march','april','may',
@@ -80,6 +83,31 @@ def location_proofs(citations, registry):
         for line in body.splitlines():
             match=LOCATION.match(folded(line))
             if match:proven.add(location_key(*match.groups()))
+        if record.content_type=='table':
+            try:
+                quoted=json.loads(citation.quote)
+                source=json.loads(body[body.index('{"headers"'):])
+            except (ValueError,TypeError):
+                continue
+            selected=(quoted.get('rows',[]) if isinstance(quoted,dict) else
+                      [quoted] if isinstance(quoted,list) and all(isinstance(c,str) for c in quoted) else quoted)
+            if not isinstance(selected,list):continue
+            # These quotes have already passed the citation/row validator.
+            # Only selected literal markers or an explicit semester-column
+            # cell prove a location; unrelated source rows cannot supply it.
+            columns=[i for i,h in enumerate(source.get('headers',[])) if isinstance(h,str)
+                     and ' '.join(folded(h).split()) in {'semester','term','hoc ky'}]
+            for row in selected:
+                if not isinstance(row,list) or any(not isinstance(c,str) for c in row):continue
+                cells=[c.strip() for c in row if c.strip()]
+                marker=SEMESTER_LOCATION.fullmatch(cells[0]) if len(cells)==1 else None
+                if marker:proven.add(('semester',str(int(marker[1]))))
+                if len(columns)==1 and len(row)>columns[0] and re.fullmatch(r'[0-9]{1,2}',row[columns[0]]):
+                    proven.add(('semester',str(int(row[columns[0]]))))
+            if isinstance(quoted,dict) and isinstance(quoted.get('scope'),str):
+                marker=SEMESTER_LOCATION.fullmatch(quoted['scope'])
+                if marker and any(line.strip()=='Table scope: '+quoted['scope'] for line in record.content.splitlines()):
+                    proven.add(('semester',str(int(marker[1]))))
     return proven
 
 
@@ -213,6 +241,7 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
         return ' ' if key in locations or key in shared_scope_numbers else match[0]
     if locations:
         visible=VISIBLE_LOCATION.sub(mask_location,visible)
+        visible=SEMESTER_LOCATION.sub(lambda m:' ' if ('semester',str(int(m[1]))) in locations else m[0],visible)
     visible = _QUESTION_SCOPE_NUMBER.sub(
         lambda match: ' ' if _scope_number_key(match[1], match[2]) in shared_scope_numbers else match[0],
         visible,
@@ -222,6 +251,9 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     if visible_calendar - set().union(*(markers for _, markers in canonical_supported)):
         return True
     supported = [text for text, _ in canonical_supported]
+    if locations:
+        supported = [SEMESTER_LOCATION.sub(lambda m:' ' if ('semester',str(int(m[1]))) in locations else m[0],text)
+                     for text in supported]
     support = '\n'.join(supported)
     # A scoped cohort/document year may be repeated in the prose answer while
     # the verification claim correctly omits it. Allow only the same year,

@@ -36,8 +36,14 @@ MAXIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+most|maximum|max\.?|không\s+quá|
 EXACT_QUALIFIER_RE = re.compile(r"\b(?:exactly|precisely|chính\s+xác|đúng|dung)\b", re.I)
 
 
+def semester_spacing(value: str) -> str:
+    """Canonicalize an explicit numeric label without changing source quotes."""
+    return re.sub(r'\b(semester|học\s+kỳ|hoc\s+ky)\s*(\d{1,2})\b',r'\1 \2',value,flags=re.I)
+
+
 def normalize_text(value: str) -> str:
     value = unicodedata.normalize("NFC", repair_mojibake(value)).casefold()
+    value = semester_spacing(value)
     # Small, auditable academic-domain bilingual aliases. This is not a
     # generative synonym model; numeric/code fidelity remains exact.
     value = re.sub(r"\bcredits?\b", "tín chỉ", value)
@@ -143,7 +149,7 @@ def _exact_markers(text: str) -> set[str]:
     normalized = normalize_text(text)
     markers = (
         {f"code:{normalize_text(item)}" for item in CODE_RE.findall(text)}
-        | {f"value:{normalize_text(item)}" for item in NUMBER_RE.findall(text)}
+        | {f"value:{normalize_text(item)}" for item in NUMBER_RE.findall(semester_spacing(text))}
         | {f"year:{item}" for item in YEAR_RE.findall(text)}
         | {f"date:{normalize_text(item)}" for item in DATE_RE.findall(text)}
     )

@@ -67,6 +67,10 @@ def source_quote(result, claims, question=''):
         headers = table.get('headers', [])
         if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):
             return None
+        from .semester_citations import scoped_quote
+        scoped, quote = scoped_quote(result, table['rows'], headers, texts, question)
+        if scoped:
+            return quote
         identity_columns = [i for i, header in enumerate(headers) if isinstance(header, str)
                             and (folded(header) in {'course code', 'ma hoc phan', 'ma so hoc phan', 'ma so',
                                                    'ma xet tuyen', 'admission code', 'programme code',
