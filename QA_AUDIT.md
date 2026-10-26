@@ -4,7 +4,26 @@ Current cycle: 2026-10-26. Goal: autonomous full-app testing and UX optimization
 Roadmap: [plan.md](plan.md). This audit remains in progress; Phase 12 MVP acceptance
 does not prove all-app AI quality or public-release performance.
 
-Latest routing repair closes QA-07b6b2a. A neutral/deictic reference to one
+Latest curriculum lookup closes QA-07b6b2 and the bounded19-case QA-07b6b.
+Complete selected-document tables establish a unique literal/source-derived
+course acronym, explicit credit cell and physical semester marker. Provider
+lookups require a complete group with one consistent, nonempty source provider.
+Lower-ranked tables participate in ambiguity checks; malformed/partial scopes,
+conditions, extra intents, unknown versions and unauthorized sources do not gain
+an answer. Grounding-v34 bypasses stale refusals and survives SQLite restart.
+Index replacement during a lookup returns no cached/published stale projection;
+the next request reads the new values.607 related tests PASS. Current19-case pipeline has14 local source outcomes and5
+exact HTTP captures,0 new provider calls/outputs. All19 explicit requested fields
+and document/page coordinates match the unchanged reviewed gold; every citation
+quote validates.0085/0090/0092 are corrected,11 public responses are unchanged,
+five already-positive cases become local and no prior positive becomes refused.
+All400 accepted Phase5 requests were tested against their full selected frozen
+index tables; none enters this new lookup. This does not constitute400 fresh
+inferences or a new100-case accuracy/hallucination/context score. QA-07b remains
+OPEN for the complete100-case qualification on a consistent index and the other
+time/condition cases. [Evidence](evaluation/results/full-app-natural-20261026/curriculum-lookup.json).
+
+Earlier routing repair closes QA-07b6b2a. A neutral/deictic reference to one
 UI-selected document is not an unspecified version request. Explicit dates,
 years, cohorts, versions, comparisons and applicability remain on their original
 temporal path; an arbitrary named version is not stripped. Ask and retrieve

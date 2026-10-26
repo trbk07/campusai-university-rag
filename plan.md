@@ -18,7 +18,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
 **Làm tiếp:** [QA-07b — chất lượng AI tự nhiên và hội thoại nhiều lượt](#viec-con-lai),
-sửa các câu hỏi đơn vị giảng dạy, học phần cuối khóa và thời gian/điều kiện còn từ chối sai.
+kiểm đủ 100 ca trên index đã sửa và xử lý các câu thời gian/điều kiện còn lại.
 Đã có đủ 100 ca pipeline thật; dùng lại captures khớp đầu vào, chỉ gọi bổ sung ca bị ảnh hưởng.
 Không review lại gold đã đạt hoặc làm lại task DONE.
 
@@ -60,8 +60,10 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    11 phản hồi model thật, 5 ca từng từ chối sai đã trả lời được, không phát sinh
    từ chối sai mới trong nhóm. Chưa công bố metric 100 ca trên index mới.
    **Đã xong QA-07b6b2a:** phân biệt tài liệu đang chọn với yêu cầu phiên bản;
-   456 tests PASS, thêm 2 phản hồi model thật. Nhóm 19 ca hiện còn 3 ca từ chối sai.
-   **Còn lại:** sửa các ca đơn vị giảng dạy, học phần cuối khóa, thời gian/điều kiện
+   456 tests PASS, thêm 2 phản hồi model thật.
+   **Đã xong QA-07b6b/6b2:** 19/19 ca trên tài liệu liên kết khớp trường gold và
+   document/page đã review; không còn ca từ chối sai trong nhóm. 607 tests PASS.
+   **Còn lại:** kiểm đủ 100 ca trên index mới, sửa các ca thời gian/điều kiện khác
    và chấm đầy đủ accuracy/hallucination/context, không hạ ngưỡng.
 2. [ ] **QA-03b / QA-07c — Chất lượng PDF trên bộ đại diện.**
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
@@ -119,10 +121,12 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
   Full regression trước guard đóng phạm vi cuối: 2.836 PASS / 2 live SKIP;
   sau guard cuối: 119 tests liên quan PASS. Không tính thành full run cuối goal.
   [Bằng chứng](evaluation/results/full-app-natural-20261026/source-scope.json).
-- [ ] **QA-07b6b — Nghiệm thu câu trả lời trên nguồn đã sửa.** Index thử chỉ thay
+- [x] **QA-07b6b — Nghiệm thu 19 ca trên nguồn đã sửa.** Index thử chỉ thay
   tài liệu bị ảnh hưởng; 14 tài liệu khác và baseline giữ nguyên byte. Đã chọn
   19 đầu vào cùng tài liệu; cả 19 truy hồi được cột tín chỉ có tiêu đề rõ ràng.
-  Đã kiểm đủ 19 kết quả; còn 3 ca chưa đạt. Chưa coi toàn QA-07b là DONE.
+  Hiện 19/19 ca khớp các trường học kỳ/tín chỉ/đơn vị/tên học phần trong gold và
+  document/page đã review; quote hợp lệ, 0 ca từ chối sai. Chỉ đóng nhóm 19 ca;
+  toàn QA-07b vẫn mở, cần đủ 100 ca cùng index và các metric chất lượng.
 - [x] **QA-07b6b1 — Citation và nhãn học kỳ.** Ràng đúng hàng/môn/học kỳ,
   giữ phạm vi so sánh, kiểm đủ nhóm đơn vị giảng dạy; phân biệt `Semester8`
   với số tín chỉ và nhãn dòng tổng. Cache `grounding-v32` qua restart đã kiểm.
@@ -138,10 +142,15 @@ Các phần này đã DONE; chỉ làm phần còn thiếu ở mục 2.1.
   reprocess 19/19 ca, sửa `0088`, giữ nguyên 15 kết quả đã trả lời được.
   `0092` đã qua routing nhưng model gắn citation thừa nên vẫn chưa đạt.
   [Bằng chứng](evaluation/results/full-app-natural-20261026/selected-reference.json).
-- [ ] **QA-07b6b2 — Ba ca còn lại trên tài liệu liên kết.** `0085`: model thiếu
-  claim về đơn vị giảng dạy; `0090`: chưa hiểu viết tắt FSA; `0092`: model gắn
-  citation không liên quan. Ưu tiên tra cứu trường dữ liệu có bằng chứng trực tiếp
-  từ bảng nguồn; không lặp prompt cũ hoặc bỏ qua kiểm tra mâu thuẫn.
+- [x] **QA-07b6b2 — Tra cứu đơn vị và học phần từ bảng nguồn.** Sửa đủ
+  `0085/0090/0092`. Đọc bảng của toàn PDF đã chọn, suy viết tắt từ tên nguồn và
+  chỉ dùng định danh duy nhất; kiểm nhóm đơn vị đầy đủ, ô tín chỉ và marker học kỳ.
+  Thiếu/mâu thuẫn/điều kiện hoặc nhiều chủ thể thì không tự trả lời. Cache
+  `grounding-v34` qua restart đã kiểm; đổi index giữa lúc tra cứu không phát/cache
+  kết quả cũ. 607 tests PASS; 19 ca hoàn tất gồm 14 local
+  và 5 captures khớp HTTP, 0 calls mới, 0 ca đã trả lời được bị từ chối mới.
+  Cả 400 ca Phase 5 không vào nhánh tra cứu mới, không mở lại nghiệm thu nội bộ.
+  [Bằng chứng](evaluation/results/full-app-natural-20261026/curriculum-lookup.json).
 - [x] **QA-07b5 — Tổng tín chỉ theo học kỳ.** Tra cứu dòng tổng gắn với
   nhãn học kỳ trong cùng bảng nguồn; không cộng các môn tự chọn. 369 tests liên
   quan PASS, có kiểm tra dòng tổng mâu thuẫn, đổi cột, đổi phạm vi và cache qua

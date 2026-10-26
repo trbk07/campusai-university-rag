@@ -567,6 +567,29 @@ class CampusAIQueryService:
             if cached is not None:
                 return self._cached_answer(cached, selected_mode)
             composition = self._request_local.multi_hop_plan
+            if (composition.kind == 'single' and top_k > 0 and selected_mode in RETRIEVAL_MODES
+                    and doc_ids is not None and len(doc_ids) == 1):
+                from .curriculum_lookup import lookup_curriculum
+                with stage('source_table_lookup'):
+                    snapshot = self.corpus_version(doc_ids)
+                    documents = self._temporal_documents(doc_ids, filters)
+                    projection = lookup_curriculum(question, documents, doc_ids=doc_ids,
+                        language=language, calibrator=self.answer_generator.calibrator)
+                if projection is not None:
+                    # An ingest/index replacement must not bind an older table
+                    # snapshot to a newer cache identity (or vice versa).
+                    if (snapshot != self.corpus_version(doc_ids)
+                            or (version.startswith('sha256:') and snapshot != version)):
+                        from .grounding import _abstention
+                        self.retriever.last_trace = RoutingTrace(route='abstain', abstained=True,
+                            abstention_reason='insufficient_evidence', fallback='source_changed_during_lookup')
+                        return _abstention('insufficient_evidence', language=language)
+                    answer, self.last_retrieval = projection
+                    self.retriever.last_trace = RoutingTrace(route='source_table_lookup', exact_match=True,
+                        filters_applied=bool(filters), candidate_count=len(self.last_retrieval),
+                        final_count=len(self.last_retrieval), abstained=False)
+                    self.cache.put(key, answer)
+                    return answer
             legacy_comparison = composition.kind == 'compare' and not PDF.search(question)
             with stage("retrieval"):
                 temporal = getattr(self._request_local, 'temporal_resolution', None)

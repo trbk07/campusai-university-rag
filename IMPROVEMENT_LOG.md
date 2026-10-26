@@ -1,5 +1,25 @@
 # App improvement log
 
+## 2026-10-26 - complete-source curriculum field lookups
+
+Closed QA-07b6b2 and the bounded19-case QA-07b6b. Unique course identities and
+source-derived acronyms are checked against every table in the selected index,
+including tables absent from retrieval. Literal credit cells and physical semester
+markers establish the requested fields. Complete provider groups cannot hide
+missing/mixed providers or unknown scope markers. Conditions, extra questions,
+ambiguous names, unselected/unauthorized sources and malformed tables fall back
+without a fabricated answer. Grounding-v34 invalidates old refusals; SQLite
+restart reuse and changed-source invalidation are tested. A mid-lookup index
+replacement cannot publish/cache an old snapshot; the next request recovers.
+607 related tests PASS.
+The19-case final pipeline has14 local source outcomes and5 exact HTTP captures,
+0 new Gemini calls.0085/0090/0092 are fixed, all19 requested fields and source
+document/pages match unchanged reviewed gold, quotes validate, and no prior
+positive becomes refused.11 public responses are byte-equivalent; five already
+positive cases become local. The new lookup matches0/400 accepted Phase5 cases.
+Whole100 quality metrics and final full regressions remain open; no gate, gold
+or review record is changed. [Evidence](evaluation/results/full-app-natural-20261026/curriculum-lookup.json).
+
 ## 2026-10-26 - selected-source references preserve content questions
 
 Closed QA-07b6b2a. Neutral/deictic document references use the single UI-selected
