@@ -67,3 +67,7 @@
 /src/campusai/rag/relations.py -text
 /tests/test_relation_index.py -text
 /tests/test_relation_application.py -text
+
+# Preserve physical hashes in the hybrid-PDF QA receipts on every checkout.
+/docs/ui/evidence/hybrid-* -text whitespace=cr-at-eol
+/docs/ui/evidence/hybrid-*/** -text whitespace=cr-at-eol

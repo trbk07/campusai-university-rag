@@ -6,7 +6,19 @@ does not prove all-app AI quality or public-release performance.
 
 Accepted Phase5 source `a21a4cd5`: three consecutive full regressions each2,663 PASS/2 opt-in live SKIP. Phase5 internal400/400 acceptance and all5 gates PASS. The broader app audit remains open.
 
-Latest web/cache cycle:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser
+Latest hybrid-PDF cycle:2,718 full-suite PASS/2 opt-in live SKIP,126 focused
+checks and43/43 browser checks. Native headers previously hid raster bodies on
+the same page. Coverage-v2 now audits those regions,OCRs actual displayed pixels,
+preserves native text/font signals and decoder column order,and avoids duplicate
+facts. Historical cache/job identities remain readable without reusing stale
+extraction. Five existing documents/268 pages were successfully reindexed in
+40.65s;all native lines,7 original PDFs and prior job states were retained.
+Cancelled/review-only sources were not reprocessed. The larger job history
+exposed repeated path checks:20-user API p95 0.751s before batching,0.478s after,
+400/400 HTTP200. Every action still validates source paths;authorization remains
+per row/request. All400 Phase5 outputs remain unchanged. [Current evidence](docs/ui/evidence/hybrid-coverage-20261025.json).
+
+Earlier web/cache cycle:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser
 checks PASS, including desktop/mobile, ten PDFs, deletion and local OCR recovery.
 Fixed repeated full-registry parsing and expensive-query admission for pure PDF
 metadata.20 concurrent users now receive400/400 HTTP200, p95 0.189s; before,

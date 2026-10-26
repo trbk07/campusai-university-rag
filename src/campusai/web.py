@@ -153,22 +153,27 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                     return _json_response({"ok": False, "error_code": "query_busy", "retry_after_seconds": 1},
                         start_response, 429, extra=[("Retry-After", "1"), ("X-Request-ID", request_id)])
                 acquired = not metadata_query and query_slot is not None
+                validated_documents = None
                 try:
                     with documents.corpus_lock.read():
                         with documents.lock:
                             if documents.deletions.pending and 'doc_ids' not in options:
                                 raise WebError('document_deleting', 409)
-                            if "doc_ids" in options and getattr(application, "jobs", None) is not None:
+                            if "doc_ids" in options and (getattr(application, "jobs", None) is not None
+                                    or 'store_dir' in getattr(application, 'ingestion_defaults', {})):
                                 if not options["doc_ids"]:
                                     raise WebError("empty_scope")
                                 latest_jobs = documents.latest_jobs_snapshot()
-                                for doc_id in options["doc_ids"]:
-                                    if not documents.public_document(documents.record(doc_id, environ),
-                                            latest_job=latest_jobs.get(doc_id))["ready"]:
+                                validated_documents = []
+                                for doc_id in dict.fromkeys(options["doc_ids"]):
+                                    selected = documents.public_document(documents.record(doc_id, environ),
+                                            latest_job=latest_jobs.get(doc_id))
+                                    if not selected["ready"]:
                                         raise WebError("document_not_ready", 409)
+                                    validated_documents.append(selected)
                         try:
                             value = documents.answer_document_info(payload.get("question", ""), options, environ,
-                                                                   metadata_only=metadata_query)
+                                metadata_only=metadata_query, source_documents=validated_documents)
                             if value is None:
                                 if query_slot is not None and not acquired:
                                     if not query_slot.acquire(blocking=False):

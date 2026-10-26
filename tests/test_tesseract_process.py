@@ -86,3 +86,41 @@ def test_timeout_after_recognition_does_not_return_a_partial_success(tmp_path,mo
     processes=worker(monkeypatch,body)
     with pytest.raises(OCRLimitExceeded):recognize(tmp_path,timeout_seconds=.4)
     assert processes[0].poll() is not None
+
+
+@pytest.mark.parametrize('lines', [None, [{'text': 'invalid', 'bbox': [1, 1, 0, 0]}],
+    [{'text': 'invalid', 'bbox': [0, 0, float('nan'), 4]}]])
+def test_invalid_hybrid_layout_fails_closed(tmp_path, monkeypatch, lines):
+    row = {'type': 'page', 'page': 2, 'text': 'Text without reliable source geometry',
+           'confidence': .99, 'lines': lines}
+    processes = worker(monkeypatch, 'print('+repr(json.dumps(row))+',flush=True)')
+    with pytest.raises(OCRUnavailable, match='layout'):
+        recognize(tmp_path, include_layout=True)
+    assert processes[0].poll() is not None
+
+
+def test_hybrid_layout_cannot_silently_omit_recognized_body_text(tmp_path, monkeypatch):
+    row = {'type': 'page', 'page': 2, 'text': 'Header\nImportant body evidence', 'confidence': .99,
+           'lines': [{'text': 'Header', 'bbox': [0, 0, 20, 10]}]}
+    processes = worker(monkeypatch, 'print('+repr(json.dumps(row))+',flush=True)')
+    with pytest.raises(OCRUnavailable, match='mismatch'):
+        recognize(tmp_path, include_layout=True)
+    assert processes[0].poll() is not None
+
+
+def test_deadline_also_covers_large_request_write_to_a_worker_that_never_reads(tmp_path, monkeypatch):
+    import threading
+    original = subprocess.Popen
+    processes = []
+    monkeypatch.setattr(module, 'validate_tesseract_assets', lambda _: {'languages': 'vie+eng'})
+    def start(args, **kwargs):
+        process = original([args[0], '-I', '-u', '-c', 'import time;time.sleep(30)'], **kwargs)
+        processes.append(process)
+        return process
+    monkeypatch.setattr(module.subprocess, 'Popen', start)
+    started = time.monotonic()
+    with pytest.raises(OCRLimitExceeded):
+        recognize(tmp_path, timeout_seconds=.3, include_layout=True,
+                  hybrid_regions={2: [[0, 0, 100, 100]] * 6000})
+    assert time.monotonic() - started < 3 and processes[0].poll() is not None
+    assert not [thread for thread in threading.enumerate() if thread.name == 'local-ocr-input']

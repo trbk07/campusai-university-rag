@@ -12,7 +12,8 @@ import time
 from .ocr_assets import TESSDATA_SHA256, validate_tesseract_assets
 
 
-def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress):
+def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
+                  include_layout=False, hybrid_regions=None):
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
     started = time.perf_counter()
     try:
@@ -49,13 +50,28 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress)
                     pass
 
     reader = threading.Thread(target=read, daemon=True, name='local-ocr-output')
+    writer = None
     pages, ready, finished = [], False, False
     try:
         payload = {'path': str(Path(path).resolve()), 'data_dir': str(Path(data_dir).resolve()),
-                   'page_numbers': selected, 'scale': scale, 'model_sha256': TESSDATA_SHA256}
-        process.stdin.write(json.dumps(payload).encode('utf-8') + b'\n')
-        process.stdin.close()
+                   'page_numbers': selected, 'scale': scale, 'model_sha256': TESSDATA_SHA256,
+                   'include_layout': include_layout, 'hybrid_regions': hybrid_regions or {}}
+        encoded = json.dumps(payload, allow_nan=False).encode('utf-8') + b'\n'
+        if len(encoded) > 2 * 1024 * 1024:
+            raise OCRLimitExceeded('OCR request size limit exceeded')
+        def send():
+            try:
+                process.stdin.write(encoded)
+                process.stdin.close()
+            except (OSError, ValueError):
+                while not stopped.is_set():
+                    try:
+                        messages.put({'type': 'error'}, timeout=.1); return
+                    except queue.Full:
+                        pass
+        writer = threading.Thread(target=send, daemon=True, name='local-ocr-input')
         reader.start()
+        writer.start()
         while not finished:
             remaining = timeout_seconds - (time.perf_counter() - started)
             if remaining <= 0:
@@ -80,7 +96,32 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress)
                         or isinstance(confidence, bool) or not isinstance(confidence, (int, float))
                         or not math.isfinite(confidence) or not 0 <= confidence <= 1):
                     raise OCRUnavailable('invalid local OCR page result')
-                pages.append({'page': message['page'], 'text': text, 'confidence': confidence})
+                result = {'page': message['page'], 'text': text, 'confidence': confidence}
+                if include_layout:
+                    lines = message.get('lines')
+                    if (not isinstance(lines, list) or len(lines) > 100000 or any(
+                            not isinstance(row, dict) or not isinstance(row.get('text'), str)
+                            or not isinstance(row.get('bbox'), list) or len(row['bbox']) != 4
+                            or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                                   or not math.isfinite(v) for v in row['bbox'])
+                            or row['bbox'][0] >= row['bbox'][2] or row['bbox'][1] >= row['bbox'][3]
+                            for row in lines)):
+                        raise OCRUnavailable('invalid local OCR layout')
+                    if lines and ' '.join(text.split()) != ' '.join(
+                            ' '.join(row['text'] for row in lines).split()):
+                        raise OCRUnavailable('local OCR text/layout mismatch')
+                    result['lines'] = lines
+                    if 'image_audit' in message:
+                        audit = message['image_audit']
+                        if (not (hybrid_regions or {}).get(message['page'])
+                                or not isinstance(audit, list) or len(audit) > 100000 or any(not isinstance(row, dict)
+                                or row.get('outcome') not in {'recognized', 'no_detected_text', 'unreadable'}
+                                or not isinstance(row.get('bbox'), list) or len(row['bbox']) != 4
+                                or any(isinstance(v, bool) or not isinstance(v, (int, float))
+                                       or not math.isfinite(v) for v in row['bbox']) for row in audit)):
+                            raise OCRUnavailable('invalid local image OCR audit')
+                        result['image_audit'] = audit
+                pages.append(result)
             elif kind == 'done' and ready and len(pages) == len(selected):
                 finished = True
             elif kind == 'limit':
@@ -108,6 +149,8 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress)
                 process.kill(); process.wait(timeout=3)
         if reader.ident is not None:
             reader.join(timeout=3)
+        if writer is not None and writer.ident is not None:
+            writer.join(timeout=3)
         process.stdout.close()
         if not process.stdin.closed:
             process.stdin.close()

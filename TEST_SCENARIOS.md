@@ -2,7 +2,20 @@
 
 Latest cycle:2026-10-25. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
-Current source:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser checks.
+Current source:2,718 full-suite PASS/2 opt-in live SKIP,126 focused checks,
+43/43 browser checks and400 unchanged Phase5 capture-regression rows.
+`tests/test_hybrid_pdf.py` covers native headers with raster bodies,known
+Vietnamese/English text,both OCR backends,masked/clipped images,decoder column
+order,duplicate regions,cache upgrades and manual OCR/index/search without
+reupload. `tests/test_tesseract_process.py` also checks layout integrity and
+deadline/cancellation when a worker never reads a large input. Metadata tests
+verify scoped validation and fresh authorization/source checks across requests.
+One browser failure was a mid-hashchange visibility assertion:the original
+answer node/hash remained present and became visible after navigation. The
+harness now awaits that transition before checking conversation preservation.
+[Current evidence](docs/ui/evidence/hybrid-coverage-20261025.json).
+
+Earlier cache cycle:2,688 full-suite PASS/2 opt-in live SKIP;43/43 browser checks.
 `tests/test_metadata_read_path.py` verifies busy-model admission versus local
 facts,scope isolation,no repeated full-content parses,same-size atomic file
 replacement,deletion,caller mutation and fail-closed corruption. Registry/HTTP

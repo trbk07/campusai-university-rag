@@ -48,3 +48,20 @@ def test_forged_legacy_identity_still_fails_closed(tmp_path):
         db.execute('UPDATE jobs SET payload=?',(json.dumps(row),))
     with pytest.raises(JobStoreUnavailable):
         IngestionJobManager(journal_path=ledger)
+
+
+def test_version_one_coverage_identity_is_retained_but_never_deduplicates_new_work(tmp_path):
+    ledger, source, digest, options, old_id = make_legacy_ledger(tmp_path)
+    version_one = hashlib.sha256(json.dumps({'source_sha256': digest, 'options': options,
+        'text_coverage_version': 1}, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    with sqlite3.connect(ledger) as db:
+        row = json.loads(db.execute('SELECT payload FROM jobs').fetchone()[0])
+        row.update(identity=version_one)
+        db.execute('UPDATE jobs SET payload=?', (json.dumps(row),))
+    manager = IngestionJobManager(journal_path=ledger)
+    try:
+        assert manager.get(old_id)['identity'] == version_one
+        new_id, created = manager.prepare_upload(source, digest, **options)
+        assert created and new_id != old_id and manager.get(old_id)['state'] == 'review_required'
+    finally:
+        manager.shutdown()

@@ -152,9 +152,11 @@ class DocumentRegistry:
         """Return an isolated metadata record without parsing all chunk bodies."""
         return deepcopy(self._metadata_snapshot().get(doc_id))
 
-    def metadata_list(self) -> list[dict[str, Any]]:
+    def metadata_list(self, *, doc_ids=None) -> list[dict[str, Any]]:
         """Return isolated metadata; external writes and deletions remain visible."""
-        return deepcopy(list(self._metadata_snapshot().values()))
+        wanted = None if doc_ids is None else set(doc_ids)
+        return deepcopy([row for identifier, row in self._metadata_snapshot().items()
+                         if wanted is None or identifier in wanted])
 
     def get(self, doc_id: str) -> dict[str, Any] | None:
         """Return one document record by id."""

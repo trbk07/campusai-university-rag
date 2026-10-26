@@ -1,6 +1,23 @@
 # App performance evidence
 
-Latest cycle:2026-10-25. [Raw measurements, environment and artifact bindings](docs/ui/evidence/web-read-performance-20261025.json).
+Latest cycle:2026-10-25. [Current hybrid/read-path evidence](docs/ui/evidence/hybrid-coverage-20261025.json).
+
+Same7-document library after reindexing,17 retained job records:20 users,400
+ordinary read requests,400/400 HTTP200,p95 0.478s versus0.751s before the final
+metadata optimization. Endpoint p95:library0.429s,local PDF facts0.497s. Request
+snapshots eliminate repeated selected-source checks;job-path validation is
+reused only within one listing. File reads,delete/retry and row authorization
+still validate normally. No provider calls were made.
+
+Existing-library OCR/reindex observation:5/5 documents,268 pages,40.65s total;
+this excludes initial upload/startup and is not a p95 or a speedup comparison.
+All native lines and original source hashes were checked. Current Chrome lab:
+9/9 sessions PASS,max LCP308ms/INP104ms/CLS0.0109. Real AI streaming and the full
+100-page/10MB workload remain unqualified. The earlier100-page/6.17MB result
+must be requalified under coverage-v2;its historical ready flag did not audit
+same-page raster regions.
+
+Earlier read-path cycle: [raw measurements and bindings](docs/ui/evidence/web-read-performance-20261025.json).
 
 | Current workload | Before | After | Scope |
 |---|---|---|---|

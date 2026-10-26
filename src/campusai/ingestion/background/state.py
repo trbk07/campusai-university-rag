@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from pathlib import Path
+from ..docling_parser import TEXT_COVERAGE_VERSION
 
 ACTIVE = frozenset({'staging','queued','running'})
 TERMINAL = frozenset({'succeeded','failed','cancelled','review_required'})
@@ -52,7 +53,7 @@ def normalize_options(options):
 
 
 def job_identity(digest,options):
-    return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,'text_coverage_version':1},
+    return hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
@@ -67,8 +68,12 @@ def accepted_job_identities(digest, options):
     variants = [options]
     if options.get('ocr_backend') == 'rapidocr' and options.get('ocr_data_dir') is None:
         variants.append({k:v for k,v in options.items() if k not in {'ocr_backend','ocr_data_dir'}})
-    return {function(digest,variant) for variant in variants
-            for function in (job_identity,legacy_job_identity)}
+    identities = {function(digest,variant) for variant in variants
+                  for function in (job_identity,legacy_job_identity)}
+    identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
+        'text_coverage_version':1},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        for variant in variants)
+    return identities
 
 
 

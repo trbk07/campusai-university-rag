@@ -14,6 +14,34 @@ from typing import Any, Callable
 
 import fitz
 
+TEXT_COVERAGE_VERSION = 2
+
+
+def _uncovered_images(page, native_boxes):
+    """Find substantial raster regions without a distributed native text layer.
+
+    A native heading/footer outside an image is not evidence that its body was
+    extracted. Small decorative marks do not trigger document-wide OCR. Image
+    metadata is inspected without loading compressed image payloads.
+    """
+    bounds = page.rect * page.derotation_matrix
+    uncovered = []
+    for image in page.get_image_info():
+        region = fitz.Rect(image['bbox']) & bounds
+        if region.is_empty or region.get_area() < bounds.get_area() * .02:
+            continue
+        inside = [box & region for box in native_boxes
+                  if box.get_area() and (box & region).get_area() >= box.get_area() * .5]
+        envelope = fitz.Rect()
+        for box in inside:
+            envelope |= box
+        if (len(inside) >= 3 and envelope.width >= .8 * region.width
+                and envelope.height >= .8 * region.height):
+            continue
+        if list(region) not in uncovered:
+            uncovered.append(list(region))
+    return uncovered
+
 
 class DoclingUnavailable(RuntimeError):
     """Raised when the optional Docling benchmark dependency is absent."""
@@ -32,6 +60,7 @@ def parse_pdf(
         total_pages = max(1, len(document))
         for page_number, page in enumerate(document, start=1):
             lines: list[dict[str, Any]] = []
+            native_layout = []
             # Image bytes are not used by text/layout extraction. Keeping them
             # materializes embedded scans for every page and concurrent worker.
             flags = fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES
@@ -44,9 +73,13 @@ def parse_pdf(
                     size = max(float(span.get("size", 0.0)) for span in spans)
                     lines.append({"text": text, "font_size": round(size, 1),
                                   "bold": any("bold" in str(span.get("font", "")).lower() for span in spans)})
+                    native_layout.append({'text': text, 'bbox': list(line['bbox'])})
                     body_font_sizes.append(size)
-            requires_ocr = not lines and bool(page.get_image_info() or page.get_drawings())
-            raw_pages.append({"page": page_number, "lines": lines, "requires_ocr": requires_ocr})
+            regions = _uncovered_images(page, [fitz.Rect(row['bbox']) for row in native_layout])
+            requires_ocr = bool(regions) or not lines and bool(page.get_image_info() or page.get_drawings())
+            raw_pages.append({"page": page_number, "lines": lines, "requires_ocr": requires_ocr,
+                              'hybrid_layout': native_layout if lines and regions else None,
+                              'ocr_regions': regions})
             if progress is not None:
                 progress(page_number / total_pages)
     finally:
@@ -57,6 +90,8 @@ def parse_pdf(
         "requires_ocr": raw["requires_ocr"],
         "text": "\n".join(line["text"] for line in raw["lines"]),
         "lines_meta": [{**line, "is_larger_font": bool(body_median and line["font_size"] > body_median * 1.08)} for line in raw["lines"]],
+        **({'hybrid_layout': raw['hybrid_layout'], 'ocr_regions': raw['ocr_regions']}
+           if raw['hybrid_layout'] else {}),
     } for raw in raw_pages]
 
 

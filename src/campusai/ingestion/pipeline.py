@@ -12,7 +12,7 @@ from typing import Callable
 from ..schemas import Document
 from .chunker import CHUNKER_VERSION, make_chunks
 from .background.commit import atomic_text
-from .docling_parser import parse_pdf
+from .docling_parser import TEXT_COVERAGE_VERSION, parse_pdf
 from .metadata_detector import detect_metadata
 from .ocr import OCRLimitExceeded, OCRUnavailable, ocr_pdf
 from .table_extractor import TABLE_EXTRACTOR_VERSION, extract_tables
@@ -21,6 +21,73 @@ from ..documents.registry import DocumentRegistry
 
 
 ProgressCallback = Callable[[str, float], None]
+
+
+def _merge_hybrid_page(native, recognized):
+    """Retain exact native text; add OCR lines only outside its known geometry."""
+    import fitz
+    layout = recognized.get('lines')
+    audit = recognized.get('image_audit')
+    if audit is not None:
+        if not all(any(row.get('outcome') in {'recognized', 'no_detected_text'}
+                       and fitz.Rect(row['bbox']).irect == fitz.Rect(region).irect
+                       for row in audit) for region in native['ocr_regions']):
+            return None
+    if not layout and audit is None:
+        return None  # A native header alone is not successful body recognition.
+    originals = native['hybrid_layout']
+    boxes = [fitz.Rect(row['bbox']) + (-2, -2, 2, 2) for row in originals]
+    additions = []
+    for row in layout or []:
+        rect = fitz.Rect(row['bbox'])
+        if not rect.get_area() or not row['text'].strip():
+            continue
+        if any((rect & box).get_area() >= .98 * rect.get_area() for box in boxes):
+            continue
+        normalized = ' '.join(row['text'].casefold().split())
+        if any(' '.join(previous['text'].casefold().split()) == normalized
+               and (rect & fitz.Rect(previous['bbox'])).get_area() >= .8 * min(
+                   rect.get_area(), fitz.Rect(previous['bbox']).get_area()) for previous in additions):
+            continue
+        additions.append(row)
+    if audit is None and not all(any((fitz.Rect(row['bbox']) & fitz.Rect(region)).get_area() > 0
+                   for row in additions) for region in native['ocr_regions']):
+        return None
+    # Preserve each extractor's reading order. Sorting all lines by y/x would
+    # interleave the left and right columns of a scanned body.
+    insertions, remaining = {}, list(additions)
+    for region in native['ocr_regions']:
+        area = fitz.Rect(region)
+        group = [row for row in remaining if area.contains(fitz.Rect(row['bbox']).tl
+                  + (fitz.Rect(row['bbox']).br - fitz.Rect(row['bbox']).tl) * .5)]
+        if not group:
+            continue
+        remaining = [row for row in remaining if row not in group]
+        envelope = fitz.Rect()
+        for row in group:
+            envelope |= fitz.Rect(row['bbox'])
+        preceding, following = [], []
+        for index, row in enumerate(originals):
+            box = fitz.Rect(row['bbox'])
+            overlap = max(0, min(box.x1, envelope.x1) - max(box.x0, envelope.x0))
+            if overlap < .3 * min(box.width, envelope.width):
+                continue
+            if box.y1 <= envelope.y0:
+                preceding.append((box.y1, index))
+            elif box.y0 >= envelope.y1:
+                following.append((box.y0, index))
+        position = max(preceding)[1] + 1 if preceding else min(following)[1] if following else len(originals)
+        insertions.setdefault(position, []).extend(group)
+    insertions.setdefault(len(originals), []).extend(remaining)
+    ordered = []
+    for index in range(len(originals) + 1):
+        ordered.extend(insertions.get(index, []))
+        if index < len(originals):
+            ordered.append(originals[index])
+    styles = {id(row): style for row, style in zip(originals, native.get('lines_meta', []))}
+    return {**recognized, 'text': '\n'.join(row['text'].strip() for row in ordered),
+            'lines_meta': [styles.get(id(row), {'text': row['text'], 'is_larger_font': False})
+                           for row in ordered]}
 
 
 def _sha256_file(path: Path) -> str:
@@ -102,7 +169,7 @@ def ingest_document(
             parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1", "tesseract-vie-eng-v1"}
             and document.metadata.get("chunker_version") == CHUNKER_VERSION
             and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
-            and document.metadata.get("text_coverage_version") == 1
+            and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
         cached_ocr = document.metadata.get('ocr')
         if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
@@ -144,15 +211,29 @@ def ingest_document(
             ocr_result = ocr_pdf(pdf_path, max_pages=ocr_max_pages,
                 timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages,
                 progress=lambda completed,total:report_progress('ocr',completed/total),
-                backend=ocr_backend, data_dir=ocr_data_dir)
+                backend=ocr_backend, data_dir=ocr_data_dir,
+                include_layout=any(page.get('hybrid_layout') for page in pages),
+                hybrid_regions={page['page']: page['ocr_regions'] for page in pages if page.get('hybrid_layout')})
             recognized = {page['page']: page for page in ocr_result.pages
-                          if page.get('page') in unread_pages and str(page.get('text', '')).strip()}
-            pages = [{**recognized[page['page']], 'lines_meta': [], 'requires_ocr': False}
+                          if page.get('page') in unread_pages and (str(page.get('text', '')).strip()
+                              or page.get('image_audit'))}
+            for page in pages:
+                if page.get('hybrid_layout') and page['page'] in recognized:
+                    merged = _merge_hybrid_page(page, recognized[page['page']])
+                    if merged is None:
+                        del recognized[page['page']]
+                    else:
+                        recognized[page['page']] = merged
+            pages = [{**recognized[page['page']], 'lines_meta': recognized[page['page']].get('lines_meta', []), 'requires_ocr': False}
                      if page['page'] in recognized else page for page in pages]
             ocr_info = {'engine': ocr_result.engine, 'average_confidence': ocr_result.average_confidence,
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
                 'page_numbers': sorted(recognized), 'backend': ocr_backend,
                 'model_identity': ocr_result.model_identity}
+            image_audits = [{'page': page['page'], 'regions': page['image_audit']}
+                            for page in ocr_result.pages if page.get('image_audit')]
+            if image_audits:
+                ocr_info['image_audits'] = image_audits
             unread_pages = [number for number in unread_pages if number not in recognized]
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
@@ -166,7 +247,7 @@ def ingest_document(
             warnings.append(review_warning)
         metadata.update({'source_name': pdf_path.name, 'source_hash': document_id,
             'parser_version': 'pymupdf-text-v1', 'chunker_version': CHUNKER_VERSION,
-            'table_extractor_version': TABLE_EXTRACTOR_VERSION, 'text_coverage_version': 1,
+            'table_extractor_version': TABLE_EXTRACTOR_VERSION, 'text_coverage_version': TEXT_COVERAGE_VERSION,
             'schema_version': 1, 'status': 'review_required', 'review_reason': review_reason,
             'warnings': warnings, 'unread_pages': unread_pages})
         if ocr_info is not None:
@@ -189,7 +270,7 @@ def ingest_document(
     metadata["chunker_version"] = CHUNKER_VERSION
     metadata["table_extractor_version"] = TABLE_EXTRACTOR_VERSION
     metadata["schema_version"] = 1
-    metadata["text_coverage_version"] = 1
+    metadata["text_coverage_version"] = TEXT_COVERAGE_VERSION
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
         metadata["parser_version"] = ('tesseract-vie-eng-v1' if ocr_backend == 'tesseract'

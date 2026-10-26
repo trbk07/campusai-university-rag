@@ -172,15 +172,19 @@ class WebDocuments:
         # Older indexes may have silently skipped image-only pages in mixed
         # PDFs. Audit their immutable local source once, without re-embedding
         # already readable native PDFs or trusting an old success flag.
+        from .ingestion.docling_parser import TEXT_COVERAGE_VERSION
         if (available and record.get('status') == 'succeeded'
-                and meta.get('text_coverage_version') != 1
-                and meta.get('parser_version') not in {'rapidocr-onnx-v1','tesseract-vie-eng-v1'}):
+                and meta.get('text_coverage_version') != TEXT_COVERAGE_VERSION):
             stat = source.stat()
             identity = (stat.st_mtime_ns, stat.st_size)
             cached = self._legacy_coverage.get(doc_id)
             if cached is None or cached[0] != identity:
                 from .ingestion.docling_parser import parse_pdf
-                unread = [page['page'] for page in parse_pdf(source) if page.get('requires_ocr')]
+                # Historical successful OCR already covered its recorded physical
+                # pages. Re-audit the remaining pages for newly detected hybrids.
+                recognized = set((meta.get('ocr') or {}).get('page_numbers', []))
+                unread = [page['page'] for page in parse_pdf(source)
+                          if page.get('requires_ocr') and page['page'] not in recognized]
                 self._legacy_coverage[doc_id] = (identity, unread)
             else:
                 unread = cached[1]
@@ -215,13 +219,15 @@ class WebDocuments:
                 latest_jobs[doc_id] = job
         return latest_jobs
 
-    def documents(self, environ, *, job_rows=None):
+    def documents(self, environ, *, job_rows=None, doc_ids=None):
         latest_jobs = self.latest_jobs_snapshot(job_rows)
+        wanted = None if doc_ids is None else set(doc_ids)
         records = [self.public_document(record, latest_job=latest_jobs.get(record['doc_id']))
-                   for record in self.registry.metadata_list() if self.allowed(record["doc_id"], environ)]
+                   for record in self.registry.metadata_list(doc_ids=wanted) if self.allowed(record["doc_id"], environ)
+                   and (wanted is None or record['doc_id'] in wanted)]
         return sorted(records, key=lambda record: record.get("uploaded_at") or 0, reverse=True)
 
-    def answer_document_info(self, question, options, environ, *, metadata_only=False):
+    def answer_document_info(self, question, options, environ, *, metadata_only=False, source_documents=None):
         from .document_info import document_info_response
         # Ordinary content queries must not enumerate the upload registry or
         # introduce document-transport dependencies into core API adapters.
@@ -233,7 +239,8 @@ class WebDocuments:
         resolve_query(question, history=options.get('history'), selected_text=options.get('selected_text'),
                       requires_context=options.get('requires_context',False))
         ids = authorized_scope(options.get('doc_ids'), options.get('authorized_doc_ids'))
-        selected = [d for d in self.documents(environ) if d['ready'] and (ids is None or d['doc_id'] in ids)]
+        source_documents = self.documents(environ, doc_ids=ids) if source_documents is None else source_documents
+        selected = [d for d in source_documents if d['ready'] and (ids is None or d['doc_id'] in ids)]
         filters = validate_filters(options.get('filters'))
         selected = [d for d in selected if all(str(d['metadata'].get(k, '')).casefold() == str(v).casefold()
                                              for k, v in filters.items())]
@@ -255,7 +262,7 @@ class WebDocuments:
                     continue
                 if info['answer']['abstained']:
                     return info
-                content = self.answer_document_info(clauses[1-index],options,environ)
+                content = self.answer_document_info(clauses[1-index],options,environ,source_documents=source_documents)
                 if content is None:
                     content = self.application.query(clauses[1-index], **options)
                 if not content.get('ok'):
@@ -338,10 +345,10 @@ class WebDocuments:
             return {'ok':False, **(answer.provider_failure or {'error_code':'provider_unavailable'})}
         return {'ok':True,'answer':answer.to_public_dict(),'cache_hit':service.last_cache_hit}
 
-    def public_job(self, job, environ):
+    def public_job(self, job, environ, *, _validated_source=None):
         if not job:
             raise WebError("not_found", 404)
-        source = contained(self.store, Path(job["source_path"]))
+        source = _validated_source if _validated_source is not None else contained(self.store, Path(job["source_path"]))
         doc_id = job.get("document_id") or source.parent.name
         if not self.allowed(doc_id, environ):
             raise WebError("not_found", 404)
@@ -357,10 +364,17 @@ class WebDocuments:
 
     def jobs(self, environ, *, job_rows=None):
         values = []
+        validated_sources = {}
         job_rows = self.application.jobs_snapshot()["jobs"] if job_rows is None else job_rows
         for job in job_rows:
             try:
-                values.append(self.public_job(job, environ))
+                # History often contains multiple jobs for the same source.
+                # Reuse path validation only inside this metadata response;
+                # every row still checks authorization, and actions validate anew.
+                path = job['source_path']
+                if path not in validated_sources:
+                    validated_sources[path] = contained(self.store, Path(path))
+                values.append(self.public_job(job, environ, _validated_source=validated_sources[path]))
             except WebError:
                 continue
         return values

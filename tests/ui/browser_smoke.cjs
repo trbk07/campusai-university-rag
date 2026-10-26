@@ -105,6 +105,9 @@ async function main() {
     }, undefined, {timeout:30000});
     listing.documents = (await (await context.request.get(`${baseUrl}/api/documents`)).json()).documents;
     await page.locator('#ask-selected').click();
+    // The click updates the hash; the view becomes visible in hashchange.
+    // Check preserved conversation after that transition, not mid-navigation.
+    await page.locator('#view-assistant').waitFor({state:'visible'});
     assert(await page.getByText('Chào bạn! Bạn muốn tìm hiểu phần nào trong tài liệu đã chọn?',{exact:true}).isVisible());
     await page.locator('#scope-open').click();
     for (const checkbox of await page.locator('#scope-documents input[data-select]').all()) await checkbox.check();

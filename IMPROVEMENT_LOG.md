@@ -1,5 +1,19 @@
 # App improvement log
 
+## 2026-10-25 - same-page native/raster coverage
+
+Fixed native headers hiding raster bodies. OCR now inspects displayed regions,
+retains native text/styles and decoder column order,and excludes invisible
+masked pixels and duplicate facts. Coverage-v2 invalidates stale extraction
+without discarding old job identities. Existing-library repair:5/5 documents,
+268 pages,40.65s;all7 source PDFs and prior jobs retained,0 provider calls.
+After history grew to17 jobs,repeated path validation pushed API p95 to0.751s;
+request-local batching and validated scope reuse reduce it to0.478s with all400
+requests successful.2,718 full-suite PASS/2 live SKIP,126 focused,43 browser
+checks and400 unchanged Phase5 outputs. The known VN raster fixture scores
+98.44% character accuracy;independent real-scan/table fidelity and broader goal
+gates remain open. [Evidence](docs/ui/evidence/hybrid-coverage-20261025.json).
+
 ## 2026-10-25 - library read latency and loading layout
 
 Removed repeated6MB registry parses from ordinary metadata reads using a compact,

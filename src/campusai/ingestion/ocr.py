@@ -28,11 +28,12 @@ class OCRDocument:
     model_identity: dict | None = None
 
 
-def _recognize(engine, image: np.ndarray) -> tuple[str, float]:
+def _recognize(engine, image: np.ndarray):
     result, _ = engine(image)
     if not result:
-        return "", 0.0
+        return "", 0.0, []
     texts: list[str] = []
+    layout = []
     confidences: list[float] = []
     for item in result:
         if len(item) < 3:
@@ -40,11 +41,16 @@ def _recognize(engine, image: np.ndarray) -> tuple[str, float]:
         text = str(item[1]).strip()
         if text:
             texts.append(text)
+            if item[0] is not None:
+                points = np.asarray(item[0], dtype=float)
+                if points.shape == (4, 2) and np.isfinite(points).all():
+                    layout.append({'text': text, 'bbox': [float(points[:, 0].min()), float(points[:, 1].min()),
+                                                         float(points[:, 0].max()), float(points[:, 1].max())]})
         try:
             confidences.append(float(item[2]))
         except (TypeError, ValueError):
             pass
-    return "\n".join(texts), sum(confidences) / len(confidences) if confidences else 0.0
+    return "\n".join(texts), sum(confidences) / len(confidences) if confidences else 0.0, layout
 
 
 def ocr_pdf(
@@ -57,6 +63,8 @@ def ocr_pdf(
     progress: Callable[[int, int], None] | None = None,
     backend: str = 'rapidocr',
     data_dir: str | Path | None = None,
+    include_layout: bool = False,
+    hybrid_regions: dict | None = None,
 ) -> OCRDocument:
     """OCR a bounded number of pages using the local RapidOCR ONNX backend."""
 
@@ -84,7 +92,8 @@ def ocr_pdf(
         if backend == 'tesseract':
             from .tesseract_process import recognize_pdf
             return recognize_pdf(path, selected, data_dir=data_dir, scale=scale,
-                                 timeout_seconds=timeout_seconds, progress=progress)
+                                 timeout_seconds=timeout_seconds, progress=progress, include_layout=include_layout,
+                                 hybrid_regions=hybrid_regions)
         try:
             from rapidocr_onnxruntime import RapidOCR
         except ImportError as error:  # pragma: no cover - environment dependent
@@ -96,12 +105,55 @@ def ocr_pdf(
         for completed,page_number in enumerate(selected,1):
             if time.perf_counter() - started > timeout_seconds:
                 raise OCRLimitExceeded("OCR time limit exceeded")
-            pixmap = document[page_number - 1].get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
+            page = document[page_number - 1]
+            regions = (hybrid_regions or {}).get(page_number)
+            if regions:
+                lines, audits, region_confidences = [], [], []
+                bounds = page.rect * page.derotation_matrix
+                for region in regions:
+                    if progress is not None:
+                        progress(completed - 1, len(selected))
+                    if time.perf_counter() - started > timeout_seconds:
+                        raise OCRLimitExceeded('OCR time limit exceeded')
+                    rect = fitz.Rect(region)
+                    if rect.is_empty or not bounds.contains(rect):
+                        raise ValueError('OCR image region outside page')
+                    if rect.get_area() * scale ** 2 > 20_000_000:
+                        raise OCRLimitExceeded('OCR page pixel limit exceeded')
+                    pixmap = page.get_pixmap(matrix=fitz.Matrix(scale, scale), clip=rect * page.rotation_matrix,
+                                             alpha=False, colorspace=fitz.csRGB)
+                    image = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, pixmap.n)
+                    text, confidence, layout = _recognize(engine, image)
+                    if layout:
+                        for row in layout:
+                            x0, y0, x1, y1 = row['bbox']
+                            box = fitz.Rect((x0 + pixmap.x) / scale, (y0 + pixmap.y) / scale,
+                                            (x1 + pixmap.x) / scale, (y1 + pixmap.y) / scale) * page.derotation_matrix
+                            lines.append({'text': row['text'], 'bbox': list(box)})
+                        outcome = 'recognized'
+                        region_confidences.append(confidence)
+                    else:
+                        detected, _ = engine(image, use_cls=False, use_rec=False)
+                        outcome = 'unreadable' if detected else 'no_detected_text'
+                    audits.append({'bbox': region, 'outcome': outcome})
+                confidence = sum(region_confidences) / len(region_confidences) if region_confidences else 0
+                pages.append({'page': page_number, 'text': '\n'.join(row['text'] for row in lines),
+                              'lines': lines, 'image_audit': audits, 'confidence': confidence})
+                if confidence:
+                    confidences.append(confidence)
+                if progress is not None:
+                    progress(completed, len(selected))
+                continue
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
             image = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(
                 pixmap.height, pixmap.width, pixmap.n
             )
-            text, confidence = _recognize(engine, image)
-            pages.append({"page": page_number, "text": text, "confidence": confidence})
+            text, confidence, layout = _recognize(engine, image)
+            result = {"page": page_number, "text": text, "confidence": confidence}
+            if include_layout:
+                result['lines'] = [{'text': row['text'], 'bbox': list(fitz.Rect(
+                    [value / scale for value in row['bbox']]) * page.derotation_matrix)} for row in layout]
+            pages.append(result)
             if confidence:
                 confidences.append(confidence)
             # The ingestion callback also checks cancellation. Do not start
