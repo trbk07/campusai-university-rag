@@ -172,6 +172,16 @@ def ingest_document(
             and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
         cached_ocr = document.metadata.get('ocr')
+        if (document.metadata.get('text_coverage_version') == 2
+                and parser_version in {'pymupdf-text-v1', 'rapidocr-onnx-v1', 'tesseract-vie-eng-v1'}
+                and document.metadata.get('chunker_version') == CHUNKER_VERSION
+                and document.metadata.get('table_extractor_version') == TABLE_EXTRACTOR_VERSION
+                and not any(page.get('ignored_invisible_spans') for page in parse_pdf(pdf_path))):
+            # Only the visibility rule changed in v3. Preserve verified visible
+            # text/OCR and its chunks instead of needlessly re-embedding it.
+            document.metadata['text_coverage_version'] = TEXT_COVERAGE_VERSION
+            atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
+            cache_versions_current = True
         if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
             cache_versions_current = False
         if enable_ocr and document.status == "review_required" and document.review_reason in {
@@ -224,7 +234,9 @@ def ingest_document(
                         del recognized[page['page']]
                     else:
                         recognized[page['page']] = merged
-            pages = [{**recognized[page['page']], 'lines_meta': recognized[page['page']].get('lines_meta', []), 'requires_ocr': False}
+            pages = [{**recognized[page['page']], 'lines_meta': recognized[page['page']].get('lines_meta', []), 'requires_ocr': False,
+                      **({key:page[key] for key in ('ignored_invisible_spans','visible_characters')}
+                         if page.get('ignored_invisible_spans') else {})}
                      if page['page'] in recognized else page for page in pages]
             ocr_info = {'engine': ocr_result.engine, 'average_confidence': ocr_result.average_confidence,
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),

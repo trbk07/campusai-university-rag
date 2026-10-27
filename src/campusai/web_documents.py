@@ -18,6 +18,7 @@ from pathlib import Path
 
 from .documents.registry import DocumentRegistry
 from .ingestion.pipeline import delete_document_full
+from .ingestion.docling_parser import visible_page_text
 from .ingestion.validate import validate_pdf
 from .ingestion.jobs import JobQueueFull, JobStoreUnavailable
 
@@ -184,7 +185,8 @@ class WebDocuments:
                 # pages. Re-audit the remaining pages for newly detected hybrids.
                 recognized = set((meta.get('ocr') or {}).get('page_numbers', []))
                 unread = [page['page'] for page in parse_pdf(source)
-                          if page.get('requires_ocr') and page['page'] not in recognized]
+                          if page.get('ignored_invisible_spans')
+                          or page.get('requires_ocr') and page['page'] not in recognized]
                 self._legacy_coverage[doc_id] = (identity, unread)
             else:
                 unread = cached[1]
@@ -329,7 +331,7 @@ class WebDocuments:
             if len(pdf) != doc['page_count']:
                 raise WebError('source_unavailable',404)
             results = [RetrievalResult(f"{doc['doc_id']}_physical_page_{page}",doc['doc_id'],page,
-                pdf[page-1].get_text(), 'text',1.0,'source_pages',
+                visible_page_text(pdf[page-1]), 'text',1.0,'source_pages',
                 {'source_name':doc['name'],'source_hash':doc['doc_id'],'page_range':[page,page],
                  'heading_path':[f'PDF page {page}']}) for page in pages]
         if any(not r.content.strip() for r in results):
@@ -526,7 +528,7 @@ class WebDocuments:
         end = min(interval[1], interval[0] + 15)
         with fitz.open(stream=self.source_bytes(doc_id, environ), filetype='pdf') as pdf:
             for page in range(interval[0], end + 1):
-                if needle in normalize_text(pdf[page - 1].get_text()):
+                if needle in normalize_text(visible_page_text(pdf[page - 1])):
                     return {'ok':True, 'page':page, 'matched':True, 'page_range':interval}
         return {'ok':True, 'page':interval[0], 'matched':False, 'page_range':interval}
 

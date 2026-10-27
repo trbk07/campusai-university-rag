@@ -14,7 +14,62 @@ from typing import Any, Callable
 
 import fitz
 
-TEXT_COVERAGE_VERSION = 2
+TEXT_COVERAGE_VERSION = 3
+
+
+def _visible_span(span):
+    # Read the installed MuPDF constants: bit positions changed across releases.
+    # https://pymupdf.readthedocs.io/en/latest/textpage.html
+    flags = span.get('char_flags')
+    painted = fitz.mupdf.FZ_STEXT_FILLED | fitz.mupdf.FZ_STEXT_STROKED
+    return span.get('alpha', 255) > 0 and (flags is None or bool(flags & painted))
+
+
+def _page_lines(page):
+    lines, layout, ignored, sizes = [], [], 0, []
+    flags = fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES
+    for block in page.get_text('dict', flags=flags).get('blocks', []):
+        for line in block.get('lines', []):
+            original = line.get('spans', [])
+            ignored += sum(bool(str(s.get('text', '')).strip()) for s in original if not _visible_span(s))
+            spans = [s for s in original if _visible_span(s)]
+            text = ''.join(str(s.get('text', '')) for s in spans).strip()
+            if not text or not spans:
+                continue
+            box = fitz.Rect()
+            for span in spans:
+                box |= fitz.Rect(span['bbox'])
+            size = max(float(s.get('size', 0)) for s in spans)
+            sizes.append(size)
+            lines.append({'text': text, 'font_size': round(size, 1),
+                          'bold': any('bold' in str(s.get('font', '')).lower() for s in spans)})
+            layout.append({'text': text, 'bbox': list(line['bbox'] if len(spans) == len(original) else box)})
+    return lines, layout, ignored, sizes
+
+
+def visible_page_text(page):
+    """Keep existing bytes for unaffected pages; never quote hidden OCR text."""
+    lines, _layout, ignored, _sizes = _page_lines(page)
+    return '\n'.join(row['text'] for row in lines) if ignored else page.get_text()
+
+
+def _visible_characters(page):
+    """Character proofs in the rotated MediaBox coordinates used by pdfplumber."""
+    crop, media = page.cropbox, page.mediabox
+    offsets = {0: (crop.x0, crop.y0), 90: (media.height-crop.y1, crop.x0),
+               180: (media.width-crop.x1, media.height-crop.y1),
+               270: (crop.y0, media.width-crop.x1)}
+    dx, dy = offsets[page.rotation]
+    flags = fitz.TEXTFLAGS_RAWDICT & ~fitz.TEXT_PRESERVE_IMAGES
+    result = []
+    for block in page.get_text('rawdict', flags=flags).get('blocks', []):
+        for line in block.get('lines', []):
+            for span in line.get('spans', []):
+                if _visible_span(span):
+                    for char in span.get('chars', []):
+                        rect = fitz.Rect(char['bbox']) * page.rotation_matrix + (dx, dy, dx, dy)
+                        result.append({'text': char['c'], 'bbox': list(rect)})
+    return result
 
 
 def _uncovered_images(page, native_boxes):
@@ -59,27 +114,15 @@ def parse_pdf(
     try:
         total_pages = max(1, len(document))
         for page_number, page in enumerate(document, start=1):
-            lines: list[dict[str, Any]] = []
-            native_layout = []
-            # Image bytes are not used by text/layout extraction. Keeping them
-            # materializes embedded scans for every page and concurrent worker.
-            flags = fitz.TEXTFLAGS_DICT & ~fitz.TEXT_PRESERVE_IMAGES
-            for block in page.get_text("dict", flags=flags).get("blocks", []):
-                for line in block.get("lines", []):
-                    spans = line.get("spans", [])
-                    text = "".join(str(span.get("text", "")) for span in spans).strip()
-                    if not text or not spans:
-                        continue
-                    size = max(float(span.get("size", 0.0)) for span in spans)
-                    lines.append({"text": text, "font_size": round(size, 1),
-                                  "bold": any("bold" in str(span.get("font", "")).lower() for span in spans)})
-                    native_layout.append({'text': text, 'bbox': list(line['bbox'])})
-                    body_font_sizes.append(size)
+            lines, native_layout, ignored, sizes = _page_lines(page)
+            body_font_sizes.extend(sizes)
             regions = _uncovered_images(page, [fitz.Rect(row['bbox']) for row in native_layout])
             requires_ocr = bool(regions) or not lines and bool(page.get_image_info() or page.get_drawings())
             raw_pages.append({"page": page_number, "lines": lines, "requires_ocr": requires_ocr,
                               'hybrid_layout': native_layout if lines and regions else None,
-                              'ocr_regions': regions})
+                              'ocr_regions': regions,
+                              **({'ignored_invisible_spans': ignored,
+                                  'visible_characters': _visible_characters(page)} if ignored else {})})
             if progress is not None:
                 progress(page_number / total_pages)
     finally:
@@ -92,6 +135,8 @@ def parse_pdf(
         "lines_meta": [{**line, "is_larger_font": bool(body_median and line["font_size"] > body_median * 1.08)} for line in raw["lines"]],
         **({'hybrid_layout': raw['hybrid_layout'], 'ocr_regions': raw['ocr_regions']}
            if raw['hybrid_layout'] else {}),
+        **({key:raw[key] for key in ('ignored_invisible_spans','visible_characters')}
+           if raw.get('ignored_invisible_spans') else {}),
     } for raw in raw_pages]
 
 

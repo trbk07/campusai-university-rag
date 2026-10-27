@@ -128,7 +128,23 @@ def _is_candidate(line: str) -> bool:
     return "|" in line or numeric_cells >= 1
 
 
-def _extract_pdfplumber(pdf_path: str | Path, doc_id: str) -> list[Table]:
+def _visible_native_page(page, characters):
+    """Keep character identities actually painted in the original PDF."""
+    import fitz
+    by_text = {}
+    for char in characters:
+        by_text.setdefault(char['text'], []).append(fitz.Rect(char['bbox']))
+    def visible(item):
+        if item.get('object_type') != 'char':
+            return True
+        rect = fitz.Rect(item['x0'], item['top'], item['x1'], item['bottom'])
+        return any((rect & box).get_area() >= .5 * min(rect.get_area(), box.get_area())
+                   and abs(rect.x0-box.x0) <= max(1., .3*box.width)
+                   for box in by_text.get(item.get('text'), []) if rect.get_area() and box.get_area())
+    return page.filter(visible).dedupe_chars(tolerance=1, extra_attrs=())
+
+
+def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -> list[Table]:
     import pdfplumber
 
     tables: list[Table] = []
@@ -152,6 +168,9 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str) -> list[Table]:
                    zip(edges, edges[1:], header_edges, header_edges[1:]))
     with pdfplumber.open(str(pdf_path)) as pdf:
         for page_number, page in enumerate(pdf.pages, start=1):
+            if visibility is not None and page_number in visibility:
+                page = _visible_native_page(page, visibility[page_number])
+                course_headers = course_columns = header_source = header_edges = None
             page_start=len(tables)
             active_course_section_label = None
             raw_tables=page.find_tables() or []
@@ -237,7 +256,9 @@ def extract_tables(
     warning in the schema instead of being silently rewritten.
     """
     if pdf_path is not None:
-        parsed = _extract_pdfplumber(pdf_path, doc_id)
+        visibility = {page['page']:page['visible_characters'] for page in pages if page.get('ignored_invisible_spans')}
+        parsed = (_extract_pdfplumber(pdf_path, doc_id, visibility=visibility) if visibility
+                  else _extract_pdfplumber(pdf_path, doc_id))
         if parsed:
             # Keep the heuristic parser as a page-level fallback. pdfplumber
             # can miss a tab-aligned or merged-cell table on one page while

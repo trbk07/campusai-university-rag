@@ -1,6 +1,17 @@
 # App test scenarios
 
-Latest cycle:2026-10-26. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+Latest cycle:2026-10-27. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+
+QA-03b1 DONE: hidden mode3 and alpha0 glyphs cannot establish native coverage,
+table facts, complete-source evidence, explicit-page answers or quote locations.
+Fixtures verify genuine filled/stroked text, all four rotations, cropped pages,
+native headers/footers, controlled real local OCR, unsafe v2 cache rejection,
+safe v2 chunk reuse and historical job identities1/2. A real18-page source is
+OCRed without changing its bytes;34-PDF/268-page before/after audit retains all
+pages and exactly33 native parser outputs. Natural100 checkpoint predictions
+remain byte-identical, no new external calls. These checks close the visibility
+defect, not representative OCR/CER or table-quality gates.
+[Counts and raw evidence](docs/ui/evidence/pdf-visibility-20261027.json).
 
 QA-07b is now DONE for exposed internal natural100. Accuracy qualification has
 a conservative95/100 lower count (75/80 positive cases),0/100 unsupported answers

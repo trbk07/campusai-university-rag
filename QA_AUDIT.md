@@ -1,5 +1,31 @@
 # Full-app QA audit
 
+## 2026-10-27 - QA-03b1 DONE: reject corrupted invisible PDF text
+
+The representative inventory exposed one actual source defect: CS2019 contains
+4,773 invisible OCR spans over its scanned pages. Native extraction previously
+retained26,111 corrupt characters and misclassified two pages as covered. The app
+now excludes unpainted/transparent glyphs from native text, image coverage,
+tables, complete-source citations, explicit-page queries and quote locations.
+Filled/stroked glyphs, widget appearances and ordinary native text are retained.
+Coverage-v3 rechecks old caches; unaffected v2 chunks/indexes are reusable, while
+an old OCR success cannot authorize a corrupt hidden layer. Job identities1/2
+remain readable; source-scope identity invalidates stale evidence caches.
+
+All34 PDFs/268 physical pages retain their hashes and sequence;33 parser outputs
+are exactly unchanged. Isolated real local OCR rereads all18 affected pages in
+33.61s, with no unread pages and no source mutation. This is coverage/integrity,
+not a character/table accuracy score. Independent pdfminer agreement was only a
+diagnostic: it also reads the bad hidden OCR and omits legitimate visible widget
+digits. It cannot certify the extraction gate. Representative CER/OCR/retrieval,
+live TTFT,100-page/10MB speed and final full regressions remain OPEN.
+
+The natural100 checkpoint retains the exact qualified predictions hash,53
+captured native responses/47 local outcomes and0 new calls. Subsequent changes
+only harden web page lookup; those routes have separate regressions. Internal
+Phase5 remains DONE: the changed source is selected/cited by0/400 accepted cases.
+[Tests, exact bindings and limits](docs/ui/evidence/pdf-visibility-20261027.json).
+
 ## Natural100 qualification complete - QA-07b DONE
 
 The exposed internal100-case workload now meets the three AI quality gates.

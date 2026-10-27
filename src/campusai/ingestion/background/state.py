@@ -71,8 +71,8 @@ def accepted_job_identities(digest, options):
     identities = {function(digest,variant) for variant in variants
                   for function in (job_identity,legacy_job_identity)}
     identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
-        'text_coverage_version':1},sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        for variant in variants)
+        'text_coverage_version':version},sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        for variant in variants for version in (1, 2))
     return identities
 
 

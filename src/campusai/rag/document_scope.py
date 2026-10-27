@@ -61,7 +61,9 @@ class RegisteredDocumentScopeReader:
             self.max_context_chars = min(self.max_context_chars, 96000)
 
     def policy_identity(self):
+        from ..ingestion.docling_parser import TEXT_COVERAGE_VERSION
         return {"policy": SCOPE_POLICY, "store": str(self.store),
+                "native_visibility_policy": TEXT_COVERAGE_VERSION,
                 "source_roots": [str(p) for p in self.source_roots],
                 "max_documents": self.max_documents, "max_pages": self.max_pages,
                 "max_bytes": self.max_bytes, "max_context_chars": self.max_context_chars,
@@ -116,7 +118,8 @@ class RegisteredDocumentScopeReader:
                         raise DocumentScopeUnavailable("source_page_scope_unavailable")
                     visual_pages, blank_text_pages = [], []
                     for number, page in enumerate(pdf, 1):
-                        text = page.get_text()
+                        from ..ingestion.docling_parser import visible_page_text
+                        text = visible_page_text(page)
                         # Resource dictionaries omit inline images and may
                         # retain images that are never displayed. Inspect the
                         # actual page display, including inline image content.

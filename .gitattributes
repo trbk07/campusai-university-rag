@@ -114,3 +114,14 @@
 /tests/test_natural_accuracy.py -text whitespace=cr-at-eol
 /evaluation/grounding/natural_quality.py -text whitespace=cr-at-eol
 /tests/test_natural_quality.py -text whitespace=cr-at-eol
+/pyproject.toml -text whitespace=cr-at-eol
+/uv.lock -text whitespace=cr-at-eol
+/src/campusai/ingestion/docling_parser.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/table_extractor.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/pipeline.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/background/state.py -text whitespace=cr-at-eol
+/src/campusai/rag/document_scope.py -text whitespace=cr-at-eol
+/src/campusai/web_documents.py -text whitespace=cr-at-eol
+/tests/test_pdf_visibility.py -text whitespace=cr-at-eol
+/tests/test_hybrid_pdf.py -text whitespace=cr-at-eol
+/tests/test_job_identity_migration.py -text whitespace=cr-at-eol

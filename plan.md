@@ -48,11 +48,15 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Dùng lại inventory 34 PDF. Đo **extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%**, không mất trang, nhầm tài liệu hoặc mất dữ liệu.
    Kết quả OCR trên fixture đã đạt chỉ áp dụng cho các fixture đó.
+   **Đã xong QA-03b1:** loại lớp chữ ẩn/transparent khỏi native text, bảng và
+   nguồn trích dẫn; cache v2 được kiểm tra trước khi nâng lên coverage-v3.
+   PDF lỗi đã OCR lại đủ 18/18 trang; 33 PDF khác giữ nguyên extraction,
+   toàn bộ 34 PDF / 268 trang giữ nguyên nguồn. CER/OCR và retrieval đại diện vẫn mở.
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
 3. [ ] **QA-03c / QA-08d — Tốc độ PDF text 100 trang / 10 MB.**
-   Đo **p95 ≤15 giây** trên pipeline coverage-v2. Phép đo cũ 100 trang / 6,17 MB
+   Đo **p95 ≤15 giây** trên pipeline coverage-v3. Phép đo cũ 100 trang / 6,17 MB
    giữ làm baseline, chưa đủ để đóng yêu cầu này.
 4. [ ] **QA-09c2 — Recovery và bảo mật còn thiếu.**
    Chỉ bổ sung tình huống chưa được kiểm chứng. Điều kiện đóng: không còn lỗi
@@ -70,6 +74,13 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-03b1 — Không tin lớp OCR ẩn lỗi của PDF.** Giữ chữ vẽ thật (kể cả nét
+  stroke), bỏ chữ vô hình khỏi text/bảng/source scope và truy vấn trang cụ thể.
+  Không tái dùng cache OCR cũ của PDF lỗi; PDF không bị ảnh hưởng nâng metadata
+  mà không rebuild chunks. OCR local lại đủ 18 trang; 100 kết quả AI giữ nguyên
+  byte, không gọi model mới; **344 tests liên quan PASS**.
+  [Bằng chứng và giới hạn](docs/ui/evidence/pdf-visibility-20261027.json).
 
 - [x] **QA-07b / QA-07b8 — Chất lượng AI tự nhiên và nhiều lượt.** Đủ 100 câu
   (80 có đáp án, 20 thiếu dữ liệu/mơ hồ, có không dấu/lỗi gõ/hội thoại).

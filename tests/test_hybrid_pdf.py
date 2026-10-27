@@ -238,7 +238,8 @@ def test_native_watermark_inside_image_is_not_body_coverage(hybrid_pdf, tmp_path
     assert parse_pdf(path)[0]['requires_ocr']
 
 
-def test_distributed_native_text_layer_over_scan_is_not_forced_through_ocr(tmp_path):
+@pytest.mark.parametrize('render_mode', [0, 3])
+def test_distributed_text_coverage_requires_painted_glyphs(tmp_path, render_mode):
     path = tmp_path/'searchable-scan.pdf'
     lines = [(20, y, 'Native evidence covers this exact raster line at position ' + str(i))
              for i, y in enumerate((30, 250, 480), 1)]
@@ -249,9 +250,9 @@ def test_distributed_native_text_layer_over_scan_is_not_forced_through_ocr(tmp_p
     with fitz.open() as pdf:
         page = pdf.new_page(width=500, height=500)
         page.insert_image(page.rect, stream=image)
-        for x, y, text in lines: page.insert_text((x, y), text, fontsize=16, render_mode=3)
+        for x, y, text in lines: page.insert_text((x, y), text, fontsize=16, render_mode=render_mode)
         pdf.save(path)
-    assert not parse_pdf(path)[0]['requires_ocr']
+    assert parse_pdf(path)[0]['requires_ocr'] == (render_mode == 3)
 
 
 @pytest.mark.parametrize('rotation', [0, 90, 180, 270])

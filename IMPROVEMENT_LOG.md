@@ -1,5 +1,21 @@
 # App improvement log
 
+## 2026-10-27 - invisible PDF layer repair complete
+
+Closed QA-03b1. A real18-page curriculum had corrupted invisible OCR that looked
+like native evidence. Ignore that layer consistently in extraction, coverage,
+tables, full-source text, explicit-page questions and quote lookup. Preserve
+genuine filled/stroked glyphs; force fresh OCR for affected historical caches.
+Unaffected v2 caches upgrade without chunk/index rebuild, and old job identities
+still validate. Raised the minimum PyMuPDF to1.25.3 for visibility metadata;
+the installed/locked1.28.2 is unchanged and offline lock validation passes.
+
+33/34 parser outputs remain exact;34 PDFs/268 pages retain original bytes.
+Actual local OCR completes all18 affected pages, no source changes. Natural100
+predictions remain byte-identical with0 new provider calls. Parent PDF quality
+remains OPEN: page coverage and parser agreement are not verified OCR accuracy.
+[Evidence](docs/ui/evidence/pdf-visibility-20261027.json).
+
 ## Natural100 AI quality gates closed
 
 Closed QA-07b/QA-07b8 after conservative95/100 accuracy qualification,

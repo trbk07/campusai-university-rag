@@ -1,5 +1,12 @@
 # App performance evidence
 
+2026-10-27 visibility repair: isolated ingestion of the actual18-page CS2019
+scan completes in33.610s, including27.369s local Tesseract OCR on all18 pages.
+No provider/index calls or source changes. This single scan observation is not
+a p95, before/after speedup or native100-page/10MB qualification. Coverage-v3
+reuses unaffected v2 chunks after checking visible source glyphs.
+[Bound observation](docs/ui/evidence/pdf-visibility-20261027.json).
+
 Latest cycle:2026-10-25. [Current hybrid/read-path evidence](docs/ui/evidence/hybrid-coverage-20261025.json).
 
 Same7-document library after reindexing,17 retained job records:20 users,400
