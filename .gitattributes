@@ -125,3 +125,8 @@
 /tests/test_pdf_visibility.py -text whitespace=cr-at-eol
 /tests/test_hybrid_pdf.py -text whitespace=cr-at-eol
 /tests/test_job_identity_migration.py -text whitespace=cr-at-eol
+/scripts/operations/benchmark_pdf_readiness.py -text whitespace=cr-at-eol
+/scripts/operations/benchmark_native_readiness.py -text whitespace=cr-at-eol
+/tests/test_pdf_readiness_benchmark.py -text whitespace=cr-at-eol
+/tests/test_parallel_table_extraction.py -text whitespace=cr-at-eol
+/tests/test_course_table_scope.py -text whitespace=cr-at-eol

@@ -1,5 +1,28 @@
 # Full-app QA audit
 
+## 2026-10-27 - QA-03c/QA-08d DONE: native100 PDF readiness
+
+The coverage-v3 app completes20/20 fresh native100-page uploads (10,243,313
+bytes) with p95 upload-to-ready12.246s against15s. Model/OS cache is warm;
+model startup42.513s is separate. No hash embeddings or answer provider are
+used. Each run verifies exact parsed text/page count, matching original bytes,
+all372 BM25/dense chunk contents and real BGE-M3 model identity, then removes
+only its owned upload. Source/store/index caches are not reused across runs.
+
+PDFMiner's physical table decoding was the bottleneck. Up to4 child processes
+read disjoint page ranges, while the parent assembles every result in page/table
+order. Header inheritance crosses worker boundaries unchanged. Failed workers
+cannot publish partial evidence; the sequential fallback is covered. Small PDFs
+stay sequential.35-PDF/368-page comparison finds exact table equality, including
+64 tables in the performance fixture.625 related tests PASS. Seven old semantic
+tests needed their fake-PDF setup moved to the new physical-page boundary;
+all original scope/row/geometry assertions are retained. Internal Phase5 remains
+DONE; its source tables/immutable index artifacts are unchanged.
+
+This closes only the native PDF performance gate in its fixed lab. Representative
+text/OCR/retrieval quality,live TTFT,remaining recovery/security and final3 full
+regressions remain OPEN. [Qualification](docs/ui/evidence/native100-performance-20261027.json).
+
 ## 2026-10-27 - QA-03b1 DONE: reject corrupted invisible PDF text
 
 The representative inventory exposed one actual source defect: CS2019 contains

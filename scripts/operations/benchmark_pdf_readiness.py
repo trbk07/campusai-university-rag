@@ -17,7 +17,7 @@ def request(path, *, data=None, method=None, headers=None):
         return json.load(response)
 
 
-def measure(source, count, output):
+def measure(source, count, output, *, inspect_ready=None):
     if output.exists():
         raise ValueError('Preserve prior measurements; select a new output')
     payload=source.read_bytes();identifier=hashlib.sha256(payload).hexdigest()
@@ -50,6 +50,7 @@ def measure(source, count, output):
             if response.get('duplicate'):
                 raise ValueError('A cached upload is not a fresh processing observation')
             owned=True
+            row['job_id']=job['job_id']
             deadline=time.monotonic()+180
             while job['state'] in ACTIVE:
                 if time.monotonic()>deadline:
@@ -66,6 +67,8 @@ def measure(source, count, output):
                 row['stored_source_sha256']=hashlib.sha256(stream.read()).hexdigest()
             if row['stored_source_sha256']!=identifier:
                 raise ValueError('Stored source bytes changed')
+            if inspect_ready is not None:
+                row['ingestion_integrity']=inspect_ready(identifier, document)
         except Exception as error:
             row['error']=type(error).__name__
             raise

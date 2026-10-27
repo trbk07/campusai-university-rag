@@ -1,6 +1,5 @@
 """Inherited PDF columns must retain every raw row and its actual scope."""
 from collections import Counter
-from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -8,6 +7,7 @@ import pdfplumber
 import pytest
 
 from campusai.ingestion.table_extractor import _extract_pdfplumber
+from campusai.ingestion import table_extractor as extractor
 
 
 SOURCE = Path('data/corpus/university/uet_mai_joint_curriculum_2022.pdf')
@@ -52,7 +52,11 @@ class Grid:
 def fake_pdf(monkeypatch, grids):
     pages = [SimpleNamespace(find_tables=lambda tables=tables: tables, extract_words=lambda: [])
              for tables in grids]
-    monkeypatch.setattr(pdfplumber, 'open', lambda _path: nullcontext(SimpleNamespace(pages=pages)))
+    # These are semantic-assembly probes, not physical PDF decoding fixtures.
+    # Feed the same grids at the new physical-page boundary; keep every scope,
+    # geometry and row assertion below unchanged. Real worker PDFs are separate.
+    monkeypatch.setattr(extractor, '_table_page_packets', lambda _path,doc_id,_visibility:
+                        [extractor._page_packet(page,doc_id,i) for i,page in enumerate(pages,1)])
 
 
 def test_translated_grid_can_inherit_headers_without_mixing_multiple_semesters(monkeypatch):

@@ -1,6 +1,6 @@
 # CampusAI — Kế hoạch và tiến độ
 
-Cập nhật: **26/10/2026 · Asia/Bangkok**
+Cập nhật: **27/10/2026 · Asia/Bangkok**
 
 Repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag)
 
@@ -13,7 +13,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 |---|---|
 | Phase 5 — citation, grounding, abstention | **DONE · 10/10 task, 5/5 gate** |
 | Web app MVP | **DONE** trong phạm vi local |
-| Goal QA và tối ưu toàn ứng dụng | **ĐANG LÀM** · còn 5 nhóm việc bên dưới |
+| Goal QA và tối ưu toàn ứng dụng | **ĐANG LÀM** · còn 4 nhóm việc bên dưới |
 | Triển khai cloud miễn phí | **ĐANG LÀM** · 6/64 tiêu chí, 0/16 task hoàn tất |
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
@@ -55,15 +55,12 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
-3. [ ] **QA-03c / QA-08d — Tốc độ PDF text 100 trang / 10 MB.**
-   Đo **p95 ≤15 giây** trên pipeline coverage-v3. Phép đo cũ 100 trang / 6,17 MB
-   giữ làm baseline, chưa đủ để đóng yêu cầu này.
-4. [ ] **QA-09c2 — Recovery và bảo mật còn thiếu.**
+3. [ ] **QA-09c2 — Recovery và bảo mật còn thiếu.**
    Chỉ bổ sung tình huống chưa được kiểm chứng. Điều kiện đóng: không còn lỗi
    **P0/P1 hoặc High/Critical được xác nhận**, mọi recovery quan trọng có bằng chứng.
    **Đã xong QA-09c2a:** sửa khóa đường dẫn tuyệt đối trong catalog bằng chứng;
    validator Phase 7 hoạt động lại, hash/dữ liệu gốc giữ nguyên, 54 tests liên quan PASS.
-5. [ ] **QA-09d — Nghiệm thu cuối goal.**
+4. [ ] **QA-09d — Nghiệm thu cuối goal.**
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
@@ -74,6 +71,16 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-03c / QA-08d — PDF text 100 trang / 10 MB.** Đủ **20/20 lượt** upload
+  mới trên pipeline coverage-v3, model BGE-M3 thật trên CUDA: **p95 12,25 giây**
+  (ngưỡng 15 giây), tối đa 14,16 giây. Fixture **10.243.313 byte**, không chèn padding;
+  giữ nguyên text 100 trang và đủ 372 chunks trong BM25/dense sau mỗi lượt.
+  Đọc hình học bảng bằng tối đa 4 process/PDF; ghép theo thứ tự để giữ scope nối trang.
+  **625 tests liên quan PASS**; bảng của **35 PDF / 368 trang** giống hệt trước sửa.
+  Phạm vi: app local, model/OS cache đã warm, upload tuần tự; startup model đo riêng
+  42,51 giây. Không suy rộng sang scan hoặc 5 PDF lớn đồng thời.
+  [Bằng chứng và cách chạy lại](docs/ui/evidence/native100-performance-20261027.json).
 
 - [x] **QA-03b1 — Không tin lớp OCR ẩn lỗi của PDF.** Giữ chữ vẽ thật (kể cả nét
   stroke), bỏ chữ vô hình khỏi text/bảng/source scope và truy vấn trang cụ thể.

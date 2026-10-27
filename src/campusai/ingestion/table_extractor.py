@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import os
 from pathlib import Path
 
 from ..schemas import Table
@@ -144,8 +145,71 @@ def _visible_native_page(page, characters):
     return page.filter(visible).dedupe_chars(tolerance=1, extra_attrs=())
 
 
-def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -> list[Table]:
+def _page_packet(page, doc_id, page_number):
+    physical_tables = page.find_tables() or []
+    records = []
+    for number, physical in enumerate(physical_tables, 1):
+        rows = [["" if cell is None else str(cell).strip() for cell in row]
+                for row in physical.extract()]
+        rows = [row for row in rows if any(row)]
+        if not rows:
+            continue
+        width = max(map(len, rows))
+        records.append({'number':number, 'rows':[row+[""]*(width-len(row)) for row in rows],
+                        'edges':sorted({float(cell[i]) for cell in physical.cells for i in (0, 2)})})
+    # Such a table always survives the ordered semantic assembly below, so the
+    # aligned fallback cannot replace it. Otherwise compute that fallback now,
+    # using the same already decoded page, independent of adjacent-page state.
+    aligned = ([] if any(len(r['rows']) >= 2 and len(r['rows'][0]) >= 2 for r in records)
+               else _aligned_course_tables(page, doc_id, page_number))
+    return {'page':page_number, 'physical_tables':bool(physical_tables),
+            'records':records, 'aligned':aligned}
+
+
+def _read_page_batch(pdf_path, doc_id, page_numbers, visibility):
     import pdfplumber
+    packets = []
+    with pdfplumber.open(str(pdf_path)) as pdf:
+        for number in page_numbers:
+            page = pdf.pages[number-1]
+            if visibility and number in visibility:
+                page = _visible_native_page(page, visibility[number])
+            packets.append(_page_packet(page, doc_id, number))
+            page.close()
+    return packets
+
+
+def _table_page_packets(pdf_path, doc_id, visibility):
+    """Parallelize only physical decoding; semantics stay ordered in the parent.
+
+    Four workers per document, at most twelve with the app's three ingestion
+    jobs. Each reads the original PDF, never shares an interpreter/file handle.
+    Small PDFs and environments unable to spawn keep the sequential path.
+    """
+    import fitz
+    import multiprocessing
+    from concurrent.futures import ProcessPoolExecutor
+    from concurrent.futures.process import BrokenProcessPool
+    with fitz.open(pdf_path) as pdf:
+        count = len(pdf)
+    workers = min(4, os.cpu_count() or 1, max(1, count//24))
+    if workers > 1:
+        try:
+            size = (count+workers-1)//workers
+            batches = [list(range(start, min(count+1, start+size))) for start in range(1,count+1,size)]
+            with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('spawn')) as pool:
+                futures = [pool.submit(_read_page_batch, str(pdf_path), doc_id, batch, visibility)
+                           for batch in batches]
+                # Finish all batches before emitting evidence. Failure must not
+                # mix a partial parallel result with its sequential fallback.
+                packets = [packet for future in futures for packet in future.result()]
+            return packets
+        except (OSError, BrokenProcessPool):
+            pass
+    return _read_page_batch(pdf_path, doc_id, range(1,count+1), visibility)
+
+
+def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -> list[Table]:
 
     tables: list[Table] = []
     course_headers = course_columns = header_source = header_edges = None
@@ -166,84 +230,76 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -
         # still match the actual explicit header's physical grid.
         return all(abs((b-a)-(d-c)) <= 1.0 for a,b,c,d in
                    zip(edges, edges[1:], header_edges, header_edges[1:]))
-    with pdfplumber.open(str(pdf_path)) as pdf:
-        for page_number, page in enumerate(pdf.pages, start=1):
-            if visibility is not None and page_number in visibility:
-                page = _visible_native_page(page, visibility[page_number])
-                course_headers = course_columns = header_source = header_edges = None
-            page_start=len(tables)
-            active_course_section_label = None
-            raw_tables=page.find_tables() or []
-            for table_number, physical in enumerate(raw_tables, start=1):
-                raw_table = physical.extract()
-                rows = [["" if cell is None else str(cell).strip() for cell in row] for row in raw_table]
-                rows = [row for row in rows if any(row)]
-                if not rows:
-                    continue
-                width = max(map(len, rows))
-                rows = [row + [""] * (width - len(row)) for row in rows]
-                edges = sorted({float(cell[i]) for cell in physical.cells for i in (0, 2)})
-                explicit_course_columns = _inherited_course_columns(rows[0])
-                identity = f"{doc_id}_p{page_number}_t{table_number}"
-                if explicit_course_columns:
-                    course_headers = list(rows[0])
-                    course_columns = explicit_course_columns
-                    header_edges = edges if len(edges) == width + 1 else None
-                    header_source = {"page": page_number, "table_id": identity,
-                                     "column_edges": edges, "headers": list(course_headers)}
-                    active_course_section_label = None
-                    headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+    for packet in _table_page_packets(pdf_path, doc_id, visibility):
+        page_number = packet['page']
+        if visibility is not None and page_number in visibility:
+            course_headers = course_columns = header_source = header_edges = None
+        page_start=len(tables)
+        active_course_section_label = None
+        for record in packet['records']:
+            table_number, rows, edges = record['number'], record['rows'], record['edges']
+            width = len(rows[0])
+            explicit_course_columns = _inherited_course_columns(rows[0])
+            identity = f"{doc_id}_p{page_number}_t{table_number}"
+            if explicit_course_columns:
+                course_headers = list(rows[0])
+                course_columns = explicit_course_columns
+                header_edges = edges if len(edges) == width + 1 else None
+                header_source = {"page": page_number, "table_id": identity,
+                                 "column_edges": edges, "headers": list(course_headers)}
+                active_course_section_label = None
+                headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+            else:
+                inherited = (course_headers and course_columns and width == len(course_headers)
+                    and compatible(edges) and all(known_row(row) for row in rows))
+                if inherited:
+                    # The first source row is data, not a replacement
+                    # header. Keep every marker, subtotal and spillover row.
+                    headers, body, parser = list(course_headers), rows, 'pdfplumber-inherited-course-columns-v2'
                 else:
-                    inherited = (course_headers and course_columns and width == len(course_headers)
-                        and compatible(edges) and all(known_row(row) for row in rows))
-                    if inherited:
-                        # The first source row is data, not a replacement
-                        # header. Keep every marker, subtotal and spillover row.
-                        headers, body, parser = list(course_headers), rows, 'pdfplumber-inherited-course-columns-v2'
-                    else:
-                        course_headers = course_columns = header_source = header_edges = None
+                    course_headers = course_columns = header_source = header_edges = None
+                    active_course_section_label = None
+                    if len(rows) < 2:
+                        continue
+                    headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+            scopes = []
+            course_scopes = set()
+            if course_columns:
+                for row in body:
+                    label = marker(row)
+                    if label:
+                        active_course_section_label = label
+                    scopes.append(active_course_section_label)
+                    if _course_rows([row], course_columns):
+                        course_scopes.add(active_course_section_label)
+                    if subtotal(row):
                         active_course_section_label = None
-                        if len(rows) < 2:
-                            continue
-                        headers, body, parser = rows[0], rows[1:], 'pdfplumber'
-                scopes = []
-                course_scopes = set()
-                if course_columns:
-                    for row in body:
-                        label = marker(row)
-                        if label:
-                            active_course_section_label = label
-                        scopes.append(active_course_section_label)
-                        if _course_rows([row], course_columns):
-                            course_scopes.add(active_course_section_label)
-                        if subtotal(row):
-                            active_course_section_label = None
-                    # Multiple scopes and unknown leading course rows cannot
-                    # acquire the last marker as one table-wide section.
-                schema = {"columns": len(headers), "row_count": len(body),
-                          "parser": parser, "pages": [page_number],
-                          "warnings": [], "raw_preserved": True, "column_edges": edges}
-                if header_source:
-                    schema['header_source'] = dict(header_source)
-                    schema['row_scopes'] = scopes
-                if len(course_scopes) == 1 and None not in course_scopes:
-                    schema.update(section=next(iter(course_scopes)), section_provenance='explicit_pdf_marker')
-                tables.append(Table(
-                    table_id=identity,
-                    doc_id=doc_id,
-                    pages=[page_number],
-                    headers=headers,
-                    rows=body,
-                    schema=schema,
-                ))
-            if not raw_tables:
-                course_headers = course_columns = header_source = header_edges = None
-            # Shaded header/row bands can look like a one-column ruled table
-            # to pdfplumber and capture only the first row. Prefer a verified
-            # complete aligned-column table; otherwise preserve old behavior.
-            if not any(len(table.headers)>=2 for table in tables[page_start:]):
-                aligned=_aligned_course_tables(page,doc_id,page_number)
-                if aligned:tables[page_start:]=aligned
+                # Multiple scopes and unknown leading course rows cannot
+                # acquire the last marker as one table-wide section.
+            schema = {"columns": len(headers), "row_count": len(body),
+                      "parser": parser, "pages": [page_number],
+                      "warnings": [], "raw_preserved": True, "column_edges": edges}
+            if header_source:
+                schema['header_source'] = dict(header_source)
+                schema['row_scopes'] = scopes
+            if len(course_scopes) == 1 and None not in course_scopes:
+                schema.update(section=next(iter(course_scopes)), section_provenance='explicit_pdf_marker')
+            tables.append(Table(
+                table_id=identity,
+                doc_id=doc_id,
+                pages=[page_number],
+                headers=headers,
+                rows=body,
+                schema=schema,
+            ))
+        if not packet['physical_tables']:
+            course_headers = course_columns = header_source = header_edges = None
+        # Shaded header/row bands can look like a one-column ruled table
+        # to pdfplumber and capture only the first row. Prefer a verified
+        # complete aligned-column table; otherwise preserve old behavior.
+        if not any(len(table.headers)>=2 for table in tables[page_start:]):
+            aligned=packet['aligned']
+            if aligned:tables[page_start:]=aligned
     return tables
 
 

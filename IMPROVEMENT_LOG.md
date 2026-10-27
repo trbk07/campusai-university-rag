@@ -1,5 +1,20 @@
 # App improvement log
 
+## 2026-10-27 - native100 upload-to-ready performance closed
+
+Closed QA-03c/QA-08d:20 fresh100-page/10.24MB native uploads,all ready,p95
+12.246s (gate15s),maximum14.158s. Actual offline BGE-M3 CUDA embeddings,batch8;
+model startup42.513s is separate. Exact text,source bytes and372 chunk contents
+in both indexes are checked each run. No app/RAG/provider output is fabricated.
+
+Parallelize physical PDFMiner decoding for large PDFs with at most4 workers per
+document; retain ordered semantic assembly,continuation headers and scope. Close
+decoded page caches after extracting packets. Small PDFs use the sequential
+path; unavailable workers discard partial results before a sequential retry.
+35 PDFs/368 pages retain exactly the same tables.625 related tests PASS,
+including real worker-boundary inheritance and partial-pool failure recovery.
+Preserve internal Phase5 DONE. [Evidence](docs/ui/evidence/native100-performance-20261027.json).
+
 ## 2026-10-27 - invisible PDF layer repair complete
 
 Closed QA-03b1. A real18-page curriculum had corrupted invisible OCR that looked

@@ -2,6 +2,20 @@
 
 Latest cycle:2026-10-27. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+QA-03c/QA-08d DONE:20 fresh100-page native uploads,10,243,313 bytes each,
+all ready,p95 12.246s,maximum14.158s. Each checks exact parsed text,source hash,
+100 physical pages and372 correctly bound BM25/dense chunk contents,then safely
+deletes its own fixture. Real offline BGE-M3 CUDA,batch8;startup is separate.
+625 related tests PASS in two disjoint suites. Real48-page PDF tests place the
+header on page24 and its continuation on page25,across a worker boundary;
+parallel/sequential tables and source fields must match. A controlled broken
+pool after a partial result must return only the complete sequential result.
+Readiness cannot pass missing text/pages/chunks/vectors,changed index text,
+cross-document IDs,old coverage or a hash embedding model.35-PDF/368-page
+audit retains exact pre-fix tables and original bytes. Seven semantic mock
+setups move to the new physical boundary without changing their assertions.
+[Counts, reproducible commands and limits](docs/ui/evidence/native100-performance-20261027.json).
+
 QA-03b1 DONE: hidden mode3 and alpha0 glyphs cannot establish native coverage,
 table facts, complete-source evidence, explicit-page answers or quote locations.
 Fixtures verify genuine filled/stroked text, all four rotations, cropped pages,

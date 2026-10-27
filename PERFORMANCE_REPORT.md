@@ -1,5 +1,40 @@
 # App performance evidence
 
+## 2026-10-27 - native100/10MB gate PASS
+
+QA-03c/QA-08d DONE in the fixed local CUDA lab:20/20 fresh uploads of the same
+100-page,10,243,313-byte native fixture become ready. Nearest-rank p95 is
+12.246s (gate15s),maximum14.158s,minimum11.010s. Decimal MB=1,000,000 bytes;
+the fixture contains actual selected academic pages, no filler/padding. Every
+run preserves all100 exact parsed pages, source hash and372 chunk contents/IDs
+in BM25 and real1024-dimensional BGE-M3 dense indexes. Each owned upload/index
+is deleted before the next run; original user stores are never modified.
+
+Physical PDFMiner table decoding now uses up to4 spawned processes per large
+PDF (maximum12 with the default3 ingestion jobs). Table semantics are assembled
+in original page/table order, retaining continuation headers and semester scope.
+Small files remain sequential; a broken pool discards partial results and uses
+the sequential path. All tables in35 PDFs/368 pages match the old extractor
+exactly.625 related tests PASS across two disjoint suites.
+
+The serial pre-fix pilot took25.301s and the first parallel pilot14.768s. These
+single observations are not before/after p95 estimates; cold-decoder/OS-cache
+effects limit a causal speedup claim. The profiled serial pipeline spends24.773
+of27.515s in table extraction; profiling adds overhead. A later matched warm
+table-only observation is3.309s serial/1.556s parallel, with identical64 tables.
+The final20-run gate is separate from those diagnostics.
+
+Environment:Windows11,Python3.14.6,20 logical CPUs,25,480,257,536 bytes RAM,
+RTX4060 Laptop8GB,torch2.14.0+cu126,BGE-M3 float32/default batch8,3 ingestion
+workers,loopback HTTP and100ms polling. Model startup42.513s is measured outside
+the warm upload-to-ready gate. Both model and OS cache are warm; PDF parsing,
+table extraction,chunking and both indexes are rebuilt on every run. No answer
+provider is configured. This is not scan/OCR speed,first-launch latency,remote
+upload bandwidth or concurrent-five-large-PDF qualification.
+[Raw runs, source/runtime bindings and reproduction](docs/ui/evidence/native100-performance-20261027.json).
+
+The following performance results are historical baselines.
+
 2026-10-27 visibility repair: isolated ingestion of the actual18-page CS2019
 scan completes in33.610s, including27.369s local Tesseract OCR on all18 pages.
 No provider/index calls or source changes. This single scan observation is not
