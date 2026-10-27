@@ -1,5 +1,14 @@
 # App improvement log
 
+## 2026-10-27 - local recovery/security closed
+
+Closed QA-09c2:reject deep JSON decoder failures as400 and untrusted loopback
+Host authorities as403 before WSGI.229 related tests PASS;11 real-process
+recovery receipts retained. Intermediate full3079 PASS/2 optional live SKIP is
+recorded separately. Removed the slow,inaccurate raster-table OCR experiment
+instead of shipping it or repeating it.
+[Evidence](docs/ui/evidence/request-safety-recovery-20261027.json).
+
 ## 2026-10-27 - native100 upload-to-ready performance closed
 
 Closed QA-03c/QA-08d:20 fresh100-page/10.24MB native uploads,all ready,p95

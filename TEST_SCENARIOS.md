@@ -2,6 +2,14 @@
 
 Latest cycle:2026-10-27. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+QA-09c2 local recovery/security DONE:229 related tests PASS. Four JSON routes
+reject decoder-recursion input as400;20 malformed real HTTP requests leave valid
+query capacity intact. Eight foreign/missing/duplicate Host cases cannot reach
+the app;4 local authorities work. Ten real kill/restart checkpoints plus queued
+job recovery retain11 process receipts. The earlier full3079 PASS/2 optional
+live SKIP run precedes Host hardening; it is not a final-source full regression.
+[Commands, failed baselines and bindings](docs/ui/evidence/request-safety-recovery-20261027.json).
+
 QA-03c/QA-08d DONE:20 fresh100-page native uploads,10,243,313 bytes each,
 all ready,p95 12.246s,maximum14.158s. Each checks exact parsed text,source hash,
 100 physical pages and372 correctly bound BM25/dense chunk contents,then safely

@@ -220,6 +220,67 @@ def test_invalid_language_container_is_a_bad_request():
     assert call(app, "/api/query", "POST", {"question": "hello", "language": []})["status"].startswith("400")
 
 
+@pytest.mark.parametrize("path", ["/api/query", "/api/feedback",
+    "/api/documents/" + "a" * 64 + "/ocr",
+    "/api/documents/" + "a" * 64 + "/locate"])
+def test_deeply_nested_json_is_rejected_without_exception_or_lost_capacity(tmp_path, path):
+    service = Service()
+    service.retriever = SimpleNamespace(index_root=tmp_path, _indexes={})
+    app = make_wsgi_app(CampusAIApplication(service), max_concurrent_queries=1)
+    # A small request can still exceed the JSON decoder's recursion boundary.
+    # Build raw bytes so the test encoder does not fail before reaching WSGI.
+    body = b'{"question":"hello","history":' + b'[' * 20000 + b'0' + b']' * 20000 + b'}'
+    captured = {}
+    response = b''.join(app({"PATH_INFO": path, "REQUEST_METHOD": "POST",
+        "CONTENT_LENGTH": str(len(body)), "wsgi.input": io.BytesIO(body)},
+        lambda status, headers: captured.update(status=status, headers=dict(headers))))
+    assert captured['status'].startswith('400')
+    assert json.loads(response) == {'ok': False, 'error_code': 'invalid_json'}
+    assert captured['headers']['Cache-Control'] == 'no-store'
+    assert call(app, '/health')['status'].startswith('200')
+    assert call(app, '/api/query', 'POST', {'question': 'hello'})['status'].startswith('200')
+
+
+def test_http_recovers_after_concurrent_malformed_json_requests(tmp_path):
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Thread
+    from urllib.error import HTTPError
+    from urllib.request import Request, urlopen
+    from wsgiref.simple_server import WSGIRequestHandler, make_server
+    from evaluation.reranker.measure_reranker_http import _ThreadedHTTPServer
+
+    errors = []
+    class Quiet(WSGIRequestHandler):
+        def log_message(self, *_args): pass
+    class ObservedServer(_ThreadedHTTPServer):
+        def handle_error(self, *_args): errors.append(True)
+    service = Service()
+    service.retriever = SimpleNamespace(index_root=tmp_path, _indexes={})
+    app = make_wsgi_app(CampusAIApplication(service), max_concurrent_queries=1)
+    bad = b'{"history":' + b'[' * 20000 + b'0' + b']' * 20000 + b'}'
+    with make_server('127.0.0.1', 0, app, server_class=ObservedServer, handler_class=Quiet) as server:
+        thread = Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        def send(data):
+            request = Request(f'http://127.0.0.1:{server.server_port}/api/query',
+                data=data, headers={'Content-Type': 'application/json'})
+            try: response = urlopen(request, timeout=5)
+            except HTTPError as error: response = error
+            with response:
+                return response.status, json.loads(response.read())
+        try:
+            with ThreadPoolExecutor(max_workers=4) as pool:
+                responses = list(pool.map(send, [bad] * 20))
+            assert responses == [(400, {'ok': False, 'error_code': 'invalid_json'})] * 20
+            status, body = send(b'{"question":"hello"}')
+            assert status == 200 and body['ok']
+            assert errors == []
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+        assert not thread.is_alive()
+
+
 def test_rejected_request_cannot_attach_the_previous_workers_evidence(tmp_path):
     from campusai.rag.service import CampusAIQueryService
     from campusai.rag.grounding import GroundedAnswerGenerator

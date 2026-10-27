@@ -1,0 +1,166 @@
+{
+  "date": "2026-10-27",
+  "scope": "Local HTTP document application recovery/security, not public deployment, whole-app OCR/AI quality or final three-run acceptance.",
+  "tasks": {
+    "QA-09c2": "DONE for tested local recovery/security flows",
+    "QA-09c2b": "DONE: reject decoder recursion failures as invalid_json, keep subsequent request capacity",
+    "QA-09c2c": "DONE: reject untrusted/missing/duplicate loopback Host authorities before WSGI"
+  },
+  "base_commit": "edfb4624c4e4f70db2803e0a29f1ebeb7e8c6c04",
+  "physical_code_sha256": {
+    "src/campusai/web.py": "822c4f37334691f39282cd7d55292c0ce6352c6da99e87d67d90d203bab36f57",
+    "src/campusai/deployment/local_server.py": "1829b09b57ebad755ea280bf6594870987588049f8c260f7c3f4b411fe076438",
+    "tests/test_web.py": "eaa68e87c724f3efd25fa2bdd9ac7f2348cc70e9d3d96a059c3a363a61ed4cbc",
+    "tests/deployment/test_local_transport_capacity.py": "245f6caf8c841fb0328d36349736b03863d67b97c49d1ae5666f160f288d4805"
+  },
+  "baseline": {
+    "nested_json": {
+      "failing_routes": 4,
+      "bytes": 40032,
+      "failure": "Uncaught RecursionError while decoding otherwise size-admissible request"
+    },
+    "host_authorities": {
+      "invalid_requests": 8,
+      "unexpected_200_with_fixture_content": 8,
+      "real_user_documents_used": false
+    }
+  },
+  "after": {
+    "nested_json_routes": 4,
+    "malformed_real_http_requests": 20,
+    "malformed_real_http_concurrency": 4,
+    "malformed_status": 400,
+    "error_code": "invalid_json",
+    "healthy_followup_query": true,
+    "unhandled_http_errors": 0,
+    "invalid_host_requests": 8,
+    "invalid_host_status": 403,
+    "invalid_host_requests_reaching_wsgi": 0,
+    "valid_host_authorities": 4,
+    "valid_status": 200
+  },
+  "recovery_matrix": [
+    {
+      "area": "Local transport",
+      "verification": "20 concurrent users,32-handler admission bound,all leases released; loopback bind only; foreign/missing/duplicate Host denied"
+    },
+    {
+      "area": "Source authorization",
+      "verification": "Scope enforced for document/job listing,original source,query,OCR,delete and feedback; no caller self-extension"
+    },
+    {
+      "area": "Upload/source integrity",
+      "verification": "Invalid/encrypted/oversized PDF,source mutation,unmanaged paths and symlinks fail closed"
+    },
+    {
+      "area": "Job recovery",
+      "verification": "10 real process-kill checkpoints across upload/parsing/persisting/BM25/dense/publication; new process recovers same original source"
+    },
+    {
+      "area": "Queued work",
+      "verification": "Interrupted queued jobs require explicit retry; no silent automatic replay"
+    },
+    {
+      "area": "Delete/cancel",
+      "verification": "Durable delete intent,restart recovery,in-flight source lease,visible failure/retry,OCR page-checkpoint cancellation"
+    },
+    {
+      "area": "Provider errors",
+      "verification": "503/timeout/quota/auth/invalid-response distinct from evidence abstention; durable cooldown and subsequent query recovery"
+    },
+    {
+      "area": "Evidence/input safety",
+      "verification": "Schema/citation/quote/numeric/polarity and document-prompt injection attacks fail closed; private paths/errors redacted"
+    }
+  ],
+  "regression": {
+    "final_related": {
+      "passed": 229,
+      "failed": 0,
+      "skipped": 0,
+      "command": ".venv/Scripts/python.exe -m pytest tests/test_web.py tests/test_web_documents.py tests/test_web_deletions.py tests/test_web_ocr.py tests/deployment/test_local_transport_capacity.py tests/deployment/test_provider_recovery.py tests/deployment/jobs/test_process_recovery.py tests/test_ingestion_jobs.py tests/test_ocr_job_cancellation.py tests/test_ingest_validate.py tests/test_ingestion_acceptance.py tests/test_grounding_adversarial.py -q --basetemp=.tmp/pytest-qa-recovery-20261027-r3",
+      "junit": ".tmp/qa-recovery-security-canonical-20261027.xml",
+      "seconds": 32.54
+    },
+    "intermediate_full": {
+      "passed": 3079,
+      "failed": 0,
+      "skipped": 2,
+      "seconds": 546.97,
+      "scope": "Loaded runtime includes JSON fix; collected before Host test/fix. Not a final-source full run and not part of the final three-run series.",
+      "optional_skips": "Two explicit opt-in Gemini integration tests; no provider calls authorized/used by this offline run."
+    },
+    "harness_correction": "First broad run217 PASS/11 FAIL because process-fault hosts require workspace .tmp while default pytest tmp is outside. Rerun with a unique workspace basetemp228 PASS; final code229 PASS. Safety guard and test assertions unchanged.",
+    "secret_scan": "PASS; tracked files and ignored local Gemini credential config scanned without printing secrets",
+    "artifact_catalog": {
+      "passed": 11,
+      "failed": 0,
+      "junit": ".tmp/qa-recovery-catalog-20261027.xml"
+    }
+  },
+  "process_receipts": {
+    "count": 11,
+    "artifact": ".tmp/qa-process-recovery-final-receipts-20261027.zip",
+    "sha256": "f5878092283ae2c73e78709a2dcb6668d35f90e77cbe8b62a9121e44058e60d8"
+  },
+  "artifact_bindings": [
+    {
+      "path": ".tmp/qa-json-depth-before-20261027.xml",
+      "sha256": "a479fa726aec8d27d377eef0b0bf165ca6ecc844e1ec1de4e1d813baa2d10f99"
+    },
+    {
+      "path": ".tmp/qa-local-host-before-20261027.xml",
+      "sha256": "de4ae7f330b2dd9cbe4452f115861223f9b58333345294e02614ef6fa5dca7b7"
+    },
+    {
+      "path": ".tmp/qa-recovery-security-20261027.xml",
+      "sha256": "c54253c39330a7df5a620ac58ceb6abf7c06d87ba4d08e9121eb77ab78c82062"
+    },
+    {
+      "path": ".tmp/qa-recovery-security-workspace-20261027.xml",
+      "sha256": "40c9e419e0dfc54df0e8c322b1092e77f93ba184df09c8950beb5cbf587fd9d9"
+    },
+    {
+      "path": ".tmp/qa-recovery-security-final-20261027.xml",
+      "sha256": "88d0ca695cd15e9b33a3a16375ab5a3a7129ab2b1fd358a6e7e684fc17f33b3b"
+    },
+    {
+      "path": ".tmp/qa-current-full-20261027.xml",
+      "sha256": "fc779ec7baed2fac68fb687789d0296bc4a90a8fd4ff179fd174b620cc7495e2"
+    },
+    {
+      "path": ".tmp/qa-current-full-20261027.log",
+      "sha256": "6cde39456a9ba31d5b5533c29a6e9e4fc01c73689dbc2ab066adba4892bc4c8a"
+    },
+    {
+      "path": ".tmp/qa-process-recovery-final-receipts-20261027.zip",
+      "sha256": "f5878092283ae2c73e78709a2dcb6668d35f90e77cbe8b62a9121e44058e60d8"
+    },
+    {
+      "path": ".tmp/qa-recovery-security-canonical-20261027.xml",
+      "sha256": "7b6c06ca07ca7642e44b88e3d69ad5687af3e644de335d6b62f67f611588441c"
+    },
+    {
+      "path": ".tmp/qa-recovery-catalog-20261027.xml",
+      "sha256": "b27a0b7525565e6e52f76a5a05f3b50482636b8aee4db5d64b49eee398f4c3b6"
+    }
+  ],
+  "provider_posts": 0,
+  "phase5_internal_acceptance": "DONE; answer prompts,grounding,thresholds,benchmark and accepted source/index artifacts unchanged",
+  "whole_app_status": "PARTIAL; representative PDF quality,real streaming TTFT and final three full regressions remain OPEN",
+  "limitations": [
+    "This is the local loopback application threat/fault contract, not a public-service penetration test.",
+    "OCR/table diagnostic candidate is rejected and removed; no quality gate has been relaxed.",
+    "The intermediate full run and final related run are separate observations; their counts are not added."
+  ],
+  "source_normalization": {
+    "files": [
+      "src/campusai/web.py",
+      "src/campusai/deployment/local_server.py",
+      "tests/test_web.py",
+      "tests/deployment/test_local_transport_capacity.py"
+    ],
+    "ast_identical": true,
+    "reason": "Canonical LF prevents checkout conversion from invalidating physical code hashes."
+  }
+}

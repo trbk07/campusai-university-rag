@@ -9,6 +9,51 @@ import pytest
 from campusai.deployment.local_server import make_local_server
 
 
+def test_local_transport_rejects_untrusted_missing_and_duplicate_host_headers():
+    from http.client import HTTPConnection
+
+    received = []
+    private = b'private document fixture'
+    def application(environ, start_response):
+        received.append(environ.get('HTTP_HOST'))
+        start_response('200 OK', [('Content-Type', 'text/plain'),
+                                  ('Content-Length', str(len(private)))])
+        return [private]
+
+    with make_local_server('127.0.0.1', 0, application) as server:
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        def request(hosts):
+            connection = HTTPConnection('127.0.0.1', server.server_port, timeout=5)
+            try:
+                connection.putrequest('GET', '/api/documents', skip_host=True)
+                for host in hosts: connection.putheader('Host', host)
+                connection.endheaders()
+                response = connection.getresponse()
+                return response.status, response.read()
+            finally:
+                connection.close()
+        port = server.server_port
+        invalid = [[], ['attacker.example:' + str(port)],
+            ['localhost.attacker.example:' + str(port)],
+            ['127.0.0.1.attacker.example:' + str(port)],
+            ['localhost:' + str(port + 1)], ['user@localhost:' + str(port)],
+            ['localhost:' + str(port), 'attacker.example:' + str(port)],
+            ['localhost:' + str(port), 'localhost:' + str(port)]]
+        try:
+            rejected = [request(hosts) for hosts in invalid]
+            assert [status for status, _body in rejected] == [403] * len(invalid)
+            assert all(private not in body for _status, body in rejected)
+            assert received == []
+            for name in ('127.0.0.1', 'localhost', 'LOCALHOST', '[::1]'):
+                assert request([f'{name}:{port}']) == (200, private)
+            assert len(received) == 4
+        finally:
+            server.shutdown()
+            thread.join(5)
+        assert not thread.is_alive()
+
+
 @pytest.mark.parametrize('active_requests', [20, 32])
 def test_concurrent_users_and_bounded_transport_admission(active_requests):
     release = threading.Event()

@@ -14,6 +14,17 @@ class LocalRequestHandler(WSGIRequestHandler):
             return
         if not self.parse_request():
             return
+        # Binding loopback alone does not make an arbitrary browser Host
+        # trustworthy. Reject foreign/ambiguous authorities before WSGI can
+        # expose the local document library or accept a mutation.
+        names = {'127.0.0.1', 'localhost', '[::1]'}
+        authorities = {f'{name}:{self.server.server_port}' for name in names}
+        if self.server.server_port == 80:
+            authorities.update(names)
+        hosts = self.headers.get_all('Host', [])
+        if len(hosts) != 1 or hosts[0].lower() not in authorities:
+            self.send_error(403, 'Forbidden host')
+            return
         handler = ServerHandler(self.rfile, self.wfile, self.get_stderr(),
                                 self.get_environ(), multithread=True)
         handler.request_handler = self

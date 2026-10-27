@@ -1,5 +1,35 @@
 # Full-app QA audit
 
+## 2026-10-27 - QA-09c2 DONE for local recovery/security
+
+A size-admissible deeply nested JSON request raised an uncaught RecursionError
+in four routes. They now return400 invalid_json;20 real HTTP malformed requests
+at concurrency4 leave the next valid query healthy and produce no HTTP-handler
+exceptions. A second real transport probe found all8 foreign/missing/duplicate
+Host cases could read a private fixture. Loopback Host/port validation now rejects
+them before WSGI;4 valid localhost authorities still work. No real private source
+was used in that reproduction, and no answer/grounding policy was changed.
+
+Final related suite:229 PASS, including source authorization, upload/path safety,
+provider cooldown/error recovery, deletion/cancellation and10 actual process-kill
+checkpoints.11 process receipts are retained. An initial broad command had217
+PASS/11 harness failures because these fault hosts deliberately reject default
+pytest temp paths outside workspace .tmp; unique workspace basetemp fixes the
+command without weakening that guard. The pre-Host-fix full sweep has3079 PASS/
+2 opt-in live SKIP/0 FAIL. It is separate from the final229-test run and does not
+count toward the final three-run series. Secret scan PASS.
+
+This closes tested local recovery/security flows. Whole-app PDF/OCR quality,
+real streaming TTFT and final3 full regressions remain OPEN; public deployment
+has its own threat/operational gates. [Exact evidence](docs/ui/evidence/request-safety-recovery-20261027.json).
+
+The raster TableFormer/cell-OCR experiment is rejected:49.05s for one page,
+121.90s and review_required for the18-page source, with literal code errors
+still present. Its runtime changes are removed, source/captures archived and
+568MB of unused model copies cleaned up; original sources and model cache stay
+intact. No OCR accuracy PASS is claimed and this method should not be repeated.
+[Diagnostic](docs/ui/evidence/raster-table-ocr-diagnostic-20261027.json).
+
 ## 2026-10-27 - QA-03c/QA-08d DONE: native100 PDF readiness
 
 The coverage-v3 app completes20/20 fresh native100-page uploads (10,243,313

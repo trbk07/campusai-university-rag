@@ -13,7 +13,7 @@ kiểm thử và tối ưu **toàn bộ ứng dụng**, có phạm vi rộng hơ
 |---|---|
 | Phase 5 — citation, grounding, abstention | **DONE · 10/10 task, 5/5 gate** |
 | Web app MVP | **DONE** trong phạm vi local |
-| Goal QA và tối ưu toàn ứng dụng | **ĐANG LÀM** · còn 4 nhóm việc bên dưới |
+| Goal QA và tối ưu toàn ứng dụng | **ĐANG LÀM** · còn 3 nhóm việc bên dưới |
 | Triển khai cloud miễn phí | **ĐANG LÀM** · 6/64 tiêu chí, 0/16 task hoàn tất |
 | Public release | **CHƯA NGHIỆM THU** · còn chất lượng, vận hành và fresh holdout |
 
@@ -52,25 +52,35 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    nguồn trích dẫn; cache v2 được kiểm tra trước khi nâng lên coverage-v3.
    PDF lỗi đã OCR lại đủ 18/18 trang; 33 PDF khác giữ nguyên extraction,
    toàn bộ 34 PDF / 268 trang giữ nguyên nguồn. CER/OCR và retrieval đại diện vẫn mở.
+   **Phương án đã loại:** TableFormer + OCR từng ô quá chậm (49 giây/trang,
+   cả tài liệu vượt 120 giây) và vẫn sai ký tự. Đã gỡ bản thử khỏi runtime,
+   giữ bằng chứng để không thử lại cùng cách; không đổi OCR mặc định hoặc ngưỡng.
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
-3. [ ] **QA-09c2 — Recovery và bảo mật còn thiếu.**
-   Chỉ bổ sung tình huống chưa được kiểm chứng. Điều kiện đóng: không còn lỗi
-   **P0/P1 hoặc High/Critical được xác nhận**, mọi recovery quan trọng có bằng chứng.
-   **Đã xong QA-09c2a:** sửa khóa đường dẫn tuyệt đối trong catalog bằng chứng;
-   validator Phase 7 hoạt động lại, hash/dữ liệu gốc giữ nguyên, 54 tests liên quan PASS.
-4. [ ] **QA-09d — Nghiệm thu cuối goal.**
+3. [ ] **QA-09d — Nghiệm thu cuối goal.**
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Lượt full gần nhất: **3.013 PASS / 4 FAIL / 2 live SKIP**. Bốn lỗi cùng do một
-   khóa catalog sai đã được sửa; **54 tests liên quan PASS** sau sửa. Bộ tính năng
-   ngữ cảnh/lịch học có **546 tests liên quan PASS**. Chưa chạy chuỗi 3 full cuối;
-   không cộng các run thành một lượt full PASS.
+   Lượt full mới nhất: **3.079 PASS / 0 FAIL / 2 live SKIP**, gồm bản sửa JSON,
+   chạy trước bản sửa Host local. Sau cả hai bản sửa: **229 tests liên quan PASS**.
+   Đây là hai quan sát riêng, chưa phải chuỗi 3 full trên runtime cuối.
+   Điều kiện toàn goal vẫn gồm không còn lỗi P0/P1 hoặc High/Critical được xác nhận;
+   recovery local đã DONE không thay thế kiểm chứng chất lượng PDF/AI còn mở.
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-09c2 — Recovery và bảo mật ứng dụng local.** 229 tests liên quan PASS;
+  gồm quyền nguồn, upload lỗi, symlink, source bị sửa, provider lỗi/cooldown,
+  hủy/xóa/retry và 10 checkpoint kill/restart thật. Giữ đủ 11 biên bản process;
+  secret scan PASS. Phạm vi là các luồng local đã kiểm, không phải nghiệm thu
+  public deployment hoặc chất lượng OCR. [Bằng chứng](docs/ui/evidence/request-safety-recovery-20261027.json).
+- [x] **QA-09c2b — Không crash vì JSON lồng quá sâu.** Bốn API trả 400
+  `invalid_json`; 20 request lỗi qua HTTP thật không làm mất lượt xử lý của câu sau.
+- [x] **QA-09c2c — Chặn Host ngoài localhost.** Từ chối đủ 8 trường hợp Host
+  ngoài phạm vi, sai port, thiếu hoặc lặp trước khi vào ứng dụng; 4 địa chỉ local
+  hợp lệ vẫn truy cập được. Không thay đổi prompt, grounding hoặc gates Phase 5.
 
 - [x] **QA-03c / QA-08d — PDF text 100 trang / 10 MB.** Đủ **20/20 lượt** upload
   mới trên pipeline coverage-v3, model BGE-M3 thật trên CUDA: **p95 12,25 giây**

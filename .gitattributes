@@ -87,6 +87,14 @@
 /src/campusai/ingestion/chunker.py -text whitespace=cr-at-eol
 /tests/test_unruled_credit_table.py -text whitespace=cr-at-eol
 /tests/test_course_table_scope.py -text whitespace=cr-at-eol
+
+# Preserve the exact local HTTP recovery/security producer and evidence bytes.
+/src/campusai/web.py -text whitespace=cr-at-eol
+/src/campusai/deployment/local_server.py -text whitespace=cr-at-eol
+/tests/test_web.py -text whitespace=cr-at-eol
+/tests/deployment/test_local_transport_capacity.py -text whitespace=cr-at-eol
+/docs/ui/evidence/request-safety-recovery-20261027.json -text whitespace=cr-at-eol
+/docs/ui/evidence/raster-table-ocr-diagnostic-20261027.json -text whitespace=cr-at-eol
 /tests/deployment/test_provider_recovery.py text eol=crlf whitespace=cr-at-eol
 /src/campusai/rag/claims.py -text whitespace=cr-at-eol
 /src/campusai/rag/source_citations.py -text whitespace=cr-at-eol

@@ -52,7 +52,7 @@ def _payload(environ):
         if not isinstance(payload, dict):
             raise ValueError
         return payload
-    except (ValueError, UnicodeDecodeError) as error:
+    except (ValueError, UnicodeDecodeError, RecursionError) as error:
         raise WebError("invalid_json") from error
 
 
