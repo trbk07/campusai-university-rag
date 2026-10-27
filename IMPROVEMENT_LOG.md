@@ -1,5 +1,23 @@
 # App improvement log
 
+## Natural100 AI quality gates closed
+
+Closed QA-07b/QA-07b8 after conservative95/100 accuracy qualification,
+0/100 audit-detected unsupported answers and15/15 correct context cases.
+Positive-only verified accuracy is75/80=93.75%. Five unrecognized field forms
+remain outside the conservative accuracy count.100 external review decisions
+use exactly5 approved Gemini Free requests, with complete source/body/output
+bindings and no retries. The separate model audit supplements deterministic
+gold-field checks; no independent-human/base-model validation is claimed.
+
+Closed QA-07b8b3:preserve a full quoted normative award definition instead of
+omitting its final necessary conjunct. The external reviewer missed this old
+omission; automated field checks found it.0064 alone changes and its new literal
+definition is source-proved;99 reviewed public responses stay unchanged.
+Grounding-v37 bypasses the incomplete cached answer.793 related tests PASS,
+0/400 accepted Phase5 outputs match the new predicate. No new CampusAI
+inference was needed. [Evidence](evaluation/results/full-app-natural-20261026/quality-qualification.json).
+
 ## 2026-10-26 - context qualification and complete course-semester lists
 
 Closed QA-07b8b1 and QA-07b8b2. All15 context cases satisfy17 source-reviewed

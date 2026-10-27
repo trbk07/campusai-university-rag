@@ -2,6 +2,21 @@
 
 Latest cycle:2026-10-26. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+QA-07b is now DONE for exposed internal natural100. Accuracy qualification has
+a conservative95/100 lower count (75/80 positive cases),0/100 unsupported answers
+detected by source-bound semantic audit and15/15 correct context cases. Five
+strict field-contract gaps are not promoted to certified answers by AI agreement.
+Approved review uses5 POSTs/100 decisions,0 retries; same base-model family is
+explicitly disclosed. Only the source-proved0064 complete-definition answer
+changes after review;99 reviewed public responses remain exact.
+793 related tests cover wrong quantities, units, reversed/changed roles, missing
+conditions, unknown gold, inconsistent reviews, changed input/evidence and
+unsupported output deltas. All100 schemas/82 literal citations validate;0/400
+accepted Phase5 outputs match the new predicate. No full final regression series
+or fresh public-release holdout is claimed. [Qualification](evaluation/results/full-app-natural-20261026/quality-qualification.json).
+
+The following natural100/context counts are historical stage results.
+
 Current natural100:100 complete,53 exact native captures/47 local outcomes,
 0 fresh API calls,0 false abstentions and0 negative gold rows answered.
 All100 schemas/82 literal citations validate. Context is measured separately:

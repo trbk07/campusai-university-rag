@@ -1023,6 +1023,15 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             confidence="low", abstained=True, reason="unsupported_claim", claims=tuple(claims),
             evidence_status="unsupported_claim", confidence_score=0.0,
         )
+    from .award_conditions import complete_award_definition
+    definition = complete_award_definition(answer, citations, claims, results, language)
+    if definition is not None:
+        # Verify the complete literal definition through the normal pipeline;
+        # neither provider support labels nor a source coordinate bypass proof.
+        return _grounding_finalize(definition, citations,
+            {'claims': [{'claim_id': 'source_definition', 'text': definition,
+                         'citation_ids': [citations[0].chunk_id]}]},
+            results, language, question=question, calibrator=calibrator)
     claim_support = sum(claim.support_score for claim in claims) / max(1, len(claims))
     completeness = sum(claim.status == "supported" and bool(claim.citation_ids) for claim in claims) / max(1, len(claims))
     retrieval_support = max(0.0, min(1.0, max(float(result.score) for result in results)))

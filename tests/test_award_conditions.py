@@ -77,3 +77,50 @@ def test_award_source_selection_is_explicit():
 def test_an_unparsed_grade_modifier_cannot_be_read_as_the_bare_letter(source_grade):
     doc=document(); doc['items'][0]['content']=doc['items'][0]['content'].replace('dưới B-.','dưới '+source_grade+'.')
     assert project('có một môn dưới B là bay danh hiệu sv chăm chỉ à',doc) is None
+
+
+def definition_case():
+    from campusai.rag.grounding import Citation
+    from campusai.rag.claims import Claim
+    from campusai.retrieval.hybrid import RetrievalResult
+    quote = ('Điều 8: Danh hiệu “Sinh viên Nghiên cứu” được trao cho các sinh viên đạt '
+             'kết quả học tập từ 2.7 trở lên, giữ một chức vụ trong câu lạc bộ và có '
+             'đóng góp tích cực cho nghiên cứu khoa học.')
+    summary = ('Theo quy định, danh hiệu “Sinh viên Nghiên cứu” được trao cho sinh viên '
+               'đạt kết quả học tập từ 2.7 trở lên và giữ một chức vụ trong câu lạc bộ.')
+    result = RetrievalResult('rule', 'awards', 3, quote, 'text', 1., 'bm25', {})
+    citation = Citation('rule', 'awards', 3, quote, page_range=(3, 3))
+    claim = Claim('one', summary, citation_ids=('rule',), status='supported')
+    return summary, (citation,), (claim,), [result]
+
+
+def test_complete_normative_definition_retains_the_last_required_conjunct():
+    from campusai.rag.award_conditions import complete_award_definition
+    from campusai.rag.grounding import _grounding_finalize
+    summary, citations, claims, results = definition_case()
+    expected = citations[0].quote
+    assert complete_award_definition(summary, citations, claims, results) == expected
+    answer = _grounding_finalize(summary, citations,
+        {'claims': [{'claim_id': 'one', 'text': summary, 'citation_ids': ['rule']}]}, results, 'vi')
+    assert not answer.abstained and answer.answer == expected
+    assert 'đóng góp tích cực' in answer.answer and '2.7' in answer.answer
+    assert answer.claims[0].text == expected
+    assert complete_award_definition(answer.answer, answer.citations, answer.claims, results) is None
+
+
+@pytest.mark.parametrize('mutation', ['source_mismatch', 'wrong_title', 'partial_quote', 'second_definition',
+                                     'extra_public_sentence', 'personal_outcome', 'unsupported', 'english'])
+def test_definition_completion_cannot_borrow_or_drop_other_assertions(mutation):
+    from dataclasses import replace
+    from campusai.rag.award_conditions import complete_award_definition
+    summary, citations, claims, results = definition_case()
+    language = 'vi'
+    if mutation == 'source_mismatch': results = [replace(results[0], content='Unrelated source.')]
+    elif mutation == 'wrong_title': summary = summary.replace('Nghiên cứu', 'Chăm chỉ')
+    elif mutation == 'partial_quote': citations = (replace(citations[0], quote=citations[0].quote[:-1]),)
+    elif mutation == 'second_definition': citations = (replace(citations[0], quote=citations[0].quote+' Another definition.'),)
+    elif mutation == 'extra_public_sentence': summary += ' Tiền thưởng là 500 nghìn đồng.'
+    elif mutation == 'personal_outcome': summary = 'Bạn đã được nhận danh hiệu này.'
+    elif mutation == 'unsupported': claims = (replace(claims[0], status='unsupported'),)
+    elif mutation == 'english': language = 'en'
+    assert complete_award_definition(summary, citations, claims, results, language) is None

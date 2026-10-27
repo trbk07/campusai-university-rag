@@ -1,5 +1,41 @@
 # Full-app QA audit
 
+## Natural100 qualification complete - QA-07b DONE
+
+The exposed internal100-case workload now meets the three AI quality gates.
+Conservative verified accuracy is95/100 (positive-only75/80=93.75%, both above90%).
+Five unrecognized/strictly incomplete field contracts remain outside that lower
+bound; model agreement never silently certifies them. The separate source-bound
+semantic audit detects0 unsupported answers and0 unknown-support cases; context
+remains15/15 with17 required fields (gate95%). No population/fresh-holdout,
+independent-base-model or independent-human claim is made.
+
+The external reviewer is Gemini3.5-flash-lite, the same base-model family as the
+answer provider, called with a separate audit prompt and source/gold. Exactly5
+approved POSTs cover100 cases,0 retries/key changes. HTTP bodies, raw final-text
+responses, model identity, gold, original predictions and physical source chunks
+are hash-bound and verified. Accuracy also requires deterministic entity/value/
+unit/operator/prerequisite-direction checks; it is not solely an AI self-score.
+Literal source citations are checked separately:100 valid schemas/82 citations.
+
+The reviewer accepted the old0064 summary despite its missing active-contribution
+conjunct. The deterministic required-field check catches this omission. The app
+now preserves the entire single quoted award definition and re-verifies it through
+normal grounding. Only0064 changes;99 public outputs retain their exact reviewed
+bytes. The changed definition is proved directly from its complete literal source,
+not falsely recorded as a newly model-reviewed answer. Grounding-v37 invalidates
+the incomplete cached answer.793 related tests PASS; the predicate matches0/400
+accepted Phase5 outputs. Their frozen acceptance remains DONE.
+
+Original native100 had24 definite false abstentions: baseline accuracy was at
+most76%, not a fabricated exact semantic score. The comparison covers the
+accumulated parser/RAG repairs, not solely this final definition fix. No new
+CampusAI generations were needed for this qualification. [Evidence and limits](evaluation/results/full-app-natural-20261026/quality-qualification.json).
+
+Next:representative PDF quality, actual streaming TTFT,100-page/10MB performance,
+remaining recovery/security and the final three full regression runs. Keep QA-07b
+and internal Phase5 closed.
+
 ## 2026-10-26 - qualify context and repair a missing course answer
 
 QA-07b8b1 DONE:15/15 history-bearing requests satisfy all17 reviewed required

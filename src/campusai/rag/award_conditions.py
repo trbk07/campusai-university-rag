@@ -7,6 +7,39 @@ from .footnotes import _fold_with_offsets
 from ..retrieval.tokenizer_vi import source_body
 
 
+def complete_award_definition(answer, citations, claims, results, language='vi'):
+    """Keep a quoted normative definition whole when its summary omits a clause.
+
+    Only a single, already-grounded award-definition sentence is eligible.
+    This does not infer a student's eligibility or add a new source passage.
+    """
+    if (not language.casefold().startswith('vi') or len(citations) != 1 or len(claims) != 1
+            or claims[0].status != 'supported'):
+        return None
+    definition = r'danh hieu ["“](?P<title>[^"”]{1,180})["”] duoc trao cho (?:cac )?sinh vien\b'
+    public = re.match(r'(?:(?:theo quy dinh|theo tai lieu)[,:]?\s*)?' + definition, folded(answer))
+    if public is None:
+        return None
+    # Do not replace a second answer or an extra requested fact with a quote.
+    if re.search(r'\.(?:\s+|$)|[!?]', folded(answer)[public.end():].rstrip('.')):
+        return None
+    citation = citations[0]
+    quote = folded(citation.quote)
+    source = re.match(r'(?:dieu \d+:\s*)?' + definition, quote)
+    if source is None or source['title'] != public['title'] or not quote.endswith('.'):
+        return None
+    if re.search(r'\.(?:\s+|$)|[!?]', quote[source.end():-1]):
+        return None
+    result = next((r for r in results if r.chunk_id == citation.chunk_id), None)
+    from .grounding import validate_citation
+    if result is None or result.content_type != 'text' or not validate_citation(citation, result, require_quote=True).valid:
+        return None
+    text = unicodedata.normalize('NFC', ' '.join(citation.quote.split()))
+    if folded(text) in folded(answer):
+        return None
+    return text
+
+
 def _request(question):
     text = folded(question).strip(' .?!')
     text = re.sub(r'\bsv\b','sinh vien',text)

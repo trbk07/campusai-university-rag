@@ -110,3 +110,7 @@
 /evaluation/grounding/natural_context.py -text whitespace=cr-at-eol
 /tests/test_natural_context_quality.py -text whitespace=cr-at-eol
 /tests/test_artifact_store.py -text whitespace=cr-at-eol
+/evaluation/grounding/natural_accuracy.py -text whitespace=cr-at-eol
+/tests/test_natural_accuracy.py -text whitespace=cr-at-eol
+/evaluation/grounding/natural_quality.py -text whitespace=cr-at-eol
+/tests/test_natural_quality.py -text whitespace=cr-at-eol
