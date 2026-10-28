@@ -132,7 +132,8 @@ def main():
     app = build_application()
     try:
         with make_server("127.0.0.1", 8000, make_wsgi_app(app,
-                max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4')))) as server:
+                max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4')),
+                enable_query_streaming=os.getenv('CAMPUSAI_QUERY_STREAMING','0')=='1')) as server:
             print("CampusAI listening on http://127.0.0.1:8000")
             server.serve_forever()
     finally:

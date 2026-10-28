@@ -1,5 +1,20 @@
 # App performance evidence
 
+## 2026-10-28 - real streaming measured, TTFT gate NOT PASSED
+
+20 distinct uncached RAG queries use an explicitly fictional one-page source,
+real BGE-M3 CUDA retrieval and Gemini3.5 Flash Lite Free/key_2.17 source-correct
+answers,3 socket timeouts; missing first tokens/replies are censored infinity.
+Nearest-rank p95 includes all20 cases and is unbounded, exceeding5s. Two slow
+successful first tokens are12.334s and6.075s. Tiny paired native/SSE probes are
+diagnostic only, not a p95 or a causal speedup result. Model startup is separate.
+
+QA-08c1 transport/measurement engineering is done; QA-08c remains OPEN. Streaming
+stays default OFF. UI progress is fixed metadata after an actual model delta,
+not unvalidated answer text, a heartbeat or a cache hit. All predictions,
+failed observations, sealed packets and the exact measured source are retained.
+[Evidence and reproduction limits](docs/ui/evidence/query-streaming-20261028.json).
+
 ## 2026-10-27 - native100/10MB gate PASS
 
 QA-03c/QA-08d DONE in the fixed local CUDA lab:20/20 fresh uploads of the same

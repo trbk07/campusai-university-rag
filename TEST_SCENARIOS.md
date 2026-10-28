@@ -1,6 +1,20 @@
 # App test scenarios
 
-Latest cycle:2026-10-27. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+Latest cycle:2026-10-28. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
+
+Streaming:346 related Python tests and9 JS transport tests PASS. Cover fragmented
+UTF-8/SSE/NDJSON, thought redaction, stream size/event bounds, malformed/truncated
+responses, cancellation, worker/lease recovery,quota/circuit accounting,no hidden
+retries,source authorization,cache timing and verified-answer-only publication.
+Browser:43/43 default checks and44/44 explicitly opted-in checks,6 viewport sizes,
+no script errors. Controlled browser progress is never counted as real TTFT.
+Real20-case measurement includes17 verified answers and3 timeouts; the p95
+criterion remains NOT PASSED. Tests reject dropped failure samples,fake cached
+timing,duplicate observations,changed runtime and uncertified published facts.
+Full3134 PASS/0 FAIL/2 opt-in live SKIP;64 launcher/streaming checks after fixing
+one stale launcher expectation.11 artifact-catalog tests and secret scan PASS.
+The original failed full report is retained alongside the clean run.
+[Exact source,test and provider evidence](docs/ui/evidence/query-streaming-20261028.json).
 
 QA-09c2 local recovery/security DONE:229 related tests PASS. Four JSON routes
 reject decoder-recursion input as400;20 malformed real HTTP requests leave valid

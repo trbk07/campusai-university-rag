@@ -338,10 +338,10 @@ def test_modified_pdf_cannot_be_served_as_the_original_citation(runtime):
 
 def test_runtime_capability_reports_configuration_without_disclosing_credentials(runtime):
     web, application, _ = runtime
-    assert call(web,'/api/documents')['body']['runtime'] == {'ai_configured':False}
+    assert call(web,'/api/documents')['body']['runtime'] == {'ai_configured':False,'query_streaming':False}
     application.query_service.answer_generator.llm = type('LLM',(),{'api_key':'private-credential-do-not-publish'})()
     response = call(web,'/api/documents')
-    assert response['body']['runtime'] == {'ai_configured':True}
+    assert response['body']['runtime'] == {'ai_configured':True,'query_streaming':False}
     assert b'private-credential' not in response['raw']
 
 

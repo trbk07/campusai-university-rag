@@ -38,7 +38,7 @@ export const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="curren
 export function hydrate(root = document) { $$('[data-icon]', root).forEach(el => { el.innerHTML = icon(el.dataset.icon); }); }
 export const pdfIcon = () => `<span class="pdf-icon" aria-hidden="true">${icon('file')}<small>PDF</small></span>`;
 export const events = new EventTarget();
-export const state = {documents:[], jobs:[], selected:new Set(), tab:'assistant', category:'all', search:'', year:'', program:'', status:'all', loading:true, error:'', busy:false, aiConfigured:false, replyLanguage:'vi', uploadAvailable:false, limits:{max_mb:50,max_pages:218}};
+export const state = {documents:[], jobs:[], selected:new Set(), tab:'assistant', category:'all', search:'', year:'', program:'', status:'all', loading:true, error:'', busy:false, aiConfigured:false, queryStreaming:false, replyLanguage:'vi', uploadAvailable:false, limits:{max_mb:50,max_pages:218}};
 export const notify = name => events.dispatchEvent(new Event(name));
 export const date = seconds => seconds ? new Date(seconds * 1000).toLocaleDateString('vi-VN', {timeZone:'Asia/Bangkok'}) : 'Chưa có ngày tải';
 export const bytes = size => size == null ? '' : size > 1048576 ? `${(size / 1048576).toFixed(1)} MB` : `${Math.ceil(size / 1024)} KB`;

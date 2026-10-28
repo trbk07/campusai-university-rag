@@ -87,6 +87,7 @@ export async function refreshDocuments() {
   try {
     const value = await request('/api/documents');
     state.documents = value.documents; state.jobs = value.jobs; state.limits = value.limits; state.uploadAvailable = value.upload_available; state.aiConfigured = value.runtime?.ai_configured === true; state.error = '';
+    state.queryStreaming = value.runtime?.query_streaming === true;
     const valid = new Set(state.documents.filter(doc => doc.ready).map(doc => doc.doc_id));
     state.selected.forEach(id => { if (!valid.has(id)) state.selected.delete(id); });
     $('#upload-limits').textContent = `Tối đa ${MAX_UPLOAD_FILES} PDF mỗi lượt · ${state.limits.max_mb} MB / ${state.limits.max_pages} trang mỗi file`;

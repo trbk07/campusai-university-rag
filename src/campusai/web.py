@@ -57,13 +57,16 @@ def _payload(environ):
 
 
 def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable | None = None,
-                  max_concurrent_queries: int | None = None) -> Callable:
+                  max_concurrent_queries: int | None = None, enable_query_streaming: bool = False) -> Callable:
     # Deployment admission is explicit; historical evaluation transports keep
     # their own frozen concurrency profile instead of inheriting local limits.
     if max_concurrent_queries is not None and (type(max_concurrent_queries) is not int or not 1 <= max_concurrent_queries <= 32):
         raise ValueError('max_concurrent_queries must be between 1 and 32')
+    if type(enable_query_streaming) is not bool:
+        raise ValueError('enable_query_streaming must be a boolean')
     documents = WebDocuments(application)
     query_slot = threading.BoundedSemaphore(max_concurrent_queries) if max_concurrent_queries else None
+    stream_slots = threading.BoundedSemaphore(32)
 
     def dispatch(environ, start_response):
         path = environ.get("PATH_INFO", "/")
@@ -92,7 +95,8 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                         "jobs": documents.jobs(environ, job_rows=job_rows),
                         "limits": {"max_mb": documents.max_mb, "max_pages": documents.max_pages},
                         "upload_available": application.jobs is not None and "campusai.authorized_doc_ids" not in environ,
-                        "runtime": {"ai_configured": getattr(getattr(application.query_service, "answer_generator", None), "llm", None) is not None}}
+                        "runtime": {"ai_configured": getattr(getattr(application.query_service, "answer_generator", None), "llm", None) is not None,
+                                    "query_streaming": enable_query_streaming}}
                     return _json_response(value, start_response)
             if path == "/api/documents/upload" and method == "POST":
                 if environ.get("CONTENT_TYPE", "").split(";")[0] != "application/pdf":
@@ -133,6 +137,11 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                 with documents.lock:
                     return _json_response(documents.feedback(_payload(environ), environ), start_response)
             if path == "/api/query" and method == "POST":
+                if enable_query_streaming and 'application/x-ndjson' in environ.get('HTTP_ACCEPT', '').split(','):
+                    from .web_streaming import stream_response
+                    body = _read(environ, 64000)
+                    return stream_response(environ, start_response,
+                        measured if telemetry_hook else app, body, stream_slots, SECURITY_HEADERS)
                 payload = _payload(environ)
                 options = {key: payload[key] for key in ("doc_ids", "filters", "top_k", "language", "history", "selected_text", "requires_context") if key in payload}
                 if "doc_ids" in options and (not isinstance(options["doc_ids"], list)
@@ -235,17 +244,23 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
         reset = getattr(application.query_service, "reset_request_state", None)
         if reset is not None:
             reset()
-        request_id = uuid.uuid4().hex
+        request_id = environ.get('campusai.request_id') or uuid.uuid4().hex
         environ["campusai.request_id"] = request_id
         def respond(status, headers, exc_info=None):
             headers = [(key, value) for key, value in headers if key != "X-Request-ID"] + [("X-Request-ID", request_id)]
             return start_response(status, headers) if exc_info is None else start_response(status, headers, exc_info)
         with capture_request() as trace:
             body = app(environ, respond)
+        if environ.pop('campusai.stream_handled', False):
+            return body  # The worker owns query-local timing and telemetry.
         trace["request_id"] = request_id
         trace["cache_hit"] = application.query_service.last_cache_hit
         retrieval = getattr(application.query_service.retriever, "last_trace", None)
         trace["retrieval_trace"] = retrieval.to_dict() if retrieval is not None else None
+        from .llm.streaming import current_stream
+        stream = current_stream()
+        if stream is not None:
+            trace['model_stream'] = stream.summary()
         telemetry_hook(trace)
         return body
     return measured

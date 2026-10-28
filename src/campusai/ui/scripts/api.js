@@ -48,6 +48,51 @@ export async function request(path, options = {}) {
   } finally { clearTimeout(timeout); }
 }
 export const post = (path, value) => request(path, {method:'POST', body:JSON.stringify(value)});
+export async function postQuery(value, onProgress) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  let reader;
+  const checked = (payload, status, response) => {
+    if (status >= 400 || payload.ok === false) {
+      const error = new Error('request_failed'); error.code = payload.error_code;
+      const delay = Number(payload.retry_after_seconds ?? response.headers.get('Retry-After'));
+      error.retryAfterSeconds = Number.isFinite(delay) && delay > 0 ? Math.ceil(Math.min(delay,90000)) : 0;
+      throw error;
+    }
+    return {...payload, responseId:response.headers.get('X-Request-ID')};
+  };
+  try {
+    const response = await fetch('/api/query', {method:'POST', signal:controller.signal,
+      headers:{'Content-Type':'application/json','Accept':'application/x-ndjson'}, body:JSON.stringify(value)});
+    if (!response.headers.get('Content-Type')?.startsWith('application/x-ndjson'))
+      return checked(await response.json(),response.status,response);
+    if (!response.ok || !response.body) throw new Error('invalid_response');
+    reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8',{fatal:true});
+    let pending = '', bytes = 0;
+    while (true) {
+      const {done,value:chunk} = await reader.read();
+      if (done) throw new Error('incomplete_response');
+      bytes += chunk.byteLength;
+      if (bytes > 4*1024*1024) throw new Error('invalid_response');
+      pending += decoder.decode(chunk,{stream:true});
+      let end;
+      while ((end = pending.indexOf('\n')) >= 0) {
+        const line = pending.slice(0,end); pending = pending.slice(end+1);
+        if (!line.trim()) continue;
+        const event = JSON.parse(line);
+        if (event.type === 'result' && Number.isInteger(event.status) && event.value && typeof event.value === 'object')
+          return checked(event.value,event.status,response);
+        if (event.type !== 'progress' || !['generating','verifying'].includes(event.phase)) throw new Error('invalid_response');
+        onProgress?.(event.phase);
+      }
+      if (pending.length > 1024*1024) throw new Error('invalid_response');
+    }
+  } finally {
+    clearTimeout(timeout);
+    if (reader) { try { await reader.cancel(); } catch {} reader.releaseLock(); }
+  }
+}
 export function upload(file, onProgress) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();

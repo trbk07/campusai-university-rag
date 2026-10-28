@@ -25913,6 +25913,32 @@
       "storage_bytes": 484,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/query-streaming-20261028-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/query-streaming-20261028-evidence.zip",
+      "version_or_revision": "84ae7ef774e089d67eff174bb5ab047b64169e07ea642805a80204a4e60032a6",
+      "sha256": "84ae7ef774e089d67eff174bb5ab047b64169e07ea642805a80204a4e60032a6",
+      "bytes": 1750055,
+      "local_or_external_uri": "objects/84/84ae7ef774e089d67eff174bb5ab047b64169e07ea642805a80204a4e60032a6.gz",
+      "encoding": "gzip",
+      "storage_sha256": "b6f9922d81eba7bc2183b847fcdb86320ddf79cbb678dbf1bd7c3feba56c6077",
+      "storage_bytes": 1738257,
+      "reproducible": false,
+      "restorable": true
+    },
+    ".tmp/query-streaming-20261028-tests.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/query-streaming-20261028-tests.zip",
+      "version_or_revision": "71fe8cd61c47cdcbabc474d4c880e3242b15493bb4300e51be12d09a44e17277",
+      "sha256": "71fe8cd61c47cdcbabc474d4c880e3242b15493bb4300e51be12d09a44e17277",
+      "bytes": 234348,
+      "local_or_external_uri": "objects/71/71fe8cd61c47cdcbabc474d4c880e3242b15493bb4300e51be12d09a44e17277.gz",
+      "encoding": "gzip",
+      "storage_sha256": "73590fad48d9bf568228b3a5f0983a64535012d59c69a79aab83baeffa9e8f07",
+      "storage_bytes": 231992,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

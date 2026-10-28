@@ -1,5 +1,5 @@
 import {$, esc, icon, pdfIcon, state, events, notify, toast} from '../scripts/shared.js';
-import {post, errorText} from '../scripts/api.js';
+import {post, postQuery, errorText} from '../scripts/api.js';
 import {readySelected, preview} from './documents.js';
 import {excerptFallback, excerptSources, excerptBody, excerptCopy} from './excerpts.js';
 
@@ -128,10 +128,17 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
   $('#question').value = ''; $('#question').style.height = '';
   $('#chat-scroll').scrollTop = $('#chat-scroll').scrollHeight;
   try {
-    const response = await post('/api/query', {question,doc_ids:docIds,language,history});
+    const payload = {question,doc_ids:docIds,language,history};
+    const response = await (state.queryStreaming ? postQuery(payload, phase => {
+      if (generation !== epoch) return;
+      $('#query-status').textContent = phase === 'generating'
+        ? 'AI đang tạo câu trả lời. Nội dung sẽ hiển thị sau khi kiểm chứng nguồn.'
+        : 'Đang kiểm chứng câu trả lời và trích dẫn...';
+    }) : post('/api/query', payload));
     if (generation !== epoch) return;
     if (!response.answer || typeof response.answer.answer !== 'string') throw new Error('invalid_response');
     const answer = {...response.answer, documentInfo:response.document_info, conversationKind:response.conversation_kind};
+    $('#query-status').textContent = '';
     if (answer.abstained) { answer.citations = []; answer.claims = []; }
     const fallback = excerptFallback(response);
     if (fallback || response.partial) userMessage.failed = true;
@@ -140,6 +147,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     renderSources(excerptSources(message));
   } catch (error) {
     userMessage.failed = true;
+    if (generation === epoch) $('#query-status').textContent = '';
     if (['provider_overloaded','provider_rate_limited'].includes(error.code) && error.retryAfterSeconds)
       providerWaitUntil = Math.max(providerWaitUntil,Date.now()+error.retryAfterSeconds*1000);
     if (generation === epoch) messages.push({role:'assistant',error:errorText(error),question,docIds,language,

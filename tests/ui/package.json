@@ -2,7 +2,8 @@
   "name": "campusai-ui-tests",
   "private": true,
   "scripts": {
-    "test": "node browser_smoke.cjs"
+    "test": "node browser_smoke.cjs",
+    "test:transport": "node --test query_stream.cjs"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

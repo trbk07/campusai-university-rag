@@ -194,7 +194,8 @@ def _sleep_backoff(attempt: int, retry_after: float | None = None) -> None:
 
 
 def _request_json(request, timeout: int, limiter, max_retries: int, *, retry_only_503=False,
-                  retry_min_wait_seconds=30.0, retry_max_wait_seconds=60.0) -> dict:
+                  retry_min_wait_seconds=30.0, retry_max_wait_seconds=60.0,
+                  response_reader=None) -> dict:
     """Issue a bounded retry request and classify provider failures."""
 
     transient = {408, 429, 500, 502, 503, 504}
@@ -208,7 +209,7 @@ def _request_json(request, timeout: int, limiter, max_retries: int, *, retry_onl
     for attempt in range(max_retries + 1):
         try:
             with transport(request, timeout=timeout) as response:
-                data = json.load(response)
+                data = response_reader(response) if response_reader else json.load(response)
                 if not isinstance(data, dict):
                     raise LLMResponseError("provider response must be a JSON object")
                 return data
@@ -477,7 +478,7 @@ class OpenAICompatibleClient:
             text = fenced.group(1)
         try:
             value = json.loads(text)
-        except json.JSONDecodeError as error:
+        except (json.JSONDecodeError, RecursionError) as error:
             raise LLMResponseError("LLM returned malformed JSON") from error
         if not isinstance(value, dict):
             raise LLMResponseError("LLM JSON response must be an object")
@@ -552,13 +553,16 @@ class GeminiClient(OpenAICompatibleClient):
             self._count_tokens_governor_identity = identity
         return self._count_tokens_governor
 
-    def _send(self, request, *, token_budget=None):
+    def _send(self, request, *, token_budget=None, stream=None):
         circuit = self.overload_circuit
         governor = self.quota_governor
         generation = None
         reservation = None
         attempted = False
         result = None
+        # urllib has distinct header/read waits. Keep an active stream's lease
+        # through both socket waits, including cancellation at an I/O checkpoint.
+        lease_timeout = self.timeout * (2 if stream is not None else 1)
         try:
             if urllib.parse.urlsplit(request.full_url).path.endswith(':countTokens'):
                 governor = self.count_tokens_quota_governor
@@ -575,20 +579,26 @@ class GeminiClient(OpenAICompatibleClient):
                 except (ValueError, TypeError, AttributeError):
                     raise LLMProviderError('request cannot be admitted under the text token budget') from None
             if circuit:
-                generation = circuit.acquire(self.timeout)
+                generation = circuit.acquire(lease_timeout)
             if governor is not None:
                 reservation = governor.reserve(input_tokens, output_tokens,
-                    lease_seconds=self.timeout + 5,
+                    lease_seconds=lease_timeout + 5,
                     check=(lambda: circuit.check(generation)) if circuit else None)
             elif self.limiter is not None:
                 self.limiter.wait()
             if circuit:
                 circuit.check(generation)
+            reader = None
+            if stream is not None:
+                from .streaming import read_gemini_stream
+                stream.begin(self.model)
+                reader = lambda response: read_gemini_stream(response, stream, self.timeout)
             attempted = True
-            result = _request_json(request, self.timeout, self.limiter, self.max_retries,
+            result = _request_json(request, self.timeout, self.limiter, 0 if stream is not None else self.max_retries,
                                    retry_only_503=self.retry_only_503,
                                    retry_min_wait_seconds=self.retry_min_wait_seconds,
-                                   retry_max_wait_seconds=self.retry_max_wait_seconds)
+                                   retry_max_wait_seconds=self.retry_max_wait_seconds,
+                                   **({'response_reader': reader} if reader is not None else {}))
         except ProviderCoolingDown as error:
             failure_type = LLMRateLimitError if error.provider_error_code == 'provider_rate_limited' else LLMProviderError
             failure = failure_type("provider is cooling down; please try again later")
@@ -645,7 +655,7 @@ class GeminiClient(OpenAICompatibleClient):
                 except sqlite3.Error:
                     # Counters remain charged; the crash-safe lease expires.
                     pass
-            if circuit and generation is not None and not attempted:
+            if circuit and generation is not None and (not attempted or stream is not None and stream.cancelled()):
                 try:
                     circuit.abandon(generation)
                 except sqlite3.Error:
@@ -689,6 +699,11 @@ class GeminiClient(OpenAICompatibleClient):
 
     def complete(self, prompt: str, **kwargs: Any) -> LLMResponse:
         """Send a prompt using Gemini's request and response schema."""
+        from .streaming import current_stream, stream_endpoint
+        stream = current_stream()
+        streaming_url = stream_endpoint(self.endpoint) if stream is not None else None
+        if streaming_url is None:
+            stream = None
         body = self.prepare_request(prompt, **kwargs)
         pdf_mode = kwargs.get('pdf_documents') is not None
         cache_key = build_cache_key(
@@ -705,7 +720,7 @@ class GeminiClient(OpenAICompatibleClient):
             if cached is not None:
                 return cached
             request = urllib.request.Request(
-                self.endpoint,
+                streaming_url or self.endpoint,
                 data=json.dumps(body).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
@@ -733,7 +748,12 @@ class GeminiClient(OpenAICompatibleClient):
                 measurement = {'endpoint': count_endpoint, 'request_body_sha256': body_hash(count_body),
                     'generation_body_sha256': body_hash(body), 'response': counts,
                     'reserved_input_tokens': budget[0], 'reserved_output_tokens': budget[1]}
-            data = self._send(request, token_budget=budget) if budget is not None else self._send(request)
+            send_options = {}
+            if budget is not None:
+                send_options['token_budget'] = budget
+            if stream is not None:
+                send_options['stream'] = stream
+            data = self._send(request, **send_options)
             try:
                 candidate = data["candidates"][0]
                 parts = candidate["content"]["parts"]
@@ -751,7 +771,7 @@ class GeminiClient(OpenAICompatibleClient):
             if not isinstance(usage, dict):
                 usage = {}
             latency_ms = (time.perf_counter() - started_at) * 1000
-            if self.cache is not None and not pdf_mode:
+            if self.cache is not None and not pdf_mode and stream is None:
                 self.cache.put(cache_key, text, usage, latency_ms)
             reason = candidate.get("finishReason")
             model_version = data.get("modelVersion")
@@ -787,7 +807,7 @@ class GeminiClient(OpenAICompatibleClient):
             text = fenced.group(1)
         try:
             value = json.loads(text)
-        except json.JSONDecodeError as error:
+        except (json.JSONDecodeError, RecursionError) as error:
             raise LLMResponseError("LLM returned malformed JSON") from error
         if not isinstance(value, dict):
             raise LLMResponseError("LLM JSON response must be an object")

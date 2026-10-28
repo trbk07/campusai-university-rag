@@ -1,5 +1,29 @@
 # Full-app QA audit
 
+## 2026-10-28 - streaming transport complete; latency gate remains open
+
+QA-08c1 engineering DONE: bounded Gemini SSE, private first non-thought delta
+timings, fixed progress metadata and the existing grounded terminal answer.
+Source authorization, citations, quotas and cancellation remain enforced.
+The feature is explicitly opt-in (`CAMPUSAI_QUERY_STREAMING=1`), default OFF.
+346 related tests,9 JS transport tests,43 default browser checks and44 opt-in
+browser checks PASS. Browser fixtures are local; they do not qualify real TTFT.
+Full regression:3134 PASS,0 FAIL,2 opt-in live SKIP. The initial run's sole
+failure was a launcher assertion missing the new default-false option; it now
+checks both modes,64 launcher/streaming tests PASS. No runtime change between
+the two full runs.11 catalog tests and secret scan PASS. This is an intermediate
+full regression, not the final three-run acceptance series.
+
+The whole20-case uncached real BGE-M3/CUDA RAG cohort has17 verified source
+answers and3 timeouts. Missing tokens count as censored infinity, so p95 fails;
+none of the20 observations is dropped.0 uncertified answers were published.
+28 provider attempts across the cohort and diagnostics are retained, with no
+retries or quota reset. Header wait dominates observed slow calls; network/TLS
+and provider processing are not separately attributed. Do not repeat this
+unchanged experiment or close QA-08c. Representative PDF quality and final3
+regressions also remain open; internal Phase5 DONE is preserved.
+[Bindings and measurements](docs/ui/evidence/query-streaming-20261028.json).
+
 ## 2026-10-27 - QA-09c2 DONE for local recovery/security
 
 A size-admissible deeply nested JSON request raised an uncaught RecursionError

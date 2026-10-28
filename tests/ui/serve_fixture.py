@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--port', type=int, default=8012)
+    parser.add_argument('--stream-probe', action='store_true', help='Controlled UI progress only; never model TTFT evidence')
     args = parser.parse_args()
     args.root.mkdir(parents=True, exist_ok=True)
     mixed_pdf.__wrapped__(args.root)
@@ -25,6 +26,20 @@ def main():
         (args.root/f'Enrollment-{number}.pdf').write_bytes(pdf_bytes(
             f'Enrollment requires approval from the academic advisor. Fixture source {number} has independent content.'))
     provider = LocalEvidenceLLM()
+    if args.stream_probe:
+        import time
+        from campusai.llm.streaming import current_stream
+        original_generate = provider.generate_json
+        def controlled_progress(*a, **kw):
+            capture = current_stream()
+            if capture:
+                # A test-only UI phase, deliberately NOT capture.begin/text:
+                # fake provider work must never create a model TTFT sample.
+                capture.notify({'type':'progress','phase':'generating'})
+                time.sleep(.6)
+                capture.notify({'type':'progress','phase':'verifying'})
+            return original_generate(*a, **kw)
+        provider.generate_json = controlled_progress
     service = CampusAIQueryService(HybridRetriever(args.root/'index'), GroundedAnswerGenerator(provider), default_mode='bm25')
     provider.evidence = lambda: service.last_retrieval[0]
     application = CampusAIApplication(service, jobs=IngestionJobManager(max_workers=3, max_pending=8,
@@ -32,7 +47,7 @@ def main():
         'store_dir':args.root/'store','index_dir':args.root/'index','dense_model':'fallback-hash-256'})
     try:
         with make_local_server('127.0.0.1',args.port,
-                make_wsgi_app(application,max_concurrent_queries=4)) as server:
+                make_wsgi_app(application,max_concurrent_queries=4,enable_query_streaming=args.stream_probe)) as server:
             print(f'Isolated UI test host: http://127.0.0.1:{args.port}', flush=True)
             server.serve_forever()
     finally:

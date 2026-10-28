@@ -144,7 +144,8 @@ def main(argv=None) -> int:
             print(f'Đang khởi động CampusAI · {configured["model"]} · giữ cửa sổ này mở...', flush=True)
             application = build_application()
             server.set_app(make_wsgi_app(application,
-                max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4'))))
+                max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4')),
+                enable_query_streaming=os.getenv('CAMPUSAI_QUERY_STREAMING','0')=='1'))
             print(f'CampusAI đã sẵn sàng: {URL}', flush=True)
             print('Chọn tài liệu sẵn sàng trong Trợ lý AI rồi đặt câu hỏi. Ctrl+C để dừng.', flush=True)
             if args.open_browser:

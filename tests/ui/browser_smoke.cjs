@@ -139,6 +139,13 @@ async function main() {
     const queryRequest = page.waitForRequest('**/api/query');
     await page.locator('#send').dblclick();
     assert.equal((await queryRequest).postDataJSON().language,'en'); check('answer language is sent to the actual API');
+    if (process.env.UI_STREAM_PROBE === '1') {
+      await page.getByText('AI đang tạo câu trả lời. Nội dung sẽ hiển thị sau khi kiểm chứng nguồn.',{exact:true}).waitFor();
+      assert.equal(await page.locator('.answer-body').count(),0);
+      assert.equal(await page.locator('.citation-marker').count(),0);
+      assert(await page.locator('#send').isDisabled());
+      check('controlled streaming progress exposes no unverified answer or citation');
+    }
     await page.locator('.answer-body').waitFor({timeout:10000});
     assert.equal(submits,1); assert(await page.locator('.citation-marker').count());
     const quote = await page.locator('.source-card blockquote').first().textContent();

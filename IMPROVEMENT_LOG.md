@@ -1,5 +1,18 @@
 # App improvement log
 
+## 2026-10-28 - guarded streaming transport complete
+
+Closed QA-08c1 engineering: bounded SSE reader and request-local genuine model
+timing; fixed progress metadata followed by the existing verified answer.
+No raw drafts/thoughts, implicit retries or cached-token timing. Default native
+transport remains enabled; experimental streaming requires explicit opt-in.
+346 related tests,9 JS tests,43 default and44 opt-in browser checks PASS.
+Final intermediate full:3134 PASS,0 FAIL,2 opt-in live SKIP. Corrected one stale
+launcher assertion; explicit enable/default disable lifecycle tests both PASS.
+Live20-case cohort fails the latency gate with3 timeouts; keep QA-08c open
+and preserve all observations instead of rerunning the same method.
+[Receipt](docs/ui/evidence/query-streaming-20261028.json).
+
 ## 2026-10-27 - local recovery/security closed
 
 Closed QA-09c2:reject deep JSON decoder failures as400 and untrusted loopback

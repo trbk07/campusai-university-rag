@@ -116,7 +116,8 @@ def test_old_unconfigured_app_is_not_misreported_as_ready(configured_root,monkey
     assert 'Ctrl+C' in capsys.readouterr().out
 
 
-def test_port_is_reserved_before_model_load_and_resources_close(configured_root,monkeypatch):
+@pytest.mark.parametrize('streaming', [False, True])
+def test_port_is_reserved_before_model_load_and_resources_close(configured_root,monkeypatch,streaming):
     monkeypatch.chdir(configured_root)
     monkeypatch.setattr(local,'ROOT',configured_root)
     monkeypatch.setattr(local,'running_app',lambda:None)
@@ -135,7 +136,11 @@ def test_port_is_reserved_before_model_load_and_resources_close(configured_root,
     monkeypatch.setattr(local,'build_application',build)
     web_options=[]
     monkeypatch.delenv('CAMPUSAI_QUERY_WORKERS', raising=False)
+    if streaming:
+        monkeypatch.setenv('CAMPUSAI_QUERY_STREAMING', '1')
+    else:
+        monkeypatch.delenv('CAMPUSAI_QUERY_STREAMING', raising=False)
     monkeypatch.setattr(local,'make_wsgi_app',lambda app, **kwargs:(web_options.append(kwargs) or object()))
     assert local.main([]) == 0
     assert calls == ['bound','model_loaded','set_app','serve','server_closed','app_closed']
-    assert web_options == [{'max_concurrent_queries':4}]
+    assert web_options == [{'max_concurrent_queries':4,'enable_query_streaming':streaming}]

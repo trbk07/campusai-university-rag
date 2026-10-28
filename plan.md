@@ -1,6 +1,6 @@
 # CampusAI — Kế hoạch và tiến độ
 
-Cập nhật: **27/10/2026 · Asia/Bangkok**
+Cập nhật: **28/10/2026 · Asia/Bangkok**
 
 Repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag)
 
@@ -58,18 +58,32 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
+   **Engineering QA-08c1 đã DONE:** transport Gemini SSE, đo token thật và tiến độ
+   UI; chỉ hiển thị câu trả lời sau grounding. Nhánh này **tắt mặc định**.
+   Đợt đo thật 20 câu: 17 câu đúng nguồn, 3 timeout; p95 tính cả lỗi chưa đạt.
+   Không bỏ mẫu lỗi hoặc chạy lại câu đã thành công để làm đẹp kết quả.
+   [Bằng chứng và phạm vi](docs/ui/evidence/query-streaming-20261028.json).
 3. [ ] **QA-09d — Nghiệm thu cuối goal.**
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Lượt full mới nhất: **3.079 PASS / 0 FAIL / 2 live SKIP**, gồm bản sửa JSON,
-   chạy trước bản sửa Host local. Sau cả hai bản sửa: **229 tests liên quan PASS**.
-   Đây là hai quan sát riêng, chưa phải chuỗi 3 full trên runtime cuối.
+   Full regression ngày 28/10: **3.134 PASS / 0 FAIL / 2 live SKIP**;
+   **346 tests liên quan PASS**, thêm **64 tests launcher/streaming PASS**,
+   giao diện mặc định **43/43**, nhánh streaming **44/44**, JS transport **9/9**.
+   Đây chưa phải chuỗi 3 full trên runtime cuối vì chất lượng PDF vẫn còn mở.
    Điều kiện toàn goal vẫn gồm không còn lỗi P0/P1 hoặc High/Critical được xác nhận;
    recovery local đã DONE không thay thế kiểm chứng chất lượng PDF/AI còn mở.
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-08c1 — Transport và đo streaming thật.** SSE được giới hạn kích thước,
+  bỏ thought parts; cache/local không tạo token giả. Hủy kết nối giải phóng lượt
+  xử lý, lỗi giữ nguyên quota/cooldown, không tự retry. UI chỉ nhận tiến độ cố định
+  và kết quả đã kiểm grounding. Bật riêng bằng `CAMPUSAI_QUERY_STREAMING=1`;
+  mặc định giữ đường trả lời đã nghiệm thu. **346 tests liên quan, 9 JS tests,
+  43 kiểm tra UI mặc định và 44 kiểm tra UI streaming PASS.** Gate độ trễ QA-08c
+  vẫn mở. [Bằng chứng](docs/ui/evidence/query-streaming-20261028.json).
 
 - [x] **QA-09c2 — Recovery và bảo mật ứng dụng local.** 229 tests liên quan PASS;
   gồm quyền nguồn, upload lỗi, symlink, source bị sửa, provider lỗi/cooldown,

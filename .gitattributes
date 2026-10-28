@@ -88,6 +88,28 @@
 /tests/test_unruled_credit_table.py -text whitespace=cr-at-eol
 /tests/test_course_table_scope.py -text whitespace=cr-at-eol
 
+# Preserve streaming transport, measurement and regression producer bytes.
+/src/campusai/llm/client.py -text whitespace=cr-at-eol
+/src/campusai/llm/streaming.py -text whitespace=cr-at-eol
+/src/campusai/web_streaming.py -text whitespace=cr-at-eol
+/src/campusai/ui/features/chat.js -text whitespace=cr-at-eol
+/src/campusai/ui/features/documents.js -text whitespace=cr-at-eol
+/src/campusai/ui/scripts/api.js -text whitespace=cr-at-eol
+/src/campusai/ui/scripts/shared.js -text whitespace=cr-at-eol
+/scripts/operations/local.py -text whitespace=cr-at-eol
+/scripts/operations/serve.py -text whitespace=cr-at-eol
+/scripts/operations/benchmark_query_streaming.py -text whitespace=cr-at-eol
+/tests/test_gemini_streaming.py -text whitespace=cr-at-eol
+/tests/test_query_streaming_benchmark.py -text whitespace=cr-at-eol
+/tests/test_web_streaming.py -text whitespace=cr-at-eol
+/tests/test_web_documents.py -text whitespace=cr-at-eol
+/tests/test_local_launcher.py -text whitespace=cr-at-eol
+/tests/ui/query_stream.cjs -text whitespace=cr-at-eol
+/tests/ui/browser_smoke.cjs -text whitespace=cr-at-eol
+/tests/ui/serve_fixture.py -text whitespace=cr-at-eol
+/tests/ui/package.json -text whitespace=cr-at-eol
+/docs/ui/evidence/query-streaming-20261028.json -text whitespace=cr-at-eol
+
 # Preserve the exact local HTTP recovery/security producer and evidence bytes.
 /src/campusai/web.py -text whitespace=cr-at-eol
 /src/campusai/deployment/local_server.py -text whitespace=cr-at-eol
