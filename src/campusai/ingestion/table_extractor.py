@@ -321,9 +321,11 @@ def extract_tables(
                     raw_preserved=True,warnings=[],header_source={'kind':'rendered_ocr_grid','page':int(page['page'])})
                 optical.append(Table(table_id=f"{doc_id}_p{page['page']}_ocr_t{i}",doc_id=doc_id,
                     pages=[int(page['page'])],headers=raw['headers'],rows=raw['rows'],schema=schema))
-    fallback_pages=[page for page in pages if not page.get('ocr_tables')]
+    fallback_pages=[page for page in pages
+                    if not page.get('ocr_tables') and not page.get('untrusted_native_mapping')]
     if pdf_path is not None:
-        visibility = {page['page']:page['visible_characters'] for page in pages if page.get('ignored_invisible_spans')}
+        visibility = {page['page']:page['visible_characters'] for page in pages
+                      if page.get('ignored_invisible_spans') or page.get('untrusted_native_mapping')}
         parsed = (_extract_pdfplumber(pdf_path, doc_id, visibility=visibility) if visibility
                   else _extract_pdfplumber(pdf_path, doc_id))
         if parsed:

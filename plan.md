@@ -87,6 +87,11 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    14/14 và chặn nhầm giờ thành tín chỉ 13/13 trên PDF đã sửa. Làm tiếp phần đo
    chất lượng trên bộ đại diện, không làm lại phần này.
    [Bằng chứng](docs/ui/evidence/ocr-table-grounding-20261028.json).
+   **QA-03b4/03b5 DONE theo phạm vi:** sửa lớp chữ font lỗi bằng OCR từ ảnh;
+   đồng bộ cache v4, job cũ, readiness và bảng. Bộ text tiếng Anh bên ngoài đạt
+   native **98,19%** (42 trang), OCR raster **97,44%** (45 trang); chưa thay cho
+   nghiệm thu PDF tiếng Việt, bảng và toàn trang trong inventory hiện có.
+   [Bằng chứng](docs/ui/evidence/pdf-text-quality-20261028.json).
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
@@ -99,7 +104,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Full regression ổn định ngày 28/10: **3.168 PASS / 0 FAIL / 2 live SKIP**;
+   Full regression ổn định ngày 28/10 sau sửa font: **3.221 PASS / 0 FAIL /
+   2 live SKIP**; source và packages được bind giữ nguyên trong lượt chạy.
    **282 tests liên quan OCR PASS**. Lượt streaming trước đó:
    **346 tests liên quan PASS**, thêm **64 tests launcher/streaming PASS**,
    giao diện mặc định **43/43**, nhánh streaming **44/44**, JS transport **9/9**.
@@ -875,6 +881,12 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    tín chỉ trên một PDF. Chưa đóng chất lượng đại diện. [Bằng chứng](docs/ui/evidence/ocr-table-grounding-20261028.json).
    Audit tiếp theo tái sử dụng đủ **198/198 đoạn gold đã duyệt** (16.963 ký tự,
    7 PDF), khớp parser hiện hành; không thay cho gold toàn trang/CER của 34 PDF.
+   **QA-03b4/03b5 đã DONE:** guard font và bộ đo ký tự có reference ngoài độc lập
+   với pipeline. Native text 42 trang: 98,19%; OCR raster 45 trang: 97,44%.
+   Giữ cả ca mất 8 ký tự header trong denominator. Bộ tiếng Anh thiên về newspaper,
+   text-region; không tính thành PASS tiếng Việt, bảng/công thức hoặc fresh holdout.
+   Không chấm CER toàn trang bằng gold đã serialize cho RAG/LaTeX: đã kiểm và loại
+   cách đo này, giữ log để tránh thử lại. [Evidence](docs/ui/evidence/pdf-text-quality-20261028.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -885,7 +897,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 3. [ ] **QA-09d — Nghiệm thu cuối.** Khi runtime RC ổn định: 3 full regressions
    liên tiếp cùng source, required tests/flows 100%, critical E2E 100%, tổng E2E
    ≥98%, không crash/exception chưa xử lý; không còn P0/P1 hoặc High/Critical
-   đã xác nhận. Lượt full mới nhất: **3.168 PASS / 0 FAIL / 2 live SKIP**;
+   đã xác nhận. Lượt full mới nhất: **3.221 PASS / 0 FAIL / 2 live SKIP**;
    chưa thay chuỗi 3 lượt trên runtime cuối. Thực hiện một lần tại L14-07.
    **Chuỗi trước đã dừng:** lượt đầu PASS 3.168 tests; lượt thứ hai cũng PASS
    nhưng source/config đổi trong khi chạy, không đủ điều kiện tính chuỗi 3.
@@ -902,6 +914,8 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-03b1 | Loại chữ vô hình khỏi evidence; 34 PDF/268 trang giữ nguồn, 344 tests PASS. [Evidence](docs/ui/evidence/pdf-visibility-20261027.json) |
 | QA-03b2 | VietOCR opt-in riêng, đủ 18 trang; mã đúng 20/20, scan fixture 97,2%; 282 tests PASS. [Evidence](docs/ui/evidence/vietnamese-ocr-20261028.json) |
 | QA-03b3 — DONE | Giữ liên kết ô/hàng bảng OCR; đọc lại vùng tên môn/tín chỉ bị gom từ ảnh, không điền số từ gold. PDF 18 trang: 67,84s, 5 bảng/77 chunks. Truy hồi BGE-M3 đúng bảng 14/14, chặn nhầm giờ học 13/13. Native 35 PDF/368 trang giữ nguyên bảng/schema. 278 focused tests và full 3.168 tests PASS; mặc định OCR không đổi. Đây là engineering/diagnostic, không phải nghiệm thu chất lượng đại diện. [Evidence](docs/ui/evidence/ocr-table-grounding-20261028.json) |
+| [x] QA-03b4 — DONE | Lớp chữ font lỗi không còn được dùng làm native evidence: đọc cả trang bằng OCR local hoặc yêu cầu review. Đồng bộ cache v4, job identity cũ, readiness và native-table proofs; không suy cấu trúc bảng từ text OCR phẳng trên trang này. Ca thật tăng 1,72% → 98,80% ký tự text; PDF gốc giữ nguyên. 35 PDF/368 trang hiện có giữ nguyên parse/bảng. Full 3.221 PASS / 2 opt-in live SKIP; clean export 24 PASS. [Evidence](docs/ui/evidence/pdf-text-quality-20261028.json) |
+| [x] QA-03b5 — DONE theo phạm vi | Bộ đo exact edit-distance và spatial matching sau inference; không đưa gold/tọa độ reference vào OCR. OmniDocBench gốc: native text 42 trang đạt 98,19%, OCR raster 45 trang đạt 97,44%; publisher có quy trình manual/expert checks. Giữ đầy đủ ca lỗi, công khai vùng text/bảng/công thức ngoài scope và lịch sử exposure. Không đóng QA-03b/QA-07c tổng thể hoặc giả lập human approvals. [Evidence](docs/ui/evidence/pdf-text-quality-20261028.json) |
 | QA-03c / QA-08d | 20/20 fresh uploads PDF text 100 trang/10 MB, p95 12,25s ≤15s; model/OS cache warm trên CUDA. Startup riêng 42,51s. [Evidence](docs/ui/evidence/native100-performance-20261027.json) |
 | QA-04–06, QA-10–11, QA-13 | Mixed PDF, OCR từ chi tiết, job identity cũ, cancel/progress, OCR process Việt/Anh và ảnh trong trang text. [Isolation](docs/ui/evidence/ocr-isolation-20261025.json), [OCR](docs/ui/evidence/ocr-evaluation-20261025.json) |
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |

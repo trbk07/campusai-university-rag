@@ -174,3 +174,9 @@
 /src/campusai/ingestion/ocr_tables.py -text whitespace=cr-at-eol
 /tests/test_ocr_tables.py -text whitespace=cr-at-eol
 /docs/ui/evidence/ocr-table-grounding-20261028.json -text whitespace=cr-at-eol
+
+# Keep measured PDF-quality producer and receipt bytes stable.
+/evaluation/pdf_text_quality.py -text whitespace=cr-at-eol
+/tests/test_pdf_text_quality.py -text whitespace=cr-at-eol
+/tests/test_pdf_native_mapping.py -text whitespace=cr-at-eol
+/docs/ui/evidence/pdf-text-quality-20261028.json -text whitespace=cr-at-eol

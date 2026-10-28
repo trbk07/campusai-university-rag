@@ -10,11 +10,29 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 import statistics
+import unicodedata
 from typing import Any, Callable
 
 import fitz
 
-TEXT_COVERAGE_VERSION = 3
+TEXT_COVERAGE_VERSION = 4
+
+
+def _untrusted_latin_mapping(lines):
+    """Detect a broken Roman font map, without rewriting source characters.
+
+    Full-width typography alone is legitimate. Require several lost glyphs
+    inside otherwise unsegmented, predominantly full-width Roman words too.
+    Such a text layer cannot establish literal evidence; read the page pixels.
+    """
+    text = '\n'.join(row['text'] for row in lines)
+    wide = lambda c: '\uff21' <= c <= '\uff3a' or '\uff41' <= c <= '\uff5a'
+    letters = [c for c in text if c.isalpha()]
+    if sum(wide(c) for c in letters) < max(80, .8 * len(letters)):
+        return False
+    lost = sum(unicodedata.category(c) == 'Co' and wide(text[i-1]) and wide(text[i+1])
+               for i, c in enumerate(text[1:-1], 1))
+    return lost >= 2
 
 
 def _visible_span(span):
@@ -50,6 +68,8 @@ def _page_lines(page):
 def visible_page_text(page):
     """Keep existing bytes for unaffected pages; never quote hidden OCR text."""
     lines, _layout, ignored, _sizes = _page_lines(page)
+    if _untrusted_latin_mapping(lines):
+        return ''
     return '\n'.join(row['text'] for row in lines) if ignored else page.get_text()
 
 
@@ -115,12 +135,15 @@ def parse_pdf(
         total_pages = max(1, len(document))
         for page_number, page in enumerate(document, start=1):
             lines, native_layout, ignored, sizes = _page_lines(page)
-            body_font_sizes.extend(sizes)
+            untrusted = _untrusted_latin_mapping(lines)
+            if not untrusted:
+                body_font_sizes.extend(sizes)
             regions = _uncovered_images(page, [fitz.Rect(row['bbox']) for row in native_layout])
-            requires_ocr = bool(regions) or not lines and bool(page.get_image_info() or page.get_drawings())
-            raw_pages.append({"page": page_number, "lines": lines, "requires_ocr": requires_ocr,
-                              'hybrid_layout': native_layout if lines and regions else None,
-                              'ocr_regions': regions,
+            requires_ocr = untrusted or bool(regions) or not lines and bool(page.get_image_info() or page.get_drawings())
+            raw_pages.append({"page": page_number, "lines": [] if untrusted else lines, "requires_ocr": requires_ocr,
+                              'hybrid_layout': native_layout if lines and regions and not untrusted else None,
+                              'ocr_regions': [] if untrusted else regions,
+                              **({'untrusted_native_mapping': True, 'visible_characters': []} if untrusted else {}),
                               **({'ignored_invisible_spans': ignored,
                                   'visible_characters': _visible_characters(page)} if ignored else {})})
             if progress is not None:
@@ -137,6 +160,8 @@ def parse_pdf(
            if raw['hybrid_layout'] else {}),
         **({key:raw[key] for key in ('ignored_invisible_spans','visible_characters')}
            if raw.get('ignored_invisible_spans') else {}),
+        **({'untrusted_native_mapping': True, 'visible_characters': []}
+           if raw.get('untrusted_native_mapping') else {}),
     } for raw in raw_pages]
 
 

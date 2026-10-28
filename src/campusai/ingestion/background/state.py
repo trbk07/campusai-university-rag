@@ -75,7 +75,12 @@ def accepted_job_identities(digest, options):
                   for function in (job_identity,legacy_job_identity)}
     identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
         'text_coverage_version':version},sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        for variant in variants for version in ((1,2,3) if options.get('ocr_backend')=='vietocr' else (1,2)))
+        for variant in variants for version in (1,2,3))
+    if options.get('ocr_backend') == 'vietocr':
+        from ..ocr_tables import OCR_TABLE_POLICY
+        identities.add(hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,
+            'text_coverage_version':3,'ocr_table_policy':OCR_TABLE_POLICY},
+            sort_keys=True,separators=(',',':')).encode()).hexdigest())
     return identities
 
 

@@ -185,7 +185,9 @@ class WebDocuments:
                 # pages. Re-audit the remaining pages for newly detected hybrids.
                 recognized = set((meta.get('ocr') or {}).get('page_numbers', []))
                 unread = [page['page'] for page in parse_pdf(source)
-                          if page.get('ignored_invisible_spans')
+                          if (meta.get('text_coverage_version') != 3
+                              and page.get('ignored_invisible_spans'))
+                          or page.get('untrusted_native_mapping')
                           or page.get('requires_ocr') and page['page'] not in recognized]
                 self._legacy_coverage[doc_id] = (identity, unread)
             else:

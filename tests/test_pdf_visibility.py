@@ -5,7 +5,7 @@ import json
 import pymupdf as fitz
 import pytest
 
-from campusai.ingestion.docling_parser import parse_pdf, visible_page_text
+from campusai.ingestion.docling_parser import TEXT_COVERAGE_VERSION, parse_pdf, visible_page_text
 from campusai.ingestion.pipeline import ingest_document
 
 
@@ -57,17 +57,18 @@ def test_hidden_scan_requires_review_until_fresh_ocr_and_never_reuses_old_overla
     meta.write_text(json.dumps(old), encoding='utf8')
     repaired = ingest_document(hidden_scan, store_dir=store)
     assert not repaired.cached and repaired.status == 'review_required'
-    assert repaired.metadata['text_coverage_version'] == 3 and not repaired.chunks
+    assert repaired.metadata['text_coverage_version'] == TEXT_COVERAGE_VERSION and not repaired.chunks
 
 
-def test_visible_version_two_cache_upgrades_without_rebuilding_chunks(tmp_path, monkeypatch):
+@pytest.mark.parametrize('old_version', [2, 3])
+def test_visible_old_cache_upgrades_without_rebuilding_chunks(tmp_path, monkeypatch, old_version):
     path = tmp_path/'native.pdf'
     with fitz.open() as pdf:
         pdf.new_page().insert_text((72, 72), 'Native visible prerequisite policy.')
         pdf.save(path)
     store = tmp_path/'store'; document = ingest_document(path, store_dir=store)
     meta = store/document.doc_id/'meta.json'
-    old = json.loads(meta.read_text(encoding='utf8')); old['metadata']['text_coverage_version'] = 2
+    old = json.loads(meta.read_text(encoding='utf8')); old['metadata']['text_coverage_version'] = old_version
     meta.write_text(json.dumps(old), encoding='utf8')
     parsed = store/document.doc_id/'parsed.md'; digest = hashlib.sha256(parsed.read_bytes()).hexdigest()
     def no_rebuild(*args, **kwargs): raise AssertionError('Unaffected native cache must not rebuild')
@@ -75,7 +76,7 @@ def test_visible_version_two_cache_upgrades_without_rebuilding_chunks(tmp_path, 
     upgraded = ingest_document(path, store_dir=store)
     assert upgraded.cached and upgraded.chunks == document.chunks
     assert hashlib.sha256(parsed.read_bytes()).hexdigest() == digest
-    assert json.loads(meta.read_text(encoding='utf8'))['metadata']['text_coverage_version'] == 3
+    assert json.loads(meta.read_text(encoding='utf8'))['metadata']['text_coverage_version'] == TEXT_COVERAGE_VERSION
 
 
 def test_real_ocr_reads_visible_pixels_instead_of_hidden_garbage(hidden_scan, tmp_path):
@@ -109,7 +110,8 @@ def test_hybrid_merge_retains_genuine_native_text_and_discards_the_hidden_overla
     assert '6 credits' in merged['text'] and 'FAKE999' not in merged['text']
 
 
-def test_old_recorded_ocr_does_not_hide_an_untrusted_search_layer(hidden_scan, tmp_path):
+@pytest.mark.parametrize('old_version, expected_ready', [(2, False), (3, True)])
+def test_legacy_visibility_audit_respects_completed_ocr_policy(hidden_scan, tmp_path, old_version, expected_ready):
     from campusai.api import CampusAIApplication
     from campusai.documents.registry import DocumentRegistry
     from campusai.schemas import Document
@@ -124,12 +126,13 @@ def test_old_recorded_ocr_does_not_hide_an_untrusted_search_layer(hidden_scan, t
     index = tmp_path/'index'/identifier; index.mkdir(parents=True)
     for name in ('bm25.json', 'dense.json'): (index/name).write_text('{}')
     DocumentRegistry(tmp_path/'store/registry.json').add(Document(identifier, str(source), 1,
-        status='succeeded', metadata={'text_coverage_version': 2, 'ocr': {'page_numbers': [1]}}))
+        status='succeeded', metadata={'text_coverage_version': old_version, 'ocr': {'page_numbers': [1]}}))
     app = CampusAIApplication(CampusAIQueryService(HybridRetriever(tmp_path/'index'), GroundedAnswerGenerator(None)),
         ingestion_defaults={'store_dir':tmp_path/'store', 'index_dir':tmp_path/'index'})
     try:
         document = call(make_wsgi_app(app), '/api/documents')['body']['documents'][0]
-        assert not document['ready'] and document['unread_pages'] == [1]
+        assert document['ready'] is expected_ready
+        assert document['unread_pages'] == ([] if expected_ready else [1])
     finally: app.close()
 
 

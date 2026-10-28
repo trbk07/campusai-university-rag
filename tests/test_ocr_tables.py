@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image,ImageDraw,ImageFont
 import pytest
 
+from campusai.ingestion.docling_parser import TEXT_COVERAGE_VERSION
 from campusai.ingestion.ocr_tables import ruled_tables,assemble_tables,validate_tables
 
 
@@ -110,7 +111,7 @@ def test_new_optical_policy_invalidates_job_cache_but_retains_old_vietocr_identi
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert old!=job_identity('a'*64,options) and old in accepted_job_identities('a'*64,options)
     default=normalize_options({})
-    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':default,'text_coverage_version':3},
+    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':default,'text_coverage_version':TEXT_COVERAGE_VERSION},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert expected==job_identity('a'*64,default)
 

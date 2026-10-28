@@ -176,13 +176,15 @@ def ingest_document(
             and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
         cached_ocr = document.metadata.get('ocr')
-        if (document.metadata.get('text_coverage_version') == 2
+        if (document.metadata.get('text_coverage_version') in {2, 3}
                 and parser_version in {'pymupdf-text-v1', 'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
                 and document.metadata.get('chunker_version') == CHUNKER_VERSION
                 and document.metadata.get('table_extractor_version') == TABLE_EXTRACTOR_VERSION
-                and not any(page.get('ignored_invisible_spans') for page in parse_pdf(pdf_path))):
-            # Only the visibility rule changed in v3. Preserve verified visible
-            # text/OCR and its chunks instead of needlessly re-embedding it.
+                and not any(page.get('untrusted_native_mapping') or (
+                    document.metadata.get('text_coverage_version') == 2
+                    and page.get('ignored_invisible_spans')) for page in parse_pdf(pdf_path))):
+            # Reuse unaffected v2/v3 content and chunks. A newly detected broken
+            # font map requires fresh pixels even if older OCR covered an image.
             document.metadata['text_coverage_version'] = TEXT_COVERAGE_VERSION
             atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
             cache_versions_current = True
@@ -218,6 +220,7 @@ def ingest_document(
     )
     report_progress("parsing", 1.0)
     ocr_info = None
+    untrusted_pages = [int(page['page']) for page in pages if page.get('untrusted_native_mapping')]
     unread_pages = [int(page['page']) for page in pages if page.get('requires_ocr')]
     if not unread_pages and not any(str(page.get('text', '')).strip() for page in pages):
         unread_pages = [int(page['page']) for page in pages]
@@ -242,8 +245,9 @@ def ingest_document(
                     else:
                         recognized[page['page']] = merged
             pages = [{**recognized[page['page']], 'lines_meta': recognized[page['page']].get('lines_meta', []), 'requires_ocr': False,
-                      **({key:page[key] for key in ('ignored_invisible_spans','visible_characters')}
-                         if page.get('ignored_invisible_spans') else {})}
+                      **({key:page[key] for key in ('ignored_invisible_spans','visible_characters','untrusted_native_mapping')
+                         if key in page} if page.get('ignored_invisible_spans')
+                            or page.get('untrusted_native_mapping') else {})}
                      if page['page'] in recognized else page for page in pages]
             ocr_info = {'engine': ocr_result.engine, 'average_confidence': ocr_result.average_confidence,
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
@@ -267,6 +271,7 @@ def ingest_document(
         metadata.update({'source_name': pdf_path.name, 'source_hash': document_id,
             'parser_version': 'pymupdf-text-v1', 'chunker_version': CHUNKER_VERSION,
             'table_extractor_version': TABLE_EXTRACTOR_VERSION, 'text_coverage_version': TEXT_COVERAGE_VERSION,
+            **({'untrusted_native_pages': untrusted_pages} if untrusted_pages else {}),
             'schema_version': 1, 'status': 'review_required', 'review_reason': review_reason,
             'warnings': warnings, 'unread_pages': unread_pages})
         if ocr_info is not None:
@@ -290,6 +295,8 @@ def ingest_document(
     metadata["table_extractor_version"] = TABLE_EXTRACTOR_VERSION
     metadata["schema_version"] = 1
     metadata["text_coverage_version"] = TEXT_COVERAGE_VERSION
+    if untrusted_pages:
+        metadata['untrusted_native_pages'] = untrusted_pages
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
         metadata["parser_version"] = ({'tesseract':'tesseract-vie-eng-v1',
