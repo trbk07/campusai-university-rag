@@ -171,3 +171,6 @@
 /tests/test_pdf_readiness_benchmark.py -text whitespace=cr-at-eol
 /tests/test_parallel_table_extraction.py -text whitespace=cr-at-eol
 /tests/test_course_table_scope.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/ocr_tables.py -text whitespace=cr-at-eol
+/tests/test_ocr_tables.py -text whitespace=cr-at-eol
+/docs/ui/evidence/ocr-table-grounding-20261028.json -text whitespace=cr-at-eol

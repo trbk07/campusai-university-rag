@@ -13,7 +13,7 @@ from .ocr_assets import TESSDATA_SHA256, VIETOCR_SHA256, validate_tesseract_asse
 
 
 def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
-                  include_layout=False, hybrid_regions=None, backend='tesseract'):
+                  include_layout=False, hybrid_regions=None, backend='tesseract', page_bounds=None):
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
     started = time.perf_counter()
     if backend not in {'tesseract','vietocr'}:
@@ -104,6 +104,14 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
                         or not math.isfinite(confidence) or not 0 <= confidence <= 1):
                     raise OCRUnavailable('invalid local OCR page result')
                 result = {'page': message['page'], 'text': text, 'confidence': confidence}
+                if 'ocr_tables' in message:
+                    from .ocr_tables import validate_tables
+                    try:
+                        if backend!='vietocr':raise ValueError('OCR tables require their pinned backend')
+                        result['ocr_tables']=validate_tables(message['ocr_tables'],
+                            (page_bounds or {}).get(message['page']))
+                    except ValueError as error:
+                        raise OCRUnavailable('invalid local OCR table result') from error
                 if include_layout:
                     lines = message.get('lines')
                     if (not isinstance(lines, list) or len(lines) > 100000 or any(

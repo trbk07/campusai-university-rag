@@ -1,5 +1,17 @@
 # App performance evidence
 
+## 2026-10-28 - optical table persistence and retrieval
+
+One fresh18-page real scan ingests in67.844s including65.596s local VietOCR,
+with5 structured tables and77 chunks. Single quality/compatibility diagnostic,
+not a p95 speedup claim. Offline BGE-M3 CUDA index build including startup takes
+54.571s.14/14 source-field probes find the expected table in top5;13 wrong
+hour-as-credit claims are rejected. No provider POSTs, default/quota/threshold
+changes.35 native PDFs/368 pages retain exact baseline tables/schemas.
+Representative quality and TTFT stay OPEN.
+[Evidence](docs/ui/evidence/ocr-table-grounding-20261028.json).
+
+
 ## 2026-10-28 - optional Vietnamese scan recognizer
 
 Real18-page CS2019 scan:74.790s isolated ingestion,including69.428s OCR,all18

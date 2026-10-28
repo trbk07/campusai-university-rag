@@ -2,6 +2,17 @@
 
 Latest cycle:2026-10-28. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+OCR table association:278 related tests PASS;full3168 PASS/0 FAIL/2 opt-in
+live SKIP. Cover missing rules/header ambiguity,cross-row rejection,atomic pixel
+splits,uncertain/non-numeric repairs,worker bounds,physical-page provenance,
+hybrid native overlays,typed credit/hour distinction,cache migration and OCR
+deadline/cancellation. Native35-PDF/368-page tables/schemas match the qualified
+baseline exactly. Real18-page ingestion and14 BGE-M3 retrieval probes are
+diagnostic;AI visual gold is not independent review. No provider POSTs. First
+full attempt lost its process without terminal XML and is not counted PASS;
+durable supervised full verifies unchanged physical runtime hashes.
+[Evidence](docs/ui/evidence/ocr-table-grounding-20261028.json).
+
 Vietnamese OCR:282 related tests PASS,including pinned model/version rejection,
 restricted weights-only loading,missing-EOS rejection,prose/table reading order,
 worker timeout/cancellation/identity failure,native cache preservation,scope,

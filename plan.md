@@ -211,8 +211,9 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    trang/text/bảng/ô với nguồn; extraction ≥98%, OCR ≥90%, evidence/retrieval
    ≥95%, không mất trang, nhầm tài liệu hoặc dữ liệu. Chốt denominator và cách
    tính trước khi chấm; fixture không thay nghiệm thu PDF thật. QA-03b1 (chữ ẩn)
-   và QA-03b2 (VietOCR riêng) đã DONE. QA-03b3 về liên kết ô/bảng đang verification,
-   chưa nhận là DONE toàn gate. [Tiến độ bảng](docs/ui/evidence/ocr-table-grounding-20261028.json).
+   và QA-03b2 (VietOCR riêng) đã DONE. **QA-03b3 engineering DONE:** đủ 5 bảng,
+   77 chunks; 14/14 kiểm tra truy hồi đúng bảng, chặn 13/13 lỗi nhầm giờ học thành
+   tín chỉ trên một PDF. Chưa đóng chất lượng đại diện. [Bằng chứng](docs/ui/evidence/ocr-table-grounding-20261028.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -223,7 +224,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 3. [ ] **QA-09d — Nghiệm thu cuối.** Khi runtime RC ổn định: 3 full regressions
    liên tiếp cùng source, required tests/flows 100%, critical E2E 100%, tổng E2E
    ≥98%, không crash/exception chưa xử lý; không còn P0/P1 hoặc High/Critical
-   đã xác nhận. Lượt full lịch sử mới nhất đã ghi: **3.149 PASS / 2 live SKIP**;
+   đã xác nhận. Lượt full mới nhất: **3.168 PASS / 0 FAIL / 2 live SKIP**;
    chưa thay chuỗi 3 lượt trên runtime cuối. Thực hiện một lần tại L14-07.
 
 <a id="da-done"></a>
@@ -235,6 +236,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-03a, QA-07a | So CPU/CUDA trên 5 PDF; inventory 34 SHA và kiểm trang. [Inventory](docs/ui/evidence/phase5-v27-20261024/pdf-parser.json) |
 | QA-03b1 | Loại chữ vô hình khỏi evidence; 34 PDF/268 trang giữ nguồn, 344 tests PASS. [Evidence](docs/ui/evidence/pdf-visibility-20261027.json) |
 | QA-03b2 | VietOCR opt-in riêng, đủ 18 trang; mã đúng 20/20, scan fixture 97,2%; 282 tests PASS. [Evidence](docs/ui/evidence/vietnamese-ocr-20261028.json) |
+| QA-03b3 — DONE | Giữ liên kết ô/hàng bảng OCR; đọc lại vùng tên môn/tín chỉ bị gom từ ảnh, không điền số từ gold. PDF 18 trang: 67,84s, 5 bảng/77 chunks. Truy hồi BGE-M3 đúng bảng 14/14, chặn nhầm giờ học 13/13. Native 35 PDF/368 trang giữ nguyên bảng/schema. 278 focused tests và full 3.168 tests PASS; mặc định OCR không đổi. Đây là engineering/diagnostic, không phải nghiệm thu chất lượng đại diện. [Evidence](docs/ui/evidence/ocr-table-grounding-20261028.json) |
 | QA-03c / QA-08d | 20/20 fresh uploads PDF text 100 trang/10 MB, p95 12,25s ≤15s; model/OS cache warm trên CUDA. Startup riêng 42,51s. [Evidence](docs/ui/evidence/native100-performance-20261027.json) |
 | QA-04–06, QA-10–11, QA-13 | Mixed PDF, OCR từ chi tiết, job identity cũ, cancel/progress, OCR process Việt/Anh và ảnh trong trang text. [Isolation](docs/ui/evidence/ocr-isolation-20261025.json), [OCR](docs/ui/evidence/ocr-evaluation-20261025.json) |
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |

@@ -311,6 +311,17 @@ def extract_tables(
     The extractor preserves raw cell text. Ambiguous rows are retained with a
     warning in the schema instead of being silently rewritten.
     """
+    optical=[]
+    for page in pages:
+        if page.get('ocr_tables'):
+            from .ocr_tables import validate_tables
+            for i,raw in enumerate(validate_tables(page['ocr_tables']),1):
+                schema={key:value for key,value in raw.items() if key not in {'headers','rows','unresolved_cells','split_words'}}
+                schema.update(columns=len(raw['headers']),row_count=len(raw['rows']),pages=[int(page['page'])],
+                    raw_preserved=True,warnings=[],header_source={'kind':'rendered_ocr_grid','page':int(page['page'])})
+                optical.append(Table(table_id=f"{doc_id}_p{page['page']}_ocr_t{i}",doc_id=doc_id,
+                    pages=[int(page['page'])],headers=raw['headers'],rows=raw['rows'],schema=schema))
+    fallback_pages=[page for page in pages if not page.get('ocr_tables')]
     if pdf_path is not None:
         visibility = {page['page']:page['visible_characters'] for page in pages if page.get('ignored_invisible_spans')}
         parsed = (_extract_pdfplumber(pdf_path, doc_id, visibility=visibility) if visibility
@@ -320,10 +331,10 @@ def extract_tables(
             # can miss a tab-aligned or merged-cell table on one page while
             # finding another table elsewhere in the document.
             parsed_pages = {page for table in parsed for page in table.pages}
-            fallback = _extract_heuristic_tables(pages, doc_id)
+            fallback = _extract_heuristic_tables(fallback_pages, doc_id)
             parsed.extend(table for table in fallback if table.pages[0] not in parsed_pages)
-            return parsed
-    return _extract_heuristic_tables(pages, doc_id)
+            return parsed + optical
+    return _extract_heuristic_tables(fallback_pages, doc_id) + optical
 
 
 def _extract_heuristic_tables(pages: list[dict], doc_id: str) -> list[Table]:

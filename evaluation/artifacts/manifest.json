@@ -25965,6 +25965,19 @@
       "storage_bytes": 319857,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/ocr-table-grounding-20261028-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/ocr-table-grounding-20261028-evidence.zip",
+      "version_or_revision": "6dd3e194c42b882cd1e88d2d2191ac1b7ca9caa93fcf302b83dae402254e2257",
+      "sha256": "6dd3e194c42b882cd1e88d2d2191ac1b7ca9caa93fcf302b83dae402254e2257",
+      "bytes": 2934245,
+      "local_or_external_uri": "objects/6d/6dd3e194c42b882cd1e88d2d2191ac1b7ca9caa93fcf302b83dae402254e2257.gz",
+      "encoding": "gzip",
+      "storage_sha256": "dbbd92921dcd9604662c084d98255016e8bb2f1f1ed00c096527e72ec71ac8d4",
+      "storage_bytes": 2914230,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

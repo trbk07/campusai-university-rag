@@ -1,5 +1,20 @@
 # App improvement log
 
+## 2026-10-28 - preserve OCR course-table cell associations
+
+Close QA-03b3 engineering. Preserve explicit headers, row/column geometry and
+physical-page provenance. Repair merged name/credit regions in one bounded
+pixel-only recognition pass; never insert a gold/neighbor number. Incomplete
+splits are atomic; uncertain cells remain unpublished. Native/default OCR
+caches stay unchanged; old VietOCR jobs remain recoverable.
+
+Fresh real scan:18/18 pages,5 tables,77 chunks.14/14 actual hybrid retrieval
+probes and13 wrong-hour grounding rejections pass; not official representative
+accuracy.35-document native-table comparison is exact.278 related tests and
+full3168 PASS;2 opt-in live SKIP. Parent quality/TTFT/final3 gates stay open.
+[Evidence](docs/ui/evidence/ocr-table-grounding-20261028.json).
+
+
 ## 2026-10-28 - local Vietnamese OCR literal correction
 
 Implement a pinned inference-only VietOCR adapter behind explicit backend

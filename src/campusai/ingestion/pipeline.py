@@ -85,6 +85,10 @@ def _merge_hybrid_page(native, recognized):
         if index < len(originals):
             ordered.append(originals[index])
     styles = {id(row): style for row, style in zip(originals, native.get('lines_meta', []))}
+    # A native overlay inside a raster table needs separate mixed-source review;
+    # do not publish duplicate/partly-native OCR tables as independently read cells.
+    recognized={**recognized,'ocr_tables':[table for table in recognized.get('ocr_tables',[])
+        if not any((fitz.Rect(table['bbox']) & fitz.Rect(row['bbox'])).get_area()>0 for row in originals)]}
     return {**recognized, 'text': '\n'.join(row['text'].strip() for row in ordered),
             'lines_meta': [styles.get(id(row), {'text': row['text'], 'is_larger_font': False})
                            for row in ordered]}
@@ -184,6 +188,9 @@ def ingest_document(
             cache_versions_current = True
         if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
             cache_versions_current = False
+        if enable_ocr and ocr_backend=='vietocr' and cached_ocr:
+            from .ocr_tables import OCR_TABLE_POLICY
+            if document.metadata.get('ocr_table_policy')!=OCR_TABLE_POLICY:cache_versions_current=False
         if enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
             "ocr_unavailable",
@@ -288,6 +295,9 @@ def ingest_document(
         metadata["parser_version"] = ({'tesseract':'tesseract-vie-eng-v1',
             'vietocr':'vietocr-vgg-seq2seq-v1'}.get(ocr_backend,'rapidocr-onnx-v1'))
         metadata["warnings"] = ["ocr_used"]
+        if ocr_backend=='vietocr':
+            from .ocr_tables import OCR_TABLE_POLICY
+            metadata['ocr_table_policy']=OCR_TABLE_POLICY
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)
     tables = extract_tables(pages, document_id, pdf_path=pdf_path)

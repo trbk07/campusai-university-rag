@@ -127,6 +127,12 @@ inside the cancellable OCR child process. CUDA is used when available; CPU is
 supported. This option does not change the default backend or reprocess existing
 documents automatically. [Measurements and limits](docs/ui/evidence/vietnamese-ocr-20261028.json).
 
+For explicitly headed, ruled course tables, this backend also preserves row/cell
+associations and physical-page provenance. A merged name/credit region is read
+again from separate pixel crops; uncertain cells leave the table unpublished.
+This is limited to supported table layouts, not general table reconstruction.
+[Table checks and scope](docs/ui/evidence/ocr-table-grounding-20261028.json).
+
 An available CUDA GPU can be selected with `CAMPUSAI_DEVICE=cuda` in `.env`.
 The owner laptop uses this setting after a same-model comparison:five real PDFs
 finish in46.85s versus255.41s on CPU, with matching content hashes and near-identical

@@ -1,5 +1,24 @@
 # Full-app QA audit
 
+## 2026-10-28 - source-backed OCR table cells verified
+
+QA-03b3 engineering DONE. Explicit VietOCR assembles ruled course tables from
+literal headers, word boxes and source pixels. A merged name/credit crop is
+split at the header gutter and recognized again; uncertain numeric repairs or
+ambiguous geometry withhold the structured table. Parent validation checks page
+bounds and resolved cells. Native overlays are not promoted to OCR tables;
+only this backend's cache/job policy changes.
+
+Fresh18-page ingestion:67.84s,5 tables,77 chunks. Actual offline BGE-M3 CUDA
+hybrid retrieval finds the expected table in14/14 source-field probes;13 wrong
+hour-as-credit claims are rejected. Gold is AI visual transcription, not
+independent human review or official quality evidence.35 PDFs/368 pages retain
+exact native baseline tables/schemas.278 related tests PASS;full3168 PASS/0
+FAIL/2 optional live SKIP; physical runtime hashes unchanged during full run.
+Representative quality,TTFT and final3 regressions stay OPEN. Phase5 preserved.
+[Bindings and limits](docs/ui/evidence/ocr-table-grounding-20261028.json).
+
+
 ## 2026-10-28 - Vietnamese OCR correction, representative quality still open
 
 Add an explicitly selected local VietOCR backend with a pinned checkpoint and

@@ -64,6 +64,7 @@ def main():
     from rapidocr_onnxruntime.ch_ppocr_det import TextDetector
     torch.set_num_threads(2); torch.set_num_interop_threads(1)
     Recognizer=local_module('vietocr_recognizer').Recognizer
+    grid=local_module('ocr_tables')
     root=Path(request['data_dir'])
     recognizer=Recognizer(root/'vgg_seq2seq.pth')
     detector=TextDetector({'model_path':str(root/'detector.onnx'),
@@ -81,7 +82,7 @@ def main():
             if type(number) is not int or not 1<=number<=len(pdf): raise ValueError('OCR page bound')
             page=pdf[number-1];bounds=page.rect*page.derotation_matrix
             regions=request.get('hybrid_regions',{}).get(str(number))
-            lines,audits,confidences=[],[],[]
+            lines,audits,confidences,tables=[],[],[],[]
             for region in regions or [list(bounds)]:
                 area=fitz.Rect(region)
                 if area.is_empty or not bounds.contains(area): raise ValueError('OCR region outside page')
@@ -99,16 +100,32 @@ def main():
                     crops.append(image.crop((max(0,int(x0)-2),max(0,int(y0)-2),
                         min(image.width,int(x1)+3),min(image.height,int(y1)+3))))
                 recognized=recognizer.predict(crops)
-                current=[]
+                pixel_words=[]
                 for box,(text,confidence) in zip(boxes,recognized):
                     if not text.strip() or not math.isfinite(confidence) or confidence<.5: continue
                     x0,y0=box.min(axis=0);x1,y1=box.max(axis=0)
-                    rect=fitz.Rect((x0+pix.x)/scale,(y0+pix.y)/scale,
-                                   (x1+pix.x)/scale,(y1+pix.y)/scale)*page.derotation_matrix
-                    current.append({'text':text.strip(),'bbox':list(rect)})
-                    confidences.append(confidence)
+                    pixel_words.append({'text':text.strip(),'bbox':[float(x0),float(y0),float(x1),float(y1)],
+                                        'confidence':confidence})
                 # Ruling lines prevent table columns being mistaken for prose columns.
                 gray=cv2.cvtColor(array,cv2.COLOR_RGB2GRAY)
+                def read_boxes(boxes):
+                    return recognizer.predict([image.crop(tuple(box)) for box in boxes])
+                assembled=grid.assemble_tables(gray,pixel_words,read_boxes)
+                def physical(box):
+                    x0,y0,x1,y1=box
+                    return list(fitz.Rect((x0+pix.x)/scale,(y0+pix.y)/scale,
+                        (x1+pix.x)/scale,(y1+pix.y)/scale)*page.derotation_matrix)
+                current=[{'text':word['text'],'bbox':physical(word['bbox'])} for word in assembled['words']]
+                confidences.extend(word['confidence'] for word in assembled['words'])
+                for table in assembled['tables']:
+                    table={**table,'bbox':physical(table['bbox']),
+                        'row_bboxes':[physical(box) for box in table['row_bboxes']],
+                        'header_bboxes':[physical(box) for box in table['header_bboxes']],
+                        'header_spans':[{**span,'bbox':physical(span['bbox'])} for span in table['header_spans']],
+                        'row_spans':[{**span,'bbox':physical(span['bbox'])} for span in table['row_spans']],
+                        'geometry_coordinates':'PDF points for boxes;render pixels for grid edges',
+                        'render_scale':scale,'render_origin':[pix.x,pix.y]}
+                    tables.append(table)
                 ink=cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)[1]
                 horizontal=cv2.morphologyEx(ink,cv2.MORPH_OPEN,np.ones((1,max(40,pix.width//5)),np.uint8))
                 vertical=cv2.morphologyEx(ink,cv2.MORPH_OPEN,np.ones((max(40,pix.height//5),1),np.uint8))
@@ -119,6 +136,7 @@ def main():
                  'confidence':sum(confidences)/len(confidences) if confidences else 0.}
             if request.get('include_layout'): row['lines']=lines
             if regions: row['image_audit']=audits
+            if tables: row['ocr_tables']=tables
             emit(row)
     emit({'type':'done'});return 0
 
