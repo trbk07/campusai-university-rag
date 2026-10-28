@@ -17,6 +17,7 @@ from campusai.llm.factory import _read_config
 from campusai.web import make_wsgi_app
 from .serve import build_application
 from .with_gemini_key import read_key
+from .local_state import configure_paths, inspect_local, prepare_state
 
 ROOT = Path(__file__).resolve().parents[2]
 URL = 'http://127.0.0.1:8000'
@@ -61,6 +62,10 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
     """
     env = os.environ if environ is None else environ
     load_local_env(root / '.env', env)
+    try:
+        configure_paths(root, env)
+    except ValueError as error:
+        raise LocalSetupError(str(error)) from None
     default_profile = root / 'configs/free_llm.yaml'
     if not default_profile.is_file():
         default_profile = root / 'configs/continuity_llm.yaml'
@@ -75,6 +80,12 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
         key_name = config.get('api_key_env', {'gemini':'GEMINI_API_KEY','groq':'GROQ_API_KEY'}.get(provider, 'OPENAI_API_KEY'))
     except (ValueError, KeyError, AttributeError):
         raise LocalSetupError('Không đọc được cấu hình AI. Kiểm tra CAMPUSAI_LLM_CONFIG.') from None
+    if (Path(env['CAMPUSAI_STATE_ROOT']) == root.resolve()
+            and config.get('overload_circuit_path') == 'data/operations/gemini-provider-health.sqlite3'
+            and (root/'.tmp/gemini-provider-health.sqlite3').exists()
+            and not (root/'data/operations/gemini-provider-health.sqlite3').exists()):
+        raise LocalSetupError('Có cooldown cũ trong .tmp. Dừng app và backup SQLite sang '
+                             'data/operations/gemini-provider-health.sqlite3 theo hướng dẫn local; không reset cooldown.')
     if provider == 'gemini' and not env.get(key_name):
         credential = Path(env.get('CAMPUSAI_KEY_FILE') or root / 'configs/key.yaml')
         if not credential.is_absolute():
@@ -91,10 +102,9 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
     if not env.get(key_name):
         raise LocalSetupError(f'Chưa có credential AI. Đặt {key_name} trong .env hoặc dùng file key local đã được Git ignore.')
     env['CAMPUSAI_LLM_CONFIG'] = str(profile)
-    env.setdefault('CAMPUSAI_RAG_CACHE_PATH', str(root / 'data/cache/grounded-answers.sqlite3'))
     if not env.get('CAMPUSAI_OCR_BACKEND'):
         from campusai.ingestion.ocr_assets import validate_tesseract_assets
-        data_dir = env.get('CAMPUSAI_OCR_DATA_DIR') or root/'.cache/ocr/tessdata_fast'
+        data_dir = env.get('CAMPUSAI_OCR_DATA_DIR') or Path(env['CAMPUSAI_MODEL_CACHE'])/'ocr/tessdata_fast'
         try:
             validate_tesseract_assets(data_dir)
         except ValueError:
@@ -102,11 +112,6 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
         else:
             env['CAMPUSAI_OCR_BACKEND'] = 'tesseract'
             env['CAMPUSAI_OCR_DATA_DIR'] = str(Path(data_dir).resolve())
-    model = env.get('CAMPUSAI_DENSE_MODEL', 'BAAI/bge-m3')
-    cache = Path(env.get('HF_HUB_CACHE') or env.get('HUGGINGFACE_HUB_CACHE') or Path(env.get('HF_HOME', Path.home()/'.cache/huggingface'))/'hub')
-    snapshots = cache / ('models--' + model.replace('/', '--')) / 'snapshots'
-    if snapshots.is_dir() and any(snapshots.iterdir()):
-        env.setdefault('HF_HUB_OFFLINE', '1')
     return {'ai_configured':True, 'provider':provider, 'model':str(config.get('model',''))}
 
 
@@ -125,9 +130,24 @@ def running_app() -> dict | None:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--open-browser', action='store_true')
+    parser.add_argument('--check', action='store_true', help='Read-only prerequisites; no provider call')
     args = parser.parse_args(argv)
     os.chdir(ROOT)
-    existing = running_app()
+    if args.check:
+        # Isolate configuration changes too; the check writes no files/state.
+        env = dict(os.environ)
+        try:
+            configure_local(ROOT, env)
+            report = inspect_local(env)
+        except LocalSetupError as error:
+            report = {'status':'NOT_READY', 'error':str(error), 'provider_calls':0, 'filesystem_writes':0}
+        print(json.dumps(report, ensure_ascii=False))
+        return 0 if report['status'] == 'PREREQUISITES_PASS' else 1
+    try:
+        existing = running_app()
+    except ValueError:
+        print('Không khởi động được CampusAI: port_in_use. Dừng ứng dụng khác trên cổng 8000.')
+        return 1
     if existing is not None:
         if not existing.get('runtime', {}).get('ai_configured'):
             print('CampusAI cũ chưa cấu hình AI đang dùng cổng 8000. Dừng terminal cũ bằng Ctrl+C rồi mở lại app.')
@@ -139,8 +159,16 @@ def main(argv=None) -> int:
     application = None
     try:
         configured = configure_local()
+        report = inspect_local(os.environ)
+        if report['status'] != 'PREREQUISITES_PASS':
+            raise LocalSetupError('Preflight: ' + ', '.join(c['code'] for c in report['checks'] if not c['ok']))
+        if report.get('device'):
+            os.environ['CAMPUSAI_DEVICE'] = report['device']
+        if report.get('fallback'):
+            print('GPU không khả dụng; dùng CPU. Chưa công bố SLO cho cấu hình này.', flush=True)
         # Bind first so repeated launches cannot load duplicate large models.
         with make_server('127.0.0.1',8000,lambda _env, _start: []) as server:
+            prepare_state(os.environ)
             print(f'Đang khởi động CampusAI · {configured["model"]} · giữ cửa sổ này mở...', flush=True)
             application = build_application()
             server.set_app(make_wsgi_app(application,

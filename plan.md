@@ -935,6 +935,16 @@ làm packaging/docs song song về mặt tiến độ, nhưng source-bound recei
 
 ### Cách triển khai từng task Phase 13
 
+**Tiến độ 28/10/2026 — L13-05 đang làm:** launcher có state root mặc định
+ngoài source, map store/index/job/cache và provider state, `--check` read-only,
+kiểm dung lượng/port/quyền/model/OCR và fallback CPU. Có guard dữ liệu/cooldown
+cũ; không tự di chuyển hoặc reset quota. [Hướng dẫn local](docs/operations/local-install.md)
+đang được hoàn thiện. **77 focused tests PASS**, preflight local thật không tạo
+state và không gọi provider; [receipt](evaluation/results/local-release/preparation-20261028/acceptance.json).
+Chưa đóng L13-05: còn bind/setup model ở L13-02, kiểm cài
+sạch/vùng cài đặt chỉ đọc và receipts trên artifact L13-04. Các task L13 vẫn
+chưa tick; QA PDF đại diện và RC cuối vẫn mở.
+
 **Chốt phạm vi: chỉ phát hành local single-user.** Giữ một gói source ZIP,
 một launcher Windows và profile hiện có; không thêm cloud, installer `.exe`,
 dịch vụ nền hay hệ thống cập nhật tự động cho v1. Phần dưới là kế hoạch thực

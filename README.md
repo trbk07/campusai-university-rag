@@ -89,6 +89,10 @@ Naming and artifact rules are in [the contribution guide](docs/contributing.md).
 
 ## Run locally
 
+Local release installation/state/preflight and upgrade notes are maintained in
+[the Windows local guide](docs/operations/local-install.md). Phase 13 acceptance
+is in progress; a prerequisites check is not a release qualification.
+
 On Windows, double-click **`start-campusai.cmd`** to start CampusAI and open the
 browser. The launcher loads `.env` and your existing ignored `configs/key.yaml`
 when needed, using the checked-in `free_llm.yaml` profile (Gemini 3.5 Flash-Lite). It never prints

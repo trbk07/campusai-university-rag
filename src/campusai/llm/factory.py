@@ -141,10 +141,15 @@ def _endpoint(value: str, name: str = "endpoint") -> str:
 def create_llm(
     config_path: str | Path = "configs/default.yaml",
     environ: dict[str, str] | None = None,
+    *, state_root: str | Path | None = None,
 ) -> LLMClient:
     """Build a configured client; credentials are read only from the environment."""
 
     env = os.environ if environ is None else environ
+    def state_path(value):
+        if state_root is None or value == ':memory:' or Path(value).is_absolute():
+            return value
+        return str(Path(state_root) / value)
     document = _read_config(config_path)
     config = document.get("llm")
     if not isinstance(config, dict):
@@ -186,10 +191,13 @@ def create_llm(
     cache_path = str(config.get("cache_path", "data/cache/llm_cache.sqlite")).strip()
     if not cache_path:
         raise ValueError("llm.cache_path cannot be empty")
+    cache_path = state_path(cache_path)
     overload_path = config.get("overload_circuit_path")
     if overload_path is not None and (provider != "gemini" or not isinstance(overload_path, str)
                                      or not overload_path.strip() or max_retries != 0):
         raise ValueError("overload_circuit_path requires Gemini, a nonempty path and max_retries=0")
+    if overload_path is not None:
+        overload_path = state_path(overload_path)
 
     generation_config = config.get("generation_config", {})
     if not isinstance(generation_config, dict):
@@ -222,7 +230,7 @@ def create_llm(
         policy = QuotaPolicy(requests_per_minute,
             quota.get('input_tokens_per_minute'), quota.get('requests_per_day'),
             quota.get('total_tokens_per_day'), quota.get('max_in_flight', 1))
-        governor = QuotaGovernor(quota['state_path'], quota['scope'], policy,
+        governor = QuotaGovernor(state_path(quota['state_path']), quota['scope'], policy,
                                  max_wait_seconds=quota.get('max_wait_seconds', 2))
 
     cache = SQLiteLLMCache(cache_path)

@@ -7,7 +7,7 @@ llm:
   timeout_seconds: 20
   max_retries: 0
   json_mode: native
-  overload_circuit_path: .tmp/gemini-provider-health.sqlite3
+  overload_circuit_path: data/operations/gemini-provider-health.sqlite3
   requests_per_minute: 10
   cache_path: ':memory:'
   quota:

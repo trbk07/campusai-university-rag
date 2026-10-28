@@ -64,7 +64,8 @@ def build_application():
     answer_cache = None
     try:
         llm_config = os.getenv("CAMPUSAI_LLM_CONFIG")
-        llm = create_llm(llm_config) if llm_config else None
+        llm = (create_llm(llm_config, state_root=os.environ['CAMPUSAI_STATE_ROOT'])
+               if llm_config and os.getenv('CAMPUSAI_STATE_ROOT') else create_llm(llm_config) if llm_config else None)
         rag = _read_config(llm_config).get('rag', {}) if llm_config else {}
         if (not isinstance(rag, dict) or set(rag) - {'context_candidates', 'max_context_chars', 'balanced_context', 'source_citations'}
                 or type(rag.get('balanced_context', False)) is not bool

@@ -45,7 +45,7 @@ def test_qualified_free_profile_is_preferred_without_overriding_explicit_choice(
         'provider':'gemini','model':'selected-free-model','api_key_env':'GEMINI_API_KEY'}}))
     env = {'GEMINI_API_KEY':'fake'}
     assert local.configure_local(root,env)['model'] == 'selected-free-model'
-    assert env['CAMPUSAI_RAG_CACHE_PATH'] == str(root/'data/cache/grounded-answers.sqlite3')
+    assert env['CAMPUSAI_RAG_CACHE_PATH'] == str(Path(env['CAMPUSAI_STATE_ROOT'])/'data/cache/grounded-answers.sqlite3')
     explicit = {'GEMINI_API_KEY':'fake','CAMPUSAI_LLM_CONFIG':'configs/product_llm.yaml'}
     assert local.configure_local(root,explicit)['model'] == 'fixture-model'
 
@@ -101,7 +101,7 @@ def test_local_ocr_auto_selection_requires_valid_assets_and_respects_explicit_ba
     env={'GEMINI_API_KEY':'fake'}
     local.configure_local(configured_root,env)
     assert env['CAMPUSAI_OCR_BACKEND']=='tesseract'
-    assert env['CAMPUSAI_OCR_DATA_DIR']==str(configured_root/'.cache/ocr/tessdata_fast')
+    assert env['CAMPUSAI_OCR_DATA_DIR']==str(Path(env['CAMPUSAI_MODEL_CACHE'])/'ocr/tessdata_fast')
     explicit={'GEMINI_API_KEY':'fake','CAMPUSAI_OCR_BACKEND':'rapidocr'}
     monkeypatch.setattr(ocr_assets,'validate_tesseract_assets',lambda _:pytest.fail('explicit backend wins'))
     local.configure_local(configured_root,explicit)
@@ -122,6 +122,8 @@ def test_port_is_reserved_before_model_load_and_resources_close(configured_root,
     monkeypatch.setattr(local,'ROOT',configured_root)
     monkeypatch.setattr(local,'running_app',lambda:None)
     monkeypatch.setattr(local,'configure_local',lambda:{'model':'fixture-model'})
+    monkeypatch.setattr(local,'inspect_local',lambda _: {'status':'PREREQUISITES_PASS'})
+    monkeypatch.setattr(local,'prepare_state',lambda _: None)
     calls=[]
     class Server:
         def __enter__(self): calls.append('bound'); return self

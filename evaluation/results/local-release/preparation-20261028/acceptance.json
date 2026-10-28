@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-28",
+  "scope": "Phase13 L13-05 implementation checkpoint; no clean-install or release qualification",
+  "base_commit": "6484632cc942c2fb2bda43629fac72f630b40cc5",
+  "platform": {
+    "system": "Windows",
+    "release": "11",
+    "machine": "AMD64",
+    "python": "3.14.6"
+  },
+  "status": "IN_PROGRESS",
+  "tasks": {
+    "L13-01": "OPEN",
+    "L13-02": "OPEN",
+    "L13-03": "OPEN",
+    "L13-04": "OPEN",
+    "L13-05": "IN_PROGRESS",
+    "L13-06": "IN_PROGRESS",
+    "L13-07": "OPEN"
+  },
+  "qa_pdf": "OPEN; representative34 PDF extraction/OCR/retrieval not yet qualified",
+  "focused_tests": {
+    "passed": 77,
+    "failed": 0,
+    "skipped": 0,
+    "junit": "state-focused.xml",
+    "sha256": "c5b48ad8aac63f1b701e4e1ff6ba80ecdfaa34e43c0223048d14b2158b43f5a7",
+    "command": ".venv/Scripts/python.exe -m pytest -q tests/test_local_launcher.py tests/test_local_state.py tests/test_web.py tests/test_llm.py tests/test_llm_acceptance.py --basetemp=<fresh> --junitxml=<receipt>",
+    "earlier_failure": "state-focused-initial-failure.xml: wrong snapshot field in new assertion, corrected to reserved_attempts_last_minute; not a runtime failure"
+  },
+  "read_only_real_preflight": {
+    "status": "PREREQUISITES_PASS",
+    "checks": [
+      {
+        "check": "state_path_0",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "disk_0",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "state_path_1",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "disk_1",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "state_path_2",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "disk_2",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "state_path_3",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "disk_3",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "state_path_4",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "disk_4",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "port",
+        "ok": true,
+        "code": "ok"
+      },
+      {
+        "check": "dense_model",
+        "ok": true,
+        "code": "ok"
+      }
+    ],
+    "provider_calls": 0,
+    "filesystem_writes": 0,
+    "device": "cpu",
+    "fallback": null,
+    "permission_check": "advisory; startup verifies actual file creation",
+    "release_accepted": false
+  },
+  "preflight_state_created": false,
+  "model_cache_scope": "Existing owner cache used for read-only prerequisite probe only; not clean-install acceptance",
+  "provider_posts": 0,
+  "producer_sha256": {
+    "scripts/operations/local.py": "a179e03c12405c0fed4ca59d00e8b075868aecae9369484b44dc397cdd044578",
+    "scripts/operations/local_state.py": "0f9174f3365cc131bc39e120847a7ac27ad6d0cd364360c0587f132d3ceb746e",
+    "scripts/operations/serve.py": "4bc565a12e6300d7d899cf00c94f1e3822ca39b6473731166bf79d3015cc374d",
+    "src/campusai/llm/factory.py": "88f70c28aba05e58214096c77a84a5b1ac51bdc3e2eb16652af64d16521f86d9",
+    "configs/free_llm.yaml": "704517cea7c8ced99bbdd3e710699681a2a107b98081abf46cdb4f919540a2d2",
+    ".env.example": "061cdc75d0afd6157adb7d94d2039bb92c067e08599019ce02adf22ede735595",
+    "tests/test_local_launcher.py": "6a5a4e0c21bc65335c1ac07516814609c4febd9e2c5577a0380be696652623b2",
+    "tests/test_local_state.py": "ef9fffc8fe9b633153be5db1ca3aca3b8fe986aa19aec783a3d815259e41f583",
+    "docs/operations/local-install.md": "415c2b253e2566dd79866aed57e07bcef5d4f0d0b80396cd839ac59fd0517a26"
+  },
+  "remaining": [
+    "Pin/checksum/setup encoder and optional OCR assets; missing model presence check is not checksum acceptance",
+    "Clean ZIP install with isolated state/model cache and read-only install source",
+    "Contract and hardware/browser measurements",
+    "Source bundle and reproducibility manifest",
+    "Representative QA PDF before final RC",
+    "Complete user guide from clean installation and lock final RC"
+  ],
+  "compatibility": "Existing data requires explicit state-root choice; old .tmp cooldown blocks upgrade until backed up; no owner state/key/model changed."
+}
