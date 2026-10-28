@@ -933,6 +933,105 @@ làm packaging/docs song song về mặt tiến độ, nhưng source-bound recei
 | L13-06 | Tài liệu người dùng và hỗ trợ | Quick start Windows, setup online/OCR tùy chọn, cấu hình key không lộ, stop/update/backup/uninstall; lỗi thường gặp, cấu hình CPU/GPU đã đo và giới hạn PDF; người mới làm được từ docs | [ ] |
 | L13-07 | Khóa release candidate | Candidate có version/commit, artifact checksum, dependency/model/config identities, feature flags, báo cáo install/smoke và known issues; chuyển đúng candidate sang Phase 14 | [ ] |
 
+### Cách triển khai từng task Phase 13
+
+**Chốt phạm vi: chỉ phát hành local single-user.** Giữ một gói source ZIP,
+một launcher Windows và profile hiện có; không thêm cloud, installer `.exe`,
+dịch vụ nền hay hệ thống cập nhật tự động cho v1. Phần dưới là kế hoạch thực
+hiện, chưa phải bằng chứng các task đã DONE.
+
+Để ít đầu việc phụ: dùng một hướng dẫn local chung, một manifest cho candidate
+và một bảng acceptance theo task; liên kết log chi tiết thay vì viết báo cáo
+riêng cho mỗi bước. Artifact cài đặt ở `.release/local/<rc>/` (không commit);
+summary/hash cần audit ở `evaluation/results/local-release/<rc>/` (tracked).
+Các đường dẫn này là đầu ra dự kiến, không phải artifact đã được tạo.
+
+<a id="l13-01"></a>
+#### L13-01 — Khóa một cấu hình phát hành
+
+- **Làm:** ghi chính xác Windows x64/Python/browser và máy tham chiếu đã test;
+  chốt profile Gemini, encoder, OCR mặc định, các cờ OFF và giới hạn PDF. Dùng
+  CPU smoke để xác nhận fallback; chỉ gắn SLO cho CPU/GPU thực sự đã đo.
+- **Dùng lại:** `pyproject.toml`, `uv.lock`, `configs/free_llm.yaml`, launcher.
+  Giữ cấu hình explicit của người dùng ưu tiên, không tự đổi model/key.
+- **Đóng khi:** có bảng supported/tested/optional rõ ràng; tách tải dependency/
+  model lúc setup với hoạt động thường ngày; ghi rõ generation cần mạng/API.
+
+<a id="l13-02"></a>
+#### L13-02 — Chốt dependency và model trước khi đóng gói
+
+- **Làm:** cố định revision/hash encoder và OCR được chọn; ghi kích thước tải,
+  dung lượng sau cài và license. Cài từ lock bằng `uv sync --frozen` với đúng
+  extras cần chạy; môi trường test có thể thêm `dev`, không bắt người dùng cài
+  bộ browser test. Không refactor dependency chỉ để làm gói nhỏ hơn.
+- **Dùng lại:** `setup_ocr.py`, `setup_vietocr.py` và checksum hiện có. OCR tùy
+  chọn chỉ tải khi người dùng chọn setup; upload/query không tải model mới.
+- **Đóng khi:** setup từ cache sạch thành công; thiếu/sai checksum báo lỗi rõ;
+  có model cache thì khởi động được mà không tải lại. Không khóa token/key vào manifest.
+
+<a id="l13-03"></a>
+#### L13-03 — Tạo gói source đầy đủ, có thể kiểm tra
+
+- **Làm:** thêm một script đóng gói nhỏ nếu còn thiếu, lấy file từ commit sạch
+  theo allowlist: app, scripts cần chạy, UI, config mẫu, lock, launcher, docs và
+  license. Không đóng gói toàn repo rồi mới cố loại hàng loạt artifact cũ.
+- **Kiểm:** ZIP giải nén có đủ import/UI/config; không chứa `.env`, key, `.git`,
+  `.venv`, PDF cá nhân, index, cache hoặc log. Manifest liệt kê file/hash và
+  source commit; checksum ZIP ghi bên ngoài ZIP để tránh vòng tự tính hash.
+- **Đóng khi:** hai lần build cùng nguồn có cùng danh sách và hash nội dung;
+  không bắt ZIP giống từng byte nếu timestamp/container metadata khác. Wheel
+  thư viện không được dùng thay gói có launcher và `scripts` chưa được kiểm.
+
+<a id="l13-04"></a>
+#### L13-04 — Cài sạch bằng chính gói sẽ phân phối
+
+- **Làm:** giải nén ZIP sang thư mục mới có khoảng trắng, env/state/model cache
+  riêng; không dùng `PYTHONPATH`, index, `.env` hoặc module của working tree dev.
+  Làm theo hướng dẫn, setup assets, nhập key riêng rồi start/stop/restart.
+- **Kiểm:** PDF native + scan fixture hợp lệ; thêm hai lượt 5 PDF, job ready,
+  chọn nguồn, chat có citation, mở đúng trang, xóa và kiểm sau restart. Ghi rõ
+  fixture/replay với live provider; không coi browser fixture là clean-install live PASS.
+- **Đóng khi:** luồng chính chạy từ ZIP, dữ liệu bền sau restart, không truy cập
+  nhầm state dev. Lượt provider smoke chỉ dùng budget đã được phép, không đo
+  SLO ở đây; giữ capture hợp lệ để L14 dùng lại.
+
+<a id="l13-05"></a>
+#### L13-05 — Tách state và kiểm tra trước khởi động
+
+- **Làm:** chốt một state root có quyền ghi, mặc định local user profile; map
+  store/index/jobs/answer cache/quota và provider cooldown vào đó bằng config
+  hiện có. Encoder/OCR cache tách khỏi source; không để quota/recovery state
+  cần bền trong thư mục temp. Cho phép override rõ ràng, không âm thầm chuyển dữ liệu cũ.
+- **Dùng lại:** kiểm tra ở `scripts.operations.local`; bổ sung chế độ check
+  không gọi provider nếu thiếu. `scripts.operations.preflight` hiện dành cho
+  cloud, không dùng nguyên report đó làm local acceptance.
+- **Đóng khi:** thiếu key/model, port bận, hết dung lượng, thư mục không ghi
+  được và GPU không khả dụng đều có lỗi/fallback đúng contract; không in key,
+  không sửa dữ liệu khi chỉ check; giữ được state cũ khi nâng phiên bản.
+
+<a id="l13-06"></a>
+#### L13-06 — Một hướng dẫn đủ cho người cài mới
+
+- **Làm:** một quick start từ tải ZIP → setup → nhập key → mở app → upload/hỏi/
+  xem nguồn. Cùng tài liệu có mục OCR tùy chọn, lỗi thường gặp, nơi lưu dữ liệu,
+  stop/backup/update/uninstall và privacy/provider; README chỉ dẫn tới đó.
+- **Kiểm:** dùng chính tài liệu trong L13-04; mỗi lỗi quan sát được có cách xử
+  lý cụ thể. Node/Playwright chỉ phục vụ kiểm thử, không thành bước cài app.
+- **Đóng khi:** cài lại không cần lệnh ngầm từ máy dev; phân biệt xóa app và
+  xóa dữ liệu; không mô tả local thành AI offline hoặc Free Tier vô hạn.
+
+<a id="l13-07"></a>
+#### L13-07 — Khóa candidate để kiểm đúng một bản
+
+- **Làm:** sau L13-01–06 và QA PDF, chốt version/source commit, ZIP/hash,
+  dependency/model/profile/flags và kết quả cài sạch vào manifest. L14-01 được
+  chuẩn bị sớm; chưa cần chạy mọi gate Phase 14 để tạo candidate.
+- **Kiểm:** evidence được kế thừa phải khớp source/config/data hoặc có giải
+  thích tương thích. Đổi runtime sau đó tạo RC mới và ghi phép đo bị ảnh hưởng;
+  sửa mô tả tài liệu không tự bắt chạy lại inference.
+- **Đóng khi:** xác định được ZIP nào, profile nào, state schema nào chuyển
+  sang L14; không chỉ ghi “bản mới nhất”. Tạo RC chưa có nghĩa đã phát hành.
+
 **Gate đóng Phase 13:** 7/7 task, artifact không chứa secret/dữ liệu cá nhân,
 cài sạch tái tạo được và vận hành end-to-end trên profile đã công bố. QA PDF
 còn mở hoặc candidate thiếu asset/module thì chưa được gọi là RC sẵn sàng.
@@ -965,6 +1064,120 @@ phần thay đổi hoặc gate release yêu cầu. Không tự tạo nhãn human
 | L14-07 | Regression cuối đúng RC | Đóng QA-09d: 3 full liên tiếp cùng runtime, required/critical flows 100%, E2E ≥98%; test launcher/install/browser/OCR/source/delete/recovery trên artifact; live SKIP không tính live PASS | [ ] |
 | L14-08 | Hồ sơ phát hành và bàn giao | Release notes/known limits, manifest/checksum, install/backup/restore docs, evidence source-bound và danh sách hoãn; owner duyệt candidate cụ thể rồi tạo tag/phát hành bản local theo phạm vi được phép | [ ] |
 
+### Cách triển khai từng task Phase 14
+
+Ưu tiên đóng khoảng trống trên candidate, dùng lại evidence hợp lệ và giữ nguyên
+threshold. Không thêm tính năng trong phase này; lỗi cần sửa thì kiểm focused,
+cập nhật RC và chỉ đo lại phần bị ảnh hưởng trước vòng regression cuối.
+
+<a id="l14-01"></a>
+#### L14-01 — Một ma trận quyết định được phép release hay chưa
+
+- **Làm:** mỗi dòng ghi requirement → case/protocol → threshold → evidence →
+  PASS/FAIL/NOT_MEASURED/DEFERRED. Map QA còn mở, R-01/R-02, fresh holdout và
+  L13/L14; ghi rõ tính năng OFF nào được hoãn, không trộn hoãn với PASS.
+- **Khóa trước đo:** máy/profile/workload, cỡ mẫu, cách tính percentile,
+  deadline, provider-call/token cap và điều kiện dừng. Khác hợp đồng cũ phải
+  có amendment công khai; không sửa threshold sau khi xem kết quả.
+- **Đóng khi:** mọi blocking gate có phép kiểm và chủ thể review rõ; không
+  còn yêu cầu cloud trong gate local. Dùng ma trận này làm checklist cuối,
+  không mở thêm một bộ checklist trùng cho từng phase.
+
+<a id="l14-02"></a>
+#### L14-02 — Chốt PDF và chất lượng câu trả lời
+
+- **Làm:** đối chiếu 34 PDF theo nhóm native/scan/mixed/bảng; extraction ≥98%,
+  OCR ≥90%, evidence/retrieval ≥95%, không mất/nhầm trang. Dùng kết quả QA đã
+  đạt trước RC nếu còn binding; không OCR lại cả bộ chỉ để đổi tên report.
+- **Fresh holdout:** khóa cohort/split/strata, source review, cỡ mẫu và budget
+  tại L14-01 trước output; bao phủ câu có đáp án, negative, temporal/multi-hop,
+  bảng và hội thoại. Giữ bộ 400 đã exposure làm regression riêng; tập fresh
+  nhỏ không thay điều kiện `dataset_count_min=400` của package validator gốc.
+- **Đóng khi:** các ngưỡng chất lượng áp dụng đã đạt, từng lỗi/missing case có
+  trạng thái rõ; không tune trên holdout. Sửa runtime theo lỗi đã thấy thì bộ
+  đó thành regression; phần cần chứng minh fresh phải dùng cohort chưa exposure.
+
+<a id="l14-03"></a>
+#### L14-03 — Đo đúng trải nghiệm local với provider thật
+
+- **Làm:** đo startup/model load riêng; tách API đọc, upload-to-ready và AI
+  query. Với query, báo cold/warm/cache, tổng latency, provider/queue latency,
+  raw schema, p50/p95, errors/timeouts, peak RSS và token/call theo protocol.
+- **Tối ưu phép đo:** cùng một run hợp lệ có thể chứng minh R-01/R-02 và phần
+  holdout nếu protocol đã định trước và input khớp; không sinh lại output đã
+  thành công. Giữ pace/quota profile, tính thời gian chờ người dùng và đủ lỗi;
+  chỉ một người dùng không có nghĩa bỏ các request nền của UI.
+- **Đóng khi:** đủ mẫu và đạt gate đã khóa trên profile phân phối. 429/503/
+  timeout hoặc hết budget làm cohort thiếu mẫu thì ghi chưa đạt/chưa đo đủ;
+  không bỏ attempt, đổi key hoặc lấy cache làm model mới. Streaming OFF không
+  cần campaign TTFT riêng; QA-08c vẫn hoãn và không được quảng bá đạt ≤5s.
+
+<a id="l14-04"></a>
+#### L14-04 — Bảo vệ dữ liệu và server local
+
+- **Làm:** chạy secret scan hiện có và audit dependency theo lock; kiểm chính
+  gói ZIP sau giải nén. Dùng regression sẵn có cho loopback/Host/origin, upload,
+  JSON/path/symlink, source scope, cache isolation, cancel và timeout.
+- **Kiểm thêm đúng khoảng trống:** payload/log thực tế không lộ key hay đọc
+  nguồn ngoài scope; xóa/retry không giữ quyền stale. Privacy notice nêu dữ
+  liệu gửi provider, dữ liệu trên máy, retention và giới hạn xóa trong backup.
+- **Đóng khi:** không còn P0/P1/High/Critical đã xác nhận; phát hiện dependency
+  được triage theo ảnh hưởng thực tế, mọi ngoại lệ có lý do/evidence. Report
+  security Phase 5 cũ không tự chứng minh toàn bộ app/ZIP hiện tại an toàn.
+
+<a id="l14-05"></a>
+#### L14-05 — Restore và rollback bằng thao tác thật
+
+- **Làm:** v1 ưu tiên dừng app rồi backup để tránh snapshot nửa chừng; giữ PDF,
+  metadata, job và state bền cần thiết. Không gói key vào backup mặc định;
+  index/cache có thể rebuild nếu ghi rõ model/version và thời gian phục hồi.
+- **Kiểm:** restore vào thư mục state sạch rồi chạy app; kiểm source hashes,
+  job/delete state, citation và một vòng chat. Nâng từ bản cũ sang RC rồi quay
+  lại bằng bản backup tương thích; không cho app cũ đọc schema mới chưa hỗ trợ.
+- **Đóng khi:** restore/rollback thực sự thành công, có thời gian đo và không
+  mất source. Test kill/restart, disk-full/corrupt trên bản sao, không trên dữ
+  liệu thật. `recovery_check.py`/`rollback_check.py` chỉ hỗ trợ kiểm index;
+  load được index không thay bằng chứng process restart, restore hoặc citation.
+
+<a id="l14-06"></a>
+#### L14-06 — Chẩn đoán ngắn gọn, xử lý được sự cố
+
+- **Làm:** dùng request ID/stage metrics đã có; bổ sung phần còn thiếu cho
+  version/profile, health, model/OCR readiness, quota/cooldown và vị trí log.
+  Giới hạn/rotate log; bản export hỗ trợ phải lọc secret và nội dung riêng tư.
+- **Runbook:** mỗi lỗi thường gặp có dấu hiệu → cách kiểm → cách khôi phục:
+  thiếu key/model, port bận, 429/503, OCR timeout, hết đĩa, index lỗi. Tái sử
+  dụng kết quả L14-04/05; không tạo thêm campaign fault giống hệt.
+- **Đóng khi:** mỗi hướng xử lý chính đã được thử trên bản sao hoặc có evidence
+  phù hợp; hướng dẫn không yêu cầu xóa source để sửa index, không tự gửi lại
+  câu hỏi hoặc xoay credential. Không cần dựng dịch vụ giám sát ngoài máy.
+
+<a id="l14-07"></a>
+#### L14-07 — Chỉ chạy vòng nghiệm thu cuối khi RC ổn định
+
+- **Trước chạy:** L14-02–06 đủ điều kiện, không còn sửa runtime dự kiến; khóa
+  fingerprint source/config/model/data và ghi test selection. Chạy ba full
+  regressions liên tiếp đúng runtime; không cộng focused runs thành full run.
+- **Kiểm artifact:** dùng launcher, install smoke và luồng browser critical
+  trên ZIP của L13; giữ fixture/replay/live tách biệt. Browser harness hiện có
+  dùng fixture, nên cần smoke artifact thật bên cạnh, không chỉ đổi nhãn report.
+- **Đóng khi:** required tests/flows và critical E2E 100%, tổng E2E ≥98%, không
+  crash/exception chưa xử lý; 0 lỗi nghiêm trọng còn mở. Giải trình SKIP và ảnh
+  hưởng; live SKIP không thành live PASS. Báo đủ ba lượt và đúng candidate.
+
+<a id="l14-08"></a>
+#### L14-08 — Bàn giao đúng artifact đã nghiệm thu
+
+- **Làm:** gom manifest, acceptance, checksum, quick start, privacy, backup/
+  restore và release notes/known limits; giữ failed RC làm evidence, loại temp
+  và credential sau kiểm references. Kiểm source commit/tag/ZIP cùng một bản.
+- **Duyệt:** chủ dự án duyệt candidate cụ thể khi hồ sơ hoàn chỉnh. GitHub tag/
+  Release chỉ phân phối ZIP và tài liệu nếu được phép; không triển khai server
+  cloud. Không rebuild runtime khác sau nghiệm thu rồi phát hành dưới cùng nhãn.
+- **Đóng khi:** người nhận kiểm hash, cài/chạy được theo docs; có đường quay về
+  bản trước và danh sách hỗ trợ/giới hạn rõ. Bàn giao chỉ phần mềm/evidence được
+  phép phân phối, không kèm corpus cá nhân hay model chưa rõ quyền redistribution.
+
 ### Xử lý các điều kiện release cũ
 
 | Điều kiện | Quyết định cho local release |
@@ -990,6 +1203,14 @@ hạn, hỗ trợ mọi PDF/OS hoặc availability 100% khi chưa có chứng c�
 4. Chốt runtime rồi thực hiện L14-07 một lần đủ chuỗi; thay source/config sau đó
    chỉ vô hiệu hóa evidence bị ảnh hưởng, phải có lý do và phạm vi kiểm tra lại.
 5. Chuẩn bị hồ sơ L14-08, owner duyệt candidate, phát hành local và bàn giao.
+
+**Thứ tự task để tránh làm lại:** L13-01 + L14-01 → L13-05 → L13-02 →
+L13-03 + bản nháp L13-06 → L13-04 → chốt L13-06 → L13-07 → L14-02/03/04/05/06 →
+L14-07 → L14-08. Dấu `+` là các phần có thể chuẩn bị trong cùng giai đoạn;
+không tạo task mới hay yêu cầu nhiều agent. QA PDF được hoàn tất trước khóa RC;
+L14-02 đối soát bindings và phần fresh còn thiếu, không bắt đo lại toàn bộ QA.
+Mỗi task chỉ cần thay đổi tối thiểu, focused checks liên quan và một mục kết
+quả trong acceptance; không khởi động full suite hoặc gọi API sau mỗi lần sửa plan.
 
 <a id="bo-sung-quy-tac-cap-nhat"></a>
 ## 7. Quy tắc giữ plan và bằng chứng
