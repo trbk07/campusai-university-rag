@@ -199,6 +199,26 @@ def create_llm(
     if overload_path is not None:
         overload_path = state_path(overload_path)
 
+    project_keys = config.get('api_key_envs')
+    independent_projects = config.get('independent_projects', False)
+    credentials = None
+    if 'api_key_envs' in config or 'independent_projects' in config:
+        if (provider != 'gemini' or independent_projects is not True
+                or not isinstance(project_keys, list) or not 2 <= len(project_keys) <= 3
+                or any(not isinstance(name, str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', name)
+                       for name in project_keys)
+                or len(set(project_keys)) != len(project_keys) or project_keys[0] != key_name
+                or max_retries != 0 or not overload_path or not isinstance(config.get('quota'), dict)):
+            raise ValueError('independent project routing requires explicit consent, distinct key names, durable quota and no retries')
+        credentials = [(name, env.get(name)) for name in project_keys]
+        values = [value for _, value in credentials]
+        if (any(not isinstance(value, str) or not value or value.strip() != value for value in values)
+                or len(set(values)) != len(values)):
+            raise ValueError('independent project credentials must be present and distinct')
+        expected = f'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent'
+        if config.get('endpoint', expected) != expected or not re.fullmatch(r'gemini-[A-Za-z0-9._-]+', model):
+            raise ValueError('independent projects require the configured official Gemini endpoint')
+
     generation_config = config.get("generation_config", {})
     if not isinstance(generation_config, dict):
         raise ValueError("llm.generation_config must be a JSON object")
@@ -246,6 +266,10 @@ def create_llm(
     }
     if provider == "gemini":
         gemini_options = dict(common)
+        if credentials is not None:
+            from .project_router import GeminiProjectRouter
+            gemini_options['project_router'] = GeminiProjectRouter(
+                credentials, health_path=overload_path, model=model)
         if governor is not None:
             gemini_options['quota_governor'] = governor
         if overload_path:

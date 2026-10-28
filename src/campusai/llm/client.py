@@ -499,6 +499,7 @@ class GeminiClient(OpenAICompatibleClient):
         quota_governor=None,
         json_mode: str = 'native',
         allow_pdf_scope: bool = False,
+        project_router=None,
         **kwargs: Any,
     ) -> None:
         if generation_config is not None and not isinstance(generation_config, dict):
@@ -527,6 +528,12 @@ class GeminiClient(OpenAICompatibleClient):
                 (self.max_retries != 0 or quota_governor is None))):
             raise ValueError('PDF scope requires explicit opt-in, durable quota and max_retries=0')
         self.allow_pdf_scope = allow_pdf_scope
+        if project_router is not None:
+            from .project_router import GeminiProjectRouter
+            if (not isinstance(project_router, GeminiProjectRouter) or project_router.model != model
+                    or self.max_retries != 0 or quota_governor is None or not overload_circuit_path):
+                raise ValueError('project routing requires durable quota,shared overload protection and no retries')
+        self.project_router = project_router
         self.overload_circuit = (OverloadCircuit(overload_circuit_path, _safe_endpoint(endpoint))
                                  if overload_circuit_path else None)
 
@@ -558,6 +565,7 @@ class GeminiClient(OpenAICompatibleClient):
         governor = self.quota_governor
         generation = None
         reservation = None
+        project = None
         attempted = False
         result = None
         # urllib has distinct header/read waits. Keep an active stream's lease
@@ -580,14 +588,24 @@ class GeminiClient(OpenAICompatibleClient):
                     raise LLMProviderError('request cannot be admitted under the text token budget') from None
             if circuit:
                 generation = circuit.acquire(lease_timeout)
+            if self.project_router is not None:
+                try:
+                    project = self.project_router.route(request, lease_timeout)
+                except ValueError:
+                    raise LLMProviderError('request is outside independent project routing scope') from None
+                request = project.request
+            def check_admission():
+                if circuit:
+                    circuit.check(generation)
+                if project:
+                    project.circuit.check(project.generation)
             if governor is not None:
                 reservation = governor.reserve(input_tokens, output_tokens,
                     lease_seconds=lease_timeout + 5,
-                    check=(lambda: circuit.check(generation)) if circuit else None)
+                    check=check_admission if circuit or project else None)
             elif self.limiter is not None:
                 self.limiter.wait()
-            if circuit:
-                circuit.check(generation)
+            check_admission()
             reader = None
             if stream is not None:
                 from .streaming import read_gemini_stream
@@ -626,12 +644,18 @@ class GeminiClient(OpenAICompatibleClient):
                 if rate_limited and structured_hint is not None:
                     hint = max(hint or 0, structured_hint)
                 try:
-                    circuit.failed(generation, overloaded=overloaded, rate_limited=rate_limited, retry_after=hint)
+                    if project and rate_limited:
+                        project.circuit.failed(project.generation, overloaded=False, rate_limited=True, retry_after=hint)
+                    elif project:
+                        project.circuit.failed(project.generation, overloaded=False)
+                    circuit.failed(generation, overloaded=overloaded,
+                        rate_limited=rate_limited and project is None, retry_after=hint)
                     if overloaded or rate_limited:
-                        error.retry_after_seconds = circuit.remaining_seconds()
+                        error.retry_after_seconds = (project.circuit.remaining_seconds()
+                            if project and rate_limited else circuit.remaining_seconds())
                 except sqlite3.Error:
                     raise LLMProviderError("provider health state unavailable; request stopped") from None
-            if observations and governor is not None:
+            if observations and governor is not None and project is None:
                 try:
                     governor.observe(observations)
                 except sqlite3.Error:
@@ -640,6 +664,11 @@ class GeminiClient(OpenAICompatibleClient):
                     pass
             raise
         else:
+            if project:
+                try:
+                    project.circuit.succeeded(project.generation)
+                except sqlite3.Error:
+                    pass
             if circuit:
                 try:
                     circuit.succeeded(generation)
@@ -649,6 +678,11 @@ class GeminiClient(OpenAICompatibleClient):
                     pass
             return result
         finally:
+            if project and (not attempted or stream is not None and stream.cancelled()):
+                try:
+                    project.circuit.abandon(project.generation)
+                except sqlite3.Error:
+                    pass
             if reservation is not None:
                 try:
                     governor.finish(reservation, result.get('usageMetadata') if result else None)

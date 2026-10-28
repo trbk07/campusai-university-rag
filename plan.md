@@ -891,6 +891,10 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
    3 timeout, p95 gồm lỗi **chưa đạt**. Không bỏ lỗi khỏi denominator.
+   **Đợt phân tải 3 project 28/10 đã kết thúc:** 20 POSTs, 13 đáp án có nguồn,
+   7 timeout; p95 vẫn chưa đạt. Không lặp lại cùng phương án. Nhánh phân tải
+   đã kiểm thử xong; không bật mặc định hoặc coi đây là cải thiện độ trễ.
+   [Evidence mới](docs/ui/evidence/project-routing-20261028.json).
    Nếu giữ streaming OFF cho v1, ghi gate DEFERRED và bỏ mọi tuyên bố đạt TTFT;
    đây là điều chỉnh scope release, không phải đổi QA-08c thành PASS.
    [Evidence](docs/ui/evidence/query-streaming-20261028.json).
@@ -921,6 +925,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |
 | QA-08a / QA-08b | 400/400 HTTP 200 trên workload API local; Web Vitals lab 9/9. Không suy thành tải generation AI đồng thời. [Coverage](docs/ui/evidence/hybrid-coverage-20261025.json) |
 | QA-08c1 | SSE, cancel, quota/cooldown và UI chỉ công bố kết quả sau grounding; 346 related tests, 9 JS checks, UI 43/44 checks theo nhánh. [Evidence](docs/ui/evidence/query-streaming-20261028.json) |
+| [x] QA-08c2 — DONE về chức năng | Phân tải opt-in qua 3 Google project đã xác nhận độc lập; giữ model/prompt/schema, quota chung, cache và chặn 503 toàn pool; 429 chỉ cooldown đúng project, không retry hoặc reset usage. 513 tests mở rộng, 186 tests ở bản guard cuối và 30 tests clean export PASS (các bộ chồng lấn). Đo thật 20 câu chưa đạt latency/availability; giữ mặc định OFF, QA-08c vẫn mở. [Evidence](docs/ui/evidence/project-routing-20261028.json) |
 | QA-09a / QA-09b | Unit/integration và 43/43 browser flows ở mốc lịch sử. [Browser](docs/ui/evidence/hybrid-final-ui-20261025/browser-results.json) |
 | QA-09c1–c2c | Recovery local, 10 checkpoint kill/restart, deep JSON trả 400, Host guard localhost; 229 related tests và secret scan PASS. [Evidence](docs/ui/evidence/request-safety-recovery-20261027.json) |
 | [x] QA-09c3 — DONE | Sửa reader preflight Phase 8 để đọc evidence đã archive qua resolver kiểm hash; thiếu/hỏng dữ liệu vẫn fail closed. Hai regression cases tái hiện lỗi trước sửa; 34 tests liên quan PASS sau sửa. [Evidence](docs/ui/evidence/final-qa-20261028.json) |

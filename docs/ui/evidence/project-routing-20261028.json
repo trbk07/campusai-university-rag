@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-28",
+  "base_commit": "dddbf1d2db34c372d85fb904887945d00658b9dd",
+  "scope": "Opt-in independent-project admission and fresh controlled 20-query latency diagnostic; not final RC, representative AI/PDF acceptance or public release.",
+  "status": {
+    "QA-08c2_engineering": "DONE",
+    "QA-08c_latency": "NOT_PASSED",
+    "QA-03b_QA-07c": "OPEN representative Vietnamese/full-page/table qualification",
+    "QA-09d": "OPEN final stable RC and three full regressions",
+    "Phase5": "INTERNAL_DONE_PRESERVED_400_of_400"
+  },
+  "implementation": {
+    "profile": "configs/candidates/flash-lite-three-projects.yaml",
+    "default_enabled": false,
+    "independent_projects_confirmed_by_owner": true,
+    "routing": "Round-robin per process, durable per-project 429 cooldowns, one credential per HTTP attempt",
+    "retry_count": 0,
+    "shared_503_cooldown": true,
+    "shared_existing_budget_and_history_preserved": true,
+    "same_model_prompt_schema_and_grounding": true,
+    "secret_persistence": "SHA256 credential identities only; no raw keys in health/quota stores or receipts"
+  },
+  "physical_code_sha256": {
+    "src/campusai/llm/client.py": "4bee1509539791f9cdb7b84a5fce1eea61e15900510f87d498e4e59355d35c90",
+    "src/campusai/llm/factory.py": "a68bfbce419e63a64fca20c6de0993caf9d439255746f0149b58f16ad69b2e33",
+    "src/campusai/llm/project_router.py": "fd43d20162a2ac1c6d2e2aa7da25c6d00d3232261402e53231c73b12444cf863",
+    "scripts/operations/benchmark_query_streaming.py": "0e46fee0df3e8512fd76ba982cdf6255f2bed751301e9f62886bf02d29c97319",
+    "configs/candidates/flash-lite-three-projects.yaml": "5917a87cb23a31d25cfc7a91331b4bb6acf17700ea1fe95d7c9866a44818f172",
+    "tests/test_gemini_project_router.py": "05a4f9e58a5d6a73de020c7e2997231b3f2b6e669ca5ee95b9aaf9026283f9d3"
+  },
+  "live": {
+    "packet": ".tmp/project-routing-20261028/fixture/egress.json",
+    "packet_sha256": "eaee2d92e2bcb11cb3a16042da420da1729fd2613f67ecb78a8172e9b850d099",
+    "model": "gemini-3.5-flash-lite",
+    "max_posts": 20,
+    "actual_posts": 20,
+    "project_counts": {
+      "key_1": 7,
+      "key_2": 7,
+      "key_3": 6
+    },
+    "metrics": {
+      "sample_count": 20,
+      "verified_source_facts": 13,
+      "uncertified_published_answers": 0,
+      "provider_first_text_censored": 5,
+      "verified_answer_censored": 7,
+      "provider_first_text_p95_ms": null,
+      "provider_first_text_max_ms": null,
+      "provider_first_text_max_censored": true,
+      "client_first_model_progress_p95_ms": null,
+      "client_first_model_progress_max_ms": null,
+      "client_first_model_progress_max_censored": true,
+      "verified_answer_p95_ms": null,
+      "verified_answer_max_ms": null,
+      "verified_answer_max_censored": true
+    },
+    "provider_timeouts": 7,
+    "complete_verified_answers": 13,
+    "unverified_factual_answers_published": 0,
+    "same_source_questions_as_single_project_baseline": true,
+    "baseline_verified_answers": 17,
+    "baseline_timeouts": 3,
+    "comparison": "No latency or availability improvement established. Do not repeat this unchanged single/multi-project cohort.",
+    "quota_attempt_delta": 20,
+    "runtime_unchanged_during_measurement": true,
+    "runner_unchanged_during_measurement": true,
+    "measured_runtime_sha256": "bfc5fccb5b8abb2d2cbdf08a85033abf4d2a2c1b761864794889aff930a042d2",
+    "percentile": "Nearest rank19/20. Missing first token or complete verified answer is infinity, represented by null for unbounded p95. All20 retained, including partial streams and timeouts.",
+    "latency_localization": "Long waits occur before HTTP headers; model deltas arrive with headers. This alone does not separate network setup from provider processing.",
+    "producer_scope": "Runtime digest covers119 app Python files, plus separately checked runner/profile/index/source/cases. Not a full final-RC dependency binding.",
+    "post_measurement_change": "One factory validation guard rejects explicitly null api_key_envs without independent-project consent. Measured factory bytes reconstructed and full119-file runtime digest verified before archiving. Final tests below cover the guard; no fresh latency claim for it. Factory source then normalized to LF for portable physical-byte bindings; measured CRLF and final LF versions both retained. No behavior or measured payload change."
+  },
+  "validation": {
+    "broader_regression_before_final_null_guard": {
+      "passed": 513,
+      "failed": 0,
+      "path": ".tmp/project-routing-20261028/final-regression.xml"
+    },
+    "final_related_regression": {
+      "passed": 186,
+      "failed": 0,
+      "path": ".tmp/project-routing-20261028/commit-guards.xml"
+    },
+    "clean_committed_source_plus_four_file_overlay": {
+      "passed": 30,
+      "failed": 0,
+      "path": ".tmp/project-routing-20261028/clean-export/.tmp/clean-export-commit.xml"
+    },
+    "secret_scan": "PASS",
+    "historical_failures": "Two malformed test-fixture/admission attempts, one missing test-file invocation and sandbox-only clean-export write failures retained; not counted as passes. Test counts overlap and must not be summed. No three-full-RC claim."
+  },
+  "vietnamese_reference_audit": {
+    "publisher_pdf_url": "https://www.fit.uet.vnu.edu.vn/wp-content/uploads/2019/04/297.CNTT_Chu%E1%BA%A9n.pdf",
+    "sha256": "cadff7f7c9a0abd3b7178b2263b80115f78ae2e3a46006b112a32388774395bd",
+    "matches_existing_corpus_bytes": true,
+    "page_count": 18,
+    "producer": "Adobe Acrobat Pro11 Paper Capture; Type3352 Scanner",
+    "native_hidden_text": "Not accepted as independent transcription gold",
+    "other_html_program_versions": "Not used as gold because credit distributions/program versions differ",
+    "frozen_corpus_manifest_changed": false
+  },
+  "raw_evidence": {
+    "path": ".tmp/project-routing-20261028-evidence.zip",
+    "sha256": "bdadbdc86f010b8fe5a5eb12df131ab30da4c8ff8b4fc8af84745beae3618ec4",
+    "bytes": 956756,
+    "storage": "Hash-verified local artifact catalog; includes source PDF/index/cases, sealed requests, raw responses, all20 traces/journals, test XML and exact measured/final producer snapshots."
+  },
+  "next_work": [
+    "Representative Vietnamese/full-page/table reference verification and document-evidence acceptance.",
+    "Keep streaming OFF for local-v1 scope; whole-app TTFT gate stays open. Choose a materially different provider/model/transport method before another latency cohort, with independent quality validation.",
+    "Run three consecutive full regressions only after selecting and freezing the qualified final RC."
+  ],
+  "final_validation_artifact": {
+    "identity": ".tmp/project-routing-final-validation-20261029.zip",
+    "sha256": "69dda8f40733268a5b21e4af2b29f9f74fa56e9fd2cab44deb27a218a9eb769d",
+    "bytes": 31629
+  }
+}

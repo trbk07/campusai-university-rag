@@ -180,3 +180,10 @@
 /tests/test_pdf_text_quality.py -text whitespace=cr-at-eol
 /tests/test_pdf_native_mapping.py -text whitespace=cr-at-eol
 /docs/ui/evidence/pdf-text-quality-20261028.json -text whitespace=cr-at-eol
+
+# Preserve independent-project routing producer and receipt bytes.
+/src/campusai/llm/factory.py -text whitespace=cr-at-eol
+/src/campusai/llm/project_router.py -text whitespace=cr-at-eol
+/configs/candidates/flash-lite-three-projects.yaml -text whitespace=cr-at-eol
+/tests/test_gemini_project_router.py -text whitespace=cr-at-eol
+/docs/ui/evidence/project-routing-20261028.json -text whitespace=cr-at-eol

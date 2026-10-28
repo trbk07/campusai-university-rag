@@ -1,7 +1,8 @@
 """Measure sealed, uncached app queries; never inject evaluation gold into RAG.
 
 Requires an existing prepared packet/index and explicit --live. Each provider
-POST is journalled before transport. No retries, key rotation or quota resets.
+POST is journalled before transport. No retries or quota resets. An optional
+explicitly configured independent-project pool distributes distinct calls.
 """
 import argparse
 from dataclasses import asdict
@@ -137,8 +138,19 @@ def main():
         'packet_sha256': args.packet_sha256, 'started_at': datetime.now(timezone.utc).isoformat(),
         'runtime_sha256': runtime_digest(), 'runner_sha256':runner_sha,
         'prefix':packet.get('prefix'),'retry_failed_or_successful_case': False})+'\n', encoding='utf8')
-    settings = {'CAMPUSAI_LLM_CONFIG': str(ROOT/packet['profile_path']),
-        'GEMINI_API_KEY': read_key(ROOT/'configs/key.yaml', packet['key_name']),
+    profile = __import__('yaml').safe_load((ROOT/packet['profile_path']).read_text(encoding='utf8'))['llm']
+    key_names = packet.get('key_names')
+    if key_names is not None:
+        assert key_names == ['key_1', 'key_2', 'key_3'] and not packet.get('prefix')
+        assert profile.get('independent_projects') is True
+        assert profile.get('api_key_envs') == ['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3']
+        credentials = {name: read_key(ROOT/'configs/key.yaml', alias)
+                       for name, alias in zip(profile['api_key_envs'], key_names)}
+        aliases = dict(zip(profile['api_key_envs'], key_names))
+    else:
+        credentials = {'GEMINI_API_KEY': read_key(ROOT/'configs/key.yaml', packet['key_name'])}
+        aliases = {'GEMINI_API_KEY': packet['key_name']}
+    settings = {'CAMPUSAI_LLM_CONFIG': str(ROOT/packet['profile_path']), **credentials,
         'CAMPUSAI_INDEX_DIR': str(root/'index'), 'CAMPUSAI_STORE_DIR': str(root/'store'),
         'CAMPUSAI_RAG_CACHE_PATH': str(run_dir/'measured-answers.sqlite3'),
         'CAMPUSAI_JOB_DB': str(run_dir/'operations/measured-jobs.sqlite3'),
@@ -152,6 +164,7 @@ def main():
     startup = time.perf_counter() - startup
     client = application.query_service.answer_generator.llm
     assert client.model == packet['model'] and client.max_retries == 0
+    assert (client.project_router is not None) == (key_names is not None)
     assert packet['destination'] == f'https://generativelanguage.googleapis.com/v1beta/models/{client.model}:streamGenerateContent?alt=sse'
     before = client.quota_governor.snapshot()
     active = {}
@@ -169,6 +182,14 @@ def main():
                 raise LLMProviderError('unsealed or repeated inference stopped before transport')
             attempt = {'case_id': row['case_id'], 'endpoint': request.full_url,
                 'body_sha256': row['body_sha256'], 'at': datetime.now(timezone.utc).isoformat()}
+            supplied = next((value for name, value in request.header_items()
+                             if name.lower() == 'x-goog-api-key'), None)
+            reference = next((name for name, value in credentials.items() if value == supplied), None)
+            if reference is None:
+                from campusai.llm.client import LLMProviderError
+                active['sealed_violation'] = True
+                raise LLMProviderError('unapproved project credential stopped before transport')
+            attempt['project_alias'] = aliases[reference]
             append(run_dir/'provider-attempts.jsonl', attempt)
             attempts.append(attempt)
         return original_open(request, **kwargs)
@@ -255,12 +276,12 @@ def main():
         'scope':'20 real uncached loopback RAG queries, controlled fictional one-page source, real BGE-M3 CUDA. Not representative AI/PDF quality or cold-start/public-release evidence.',
         'packet_sha256':args.packet_sha256,'runtime_sha256':runtime_digest(),
         'runner_sha256':runner_sha,'runner_unchanged':digest(__file__)==runner_sha,
-        'credential_project_alias':packet['key_name'],'prefix':packet.get('prefix'),
+        'credential_project_alias':key_names or packet['key_name'],'prefix':packet.get('prefix'),
         'runtime_unchanged':runtime_digest()==packet['runtime_sha256'], 'metrics':metrics,
         'model_startup_seconds_excluded':startup,'cold_observation_not_discarded':
             'Separate earlier connectivity probe14.59s; all20 app cases included without trimming.',
         'attempt_count':len(attempts),'observations':observations,'quota_before':before,'quota_after':after,
-        'provider_retries':0,'key_rotation':False,'gold_used_by_inference':False,
+        'provider_retries':0,'key_rotation':key_names is not None,'gold_used_by_inference':False,
         'raw_unverified_text_sent_to_browser':False,'nearest_rank_percentile':True,
         'sealed_violation':bool(active.get('sealed_violation')),
         'failure_censoring':'Every query retained. Missing first token/verified answer is +infinity (JSON null for an unbounded quantile/max); n20 p95 uses rank19. Never count an error as a correct negative or local text as a model token.'}

@@ -271,3 +271,22 @@ credits header through retrieval. The current-source dev egress packet is
 it records zero provider posts and remains pending authorization. Historical
 v13 indexes, captures and calibration remain immutable and do not qualify the
 current source.
+
+## Independent Gemini projects (opt-in)
+
+`configs/candidates/flash-lite-three-projects.yaml` distributes distinct HTTP
+calls across `GEMINI_API_KEY`, `GEMINI_API_KEY_2` and `GEMINI_API_KEY_3`. Use it
+only after confirming that these are three independent Google projects;
+different keys alone do not establish independent quota. The default profile
+remains single-project.
+
+The pool keeps the same model, request bodies, cache identity and conservative
+shared quota ledger. No automatic retry or quota reset occurs. A project-level
+429 cools that project; a provider-wide 503 still blocks the entire pool.
+`countTokens` and inference retain separate admission accounting. Routing is
+round-robin per process, with durable project cooldowns shared across processes.
+Only the configured official Gemini endpoint receives these credentials.
+
+This capability does not establish a latency or quality PASS. A live cohort
+must retain slow calls/errors, bind its exact payloads and record project aliases
+without credentials. Never replay an exhausted egress packet as a fresh budget.

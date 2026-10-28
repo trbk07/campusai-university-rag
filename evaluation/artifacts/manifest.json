@@ -26017,6 +26017,32 @@
       "storage_bytes": 53130,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/project-routing-20261028-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/project-routing-20261028-evidence.zip",
+      "version_or_revision": "bdadbdc86f010b8fe5a5eb12df131ab30da4c8ff8b4fc8af84745beae3618ec4",
+      "sha256": "bdadbdc86f010b8fe5a5eb12df131ab30da4c8ff8b4fc8af84745beae3618ec4",
+      "bytes": 956756,
+      "local_or_external_uri": "objects/bd/bdadbdc86f010b8fe5a5eb12df131ab30da4c8ff8b4fc8af84745beae3618ec4.gz",
+      "encoding": "gzip",
+      "storage_sha256": "921eb1d77854b0d5d5a8e3b9c678ffa3a448ee44b7949625385c4d60e95b481e",
+      "storage_bytes": 928653,
+      "reproducible": false,
+      "restorable": true
+    },
+    ".tmp/project-routing-final-validation-20261029.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/project-routing-final-validation-20261029.zip",
+      "version_or_revision": "69dda8f40733268a5b21e4af2b29f9f74fa56e9fd2cab44deb27a218a9eb769d",
+      "sha256": "69dda8f40733268a5b21e4af2b29f9f74fa56e9fd2cab44deb27a218a9eb769d",
+      "bytes": 31629,
+      "local_or_external_uri": "objects/69/69dda8f40733268a5b21e4af2b29f9f74fa56e9fd2cab44deb27a218a9eb769d.gz",
+      "encoding": "gzip",
+      "storage_sha256": "993acbc1558c132a63bce141ed98bcb9d75818f58f56e7452b2a379a28f96340",
+      "storage_bytes": 30885,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }
