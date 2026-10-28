@@ -5,6 +5,13 @@
 > Những mốc cũ có thể ghi IN PROGRESS/BLOCKED theo thời điểm của chúng; không dùng
 > chúng để mở lại task đã DONE trong roadmap. Không chạy lại các lệnh chỉ để đọc kết quả.
 
+> **Thay đổi phạm vi 28/10/2026:** chủ dự án chọn phát hành **local single-user**,
+> không triển khai cloud. Phase 13/14 và tiêu chí hoàn thành bên dưới giữ làm
+> lịch sử; kế hoạch thay thế có hiệu lực ở [Phase 13](../../plan.md#phase-13)
+> và [Phase 14](../../plan.md#phase-14). Cloud checklist không còn là gate bắt buộc;
+> các điều kiện chất lượng, dữ liệu, recovery và provider còn liên quan được
+> đối soát theo kế hoạch local. Không đổi báo cáo lịch sử thành PASS.
+
 Repository chính thức: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
 
 Cập nhật: **26/10/2026 — Asia/Bangkok**. Đây là nội dung chi tiết được giữ lại khi sắp xếp roadmap.

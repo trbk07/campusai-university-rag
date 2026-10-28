@@ -149,11 +149,14 @@ The [source-excerpt review](docs/deployment/phase13/provider-continuity.md) reco
 the failed live Flash-Lite experiment and the separate offline recovery tests.
 Free API availability and unlimited generated answers have not been established.
 
-Phase 13 targets [free cloud deployment](docs/deployment/phase13/profile-decision.md)
-on Oracle Always Free, independently of the development laptop. Provisioning and
-cloud acceptance are still pending; the detailed tasks remain in [plan.md](plan.md#phase-13--deployment).
+The release target is a **local, single-user application** (owner decision,
+28 October 2026). Phase 13 covers reproducible local packaging and installation;
+Phase 14 covers hardening, acceptance and release. See [the roadmap](plan.md#phase-13).
+Cloud provisioning is outside the current release scope. The Gemini profile still
+needs Internet access and the user's credentials; local hosting does not mean
+offline AI generation.
 
-The [cloud configuration/preflight guide](docs/deployment/phase13/runtime-configuration.md)
+The historical [cloud configuration/preflight guide](docs/deployment/phase13/runtime-configuration.md)
 defines external state/config/model/release paths and pinned encoder identity.
 `python -m scripts.operations.preflight --config /etc/campusai/deployment.json`
 audits prerequisites without provider calls; it does not accept deployment.
@@ -208,8 +211,8 @@ runtime corpus. Explicit calibration fingerprint checks remain enforced.
 
 See [UI architecture, API mapping and acceptance](docs/ui/phase12-ui.md) for
 screenshots, offline test results, clean setup and browser test commands.
-Production hosting still requires provider configuration, authentication and
-managed process/storage services; R-01/R-02 remain open in [plan.md](plan.md).
+Local release acceptance still requires source-bound quality, provider,
+installation and recovery evidence; R-01/R-02 remain open in [plan.md](plan.md#phase-14).
 
 The default PDF path uses PyMuPDF and a SHA-256 cache. Docling is an optional
 layout/table review tool. Scan-only PDFs require explicit bounded OCR; otherwise
