@@ -25978,6 +25978,19 @@
       "storage_bytes": 2914230,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/final-qa-20261028-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/final-qa-20261028-evidence.zip",
+      "version_or_revision": "9269d560ac70d3854ccb26a33229334352eeb9e7b05fab2da5b4511d4cf0c686",
+      "sha256": "9269d560ac70d3854ccb26a33229334352eeb9e7b05fab2da5b4511d4cf0c686",
+      "bytes": 5637372,
+      "local_or_external_uri": "objects/92/9269d560ac70d3854ccb26a33229334352eeb9e7b05fab2da5b4511d4cf0c686.gz",
+      "encoding": "gzip",
+      "storage_sha256": "a73fb5d65388ae87e5ed06b66c382987811f00e3bf8b190e4895808514792ff9",
+      "storage_bytes": 5622854,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

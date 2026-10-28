@@ -51,6 +51,19 @@ def test_external_raw_works_with_legacy_validator_reference_and_preserves_crlf(a
     assert store.artifact_paths(logical.parent, "*.json") == [logical]
 
 
+@pytest.mark.parametrize('tampered', [False, True])
+def test_live_runtime_reads_bound_preflight_and_rejects_corruption(archived, tampered):
+    from evaluation.phase8.measure_live_runtime import read
+    logical, blob, content, *_ = archived
+    if tampered:
+        blob.write_bytes(gzip.compress(b'{"measured": false}', mtime=0))
+        with pytest.raises(ValueError):
+            read(logical)
+    else:
+        assert read(logical) == json.loads(content)
+    assert not logical.exists()
+
+
 @pytest.mark.parametrize("mutation", ["missing", "blob", "cache", "wrong_raw_hash", "wrong_size", "traversal"])
 def test_missing_or_corrupt_external_raw_cannot_pass(archived, mutation):
     logical, blob, _, digest, record, catalog = archived

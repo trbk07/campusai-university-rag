@@ -21,7 +21,7 @@ from jsonschema import Draft202012Validator
 from campusai.llm.factory import _read_config
 from campusai.rag.schemas import validate_release_response, validate_response
 from evaluation.benchmarks.connected_groups import connected_groups
-from evaluation.common.release_artifacts import source_identity
+from evaluation.common.release_artifacts import read_json, source_identity
 from evaluation.phase8 import run_product_baseline as collector
 from evaluation.phase8.replay_chat_baseline import ROOT, BENCHMARK, INDEX, read_rows, sha, write_json
 from evaluation.phase8.score_temporal_product_outputs import _bootstrap_latency_ci, _index_tree_sha256
@@ -41,7 +41,7 @@ SEED = 'phase8-live-runtime-20261012'
 
 
 def read(path):
-    return json.loads(Path(path).read_text(encoding='utf-8'))
+    return read_json(path)
 
 
 def select_cases(rows, packet, approved):

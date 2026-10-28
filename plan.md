@@ -83,9 +83,10 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Đủ 18/18 trang PDF lỗi; trang bảng khôi phục đúng **20/20 lần xuất hiện mã**
    so với 10/20 trước sửa. Bộ scan giả lập 6 dạng đạt **97,2% ký tự**;
    chưa thay cho CER và retrieval trên toàn bộ PDF thật. Mặc định vẫn giữ nguyên.
-   **Làm tiếp:** kiểm liên kết mã, tín chỉ, tiên quyết theo ô/bảng và đối chiếu
-   đầy đủ với nguồn trước khi chấm retrieval đại diện.
-   [Bằng chứng](docs/ui/evidence/vietnamese-ocr-20261028.json).
+   **QA-03b3 engineering DONE:** giữ liên kết ô/hàng; 5 bảng, truy hồi đúng bảng
+   14/14 và chặn nhầm giờ thành tín chỉ 13/13 trên PDF đã sửa. Làm tiếp phần đo
+   chất lượng trên bộ đại diện, không làm lại phần này.
+   [Bằng chứng](docs/ui/evidence/ocr-table-grounding-20261028.json).
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
@@ -98,7 +99,7 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Full regression mới nhất ngày 28/10: **3.149 PASS / 0 FAIL / 2 live SKIP**;
+   Full regression ổn định ngày 28/10: **3.168 PASS / 0 FAIL / 2 live SKIP**;
    **282 tests liên quan OCR PASS**. Lượt streaming trước đó:
    **346 tests liên quan PASS**, thêm **64 tests launcher/streaming PASS**,
    giao diện mặc định **43/43**, nhánh streaming **44/44**, JS transport **9/9**.
@@ -872,6 +873,8 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    và QA-03b2 (VietOCR riêng) đã DONE. **QA-03b3 engineering DONE:** đủ 5 bảng,
    77 chunks; 14/14 kiểm tra truy hồi đúng bảng, chặn 13/13 lỗi nhầm giờ học thành
    tín chỉ trên một PDF. Chưa đóng chất lượng đại diện. [Bằng chứng](docs/ui/evidence/ocr-table-grounding-20261028.json).
+   Audit tiếp theo tái sử dụng đủ **198/198 đoạn gold đã duyệt** (16.963 ký tự,
+   7 PDF), khớp parser hiện hành; không thay cho gold toàn trang/CER của 34 PDF.
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -884,6 +887,10 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    ≥98%, không crash/exception chưa xử lý; không còn P0/P1 hoặc High/Critical
    đã xác nhận. Lượt full mới nhất: **3.168 PASS / 0 FAIL / 2 live SKIP**;
    chưa thay chuỗi 3 lượt trên runtime cuối. Thực hiện một lần tại L14-07.
+   **Chuỗi trước đã dừng:** lượt đầu PASS 3.168 tests; lượt thứ hai cũng PASS
+   nhưng source/config đổi trong khi chạy, không đủ điều kiện tính chuỗi 3.
+   UI hiện hành đã kiểm lại **43/43 checks, 6 viewport, 0 lỗi script** với provider
+   kiểm thử local; không tính đây là kiểm tra model thật hoặc public release.
 
 <a id="bo-sung-da-done"></a>
 ### Các mốc QA đã DONE — bằng chứng được giữ lại
@@ -902,6 +909,9 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-08c1 | SSE, cancel, quota/cooldown và UI chỉ công bố kết quả sau grounding; 346 related tests, 9 JS checks, UI 43/44 checks theo nhánh. [Evidence](docs/ui/evidence/query-streaming-20261028.json) |
 | QA-09a / QA-09b | Unit/integration và 43/43 browser flows ở mốc lịch sử. [Browser](docs/ui/evidence/hybrid-final-ui-20261025/browser-results.json) |
 | QA-09c1–c2c | Recovery local, 10 checkpoint kill/restart, deep JSON trả 400, Host guard localhost; 229 related tests và secret scan PASS. [Evidence](docs/ui/evidence/request-safety-recovery-20261027.json) |
+| [x] QA-09c3 — DONE | Sửa reader preflight Phase 8 để đọc evidence đã archive qua resolver kiểm hash; thiếu/hỏng dữ liệu vẫn fail closed. Hai regression cases tái hiện lỗi trước sửa; 34 tests liên quan PASS sau sửa. [Evidence](docs/ui/evidence/final-qa-20261028.json) |
+| [x] Audit nguồn và UI 28/10 — DONE | 198/198 đoạn gold đã duyệt khớp parser; UI 43/43 checks trên 6 viewport, 0 lỗi script. Không tính thành CER toàn trang hoặc kiểm model thật. [Evidence](docs/ui/evidence/final-qa-20261028.json) |
+| [x] Đo evidence bộ nội bộ hiện có — DONE | 78/80 câu đủ gold evidence truy hồi (97,5%); 79/82 citations khớp gold document/page (96,34%). Tái chấm traces đã có, không inference mới; QA-07c trên RC/PDF đại diện vẫn mở. [Evidence](docs/ui/evidence/final-qa-20261028.json) |
 | QA-12 | Cache metadata/library có invalidation, đọc đúng scope; quyền/delete/retry vẫn kiểm tra mới. [QA audit](QA_AUDIT.md) |
 
 Các số test có thể chồng lấn, không cộng lại thành tổng tests độc lập. Không
