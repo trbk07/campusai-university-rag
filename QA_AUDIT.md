@@ -1,5 +1,27 @@
 # Full-app QA audit
 
+## 2026-10-28 - Vietnamese OCR correction, representative quality still open
+
+Add an explicitly selected local VietOCR backend with a pinned checkpoint and
+detector. The inference-only adapter avoids the upstream training dependency
+pins; all160 locked package versions are unchanged. Restricted torch loading,
+asset hash/size validation and the existing deadline/cancellation subprocess
+boundary apply. Native PDFs do not load OCR models or lose their cached chunks.
+
+The real18-page scan completes in74.79s,18/18 physical pages retained,70 chunks,
+no source changes or provider calls. A rendered-page14 check with independently
+corroborated literal code strings recovers20/20 expected occurrences versus10/20
+in the old pipeline. This diagnostic is not whole-page CER or table-association
+accuracy. Publisher HTML differs by edition and is never substituted wholesale
+for this PDF's gold. Existing6-category drawn-pixel fixture accuracy is97.20%
+(Tesseract baseline97.54%); both pass that fixture's90% criterion. The new backend
+does not replace the default pending representative qualification.
+
+QA-03b2 engineering DONE:282 related tests PASS; full3149 PASS/0 FAIL/2 optional
+live SKIP. Parent QA-03b/QA-07c,
+real TTFT and final three-run acceptance remain open. Internal Phase5 DONE is
+preserved. [Exact evidence](docs/ui/evidence/vietnamese-ocr-20261028.json).
+
 ## 2026-10-28 - streaming transport complete; latency gate remains open
 
 QA-08c1 engineering DONE: bounded Gemini SSE, private first non-thought delta

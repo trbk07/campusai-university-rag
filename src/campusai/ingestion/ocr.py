@@ -73,7 +73,7 @@ def ocr_pdf(
             or isinstance(timeout_seconds, bool) or not math.isfinite(timeout_seconds) or timeout_seconds <= 0
             or isinstance(scale, bool) or not math.isfinite(scale) or not 0 < scale <= 4):
         raise ValueError("OCR limits must be positive")
-    if backend not in {'rapidocr', 'tesseract'}:
+    if backend not in {'rapidocr', 'tesseract', 'vietocr'}:
         raise ValueError('unsupported OCR backend')
     started = time.perf_counter()
     pages: list[dict[str, object]] = []
@@ -89,11 +89,12 @@ def ocr_pdf(
             )
         if progress is not None:
             progress(0,len(selected))
-        if backend == 'tesseract':
+        if backend in {'tesseract','vietocr'}:
             from .tesseract_process import recognize_pdf
-            return recognize_pdf(path, selected, data_dir=data_dir, scale=scale,
+            options = {'backend':backend} if backend == 'vietocr' else {}
+            return recognize_pdf(path, selected, data_dir=data_dir, scale=max(2.,scale) if backend == 'vietocr' else scale,
                                  timeout_seconds=timeout_seconds, progress=progress, include_layout=include_layout,
-                                 hybrid_regions=hybrid_regions)
+                                 hybrid_regions=hybrid_regions, **options)
         try:
             from rapidocr_onnxruntime import RapidOCR
         except ImportError as error:  # pragma: no cover - environment dependent

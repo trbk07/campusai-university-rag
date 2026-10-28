@@ -109,6 +109,24 @@ document stops that process. Open document details to start OCR on an existing
 scan or mixed PDF. Uploads never download OCR models or send PDFs to an OCR
 service. Explicit `CAMPUSAI_OCR_BACKEND` settings take priority.
 
+An additional local Vietnamese recognizer is available as an explicit option.
+It improves the observed corrupted course-code fields in the real scan fixture;
+representative PDF/OCR qualification remains open. Install its optional runtime
+and pinned models once, then select it before launching:
+
+```powershell
+uv sync --extra dev --extra feasibility --extra ocr --extra ocr-vietnamese
+uv run python -m scripts.operations.setup_vietocr
+$env:CAMPUSAI_OCR_BACKEND='vietocr'
+$env:CAMPUSAI_OCR_DATA_DIR='.cache/ocr/vietocr'
+```
+
+The inference adapter uses the pinned VietOCR checkpoint, without installing
+its training package or changing Pillow/dependency versions. Models load only
+inside the cancellable OCR child process. CUDA is used when available; CPU is
+supported. This option does not change the default backend or reprocess existing
+documents automatically. [Measurements and limits](docs/ui/evidence/vietnamese-ocr-20261028.json).
+
 An available CUDA GPU can be selected with `CAMPUSAI_DEVICE=cuda` in `.env`.
 The owner laptop uses this setting after a same-model comparison:five real PDFs
 finish in46.85s versus255.41s on CPU, with matching content hashes and near-identical

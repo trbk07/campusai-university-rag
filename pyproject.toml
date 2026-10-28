@@ -9,6 +9,7 @@ dependencies = ["pandas>=2.2,<3.0", "pdfplumber>=0.11,<1.0", "pymupdf>=1.25.3,<2
 [project.optional-dependencies]
 dev = ["pytest>=8.0,<9.0", "pytest-cov>=5.0,<7.0"]
 ocr = ["pytesseract>=0.3.13,<1.0", "pillow>=10.0,<13.0", "rapidocr-onnxruntime>=1.4,<2.0", "numpy>=2.0,<3.0", "tesserocr==2.12.0"]
+ocr-vietnamese = ["torch>=2.2,<3.0", "rapidocr-onnxruntime==1.4.4"]
 pdf-repair = ["pikepdf>=9.0,<11.0"]
 parquet = ["pyarrow>=15,<21"]
 feasibility = [
@@ -27,7 +28,7 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-campusai = ["ui/pages/*.html", "ui/styles/*.css", "ui/scripts/*.js", "ui/features/*.js"]
+campusai = ["ui/pages/*.html", "ui/styles/*.css", "ui/scripts/*.js", "ui/features/*.js", "ingestion/vietocr.LICENSE"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]

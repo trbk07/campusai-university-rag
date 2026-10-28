@@ -55,6 +55,13 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    **Phương án đã loại:** TableFormer + OCR từng ô quá chậm (49 giây/trang,
    cả tài liệu vượt 120 giây) và vẫn sai ký tự. Đã gỡ bản thử khỏi runtime,
    giữ bằng chứng để không thử lại cùng cách; không đổi OCR mặc định hoặc ngưỡng.
+   **QA-03b2 engineering DONE:** thêm nhánh VietOCR local riêng, không cài training stack.
+   Đủ 18/18 trang PDF lỗi; trang bảng khôi phục đúng **20/20 lần xuất hiện mã**
+   so với 10/20 trước sửa. Bộ scan giả lập 6 dạng đạt **97,2% ký tự**;
+   chưa thay cho CER và retrieval trên toàn bộ PDF thật. Mặc định vẫn giữ nguyên.
+   **Làm tiếp:** kiểm liên kết mã, tín chỉ, tiên quyết theo ô/bảng và đối chiếu
+   đầy đủ với nguồn trước khi chấm retrieval đại diện.
+   [Bằng chứng](docs/ui/evidence/vietnamese-ocr-20261028.json).
 2. [ ] **QA-08c — Tốc độ streaming AI thật.**
    Đo **p95 thời gian đến token đầu tiên ≤5 giây** trong môi trường cố định.
    Không tính heartbeat, cache hoặc trích đoạn local thành token model mới.
@@ -67,7 +74,8 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
    Khi runtime cuối ổn định: chạy **3 full regressions liên tiếp** trên cùng source,
    kiểm 100% luồng/tests bắt buộc, critical E2E 100%, tổng E2E ≥98% và không có
    crash/exception chưa xử lý. Đối chiếu toàn bộ yêu cầu rồi mới đóng goal.
-   Full regression ngày 28/10: **3.134 PASS / 0 FAIL / 2 live SKIP**;
+   Full regression mới nhất ngày 28/10: **3.149 PASS / 0 FAIL / 2 live SKIP**;
+   **282 tests liên quan OCR PASS**. Lượt streaming trước đó:
    **346 tests liên quan PASS**, thêm **64 tests launcher/streaming PASS**,
    giao diện mặc định **43/43**, nhánh streaming **44/44**, JS transport **9/9**.
    Đây chưa phải chuỗi 3 full trên runtime cuối vì chất lượng PDF vẫn còn mở.
@@ -76,6 +84,14 @@ Không tính phần trăm toàn goal bằng cách cộng các task có khối l�
 
 <a id="da-done"></a>
 ### 2.2. Task đã DONE — giữ đóng
+
+- [x] **QA-03b2 — OCR tiếng Việt local và sửa trường mã trên scan.** Backend
+  VietOCR chạy riêng, kiểm checksum/kích thước model và hủy/timeout được bằng
+  process boundary hiện có. Không thay OCR mặc định hoặc training dependencies.
+  Đủ 18/18 trang PDF lỗi, 70 chunks; trang 14 khôi phục đúng 20/20 lần xuất hiện
+  mã so với 10/20 trước sửa. Fixture scan 6 dạng đạt 97,2% ký tự. **282 tests liên
+  quan và full 3.149 tests PASS**; gate chất lượng PDF đại diện vẫn mở.
+  [Bằng chứng và cách bật](docs/ui/evidence/vietnamese-ocr-20261028.json).
 
 - [x] **QA-08c1 — Transport và đo streaming thật.** SSE được giới hạn kích thước,
   bỏ thought parts; cache/local không tạo token giả. Hủy kết nối giải phóng lượt

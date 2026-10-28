@@ -2,6 +2,17 @@
 
 Latest cycle:2026-10-28. See [QA_AUDIT.md](QA_AUDIT.md) for open findings.
 
+Vietnamese OCR:282 related tests PASS,including pinned model/version rejection,
+restricted weights-only loading,missing-EOS rejection,prose/table reading order,
+worker timeout/cancellation/identity failure,native cache preservation,scope,
+OCR jobs and grounding regressions. Real18-page isolated ingestion and the
+unchanged6-category known raster fixture are measured separately. Expected
+literal code recovery on physical page14 is diagnostic,not whole-document OCR
+or representative retrieval acceptance. [Evidence](docs/ui/evidence/vietnamese-ocr-20261028.json).
+Full3149 PASS/0 FAIL/2 optional live SKIP. Original CRLF restored in2 existing
+files after full run with identical AST; targeted ingestion/job tests verify
+the final working-tree form. This is not the final three-run series.
+
 Streaming:346 related Python tests and9 JS transport tests PASS. Cover fragmented
 UTF-8/SSE/NDJSON, thought redaction, stream size/event bounds, malformed/truncated
 responses, cancellation, worker/lease recovery,quota/circuit accounting,no hidden

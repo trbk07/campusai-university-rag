@@ -9,21 +9,25 @@ import sys
 import threading
 import time
 
-from .ocr_assets import TESSDATA_SHA256, validate_tesseract_assets
+from .ocr_assets import TESSDATA_SHA256, VIETOCR_SHA256, validate_tesseract_assets, validate_vietocr_assets
 
 
 def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
-                  include_layout=False, hybrid_regions=None):
+                  include_layout=False, hybrid_regions=None, backend='tesseract'):
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
     started = time.perf_counter()
+    if backend not in {'tesseract','vietocr'}:
+        raise ValueError('unsupported isolated OCR backend')
+    expected = VIETOCR_SHA256 if backend == 'vietocr' else TESSDATA_SHA256
+    engine = 'vietocr-vgg-seq2seq-v1' if backend == 'vietocr' else 'tesseract-vie-eng'
     try:
-        identity = validate_tesseract_assets(data_dir)
+        identity = (validate_vietocr_assets if backend == 'vietocr' else validate_tesseract_assets)(data_dir)
     except ValueError as error:
         raise OCRUnavailable(str(error)) from error
     environment = {k: v for k, v in os.environ.items()
                    if k not in {'PYTHONPATH', 'PYTHONHOME', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'GROQ_API_KEY'}}
     environment.update(OMP_THREAD_LIMIT='1', OMP_NUM_THREADS='1')
-    worker = Path(__file__).with_name('tesseract_worker.py')
+    worker = Path(__file__).with_name('vietocr_worker.py' if backend == 'vietocr' else 'tesseract_worker.py')
     process = subprocess.Popen([sys.executable, '-I', '-u', str(worker)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
         env=environment, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
@@ -54,7 +58,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
     pages, ready, finished = [], False, False
     try:
         payload = {'path': str(Path(path).resolve()), 'data_dir': str(Path(data_dir).resolve()),
-                   'page_numbers': selected, 'scale': scale, 'model_sha256': TESSDATA_SHA256,
+                   'page_numbers': selected, 'scale': scale, 'model_sha256': expected,
                    'include_layout': include_layout, 'hybrid_regions': hybrid_regions or {}}
         encoded = json.dumps(payload, allow_nan=False).encode('utf-8') + b'\n'
         if len(encoded) > 2 * 1024 * 1024:
@@ -86,9 +90,12 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
                 raise OCRUnavailable('local OCR worker ended before completion')
             kind = message.get('type')
             if kind == 'ready' and not ready and not pages:
-                if message.get('model_sha256') != TESSDATA_SHA256 or message.get('engine') != 'tesseract-vie-eng':
+                if message.get('model_sha256') != expected or message.get('engine') != engine:
                     raise OCRUnavailable('local OCR identity mismatch')
-                identity['tesseract_version'] = message.get('tesseract_version')
+                if backend == 'tesseract':
+                    identity['tesseract_version'] = message.get('tesseract_version')
+                else:
+                    identity.update(device=message.get('device'),render_scale=scale)
                 ready = True
             elif kind == 'page' and ready and len(pages) < len(selected):
                 text, confidence = message.get('text'), message.get('confidence')
@@ -136,7 +143,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
             raise OCRLimitExceeded('OCR time limit exceeded') from error
         if progress is not None:
             progress(len(pages), len(selected))
-        return OCRDocument(pages, 'tesseract-vie-eng',
+        return OCRDocument(pages, engine,
             round(sum(p['confidence'] for p in pages) / len(pages), 6),
             round(time.perf_counter() - started, 6), identity)
     finally:

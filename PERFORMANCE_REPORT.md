@@ -1,5 +1,18 @@
 # App performance evidence
 
+## 2026-10-28 - optional Vietnamese scan recognizer
+
+Real18-page CS2019 scan:74.790s isolated ingestion,including69.428s OCR,all18
+pages and70 chunks retained. Earlier Tesseract path took33.610s;this is an explicit
+quality alternative,not a speedup or paired p95 comparison. No native parsing,
+default OCR choice,embedding or provider settings change. The one-page adapter
+matches all146 strings from the upstream package on identical crops; confidence
+averages only the published prefix rather than tokens generated after EOS.
+
+Six-category drawn-pixel fixture:27.983s,97.20% character accuracy. Representative
+real OCR accuracy/retrieval and true TTFT remain OPEN.
+[Measurement bindings](docs/ui/evidence/vietnamese-ocr-20261028.json).
+
 ## 2026-10-28 - real streaming measured, TTFT gate NOT PASSED
 
 20 distinct uncached RAG queries use an explicitly fictional one-page source,

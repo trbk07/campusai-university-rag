@@ -31,7 +31,7 @@ def normalize_options(options):
     result = {**DEFAULT_OPTIONS,**options}
     result['store_dir'] = str(Path(result['store_dir']).resolve())
     result['index_dir'] = str(Path(result['index_dir']).resolve()) if result['index_dir'] is not None else None
-    if not isinstance(result['ocr_backend'],str) or result['ocr_backend'] not in {'rapidocr','tesseract'}:
+    if not isinstance(result['ocr_backend'],str) or result['ocr_backend'] not in {'rapidocr','tesseract','vietocr'}:
         raise ValueError('unsupported OCR backend')
     if result['ocr_data_dir'] is not None:
         if not isinstance(result['ocr_data_dir'],(str,Path)) or not str(result['ocr_data_dir']).strip():

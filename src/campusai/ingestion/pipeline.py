@@ -166,14 +166,14 @@ def ingest_document(
         document = Document.from_dict(data)
         parser_version = document.metadata.get("parser_version")
         cache_versions_current = (
-            parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1", "tesseract-vie-eng-v1"}
+            parser_version in {"pymupdf-text-v1", "rapidocr-onnx-v1", "tesseract-vie-eng-v1", "vietocr-vgg-seq2seq-v1"}
             and document.metadata.get("chunker_version") == CHUNKER_VERSION
             and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
             and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
         cached_ocr = document.metadata.get('ocr')
         if (document.metadata.get('text_coverage_version') == 2
-                and parser_version in {'pymupdf-text-v1', 'rapidocr-onnx-v1', 'tesseract-vie-eng-v1'}
+                and parser_version in {'pymupdf-text-v1', 'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
                 and document.metadata.get('chunker_version') == CHUNKER_VERSION
                 and document.metadata.get('table_extractor_version') == TABLE_EXTRACTOR_VERSION
                 and not any(page.get('ignored_invisible_spans') for page in parse_pdf(pdf_path))):
@@ -285,8 +285,8 @@ def ingest_document(
     metadata["text_coverage_version"] = TEXT_COVERAGE_VERSION
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
-        metadata["parser_version"] = ('tesseract-vie-eng-v1' if ocr_backend == 'tesseract'
-                                      else 'rapidocr-onnx-v1')
+        metadata["parser_version"] = ({'tesseract':'tesseract-vie-eng-v1',
+            'vietocr':'vietocr-vgg-seq2seq-v1'}.get(ocr_backend,'rapidocr-onnx-v1'))
         metadata["warnings"] = ["ocr_used"]
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)

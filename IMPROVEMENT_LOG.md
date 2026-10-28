@@ -1,5 +1,20 @@
 # App improvement log
 
+## 2026-10-28 - local Vietnamese OCR literal correction
+
+Implement a pinned inference-only VietOCR adapter behind explicit backend
+selection. Preserve default OCR/native paths and all locked dependency versions.
+Avoid the old recognizer's confidence filter before crop recognition, which
+discarded numeric cells. Keep prose-column gutters and physical table ordering;
+bound subprocess lifetime,crop batches and decoding,with no request-time downloads.
+
+Actual18-page scan completes in74.79s;page14 expected code occurrences recover
+10/20 to20/20. Known drawn raster fixture97.20% character accuracy. These are
+separate observations,not representative PDF quality acceptance.282 related
+tests PASS;full3149 PASS/0 FAIL/2 optional live SKIP. QA-03b2 engineering DONE;
+parent representative quality remains open.
+[Scope and reproducible evidence](docs/ui/evidence/vietnamese-ocr-20261028.json).
+
 ## 2026-10-28 - guarded streaming transport complete
 
 Closed QA-08c1 engineering: bounded SSE reader and request-local genuine model

@@ -25939,6 +25939,32 @@
       "storage_bytes": 231992,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/vietnamese-ocr-20261028-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/vietnamese-ocr-20261028-evidence.zip",
+      "version_or_revision": "b46e5f77a8f1b5c9b5d4e3b28c2ffbae667a818e8942182416c09901fa1805a2",
+      "sha256": "b46e5f77a8f1b5c9b5d4e3b28c2ffbae667a818e8942182416c09901fa1805a2",
+      "bytes": 26919128,
+      "local_or_external_uri": "objects/b4/b46e5f77a8f1b5c9b5d4e3b28c2ffbae667a818e8942182416c09901fa1805a2.gz",
+      "encoding": "gzip",
+      "storage_sha256": "b454ee242b27225238d0441472338877d0edf196a115842589488976f91a1e58",
+      "storage_bytes": 26903941,
+      "reproducible": false,
+      "restorable": true
+    },
+    ".tmp/vietnamese-ocr-20261028-tests.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/vietnamese-ocr-20261028-tests.zip",
+      "version_or_revision": "7395dbc640064e305aa18d7348053e7c944a86c54810a01f14d7c4c6e984216e",
+      "sha256": "7395dbc640064e305aa18d7348053e7c944a86c54810a01f14d7c4c6e984216e",
+      "bytes": 321263,
+      "local_or_external_uri": "objects/73/7395dbc640064e305aa18d7348053e7c944a86c54810a01f14d7c4c6e984216e.gz",
+      "encoding": "gzip",
+      "storage_sha256": "5385a291482aa45871c7d7eb33af693277a6dfd3ded65829aa9c83ca0d2ac666",
+      "storage_bytes": 319857,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

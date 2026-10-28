@@ -110,6 +110,17 @@
 /tests/ui/package.json -text whitespace=cr-at-eol
 /docs/ui/evidence/query-streaming-20261028.json -text whitespace=cr-at-eol
 
+# Preserve pinned local OCR producer and evidence bytes.
+/src/campusai/ingestion/ocr.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/ocr_assets.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/tesseract_process.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/vietocr_recognizer.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/vietocr_worker.py -text whitespace=cr-at-eol
+/src/campusai/ingestion/vietocr.LICENSE -text whitespace=cr-at-eol
+/scripts/operations/setup_vietocr.py -text whitespace=cr-at-eol
+/tests/test_vietocr.py -text whitespace=cr-at-eol
+/docs/ui/evidence/vietnamese-ocr-20261028.json -text whitespace=cr-at-eol
+
 # Preserve the exact local HTTP recovery/security producer and evidence bytes.
 /src/campusai/web.py -text whitespace=cr-at-eol
 /src/campusai/deployment/local_server.py -text whitespace=cr-at-eol
