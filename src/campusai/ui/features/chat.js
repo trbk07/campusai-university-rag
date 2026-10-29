@@ -40,6 +40,7 @@ function renderMessage(message, index) {
   if (message.role === 'user') return `<article class="message user-message"><span class="message-avatar" aria-hidden="true">${icon('user')}</span><div class="message-bubble">${esc(message.text)}</div></article>`;
   if (message.error) return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble"><p>${esc(message.error)}</p><button class="text-button" data-retry="${index}" ${state.busy ? 'disabled' : ''}>${icon('refresh')}Thử lại câu hỏi này</button></div></article>`;
   const answer = message.answer, citations = answer.abstained ? [] : answer.citations || [];
+  const coverageNote = message.coverage?.complete === false ? '<div class="answer-note">Câu trả lời dựa trên phần tài liệu đã đọc; một số trang ảnh chưa xử lý xong.</div>' : '';
   const claims = answer.abstained ? [] : answer.claims || [];
   const claimSources = claims.map(claim => {
     const indexes = (claim.citation_ids || []).map(id => citations.findIndex(citation => citation.chunk_id === id)).filter(i => i >= 0);
@@ -47,7 +48,7 @@ function renderMessage(message, index) {
   }).join('');
   const sourceLinks = citations.map((citation,i) => marker(i,index)).join('');
   if (message.fallback) return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${excerptBody(message.fallback,index,marker)}<button class="text-button" data-copy="${index}">${icon('copy')}Sao chép trích đoạn</button><span class="message-time">${esc(message.time)}</span></div></article>`;
-  return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${answer.abstained ? `<div class="answer-note">${esc(note(answer))}</div>` : ''}<div class="answer-body">${safeMarkdown(answer.answer)}</div>${claimSources ? `<div class="claim-sources"><strong>Kiểm chứng các ý chính</strong>${claimSources}</div>` : sourceLinks ? `<div class="claim-sources">Nguồn tham khảo ${sourceLinks}</div>` : ''}<div class="message-actions"><button class="text-button ${message.feedback === 'helpful' ? 'selected' : ''}" data-feedback="helpful" data-message="${index}" aria-pressed="${message.feedback === 'helpful'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-up')}Hữu ích</button><button class="text-button ${message.feedback === 'incorrect' ? 'selected' : ''}" data-feedback="incorrect" data-message="${index}" aria-pressed="${message.feedback === 'incorrect'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-down')}Chưa chính xác</button><button class="text-button" data-copy="${index}">${icon('copy')}Sao chép</button><span class="message-time">${esc(message.time)}</span></div><p class="inline-status" data-feedback-status="${index}" role="status">${esc(message.feedbackError || '')}</p></div></article>`;
+  return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${coverageNote}${answer.abstained ? `<div class="answer-note">${esc(note(answer))}</div>` : ''}<div class="answer-body">${safeMarkdown(answer.answer)}</div>${sourceLinks ? `<div class="claim-sources">Nguồn ${sourceLinks}</div>` : ''}${claimSources ? `<details class="claim-sources"><summary>Kiểm chứng các ý chính</summary>${claimSources}</details>` : ''}<div class="message-actions"><button class="text-button ${message.feedback === 'helpful' ? 'selected' : ''}" data-feedback="helpful" data-message="${index}" aria-pressed="${message.feedback === 'helpful'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-up')}Hữu ích</button><button class="text-button ${message.feedback === 'incorrect' ? 'selected' : ''}" data-feedback="incorrect" data-message="${index}" aria-pressed="${message.feedback === 'incorrect'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-down')}Chưa chính xác</button><button class="text-button" data-copy="${index}">${icon('copy')}Sao chép</button><span class="message-time">${esc(message.time)}</span></div><p class="inline-status" data-feedback-status="${index}" role="status">${esc(message.feedbackError || '')}</p></div></article>`;
 }
 function renderConversation() {
   $('#conversation').innerHTML = messages.map(renderMessage).join('') + (state.busy ? '<div class="loading-line"><span class="spinner" aria-hidden="true"></span>Đang tìm kiếm và kiểm tra bằng chứng...</div>' : '');
@@ -134,7 +135,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
       $('#query-status').textContent = phase === 'generating'
         ? 'AI đang tạo câu trả lời. Nội dung sẽ hiển thị sau khi kiểm chứng nguồn.'
         : 'Đang kiểm chứng câu trả lời và trích dẫn...';
-    }) : post('/api/query', payload));
+    }, state.queryTimeoutMs) : post('/api/query', payload, state.queryTimeoutMs));
     if (generation !== epoch) return;
     if (!response.answer || typeof response.answer.answer !== 'string') throw new Error('invalid_response');
     const answer = {...response.answer, documentInfo:response.document_info, conversationKind:response.conversation_kind};
@@ -142,7 +143,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     if (answer.abstained) { answer.citations = []; answer.claims = []; }
     const fallback = excerptFallback(response);
     if (fallback || response.partial) userMessage.failed = true;
-    const message = {role:'assistant',answer,fallback,failed:!!response.partial,scopeKey,responseId:response.responseId,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})};
+    const message = {role:'assistant',answer,fallback,coverage:response.source_coverage,failed:!!response.partial,scopeKey,responseId:response.responseId,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})};
     messages.push(message);
     renderSources(excerptSources(message));
   } catch (error) {

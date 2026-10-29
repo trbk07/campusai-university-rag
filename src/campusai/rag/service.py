@@ -585,6 +585,11 @@ class CampusAIQueryService:
                 with stage('source_table_lookup'):
                     snapshot = self.corpus_version(doc_ids)
                     documents = self._temporal_documents(doc_ids, filters)
+                    if any(item.get('metadata', {}).get('coverage_complete') is False
+                           for document in documents for item in document['items']):
+                        # Whole-source uniqueness/completeness cannot be proved
+                        # from a published snapshot whose OCR is still running.
+                        documents = []
                     projection = lookup_curriculum(question, documents, doc_ids=doc_ids,
                         language=language, calibrator=self.answer_generator.calibrator)
                     if projection is None:

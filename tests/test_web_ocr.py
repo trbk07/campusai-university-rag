@@ -35,7 +35,8 @@ def ocr_app(tmp_path, mixed_pdf, monkeypatch):
     app = CampusAIApplication(CampusAIQueryService(HybridRetriever(tmp_path/'index'),
         GroundedAnswerGenerator(None)), jobs=IngestionJobManager(max_workers=2),
         ingestion_defaults={'store_dir':tmp_path/'store','index_dir':tmp_path/'index',
-                            'dense_model':'fallback-hash-256','ocr_max_pages':1})
+                            'dense_model':'fallback-hash-256','ocr_max_pages':1,
+                            'enable_ocr':False,'progressive_ocr':False})
     web = make_wsgi_app(app)
     job = upload_ready(web,mixed_pdf.read_bytes())
     assert job['state']=='review_required'

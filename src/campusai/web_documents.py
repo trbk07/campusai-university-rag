@@ -133,6 +133,49 @@ class WebDocuments:
         self._legacy_coverage = {}
         from .web_deletions import DocumentDeletions
         self.deletions = DocumentDeletions(self)
+        self._ocr_upgrade_thread = None
+        if (getattr(application, 'jobs', None) is not None and defaults.get('enable_ocr')
+                and defaults.get('progressive_ocr') and (self.store / 'registry.json').is_file()):
+            # Existing uploads need the same automatic workflow as new ones.
+            # Never make a GET request start processing or re-upload the PDF.
+            self._ocr_upgrade_thread = threading.Thread(target=self._resume_legacy_ocr,
+                name='campusai-ocr-upgrade', daemon=True)
+            self._ocr_upgrade_thread.start()
+
+    def _resume_legacy_ocr(self):
+        def eligible(record):
+            return (record.get('status') == 'review_required'
+                and record.get('review_reason') in {'ocr_required', 'ocr_unavailable'}
+                and 'coverage_complete' not in record.get('metadata', {}))
+        try:
+            candidates = [r['doc_id'] for r in self.registry.metadata_list() if eligible(r)]
+        except (OSError, ValueError):
+            return
+        for doc_id in candidates:
+            if not re.fullmatch('[0-9a-f]{64}', doc_id):
+                continue
+            while True:
+                try:
+                    with self.deletions.file_lock(doc_id), self.lock:
+                        record = self.record(doc_id, {})
+                        latest = self.latest_jobs_snapshot().get(doc_id)
+                        # Preserve explicit cancellation, failures and crash
+                        # recovery. Do not retry work already attempted here.
+                        if (not eligible(record) or latest is not None
+                                and latest['state'] not in {'succeeded', 'review_required'}):
+                            break
+                        source = self.source(doc_id, {})
+                        self.application.jobs.submit(source, expected_sha256=doc_id,
+                            reprocess_review=True, **self.application.ingestion_defaults)
+                    break
+                except JobQueueFull:
+                    # Wait for capacity, without creating jobs or discarding
+                    # the remaining documents. Shutdown makes submit fail.
+                    threading.Event().wait(.25)
+                except JobStoreUnavailable:
+                    return
+                except (OSError, ValueError):
+                    break
 
     @property
     def registry(self):
@@ -192,21 +235,24 @@ class WebDocuments:
                 self._legacy_coverage[doc_id] = (identity, unread)
             else:
                 unread = cached[1]
-        ready = record.get("status") == "succeeded" and self.index is not None and all(
+        partial = record.get('status') == 'partial' and meta.get('coverage_complete') is False and bool(meta.get('readable_pages'))
+        ready = (record.get("status") == "succeeded" or partial) and self.index is not None and all(
             contained(self.index, self.index / doc_id / name).is_file() for name in ("bm25.json", "dense.json"))
         deleting = doc_id in self.deletions.pending
-        ready = ready and not unread and not deleting
+        ready = ready and (not unread or partial) and not deleting
         safe_meta = {key: meta[key] for key in ("document_type", "academic_year", "program", "university", "version", "semester")
                      if isinstance(meta.get(key), (str, int))}
         if latest_job is ...:
             latest_job = self.latest_jobs_snapshot().get(doc_id)
-        if latest_job is not None and (latest_job['state'] != 'succeeded' or not latest_job.get('ready')):
+        if latest_job is not None and not latest_job.get('ready'):
             ready = False
         return {"doc_id": doc_id, "name": source.name, "page_count": record.get("page_count", 0),
                 "deleting": deleting, "delete_failed": doc_id in self.deletions.failed,
-                "metadata": safe_meta, "ready": ready, "status": "review_required" if unread else "ready" if ready else record.get("status", "review_required"),
+                "metadata": safe_meta, "ready": ready, "status": "partial" if partial and ready else "review_required" if unread else "ready" if ready else record.get("status", "review_required"),
                 "review_reason": 'ocr_required' if unread else record.get('review_reason'),
                 "unread_pages": unread,
+                "readable_pages": meta.get('readable_pages', []),
+                "coverage_complete": not bool(unread),
                 "ocr_available": self.application.jobs is not None and available and not ready and not deleting
                     and bool(unread or record.get('review_reason') in {'ocr_required','ocr_unavailable'}),
                 "file_available": available, "size_bytes": source.stat().st_size if available else None,
@@ -483,7 +529,7 @@ class WebDocuments:
             if not accepted:
                 raise WebError("job_terminal", 409)
             return {"ok": True, "job": self.public_job(self.application.jobs.get(job_id), environ)}
-        if job["state"] != "failed" or not job["retryable"]:
+        if job["state"] not in {"failed", "review_required"} or not job["retryable"]:
             raise WebError("retry_unavailable", 409)
         try:
             retry_id = self.application.jobs.retry(job_id)

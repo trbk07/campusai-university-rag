@@ -26,10 +26,24 @@ class CampusAIApplication:
         self.jobs = jobs
         self.metrics = metrics or query_service.metrics
         self.ingestion_defaults = dict(ingestion_defaults or {})
+        # Web uploads own the OCR workflow. Library/CLI ingestion retains its
+        # explicit flags; operators may still disable automatic OCR here.
+        self.ingestion_defaults.setdefault('enable_ocr', True)
+        self.ingestion_defaults.setdefault('progressive_ocr', True)
         self.provider_failure_excerpts = provider_failure_excerpts
 
     def health(self) -> dict[str, Any]:
         return {"status": "ok", "service": "campusai"}
+
+    def query_timeout_ms(self) -> int:
+        """Keep the browser deadline beyond bounded generation/source audit."""
+        import math
+        timeout = getattr(getattr(getattr(self.query_service, 'answer_generator', None), 'llm', None), 'timeout', None)
+        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or not math.isfinite(timeout) or timeout <= 0:
+            return 45000
+        # Initial generation plus one bounded full-source follow-up (and PDF
+        # token measurement when enabled); no automatic infinite client wait.
+        return max(45000, min(300000, math.ceil(timeout * 3000 + 15000)))
 
     def liveness(self) -> dict[str, Any]:
         """Process-level probe; dependency state belongs to readiness."""

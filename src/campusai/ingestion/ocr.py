@@ -17,6 +17,9 @@ class OCRUnavailable(RuntimeError):
 
 class OCRLimitExceeded(RuntimeError):
     """Raised when the OCR page or time budget is exceeded."""
+    def __init__(self, message, *, partial=None):
+        super().__init__(message)
+        self.partial = partial
 
 
 @dataclass(frozen=True)
@@ -98,6 +101,11 @@ def ocr_pdf(
     started = time.perf_counter()
     pages: list[dict[str, object]] = []
     confidences: list[float] = []
+    def limit(message):
+        partial = OCRDocument(list(pages), 'rapidocr-onnxruntime',
+            round(sum(confidences)/len(confidences),6) if confidences else 0.,
+            round(time.perf_counter()-started,6)) if pages else None
+        return OCRLimitExceeded(message, partial=partial)
     with fitz.open(Path(path)) as document:
         selected = list(range(1, document.page_count + 1)) if page_numbers is None else list(page_numbers)
         if (not selected or any(type(number) is not int or not 1 <= number <= document.page_count for number in selected)
@@ -126,7 +134,7 @@ def ocr_pdf(
         engine = RapidOCR(intra_op_num_threads=1, inter_op_num_threads=1)
         for completed,page_number in enumerate(selected,1):
             if time.perf_counter() - started > timeout_seconds:
-                raise OCRLimitExceeded("OCR time limit exceeded")
+                raise limit("OCR time limit exceeded")
             page = document[page_number - 1]
             regions = (hybrid_regions or {}).get(page_number)
             if regions:
@@ -136,12 +144,12 @@ def ocr_pdf(
                     if progress is not None:
                         progress(completed - 1, len(selected))
                     if time.perf_counter() - started > timeout_seconds:
-                        raise OCRLimitExceeded('OCR time limit exceeded')
+                        raise limit('OCR time limit exceeded')
                     rect = fitz.Rect(region)
                     if rect.is_empty or not bounds.contains(rect):
                         raise ValueError('OCR image region outside page')
                     if rect.get_area() * scale ** 2 > 20_000_000:
-                        raise OCRLimitExceeded('OCR page pixel limit exceeded')
+                        raise limit('OCR page pixel limit exceeded')
                     pixmap = page.get_pixmap(matrix=fitz.Matrix(scale, scale), clip=rect * page.rotation_matrix,
                                              alpha=False, colorspace=fitz.csRGB)
                     image = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, pixmap.n)
@@ -199,7 +207,7 @@ def ocr_pdf(
                 progress(completed,len(selected))
     elapsed = time.perf_counter() - started
     if elapsed > timeout_seconds:
-        raise OCRLimitExceeded("OCR time limit exceeded")
+        raise limit("OCR time limit exceeded")
     return OCRDocument(
         pages=pages,
         engine="rapidocr-onnxruntime",

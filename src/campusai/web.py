@@ -96,7 +96,8 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                         "limits": {"max_mb": documents.max_mb, "max_pages": documents.max_pages},
                         "upload_available": application.jobs is not None and "campusai.authorized_doc_ids" not in environ,
                         "runtime": {"ai_configured": getattr(getattr(application.query_service, "answer_generator", None), "llm", None) is not None,
-                                    "query_streaming": enable_query_streaming}}
+                                    "query_streaming": enable_query_streaming,
+                                    "query_timeout_ms": application.query_timeout_ms()}}
                     return _json_response(value, start_response)
             if path == "/api/documents/upload" and method == "POST":
                 if environ.get("CONTENT_TYPE", "").split(";")[0] != "application/pdf":
@@ -190,6 +191,11 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                                             start_response, 429, extra=[("Retry-After", "1"), ("X-Request-ID", request_id)])
                                     acquired = True
                                 value = application.query(payload.get("question", ""), **options)
+                                incomplete = [doc for doc in validated_documents or [] if doc.get('coverage_complete') is False]
+                                if incomplete:
+                                    value['source_coverage'] = {'complete':False, 'documents':[
+                                        {'doc_id':doc['doc_id'], 'unread_pages':doc['unread_pages'],
+                                         'readable_pages':doc['readable_pages']} for doc in incomplete]}
                         except TimeoutError:
                             raise WebError("provider_timeout", 504)
                         except (CalibrationError, OSError, json.JSONDecodeError):

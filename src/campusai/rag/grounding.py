@@ -403,6 +403,21 @@ def build_context(
             minimum = min(per_prose, len(marker) + 128)
             allocations = [len(p[2]) if p[0].content_type == 'table' else min(len(p[2]), minimum)
                            for p in parts]
+            if not synthesis:
+                allocations = [len(p[2]) if p[0].content_type == 'table'
+                               else min(len(p[2]), per_prose) for p in parts]
+                # Return unused space from short chunks to longer passages
+                # before cutting their qualifications/deadlines off mid-rule.
+                remaining = available - sum(allocations)
+                pending = [i for i, part in enumerate(parts)
+                           if part[0].content_type != 'table' and allocations[i] < len(part[2])]
+                while pending and remaining:
+                    share = max(1, remaining // len(pending))
+                    for i in pending:
+                        extra = min(remaining, share, len(parts[i][2]) - allocations[i])
+                        allocations[i] += extra
+                        remaining -= extra
+                    pending = [i for i in pending if allocations[i] < len(parts[i][2])]
             if synthesis:
                 remaining = available - sum(allocations)
                 for i, part in enumerate(parts):
@@ -413,7 +428,7 @@ def build_context(
                     allocations[i] += extra
                     remaining -= extra
             for i, (result, metadata, content) in enumerate(parts):
-                limit = allocations[i] if synthesis else per_prose
+                limit = allocations[i]
                 if result.content_type != 'table' and len(content) > limit:
                     content = verbatim_window(content, question, limit - len(marker)) + marker
                 blocks.append(metadata + content)
@@ -565,13 +580,37 @@ class GroundedAnswerGenerator:
             'the same source sentence.'
         )
         instructions += (
+            '\nFor a permission, eligibility decision, or list of requirements, retain the '
+            'conditions, exceptions and deadlines that limit that same rule. These are part '
+            'of the requested fact, not unrelated neighboring facts. A short answer must not '
+            'turn a conditional permission into an unconditional one. Exact phrase-only '
+            'requests remain limited to the requested phrase. Every requested value in answer '
+            'must also occur with its subject/scope in a cited verification claim.'
+        )
+        instructions += (
             '\nSTRICT SCOPE AND CITATIONS: report only the fact directly requested; do not add '
             'neighboring list entries or other true but unrequested facts. Keep each verification '
             'claim to the shortest complete source-faithful statement that answers the question. '
             'For each claim, cite only the minimum chunk or chunks that directly prove it; omit '
             'retrieved chunks that provide background but do not prove that claim.'
         )
+        if any(result.content_type == 'table' for result in results):
+            instructions += ('\nTABLE CLAIMS MUST KEEP THE RELATION: put the subject, applicability '
+                'and the requested values from the SAME row together in ONE verification claim, '
+                'using literal source-cell wording separated by " | " when a sentence would '
+                'require paraphrasing. Never emit separate claims consisting only of a row label, '
+                'a qualification, a duration or a credit count. Do not split a source row into '
+                'disconnected cell claims. Write the public answer as a short natural sentence '
+                'that conveys those same supported relationships, not as a copied table. '
+                'Use the qualification/category label from the source in that sentence; '
+                'do not copy a colloquial numeric label from the question into the answer '
+                'when the source states that qualification by name or abbreviation.')
         from .request_completeness import explicit_request_roles
+        if any(result.metadata.get('coverage_complete') is False for result in results):
+            instructions += ('\nINCOMPLETE SOURCE: image OCR is still unfinished for some pages. '
+                'Answer only facts directly supported by the readable evidence below. '
+                'Do not claim the whole document is covered, that a fact is absent, or that '
+                'a list or total is exhaustive. If evidence is insufficient, abstain.')
         required_roles = explicit_request_roles(question)
         if required_roles:
             instructions += ('\nEXPLICIT NO-PARTIAL USER REQUEST: verify BOTH requested facts: '
@@ -712,12 +751,15 @@ class GroundedAnswerGenerator:
         except (ValueError, TypeError, AttributeError):
             return abstain("invalid_citation", language=language)
         from .citation_handles import evidence_handles, restore_citations, InvalidCitationHandle
+        incomplete_source = any(result.metadata.get('coverage_complete') is False for result in results)
+        if incomplete_source and multi_hop_context is not None:
+            return abstain('insufficient_evidence')
         handles = evidence_handles(results) if self.compact_citation_ids else None
         if is_ambiguous_question(question, results):
             return abstain("ambiguous_question")
         from .table_fields import deterministic_curriculum_block_total
         calculated = (deterministic_curriculum_block_total(question, results, language,
-            calibrator=self.calibrator) if pdf_documents is None else None)
+            calibrator=self.calibrator) if pdf_documents is None and not incomplete_source else None)
         if calculated is not None:
             return calculated
         conflict = (any(has_conflicting_numeric_evidence([r for r in results if r.doc_id == doc], question)
@@ -751,30 +793,31 @@ class GroundedAnswerGenerator:
                 return calculated
         from .table_fields import deterministic_admission_field
         calculated = (deterministic_admission_field(question, results, language,
-            calibrator=self.calibrator) if pdf_documents is None else None)
+            calibrator=self.calibrator) if pdf_documents is None and not incomplete_source else None)
         if calculated is not None:
             return calculated
-        if pdf_documents is None and multi_hop_context is None and temporal_context is None:
+        if pdf_documents is None and not incomplete_source and multi_hop_context is None and temporal_context is None:
             from .regulation_facts import deterministic_regulation_fact
             calculated = deterministic_regulation_fact(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
-        if pdf_documents is None and multi_hop_context is None and temporal_context is None:
+        if pdf_documents is None and not incomplete_source and multi_hop_context is None and temporal_context is None:
             from .admission_facts import deterministic_admission_fact
             calculated = deterministic_admission_fact(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
         from .footnotes import deterministic_footnote_fact
-        calculated = deterministic_footnote_fact(question, results, language, calibrator=self.calibrator)
+        calculated = (deterministic_footnote_fact(question, results, language, calibrator=self.calibrator)
+                      if not incomplete_source else None)
         if calculated is not None:
             return calculated
         from .credit_sum import deterministic_credit_sum, deterministic_single_credit
         calculated = (deterministic_single_credit(question, results, language, calibrator=self.calibrator)
-            if pdf_documents is None else None)
+            if pdf_documents is None and not incomplete_source else None)
         if calculated is not None:
             return calculated
         calculated = (deterministic_credit_sum(question, results, language, calibrator=self.calibrator)
-            if pdf_documents is None else None)
+            if pdf_documents is None and not incomplete_source else None)
         if calculated is not None:
             return calculated
         temporal_scope_is_single_source = False
@@ -784,7 +827,7 @@ class GroundedAnswerGenerator:
             temporal_scope_is_single_source = (
                 isinstance(selected_ids, list) and len(selected_ids) == 1
                 and isinstance(selected_ids[0], str) and result_ids == {selected_ids[0]})
-        if (pdf_documents is None and multi_hop_context is None
+        if (pdf_documents is None and not incomplete_source and multi_hop_context is None
                 and document_scope_context is None
                 and (temporal_context is None or temporal_scope_is_single_source)):
             from .multi_hop_evidence import deterministic_direct_prerequisite_code

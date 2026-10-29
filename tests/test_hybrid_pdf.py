@@ -330,7 +330,8 @@ def test_manual_hybrid_ocr_becomes_searchable_without_reupload(hybrid_pdf, tmp_p
     app = CampusAIApplication(CampusAIQueryService(retriever, GroundedAnswerGenerator(None)),
         jobs=IngestionJobManager(), ingestion_defaults={'store_dir': tmp_path/'store',
             'index_dir': tmp_path/'index', 'dense_model': 'fallback-hash-256',
-            'ocr_backend': 'tesseract', 'ocr_data_dir': str(data.resolve())})
+            'ocr_backend': 'tesseract', 'ocr_data_dir': str(data.resolve()),
+            'enable_ocr':False, 'progressive_ocr':False})
     try:
         web = make_wsgi_app(app)
         first = upload_ready(web, hybrid_pdf.read_bytes())

@@ -26186,6 +26186,19 @@
       "storage_bytes": 19410617,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/owner-issues-20261030-evidence.zip": {
+      "artifact_type": "owner_issue_verification",
+      "identity": ".tmp/owner-issues-20261030-evidence.zip",
+      "version_or_revision": "71f7c95963a41914e0877fb81d0310d5c3246339dda43f9074262093bd6cb4b8",
+      "sha256": "71f7c95963a41914e0877fb81d0310d5c3246339dda43f9074262093bd6cb4b8",
+      "bytes": 21579773,
+      "local_or_external_uri": "objects/71/71f7c95963a41914e0877fb81d0310d5c3246339dda43f9074262093bd6cb4b8.gz",
+      "encoding": "gzip",
+      "storage_sha256": "b255c722efcfd935e94d6a74f87e19933cdfd817a1967b2895cd333103dd5a42",
+      "storage_bytes": 21404247,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

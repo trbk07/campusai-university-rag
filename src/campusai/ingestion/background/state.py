@@ -23,7 +23,7 @@ DEFAULT_OPTIONS = {'store_dir':'data/store','index_dir':None,
     'dense_model':'fallback-hash-256','dense_model_revision':'1','device':'cpu',
     'batch_size':8,'max_mb':50,'max_pages':218,'enable_ocr':False,
     'ocr_max_pages':50,'ocr_timeout_seconds':120.0,
-    'ocr_backend':'rapidocr','ocr_data_dir':None}
+    'ocr_backend':'rapidocr','ocr_data_dir':None,'progressive_ocr':False}
 
 
 def normalize_options(options):
@@ -43,6 +43,8 @@ def normalize_options(options):
             raise ValueError('positive ingestion limit required')
     if type(result['enable_ocr']) is not bool:
         raise ValueError('OCR flag must be boolean')
+    if type(result['progressive_ocr']) is not bool:
+        raise ValueError('progressive OCR flag must be boolean')
     timeout = result['ocr_timeout_seconds']
     if (isinstance(timeout,bool) or not isinstance(timeout,(int,float))
             or not math.isfinite(timeout) or timeout <= 0):
@@ -54,6 +56,7 @@ def normalize_options(options):
 
 
 def job_identity(digest,options):
+    options = {k:v for k,v in options.items() if k != 'progressive_ocr' or v}
     payload={'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION,
              'table_extractor_version':TABLE_EXTRACTOR_VERSION}
     if options.get('ocr_backend')=='vietocr':
@@ -74,6 +77,8 @@ def legacy_job_identity(digest, options):
 def accepted_job_identities(digest, options):
     """Accept exact historical formats only; new work uses full current options."""
     variants = [options]
+    if not options.get('progressive_ocr'):
+        variants.append({k:v for k,v in options.items() if k != 'progressive_ocr'})
     if options.get('ocr_backend') == 'rapidocr' and options.get('ocr_data_dir') is None:
         variants.append({k:v for k,v in options.items() if k not in {'ocr_backend','ocr_data_dir'}})
     identities = {function(digest,variant) for variant in variants

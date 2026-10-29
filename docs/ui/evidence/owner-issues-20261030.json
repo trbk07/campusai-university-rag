@@ -1,0 +1,104 @@
+{
+  "task": "Owner Google Docs issues 2026-10-30",
+  "status": "SCOPED_CODE_AND_UI_VERIFIED_AI_REQUALIFICATION_PENDING",
+  "base_commit": "c2ccbf32680961f8539a0193e25be6f53a0fa125",
+  "runtime_sha256": "8b838285894e38393d2e26b46a7a09770df312ec3190d9b2268a510ee8904526",
+  "source_doc": "https://docs.google.com/document/d/1wKcwL5sxaI-Edq_J3LzhB2wLzPH5lPM4c-dGi1evcbU/edit",
+  "changes": [
+    "Automatic bounded OCR for new and eligible legacy uploads; preserve cancellations/failures.",
+    "Publish only verified readable pages, preserve physical page IDs and expose incomplete coverage.",
+    "Resume hash-bound OCR checkpoints; reject corrupt checkpoints; retain completed pages on deadline.",
+    "Disable whole-source conclusions while any selected document has incomplete coverage.",
+    "Concise main answer; collapsed verification claims and provider-error source excerpts.",
+    "Redistribute unused context budget before clipping source qualifications/deadlines.",
+    "Keep source table subject/applicability/value in the same verification claim.",
+    "Compact citation handles resolve to exact original IDs; original grounding thresholds unchanged.",
+    "Browser deadline follows bounded backend timeout; no automatic client resend.",
+    "RPM 10 to observed provider limit 15 on unchanged quota scope/store; no usage/cooldown reset.",
+    "Grounding answer cache policy v43."
+  ],
+  "tests": {
+    "full": {
+      "passed": 3672,
+      "failed": 0,
+      "opt_in_live_skipped": 2,
+      "source_unchanged": true,
+      "elapsed_seconds": 329.1526720523834
+    },
+    "focused": {
+      "passed": 90,
+      "failed": 0
+    },
+    "compatibility": {
+      "passed": 67,
+      "failed": 0
+    },
+    "clean_git_export": {
+      "passed": 211,
+      "failed": 0,
+      "optional_pinned_ocr_asset_skipped": 6,
+      "shared_uncommitted_launcher_changes_included": false
+    },
+    "browser": {
+      "passed": 44,
+      "viewports": 6,
+      "script_errors": 0,
+      "axe_violations": 0,
+      "controlled_provider": true,
+      "live_ai_quality_claim": false
+    },
+    "node_transport": {
+      "passed": 10,
+      "failed": 0
+    },
+    "counts_overlap": true,
+    "three_final_rc_runs": false
+  },
+  "native100_before_context_repair": {
+    "pipeline_cases": 100,
+    "real_model_posts": 50,
+    "local_outcomes": 50,
+    "provider_failures": 0,
+    "timeouts": 0,
+    "retried_cases": 0,
+    "runtime_sha256": "df62f3013f86f8e870c53c8a313968ab621d01f2dcc49756565b7b8bf66d422e",
+    "required_field_coverage_lower_bound": 0.83,
+    "all_cases_p95_seconds": 8.971672,
+    "model_cases_p95_seconds": 9.656421,
+    "whole_answer_accuracy_certified": false,
+    "hallucination_certified": false,
+    "genuine_ttft_measured": false,
+    "fresh_holdout": false,
+    "gold_in_inference": false,
+    "scope": "Current verified encoder over retained reviewed UET source snapshots; not fresh PDF extraction qualification."
+  },
+  "native_compact_probe_before_context_repair": {
+    "cases": 4,
+    "correct_source_controls": 4,
+    "provider_failures": 0,
+    "http_elapsed_seconds": [
+      7.619994,
+      4.230366,
+      2.201401,
+      5.686664
+    ],
+    "scope": "Four engineering probes on fixed retrieved snapshots; not a TTFT/overall-accuracy gate."
+  },
+  "remaining": [
+    "New 100-case packet f7002945a2d58c76771a491b372edf167872867a02f68f5ba508d4198d76bfd7 has zero posts; auto-review requires exact owner approval.",
+    "Before executing pending packet, regenerate offline preflight after WebDocuments compatibility repair and compare every outbound body; preserve packet approval scope.",
+    "Whole-answer accuracy/hallucination and final-runtime context quality require requalification.",
+    "Actual model/client TTFT p95 <=5 seconds remains unpassed; pipeline latency is not TTFT.",
+    "OCR throughput p95 on the actual scanned PDF workload remains unqualified.",
+    "Full-app goal and three consecutive final-RC regressions remain open."
+  ],
+  "archive": {
+    "logical_path": ".tmp/owner-issues-20261030-evidence.zip",
+    "sha256": "71f7c95963a41914e0877fb81d0310d5c3246339dda43f9074262093bd6cb4b8",
+    "bytes": 21579773,
+    "files": 695
+  },
+  "producer_snapshot_includes_shared_source": true,
+  "owner_data_deleted": false,
+  "private_keys_in_archive": false
+}

@@ -7,6 +7,16 @@ const source = fs.readFileSync(path.resolve(__dirname,'../../src/campusai/ui/scr
 const api = import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const encoder = new TextEncoder();
 const record = value => JSON.stringify(value)+'\n';
+test('configured browser deadline is passed to JSON and streaming without automatic resend',async t=>{
+  const calls=[];
+  const nativeSet=global.setTimeout, nativeClear=global.clearTimeout;
+  global.setTimeout=(_fn,ms)=>{calls.push(ms);return 1;};global.clearTimeout=()=>{};
+  t.after(()=>{global.setTimeout=nativeSet;global.clearTimeout=nativeClear;});
+  mockFetch(t,async()=>new Response(JSON.stringify(answer),{headers:{'Content-Type':'application/json'}}));
+  await (await api).post('/api/query',{question:'q'},195000);
+  await (await api).postQuery({question:'q'},null,195000);
+  assert.deepEqual(calls,[195000,195000]);
+});
 const answer = {ok:true, answer:{answer:'Nội dung đã kiểm chứng 🌿',citations:[],abstained:false}};
 function response(text, {status=200,fragment=3,type='application/x-ndjson'}={}) {
   const bytes=encoder.encode(text);

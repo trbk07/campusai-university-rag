@@ -42,6 +42,17 @@ def test_balancing_keeps_table_serialization_and_coordinates_intact():
     assert len(context) <= 1800
 
 
+def test_short_chunks_return_budget_for_the_complete_conditional_rule():
+    rule = ('A temporary waiver is permitted only if the signed certificate\n'
+            'is submitted before the admissions decision. The expected date is November.\n')
+    long = evidence('rule', content='General definitions.\n' * 20 + rule)
+    rows = [long, *[evidence(str(i), content='Other brief provision.') for i in range(7)]]
+    context = build_context(rows, max_chars=2300, question='Is a temporary waiver permitted?', balanced=True)
+    assert rule.strip() in context
+    assert len(context) <= 2300
+    assert all(f'chunk_id={i}\n' in context for i in range(7))
+
+
 def test_temporal_and_multihop_prompts_retain_complete_source_path():
     generator = GroundedAnswerGenerator(None, balanced_context=True)
     rows = [evidence(content='MATH101 is required.\n' * 50)]

@@ -181,7 +181,11 @@ async function main() {
       return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(fallbackValue)});
     });
     await page.locator('#question').fill(excerptQuestion); await page.locator('#send').click();
-    await page.getByText('AI tạm thời không thể tổng hợp câu trả lời. Dưới đây là trích đoạn nguyên văn được tìm thấy trong tài liệu. Bạn vẫn có thể tiếp tục tra cứu và mở PDF để đối chiếu.',{exact:true}).last().waitFor();
+    await page.getByText('Dịch vụ AI đang quá tải. Chưa có câu trả lời đã kiểm chứng.',{exact:true}).last().waitFor();
+    const excerptDetails = page.locator('.assistant-message').last().locator('details');
+    assert.equal(await excerptDetails.getAttribute('open'),null);
+    assert(!await excerptDetails.locator('blockquote').first().isVisible());
+    await excerptDetails.locator('summary').click();
     assert.equal(await page.locator('.source-card blockquote').first().textContent(),excerptQuote);
     await page.locator('#question').fill('Another source lookup during cooldown');
     assert(await page.locator('#send').isEnabled());
@@ -190,6 +194,7 @@ async function main() {
     assert.equal(excerptHistories.length,2);
     assert(!excerptHistories[1].some(message => message.content === excerptQuestion || message.content === 'AI temporarily unavailable.'));
     check('provider outage keeps source lookup usable and omits degraded turns from history');
+    await page.locator('.assistant-message').last().locator('summary').click();
     await page.locator('.citation-marker').last().click();
     assert(await page.getByText('Trích đoạn được tìm thấy trong tài liệu · Trang vật lý trong PDF',{exact:true}).isVisible());
     await page.locator('[data-source-preview]').first().click();
@@ -203,7 +208,7 @@ async function main() {
     await page.setViewportSize({width:1440,height:900});
     await page.unroute('**/api/query');
     await page.locator('#question').fill('What approval is required for enrollment?'); await page.locator('#send').click();
-    await page.locator('.assistant-message').last().locator('.claim-sources').waitFor();
+    await page.locator('.assistant-message').last().locator('.claim-sources').first().waitFor();
     check('subsequent user query returns to the normal grounded answer view');
     // Public-schema test responses exercise edge rendering without a paid API.
     await page.route('**/api/query',route => route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,answer:{answer:'<img src=x onerror="window.XSS=1"> Chưa đủ bằng chứng.',abstained:true,abstention_reason:'insufficient_evidence',citations:[{doc_id:docId,page:1,quote:'stale'}],claims:[]}})}));
@@ -283,7 +288,7 @@ async function main() {
     await page.unroute('**/api/query'); await page.clock.resume(); check('45-second client timeout completes without claiming server cancellation');
     await page.locator('.nav-item[href="#guide"]').click();
     await page.locator('#view-guide').waitFor({state:'visible'}); await audit('guide');
-    await page.locator('details summary').first().click(); assert(await page.locator('details').first().getAttribute('open') !== null);
+    await page.locator('#view-guide details summary').first().click(); assert(await page.locator('#view-guide details').first().getAttribute('open') !== null);
     await page.locator('.nav-item[href="#collections"]').click(); await page.locator('#view-collections').waitFor({state:'visible'}); await audit('collections'); await page.locator('.collection-card').first().click();
     await page.locator('#view-documents').waitFor({state:'visible'}); check('collections filter and guide FAQ');
     await page.locator(`[data-delete="${docId}"]`).click();
@@ -316,25 +321,19 @@ async function main() {
     await page.locator('#file-input').setInputFiles(path.join(fixtureDir,'mixed.pdf'));
     await page.locator('#upload-submit').click();
     await page.waitForFunction(() => [...document.querySelectorAll('#document-list .document-card')]
-      .some(card => card.textContent.includes('mixed.pdf') && card.textContent.includes('Cần kiểm tra')));
+      .some(card => card.textContent.includes('mixed.pdf')));
     const scanned = (await (await context.request.get(`${baseUrl}/api/documents`)).json()).documents.find(doc => doc.name === 'mixed.pdf');
-    assert(scanned.ocr_available && !scanned.ready);
     await page.locator(`#document-list [data-detail="${scanned.doc_id}"]`).click();
-    await page.locator('#detail-content [data-ocr]').waitFor();
-    assert((await page.locator('#detail-content').textContent()).includes('trang 2'));
-    await audit('OCR review dialog');
-    await page.route('**/api/documents/*/ocr',route => route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({ok:false,error_code:'job_store_unavailable'})}));
-    await page.locator('[data-ocr]').click();
-    await page.locator('#ocr-status').getByText(/Chưa lưu được/).waitFor();
-    assert(await page.locator('[data-ocr]').isEnabled());
-    await page.unroute('**/api/documents/*/ocr');
-    await page.locator('[data-ocr]').click();
+    await page.locator('#detail-content h3').waitFor();
+    assert.equal(await page.locator('#detail-content [data-ocr]').count(),0);
+    await audit('automatic OCR detail dialog');
+    await page.keyboard.press('Escape');
     await page.waitForFunction(() => [...document.querySelectorAll('#document-list .document-card')]
       .some(card => card.textContent.includes('mixed.pdf') && card.textContent.includes('Sẵn sàng')),
       undefined,{timeout:30000});
     const recognized = (await (await context.request.get(`${baseUrl}/api/documents/${scanned.doc_id}`)).json()).document;
     assert(recognized.ready && !recognized.ocr_available && recognized.page_count === 3);
-    check('mixed PDF manual local OCR recovers after admission error and becomes ready without reupload');
+    check('mixed PDF OCR runs automatically and becomes ready without a manual OCR button or reupload');
     await page.locator(`[data-delete="${scanned.doc_id}"]`).click(); await page.locator('#delete-confirm').click();
     await page.getByText('Bạn chưa có tài liệu nào.',{exact:true}).waitFor();
     assert.deepEqual(errors,[]); check('no browser script errors');

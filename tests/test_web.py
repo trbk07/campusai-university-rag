@@ -52,6 +52,15 @@ def test_ui_distinguishes_provider_overload_from_missing_evidence(tmp_path):
     assert 'Chưa đủ bằng chứng trong tài liệu đã chọn.' in chat
 
 
+@pytest.mark.parametrize('timeout, expected', [(20,75000),(30,105000),(60,195000),
+    (1000,300000),(float('nan'),45000),(True,45000),(None,45000)])
+def test_browser_deadline_covers_the_configured_provider_wait(timeout,expected):
+    service=Service()
+    service.answer_generator=SimpleNamespace(llm=SimpleNamespace(timeout=timeout))
+    application=CampusAIApplication(service)
+    assert application.query_timeout_ms()==expected
+
+
 def test_wsgi_telemetry_is_request_local_and_not_exposed_in_answer(tmp_path):
     service = Service()
     service.retriever.index_root = tmp_path

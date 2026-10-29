@@ -47,10 +47,10 @@ export async function request(path, options = {}) {
     return {...value, responseId:response.headers.get('X-Request-ID')};
   } finally { clearTimeout(timeout); }
 }
-export const post = (path, value) => request(path, {method:'POST', body:JSON.stringify(value)});
-export async function postQuery(value, onProgress) {
+export const post = (path, value, timeout) => request(path, {method:'POST', body:JSON.stringify(value),timeout});
+export async function postQuery(value, onProgress, timeoutMs = 45000) {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 45000);
+  const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) && timeoutMs >= 45000 && timeoutMs <= 300000 ? timeoutMs : 45000);
   let reader;
   const checked = (payload, status, response) => {
     if (status >= 400 || payload.ok === false) {

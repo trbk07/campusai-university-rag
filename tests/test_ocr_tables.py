@@ -112,10 +112,12 @@ def test_new_optical_policy_invalidates_job_cache_but_retains_old_vietocr_identi
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert old!=job_identity('a'*64,options) and old in accepted_job_identities('a'*64,options)
     default=normalize_options({})
-    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':default,
+    previous_options={k:v for k,v in default.items() if k!='progressive_ocr'}
+    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':previous_options,
         'text_coverage_version':TEXT_COVERAGE_VERSION,'table_extractor_version':TABLE_EXTRACTOR_VERSION},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert expected==job_identity('a'*64,default)
+    assert job_identity('a'*64,{**default,'progressive_ocr':True})!=expected
 
 
 def test_missing_pixels_in_a_split_never_discard_the_original_word():

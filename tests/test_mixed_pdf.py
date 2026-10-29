@@ -116,7 +116,8 @@ def test_uploaded_mixed_pdf_cannot_enter_query_scope_while_unread(mixed_pdf, tmp
     app = CampusAIApplication(
         CampusAIQueryService(HybridRetriever(tmp_path/'index'), GroundedAnswerGenerator(None)),
         jobs=IngestionJobManager(), ingestion_defaults={'store_dir':tmp_path/'store',
-            'index_dir':tmp_path/'index', 'dense_model':'fallback-hash-256'})
+            'index_dir':tmp_path/'index', 'dense_model':'fallback-hash-256',
+            'enable_ocr':False,'progressive_ocr':False})
     try:
         web = make_wsgi_app(app)
         job = upload_ready(web, mixed_pdf.read_bytes())

@@ -75,7 +75,9 @@ class JobJournal:
                     saved_options = json.loads(options)
                     normalized = normalize_options(saved_options)
                     legacy_options = {k:v for k,v in normalized.items() if k not in {'ocr_backend','ocr_data_dir'}}
-                    valid_options = saved_options == normalized or saved_options == legacy_options
+                    previous_options = {k:v for k,v in normalized.items() if k != 'progressive_ocr'}
+                    previous_legacy = {k:v for k,v in previous_options.items() if k not in {'ocr_backend','ocr_data_dir'}}
+                    valid_options = saved_options in (normalized, legacy_options, previous_options, previous_legacy)
                     if (not valid_options or not Path(job.source_path).is_absolute()
                             or not re.fullmatch('[0-9a-f]{32}',job.job_id)
                             or not re.fullmatch('[0-9a-f]{64}',job.source_sha256)

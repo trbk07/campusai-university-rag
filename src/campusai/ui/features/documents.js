@@ -19,6 +19,7 @@ let files = [], uploading = false, deleteId = null, pollingTimer = null, polling
 
 export function badge(doc) {
   if (doc.deleting) return `<span class="status-badge status-pending">${icon('info')}${doc.delete_failed ? 'Xóa chưa thành công' : 'Đang xóa...'}</span>`;
+  if (doc.ready && doc.coverage_complete === false) return `<span class="status-badge status-review">${icon('info')}Hỏi được phần đã đọc</span>`;
   const ready = doc.ready, review = doc.status === 'review_required';
   return `<span class="status-badge ${ready ? 'status-ready' : review ? 'status-review' : 'status-pending'}">${icon(ready ? 'check-circle' : 'info')}${ready ? 'Sẵn sàng' : review ? 'Cần kiểm tra' : 'Chưa sẵn sàng'}</span>`;
 }
@@ -63,8 +64,8 @@ function renderScope() {
 }
 const stageLabels = {receiving:'Đang nhận và lưu PDF',interrupted:'Tác vụ bị gián đoạn. Thử xử lý lại hoặc tải lại PDF gốc.',queued:'Đang chờ xử lý',validating:'Đang kiểm tra PDF',parsing:'Đang đọc nội dung',ocr:'Đang nhận diện chữ',detecting_metadata:'Đang nhận diện thông tin',extracting_tables:'Đang trích xuất bảng',chunking:'Đang tổ chức nội dung',persisting:'Đang lưu tài liệu',indexing:'Đang chuẩn bị tài liệu để hỏi đáp...',done:'Đã xử lý tài liệu',review_required:'Tài liệu cần được kiểm tra thêm',failed:'Xử lý chưa thành công. Hãy kiểm tra PDF.',cancelled:'Đã hủy xử lý'};
 function renderJobs() {
-  const jobs = state.jobs.filter(job => (job.state !== 'succeeded' || job.deleting) && !state.documents.some(doc => doc.doc_id === job.document_id && job.state === 'review_required'));
-  const cards = jobs.map(job => `<article class="job-card"><strong>${esc(job.name)}</strong><p>${job.deleting ? job.delete_failed ? 'Xóa chưa thành công. Bạn có thể thử xóa lại.' : 'Đang dừng xử lý để xóa PDF...' : stageLabels[job.stage] || 'Đang xử lý tài liệu...'}</p><progress value="${Number(job.progress) || 0}" max="1" aria-label="Tiến độ xử lý ${esc(job.name)}"></progress>${!job.deleting && ['staging','queued','running'].includes(job.state) ? `<button class="text-button" data-job-cancel="${esc(job.job_id)}">Yêu cầu hủy</button>` : ''}${!job.deleting && job.state === 'failed' && job.retryable ? `<button class="text-button" data-job-retry="${esc(job.job_id)}">Thử xử lý lại</button>` : ''}<button class="text-button" data-delete="${esc(job.document_id)}" ${job.deleting && !job.delete_failed ? 'disabled' : ''}>${icon('trash')} ${job.delete_failed ? 'Thử xóa lại' : 'Xóa PDF'}</button></article>`).join('');
+  const jobs = state.jobs.filter(job => (job.state !== 'succeeded' || job.deleting) && !state.documents.some(doc => doc.doc_id === job.document_id && job.state === 'review_required' && !job.retryable));
+  const cards = jobs.map(job => `<article class="job-card"><strong>${esc(job.name)}</strong><p>${job.deleting ? job.delete_failed ? 'Xóa chưa thành công. Bạn có thể thử xóa lại.' : 'Đang dừng xử lý để xóa PDF...' : stageLabels[job.stage] || 'Đang xử lý tài liệu...'}</p><progress value="${Number(job.progress) || 0}" max="1" aria-label="Tiến độ xử lý ${esc(job.name)}"></progress>${!job.deleting && ['staging','queued','running'].includes(job.state) ? `<button class="text-button" data-job-cancel="${esc(job.job_id)}">Yêu cầu hủy</button>` : ''}${!job.deleting && ['failed','review_required'].includes(job.state) && job.retryable ? `<button class="text-button" data-job-retry="${esc(job.job_id)}">Thử xử lý lại</button>` : ''}<button class="text-button" data-delete="${esc(job.document_id)}" ${job.deleting && !job.delete_failed ? 'disabled' : ''}>${icon('trash')} ${job.delete_failed ? 'Thử xóa lại' : 'Xóa PDF'}</button></article>`).join('');
   $('#sidebar-jobs').innerHTML = cards; $('#document-jobs').innerHTML = cards;
 }
 function renderAll() { renderSidebar(); renderControls(); renderList(); renderScope(); renderCollections(); renderJobs(); notify('documents'); }
@@ -88,6 +89,8 @@ export async function refreshDocuments() {
     const value = await request('/api/documents');
     state.documents = value.documents; state.jobs = value.jobs; state.limits = value.limits; state.uploadAvailable = value.upload_available; state.aiConfigured = value.runtime?.ai_configured === true; state.error = '';
     state.queryStreaming = value.runtime?.query_streaming === true;
+    const deadline = value.runtime?.query_timeout_ms;
+    state.queryTimeoutMs = Number.isFinite(deadline) && deadline >= 45000 && deadline <= 300000 ? deadline : 45000;
     const valid = new Set(state.documents.filter(doc => doc.ready).map(doc => doc.doc_id));
     state.selected.forEach(id => { if (!valid.has(id)) state.selected.delete(id); });
     $('#upload-limits').textContent = `Tối đa ${MAX_UPLOAD_FILES} PDF mỗi lượt · ${state.limits.max_mb} MB / ${state.limits.max_pages} trang mỗi file`;
@@ -95,30 +98,20 @@ export async function refreshDocuments() {
   finally { refreshing = false; state.loading = false; renderAll(); schedulePoll(); }
 }
 function reviewNotice(doc) {
+  if (doc.ready && doc.coverage_complete === false) return `Bạn có thể hỏi trên phần đã đọc. Còn ${doc.unread_pages.length} trang chưa nhận diện xong; câu trả lời có thể chưa bao quát toàn bộ tài liệu.`;
   if (doc.review_reason === 'ocr_unavailable') return 'OCR chưa hoàn tất. Kiểm tra bộ nhận diện chữ trên máy hoặc chia PDF thành phần nhỏ hơn rồi thử lại.';
-  if (doc.unread_pages?.length) return `Cần OCR để đọc đủ nội dung tại trang ${doc.unread_pages.slice(0,12).join(', ')}${doc.unread_pages.length > 12 ? '…' : ''}. Tài liệu chưa sẵn sàng để hỏi đáp; bạn vẫn có thể xem PDF gốc.`;
+  if (doc.unread_pages?.length) return `Ứng dụng tự nhận diện trang ảnh. Còn ${doc.unread_pages.length} trang chưa đọc xong; bạn có thể xem PDF gốc trong lúc chờ.`;
   return 'Tài liệu chưa sẵn sàng để hỏi đáp. PDF scan cần OCR/kiểm tra thêm; tài liệu đã đọc cần có chỉ mục hoàn chỉnh.';
 }
 function ocrControl(doc) {
-  return doc.ocr_available ? `<p class="muted">Nhận diện chữ trên máy này, tối đa 50 trang scan và 2 phút mỗi lượt. Có thể mất lâu hơn đọc PDF text.</p><button class="button primary" data-ocr="${esc(doc.doc_id)}">Đọc trang scan bằng OCR</button><p id="ocr-status" role="status" aria-live="polite"></p>` : '';
-}
-async function startOCR(button) {
-  if (button.disabled) return;
-  button.disabled = true;
-  $('#ocr-status').textContent = 'Đang bắt đầu nhận diện chữ...';
-  try {
-    await post(`/api/documents/${encodeURIComponent(button.dataset.ocr)}/ocr`, {});
-    closeDialog($('#detail-dialog')); route('documents'); pollingStarted = 0;
-    await refreshDocuments(); toast('Đã bắt đầu OCR cục bộ. Bạn có thể tiếp tục dùng thư viện trong lúc chờ.');
-  } catch (error) { $('#ocr-status').textContent = errorText(error); }
-  finally { if (button.isConnected) button.disabled = false; }
+  return doc.unread_pages?.length ? `<p class="muted">Trang scan được xử lý tự động trên máy. Bạn không cần bấm OCR.</p>` : '';
 }
 async function detail(id) {
   showDialog('detail-dialog'); $('#detail-content').textContent = 'Đang tải thông tin...';
   try {
     const {document:doc} = await request(`/api/documents/${encodeURIComponent(id)}`);
     const metadata = Object.entries(doc.metadata).map(([key,value]) => `<dt>${esc({document_type:'Loại tài liệu',academic_year:'Năm học',program:'Chương trình',university:'Đơn vị',version:'Phiên bản',semester:'Học kỳ'}[key] || key)}</dt><dd>${esc(value)}</dd>`).join('');
-    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready ? `<div class="notice">${esc(reviewNotice(doc))}</div>` : ''}${ocrControl(doc)}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
+    $('#detail-content').innerHTML = `<div class="document-card">${pdfIcon()}<div class="document-info"><h3>${esc(doc.name)}</h3>${badge(doc)}</div></div><dl class="detail-grid"><dt>Số trang</dt><dd>${doc.page_count}</dd><dt>Dung lượng</dt><dd>${bytes(doc.size_bytes) || 'Chưa có thông tin'}</dd><dt>Ngày tải lên</dt><dd>${date(doc.uploaded_at)}</dd>${metadata}</dl>${!doc.ready || doc.coverage_complete === false ? `<div class="notice">${esc(reviewNotice(doc))}</div>` : ''}${ocrControl(doc)}<button class="button secondary" data-preview="${doc.doc_id}" ${doc.file_available ? '' : 'disabled'}>${icon('eye')}Xem PDF gốc</button>`;
   } catch (error) { $('#detail-content').textContent = errorText(error); }
 }
 export async function preview(id, page = 1, citation = null) {
@@ -223,7 +216,6 @@ export function initDocuments() {
   });
   document.addEventListener('input', event => { if (event.target.id === 'document-search') { state.search = event.target.value; renderList(); } });
   document.addEventListener('click', async event => {
-    const ocr = event.target.closest('[data-ocr]'); if (ocr) { await startOCR(ocr); return; }
     const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; state.search = ''; state.year = ''; state.program = ''; state.status = 'all'; renderControls(); renderList(); renderSidebar(); route('documents'); }
     const details = event.target.closest('[data-detail]'); if (details) detail(details.dataset.detail);
     const source = event.target.closest('[data-preview]'); if (source) preview(source.dataset.preview);

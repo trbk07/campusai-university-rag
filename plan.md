@@ -1393,3 +1393,17 @@ miễn phí vô hạn hoặc đã đạt R-01/R-02.
 Optional reranker giữ OFF; qualification cũ chỉ mở khi cần bật lại.
 [Đặc tả lịch sử](docs/reranker/phase7_task_spec.md) ·
 [Artifact storage/restore](docs/operations/artifact_storage.md).
+
+### Lỗi chủ dự án tổng hợp ngày 30/10/2026
+
+Nguồn: Google Docs `1wKcwL5sxaI-Edq_J3LzhB2wLzPH5lPM4c-dGi1evcbU`, đã đọc cả 3 ảnh.
+
+- [x] **FIX-01 — DONE: OCR tự động.** PDF mới và PDF cũ đang chờ OCR được xử lý nền theo lô; bỏ nút OCR thủ công. Giữ hủy, thử lại, journal cũ và kiểm hash nguồn; tác vụ đã hủy/lỗi không bị tự chạy lại.
+- [x] **FIX-02 — DONE: hỏi trên phần đã đọc.** Hiển thị coverage, giữ số trang gốc, chỉ index trang đã kiểm chứng. Khi chưa đọc đủ nguồn, không được xác nhận toàn văn hay kết luận tài liệu không đề cập.
+- [x] **FIX-03a — DONE: tiếp tục OCR từ checkpoint.** Lưu trang đã nhận diện và dùng lại ở lô sau/restart; kiểm hash dữ liệu và loại checkpoint hỏng. Không quét lại trang đã hoàn thành.
+- [ ] **FIX-03b — Đo tốc độ OCR trên PDF ảnh thực tế.** App thật đang xử lý hai PDF cũ; chưa có bộ đo p95 cùng workload để đóng tốc độ OCR.
+- [x] **FIX-04a — DONE: câu trả lời và lỗi dễ hiểu.** Trả lời chính ngắn, claim đối chiếu và trích đoạn fallback nằm trong mục mở rộng; phân biệt provider timeout/quota/quá tải với thiếu bằng chứng. Browser 44/44 kiểm tra, 6 viewport, 0 lỗi script/axe.
+- [x] **FIX-04b — DONE phần code chọn bằng chứng.** Tái phân bổ chỗ còn dư để không cắt mất điều kiện/deadline; giữ nguyên trần context, citation/claim gates. Prompt giữ quan hệ hàng bảng và điều kiện áp dụng; cache v43.
+- [ ] **FIX-05 — Nghiệm thu AI/tốc độ trên bản cuối.** Lượt trước sửa phân bổ context hoàn tất 100/100 câu (50 model, 50 local), 0 timeout/lỗi provider, không retry. Required-field lower bound 83/100 chưa chứng nhận accuracy/hallucination; p95 cả 100 câu 8,972s, riêng 50 câu model 9,656s, chưa đạt mục tiêu TTFT. Lượt kiểm sau sửa chưa gửi do automatic approval yêu cầu duyệt riêng payload mới; không tính kết quả cũ thành nghiệm thu code cuối.
+
+**Kiểm chứng bản sửa:** full 3.672 PASS / 2 live opt-in SKIP, source không đổi; clean Git export 211 PASS / 6 OCR-asset SKIP; 90 focused và 67 compatibility PASS (các số chồng lấn); Node transport 10/10. Chưa phải ba lần full regression trên RC cuối. [Evidence](docs/ui/evidence/owner-issues-20261030.json).

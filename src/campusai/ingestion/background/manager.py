@@ -141,7 +141,7 @@ class IngestionJobManager:
     def retry(self,job_id):
         with self._lock:
             job = self._jobs.get(job_id)
-            if job is None or job.state != 'failed' or not job.retryable:
+            if job is None or job.state not in {'failed','review_required'} or not job.retryable:
                 raise ValueError('job retry unavailable')
             self._admit()
             if not recoverable_source(job,self._options[job_id]):
@@ -155,7 +155,7 @@ class IngestionJobManager:
                 raise ValueError('job source incomplete or changed; re-upload required')
             from .commit import cleanup_stage
             cleanup_stage(self._options[job_id],job_id,job.source_sha256,restore=True)
-            return self.submit(source,**self._options[job_id])
+            return self.submit(source,reprocess_review=job.state == 'review_required',**self._options[job_id])
 
     def _run(self,job_id):
         from .. import jobs as compatibility
@@ -183,26 +183,33 @@ class IngestionJobManager:
                         return  # Heartbeats check cancellation without rewriting the journal.
                     self._update(job_id,stage=stage,
                                  progress=max(current.progress,value))
-            document = compatibility.ingest_document(job.source_path,store_dir=options['store_dir'],
+            if options['progressive_ocr']:
+                from .progressive import ingest_progressively
+                document = ingest_progressively(self,job_id,options,progress,compatibility.ingest_document)
+            else:
+                document = compatibility.ingest_document(job.source_path,store_dir=options['store_dir'],
                 max_mb=options['max_mb'],max_pages=options['max_pages'],progress=progress,
                 enable_ocr=options['enable_ocr'],ocr_max_pages=options['ocr_max_pages'],
                 ocr_timeout_seconds=options['ocr_timeout_seconds'],
                 ocr_backend=options['ocr_backend'],ocr_data_dir=options['ocr_data_dir'])
             self._checkpoint(job_id)
             if document.doc_id != job.source_sha256: raise ValueError('parsed source identity changed')
-            if options['index_dir'] is not None and document.status != 'review_required':
+            searchable = bool(document.chunks) and document.status in {'succeeded', 'partial'}
+            if options['index_dir'] is not None and searchable:
                 self._update(job_id,index_status='running',stage='indexing',progress=.90)
                 from ...retrieval.index_builder import build_document_indexes
                 from .commit import build_indexes
                 build_indexes(self,job_id,document,options,build_document_indexes)
             with self._lock:
                 self._checkpoint(job_id)
-                review = document.status == 'review_required'
+                review = document.status != 'succeeded'
                 self._update(job_id,state='review_required' if review else 'succeeded',
                     stage='review_required' if review else 'done',progress=1.0,
                     ingestion_status='review_required' if review else 'succeeded',
-                    index_status='ready' if options['index_dir'] is not None and not review else 'not_requested',
-                    ready=options['index_dir'] is not None and not review,completed_at=time.time(),
+                    index_status='ready' if options['index_dir'] is not None and searchable else 'not_requested',
+                    ready=options['index_dir'] is not None and searchable,completed_at=time.time(),
+                    retryable=review and options['progressive_ocr'],
+                    action='retry' if review and options['progressive_ocr'] else None,
                     error=document.review_reason if review else None,
                     error_code=document.review_reason if review else None)
         except JobStoreUnavailable:

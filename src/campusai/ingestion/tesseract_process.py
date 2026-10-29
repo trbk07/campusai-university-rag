@@ -56,6 +56,11 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
     reader = threading.Thread(target=read, daemon=True, name='local-ocr-output')
     writer = None
     pages, ready, finished = [], False, False
+    def limit(message):
+        partial = OCRDocument(list(pages), engine,
+            round(sum(p['confidence'] for p in pages)/len(pages),6),
+            round(time.perf_counter()-started,6),identity) if ready and pages else None
+        return OCRLimitExceeded(message,partial=partial)
     try:
         payload = {'path': str(Path(path).resolve()), 'data_dir': str(Path(data_dir).resolve()),
                    'page_numbers': selected, 'scale': scale, 'model_sha256': expected,
@@ -79,7 +84,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
         while not finished:
             remaining = timeout_seconds - (time.perf_counter() - started)
             if remaining <= 0:
-                raise OCRLimitExceeded('OCR time limit exceeded')
+                raise limit('OCR time limit exceeded')
             if progress is not None:
                 progress(len(pages), len(selected))
             try:
@@ -140,7 +145,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
             elif kind == 'done' and ready and len(pages) == len(selected):
                 finished = True
             elif kind == 'limit':
-                raise OCRLimitExceeded('OCR page pixel limit exceeded')
+                raise limit('OCR page pixel limit exceeded')
             else:
                 raise OCRUnavailable('local OCR worker failed')
         remaining = timeout_seconds - (time.perf_counter() - started)
@@ -148,7 +153,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
             if process.wait(timeout=max(.001, remaining)) != 0:
                 raise OCRUnavailable('local OCR worker failed')
         except subprocess.TimeoutExpired as error:
-            raise OCRLimitExceeded('OCR time limit exceeded') from error
+            raise limit('OCR time limit exceeded') from error
         if progress is not None:
             progress(len(pages), len(selected))
         return OCRDocument(pages, engine,

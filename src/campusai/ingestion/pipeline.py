@@ -108,6 +108,15 @@ def _default_progress(_stage: str, _value: float) -> None:
     """Default callback used when the caller does not need progress updates."""
 
 
+def _bounded_ocr(path, *, preserve_completed=False, **options):
+    try:
+        return ocr_pdf(path, **options)
+    except OCRLimitExceeded as error:
+        if preserve_completed and error.partial is not None and error.partial.pages:
+            return error.partial
+        raise
+
+
 def _save_table(table, output_dir: Path) -> None:
     """Save a table when possible and always save its schema."""
 
@@ -147,9 +156,12 @@ def ingest_document(
     ocr_timeout_seconds: float = 120.0,
     ocr_backend: str = 'rapidocr',
     ocr_data_dir: str | Path | None = None,
+    allow_partial: bool = False,
 ) -> Document:
     """Ingest one PDF and reuse its stored result on repeated uploads."""
 
+    if type(allow_partial) is not bool:
+        raise ValueError('partial ingestion flag must be boolean')
     pdf_path = Path(path)
     registry = registry or DocumentRegistry(Path(store_dir) / "registry.json")
     # Parsing below already reads every page. Deferring validation's text probe
@@ -164,6 +176,25 @@ def ingest_document(
 
     output_dir = Path(store_dir) / document_id
     metadata_path = output_dir / "meta.json"
+    resumed_pages = {}
+    resumed_ocr = None
+    resume_identity = {'source': document_id, 'coverage': TEXT_COVERAGE_VERSION,
+        'tables': TABLE_EXTRACTOR_VERSION, 'chunker': CHUNKER_VERSION,
+        'backend': ocr_backend, 'data_dir': str(Path(ocr_data_dir).resolve()) if ocr_data_dir else None}
+    if allow_partial:
+        from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
+        from .ocr_tables import OCR_TABLE_POLICY
+        resume_identity.update(numeric=NUMERIC_TABLE_POLICY, course=OCR_TABLE_POLICY)
+    if allow_partial and metadata_path.exists():
+        try:
+            previous = json.loads(metadata_path.read_text(encoding='utf-8'))
+            raw = (output_dir/'ocr-pages.json').read_bytes()
+            if previous['metadata'].get('ocr_resume_identity') == resume_identity and hashlib.sha256(raw).hexdigest() == previous['metadata'].get('ocr_pages_sha256'):
+                saved = json.loads(raw)
+                resumed_pages = {page['page']:page for page in saved['pages']}
+                resumed_ocr = saved['ocr']
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
 
     if metadata_path.exists():
         data = json.loads(metadata_path.read_text(encoding="utf-8"))
@@ -221,7 +252,11 @@ def ingest_document(
             from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
             if document.metadata.get('ocr_numeric_policy') != NUMERIC_TABLE_POLICY:
                 cache_versions_current = False
-        if enable_ocr and document.status == "review_required" and document.review_reason in {
+        if allow_partial and document.status in {'partial', 'review_required'}:
+            # Keep already recognized pages and the last published snapshot.
+            # A later bounded OCR pass resumes; it must not erase useful work.
+            pass
+        elif enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
             "ocr_unavailable",
         }:
@@ -253,11 +288,16 @@ def ingest_document(
     if not unread_pages and not any(str(page.get('text', '')).strip() for page in pages):
         unread_pages = [int(page['page']) for page in pages]
     review_reason, review_warning = 'ocr_required', None
+    if resumed_pages:
+        pages = [resumed_pages[page['page']] if page['page'] in unread_pages and page['page'] in resumed_pages else page
+                 for page in pages]
+        unread_pages = [number for number in unread_pages if number not in resumed_pages]
+        ocr_info = resumed_ocr
     if unread_pages and enable_ocr:
         report_progress('ocr', 0.0)
         try:
-            ocr_result = ocr_pdf(pdf_path, max_pages=ocr_max_pages,
-                timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages,
+            ocr_result = _bounded_ocr(pdf_path, preserve_completed=allow_partial, max_pages=ocr_max_pages,
+                timeout_seconds=ocr_timeout_seconds, page_numbers=unread_pages[:ocr_max_pages] if allow_partial else unread_pages,
                 progress=lambda completed,total:report_progress('ocr',completed/total),
                 backend=ocr_backend, data_dir=ocr_data_dir,
                 include_layout=any(page.get('hybrid_layout') for page in pages),
@@ -281,6 +321,12 @@ def ingest_document(
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
                 'page_numbers': sorted(recognized), 'backend': ocr_backend,
                 'model_identity': ocr_result.model_identity}
+            if allow_partial:
+                resumed_pages.update({page['page']:page for page in pages
+                    if page['page'] in recognized})
+                ocr_info['page_numbers'] = sorted(resumed_pages)
+                ocr_info['pages'] = len(resumed_pages)
+                ocr_info['elapsed_seconds'] += (resumed_ocr or {}).get('elapsed_seconds', 0)
             image_audits = [{'page': page['page'], 'regions': page['image_audit']}
                             for page in ocr_result.pages if page.get('image_audit')]
             if image_audits:
@@ -289,7 +335,8 @@ def ingest_document(
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
             review_reason, review_warning = 'ocr_unavailable', str(error)
-    if unread_pages:
+    if unread_pages and (not allow_partial or not any(
+            page['page'] not in unread_pages and str(page.get('text', '')).strip() for page in pages)):
         metadata = detect_metadata('')
         warnings = ['unread_pages', review_reason]
         if not any(str(page.get('text', '')).strip() for page in pages):
@@ -302,6 +349,8 @@ def ingest_document(
             **({'untrusted_native_pages': untrusted_pages} if untrusted_pages else {}),
             'schema_version': 1, 'status': 'review_required', 'review_reason': review_reason,
             'warnings': warnings, 'unread_pages': unread_pages})
+        if allow_partial:
+            metadata.update(coverage_complete=False, readable_pages=[])
         if ocr_info is not None:
             metadata['ocr'] = ocr_info
         document = Document(doc_id=document_id, source_path=str(pdf_path.resolve()),
@@ -311,6 +360,9 @@ def ingest_document(
         registry.add(document)
         report_progress('review_required', 1.0)
         return document
+    # Unknown/unfinished image pages cannot contribute even their native
+    # headers to a partial answer. Physical page numbers remain unchanged.
+    pages = [page for page in pages if page['page'] not in unread_pages]
     full_text = "\n\n".join(
         f"## Page {page['page']}\n{page['text']}" for page in pages
     )
@@ -323,6 +375,18 @@ def ingest_document(
     metadata["table_extractor_version"] = TABLE_EXTRACTOR_VERSION
     metadata["schema_version"] = 1
     metadata["text_coverage_version"] = TEXT_COVERAGE_VERSION
+    if allow_partial:
+        metadata.update(unread_pages=unread_pages,
+            readable_pages=[page['page'] for page in pages],
+            coverage_complete=not bool(unread_pages))
+        if unread_pages:
+            metadata.update(status='partial', review_reason=review_reason)
+        if resumed_pages:
+            raw = json.dumps({'pages':list(resumed_pages.values()), 'ocr':ocr_info},
+                             ensure_ascii=False, allow_nan=False)
+            atomic_text(output_dir/'ocr-pages.json', raw, encoding='utf-8')
+            metadata.update(ocr_resume_identity=resume_identity,
+                ocr_pages_sha256=hashlib.sha256(raw.encode('utf-8')).hexdigest())
     if untrusted_pages:
         metadata['untrusted_native_pages'] = untrusted_pages
     if ocr_info is not None:
@@ -368,7 +432,8 @@ def ingest_document(
         metadata=metadata,
         chunks=chunks,
         tables=tables,
-        status="succeeded",
+        status="partial" if unread_pages else "succeeded",
+        review_reason=review_reason if unread_pages else None,
     )
 
     report_progress("persisting", 0.0)
