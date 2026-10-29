@@ -197,3 +197,8 @@
 /src/campusai/rag/citation_handles.py -text whitespace=cr-at-eol
 /tests/test_citation_handles.py -text whitespace=cr-at-eol
 /docs/ui/evidence/citation-handles-20261029.json -text whitespace=cr-at-eol
+
+# Preserve source-aligned text-table producer and evidence bytes.
+/src/campusai/ingestion/leader_text_tables.py -text whitespace=cr-at-eol
+/tests/test_leader_text_tables.py -text whitespace=cr-at-eol
+/docs/ui/evidence/leader-text-tables-20261029.json -text whitespace=cr-at-eol

@@ -178,14 +178,15 @@ def ingest_document(
         cached_ocr = document.metadata.get('ocr')
         if (document.status == 'succeeded'
                 and parser_version in {'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
-                and document.metadata.get('table_extractor_version') == 'table-v4-physical-course-scope'
+                and document.metadata.get('table_extractor_version') in {
+                    'table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'}
                 and document.metadata.get('chunker_version') == CHUNKER_VERSION
                 and document.metadata.get('text_coverage_version') in {3, TEXT_COVERAGE_VERSION}
                 and isinstance(cached_ocr, dict)
                 and isinstance(cached_ocr.get('page_numbers'), list)
                 and all(type(number) is int for number in cached_ocr['page_numbers'])
                 and sorted(cached_ocr['page_numbers']) == list(range(1, document.page_count + 1))):
-            # v5 only changes native numeric grids. Fully recognized pages
+            # v5/v6 only change native grids. Fully recognized pages
             # without visible native text cannot acquire such cells; preserve
             # completed OCR/chunks and record their actual previous producer.
             native_pages = parse_pdf(pdf_path)
@@ -194,7 +195,7 @@ def ingest_document(
                     and document.metadata.get('text_coverage_version') != TEXT_COVERAGE_VERSION)
                 for page in native_pages)
             if compatible:
-                document.metadata['table_extractor_reused_from'] = 'table-v4-physical-course-scope'
+                document.metadata.setdefault('table_extractor_reused_from', document.metadata['table_extractor_version'])
                 document.metadata['table_extractor_version'] = TABLE_EXTRACTOR_VERSION
                 document.metadata['text_coverage_version'] = TEXT_COVERAGE_VERSION
                 atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')

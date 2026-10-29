@@ -2,7 +2,7 @@
 import json
 import pymupdf
 import pytest
-from campusai.ingestion.table_extractor import extract_tables
+from campusai.ingestion.table_extractor import extract_tables, TABLE_EXTRACTOR_VERSION
 from campusai.ingestion.chunker import _looks_like_heading
 from campusai.rag.course_credits import headed_credit_rows
 from campusai.rag.policies import has_conflicting_numeric_evidence
@@ -30,7 +30,7 @@ def test_coloured_bands_do_not_hide_remaining_rows_as_one_column_table(tmp_path)
     assert tables[0].rows[-1]==['ZEN3105','Example Course 5','48','3']
 
 
-@pytest.mark.parametrize('old_version', ['table-v2-aligned-course-columns', 'table-v4-physical-course-scope'])
+@pytest.mark.parametrize('old_version', ['table-v2-aligned-course-columns', 'table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
 def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_path, old_version):
     import json
     from campusai.ingestion.pipeline import ingest_document
@@ -38,7 +38,7 @@ def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_p
     store=tmp_path/'store'
     document=ingest_document(path,store_dir=store)
     assert document.metadata['chunker_version']=='structure-v6'
-    assert document.metadata['table_extractor_version']=='table-v5-partial-numeric-grid'
+    assert document.metadata['table_extractor_version']==TABLE_EXTRACTOR_VERSION
     tables=[c for c in document.chunks if c.content_type=='table']
     assert len(tables)==1 and len(headed_credit_rows(tables[0].content))==5
     assert not any(c.metadata.get('heading_path')==['ZEN3101'] for c in document.chunks)
@@ -51,7 +51,7 @@ def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_p
     metadata_path.write_text(json.dumps(payload),encoding='utf-8')
     refreshed=ingest_document(path,store_dir=store)
     assert not refreshed.cached
-    assert refreshed.metadata['table_extractor_version']=='table-v5-partial-numeric-grid'
+    assert refreshed.metadata['table_extractor_version']==TABLE_EXTRACTOR_VERSION
     assert len([c for c in refreshed.chunks if c.content_type=='table'])==1
 
 

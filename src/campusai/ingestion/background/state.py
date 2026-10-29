@@ -83,6 +83,14 @@ def accepted_job_identities(digest, options):
         identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,
             'text_coverage_version':version,'ocr_table_policy':OCR_TABLE_POLICY},
             sort_keys=True,separators=(',',':')).encode()).hexdigest() for version in (3,4))
+    # v5 introduced the table producer in the durable identity. Keep that
+    # exact historical format readable; new uploads still use current v6.
+    previous = {'source_sha256':digest, 'options':options, 'text_coverage_version':4,
+                'table_extractor_version':'table-v5-partial-numeric-grid'}
+    if options.get('ocr_backend') == 'vietocr':
+        from ..ocr_tables import OCR_TABLE_POLICY
+        previous['ocr_table_policy'] = OCR_TABLE_POLICY
+    identities.add(hashlib.sha256(json.dumps(previous,sort_keys=True,separators=(',',':')).encode()).hexdigest())
     return identities
 
 

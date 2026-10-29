@@ -111,7 +111,8 @@ def test_complex_rule_layout_does_not_start_unbounded_word_grid_search():
 
 @pytest.mark.parametrize('backend', ['rapidocr', 'tesseract', 'vietocr'])
 @pytest.mark.parametrize('coverage', [3, 4])
-def test_v4_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan, tmp_path, monkeypatch, backend, coverage):
+@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
+def test_old_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan, tmp_path, monkeypatch, backend, coverage, table_version):
     def recognize(*args, **kwargs):
         return SimpleNamespace(pages=[{'page': 1, 'text': 'Verified optical source text.'}],
             engine='controlled OCR', average_confidence=.99, elapsed_seconds=.1,
@@ -121,7 +122,7 @@ def test_v4_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan
     first = ingest_document(hidden_scan, store_dir=store, enable_ocr=True, ocr_backend=backend)
     path = store/first.doc_id/'meta.json'
     data = json.loads(path.read_text(encoding='utf8'))
-    data['metadata']['table_extractor_version'] = 'table-v4-physical-course-scope'
+    data['metadata']['table_extractor_version'] = table_version
     data['metadata']['text_coverage_version'] = coverage
     path.write_text(json.dumps(data), encoding='utf8')
     source_before = hashlib.sha256(hidden_scan.read_bytes()).hexdigest()
@@ -130,7 +131,7 @@ def test_v4_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan
     monkeypatch.setattr('campusai.ingestion.pipeline.extract_tables', forbidden)
     cached = ingest_document(hidden_scan, store_dir=store, enable_ocr=True, ocr_backend=backend)
     assert cached.cached and cached.metadata['table_extractor_version'] == extractor.TABLE_EXTRACTOR_VERSION
-    assert cached.metadata['table_extractor_reused_from'] == 'table-v4-physical-course-scope'
+    assert cached.metadata['table_extractor_reused_from'] == table_version
     assert [asdict(c) for c in cached.chunks] == [asdict(c) for c in first.chunks]
     assert cached.metadata['ocr'] == first.metadata['ocr']
     assert cached.metadata['text_coverage_version'] == 4
@@ -138,7 +139,8 @@ def test_v4_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan
 
 
 @pytest.mark.parametrize('defect', ['incomplete_ocr', 'newly_visible_native', 'backend_change', 'coverage_three_new_mapping'])
-def test_old_optical_cache_is_not_reused_without_native_and_coverage_proof(broken_font, tmp_path, monkeypatch, defect):
+@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
+def test_old_optical_cache_is_not_reused_without_native_and_coverage_proof(broken_font, tmp_path, monkeypatch, defect, table_version):
     calls = []
     def recognize(*args, **kwargs):
         calls.append(1)
@@ -150,7 +152,7 @@ def test_old_optical_cache_is_not_reused_without_native_and_coverage_proof(broke
     first = ingest_document(broken_font, store_dir=store, enable_ocr=True)
     path = store/first.doc_id/'meta.json'
     data = json.loads(path.read_text(encoding='utf8'))
-    data['metadata']['table_extractor_version'] = 'table-v4-physical-course-scope'
+    data['metadata']['table_extractor_version'] = table_version
     if defect == 'incomplete_ocr': data['metadata']['ocr']['page_numbers'] = []
     if defect == 'coverage_three_new_mapping': data['metadata']['text_coverage_version'] = 3
     path.write_text(json.dumps(data), encoding='utf8')

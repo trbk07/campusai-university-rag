@@ -12,7 +12,7 @@ _COLUMN_SEPARATOR = re.compile(r"\s{2,}|\|")
 _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.I)
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
-TABLE_EXTRACTOR_VERSION = "table-v5-partial-numeric-grid"
+TABLE_EXTRACTOR_VERSION = "table-v6-leader-text-grid"
 
 
 def _word_lines(words):
@@ -184,6 +184,11 @@ def _page_packet(page, doc_id, page_number):
             else:
                 candidate['number'] = max([len(physical_tables), *[r['number'] for r in records]]) + 1
                 records.append(candidate)
+    if not records:
+        from .leader_text_tables import leader_text_records
+        for candidate in leader_text_records(page):
+            candidate['number'] = len(records) + 1
+            records.append(candidate)
     # Such a table always survives the ordered semantic assembly below, so the
     # aligned fallback cannot replace it. Otherwise compute that fallback now,
     # using the same already decoded page, independent of adjacent-page state.
