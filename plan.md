@@ -918,6 +918,13 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    bắt buộc 3/12, còn nhiều abstentions. Đã dừng; không chạy natural100 hoặc tải
    thêm model cho cùng hướng thử. Đây không phải ước lượng accuracy toàn bộ.
    [Kết quả và các phương án đã loại](docs/ui/evidence/local-streaming-20261029.json).
+   **Gemma 4 đã chạy đủ 20 RAG thật:** 20/20 câu đúng nguồn, không timeout,
+   source/profile giữ nguyên; TTFT p95 **5,60s >5s**, chưa đạt. Giữ cả hai lượt
+   chậm, không làm tròn thành PASS hoặc chạy lại cùng cấu hình. Output mỗi câu
+   264–266 tokens, có lặp chunk ID dài; bước kế tiếp là giảm overhead ID bằng handle
+   riêng từng request rồi khôi phục ID thật trước grounding, vẫn giữ mọi kiểm tra.
+   Chưa bật model hoặc dùng cohort đơn giản này thay natural100.
+   [Đủ raw predictions và protocol](docs/ui/evidence/gemma4-native-streaming-20261029.json).
    Nếu giữ streaming OFF cho v1, ghi gate DEFERRED và bỏ mọi tuyên bố đạt TTFT;
    đây là điều chỉnh scope release, không phải đổi QA-08c thành PASS.
    [Evidence](docs/ui/evidence/query-streaming-20261028.json).

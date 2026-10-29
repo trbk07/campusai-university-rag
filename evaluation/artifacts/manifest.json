@@ -26095,6 +26095,19 @@
       "storage_bytes": 4649460,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/gemma4-native20-20261029-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/gemma4-native20-20261029-evidence.zip",
+      "version_or_revision": "cdc51802375264f3c1595111aad119c0a53d11daed61625ee2a52ade2d253047",
+      "sha256": "cdc51802375264f3c1595111aad119c0a53d11daed61625ee2a52ade2d253047",
+      "bytes": 411773,
+      "local_or_external_uri": "objects/cd/cdc51802375264f3c1595111aad119c0a53d11daed61625ee2a52ade2d253047.gz",
+      "encoding": "gzip",
+      "storage_sha256": "8629214037c93d8aeab3af7c3a13a94b92936efbe2778825a87b98dc92436114",
+      "storage_bytes": 394337,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }
