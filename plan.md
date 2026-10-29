@@ -891,6 +891,12 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    đối chiếu toàn văn Cổng Chính phủ xuất bản riêng; không thiếu trang.
    Không chạy lại OCR đã đạt; phần còn thiếu là đối chiếu bảng/ô và evidence
    trên bộ PDF đại diện đúng RC. [Evidence](docs/ui/evidence/vietnamese-source-ocr-20261029.json).
+   **Đã xác định khoảng trống bảng:** audit native 45 PDF nguồn cũ, không OCR
+   hay inference lại: 8 trang native có table reference độc lập, chỉ 5 trang có
+   candidate bảng; thiếu `omni-en-002/012/034`. `omni-en-011` gom nhiều hàng số
+   vào một hàng và bỏ cột ngoài. Cần sửa ranh giới bảng/hàng cho bảng kẻ một
+   phần trước nghiệm thu; không tính số candidate thành cell accuracy hoặc PASS.
+   [Audit nguồn và output](docs/ui/evidence/pdf-table-audit-20261029.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và

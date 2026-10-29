@@ -1,0 +1,43 @@
+{
+  "status": "DIAGNOSTIC_COMPLETE_QUALITY_GATE_OPEN",
+  "source_stable": true,
+  "records": 45,
+  "reference_table_regions": 15,
+  "reference_table_pages": 9,
+  "native_reference_table_pages": 8,
+  "native_reference_table_pages_with_any_candidate": 5,
+  "native_table_candidates": 10,
+  "missing_native_table_pages": [
+    "omni-en-002",
+    "omni-en-012",
+    "omni-en-034"
+  ],
+  "unmatched_candidate_pages_require_review": [
+    "omni-en-042",
+    "omni-en-043"
+  ],
+  "scope": "Page-level candidate coverage only, not table/cell accuracy, precision/recall or acceptance. Existing45 PDF cohort; unchanged native extraction, no OCR or inference rerun.",
+  "observed_structure_issue": {
+    "document_id": "omni-en-011",
+    "description": "The native candidate collapses seven numeric body rows into newline-separated values within one logical row and omits outer source columns. Source page and independent table annotation retained. Raw page text is preserved; structural integrity is not established."
+  },
+  "review_class": "Existing original human/expert-checked OmniDocBench annotations; no new human approvals created.",
+  "reference_revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+  "reference_source_sha256": "a45cd84b04ad8b793e775089640e6b681209abea33ead54c1828ddca35fae496",
+  "gold_in_prediction": false,
+  "external_calls": 0,
+  "ocr_rerun": false,
+  "next_fix": "Preserve physical row boundaries and the complete table/header extent before emitting structured cells; cover ruled, partially ruled and unruled tables, without changing existing course-table scopes.",
+  "quality_pass_claim": false,
+  "code_changed": false,
+  "archive": {
+    "logical_path": ".tmp/pdf-table-audit-20261029-evidence.zip",
+    "sha256": "8d2e999e1473e08fca46b59ee340bf40329a04d896a0917f6ca0e346d8b6c312",
+    "bytes": 4548923
+  },
+  "limits": [
+    "No prediction-to-gold table/cell assignment has been certified. Candidate page coverage is not table accuracy.",
+    "Original native/OCR character scores remain scoped to their independent text regions. This audit does not reopen completed OCR, native-text, Phase5internal or performance tasks.",
+    "The existing default model and all parser thresholds remain unchanged."
+  ]
+}
