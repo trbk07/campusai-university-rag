@@ -26134,6 +26134,19 @@
       "storage_bytes": 6911770,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/vertical-numeric-tables-20261029-evidence.zip": {
+      "artifact_type": "source_bound_qa_evidence",
+      "identity": ".tmp/vertical-numeric-tables-20261029-evidence.zip",
+      "version_or_revision": "573135dfa2622221107e7e702e255f452323f51d7db0452ecfde2e5c672016e8",
+      "sha256": "573135dfa2622221107e7e702e255f452323f51d7db0452ecfde2e5c672016e8",
+      "bytes": 5499944,
+      "local_or_external_uri": "objects/57/573135dfa2622221107e7e702e255f452323f51d7db0452ecfde2e5c672016e8.gz",
+      "encoding": "gzip",
+      "storage_sha256": "03ab70fc539e6876f76b0112d864c1c51e6c8b099808f27323ef4e44d3344dd9",
+      "storage_bytes": 5409999,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

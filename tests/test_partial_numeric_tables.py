@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from campusai.ingestion.partial_numeric_tables import partial_numeric_records
+from campusai.ingestion.partial_numeric_tables import partial_numeric_records, vertical_numeric_records
 from campusai.ingestion import table_extractor as extractor
 from campusai.ingestion.pipeline import ingest_document
 from tests.test_pdf_native_mapping import broken_font
@@ -43,6 +43,85 @@ def test_complete_grid_recovers_outer_columns_separate_rows_and_spanning_headers
     assert len(record['proof']['row_bboxes']) == len(record['proof']['cell_bboxes']) == 3
     span = next(s for s in record['proof']['header_spans'] if s['text'] == 'Total')
     assert span['columns'] == [1, 2]
+
+
+def vertical_grid():
+    page = grid(); page.horizontal_edges.pop()
+    for edge in page.vertical_edges: edge['bottom'] = 140
+    return page
+
+
+def test_common_drawn_vertical_ends_recover_a_grid_without_a_bottom_rule():
+    page = vertical_grid(); record, = vertical_numeric_records(page)
+    assert record['rows'][1:] == [['Alpha','10','11','12'],['Beta','20','21','22'],['Gamma','30','31','32']]
+    assert record['rows'][0] == ['Subject','Total East','Total West','Reserve']
+    assert record['proof']['closure']['kind'] == 'common_drawn_vertical_ends'
+    assert record['proof']['closure']['y'] == 140
+    assert len(record['proof']['closure']['dividers']) == 3
+
+
+@pytest.mark.parametrize('defect', [
+    'unequal_ends','gap','header_only','one_divider','missing_value','crossed_column',
+    'following_row','following_label','following_number','previous_connected_column',
+    'numeric_headers','explicit_bottom','missing_top','missing_header','word_limit',
+])
+def test_vertical_closure_rejects_incomplete_boundaries_cells_and_truncated_rows(defect):
+    page = vertical_grid(); words = page.extract_words()
+    if defect == 'unequal_ends': page.vertical_edges[0]['bottom'] = 143
+    if defect == 'gap':
+        page.vertical_edges[0]['bottom'] = 70
+        page.vertical_edges.append({'x0':150,'top':80,'bottom':140})
+    if defect == 'header_only':
+        for edge in page.vertical_edges: edge['bottom'] = 50
+    if defect == 'one_divider': page.vertical_edges = page.vertical_edges[:1]
+    if defect == 'missing_value': words.pop()
+    if defect == 'crossed_column': words[-1]['x0'] = 265
+    if defect == 'following_row': words.extend([word('Delta',20,146,90),word('40',180,146,200),word('41',240,146,260),word('42',300,146,320)])
+    if defect == 'following_label': words.append(word('Unvalued row',20,146,90))
+    if defect == 'following_number': words.append(word('40',180,146,200))
+    if defect == 'previous_connected_column': page.vertical_edges.append({'x0':150,'top':0,'bottom':10})
+    if defect == 'numeric_headers':
+        for w in words[:5]:
+            if w['text'] != 'Subject': w['text'] = '2020'
+    if defect == 'explicit_bottom': page.horizontal_edges.append({'x0':10,'x1':330,'top':140})
+    if defect == 'missing_top': page.horizontal_edges.pop(0)
+    if defect == 'missing_header': page.horizontal_edges.pop()
+    if defect == 'word_limit': words.extend(word('extra',20,60,50) for _ in range(5001))
+    assert vertical_numeric_records(page) == []
+
+
+def test_header_only_physical_fragment_is_replaced_without_losing_its_identity():
+    page = vertical_grid()
+    page.find_tables = lambda: [SimpleNamespace(extract=lambda:[['Subject','East','West','Reserve']],
+        cells=[(10,10,150,50),(150,10,210,50),(210,10,270,50),(270,10,330,50)])]
+    record, = extractor._page_packet(page,'source',1)['records']
+    assert record['number'] == 1 and len(record['rows']) == 4
+    assert record['rows'][-1] == ['Gamma','30','31','32']
+
+
+def test_vertical_grid_is_found_beside_an_existing_complete_physical_table():
+    page = vertical_grid()
+    original = [['Existing','Header'],['Actual','Source value']]
+    page.find_tables = lambda: [SimpleNamespace(extract=lambda:original,
+        cells=[(400,10,450,50),(450,10,500,50),(400,50,450,140),(450,50,500,140)])]
+    records = extractor._page_packet(page,'source',1)['records']
+    assert len(records) == 2 and records[0]['rows'] == original
+    assert records[1]['rows'][-1] == ['Gamma','30','31','32']
+
+
+def test_existing_table_region_is_not_decoded_or_reinterpreted():
+    page = vertical_grid()
+    def forbidden(): raise AssertionError('A completed physical table is already authoritative')
+    page.extract_words = forbidden
+    assert vertical_numeric_records(page, [[10,10,330,140]]) == []
+
+
+def test_many_header_combinations_stop_before_word_decoding():
+    page = vertical_grid()
+    page.horizontal_edges = [{'x0':10+400*g,'x1':330+400*g,'top':10+20*i} for g in range(5) for i in range(20)]
+    def forbidden(): raise AssertionError('Header combinations must be bounded before decoding')
+    page.extract_words = forbidden
+    assert vertical_numeric_records(page) == []
 
 
 def test_collapsed_inner_grid_is_replaced_without_changing_its_table_id():
@@ -111,7 +190,7 @@ def test_complex_rule_layout_does_not_start_unbounded_word_grid_search():
 
 @pytest.mark.parametrize('backend', ['rapidocr', 'tesseract', 'vietocr'])
 @pytest.mark.parametrize('coverage', [3, 4])
-@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
+@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid', 'table-v6-leader-text-grid'])
 def test_old_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_scan, tmp_path, monkeypatch, backend, coverage, table_version):
     def recognize(*args, **kwargs):
         return SimpleNamespace(pages=[{'page': 1, 'text': 'Verified optical source text.'}],
@@ -139,7 +218,7 @@ def test_old_fully_optical_cache_keeps_completed_ocr_and_exact_chunks(hidden_sca
 
 
 @pytest.mark.parametrize('defect', ['incomplete_ocr', 'newly_visible_native', 'backend_change', 'coverage_three_new_mapping'])
-@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
+@pytest.mark.parametrize('table_version', ['table-v4-physical-course-scope', 'table-v5-partial-numeric-grid', 'table-v6-leader-text-grid'])
 def test_old_optical_cache_is_not_reused_without_native_and_coverage_proof(broken_font, tmp_path, monkeypatch, defect, table_version):
     calls = []
     def recognize(*args, **kwargs):

@@ -202,3 +202,6 @@
 /src/campusai/ingestion/leader_text_tables.py -text whitespace=cr-at-eol
 /tests/test_leader_text_tables.py -text whitespace=cr-at-eol
 /docs/ui/evidence/leader-text-tables-20261029.json -text whitespace=cr-at-eol
+
+# Preserve vertical-closure table evidence bytes.
+/docs/ui/evidence/vertical-numeric-tables-20261029.json -text whitespace=cr-at-eol

@@ -112,11 +112,12 @@ def test_complex_layout_is_bounded_before_word_decoding():
 
 
 @pytest.mark.parametrize('backend', ['rapidocr','tesseract','vietocr'])
-def test_v5_jobs_remain_readable_but_new_upload_uses_new_identity(backend):
+@pytest.mark.parametrize('previous_version', ['table-v5-partial-numeric-grid','table-v6-leader-text-grid'])
+def test_previous_jobs_remain_readable_but_new_upload_uses_new_identity(backend,previous_version):
     from campusai.ingestion.background.state import accepted_job_identities, job_identity, normalize_options
     options = normalize_options({'ocr_backend':backend})
     payload = {'source_sha256':'source','options':options,'text_coverage_version':4,
-               'table_extractor_version':'table-v5-partial-numeric-grid'}
+               'table_extractor_version':previous_version}
     if backend == 'vietocr':
         from campusai.ingestion.ocr_tables import OCR_TABLE_POLICY
         payload['ocr_table_policy'] = OCR_TABLE_POLICY

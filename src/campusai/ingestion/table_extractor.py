@@ -12,7 +12,7 @@ _COLUMN_SEPARATOR = re.compile(r"\s{2,}|\|")
 _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.I)
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
-TABLE_EXTRACTOR_VERSION = "table-v6-leader-text-grid"
+TABLE_EXTRACTOR_VERSION = "table-v7-vertical-numeric-grid"
 
 
 def _word_lines(words):
@@ -184,6 +184,22 @@ def _page_packet(page, doc_id, page_number):
             else:
                 candidate['number'] = max([len(physical_tables), *[r['number'] for r in records]]) + 1
                 records.append(candidate)
+    from .partial_numeric_tables import vertical_numeric_records
+    for candidate in vertical_numeric_records(page, [r['bbox'] for r in records if len(r['rows']) > 1]):
+        a = candidate['bbox']
+        overlap = [r for r in records if min(a[2], r['bbox'][2]) > max(a[0], r['bbox'][0])
+                   and min(a[3], r['bbox'][3]) > max(a[1], r['bbox'][1])]
+        if overlap:
+            if len(overlap) != 1 or len(overlap[0]['rows']) > 1:
+                continue
+            old = overlap[0]; b = old['bbox']
+            if not (a[0]-1 <= b[0] and a[1]-1 <= b[1] and a[2]+1 >= b[2] and a[3]+1 >= b[3]):
+                continue
+            candidate['number'] = old['number']
+            records[records.index(old)] = candidate
+        else:
+            candidate['number'] = max([len(physical_tables), *[r['number'] for r in records]]) + 1
+            records.append(candidate)
     if not records:
         from .leader_text_tables import leader_text_records
         for candidate in leader_text_records(page):

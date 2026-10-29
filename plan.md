@@ -909,12 +909,25 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    `review_required`, không sửa gold hoặc tạo approval. Truy hồi BGE-M3 CUDA
    qua service thật đúng hàng/tài liệu/trang **18/18 câu ở top 8**, không gọi model.
    Native 35 PDF/368 trang cũ giữ nguyên; full **3.385 PASS / 2 live SKIP**,
-   93 related và 61 clean-export PASS (chồng lấn). Cache/job v6 đã đồng bộ,
+   95 related và 63 clean-export PASS (chồng lấn). Cache/job v6 đã đồng bộ,
    lịch sử v5 vẫn đọc được, không OCR lại cache thuần ảnh đã có proof đầy đủ.
    Candidate phủ 8/8 trang native có reference, **chưa phải 15/15 vùng bảng
    đạt chuẩn**: còn bảng nhiều marker đầu `002`, bảng thứ hai `011` và scan `039`.
    Không làm lại phần đã DONE; xử lý các vùng còn thiếu trước khi đóng QA PDF.
    [Nguồn, kiểm thử và giới hạn](docs/ui/evidence/leader-text-tables-20261029.json).
+   **QA-03b9 — DONE trong phạm vi extraction:** bảng thứ hai của `omni-en-011`
+   thiếu đường đáy đã giữ đủ **6 hàng / 36 giá trị số**, khớp annotation độc lập
+   về giá trị và thứ tự; giữ đủ 73 từ gốc. Dựa trên điểm kết thúc chung của các
+   đường phân cột thật, không đoán thêm đường kẻ; từ chối hàng thiếu/ngoài ranh
+   giới. Một header annotation khác PDF vẫn `review_required`, không sửa gold.
+   35 PDF/368 trang cũ không đổi; full **3.419 PASS / 2 live SKIP**, 129 related
+   và 96 clean-export PASS (chồng lấn). Cache/job v7 giữ lịch sử và OCR có proof.
+   **Ưu tiên tiếp:** quote theo năm/cột. Hai control đúng trên chunk thật đang
+   bị từ chối vì `source_quote` đòi năm header xuất hiện trong body row; hai
+   control sai cũng bị chặn. Cần ràng buộc đúng cột/năm, không cộng mọi số trong
+   header vào evidence. Đây là fault test, không phải inference/accuracy PASS.
+   Còn bảng nhiều marker đầu `002`, scan `039` và nghiệm thu PDF tổng thể.
+   [Code, kiểm thử và việc cần sửa tiếp](docs/ui/evidence/vertical-numeric-tables-20261029.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -977,7 +990,8 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | [x] QA-03b5 — DONE theo phạm vi | Bộ đo exact edit-distance và spatial matching sau inference; không đưa gold/tọa độ reference vào OCR. OmniDocBench gốc: native text 42 trang đạt 98,19%, OCR raster 45 trang đạt 97,44%; publisher có quy trình manual/expert checks. Giữ đầy đủ ca lỗi, công khai vùng text/bảng/công thức ngoài scope và lịch sử exposure. Không đóng QA-03b/QA-07c tổng thể hoặc giả lập human approvals. [Evidence](docs/ui/evidence/pdf-text-quality-20261028.json) |
 | [x] QA-03b6 — DONE | OCR tiếng Việt trên bản scan gốc 31 trang của Cổng Chính phủ đạt **98,38%** so với toàn văn HTML do cùng cơ quan xuất bản riêng; 60.405 ký tự, đủ 120 điều, 0 trang thiếu, 46,33 giây. Reference đóng băng trước OCR; chấm cả chữ thừa/header/số trang, chỉ chuẩn hóa NFC và khoảng trắng. Không dùng output sinh gold hoặc tự tạo human-review records. Native-text/table và QA PDF tổng thể vẫn kiểm riêng. [Evidence](docs/ui/evidence/vietnamese-source-ocr-20261029.json) |
 | [x] QA-03b7 — DONE trong phạm vi sửa | Giữ đủ cột biên, header nhiều tầng và 19 hàng của 3 bảng số kẻ một phần; 54 giá trị số khớp reference độc lập, giữ khác biệt định dạng và 2 header cần review. 35 PDF/368 trang cũ không đổi text/bảng. Đồng bộ cache v5/job identity, giữ OCR hoàn tất có proof. Full 3.312 PASS / 2 live SKIP, 99 related và 28 clean-export tests PASS (chồng lấn). Chưa đóng nghiệm thu PDF tổng thể. [Evidence](docs/ui/evidence/partial-numeric-tables-20261029.json) |
-| [x] QA-03b8 — DONE trong phạm vi sửa | Giữ đủ 18 hàng của hai bảng chữ thiếu viền dọc ngoài; 36/36 ô khớp chữ/số/thứ tự với văn bản GovInfo, không mất/thêm từ nguồn. Truy hồi BGE-M3 CUDA đúng structured evidence 18/18 trong top 8, không model inference. Native 35 PDF/368 trang và 43/45 table outputs cũ giữ nguyên. Full 3.385 PASS / 2 live SKIP, 93 related và 61 clean-export PASS (chồng lấn). Cache/job v6 giữ lịch sử v5 và OCR có proof; 3 annotation cells vẫn review_required. Chưa đóng toàn bộ bảng/PDF. [Evidence](docs/ui/evidence/leader-text-tables-20261029.json) |
+| [x] QA-03b8 — DONE trong phạm vi sửa | Giữ đủ 18 hàng của hai bảng chữ thiếu viền dọc ngoài; 36/36 ô khớp chữ/số/thứ tự với văn bản GovInfo, không mất/thêm từ nguồn. Truy hồi BGE-M3 CUDA đúng structured evidence 18/18 trong top 8, không model inference. Native 35 PDF/368 trang và 43/45 table outputs cũ giữ nguyên. Full 3.385 PASS / 2 live SKIP, 95 related và 63 clean-export PASS (chồng lấn). Cache/job v6 giữ lịch sử v5 và OCR có proof; 3 annotation cells vẫn review_required. Chưa đóng toàn bộ bảng/PDF. [Evidence](docs/ui/evidence/leader-text-tables-20261029.json) |
+| [x] QA-03b9 — DONE về extraction | Bảng số không có đường đáy: đủ 6 hàng/36 số khớp reference, giữ 73 từ nguồn, thay đúng fragment chỉ có header. 35 PDF/368 trang và 44/45 outputs bảng cũ không đổi. Full 3.419 PASS / 2 live SKIP, 129 related và 96 clean-export PASS (chồng lấn); cache/job v7 tương thích lịch sử. Một header vẫn review_required. Quote năm/cột và các vùng PDF còn lại chưa nghiệm thu. [Evidence](docs/ui/evidence/vertical-numeric-tables-20261029.json) |
 | QA-03c / QA-08d | 20/20 fresh uploads PDF text 100 trang/10 MB, p95 12,25s ≤15s; model/OS cache warm trên CUDA. Startup riêng 42,51s. [Evidence](docs/ui/evidence/native100-performance-20261027.json) |
 | QA-04–06, QA-10–11, QA-13 | Mixed PDF, OCR từ chi tiết, job identity cũ, cancel/progress, OCR process Việt/Anh và ảnh trong trang text. [Isolation](docs/ui/evidence/ocr-isolation-20261025.json), [OCR](docs/ui/evidence/ocr-evaluation-20261025.json) |
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |

@@ -30,7 +30,7 @@ def test_coloured_bands_do_not_hide_remaining_rows_as_one_column_table(tmp_path)
     assert tables[0].rows[-1]==['ZEN3105','Example Course 5','48','3']
 
 
-@pytest.mark.parametrize('old_version', ['table-v2-aligned-course-columns', 'table-v4-physical-course-scope', 'table-v5-partial-numeric-grid'])
+@pytest.mark.parametrize('old_version', ['table-v2-aligned-course-columns', 'table-v4-physical-course-scope', 'table-v5-partial-numeric-grid', 'table-v6-leader-text-grid'])
 def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_path, old_version):
     import json
     from campusai.ingestion.pipeline import ingest_document

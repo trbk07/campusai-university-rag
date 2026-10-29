@@ -110,10 +110,12 @@ def _grid(words, vertical, left, right, top, header_end, bottom):
             'parser': 'pdfplumber-partial-numeric-grid-v1'}
 
 
-def partial_numeric_records(page):
-    """Find closed, partially ruled numeric tables without reading annotations."""
+def _horizontal_groups(page, minimum):
+    horizontal = getattr(page, 'horizontal_edges', [])
+    if len(horizontal) > 2048:
+        return []
     groups = []
-    for edge in getattr(page, 'horizontal_edges', []):
+    for edge in horizontal:
         if edge['x1'] - edge['x0'] < 80:
             continue
         group = next((g for g in groups if abs(g[0]['x0'] - edge['x0']) <= 1
@@ -122,8 +124,14 @@ def partial_numeric_records(page):
             groups.append([edge])
         else:
             group.append(edge)
-    groups = [g for g in groups if 3 <= len(g) <= 32]
-    if not groups or len(groups) > 32:
+    groups = [g for g in groups if minimum <= len(g) <= 32]
+    return groups if len(groups) <= 32 else []
+
+
+def partial_numeric_records(page):
+    """Find closed, partially ruled numeric tables without reading annotations."""
+    groups = _horizontal_groups(page, 3)
+    if not groups:
         return []
     vertical = getattr(page, 'vertical_edges', [])
     if not vertical:
@@ -179,3 +187,92 @@ def partial_numeric_records(page):
                 # Subtotal separators are not the end of a larger valid grid.
                 candidates.append(max(valid, key=lambda r: r['bbox'][3]))
     return candidates
+
+
+def vertical_numeric_records(page, excluded_bboxes=()):
+    """A shared physical end of all body dividers can close a numeric grid.
+
+    Require at least two continuous internal dividers, matching terminal
+    coordinates and complete source numeric rows. A nearby following aligned
+    row rejects the candidate instead of being silently truncated.
+    """
+    vertical = getattr(page, 'vertical_edges', [])
+    if not vertical or len(vertical) > 2048:
+        return []
+    plans = []
+    attempts = 0
+    for group in _horizontal_groups(page, 2):
+        left, right = group[0]['x0'], group[0]['x1']
+        levels = _unique(e['top'] for e in group)
+        for position, (top, header_end) in enumerate(zip(levels, levels[1:])):
+            if not 8 <= header_end - top <= 60:
+                continue
+            attempts += 1
+            if attempts > 64:
+                return []
+            limit = levels[position + 2] if position + 2 < len(levels) else float('inf')
+            dividers = []
+            for edge in vertical:
+                if (left + 3 < edge['x0'] < right - 3 and edge['top'] >= top - 1
+                        and edge['top'] < limit - 1 and edge['bottom'] > top):
+                    column = next((g for g in dividers if abs(g[0]['x0'] - edge['x0']) <= 1), None)
+                    if column is None:
+                        dividers.append([edge])
+                        if len(dividers) > 11:
+                            break
+                    else:
+                        column.append(edge)
+            if not 2 <= len(dividers) <= 11:
+                continue
+            ends = [max(e['bottom'] for e in column) for column in dividers]
+            bottom = max(ends)
+            if (max(ends) - min(ends) > 1 or not 15 <= bottom - header_end <= 600
+                    or any(abs(level - bottom) <= 1 for level in levels)):
+                continue
+            continuous = True
+            for column in dividers:
+                pieces = sorted(column, key=lambda e: e['top'])
+                cursor = pieces[0]['top']
+                continuous &= cursor <= header_end - 5
+                for edge in pieces:
+                    continuous &= edge['top'] <= cursor + 1
+                    cursor = max(cursor, edge['bottom'])
+            if not continuous:
+                continue
+            if any(e['top'] < top - 1 and e['bottom'] >= top - 1
+                   and any(abs(e['x0'] - column[0]['x0']) <= 1 for column in dividers)
+                   for e in vertical):
+                continue
+            box = [left, top, right, bottom]
+            if any(min(right, b[2]) > max(left, b[0]) and min(bottom, b[3]) > max(top, b[1])
+                   for b in excluded_bboxes):
+                continue
+            plans.append((left, right, top, header_end, bottom, dividers))
+            if len(plans) > 64:
+                return []
+    if not plans:
+        return []
+    words = page.extract_words()
+    if len(words) > 5000:
+        return []
+    records = []
+    for left, right, top, header_end, bottom, dividers in plans:
+        record = _grid(words, [e for column in dividers for e in column], left, right, top, header_end, bottom)
+        if not record:
+            continue
+        if all(_NUMBER.fullmatch(value.replace(' ', '')) for value in record['rows'][0][1:]):
+            continue  # A data row is not certified as a new table's header.
+        height = max(b[3] - b[1] for b in record['proof']['row_bboxes'])
+        tail = [w for w in words if left <= (w['x0'] + w['x1']) / 2 <= right
+                and bottom <= (w['top'] + w['bottom']) / 2 < bottom + max(12, 2 * height)]
+        base = min(row[0][0] for row in record['proof']['cell_bboxes'])
+        if any(abs(line[0]['x0'] - base) <= 1.5 or any(
+                _NUMBER.fullmatch(w['text']) and w['x0'] >= record['edges'][1] for w in line)
+               for line in _lines(tail)):
+            continue
+        record['parser'] = 'pdfplumber-vertical-numeric-grid-v1'
+        record['proof']['closure'] = {'kind': 'common_drawn_vertical_ends', 'y': bottom,
+            'dividers': [{'x': column[0]['x0'], 'segments': [[e['top'], e['bottom']] for e in column]}
+                         for column in dividers]}
+        records.append(record)
+    return records
