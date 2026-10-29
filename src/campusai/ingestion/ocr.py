@@ -53,6 +53,26 @@ def _recognize(engine, image: np.ndarray):
     return "\n".join(texts), sum(confidences) / len(confidences) if confidences else 0.0, layout
 
 
+def _numeric_tables(engine, image, layout, transform, scale, origin):
+    """One bounded cell pass; an ordinary OCR page keeps its exact old output."""
+    if len(layout) > 4096:
+        return None
+    import cv2
+    from .ocr_numeric_tables import assemble_numeric_tables, read_cell_jobs, physical_tables
+    gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    if gray.size > 20_000_000:
+        return None
+    def read_boxes(boxes):
+        crops = [image[int(b):int(d), int(a):int(c)].copy() for a, b, c, d in boxes]
+        output, _ = engine.text_rec(crops)
+        return [(text, float(score)) for text, score in output]
+    assembled = assemble_numeric_tables(gray, layout, lambda jobs: read_cell_jobs(gray, jobs, read_boxes))
+    if not assembled['tables']:
+        return None
+    return {'words': assembled['words'],
+            'tables': physical_tables(assembled['tables'], transform, scale, origin)}
+
+
 def ocr_pdf(
     path: str | Path,
     *,
@@ -110,7 +130,7 @@ def ocr_pdf(
             page = document[page_number - 1]
             regions = (hybrid_regions or {}).get(page_number)
             if regions:
-                lines, audits, region_confidences = [], [], []
+                lines, audits, region_confidences, tables = [], [], [], []
                 bounds = page.rect * page.derotation_matrix
                 for region in regions:
                     if progress is not None:
@@ -126,6 +146,13 @@ def ocr_pdf(
                                              alpha=False, colorspace=fitz.csRGB)
                     image = np.frombuffer(pixmap.samples, dtype=np.uint8).reshape(pixmap.height, pixmap.width, pixmap.n)
                     text, confidence, layout = _recognize(engine, image)
+                    def physical(box):
+                        return list(fitz.Rect((box[0]+pixmap.x)/scale, (box[1]+pixmap.y)/scale,
+                            (box[2]+pixmap.x)/scale, (box[3]+pixmap.y)/scale)*page.derotation_matrix)
+                    numeric = _numeric_tables(engine, image, layout, physical, scale, [pixmap.x, pixmap.y])
+                    if numeric:
+                        layout = numeric['words']; tables.extend(numeric['tables'])
+                        text = '\n'.join(row['text'] for row in layout)
                     if layout:
                         for row in layout:
                             x0, y0, x1, y1 = row['bbox']
@@ -140,7 +167,8 @@ def ocr_pdf(
                     audits.append({'bbox': region, 'outcome': outcome})
                 confidence = sum(region_confidences) / len(region_confidences) if region_confidences else 0
                 pages.append({'page': page_number, 'text': '\n'.join(row['text'] for row in lines),
-                              'lines': lines, 'image_audit': audits, 'confidence': confidence})
+                              'lines': lines, 'image_audit': audits, 'confidence': confidence,
+                              **({'ocr_tables': tables} if tables else {})})
                 if confidence:
                     confidences.append(confidence)
                 if progress is not None:
@@ -151,7 +179,14 @@ def ocr_pdf(
                 pixmap.height, pixmap.width, pixmap.n
             )
             text, confidence, layout = _recognize(engine, image)
+            def physical(box):
+                return list(fitz.Rect([value/scale for value in box])*page.derotation_matrix)
+            numeric = _numeric_tables(engine, image, layout, physical, scale, [0, 0])
+            if numeric:
+                layout = numeric['words']; text = '\n'.join(row['text'] for row in layout)
             result = {"page": page_number, "text": text, "confidence": confidence}
+            if numeric:
+                result['ocr_tables'] = numeric['tables']
             if include_layout:
                 result['lines'] = [{'text': row['text'], 'bbox': list(fitz.Rect(
                     [value / scale for value in row['bbox']]) * page.derotation_matrix)} for row in layout]

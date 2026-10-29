@@ -217,6 +217,10 @@ def ingest_document(
         if enable_ocr and ocr_backend=='vietocr' and cached_ocr:
             from .ocr_tables import OCR_TABLE_POLICY
             if document.metadata.get('ocr_table_policy')!=OCR_TABLE_POLICY:cache_versions_current=False
+        if enable_ocr and ocr_backend in {'rapidocr','vietocr'} and cached_ocr:
+            from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
+            if document.metadata.get('ocr_numeric_policy') != NUMERIC_TABLE_POLICY:
+                cache_versions_current = False
         if enable_ocr and document.status == "review_required" and document.review_reason in {
             "ocr_required",
             "ocr_unavailable",
@@ -329,6 +333,9 @@ def ingest_document(
         if ocr_backend=='vietocr':
             from .ocr_tables import OCR_TABLE_POLICY
             metadata['ocr_table_policy']=OCR_TABLE_POLICY
+        if ocr_backend in {'rapidocr','vietocr'}:
+            from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
+            metadata['ocr_numeric_policy']=NUMERIC_TABLE_POLICY
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)
     tables = extract_tables(pages, document_id, pdf_path=pdf_path)

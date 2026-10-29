@@ -1076,6 +1076,9 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     from .presentation import presentation_conflicts, location_proofs, code_markers
     source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
     locations = location_proofs(citations, registry)
+    from .year_cells import numeric_answer_units_valid
+    if not numeric_answer_units_valid(answer, claims, registry, question, locations=locations):
+        return _abstention('unsupported_claim', language=language)
     if presentation_conflicts(answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes):
         return _abstention('unsupported_claim', language=language)

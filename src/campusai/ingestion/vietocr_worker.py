@@ -65,6 +65,7 @@ def main():
     torch.set_num_threads(2); torch.set_num_interop_threads(1)
     Recognizer=local_module('vietocr_recognizer').Recognizer
     grid=local_module('ocr_tables')
+    numeric=local_module('ocr_numeric_tables')
     root=Path(request['data_dir'])
     recognizer=Recognizer(root/'vgg_seq2seq.pth')
     detector=TextDetector({'model_path':str(root/'detector.onnx'),
@@ -111,6 +112,10 @@ def main():
                 def read_boxes(boxes):
                     return recognizer.predict([image.crop(tuple(box)) for box in boxes])
                 assembled=grid.assemble_tables(gray,pixel_words,read_boxes)
+                extra=numeric.assemble_numeric_tables(gray,assembled['words'],
+                    lambda jobs:numeric.read_cell_jobs(gray,jobs,read_boxes),
+                    excluded_bboxes=[table['bbox'] for table in assembled['tables']])
+                assembled={'words':extra['words'],'tables':assembled['tables']+extra['tables']}
                 def physical(box):
                     x0,y0,x1,y1=box
                     return list(fitz.Rect((x0+pix.x)/scale,(y0+pix.y)/scale,
@@ -121,8 +126,8 @@ def main():
                     table={**table,'bbox':physical(table['bbox']),
                         'row_bboxes':[physical(box) for box in table['row_bboxes']],
                         'header_bboxes':[physical(box) for box in table['header_bboxes']],
-                        'header_spans':[{**span,'bbox':physical(span['bbox'])} for span in table['header_spans']],
-                        'row_spans':[{**span,'bbox':physical(span['bbox'])} for span in table['row_spans']],
+                        'header_spans':[{**span,'bbox':physical(span['bbox'])} for span in table.get('header_spans',[])],
+                        'row_spans':[{**span,'bbox':physical(span['bbox'])} for span in table.get('row_spans',[])],
                         'geometry_coordinates':'PDF points for boxes;render pixels for grid edges',
                         'render_scale':scale,'render_origin':[pix.x,pix.y]}
                     tables.append(table)

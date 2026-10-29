@@ -453,6 +453,8 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                 "table_scope": table_scope if table_scope_line else None,
                 "table_scope_provenance": ("explicit_pdf_marker" if table_scope_line else None),
                 "table_row_indices": [row_indices[id(row)] for row in rows],
+                **({'numeric_cell_policy': table.schema['parser']}
+                   if table.schema.get('parser') == 'ruled-ocr-numeric-v1' else {}),
                 **({"table_header_source": table.schema['header_source']}
                    if table.schema.get('header_source') else {}),
                 "citation": {

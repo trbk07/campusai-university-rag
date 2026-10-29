@@ -912,7 +912,8 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    95 related và 63 clean-export PASS (chồng lấn). Cache/job v6 đã đồng bộ,
    lịch sử v5 vẫn đọc được, không OCR lại cache thuần ảnh đã có proof đầy đủ.
    Candidate phủ 8/8 trang native có reference, **chưa phải 15/15 vùng bảng
-   đạt chuẩn**: còn bảng nhiều marker đầu `002` và scan `039`.
+   đạt chuẩn**: còn bảng nhiều marker đầu `002` và các annotation chưa khớp
+   nguồn. Hai bảng `039` đã xử lý ở QA-03b11 bên dưới.
    Không làm lại phần đã DONE; xử lý các vùng còn thiếu trước khi đóng QA PDF.
    [Nguồn, kiểm thử và giới hạn](docs/ui/evidence/leader-text-tables-20261029.json).
    **QA-03b9 — DONE trong phạm vi extraction:** bảng thứ hai của `omni-en-011`
@@ -930,9 +931,24 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    Full **3.496 PASS / 2 live SKIP**, 77 tests chuyên biệt, 519 related và
    456 clean-export PASS (các bộ chồng lấn), runtime không đổi khi chạy full.
    Đây là fault test, không phải inference/accuracy PASS; không gọi model mới.
-   Còn bảng nhiều marker đầu `002`, scan `039` và nghiệm thu PDF tổng thể.
+   Còn bảng nhiều marker đầu `002` và nghiệm thu PDF tổng thể.
    [Extraction](docs/ui/evidence/vertical-numeric-tables-20261029.json),
    [grounding đã sửa và kiểm thử](docs/ui/evidence/year-cell-grounding-20261029.json).
+   **QA-03b11 — DONE trong phạm vi OCR bảng số:** PDF `omni-en-039` có font
+   mapping lỗi được đọc từ ảnh; giữ đủ **2 bảng / 18 hàng / 43 giá trị số**,
+   tất cả số khớp nguyên định dạng với annotation độc lập. Giữ nguyên đơn vị
+   header, 15 đoạn chữ ngoài bảng và thứ tự; không tạo thêm 13 hàng chỉ vì
+   tiêu đề ghi “Top 20”. Một nhãn in `United Stales` khác annotation vẫn
+   `review_required`, không tự sửa gold hoặc tạo approval.
+   Đọc lại từng ô theo batch; chặn bảng hở, thiếu ô, chữ vượt ranh và confidence
+   thấp. Cache/job OCR đã đồng bộ, upload lặp dùng cache. Giữ nguyên xử lý mã
+   môn/tín chỉ cũ; kiểm tra đúng hàng/cột, đơn vị và số có dấu phẩy tiếng Việt.
+   Source controls **9/9** đúng quyết định ở source/compact/legacy; truy hồi
+   BGE-M3 CUDA qua service đúng bảng **18/18** ở top 8, không gọi LLM mới.
+   35 PDF/368 trang cũ không đổi text/bảng. Full **3.624 PASS / 2 live SKIP**,
+   573 related và 384 clean-export PASS (chồng lấn), runtime không đổi.
+   Chưa phải nghiệm thu AI/PDF tổng thể hoặc 3 full runs trên RC cuối.
+   [Nguồn, hồi quy và giới hạn](docs/ui/evidence/scanned-numeric-tables-20261029.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -998,6 +1014,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | [x] QA-03b8 — DONE trong phạm vi sửa | Giữ đủ 18 hàng của hai bảng chữ thiếu viền dọc ngoài; 36/36 ô khớp chữ/số/thứ tự với văn bản GovInfo, không mất/thêm từ nguồn. Truy hồi BGE-M3 CUDA đúng structured evidence 18/18 trong top 8, không model inference. Native 35 PDF/368 trang và 43/45 table outputs cũ giữ nguyên. Full 3.385 PASS / 2 live SKIP, 95 related và 63 clean-export PASS (chồng lấn). Cache/job v6 giữ lịch sử v5 và OCR có proof; 3 annotation cells vẫn review_required. Chưa đóng toàn bộ bảng/PDF. [Evidence](docs/ui/evidence/leader-text-tables-20261029.json) |
 | [x] QA-03b9 — DONE về extraction | Bảng số không có đường đáy: đủ 6 hàng/36 số khớp reference, giữ 73 từ nguồn, thay đúng fragment chỉ có header. 35 PDF/368 trang và 44/45 outputs bảng cũ không đổi. Full 3.419 PASS / 2 live SKIP, 129 related và 96 clean-export PASS (chồng lấn); cache/job v7 tương thích lịch sử. Một header vẫn review_required. Quote năm/cột đã xử lý ở QA-03b10; nghiệm thu PDF tổng thể còn mở. [Evidence](docs/ui/evidence/vertical-numeric-tables-20261029.json) |
 | [x] QA-03b10 — DONE về grounding bảng theo năm | Ràng buộc claim với đúng hàng/năm/cột, giữ nguyên quote nguồn, kiểm tra cả bảng gốc để không giấu duplicate; hỗ trợ câu so sánh, chặn số/quote sai ở source/compact/legacy. Control trên chunk thật 12/12 đúng quyết định, full 3.496 PASS / 2 live SKIP; 77 chuyên biệt, 519 related và 456 clean-export PASS (chồng lấn), cache v38. Không tính control thành model predictions hoặc nghiệm thu AI tổng thể. [Evidence](docs/ui/evidence/year-cell-grounding-20261029.json) |
+| [x] QA-03b11 — DONE trong phạm vi OCR bảng số | Hai bảng đọc từ ảnh của PDF lỗi font mapping: đủ 18 hàng/43 số khớp annotation, giữ đơn vị và chữ ngoài bảng; một nhãn vẫn review_required. Truy hồi đúng bảng 18/18 top 8; source controls 9/9 chặn sai hàng/cột/đơn vị, giữ dấu phẩy và mã môn/tín chỉ. Native 35 PDF/368 trang không đổi. Full 3.624 PASS / 2 live SKIP, 573 related và 384 clean-export PASS (chồng lấn); cache/job OCR và grounding v39 đồng bộ. Không có LLM predictions mới, chưa đóng QA PDF/AI tổng thể. [Evidence](docs/ui/evidence/scanned-numeric-tables-20261029.json) |
 | QA-03c / QA-08d | 20/20 fresh uploads PDF text 100 trang/10 MB, p95 12,25s ≤15s; model/OS cache warm trên CUDA. Startup riêng 42,51s. [Evidence](docs/ui/evidence/native100-performance-20261027.json) |
 | QA-04–06, QA-10–11, QA-13 | Mixed PDF, OCR từ chi tiết, job identity cũ, cancel/progress, OCR process Việt/Anh và ảnh trong trang text. [Isolation](docs/ui/evidence/ocr-isolation-20261025.json), [OCR](docs/ui/evidence/ocr-evaluation-20261025.json) |
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |

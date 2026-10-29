@@ -26160,6 +26160,19 @@
       "storage_bytes": 1715576,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/scanned-numeric-tables-20261029-evidence.zip": {
+      "artifact_type": "optical_numeric_source_and_grounding_regression",
+      "identity": ".tmp/scanned-numeric-tables-20261029-evidence.zip",
+      "version_or_revision": "50073f4d75689be54f9b6e36f98c42e5c6e641c0a79ddb08d1b6da23646206cb",
+      "sha256": "50073f4d75689be54f9b6e36f98c42e5c6e641c0a79ddb08d1b6da23646206cb",
+      "bytes": 2241811,
+      "local_or_external_uri": "objects/50/50073f4d75689be54f9b6e36f98c42e5c6e641c0a79ddb08d1b6da23646206cb.gz",
+      "encoding": "gzip",
+      "storage_sha256": "ebe7af57a404c48bc130110f56e507f0d411af5c5451f9a8ce35fb2db5fb0311",
+      "storage_bytes": 2146774,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

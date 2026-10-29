@@ -196,17 +196,31 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             continue
         from .year_cells import binding
         invalid_cell = False
+        typed_cells = []
         for item in evidence:
             if item.content_type != 'table':
                 continue
             original = original_registry.get(item.chunk_id) if original_registry is not None else item
-            visible = binding(claim.text, item.content, question)
-            full = binding(claim.text, original.content, question) if original is not None else None
+            numeric = item.numeric_cell_policy == 'ruled-ocr-numeric-v1'
+            visible = binding(claim.text, item.content, question, numeric_cells=numeric)
+            full = binding(claim.text, original.content, question,
+                           numeric_cells=numeric) if original is not None else None
             if visible is not None or full is not None:
                 invalid_cell |= visible is None or full is None or not visible.supported or not full.supported
+                if numeric and visible is not None and full is not None and visible.supported and full.supported:
+                    typed_cells.append(item.chunk_id)
         if invalid_cell:
             aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
                 ids, 'contradicted', 0.0, tuple(item.chunk_id for item in evidence), True))
+            continue
+        if typed_cells and len(typed_cells) == len(evidence):
+            # A literal scalar proof includes the original row, column and
+            # explicit unit header. It can establish '%' printed in a header
+            # even when the body cell contains only the numeric value.
+            supported = not missing_requested_evidence
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
+                tuple(typed_cells), 'supported' if supported else 'unsupported',
+                1.0 if supported else 0.0, tuple(typed_cells), False))
             continue
         relation = prerequisite_claim_support(claim.text, evidence)
         if relation is None:

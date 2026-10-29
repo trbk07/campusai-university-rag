@@ -1,0 +1,148 @@
+{
+  "status": "SCOPED_OPTICAL_NUMERIC_TABLES_PASS",
+  "task": "QA-03b11: source-faithful optical numeric grids",
+  "source_runtime_sha256": "e044f591346d0c36d8e354cdcff40054d333dbfc2206312f251368b8ac9806ca",
+  "numeric_table_policy": "ruled-ocr-numeric-v1",
+  "grounding_cache_policy": "grounding-v39",
+  "fix": [
+    "Recognize fully closed physical numeric grids with one textual identity column; verify every separator segment and original word placement.",
+    "Read physical cells once in bounded batches; split header foreground lines without repeatedly running a page detector on tiny crops. Never send old OCR labels or expected values into recognition.",
+    "Preserve literal header units, body/row order, PDF page/document identities and unchanged words outside the grid. Incomplete, ambiguous or uncertain grids retain the original OCR words.",
+    "Integrate numeric assembly into local RapidOCR and the isolated VietOCR worker; validate cell proof and physical boxes before publication.",
+    "Bind simple numeric claims to the full original row and column in source, compact and legacy protocols; reject concealed duplicates, wrong fields/values, unsupported scales and public quantity changes.",
+    "Support unambiguous decimal commas in visible Vietnamese quantities, preserve literal claim values, and keep existing typed course-credit/code contracts authoritative.",
+    "Version optical job/cache identities, read exact historical v7 jobs and refresh old optical results once; repeated current ingestion stays cached. Native extraction policy remains v7."
+  ],
+  "source": {
+    "document": "omni-en-039",
+    "sha256": "342989919751f33c84824329805b703977fee1a8572d0ee00f822e40d4397a9e",
+    "pages": 1,
+    "runtime_backend": "RapidOCR1.4.4",
+    "render_scale": 1.5,
+    "native_font_mapping_excluded": true,
+    "tables": 2,
+    "data_rows": [
+      11,
+      7
+    ],
+    "numeric_literals_correct": 43,
+    "numeric_literals_total": 43,
+    "header_and_identity_comparison": "Letters/digits and order; not a full character-accuracy metric",
+    "independent_annotation_revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+    "annotation_regions_iou": [
+      0.9690587535785739,
+      0.9717822966322058
+    ],
+    "outside_grid_words": {
+      "outside_words": 15,
+      "outside_words_preserved": true,
+      "outside_order_unchanged": true
+    },
+    "review_required": {
+      "table": 2,
+      "row": 4,
+      "column": 1,
+      "ocr_source": "United Stales",
+      "annotation": "United States",
+      "status": "review_required",
+      "visual_observation": "Rendered printed label appears United Stales; detail crop retained.",
+      "approved": false,
+      "annotation_modified": false,
+      "new_human_approvals": 0
+    },
+    "remaining_13_top20_rows_invented": false
+  },
+  "native_equivalence": {
+    "documents": 35,
+    "pages": 368,
+    "parsed_unchanged": 35,
+    "tables_unchanged": 35
+  },
+  "pipeline": {
+    "status": "succeeded",
+    "tables": 2,
+    "table_chunks": 2,
+    "repeat_ingestion_cached": true
+  },
+  "retrieval": {
+    "queries": 18,
+    "target_in_top8": 18,
+    "model": "BAAI/bge-m3",
+    "device": "cuda",
+    "scope": "Source-targeted one-document app service probes; not answer correctness or representative PDF acceptance",
+    "provider_posts": 0,
+    "gold_values_in_requests": false,
+    "annotation_identity_review_required": 1
+  },
+  "grounding_controls": {
+    "type": "Synthetic controls over actually ingested source chunks; not model predictions",
+    "cases": 9,
+    "before_correct_decisions": 4,
+    "after_correct_decisions": 9,
+    "modes": [
+      "source",
+      "legacy",
+      "compact"
+    ],
+    "locale_wrong_scale_before_accepted": true,
+    "locale_wrong_scale_after_rejected": true,
+    "correct_vietnamese_decimal_comma_preserved": true
+  },
+  "tests": {
+    "full": {
+      "tests": 3626,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 3624
+    },
+    "related": {
+      "tests": 573,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 573
+    },
+    "clean_export": {
+      "tests": 384,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 384
+    },
+    "counts_overlap": true,
+    "runtime_unchanged": true,
+    "full_wall_seconds": 571.9750509262085,
+    "pytest_seconds": 568.769,
+    "three_final_rc_runs": false,
+    "pre_fix_and_interrupted_runs_counted_as_final": false
+  },
+  "producer": {
+    "base_commit": "67d1377d748125a97e001a94713304e9afb5e93c",
+    "measured_shared_worktree_includes_unrelated_local_release_changes": true,
+    "owned_changes_clean_export_verified": true,
+    "complete_python_source_retained": true
+  },
+  "model_api_posts": 0,
+  "new_native_llm_predictions": 0,
+  "quality_thresholds_changed": false,
+  "limits": [
+    "Actual 43-cell/source-region qualification is RapidOCR on this English PDF; worker integration tests do not certify every backend on every language.",
+    "One source/annotation label discrepancy still needs review. No fabricated reviewer, approval or changed gold.",
+    "Closed scalar grids only, with page/cell budgets and conservative rejection of merged, broken, sparse or ambiguous layouts.",
+    "Literal field/quantity proofs and bounded unit aliases are not unrestricted semantic entailment or an independent model-answer evaluation.",
+    "Marker-heavy first table onomni-en-002, representative PDF acceptance, genuine model TTFT/quality and final3 RC runs remain open."
+  ],
+  "archive": {
+    "logical_path": ".tmp/scanned-numeric-tables-20261029-evidence.zip",
+    "sha256": "50073f4d75689be54f9b6e36f98c42e5c6e641c0a79ddb08d1b6da23646206cb",
+    "bytes": 2241811
+  },
+  "cleanup": {
+    "verified_backing_object_sha256": "50073f4d75689be54f9b6e36f98c42e5c6e641c0a79ddb08d1b6da23646206cb",
+    "removed_entries": 34252,
+    "acl_or_link_remnants": 492,
+    "followed_reparse_points": false,
+    "retained_historical_baselines": true
+  }
+}

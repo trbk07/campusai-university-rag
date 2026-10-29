@@ -93,6 +93,7 @@ def assemble_tables(gray, words, recognize_boxes):
 def validate_tables(tables, bounds=None):
     """Validate the isolated worker's bounded, publication-ready table payload."""
     import math
+    from .ocr_numeric_tables import NUMERIC_TABLE_POLICY, validate_numeric_table
     def box(value):
         return (isinstance(value,list) and len(value)==4
             and all(type(n) in (int,float) and math.isfinite(n) for n in value)
@@ -101,7 +102,7 @@ def validate_tables(tables, bounds=None):
                  and bounds[1]<=value[1]<=value[3]<=bounds[3]))
     if not isinstance(tables,list) or len(tables)>16:raise ValueError('OCR table count bound')
     for table in tables:
-        if not isinstance(table,dict) or table.get('parser')!=OCR_TABLE_POLICY:
+        if not isinstance(table,dict) or table.get('parser') not in {OCR_TABLE_POLICY, NUMERIC_TABLE_POLICY}:
             raise ValueError('invalid OCR table parser')
         headers,rows=table.get('headers'),table.get('rows')
         if (not isinstance(headers,list) or not 2<=len(headers)<=32
@@ -114,6 +115,8 @@ def validate_tables(tables, bounds=None):
             or not isinstance(table.get('header_bboxes'),list) or len(table['header_bboxes'])!=len(headers)
             or any(not box(v) for v in table['row_bboxes']+table['header_bboxes'])):
             raise ValueError('invalid or unresolved OCR table')
+        if table['parser'] == NUMERIC_TABLE_POLICY:
+            validate_numeric_table(table)
     return tables
 
 

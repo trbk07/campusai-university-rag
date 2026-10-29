@@ -59,6 +59,9 @@ def job_identity(digest,options):
     if options.get('ocr_backend')=='vietocr':
         from ..ocr_tables import OCR_TABLE_POLICY
         payload['ocr_table_policy']=OCR_TABLE_POLICY
+    if options.get('enable_ocr') and options.get('ocr_backend') in {'rapidocr','vietocr'}:
+        from ..ocr_numeric_tables import NUMERIC_TABLE_POLICY
+        payload['ocr_numeric_policy'] = NUMERIC_TABLE_POLICY
     return hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
@@ -85,7 +88,7 @@ def accepted_job_identities(digest, options):
             sort_keys=True,separators=(',',':')).encode()).hexdigest() for version in (3,4))
     # v5 introduced the table producer in the durable identity. Keep exact
     # historical formats readable; new uploads use the current producer.
-    for producer in ('table-v5-partial-numeric-grid', 'table-v6-leader-text-grid'):
+    for producer in ('table-v5-partial-numeric-grid', 'table-v6-leader-text-grid', TABLE_EXTRACTOR_VERSION):
         previous = {'source_sha256':digest, 'options':options, 'text_coverage_version':4,
                     'table_extractor_version':producer}
         if options.get('ocr_backend') == 'vietocr':

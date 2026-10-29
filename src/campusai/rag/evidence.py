@@ -23,6 +23,7 @@ class EvidenceRecord:
     document_version: str | None = None
     metadata_tokens: tuple[str, ...] = ()
     effective_date: str | None = None
+    numeric_cell_policy: str | None = None
 
     @classmethod
     def from_result(cls, result: RetrievalResult) -> "EvidenceRecord":
@@ -46,7 +47,8 @@ class EvidenceRecord:
         return cls(result.chunk_id, result.doc_id, int(result.page), (int(page_range[0]), int(page_range[1])),
                    result.content, result.content_type, metadata.get("table_id"), metadata.get("source_hash"),
                    str(metadata.get("source_name", "")), tuple(metadata.get("heading_path", [])),
-                   metadata.get("version"), metadata_values, metadata.get("effective_date"))
+                   metadata.get("version"), metadata_values, metadata.get("effective_date"),
+                   metadata.get('numeric_cell_policy'))
 
 
 class EvidenceRegistry:

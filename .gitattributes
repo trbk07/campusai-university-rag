@@ -210,3 +210,9 @@
 /src/campusai/rag/year_cells.py -text whitespace=cr-at-eol
 /tests/test_year_cells.py -text whitespace=cr-at-eol
 /docs/ui/evidence/year-cell-grounding-20261029.json -text whitespace=cr-at-eol
+
+# Preserve optical scalar-grid producer, contract tests and evidence bytes.
+/src/campusai/ingestion/ocr_numeric_tables.py -text whitespace=cr-at-eol
+/tests/test_ocr_numeric_tables.py -text whitespace=cr-at-eol
+/tests/test_numeric_cell_grounding.py -text whitespace=cr-at-eol
+/docs/ui/evidence/scanned-numeric-tables-20261029.json -text whitespace=cr-at-eol

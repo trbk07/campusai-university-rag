@@ -68,7 +68,9 @@ def source_quote(result, claims, question=''):
         if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):
             return None
         from .year_cells import binding
-        cells = [binding(text, body, question) for text in texts]
+        cells = [binding(text, body, question,
+                         numeric_cells=result.metadata.get('numeric_cell_policy') == 'ruled-ocr-numeric-v1')
+                 for text in texts]
         if any(cell is not None for cell in cells):
             if any(cell is None or not cell.supported for cell in cells):
                 return None
