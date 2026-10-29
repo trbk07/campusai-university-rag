@@ -26082,6 +26082,19 @@
       "storage_bytes": 4533689,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/partial-numeric-tables-20261029-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/partial-numeric-tables-20261029-evidence.zip",
+      "version_or_revision": "90123fd4d76650ea5cece05ed4da52ef5e3b68ff01445049c552daddf56957ff",
+      "sha256": "90123fd4d76650ea5cece05ed4da52ef5e3b68ff01445049c552daddf56957ff",
+      "bytes": 4676238,
+      "local_or_external_uri": "objects/90/90123fd4d76650ea5cece05ed4da52ef5e3b68ff01445049c552daddf56957ff.gz",
+      "encoding": "gzip",
+      "storage_sha256": "758592099828057566cd3460995a2f691e161f5cc96ff59f687ff108fac022ec",
+      "storage_bytes": 4649460,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

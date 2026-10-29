@@ -5,6 +5,7 @@ import json
 import math
 from pathlib import Path
 from ..docling_parser import TEXT_COVERAGE_VERSION
+from ..table_extractor import TABLE_EXTRACTOR_VERSION
 
 ACTIVE = frozenset({'staging','queued','running'})
 TERMINAL = frozenset({'succeeded','failed','cancelled','review_required'})
@@ -53,7 +54,8 @@ def normalize_options(options):
 
 
 def job_identity(digest,options):
-    payload={'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION}
+    payload={'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION,
+             'table_extractor_version':TABLE_EXTRACTOR_VERSION}
     if options.get('ocr_backend')=='vietocr':
         from ..ocr_tables import OCR_TABLE_POLICY
         payload['ocr_table_policy']=OCR_TABLE_POLICY
@@ -75,12 +77,12 @@ def accepted_job_identities(digest, options):
                   for function in (job_identity,legacy_job_identity)}
     identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
         'text_coverage_version':version},sort_keys=True,separators=(',',':')).encode()).hexdigest()
-        for variant in variants for version in (1,2,3))
+        for variant in variants for version in (1,2,3,4))
     if options.get('ocr_backend') == 'vietocr':
         from ..ocr_tables import OCR_TABLE_POLICY
-        identities.add(hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,
-            'text_coverage_version':3,'ocr_table_policy':OCR_TABLE_POLICY},
-            sort_keys=True,separators=(',',':')).encode()).hexdigest())
+        identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':options,
+            'text_coverage_version':version,'ocr_table_policy':OCR_TABLE_POLICY},
+            sort_keys=True,separators=(',',':')).encode()).hexdigest() for version in (3,4))
     return identities
 
 

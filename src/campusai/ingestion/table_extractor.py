@@ -12,7 +12,7 @@ _COLUMN_SEPARATOR = re.compile(r"\s{2,}|\|")
 _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.I)
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
-TABLE_EXTRACTOR_VERSION = "table-v4-physical-course-scope"
+TABLE_EXTRACTOR_VERSION = "table-v5-partial-numeric-grid"
 
 
 def _word_lines(words):
@@ -156,7 +156,34 @@ def _page_packet(page, doc_id, page_number):
             continue
         width = max(map(len, rows))
         records.append({'number':number, 'rows':[row+[""]*(width-len(row)) for row in rows],
-                        'edges':sorted({float(cell[i]) for cell in physical.cells for i in (0, 2)})})
+                        'edges':sorted({float(cell[i]) for cell in physical.cells for i in (0, 2)}),
+                        'bbox': [min(c[0] for c in physical.cells), min(c[1] for c in physical.cells),
+                                 max(c[2] for c in physical.cells), max(c[3] for c in physical.cells)]})
+    def collapsed(record):
+        return any(row[1:] and all(len(cell.splitlines()) > 1 and
+            all(_NUMBER.fullmatch(value.strip()) for value in cell.splitlines())
+            for cell in row[1:]) for row in record['rows'][1:])
+    if not records or any(collapsed(record) for record in records):
+        from .partial_numeric_tables import partial_numeric_records
+        for candidate in partial_numeric_records(page):
+            a = candidate['bbox']
+            overlap = [record for record in records if
+                min(a[2], record['bbox'][2]) > max(a[0], record['bbox'][0]) and
+                min(a[3], record['bbox'][3]) > max(a[1], record['bbox'][1])]
+            if overlap:
+                if len(overlap) != 1:
+                    continue
+                old = overlap[0]; b = old['bbox']
+                if (not collapsed(old) or not (a[0]-1 <= b[0] and a[1]-1 <= b[1]
+                        and a[2]+1 >= b[2] and a[3]+1 >= b[3])
+                        or len(candidate['rows'][0]) < len(old['rows'][0])
+                        or len(candidate['rows']) <= len(old['rows'])):
+                    continue
+                candidate['number'] = old['number']
+                records[records.index(old)] = candidate
+            else:
+                candidate['number'] = max([len(physical_tables), *[r['number'] for r in records]]) + 1
+                records.append(candidate)
     # Such a table always survives the ordered semantic assembly below, so the
     # aligned fallback cannot replace it. Otherwise compute that fallback now,
     # using the same already decoded page, independent of adjacent-page state.
@@ -261,7 +288,7 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -
                     active_course_section_label = None
                     if len(rows) < 2:
                         continue
-                    headers, body, parser = rows[0], rows[1:], 'pdfplumber'
+                    headers, body, parser = rows[0], rows[1:], record.get('parser', 'pdfplumber')
             scopes = []
             course_scopes = set()
             if course_columns:
@@ -279,6 +306,7 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -
             schema = {"columns": len(headers), "row_count": len(body),
                       "parser": parser, "pages": [page_number],
                       "warnings": [], "raw_preserved": True, "column_edges": edges}
+            schema.update(record.get('proof', {}))
             if header_source:
                 schema['header_source'] = dict(header_source)
                 schema['row_scopes'] = scopes

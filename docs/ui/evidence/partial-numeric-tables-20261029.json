@@ -1,0 +1,78 @@
+{
+  "status": "SCOPED_ENGINEERING_PASS",
+  "task": "QA-03b7: recover partially ruled native numeric grids",
+  "source_runtime_sha256": "49d8af6c13ac21f1d907bc6d14aff7239a2a6b9d409f53c530270c58e3ea51ff",
+  "table_extractor_version": "table-v5-partial-numeric-grid",
+  "fix": [
+    "Use drawn full-width boundaries, physical header dividers and text baselines to retain complete outer columns and rows.",
+    "Preserve parent header spans and per-cell/row source boxes; reject incomplete numeric vectors, ambiguous wraps and subtotal truncation.",
+    "Bound sparse-grid search; preserve existing ruled/course-table paths.",
+    "New job identity includes table producer version; exact old ledger formats remain readable. Native v4 caches rebuild on next ingestion.",
+    "Fully recognized v3/v4 optical caches with no affected native text preserve OCR and exact chunks; backend changes or newly untrusted native maps still reprocess."
+  ],
+  "regression": {
+    "full_passed": 3312,
+    "full_failed": 0,
+    "opt_in_live_skipped": 2,
+    "full_seconds": 297.84,
+    "runtime_unchanged": true,
+    "related_passed": 99,
+    "clean_git_export_with_owned_patch_passed": 28,
+    "counts_overlap": true,
+    "secret_scan": "PASS",
+    "final_three_stable_rc_runs_claim": false,
+    "historical_run": "Previous full had3311 PASS and one test expecting the old identity format. Test updated for the new producer binding; full rerun passed. Interrupted/lost-handle runs retained and not counted."
+  },
+  "source_equivalence": {
+    "documents": 35,
+    "pages": 368,
+    "native_text_identical": 35,
+    "tables_and_schemas_identical": 35,
+    "ocr_rerun": false
+  },
+  "independent_reference_check": {
+    "source_stable": true,
+    "cohort": 45,
+    "unchanged_table_outputs": 43,
+    "changed_documents": [
+      "omni-en-011",
+      "omni-en-034"
+    ],
+    "recovered_grids": 3,
+    "recovered_rows": 19,
+    "independently_matched_numeric_cells": 54,
+    "reference_revision": "aa1ee96d106dbe53d0ae59474d75c6e6d9b53fec",
+    "quality_thresholds_changed": false,
+    "overall_table_or_pdf_quality_pass": false
+  },
+  "comparison_method": "Numeric values and row ordering against unchanged independently annotated HTML. Only syntactically valid English thousands grouping is canonicalized with Decimal; percent type is preserved and every printed-format difference retained. Header/subject letters-digits comparison is separate, ignoring punctuation/spacing only for labels; it is not character accuracy. References read only after source-only extraction. Reference typos remain mismatches, never grounds for editing source outputs.",
+  "reference_caveats": {
+    "header_labels_review_required": 2,
+    "reason": "Original independently authored annotations contain Eastern/Central Aleutian spelling differences from source PDF. Output and reference left unchanged; not self-approved.",
+    "numeric_print_format_differences": 2,
+    "examples": [
+      "55,180 versus55180",
+      "7,866 versus7866"
+    ],
+    "raw_differences_retained": true
+  },
+  "pipeline_integration": {
+    "real_public_pdfs": 2,
+    "tables": 3,
+    "rows": 19,
+    "table_chunks": 3,
+    "repeat_upload_cached": true,
+    "pdf_hashes_unchanged": true,
+    "external_calls": 0
+  },
+  "limits": [
+    "This closes the repaired native-numeric-grid component only. Other text/scan/unruled tables and representative PDF acceptance remain open.",
+    "No model, quality thresholds, benchmark gold or previously completed phase results were changed.",
+    "Actual producer snapshot includes shared uncommitted local-release code; focused owned patch passed clean export. This is not the final RC certification."
+  ],
+  "archive": {
+    "logical_path": ".tmp/partial-numeric-tables-20261029-evidence.zip",
+    "sha256": "90123fd4d76650ea5cece05ed4da52ef5e3b68ff01445049c552daddf56957ff",
+    "bytes": 4676238
+  }
+}

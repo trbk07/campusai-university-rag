@@ -106,12 +106,14 @@ def test_optical_tables_keep_document_page_and_have_typed_grounding():
 
 def test_new_optical_policy_invalidates_job_cache_but_retains_old_vietocr_identity():
     from campusai.ingestion.background.state import normalize_options,job_identity,accepted_job_identities
+    from campusai.ingestion.table_extractor import TABLE_EXTRACTOR_VERSION
     options=normalize_options({'ocr_backend':'vietocr'})
     old=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':options,'text_coverage_version':3},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert old!=job_identity('a'*64,options) and old in accepted_job_identities('a'*64,options)
     default=normalize_options({})
-    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':default,'text_coverage_version':TEXT_COVERAGE_VERSION},
+    expected=hashlib.sha256(json.dumps({'source_sha256':'a'*64,'options':default,
+        'text_coverage_version':TEXT_COVERAGE_VERSION,'table_extractor_version':TABLE_EXTRACTOR_VERSION},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert expected==job_identity('a'*64,default)
 

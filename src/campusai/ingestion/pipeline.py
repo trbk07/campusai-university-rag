@@ -176,6 +176,29 @@ def ingest_document(
             and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
         cached_ocr = document.metadata.get('ocr')
+        if (document.status == 'succeeded'
+                and parser_version in {'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
+                and document.metadata.get('table_extractor_version') == 'table-v4-physical-course-scope'
+                and document.metadata.get('chunker_version') == CHUNKER_VERSION
+                and document.metadata.get('text_coverage_version') in {3, TEXT_COVERAGE_VERSION}
+                and isinstance(cached_ocr, dict)
+                and isinstance(cached_ocr.get('page_numbers'), list)
+                and all(type(number) is int for number in cached_ocr['page_numbers'])
+                and sorted(cached_ocr['page_numbers']) == list(range(1, document.page_count + 1))):
+            # v5 only changes native numeric grids. Fully recognized pages
+            # without visible native text cannot acquire such cells; preserve
+            # completed OCR/chunks and record their actual previous producer.
+            native_pages = parse_pdf(pdf_path)
+            compatible = len(native_pages) == document.page_count and not any(
+                str(page.get('text', '')).strip() or (page.get('untrusted_native_mapping')
+                    and document.metadata.get('text_coverage_version') != TEXT_COVERAGE_VERSION)
+                for page in native_pages)
+            if compatible:
+                document.metadata['table_extractor_reused_from'] = 'table-v4-physical-course-scope'
+                document.metadata['table_extractor_version'] = TABLE_EXTRACTOR_VERSION
+                document.metadata['text_coverage_version'] = TEXT_COVERAGE_VERSION
+                atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
+                cache_versions_current = True
         if (document.metadata.get('text_coverage_version') in {2, 3}
                 and parser_version in {'pymupdf-text-v1', 'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
                 and document.metadata.get('chunker_version') == CHUNKER_VERSION

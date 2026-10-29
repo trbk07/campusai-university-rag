@@ -187,3 +187,8 @@
 /configs/candidates/flash-lite-three-projects.yaml -text whitespace=cr-at-eol
 /tests/test_gemini_project_router.py -text whitespace=cr-at-eol
 /docs/ui/evidence/project-routing-20261028.json -text whitespace=cr-at-eol
+
+# Preserve the measured partial-numeric table producer and evidence.
+/src/campusai/ingestion/partial_numeric_tables.py -text whitespace=cr-at-eol
+/tests/test_partial_numeric_tables.py -text whitespace=cr-at-eol
+/docs/ui/evidence/partial-numeric-tables-20261029.json -text whitespace=cr-at-eol

@@ -30,14 +30,15 @@ def test_coloured_bands_do_not_hide_remaining_rows_as_one_column_table(tmp_path)
     assert tables[0].rows[-1]==['ZEN3105','Example Course 5','48','3']
 
 
-def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_path):
+@pytest.mark.parametrize('old_version', ['table-v2-aligned-course-columns', 'table-v4-physical-course-scope'])
+def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_path, old_version):
     import json
     from campusai.ingestion.pipeline import ingest_document
     path=tmp_path/'ingested.pdf';source(path,boxed_bands=True)
     store=tmp_path/'store'
     document=ingest_document(path,store_dir=store)
     assert document.metadata['chunker_version']=='structure-v6'
-    assert document.metadata['table_extractor_version']=='table-v4-physical-course-scope'
+    assert document.metadata['table_extractor_version']=='table-v5-partial-numeric-grid'
     tables=[c for c in document.chunks if c.content_type=='table']
     assert len(tables)==1 and len(headed_credit_rows(tables[0].content))==5
     assert not any(c.metadata.get('heading_path')==['ZEN3101'] for c in document.chunks)
@@ -46,11 +47,11 @@ def test_ingestion_records_new_producer_versions_and_preserves_course_rows(tmp_p
     assert cached.cached
     metadata_path=store/document.doc_id/'meta.json'
     payload=json.loads(metadata_path.read_text(encoding='utf-8'))
-    payload['metadata']['table_extractor_version']='table-v2-aligned-course-columns'
+    payload['metadata']['table_extractor_version']=old_version
     metadata_path.write_text(json.dumps(payload),encoding='utf-8')
     refreshed=ingest_document(path,store_dir=store)
     assert not refreshed.cached
-    assert refreshed.metadata['table_extractor_version']=='table-v4-physical-course-scope'
+    assert refreshed.metadata['table_extractor_version']=='table-v5-partial-numeric-grid'
     assert len([c for c in refreshed.chunks if c.content_type=='table'])==1
 
 
