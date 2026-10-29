@@ -67,6 +67,15 @@ def source_quote(result, claims, question=''):
         headers = table.get('headers', [])
         if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):
             return None
+        from .year_cells import binding
+        cells = [binding(text, body, question) for text in texts]
+        if any(cell is not None for cell in cells):
+            if any(cell is None or not cell.supported for cell in cells):
+                return None
+            selected = sorted({cell.row for cell in cells})
+            quote = json.dumps({'headers': headers, 'rows': [table['rows'][i] for i in selected]},
+                               ensure_ascii=False)
+            return quote if len(quote) <= 1200 else None
         from .semester_citations import scoped_quote
         scoped, quote = scoped_quote(result, table['rows'], headers, texts, question)
         if scoped:

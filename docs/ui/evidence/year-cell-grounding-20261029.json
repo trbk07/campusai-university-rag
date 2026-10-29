@@ -1,0 +1,95 @@
+{
+  "status": "SCOPED_YEAR_CELL_GROUNDING_PASS",
+  "task": "QA-03b10: literal row/year/column citation binding",
+  "source_runtime_sha256": "93b493a5f62b758c742c9fabd3d70fd000b71b73ad0e0593c11067fdae669692",
+  "grounding_cache_policy": "grounding-v38",
+  "fix": [
+    "Resolve the year and field from original headers and a unique original row; retain complete source-ordered rows and unchanged headers in the quote.",
+    "Reject wrong-year/column/row values, duplicate identities, question/claim conflicts, unsupported modifiers, extra assertions and guessed numeric units or locale conversion.",
+    "Validate visible quoted rows against the full original table, including conflicting duplicates; apply the veto to source, compact-handle and legacy citations before ordinary claim validation.",
+    "Comparison questions may request multiple rows/fields/years; each individual claim must still identify exactly one supported cell.",
+    "Invalidate old grounded-answer cache entries without changing model prompts, runtime benchmark inputs or quality thresholds."
+  ],
+  "source_controls": {
+    "scope": "Synthetic grounding controls over actual ingested PDF chunks; NOT new model predictions or whole-answer accuracy evidence",
+    "source_sha256": "957e0ae0560457f7311d7d981697191e39075018533b08279a0ab7dfeda76674",
+    "chunk_id": "957e0ae0560457f7311d7d981697191e39075018533b08279a0ab7dfeda76674_p1_t2",
+    "modes": [
+      "source",
+      "legacy",
+      "compact"
+    ],
+    "cases": 12,
+    "before_correct_decisions": 6,
+    "after_correct_decisions": 12,
+    "correct_controls_accepted": 6,
+    "wrong_controls_rejected": 6,
+    "original_source_and_gold_modified": false,
+    "new_human_approvals": 0,
+    "source_ingestion_archive": {
+      "logical_path": ".tmp/vertical-numeric-tables-20261029-evidence.zip",
+      "sha256": "573135dfa2622221107e7e702e255f452323f51d7db0452ecfde2e5c672016e8"
+    }
+  },
+  "tests": {
+    "full": {
+      "tests": 3498,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 2,
+      "passed": 3496
+    },
+    "related": {
+      "tests": 519,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 519
+    },
+    "final_year_tests": {
+      "tests": 77,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 77
+    },
+    "clean_export": {
+      "tests": 456,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 456
+    },
+    "counts_overlap": true,
+    "full_seconds": 671.8868277072906,
+    "runtime_unchanged": true,
+    "three_final_rc_runs": false,
+    "interrupted_run_counted_as_pass": false
+  },
+  "producer": {
+    "base_commit": "2faa1ab8e3d882b3b329b65b2bc101e3e5e99a98",
+    "measured_shared_worktree_contains_unrelated_local_release_changes": true,
+    "owned_patch_verified_in_clean_export": true,
+    "complete_measured_python_source_retained": true
+  },
+  "model_api_posts": 0,
+  "new_real_predictions": 0,
+  "limits": [
+    "Literal scalar year-headed numeric tables only; not unrestricted semantic table reasoning.",
+    "The existing Yellowfin header annotation disagreement remains review_required; no fabricated review or changed gold.",
+    "Marker-heavy omni-en-002 first table and scanned omni-en-039 tables remain open, along with overall representative PDF acceptance.",
+    "Genuine model TTFT/quality qualification and three consecutive final RC regressions remain open; this scoped fix does not close the whole-app goal."
+  ],
+  "archive": {
+    "logical_path": ".tmp/year-cell-grounding-20261029-evidence.zip",
+    "sha256": "e749d7e4e689216ee89c449ab1207837e5d6b8b7eba12d6b4e3897b15bb8b208",
+    "bytes": 1794480
+  },
+  "cleanup": {
+    "verified_backing_object_sha256": "e749d7e4e689216ee89c449ab1207837e5d6b8b7eba12d6b4e3897b15bb8b208",
+    "removed_entries": 21408,
+    "acl_or_link_remnants": 328,
+    "followed_reparse_points": false,
+    "retained_baseline_artifacts": true
+  }
+}

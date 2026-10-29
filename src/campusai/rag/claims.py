@@ -178,7 +178,8 @@ def _markers_match(claim_markers: set[str], evidence_markers: set[str]) -> bool:
     return required <= evidence_markers
 
 
-def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_map: dict[str, tuple[str, ...]]) -> list[Claim]:
+def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_map: dict[str, tuple[str, ...]],
+                 *, question: str = '', original_registry: EvidenceRegistry | None = None) -> list[Claim]:
     aligned: list[Claim] = []
     for claim in claims:
         ids = tuple(citation_map.get(claim.claim_id, claim.citation_ids))
@@ -192,6 +193,20 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             evidence = list(registry.values())
         if not evidence:
             aligned.append(claim)
+            continue
+        from .year_cells import binding
+        invalid_cell = False
+        for item in evidence:
+            if item.content_type != 'table':
+                continue
+            original = original_registry.get(item.chunk_id) if original_registry is not None else item
+            visible = binding(claim.text, item.content, question)
+            full = binding(claim.text, original.content, question) if original is not None else None
+            if visible is not None or full is not None:
+                invalid_cell |= visible is None or full is None or not visible.supported or not full.supported
+        if invalid_cell:
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
+                ids, 'contradicted', 0.0, tuple(item.chunk_id for item in evidence), True))
             continue
         relation = prerequisite_claim_support(claim.text, evidence)
         if relation is None:

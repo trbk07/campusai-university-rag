@@ -205,3 +205,8 @@
 
 # Preserve vertical-closure table evidence bytes.
 /docs/ui/evidence/vertical-numeric-tables-20261029.json -text whitespace=cr-at-eol
+
+# Preserve literal year/column proof code and audit bytes.
+/src/campusai/rag/year_cells.py -text whitespace=cr-at-eol
+/tests/test_year_cells.py -text whitespace=cr-at-eol
+/docs/ui/evidence/year-cell-grounding-20261029.json -text whitespace=cr-at-eol

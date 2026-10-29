@@ -79,6 +79,25 @@ def validate_quote(quote: str, content: str, metadata: dict[str, Any] | None = N
             and all(isinstance(row,list) and row and all(isinstance(cell,str) for cell in row)
                     and row in rows for row in quoted_cells)):
         return True
+    # Year/field locators live in the original headers. Expose them together
+    # with whole, source-ordered rows; never accept edited headers or cells.
+    if (isinstance(quoted_cells, dict) and set(quoted_cells) == {'headers', 'rows'}
+            and quoted_cells['headers'] == table.get('headers')
+            and isinstance(quoted_cells['headers'], list)
+            and all(isinstance(h, str) for h in quoted_cells['headers'])
+            and isinstance(quoted_cells['rows'], list) and quoted_cells['rows']):
+        source_rows = table.get('rows', [])
+        if not isinstance(source_rows, list):
+            return False
+        cursor = 0
+        for row in quoted_cells['rows']:
+            if not isinstance(row, list) or not row or not all(isinstance(c, str) for c in row):
+                return False
+            try:
+                cursor = source_rows.index(row, cursor) + 1
+            except ValueError:
+                return False
+        return True
     # A scoped table quote binds a physically parsed scope marker to a
     # contiguous set of exact rows from this same source chunk.
     if (isinstance(quoted_cells, dict) and set(quoted_cells) == {'scope', 'headers', 'rows'}
@@ -1041,7 +1060,7 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     if any(result is None for result in visible_results):
         return _abstention('invalid_citation', language=language)
     visible_registry = EvidenceRegistry(visible_results)
-    claims = align_claims(claims, visible_registry, citation_map)
+    claims = align_claims(claims, visible_registry, citation_map, question=question, original_registry=registry)
     # Phase 5 is fail-closed: a partially supported answer can hide an
     # unsupported number, code, date, or polarity change.
     decision = decide(claims, allow_partial=False)
