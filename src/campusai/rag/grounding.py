@@ -771,7 +771,7 @@ class GroundedAnswerGenerator:
             if document_scope_context is not None: kwargs['document_scope_context'] = document_scope_context
             prompt = self.prompt(question, results, language, **kwargs)
             with stage("llm"):
-                schema = self.response_schema()
+                schema = self.response_schema(results)
                 payload = (self.llm.generate_json(prompt, schema=schema, pdf_documents=pdf_documents)
                     if pdf_documents is not None else self.llm.generate_json(prompt, schema=schema))
         except LLMError as error:
@@ -920,7 +920,7 @@ class GroundedAnswerGenerator:
                 return abstain('unsupported_claim')
         return answer
 
-    def response_schema(self):
+    def response_schema(self, results=None):
         if not self.source_citations:
             return ANSWER_SCHEMA
         import copy
@@ -928,6 +928,18 @@ class GroundedAnswerGenerator:
         schema['properties']['citations']['items'] = {
             'type': 'object', 'required': ['chunk_id'], 'additionalProperties': False,
             'properties': {'chunk_id': {'type': 'string', 'minLength': 1}}}
+        if results and getattr(self.llm, 'response_format_mode', None) == 'json_schema':
+            # Native grammar constrains references to this request's actual
+            # retrieval, never benchmark annotations or expected citations.
+            identifiers = list(dict.fromkeys(result.chunk_id for result in results))
+            schema['properties']['citations']['items']['properties']['chunk_id']['enum'] = identifiers
+            schema['properties']['claims']['items']['properties']['citation_ids']['items']['enum'] = identifiers
+            properties = schema['properties']
+            order = ['citations', 'claims', 'abstained', 'answer', 'confidence']
+            schema['properties'] = {key:properties[key] for key in order if key in properties}
+            schema['properties'].update({key:value for key,value in properties.items() if key not in order})
+            required = schema.get('required', [])
+            schema['required'] = [key for key in order if key in required] + [key for key in required if key not in order]
         return schema
 
 

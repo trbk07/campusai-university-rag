@@ -293,6 +293,60 @@ def test_generation_setting_change_cannot_reuse_an_old_answer():
         service.close()
 
 
+def test_native_schema_mode_invalidates_both_answer_cache_routes():
+    for source_pages in (False, True):
+        llm = FakeLLM(valid_payload())
+        service = CampusAIQueryService(FakeRetriever([evidence()]), GroundedAnswerGenerator(llm))
+        def ask():
+            return (service.ask_source_pages('Which course?', [evidence()], language='en') if source_pages
+                    else service.ask('Which course?', language='en', corpus_version='v1'))
+        try:
+            ask()
+            original_calls=llm.calls
+            # An explicit legacy default preserves the old fingerprint.
+            llm.response_format_mode='json_object'
+            ask()
+            assert service.last_cache_hit and llm.calls==original_calls
+            llm.response_format_mode='json_schema'
+            ask()
+            assert not service.last_cache_hit and llm.calls==original_calls+1
+            ask()
+            assert service.last_cache_hit and llm.calls==original_calls+1
+        finally:
+            service.close()
+
+
+def test_optional_system_policy_invalidates_both_cache_routes():
+    for source_pages in (False, True):
+        llm=FakeLLM(valid_payload())
+        service=CampusAIQueryService(FakeRetriever([evidence()]),GroundedAnswerGenerator(llm))
+        def ask():
+            return (service.ask_source_pages('Which course?',[evidence()],language='en') if source_pages
+                    else service.ask('Which course?',language='en',corpus_version='v1'))
+        try:
+            ask();before=llm.calls
+            llm.default_system_prompt=None;ask()
+            assert service.last_cache_hit and llm.calls==before
+            llm.default_system_prompt='Preserve all necessary source qualifiers.';ask()
+            assert not service.last_cache_hit and llm.calls==before+1
+            ask();assert service.last_cache_hit
+        finally:
+            service.close()
+
+
+def test_schema_references_use_all_retrieved_ids_and_leave_legacy_schema_unchanged():
+    llm=FakeLLM(valid_payload())
+    generator=GroundedAnswerGenerator(llm,source_citations=True)
+    old=generator.response_schema()
+    llm.response_format_mode='json_schema'
+    schema=generator.response_schema([evidence('c1'),evidence('decoy')])
+    assert schema['properties']['citations']['items']['properties']['chunk_id']['enum']==['c1','decoy']
+    assert schema['properties']['claims']['items']['properties']['citation_ids']['items']['enum']==['c1','decoy']
+    assert list(schema['properties'])[:2]==['citations','claims']
+    llm.response_format_mode='json_object'
+    assert generator.response_schema([evidence('c1')])==old
+
+
 def test_cache_key_is_sha256_and_does_not_contain_secret():
     key = build_rag_cache_key(
         question="q", language="vi", doc_ids=["doc"], filters={}, top_k=5,

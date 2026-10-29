@@ -364,6 +364,10 @@ class CampusAIQueryService:
                 'source_citations':getattr(self.answer_generator,'source_citations',False),
                 'generation_config':getattr(self.answer_generator.llm,'generation_config',None),
                 'json_mode':getattr(self.answer_generator.llm,'json_mode','native'),
+                **({'response_format_mode':self.answer_generator.llm.response_format_mode}
+                   if getattr(self.answer_generator.llm,'response_format_mode','json_object') != 'json_object' else {}),
+                **({'system_prompt_sha256':hashlib.sha256(self.answer_generator.llm.default_system_prompt.encode()).hexdigest()}
+                   if getattr(self.answer_generator.llm,'default_system_prompt',None) else {}),
                 'balanced_context':getattr(self.answer_generator,'balanced_context',False),
                 'namespace':self.cache_namespace}, request_context=resolved.cache_context())
         with self.cache.lock(key):
@@ -465,6 +469,10 @@ class CampusAIQueryService:
                 'candidates': self.context_candidates, 'balanced': self.answer_generator.balanced_context}
         if generation_config:
             budget["llm_generation_config"] = generation_config
+        if getattr(self.answer_generator.llm, 'response_format_mode', 'json_object') != 'json_object':
+            budget['llm_response_format_mode'] = self.answer_generator.llm.response_format_mode
+        if getattr(self.answer_generator.llm, 'default_system_prompt', None):
+            budget['llm_system_prompt_sha256'] = hashlib.sha256(self.answer_generator.llm.default_system_prompt.encode()).hexdigest()
         if self.document_scope_reader is not None:
             budget['document_scope_policy'] = self.document_scope_reader.policy_identity()
         if getattr(self.answer_generator.llm, 'json_mode', 'native') != 'native':

@@ -887,6 +887,10 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    text-region; không tính thành PASS tiếng Việt, bảng/công thức hoặc fresh holdout.
    Không chấm CER toàn trang bằng gold đã serialize cho RAG/LaTeX: đã kiểm và loại
    cách đo này, giữ log để tránh thử lại. [Evidence](docs/ui/evidence/pdf-text-quality-20261028.json).
+   **QA-03b6 đã DONE:** scan tiếng Việt gốc 31 trang đạt 98,38% trên 60.405 ký tự
+   đối chiếu toàn văn Cổng Chính phủ xuất bản riêng; không thiếu trang.
+   Không chạy lại OCR đã đạt; phần còn thiếu là đối chiếu bảng/ô và evidence
+   trên bộ PDF đại diện đúng RC. [Evidence](docs/ui/evidence/vietnamese-source-ocr-20261029.json).
 2. [ ] **QA-08c — Streaming model thật.** Mục tiêu p95 TTFT ≤5 giây trên môi
    trường cố định; không tính heartbeat/cache/trích đoạn thành token model.
    Engineering SSE đã DONE, mặc định OFF; cohort 20 câu có 17 đúng nguồn và
@@ -895,13 +899,21 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    7 timeout; p95 vẫn chưa đạt. Không lặp lại cùng phương án. Nhánh phân tải
    đã kiểm thử xong; không bật mặc định hoặc coi đây là cải thiện độ trễ.
    [Evidence mới](docs/ui/evidence/project-routing-20261028.json).
+   **Đã loại ứng viên local Qwen 4B:** cohort đơn giản đúng nguồn 20/20,
+   client TTFT p95 0,392s; bộ natural100 lại có 17 false abstentions, nên không
+   đạt yêu cầu chất lượng và không được bật mặc định. Không lặp lại bộ 100 câu
+   trên ứng viên này. Model thay thế chỉ được chạy dev probe nhỏ trước.
+   Probe 12 câu của Qwen 3.5 9B cũng chưa đủ chất lượng: chỉ xác nhận đủ trường
+   bắt buộc 3/12, còn nhiều abstentions. Đã dừng; không chạy natural100 hoặc tải
+   thêm model cho cùng hướng thử. Đây không phải ước lượng accuracy toàn bộ.
+   [Kết quả và các phương án đã loại](docs/ui/evidence/local-streaming-20261029.json).
    Nếu giữ streaming OFF cho v1, ghi gate DEFERRED và bỏ mọi tuyên bố đạt TTFT;
    đây là điều chỉnh scope release, không phải đổi QA-08c thành PASS.
    [Evidence](docs/ui/evidence/query-streaming-20261028.json).
 3. [ ] **QA-09d — Nghiệm thu cuối.** Khi runtime RC ổn định: 3 full regressions
    liên tiếp cùng source, required tests/flows 100%, critical E2E 100%, tổng E2E
    ≥98%, không crash/exception chưa xử lý; không còn P0/P1 hoặc High/Critical
-   đã xác nhận. Lượt full mới nhất: **3.221 PASS / 0 FAIL / 2 live SKIP**;
+   đã xác nhận. Lượt full mới nhất: **3.283 PASS / 0 FAIL / 2 live SKIP**;
    chưa thay chuỗi 3 lượt trên runtime cuối. Thực hiện một lần tại L14-07.
    **Chuỗi trước đã dừng:** lượt đầu PASS 3.168 tests; lượt thứ hai cũng PASS
    nhưng source/config đổi trong khi chạy, không đủ điều kiện tính chuỗi 3.
@@ -925,7 +937,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-04–06, QA-10–11, QA-13 | Mixed PDF, OCR từ chi tiết, job identity cũ, cancel/progress, OCR process Việt/Anh và ảnh trong trang text. [Isolation](docs/ui/evidence/ocr-isolation-20261025.json), [OCR](docs/ui/evidence/ocr-evaluation-20261025.json) |
 | QA-07b cùng các bản sửa | Natural100 accuracy bảo thủ ≥95/100, answerable ≥75/80, hallucination phát hiện 0/100; context 15/15 và 17 trường. Bộ dev exposed, không phải fresh holdout. [Quality](evaluation/results/full-app-natural-20261026/quality-qualification.json), [Context](evaluation/results/full-app-natural-20261026/context-quality.json) |
 | QA-08a / QA-08b | 400/400 HTTP 200 trên workload API local; Web Vitals lab 9/9. Không suy thành tải generation AI đồng thời. [Coverage](docs/ui/evidence/hybrid-coverage-20261025.json) |
-| QA-08c1 | SSE, cancel, quota/cooldown và UI chỉ công bố kết quả sau grounding; 346 related tests, 9 JS checks, UI 43/44 checks theo nhánh. [Evidence](docs/ui/evidence/query-streaming-20261028.json) |
+| [x] QA-08c1 — DONE về chức năng | SSE, cancel, quota/cooldown và UI chỉ công bố kết quả sau grounding. Bổ sung OpenAI-compatible SSE và native JSON schema opt-in; không cache/publish output thiếu stop/DONE, giữ citation/claim validation và cache isolation. Full 3.283 PASS / 2 opt-in live SKIP; 92 related và 92 clean-export tests PASS (chồng lấn). Local20 đúng nguồn 20/20, client TTFT p95 0,392s; natural100 không đạt nên không bật profile, QA-08c vẫn mở. [Engineering](docs/ui/evidence/query-streaming-20261028.json), [kiểm chứng mới](docs/ui/evidence/local-streaming-20261029.json) |
 | [x] QA-08c2 — DONE về chức năng | Phân tải opt-in qua 3 Google project đã xác nhận độc lập; giữ model/prompt/schema, quota chung, cache và chặn 503 toàn pool; 429 chỉ cooldown đúng project, không retry hoặc reset usage. 513 tests mở rộng, 186 tests ở bản guard cuối và 30 tests clean export PASS (các bộ chồng lấn). Đo thật 20 câu chưa đạt latency/availability; giữ mặc định OFF, QA-08c vẫn mở. [Evidence](docs/ui/evidence/project-routing-20261028.json) |
 | QA-09a / QA-09b | Unit/integration và 43/43 browser flows ở mốc lịch sử. [Browser](docs/ui/evidence/hybrid-final-ui-20261025/browser-results.json) |
 | QA-09c1–c2c | Recovery local, 10 checkpoint kill/restart, deep JSON trả 400, Host guard localhost; 229 related tests và secret scan PASS. [Evidence](docs/ui/evidence/request-safety-recovery-20261027.json) |

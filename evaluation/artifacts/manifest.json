@@ -26056,6 +26056,19 @@
       "storage_bytes": 2292983,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/local-streaming-20261029-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/local-streaming-20261029-evidence.zip",
+      "version_or_revision": "65c9b6caf7d0e636e7d44b1409d5d0f4c27e23bd20c1c9d6ae32ab0e1e1851c5",
+      "sha256": "65c9b6caf7d0e636e7d44b1409d5d0f4c27e23bd20c1c9d6ae32ab0e1e1851c5",
+      "bytes": 20148952,
+      "local_or_external_uri": "objects/65/65c9b6caf7d0e636e7d44b1409d5d0f4c27e23bd20c1c9d6ae32ab0e1e1851c5.gz",
+      "encoding": "gzip",
+      "storage_sha256": "11d72f56b6019a8798f6d48543652eb89f7116f5fef7adca08fd093642da2a51",
+      "storage_bytes": 19986365,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

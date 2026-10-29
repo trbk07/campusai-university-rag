@@ -1,4 +1,4 @@
-"""Request-local Gemini streaming, with raw model output kept server-side."""
+"""Request-local model streaming, with raw output kept server-side."""
 from contextlib import contextmanager
 from contextvars import ContextVar
 import json
@@ -9,6 +9,7 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 _current = ContextVar('campusai_model_stream', default=None)
 MAX_EVENT_BYTES = 1024 * 1024
 MAX_STREAM_BYTES = 4 * MAX_EVENT_BYTES
+_SSE_DONE = object()
 
 
 class StreamCancelled(Exception):
@@ -22,13 +23,21 @@ class StreamCapture:
         self.started = time.perf_counter()
         self.calls = []
         self.call_started = None
+        self.protocol = 'gemini-sse'
 
     def check(self):
         if self.cancelled():
             raise StreamCancelled()
 
-    def begin(self, model):
+    def select_protocol(self, protocol):
+        if self.calls and self.protocol != protocol:
+            from .client import LLMResponseError
+            raise LLMResponseError('provider protocol changed inside one capture')
+        self.protocol = protocol
+
+    def begin(self, model, protocol='gemini-sse'):
         self.check()
+        self.select_protocol(protocol)
         self.call_started = time.perf_counter()
         self.calls.append({'model': model, 'first_text_delta_ms': None,
                            'request_to_first_text_ms': None, 'text_characters': 0,
@@ -57,7 +66,7 @@ class StreamCapture:
         self.notify({'type': 'progress', 'phase': 'verifying'})
 
     def summary(self):
-        return {'protocol': 'gemini-sse', 'calls': [dict(row) for row in self.calls],
+        return {'protocol': self.protocol, 'calls': [dict(row) for row in self.calls],
                 'raw_text_exposed': False}
 
 
@@ -86,7 +95,7 @@ def stream_endpoint(endpoint):
         url.path.removesuffix(':generateContent') + ':streamGenerateContent', urlencode(query), ''))
 
 
-def sse_objects(response, capture, deadline):
+def sse_objects(response, capture, deadline, *, allow_done=False):
     """Read bounded UTF-8 SSE frames, including fragmented/multiline data."""
     from .client import LLMProviderError, LLMResponseError
     pending = b''
@@ -128,12 +137,16 @@ def sse_objects(response, capture, deadline):
                     events += 1
                     if events > 4096:
                         raise LLMResponseError('provider event count limit exceeded')
-                    try:
-                        value = json.loads(b'\n'.join(data).decode('utf8'))
-                    except (UnicodeError, ValueError, RecursionError):
-                        raise LLMResponseError('provider stream contains malformed JSON') from None
-                    if not isinstance(value, dict):
-                        raise LLMResponseError('provider event must be a JSON object')
+                    raw = b'\n'.join(data)
+                    if allow_done and raw == b'[DONE]':
+                        value = _SSE_DONE
+                    else:
+                        try:
+                            value = json.loads(raw.decode('utf8'))
+                        except (UnicodeError, ValueError, RecursionError):
+                            raise LLMResponseError('provider stream contains malformed JSON') from None
+                        if not isinstance(value, dict):
+                            raise LLMResponseError('provider event must be a JSON object')
                     yield value
                 data, event_bytes = [], 0
             elif line.startswith(b'data:'):
@@ -208,3 +221,61 @@ def read_gemini_stream(response, capture, timeout):
     capture.finish()
     return {'candidates': [{'content': {'parts': [{'text': ''.join(pieces)}]}, 'finishReason': 'STOP'}],
             'usageMetadata': usage, 'modelVersion': model}
+
+
+def read_openai_stream(response, capture, timeout):
+    """Assemble final choice-zero text; require both stop and wire terminator."""
+    from .client import LLMResponseError
+    capture.headers()
+    pieces, usage, identity, model = [], {}, None, None
+    finished = done = False
+    for value in sse_objects(response, capture, capture.call_started + timeout, allow_done=True):
+        if done:
+            raise LLMResponseError('provider event follows stream terminator')
+        if value is _SSE_DONE:
+            done = True
+            continue
+        if 'error' in value:
+            raise LLMResponseError('provider reported an error inside the stream')
+        for name, previous in (('id', identity), ('model', model)):
+            current = value.get(name)
+            if name in value and (not isinstance(current, str) or not current
+                    or previous is not None and current != previous):
+                raise LLMResponseError('provider stream identity changed')
+        identity, model = value.get('id', identity), value.get('model', model)
+        if value.get('usage') is not None:
+            if not isinstance(value['usage'], dict):
+                raise LLMResponseError('provider stream usage is invalid')
+            usage = value['usage']
+        choices = value.get('choices')
+        if not isinstance(choices, list):
+            raise LLMResponseError('provider stream choices are invalid')
+        for choice in choices:
+            if not isinstance(choice, dict) or type(choice.get('index')) is not int or choice['index'] < 0:
+                raise LLMResponseError('provider stream choice is invalid')
+            if choice['index'] != 0:
+                continue
+            delta = choice.get('delta')
+            if not isinstance(delta, dict):
+                raise LLMResponseError('provider stream delta is invalid')
+            if (delta.get('role') not in (None, 'assistant') or delta.get('refusal')
+                    or delta.get('tool_calls') not in (None, []) or delta.get('function_call') is not None):
+                raise LLMResponseError('provider stream did not return a final text answer')
+            text = delta.get('content')
+            if text is not None and not isinstance(text, str):
+                raise LLMResponseError('provider stream text is invalid')
+            if text:
+                if finished:
+                    raise LLMResponseError('provider text follows its finish marker')
+                pieces.append(text)
+                capture.text(text)
+            reason = choice.get('finish_reason')
+            if reason is not None:
+                if finished or reason != 'stop':
+                    raise LLMResponseError('provider stream did not finish normally')
+                finished = True
+    if not done or not finished or not pieces:
+        raise LLMResponseError('provider stream ended without complete final text')
+    capture.finish()
+    return {'choices': [{'message': {'content': ''.join(pieces)}, 'finish_reason': 'stop'}],
+            'usage': usage, 'model': model, 'id': identity}

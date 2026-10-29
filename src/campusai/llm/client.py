@@ -14,6 +14,7 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import unicodedata
 import sqlite3
 from .retry import retry503
 from .overload import OverloadCircuit, ProviderCoolingDown
@@ -350,6 +351,8 @@ class OpenAICompatibleClient:
         retry_only_503: bool = False,
         retry_min_wait_seconds: float = 30.0,
         retry_max_wait_seconds: float = 60.0,
+        response_format_mode: str = 'json_object',
+        default_system_prompt: str | None = None,
     ) -> None:
         if not endpoint or not model:
             raise ValueError("endpoint and model are required")
@@ -377,6 +380,13 @@ class OpenAICompatibleClient:
         self.retry_only_503 = retry_only_503
         self.retry_min_wait_seconds = float(retry_min_wait_seconds)
         self.retry_max_wait_seconds = float(retry_max_wait_seconds)
+        if response_format_mode not in {'json_object', 'json_schema'}:
+            raise ValueError('response_format_mode must be json_object or json_schema')
+        self.response_format_mode = response_format_mode
+        if default_system_prompt is not None and (not isinstance(default_system_prompt, str)
+                or not default_system_prompt.strip() or len(default_system_prompt) > 4000):
+            raise ValueError('default_system_prompt must be nonempty text of at most4000 characters')
+        self.default_system_prompt = default_system_prompt
 
     def close(self) -> None:
         """Release the client's cache when its application shuts down."""
@@ -399,13 +409,11 @@ class OpenAICompatibleClient:
         identical cache misses single-flight.
         """
 
-        request_options = dict(kwargs)
-        system_prompt = request_options.pop("system_prompt", None)
-        messages = []
-        if system_prompt is not None:
-            messages.append({"role": "system", "content": system_prompt})
-        messages.append({"role": "user", "content": prompt})
-        payload = {"model": self.model, "messages": messages, **request_options}
+        from .streaming import current_stream, read_openai_stream
+        stream = current_stream()
+        if stream is not None:
+            stream.select_protocol('openai-sse')
+        payload = self.prepare_request(prompt, **kwargs)
         cache_key = build_cache_key(
             provider=self.provider,
             endpoint=self.endpoint,
@@ -431,9 +439,15 @@ class OpenAICompatibleClient:
             if self.limiter is not None:
                 self.limiter.wait()
             started_at = time.perf_counter()
+            wire_payload = payload
+            if stream is not None:
+                if self.max_retries != 0:
+                    raise LLMProviderError('streaming requires max_retries=0')
+                stream.begin(self.model, protocol='openai-sse')
+                wire_payload = {**payload, 'stream': True, 'stream_options': {'include_usage': True}}
             request = urllib.request.Request(
                 self.endpoint,
-                data=json.dumps(payload).encode("utf-8"),
+                data=json.dumps(wire_payload).encode("utf-8"),
                 headers={
                     "Content-Type": "application/json",
                     "Authorization": f"Bearer {self.api_key}",
@@ -442,7 +456,9 @@ class OpenAICompatibleClient:
             data = _request_json(request, self.timeout, self.limiter, self.max_retries,
                                  retry_only_503=self.retry_only_503,
                                  retry_min_wait_seconds=self.retry_min_wait_seconds,
-                                 retry_max_wait_seconds=self.retry_max_wait_seconds)
+                                 retry_max_wait_seconds=self.retry_max_wait_seconds,
+                                 **({'response_reader': lambda response: read_openai_stream(response, stream, self.timeout)}
+                                    if stream is not None else {}))
             try:
                 text = data["choices"][0]["message"]["content"]
             except (KeyError, IndexError, TypeError) as error:
@@ -455,12 +471,37 @@ class OpenAICompatibleClient:
             if not isinstance(usage, dict):
                 usage = {}
             latency_ms = (time.perf_counter() - started_at) * 1000
-            if self.cache is not None:
+            if self.cache is not None and stream is None:
                 self.cache.put(cache_key, text, usage, latency_ms)
-            return LLMResponse(text, usage, latency_ms)
+            return LLMResponse(text, usage, latency_ms,
+                finish_reason=data['choices'][0].get('finish_reason') if stream is not None else None,
+                model_version=data.get('model') if stream is not None else None)
 
     def generate(self, prompt: str, **kwargs: Any) -> LLMResponse:
         return self.complete(prompt, **kwargs)
+
+    def prepare_request(self, prompt: str, **kwargs: Any) -> dict:
+        options = dict(kwargs)
+        system = options.pop('system_prompt', self.default_system_prompt)
+        messages = ([{'role':'system','content':unicodedata.normalize('NFC',system)}] if system is not None else [])
+        messages.append({'role':'user','content':unicodedata.normalize('NFC',prompt)})
+        return {'model':self.model, 'messages':messages, **options}
+
+    def _structured_options(self, schema, kwargs):
+        options = dict(kwargs)
+        if schema is not None:
+            if self.response_format_mode == 'json_schema':
+                if not isinstance(schema, dict):
+                    raise ValueError('response schema must be a JSON object')
+                schema = json.loads(json.dumps(schema, allow_nan=False))
+                options.setdefault('response_format', {'type':'json_schema',
+                    'json_schema':{'name':'campusai_response', 'schema':schema}})
+            else:
+                options.setdefault('response_format', {'type':'json_object'})
+        return options
+
+    def prepare_json_request(self, prompt: str, schema=None, **kwargs) -> dict:
+        return self.prepare_request(prompt, **self._structured_options(schema, kwargs))
 
     def generate_json(
         self,
@@ -470,8 +511,7 @@ class OpenAICompatibleClient:
     ) -> dict[str, Any]:
         """Parse only JSON; model output is never executed as Python."""
 
-        if schema is not None:
-            kwargs.setdefault("response_format", {"type": "json_object"})
+        kwargs = self._structured_options(schema, kwargs)
         text = self.generate(prompt, **kwargs).text.strip()
         fenced = re.fullmatch(r"```(?:json)?\s*(.*?)\s*```", text, re.I | re.S)
         if fenced:

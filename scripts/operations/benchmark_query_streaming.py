@@ -15,6 +15,7 @@ from pathlib import Path
 import threading
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 
 from campusai.deployment.local_server import make_local_server
@@ -35,6 +36,33 @@ def runtime_digest():
     for path in sorted((ROOT/'src/campusai').rglob('*.py')):
         h.update(path.relative_to(ROOT).as_posix().encode() + b'\0' + path.read_bytes() + b'\0')
     return h.hexdigest()
+
+
+def local_backend_identity(packet, fixture_root):
+    """Bind a live local process to its verified weights, libraries and args."""
+    import psutil
+    from evaluation.common.artifact_store import file_sha256
+    directory = fixture_root.parent
+    receipt_path = directory/'server-auth-started.json'
+    assets_path = directory/'binary-extraction.json'
+    assert digest(receipt_path) == packet['local_server_receipt_sha256']
+    assert digest(assets_path) == packet['local_server_artifacts']['binary_extraction_sha256']
+    receipt = json.loads(receipt_path.read_text(encoding='utf-8-sig'))
+    assets = json.loads(assets_path.read_text(encoding='utf8'))
+    process = psutil.Process(receipt['pid'])
+    assert Path(process.exe()).resolve() == Path(receipt['executable']).resolve()
+    assert process.cmdline()[1:] == receipt['arguments']
+    assert receipt['api_key_required'] is True and receipt['bound_host'] == '127.0.0.1' and receipt['port'] == 11437
+    weights = Path(receipt['arguments'][receipt['arguments'].index('--model')+1]).resolve()
+    assert weights.is_relative_to((ROOT/'.cache/llm-candidate').resolve())
+    assert file_sha256(weights) == receipt['model_sha256'] == packet['local_model_sha256']
+    asset_root = (ROOT/assets['root']).resolve()
+    assert asset_root.is_relative_to((ROOT/'.cache/llm-candidate').resolve())
+    for name, expected in assets['files'].items():
+        assert Path(name).name == name
+        assert file_sha256(asset_root/name) == expected['sha256']
+    return {'pid':process.pid, 'created_at':process.create_time(), 'model_sha256':packet['local_model_sha256'],
+            'server_receipt_sha256':packet['local_server_receipt_sha256']}
 
 
 def append(path, value):
@@ -133,6 +161,7 @@ def main():
     assert len(expected_ids)==len(set(expected_ids))==20
     prefix_posts=len(attempts)
     runner_sha=digest(__file__)
+    local_identity = local_backend_identity(packet, root) if packet.get('local_provider') else None
     assert not (run_dir/'measurement-started.json').exists()
     (run_dir/'measurement-started.json').write_text(json.dumps({
         'packet_sha256': args.packet_sha256, 'started_at': datetime.now(timezone.utc).isoformat(),
@@ -140,7 +169,20 @@ def main():
         'prefix':packet.get('prefix'),'retry_failed_or_successful_case': False})+'\n', encoding='utf8')
     profile = __import__('yaml').safe_load((ROOT/packet['profile_path']).read_text(encoding='utf8'))['llm']
     key_names = packet.get('key_names')
-    if key_names is not None:
+    local_provider = packet.get('local_provider', False)
+    if local_provider:
+        parsed = urllib.parse.urlsplit(packet['destination'])
+        assert (parsed.scheme == 'http' and parsed.hostname == '127.0.0.1'
+                and parsed.port == 11437 and parsed.path == '/v1/chat/completions'
+                and not parsed.username and not parsed.password and not parsed.query and not parsed.fragment)
+        assert profile['provider'] == 'openai-compatible' and profile['endpoint'] == packet['destination']
+        assert profile['api_key_env'] == 'CAMPUSAI_LOCAL_LLM_TOKEN'
+        assert key_names is None and not packet.get('prefix')
+        token = os.environ.get('CAMPUSAI_LOCAL_LLM_TOKEN', '')
+        assert len(token) >= 32 and token.strip() == token
+        credentials = {'CAMPUSAI_LOCAL_LLM_TOKEN':token}
+        aliases = {'CAMPUSAI_LOCAL_LLM_TOKEN':'local_gpu'}
+    elif key_names is not None:
         assert key_names == ['key_1', 'key_2', 'key_3'] and not packet.get('prefix')
         assert profile.get('independent_projects') is True
         assert profile.get('api_key_envs') == ['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3']
@@ -164,15 +206,18 @@ def main():
     startup = time.perf_counter() - startup
     client = application.query_service.answer_generator.llm
     assert client.model == packet['model'] and client.max_retries == 0
-    assert (client.project_router is not None) == (key_names is not None)
-    assert packet['destination'] == f'https://generativelanguage.googleapis.com/v1beta/models/{client.model}:streamGenerateContent?alt=sse'
-    before = client.quota_governor.snapshot()
+    assert (getattr(client, 'project_router', None) is not None) == (key_names is not None)
+    assert packet['destination'] == (client.endpoint if local_provider else
+        f'https://generativelanguage.googleapis.com/v1beta/models/{client.model}:streamGenerateContent?alt=sse')
+    governor = getattr(client, 'quota_governor', None)
+    before = governor.snapshot() if governor is not None else None
     active = {}
     original_open = urllib.request.urlopen
     original_complete = client.complete
 
     def sealed(request, **kwargs):
-        if request.full_url.startswith('https://generativelanguage.googleapis.com/'):
+        if (request.full_url.startswith('https://generativelanguage.googleapis.com/')
+                or local_provider and request.full_url.startswith('http://127.0.0.1:11437/')):
             row = active['row']
             if (len(attempts)-prefix_posts >= packet['max_posts'] or request.full_url != packet['destination']
                     or sha256(request.data).hexdigest() != row['body_sha256']
@@ -183,8 +228,9 @@ def main():
             attempt = {'case_id': row['case_id'], 'endpoint': request.full_url,
                 'body_sha256': row['body_sha256'], 'at': datetime.now(timezone.utc).isoformat()}
             supplied = next((value for name, value in request.header_items()
-                             if name.lower() == 'x-goog-api-key'), None)
-            reference = next((name for name, value in credentials.items() if value == supplied), None)
+                             if name.lower() == ('authorization' if local_provider else 'x-goog-api-key')), None)
+            reference = next((name for name, value in credentials.items()
+                              if ('Bearer '+value if local_provider else value) == supplied), None)
             if reference is None:
                 from campusai.llm.client import LLMProviderError
                 active['sealed_violation'] = True
@@ -256,7 +302,7 @@ def main():
         failure = type(error).__name__  # No private provider/error strings.
     finally:
         server.shutdown(); thread.join(5); server.server_close()
-        after = client.quota_governor.snapshot()
+        after = governor.snapshot() if governor is not None else None
         application.close()
         urllib.request.urlopen = original_open
     # Evaluation annotations are opened only AFTER every inference/HTTP attempt.
@@ -269,7 +315,8 @@ def main():
             and expected['expected_time'] in answer.get('answer','')
             and any(literal in c.get('quote','') and c.get('doc_id')==packet['source_pdf_sha256']
                     and c.get('page')==1 for c in answer.get('citations',[])))
-    unchanged=(runtime_digest()==packet['runtime_sha256'] and digest(__file__)==runner_sha
+    local_unchanged = local_backend_identity(packet, root) == local_identity if local_provider else True
+    unchanged=(runtime_digest()==packet['runtime_sha256'] and digest(__file__)==runner_sha and local_unchanged
                and not active.get('sealed_violation'))
     metrics,passed=summarize(observations,traces,attempts,expected_ids,unchanged)
     report = {'status':'PASS' if passed else 'NOT_PASSED','measurement_state':state,'failure_type':failure,
@@ -279,9 +326,11 @@ def main():
         'credential_project_alias':key_names or packet['key_name'],'prefix':packet.get('prefix'),
         'runtime_unchanged':runtime_digest()==packet['runtime_sha256'], 'metrics':metrics,
         'model_startup_seconds_excluded':startup,'cold_observation_not_discarded':
-            'Separate earlier connectivity probe14.59s; all20 app cases included without trimming.',
+            'Every cohort query, including its first call, retained. Startup and earlier diagnostics are reported separately.',
         'attempt_count':len(attempts),'observations':observations,'quota_before':before,'quota_after':after,
         'provider_retries':0,'key_rotation':key_names is not None,'gold_used_by_inference':False,
+        'provider_type':'loopback_openai' if local_provider else 'gemini',
+        'local_backend_identity':local_identity,'local_backend_unchanged':local_unchanged,
         'raw_unverified_text_sent_to_browser':False,'nearest_rank_percentile':True,
         'sealed_violation':bool(active.get('sealed_violation')),
         'failure_censoring':'Every query retained. Missing first token/verified answer is +infinity (JSON null for an unbounded quantile/max); n20 p95 uses rank19. Never count an error as a correct negative or local text as a model token.'}

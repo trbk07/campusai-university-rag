@@ -232,6 +232,15 @@ def create_llm(
     json_mode = config.get('json_mode', 'native')
     if json_mode not in {'native', 'prompt'} or (provider != 'gemini' and json_mode != 'native'):
         raise ValueError('llm.json_mode must be native or prompt for Gemini')
+    response_format_mode = config.get('response_format_mode', 'json_object')
+    if (not isinstance(response_format_mode, str) or response_format_mode not in {'json_object', 'json_schema'}
+            or provider == 'gemini' and 'response_format_mode' in config):
+        raise ValueError('response_format_mode requires an OpenAI-compatible provider and json_object/json_schema')
+    default_system_prompt = config.get('default_system_prompt')
+    if ('default_system_prompt' in config and (provider == 'gemini'
+            or not isinstance(default_system_prompt, str) or not default_system_prompt.strip()
+            or len(default_system_prompt) > 4000)):
+        raise ValueError('default_system_prompt requires nonempty bounded text and an OpenAI-compatible provider')
     allow_pdf_scope = config.get('allow_pdf_scope', False)
     if type(allow_pdf_scope) is not bool or (allow_pdf_scope and provider != 'gemini'):
         raise ValueError('llm.allow_pdf_scope requires a boolean and Gemini')
@@ -285,7 +294,8 @@ def create_llm(
         or "https://api.groq.com/openai/v1/chat/completions"
     ).strip()
     return OpenAICompatibleClient(
-        _endpoint(endpoint), api_key, model, **common
+        _endpoint(endpoint), api_key, model, response_format_mode=response_format_mode,
+        default_system_prompt=default_system_prompt, **common
     )
 
 
