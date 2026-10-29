@@ -26043,6 +26043,19 @@
       "storage_bytes": 30885,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/vietnamese-source-ocr-20261029-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/vietnamese-source-ocr-20261029-evidence.zip",
+      "version_or_revision": "d90f957222c006658723f0bf20a314f193fae12399b1601e3d6033b11be06f08",
+      "sha256": "d90f957222c006658723f0bf20a314f193fae12399b1601e3d6033b11be06f08",
+      "bytes": 2293882,
+      "local_or_external_uri": "objects/d9/d90f957222c006658723f0bf20a314f193fae12399b1601e3d6033b11be06f08.gz",
+      "encoding": "gzip",
+      "storage_sha256": "dc1e676629ec0c026e33739d00d9b0d294b829b95efcabd45c7d10232a82082a",
+      "storage_bytes": 2292983,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }
