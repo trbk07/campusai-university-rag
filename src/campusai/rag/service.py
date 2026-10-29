@@ -364,6 +364,8 @@ class CampusAIQueryService:
                 'source_citations':getattr(self.answer_generator,'source_citations',False),
                 'generation_config':getattr(self.answer_generator.llm,'generation_config',None),
                 'json_mode':getattr(self.answer_generator.llm,'json_mode','native'),
+                **({'citation_handle_policy':self.answer_generator.citation_handle_policy}
+                   if getattr(self.answer_generator,'citation_handle_policy',None) else {}),
                 **({'response_format_mode':self.answer_generator.llm.response_format_mode}
                    if getattr(self.answer_generator.llm,'response_format_mode','json_object') != 'json_object' else {}),
                 **({'system_prompt_sha256':hashlib.sha256(self.answer_generator.llm.default_system_prompt.encode()).hexdigest()}
@@ -462,6 +464,8 @@ class CampusAIQueryService:
         generation_config = getattr(self.answer_generator.llm, "generation_config", None)
         if getattr(self.answer_generator, 'source_citations', False):
             budget['citation_protocol'] = 'source-resolved-v1'
+        if getattr(self.answer_generator, 'citation_handle_policy', None):
+            budget['citation_handle_policy'] = self.answer_generator.citation_handle_policy
         if self.cache_namespace is not None:
             budget['cache_namespace'] = self.cache_namespace
         if self.context_candidates is not None or getattr(self.answer_generator, 'balanced_context', False):

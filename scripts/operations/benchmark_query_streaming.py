@@ -72,6 +72,16 @@ def append(path, value):
         os.fsync(output.fileno())
 
 
+def transport_failure(error):
+    """Record transport diagnostics without URLs, headers or provider bodies."""
+    reason = getattr(error, 'reason', None)
+    code = getattr(error, 'code', None)
+    number = getattr(reason, 'winerror', getattr(error, 'winerror', None))
+    return {'error_type': type(error).__name__,
+            'http_status': code if type(code) is int and 100 <= code <= 599 else None,
+            'network_winerror': number if type(number) is int else None}
+
+
 def percentile(values, fraction=.95):
     if not values or any(type(v) not in (int,float) or not math.isfinite(v) or v<0 for v in values):
         raise ValueError('missing/non-finite latency observations')
@@ -238,7 +248,13 @@ def main():
             attempt['project_alias'] = aliases[reference]
             append(run_dir/'provider-attempts.jsonl', attempt)
             attempts.append(attempt)
-        return original_open(request, **kwargs)
+        try:
+            return original_open(request, **kwargs)
+        except Exception as error:
+            if request.full_url == packet['destination']:
+                append(run_dir/'transport-errors.jsonl', {
+                    'case_id': active['row']['case_id'], **transport_failure(error)})
+            raise
 
     def record_complete(prompt, **options):
         response = original_complete(prompt, **options)

@@ -335,13 +335,13 @@ def estimate_tokens(text: str) -> int:
     return max(1, math.ceil(len(text) / 4)) if text else 0
 
 
-def _context_block(result: RetrievalResult) -> tuple[str, str]:
+def _context_block(result: RetrievalResult, evidence_ids=None) -> tuple[str, str]:
     page_range = result.metadata.get("page_range", [result.page, result.page])
     source_name = result.metadata.get("source_name") or result.doc_id
     section = " > ".join(result.metadata.get("heading_path", [])) or ""
     table_line = f"table_id={result.metadata.get('table_id')}\n" if result.metadata.get("table_id") else ""
     metadata = (
-        f"[EVIDENCE]\nchunk_id={result.chunk_id}\n"
+        f"[EVIDENCE]\nchunk_id={(evidence_ids or {}).get(result.chunk_id, result.chunk_id)}\n"
         f"document={source_name}\ndoc_id={result.doc_id}\npage={result.page}\n"
         f"page_range={page_range[0]}-{page_range[1]}\n{table_line}section={section}\ncontent:\n"
     )
@@ -359,6 +359,7 @@ def build_context(
     question: str = '',
     balanced: bool = False,
     synthesis: bool = False,
+    evidence_ids: dict[str, str] | None = None,
 ) -> str:
     """Serialize evidence within a budget including headers and separators.
 
@@ -369,7 +370,7 @@ def build_context(
     results = list(results)
     if balanced:
         from .source_windows import verbatim_window
-        parts = [(result, *_context_block(result)) for result in results]
+        parts = [(result, *_context_block(result, evidence_ids)) for result in results]
         parts = [part for part in parts if part[2]]
         char_limit = min(max_chars, max_tokens * 4) if max_tokens is not None else max_chars
         available = char_limit - sum(len(p[1]) for p in parts) - max(0, 2 * (len(parts) - 1))
@@ -403,7 +404,7 @@ def build_context(
     used_chars = 0
     char_limit = min(max_chars, max_tokens * 4) if max_tokens is not None else max_chars
     for result in results:
-        metadata, content = _context_block(result)
+        metadata, content = _context_block(result, evidence_ids)
         if not content:
             continue
         separator_chars = 2 if blocks else 0
@@ -451,6 +452,7 @@ class GroundedAnswerGenerator:
         calibrator: IsotonicCalibrator | None = None,
         balanced_context: bool = False,
         source_citations: bool = False,
+        compact_citation_ids: bool = False,
     ) -> None:
         self.llm = llm
         self.max_context_chars = max(1000, max_context_chars)
@@ -459,15 +461,27 @@ class GroundedAnswerGenerator:
         self.calibrator = calibrator
         self.balanced_context = balanced_context
         self.source_citations = source_citations
+        if type(compact_citation_ids) is not bool or compact_citation_ids and not source_citations:
+            raise ValueError('compact_citation_ids requires source_citations and a boolean')
+        self.compact_citation_ids = compact_citation_ids
+
+    @property
+    def citation_handle_policy(self):
+        if self.compact_citation_ids:
+            from .citation_handles import POLICY
+            return POLICY
+        return None
 
     def prompt(self, question: str, results: list[RetrievalResult], language: str = "vi", *, temporal_context: dict | None = None,
                multi_hop_context: dict | None = None, document_scope_context: dict | None = None) -> str:
         from .context import _fold
+        from .citation_handles import evidence_handles, reference_context
+        handles = evidence_handles(results) if self.compact_citation_ids else None
         current, separator, topic = question.partition('\nContext topic (untrusted user input): ')
         synthesis = bool(re.search(r'\b(?:tong hop|tom tat|he thong hoa|summari[sz]e|summary|overview)\b', _fold(current)))
         context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens,
             question=question, balanced=self.balanced_context and temporal_context is None and multi_hop_context is None,
-            synthesis=synthesis)
+            synthesis=synthesis, evidence_ids=handles)
         pdf_scope = (document_scope_context is not None
             and document_scope_context.get('coverage') == 'complete_pdf_bytes_with_extracted_text_index')
         if pdf_scope:
@@ -476,7 +490,7 @@ class GroundedAnswerGenerator:
             # historical tables). Keep the physical text index locally for
             # claim/citation verification and expose its exact page locators.
             context = '[PDF PAGE LOCATORS]\n' + json.dumps([
-                {'chunk_id': result.chunk_id, 'doc_id': result.doc_id, 'page': result.page}
+                {'chunk_id': (handles or {}).get(result.chunk_id, result.chunk_id), 'doc_id': result.doc_id, 'page': result.page}
                 for result in results], ensure_ascii=False, separators=(',', ':'))
         if language.casefold().startswith("en"):
             instructions = (
@@ -578,7 +592,7 @@ class GroundedAnswerGenerator:
             )
         if document_scope_context is not None:
             instructions += (('\nCOMPLETE CHECKED PDF SOURCE SCOPE:\n' if pdf_scope else '\nCOMPLETE CHECKED DOCUMENT TEXT SCOPE:\n')
-                + json.dumps(document_scope_context, ensure_ascii=False, sort_keys=True)
+                + json.dumps(reference_context(document_scope_context, handles) if handles else document_scope_context, ensure_ascii=False, sort_keys=True)
                 + ('\nThe exact original selected PDFs are attached, including images and vector graphics. '
                    'Review every physical page and graphical content, not only the extracted text below. '
                    'If any required page/content cannot be read, use unsupported_claim, never certify absence. '
@@ -597,7 +611,7 @@ class GroundedAnswerGenerator:
         if temporal_context is not None:
             instructions += (
                 "\nTEMPORAL SOURCE SCOPE (system-resolved eligibility, not a new fact source):\n"
-                + json.dumps(temporal_context, ensure_ascii=False, sort_keys=True)
+                + json.dumps(reference_context(temporal_context, handles) if handles else temporal_context, ensure_ascii=False, sort_keys=True)
                 + "\nIdentify the requested version(s) in the answer and cite the supporting source quotes. "
                   "Answer only within the selected sources; never claim global current validity or infer "
                   "an effective date from a version label, issue date, upload date, or publication date. "
@@ -615,14 +629,20 @@ class GroundedAnswerGenerator:
                     parent_chunk_id=edge['parent']['chunk_id'], target_code=edge['parent']['code'],
                     lookup_name=edge['lookup_name'])
             instructions += ('\nREQUIRED SOURCE ROLES (resolved from the retrieved source rows):\n'
-                + json.dumps(required,ensure_ascii=False,sort_keys=True)
+                + json.dumps(reference_context(required, handles) if handles else required,ensure_ascii=False,sort_keys=True)
                 + '\nAnswer every requested role. Label each source separately and cite its own row. '
                   'For every requested credit use one atomic claim: Course CODE has N credits. '
                   'A prerequisite edge must have an atomic claim: Course BRIDGE is a prerequisite of course TARGET. '
                   'For a name-to-code lookup, state the source course name and its code in a separate cited claim. '
                   'Same codes in different sources do not establish equivalence or credit transfer. '
                   'If any required fact or edge is missing, abstain.')
-        if self.source_citations:
+        if handles:
+            instructions += ('\nCITATION OUTPUT CONTRACT: citations contain ONLY a supplied ev chunk_id; '
+                'reuse each entry in claims[].citation_ids. No page or quote fields: the app resolves '
+                'them from original sources. Every claim still needs source support; handles alone '
+                'prove nothing. Preserve real source codes and identifiers. Return compact JSON '
+                'without indentation; preserve spaces inside string values.')
+        elif self.source_citations:
             instructions += ('\nCITATION OUTPUT CONTRACT: citations entries contain ONLY chunk_id, selected '
                 'from the supplied evidence. Do not output page or quote fields; the application resolves '
                 'them from original source records. Keep one entry per chunk and precise claim citation_ids. '
@@ -672,6 +692,8 @@ class GroundedAnswerGenerator:
                 return abstain("invalid_citation", language=language)
         except (ValueError, TypeError, AttributeError):
             return abstain("invalid_citation", language=language)
+        from .citation_handles import evidence_handles, restore_citations, InvalidCitationHandle
+        handles = evidence_handles(results) if self.compact_citation_ids else None
         if is_ambiguous_question(question, results):
             return abstain("ambiguous_question")
         from .table_fields import deterministic_curriculum_block_total
@@ -688,18 +710,19 @@ class GroundedAnswerGenerator:
             return abstain("no_relevant_evidence")
         if multi_hop_context is not None:
             from .multi_hop_evidence import deterministic_calculation
-            context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens)
+            context = build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens,
+                                    evidence_ids=handles)
             # A required source row truncated from the model's context is not
             # still available as hidden evidence to validate its answer.
             visible = True
             if multi_hop_context.get('preserve_existing_prompt'):
                 for p in multi_hop_context['premises']:
-                    marker='chunk_id='+p['chunk_id']+'\n'
+                    marker='chunk_id='+(handles or {}).get(p['chunk_id'], p['chunk_id'])+'\n'
                     block=context.split(marker,1)[1].split('[EVIDENCE]',1)[0] if marker in context else ''
                     if (json.dumps(p['cells'],ensure_ascii=False) not in block
                             or json.dumps(p['headers'],ensure_ascii=False) not in block):
                         visible=False
-            elif '[truncated=true]' in context or any('chunk_id='+r.chunk_id+'\n' not in context for r in results):
+            elif '[truncated=true]' in context or any('chunk_id='+(handles or {}).get(r.chunk_id, r.chunk_id)+'\n' not in context for r in results):
                 visible=False
             if not visible:
                 return abstain('context_budget_exceeded')
@@ -760,7 +783,7 @@ class GroundedAnswerGenerator:
                 return calculated
         if self.llm is None:
             return abstain("llm_not_configured")
-        if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens):
+        if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens, evidence_ids=handles):
             return abstain("context_budget_exceeded")
 
         by_chunk = {result.chunk_id: result for result in results}
@@ -777,6 +800,11 @@ class GroundedAnswerGenerator:
         except LLMError as error:
             return abstain("llm_error", language=language,
                                provider_failure=public_provider_failure(error))
+        if handles:
+            try:
+                payload = restore_citations(payload, handles)
+            except InvalidCitationHandle:
+                return abstain('invalid_citation')
         if not isinstance(payload, dict) or not isinstance(payload.get("answer"), str):
             return abstain("invalid_model_output")
         if not isinstance(payload.get("citations", []), list):
@@ -928,12 +956,17 @@ class GroundedAnswerGenerator:
         schema['properties']['citations']['items'] = {
             'type': 'object', 'required': ['chunk_id'], 'additionalProperties': False,
             'properties': {'chunk_id': {'type': 'string', 'minLength': 1}}}
-        if results and getattr(self.llm, 'response_format_mode', None) == 'json_schema':
+        if results and (self.compact_citation_ids or getattr(self.llm, 'response_format_mode', None) == 'json_schema'):
             # Native grammar constrains references to this request's actual
             # retrieval, never benchmark annotations or expected citations.
-            identifiers = list(dict.fromkeys(result.chunk_id for result in results))
+            if self.compact_citation_ids:
+                from .citation_handles import evidence_handles
+                identifiers = list(evidence_handles(results).values())
+            else:
+                identifiers = list(dict.fromkeys(result.chunk_id for result in results))
             schema['properties']['citations']['items']['properties']['chunk_id']['enum'] = identifiers
             schema['properties']['claims']['items']['properties']['citation_ids']['items']['enum'] = identifiers
+        if results and getattr(self.llm, 'response_format_mode', None) == 'json_schema':
             properties = schema['properties']
             order = ['citations', 'claims', 'abstained', 'answer', 'confidence']
             schema['properties'] = {key:properties[key] for key in order if key in properties}

@@ -925,6 +925,18 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
    riêng từng request rồi khôi phục ID thật trước grounding, vẫn giữ mọi kiểm tra.
    Chưa bật model hoặc dùng cohort đơn giản này thay natural100.
    [Đủ raw predictions và protocol](docs/ui/evidence/gemma4-native-streaming-20261029.json).
+   **QA-08c3 — DONE về chức năng:** rút gọn ID citation theo từng request,
+   khôi phục ID gốc trước kiểm chứng nguồn, giữ cách ly cache và request đồng thời.
+   20/20 payload mặc định không đổi; full **3.345 PASS / 0 FAIL / 2 live SKIP**,
+   clean export **33 PASS**, kiểm thử citation/đo lỗi transport **53 PASS**
+   (các bộ chồng lấn; chưa phải chuỗi 3 full RC cuối).
+   Đo mới có **15 POSTs**, 14 đáp án đúng nguyên câu nguồn và 1 lỗi provider;
+   output của cùng 14 câu giảm **3.700 → 1.036 tokens (72%)**. Vẫn có hai mẫu
+   TTFT **9,94s / 10,58s** và một mẫu thiếu token, nên bộ 20 chắc chắn không
+   thể đạt p95 ≤5s. Đã dừng sớm, bỏ 5 câu chưa gọi; không retry, bỏ mẫu lỗi,
+   hoặc công bố p95 của bộ chưa hoàn tất. Không lặp lại cấu hình này để tìm
+   lượt đẹp hơn; không bật Gemma/handle mặc định hay thay nghiệm thu natural100.
+   [Code, kiểm thử và kết quả thật](docs/ui/evidence/citation-handles-20261029.json).
    Nếu giữ streaming OFF cho v1, ghi gate DEFERRED và bỏ mọi tuyên bố đạt TTFT;
    đây là điều chỉnh scope release, không phải đổi QA-08c thành PASS.
    [Evidence](docs/ui/evidence/query-streaming-20261028.json).
@@ -958,6 +970,7 @@ Nguồn yêu cầu: `goal.txt`. Chi tiết: [QA audit](QA_AUDIT.md),
 | QA-08a / QA-08b | 400/400 HTTP 200 trên workload API local; Web Vitals lab 9/9. Không suy thành tải generation AI đồng thời. [Coverage](docs/ui/evidence/hybrid-coverage-20261025.json) |
 | [x] QA-08c1 — DONE về chức năng | SSE, cancel, quota/cooldown và UI chỉ công bố kết quả sau grounding. Bổ sung OpenAI-compatible SSE và native JSON schema opt-in; không cache/publish output thiếu stop/DONE, giữ citation/claim validation và cache isolation. Full 3.283 PASS / 2 opt-in live SKIP; 92 related và 92 clean-export tests PASS (chồng lấn). Local20 đúng nguồn 20/20, client TTFT p95 0,392s; natural100 không đạt nên không bật profile, QA-08c vẫn mở. [Engineering](docs/ui/evidence/query-streaming-20261028.json), [kiểm chứng mới](docs/ui/evidence/local-streaming-20261029.json) |
 | [x] QA-08c2 — DONE về chức năng | Phân tải opt-in qua 3 Google project đã xác nhận độc lập; giữ model/prompt/schema, quota chung, cache và chặn 503 toàn pool; 429 chỉ cooldown đúng project, không retry hoặc reset usage. 513 tests mở rộng, 186 tests ở bản guard cuối và 30 tests clean export PASS (các bộ chồng lấn). Đo thật 20 câu chưa đạt latency/availability; giữ mặc định OFF, QA-08c vẫn mở. [Evidence](docs/ui/evidence/project-routing-20261028.json) |
+| [x] QA-08c3 — DONE về chức năng | Citation handle riêng từng request; ID gốc được khôi phục trước mọi kiểm tra nguồn, không đổi nội dung PDF/câu hỏi, không dùng chung mapping hoặc cache giữa hai chính sách. Full 3.345 PASS / 2 live SKIP; 33 clean-export và 53 focused PASS (chồng lấn). Cùng 14 câu model thật: output giảm 72%, 14/14 đúng nguồn. Có lỗi provider và hai TTFT >5s nên dừng sớm tại 15 POSTs, giữ toàn bộ mẫu; QA-08c vẫn mở, mặc định OFF. Không thử lại cùng cấu hình. [Evidence](docs/ui/evidence/citation-handles-20261029.json) |
 | QA-09a / QA-09b | Unit/integration và 43/43 browser flows ở mốc lịch sử. [Browser](docs/ui/evidence/hybrid-final-ui-20261025/browser-results.json) |
 | QA-09c1–c2c | Recovery local, 10 checkpoint kill/restart, deep JSON trả 400, Host guard localhost; 229 related tests và secret scan PASS. [Evidence](docs/ui/evidence/request-safety-recovery-20261027.json) |
 | [x] QA-09c3 — DONE | Sửa reader preflight Phase 8 để đọc evidence đã archive qua resolver kiểm hash; thiếu/hỏng dữ liệu vẫn fail closed. Hai regression cases tái hiện lỗi trước sửa; 34 tests liên quan PASS sau sửa. [Evidence](docs/ui/evidence/final-qa-20261028.json) |

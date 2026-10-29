@@ -67,3 +67,23 @@ def test_missing_provenance_or_quality_cannot_pass(defect):
 @pytest.mark.parametrize('values',[[],[True],[math.nan],[math.inf],[-1],['2']])
 def test_censoring_never_accepts_invalid_numbers(values):
     with pytest.raises(ValueError):censored_percentile(values)
+
+
+@pytest.mark.parametrize('status', [429, 500, 503])
+def test_transport_diagnostics_keep_status_without_credentials_or_provider_text(status):
+    from urllib.error import HTTPError
+    from scripts.operations.benchmark_query_streaming import transport_failure
+    error = HTTPError('https://provider.example/?key=private', status,
+                      'private-provider-message', {'Authorization':'private'}, None)
+    result = transport_failure(error)
+    assert result == {'error_type':'HTTPError','http_status':status,'network_winerror':None}
+    assert 'private' not in repr(result)
+
+
+def test_connection_reset_diagnostics_do_not_serialize_exception_messages():
+    from urllib.error import URLError
+    from scripts.operations.benchmark_query_streaming import transport_failure
+    reason = OSError('private connection message');reason.winerror = 10054
+    result = transport_failure(URLError(reason))
+    assert result == {'error_type':'URLError','http_status':None,'network_winerror':10054}
+    assert 'private' not in repr(result)

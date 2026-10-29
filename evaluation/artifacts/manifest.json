@@ -26108,6 +26108,19 @@
       "storage_bytes": 394337,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/citation-handles-20261029-evidence.zip": {
+      "artifact_type": "source_bound_qa_evidence",
+      "identity": ".tmp/citation-handles-20261029-evidence.zip",
+      "version_or_revision": "e4b0f0a374c2c27b24296442737069221b6248cef20c4e76b8956cd8fec5916a",
+      "sha256": "e4b0f0a374c2c27b24296442737069221b6248cef20c4e76b8956cd8fec5916a",
+      "bytes": 582778,
+      "local_or_external_uri": "objects/e4/e4b0f0a374c2c27b24296442737069221b6248cef20c4e76b8956cd8fec5916a.gz",
+      "encoding": "gzip",
+      "storage_sha256": "32baac92cd7ff2de328dffbb4cc11653bc9172e7d37706a1bd67df4f6f42f658",
+      "storage_bytes": 550738,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

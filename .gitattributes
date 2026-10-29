@@ -192,3 +192,8 @@
 /src/campusai/ingestion/partial_numeric_tables.py -text whitespace=cr-at-eol
 /tests/test_partial_numeric_tables.py -text whitespace=cr-at-eol
 /docs/ui/evidence/partial-numeric-tables-20261029.json -text whitespace=cr-at-eol
+
+# Preserve compact-citation helper, tests and receipt bytes.
+/src/campusai/rag/citation_handles.py -text whitespace=cr-at-eol
+/tests/test_citation_handles.py -text whitespace=cr-at-eol
+/docs/ui/evidence/citation-handles-20261029.json -text whitespace=cr-at-eol
