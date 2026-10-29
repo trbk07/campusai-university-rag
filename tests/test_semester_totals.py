@@ -38,6 +38,9 @@ def source(rows=None, *, doc='plan', chunk='semesters', headers=None):
     ('khối lượng học tập của học kỳ mở đầu chương trình liên kết trong bảng là gì', [8]),
     ('trong bảng mình chọn kỳ 1 với kỳ 2 tổng mấy tín', [8, 4]),
     ('Total credits for semester 1 and semester 2?', [8, 4]),
+    ('kỳ đầu ôm bao nhiêu tín vậy', [8]),
+    ('học kỳ mở đầu thì cần học mấy tín chỉ nhỉ?', [8]),
+    ('hk2 phai hoc bn tc a', [4]),
 ])
 def test_explicit_total_answer_uses_no_model(question, values):
     answer = GroundedAnswerGenerator(NoGeneration()).answer(question, [source()])

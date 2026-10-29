@@ -255,3 +255,151 @@ def test_source_changes_invalidate_cached_projection(tmp_path):
         assert '7 tín' not in updated.answer
     finally:
         service.close()
+
+
+@pytest.mark.parametrize('question', [
+    'bản chương trình liên kết tới kỳ bốn thì học bên hay bên MAI vậy',
+    'cột đơn vị cung cấp môn học ở học kỳ thứ tư trong bảng chương trình liên kết ghi gì',
+    'đến kỳ 4 thì học bên nào vậy?',
+    'ky 4 hoc tai truong dau nhi',
+    'kỳ 4 học bên ALPHA hay bên BETA?',
+    'đơn vị phụ trách học phần của học kỳ 4 là gì',
+])
+def test_natural_provider_questions_read_source_instead_of_confirming_suggested_names(tmp_path, question):
+    service = application(tmp_path)
+    try:
+        answer = service.ask(question, doc_ids=['plan'])
+        assert not answer.abstained and 'Institute North' in answer.answer
+        assert 'MAI' not in answer.answer and 'ALPHA' not in answer.answer and 'BETA' not in answer.answer
+        assert service.retriever.last_trace.route == 'source_table_lookup'
+        assert all(validate_citation(c, service.last_retrieval[0], require_quote=True).valid for c in answer.citations)
+    finally:
+        service.close()
+
+
+@pytest.mark.parametrize('question', [
+    'đến kỳ 4 thì học bên nào và học phí bao nhiêu',
+    'kỳ 4 học bên ALPHA hay bên BETA nếu được miễn môn',
+    'kỳ 4 hay kỳ 2 học bên nào',
+    'cột đơn vị cung cấp môn học ở học kỳ 4 và tín chỉ ghi gì',
+    'cột đơn vị cung cấp môn học ở học kỳ 4 năm 2099 ghi gì',
+    'cột đơn vị cung cấp môn học ở học kỳ 4 của trường khác ghi gì',
+])
+def test_natural_provider_grammar_keeps_extra_scope_and_intents(question):
+    assert project(question) is None
+
+
+@pytest.mark.parametrize('mutate', [
+    lambda d: d['headers'].__setitem__(3, 'Hours'),
+    lambda d: d['rows'][7].__setitem__(3, 'Institute Other'),
+    lambda d: d['rows'][7].__setitem__(3, ''),
+    lambda d: d['rows'].pop(),
+])
+def test_natural_provider_wording_cannot_bypass_source_completeness(mutate):
+    assert project('đến kỳ 4 thì học bên nào vậy', changed(mutate)) is None
+
+
+@pytest.mark.parametrize('question', [
+    'học chương trình với Institute North theo bản đang mở thì kỳ 4 ôm bao nhiêu tín vậy',
+    'chương trình liên kết với Institute South theo tài liệu đã chọn thì kỳ thứ tư phải học bao nhiêu tín chỉ?',
+    'học kỳ bốn thì cần học mấy tín chỉ nhỉ',
+    'kỳ 2 ôm bn tc',
+])
+def test_natural_credit_load_projects_literal_subtotal_from_complete_selected_source(tmp_path, question):
+    service = application(tmp_path)
+    try:
+        answer = service.ask(question, doc_ids=['plan'])
+        assert not answer.abstained
+        expected = '3 tín chỉ' if 'kỳ 2' in question else '9 tín chỉ'
+        assert expected in answer.answer
+        assert service.retriever.last_trace.route == 'source_table_lookup'
+        assert all(validate_citation(c, service.last_retrieval[0], require_quote=True).valid for c in answer.citations)
+    finally:
+        service.close()
+
+
+@pytest.mark.parametrize('question', [
+    'học chương trình với Other Academy theo bản đang mở thì kỳ 4 ôm bao nhiêu tín vậy',
+    'học chương trình với Institute North theo bản mới nhất thì kỳ 4 ôm bao nhiêu tín vậy',
+    'học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín nếu chuyển ngành',
+    'học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín và học phí bao nhiêu',
+])
+def test_programme_partner_and_extra_conditions_cannot_be_discarded(question):
+    assert project(question) is None
+
+
+def test_partner_cannot_be_established_by_filename_or_unheaded_cells():
+    doc = changed(lambda d: d['headers'].__setitem__(3, 'Unknown'))
+    doc['items'][0]['metadata']['source_name'] = 'Institute North curriculum.pdf'
+    assert project('học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín', doc) is None
+
+
+def test_subtotal_projection_checks_unretrieved_conflicts_and_never_sums_course_rows():
+    doc = document()
+    second = deepcopy(doc['items'][0]); second['chunk_id'] = 'lower-table'
+    data = json.loads(second['content']); data['rows'][-1][2] = '12'
+    second['content'] = json.dumps(data); doc['items'].append(second)
+    assert project('kỳ 4 ôm bao nhiêu tín vậy', doc) is None
+    no_total = changed(lambda d: d['rows'].pop())
+    assert project('kỳ 4 ôm bao nhiêu tín vậy', no_total) is None
+
+
+def test_natural_credit_projection_follows_reordered_columns_and_changed_source_values():
+    doc = changed(lambda d: d['rows'][-1].__setitem__(2, '11'))
+    data = json.loads(doc['items'][0]['content'])
+    order = [3, 2, 0, 1]
+    data = {'headers':[data['headers'][i] for i in order],
+            'rows':[[row[i] for i in order] for row in data['rows']]}
+    doc['items'][0]['content'] = json.dumps(data)
+    answer, results = project('học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín', doc)
+    assert not answer.abstained and '11 tín chỉ' in answer.answer
+    assert validate_citation(answer.citations[0], results[0], require_quote=True).valid
+
+
+def test_natural_provider_field_reads_a_vietnamese_source_header():
+    doc = changed(lambda d: d['headers'].__setitem__(3, 'Đơn vị cung cấp'))
+    answer, _results = project('cột đơn vị cung cấp môn học ở học kỳ 4 ghi gì', doc)
+    assert not answer.abstained and 'Institute North' in answer.answer
+
+
+def test_natural_subtotal_refusal_from_previous_policy_is_not_reused(tmp_path, monkeypatch):
+    from campusai.rag import service as service_module, curriculum_lookup
+    from campusai.rag.cache import RAGAnswerCache, build_rag_cache_key
+    from campusai.rag.grounding import _abstention
+    path = str(tmp_path/'answers.sqlite3')
+    question = 'học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín'
+    with monkeypatch.context() as legacy:
+        legacy.setattr(service_module, 'build_rag_cache_key',
+                       lambda **kw:build_rag_cache_key(**kw, grounding_policy_version='grounding-v39'))
+        legacy.setattr(curriculum_lookup, 'lookup_curriculum', lambda *_a, **_kw:None)
+        old = application(tmp_path, cache=RAGAnswerCache(path))
+        legacy.setattr(old.answer_generator, 'answer', lambda *_a, **_kw:_abstention('unsupported_claim'))
+        try:
+            assert old.ask(question, doc_ids=['plan']).abstained
+        finally:
+            old.close()
+    for cached in (False, True):
+        current = application(tmp_path, cache=RAGAnswerCache(path))
+        try:
+            answer = current.ask(question, doc_ids=['plan'])
+            assert not answer.abstained and '9 tín chỉ' in answer.answer
+            assert current.last_cache_hit is cached
+        finally:
+            current.close()
+
+
+def test_natural_subtotal_still_honors_authorization_filters_and_source_replacement(tmp_path):
+    service = application(tmp_path)
+    question = 'học chương trình với Institute North thì kỳ 4 ôm bao nhiêu tín'
+    try:
+        with pytest.raises(ValueError, match='authorization'):
+            service.ask(question, doc_ids=['plan'], authorized_doc_ids=[])
+        assert service.ask(question, doc_ids=['plan'], filters={'program':'Missing'}).abstained
+        assert service.ask(question, doc_ids=['plan'], top_k=0).abstained
+        assert '9 tín chỉ' in service.ask(question, doc_ids=['plan']).answer
+        doc = changed(lambda d: d['rows'][-1].__setitem__(2, '13'))
+        BM25Index(doc['items'], 'en').save(tmp_path/'plan'/'bm25.json')
+        updated = service.ask(question, doc_ids=['plan'])
+        assert not updated.abstained and not updated.cache_hit and '13 tín chỉ' in updated.answer
+    finally:
+        service.close()

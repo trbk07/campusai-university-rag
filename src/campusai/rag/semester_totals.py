@@ -27,10 +27,11 @@ def requested_semesters(question):
         return ' @ '
     text = _SEMESTER.sub(slot, text)
     text = ' '.join(_SCOPE.sub(' ', text).split())
+    text = re.sub(r' (?:vay|nhi|a)$', '', text)
     slots = r'@(?: (?:and|va|voi) @)?'
-    quantity = r'(?:tong(?: so)? )?(?:co )?(?:may|bao nhieu|bao nhiu|bn) (?:tin(?: chi)?|tc)'
+    quantity = r'(?:tong(?: so)? )?(?:(?:co|hoc|om|can hoc|phai hoc) )?(?:may|bao nhieu|bao nhiu|bn) (?:tin(?: chi)?|tc)'
     patterns = (
-        slots + ' ' + quantity,
+        slots + r' (?:thi )?' + quantity,
         r'(?:what (?:is|are) the )?(?:total |sum of )?credits (?:for|in) ' + slots,
         r'how many credits (?:are listed )?(?:for|in) ' + slots,
         slots + r' (?:total )?credits(?: la bao nhieu)?',

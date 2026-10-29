@@ -11,11 +11,11 @@ from decimal import Decimal
 from .course_credits import folded, COURSE_CODE, course_code_key
 from .multi_hop_evidence import table
 from .semester_citations import _marker, _subtotal
-from .semester_totals import _SEMESTER, _NUMBERS
+from .semester_totals import _SEMESTER, _NUMBERS, requested_semesters, deterministic_semester_total
 
 
 _NAMES = {'discipline', 'course name', 'subject', 'subject name', 'hoc phan', 'ten hoc phan'}
-_PROVIDERS = {'resources', 'resource', 'provider', 'institution', 'don vi phu trach'}
+_PROVIDERS = {'resources', 'resource', 'provider', 'institution', 'don vi phu trach', 'don vi cung cap'}
 _CATEGORIES = {'compulsory subjects', 'elective subjects', 'optional subjects'}
 _CONTEXT = '\nContext topic (untrusted user input): '
 
@@ -35,13 +35,44 @@ def _provider_request(question):
         numbers.append(int(match[1]) if match[1].isdigit() else _NUMBERS[match[1]])
         return ' @ '
     text = _clean(_SEMESTER.sub(slot, folded(question)))
+    text = re.sub(r' (?:vay|nhi|a)$', '', text)
+    institution = r'[a-z][a-z0-9.-]{0,31}'
     patterns = (
         r'@ (?:thi )?(?:(?:cac )?(?:mon hoc|hoc phan) )?(?:do )?(?:truong nao|ben nao|don vi nao) (?:phu trach|day)',
+        r'(?:toi |den )?@ (?:thi )?hoc (?:o |tai )?(?:ben|truong) (?:nao|dau)',
+        r'(?:toi |den )?@ (?:thi )?hoc ben(?: '+institution+r')? hay ben '+institution,
+        r'(?:cot )?don vi (?:cung cap|phu trach) (?:mon hoc|hoc phan) (?:o |cua |trong )?@ (?:ghi gi|la gi)',
         r'@ (?:courses )?taught by which institution',
         r'which (?:institution|provider) (?:teaches|provides) (?:the )?courses (?:in|for) @',
     )
     if len(numbers) == 1 and 1 <= numbers[0] <= 20 and any(re.fullmatch(p, text) for p in patterns):
         return numbers[0]
+
+
+def _subtotal_question(question, tables):
+    """Recognize a selected-programme frame without discarding its partner.
+
+    A named partner must occur in the actual provider column of this source.
+    Neither the name in the question nor a filename supplies a credit value.
+    """
+    text = folded(question).strip(' .?!')
+    frame = re.fullmatch(r'(?:hoc )?chuong trinh(?: lien ket)?'
+        r'(?: voi (?P<partner>[a-z0-9][a-z0-9 .-]{0,60}?))?'
+        r'(?: theo (?:ban|bang|tai lieu) (?:dang mo|da chon|da tai len))?'
+        r' thi (?P<request>.+)', text)
+    if frame:
+        partner = frame['partner']
+        if partner:
+            providers = set()
+            for _item, data, _name in tables:
+                column = _column(data['headers'], _PROVIDERS)
+                if column is None:
+                    return None
+                providers.update(folded(row[column].strip()) for row in data['rows'] if row[column].strip())
+            if partner not in providers:
+                return None
+        text = frame['request']
+    return text if requested_semesters(text) is not None else None
 
 
 def _course_request(text):
@@ -217,6 +248,17 @@ def lookup_curriculum(question, documents, *, doc_ids, language='vi', calibrator
     tables = _tables(documents[0])
     if not tables:
         return None
+    subtotal_question = _subtotal_question(question, tables)
+    if subtotal_question is not None:
+        from ..retrieval.hybrid import RetrievalResult
+        results = [RetrievalResult(item['chunk_id'], documents[0]['doc_id'], item['page'],
+            item['content'], 'table', 1., 'source_table_lookup', item.get('metadata', {}))
+            for item, _data, _name in tables]
+        answer = deterministic_semester_total(subtotal_question, results, language, calibrator=calibrator)
+        if answer is None:
+            return None
+        cited = {citation.chunk_id for citation in answer.citations}
+        return answer, [result for result in results if result.chunk_id in cited]
     english = language.casefold().startswith('en')
     if code is not None:
         projection = _code_course(tables,code)

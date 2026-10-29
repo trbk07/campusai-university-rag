@@ -1,0 +1,52 @@
+{
+  "task": "QA-07b9",
+  "status": "DONE_SCOPED_SOURCE_LOOKUP",
+  "cases_before_requires_model": 3,
+  "cases_after_proved_source_answers": 3,
+  "new_model_posts": 0,
+  "before": "Existing complete-source lookup rejected natural provider/credit-load wording.",
+  "after": "Natural semester/provider grammar with exact full-index provider and labelled-credit-subtotal proofs; named partner verified in actual provider column.",
+  "guards": [
+    "one selected authorized document",
+    "source filters",
+    "physical semester scope",
+    "complete provider rows",
+    "original quote validation",
+    "no inferred course sums",
+    "unretrieved conflicts",
+    "extra intent and condition rejection",
+    "old answer cache invalidated: grounding-v40"
+  ],
+  "tests": {
+    "full_passed": 3657,
+    "full_failed": 0,
+    "opt_in_live_skipped": 2,
+    "related_passed": 278,
+    "clean_export_passed": 278,
+    "counts_overlap": true,
+    "source_unchanged": true,
+    "three_final_rc_runs": false
+  },
+  "rejected_experiment": {
+    "model": "Qwen3-4B-Instruct-2507 Q4_K_M with compact citation IDs",
+    "dev_cases": 12,
+    "real_local_posts": 12,
+    "external_posts": 0,
+    "required_field_coverage_lower_bound": 0.16666666666666666,
+    "whole_accuracy_certified": false,
+    "promoted": false,
+    "full100_attempted": false,
+    "server_stopped": true,
+    "index_sha256": "099daafc3d1ac51741238a05f27dc9af065e47ff402965a985fa6c5f4dcbe7d2"
+  },
+  "limits": [
+    "Three exposed engineering source controls are not overall AI accuracy or TTFT acceptance.",
+    "App source snapshot includes shared local-launcher work; owned repair independently tested in clean Git export.",
+    "AI/PDF representative qualification and genuine model TTFT remain open."
+  ],
+  "archive": {
+    "logical_path": ".tmp/natural-curriculum-20261029-evidence.zip",
+    "sha256": "3ab7d992815f31000a4ac44a22df502af5ba801ab81941d92b3ff21706562838",
+    "bytes": 19535698
+  }
+}

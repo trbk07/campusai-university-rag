@@ -26173,6 +26173,19 @@
       "storage_bytes": 2146774,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/natural-curriculum-20261029-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/natural-curriculum-20261029-evidence.zip",
+      "version_or_revision": "3ab7d992815f31000a4ac44a22df502af5ba801ab81941d92b3ff21706562838",
+      "sha256": "3ab7d992815f31000a4ac44a22df502af5ba801ab81941d92b3ff21706562838",
+      "bytes": 19535698,
+      "local_or_external_uri": "objects/3a/3ab7d992815f31000a4ac44a22df502af5ba801ab81941d92b3ff21706562838.gz",
+      "encoding": "gzip",
+      "storage_sha256": "8eaed2f7a434ea9afb73f81609a07540367420392ee277fb53ff3b08eb002d2c",
+      "storage_bytes": 19410617,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }
