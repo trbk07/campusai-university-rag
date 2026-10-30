@@ -7,6 +7,14 @@ const source = fs.readFileSync(path.resolve(__dirname,'../../src/campusai/ui/scr
 const api = import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 const encoder = new TextEncoder();
 const record = value => JSON.stringify(value)+'\n';
+
+test('local AI contention is distinct from exhausted provider quota',async()=>{
+  const {errorText}=await api;
+  const text=errorText({code:'provider_busy'});
+  assert.match(text,/đang được xử lý/);
+  assert.doesNotMatch(text,/429|hạn mức|quota/);
+  assert.match(errorText({code:'provider_rate_limited'}),/429/);
+});
 test('configured browser deadline is passed to JSON and streaming without automatic resend',async t=>{
   const calls=[];
   const nativeSet=global.setTimeout, nativeClear=global.clearTimeout;

@@ -178,10 +178,14 @@ class QuotaGovernor:
             reservation, delay, reason = self._reserve_once(input_tokens, output_tokens, lease_seconds)
             if reservation is not None:
                 return reservation
-            if delay > deadline - time.monotonic():
+            remaining = deadline - time.monotonic()
+            # A lease is a crash-recovery deadline, not the expected completion
+            # time. The running request can release it on the next poll. Do not
+            # reject a queued question just because its neighbour has a 65s lease.
+            if remaining <= 0 or (reason != 'in_flight' and delay > remaining):
                 raise QuotaExceeded(reason, delay)
             # No SQLite lock is held while waiting. Recheck outage/policy/state.
-            time.sleep(min(delay, 0.25))
+            time.sleep(min(delay, remaining, 0.25))
 
     def finish(self, reservation, usage=None):
         usage = usage if isinstance(usage, dict) else {}

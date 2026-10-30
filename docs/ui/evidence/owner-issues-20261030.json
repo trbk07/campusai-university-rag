@@ -100,5 +100,134 @@
   },
   "producer_snapshot_includes_shared_source": true,
   "owner_data_deleted": false,
-  "private_keys_in_archive": false
+  "private_keys_in_archive": false,
+  "interactive_quota_fix": {
+    "date": "2026-10-30",
+    "status": "CODE_AND_ONE_LIVE_QUESTION_VERIFIED",
+    "cause": "The shared single in-flight slot treated its 65-second crash lease as expected completion time, rejecting a waiting question before the configured six-second wait. Benchmark shared the same admission scope.",
+    "changes": [
+      "Poll early lease completion within max_wait_seconds; retain all RPM/TPM/RPD budgets and charge failed calls.",
+      "Expose provider_busy separately from provider_rate_limited in HTTP and excerpt UI.",
+      "Stopped the background benchmark between calls to prioritize the interactive app.",
+      "Relaunched localhost app with network permission after proving sandbox socket WinError10013."
+    ],
+    "tests": {
+      "python_passed": 160,
+      "python_failed": 0,
+      "node_passed": 11,
+      "node_failed": 0,
+      "hundred_question_test": "100 distinct synthetic-provider calls, real SQLite, simulated clock; NOT 100 live AI answers"
+    },
+    "live_recheck": {
+      "question": "học tối thiểu bao nhiêu tín",
+      "elapsed_seconds": 2.9820965000000115,
+      "response": {
+        "ok": true,
+        "answer": {
+          "answer": "Khối lượng tối thiểu tùy theo chương trình đào tạo, ví dụ chương trình Cử nhân là 132 tín chỉ, Kỹ sư từ 48 đến 60 tín chỉ, Thạc sĩ từ 48 đến 60 tín chỉ, và Tiến sĩ từ 106 đến 151 tín chỉ.",
+          "citations": [
+            {
+              "chunk_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1",
+              "doc_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+              "page": 6,
+              "page_range": [
+                6,
+                6
+              ],
+              "quote": "[[\"Cử nhân\", \"Tốt nghiệp THPT\", \"4 năm\", \"132 tín chỉ\"], [\"Kỹ sư\", \"Tốt nghiệp cử nhân theo\\nchương trình tích hợp\", \"1,5 năm\", \"48 tín chỉ\"], [\"\", \"Tốt nghiệp cử nhân\", \"2 năm\", \"60 tín chỉ\"], [\"Thạc sĩ\", \"Tốt nghiệp cử nhân\", \"2 năm\", \"60 tín chỉ\"], [\"\", \"Tốt nghiệp cử nhân theo\\nchương trình tích hợp\", \"1,5 năm\", \"48 tín chỉ\"], [\"Tiến sĩ\", \"Tốt nghiệp thạc sĩ\", \"3 năm\", \"106 tín chỉ\"], [\"\", \"Tốt nghiệp đại học\", \"4 năm\", \"151 tín chỉ\"]]",
+              "section_path": "Điều 2. Ngành đào tạo, chương trình đào tạo",
+              "source_name": "QCDT_2025_5445_QD-DHBK.pdf",
+              "table_id": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+            }
+          ],
+          "confidence": "high",
+          "abstained": false,
+          "claims": [
+            {
+              "claim_id": "claim_1",
+              "text": "Cử nhân | Tốt nghiệp THPT | 4 năm | 132 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_2",
+              "text": "Kỹ sư | Tốt nghiệp cử nhân theo chương trình tích hợp | 1,5 năm | 48 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_3",
+              "text": "Kỹ sư | Tốt nghiệp cử nhân | 2 năm | 60 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_4",
+              "text": "Thạc sĩ | Tốt nghiệp cử nhân | 2 năm | 60 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_5",
+              "text": "Thạc sĩ | Tốt nghiệp cử nhân theo chương trình tích hợp | 1,5 năm | 48 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_6",
+              "text": "Tiến sĩ | Tốt nghiệp thạc sĩ | 3 năm | 106 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            },
+            {
+              "claim_id": "claim_7",
+              "text": "Tiến sĩ | Tốt nghiệp đại học | 4 năm | 151 tín chỉ",
+              "type": "fact",
+              "citation_ids": [
+                "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b_p6_t1"
+              ]
+            }
+          ],
+          "schema_version": "grounding-public-v2"
+        },
+        "cache_hit": false
+      }
+    },
+    "benchmark_checkpoint": {
+      "pipeline_cases": 80,
+      "raw_model_records": 37,
+      "complete": false,
+      "path": ".tmp/owner-issues-20261030/natural100-r2",
+      "packet_sha256": "f7002945a2d58c76771a491b372edf167872867a02f68f5ba508d4198d76bfd7",
+      "runtime_sha256": "8b838285894e38393d2e26b46a7a09770df312ec3190d9b2268a510ee8904526"
+    },
+    "limits": [
+      "No guarantee of 100 live questions or p95 latency from one live query.",
+      "No provider quota/cooldown reset, no key rotation, no grounding threshold changes."
+    ],
+    "source_sha256": {
+      "src/campusai/llm/client.py": "78d7100be648d9b5961a150a22bd4eb3e75921330c76c56d099044ae9bf24956",
+      "src/campusai/llm/failures.py": "e991528f55570916612d095a477b30dc6b6370a64e596f736573ac8446986a84",
+      "src/campusai/llm/quota.py": "0ef1599c06a5e6e3ba9c04523989065f95478445bf7ab06d0c9fd421b1180ef4",
+      "src/campusai/ui/features/chat.js": "11c9939ff88729c5526bb2163f700f97418d028c1942ef954e531b36b53e1144",
+      "src/campusai/ui/features/excerpts.js": "55f9ba11e492123e78f37790a860ae16dc3bf27d329037e22a29b3b1c96f41d6",
+      "src/campusai/ui/scripts/api.js": "faf24db56f9b35d2dcc9b6c0011e9914d142c691a3536e1285fa2d14182b56bd",
+      "src/campusai/web.py": "b8189abb4743a7f14db44e8ad71ab604e4ce6883028eaad6d9bf88e218b460cc",
+      "tests/deployment/test_source_excerpts.py": "c370b5ec7fc2bb3469fbb30dfc546b3310062dde19e0340546715bc38e693117",
+      "tests/test_quota.py": "7cd46c7b6ef01954f02c5929ebf082e4e23abb5e781d4cead4fd2ca327983054",
+      "tests/ui/query_stream.cjs": "58c7ac627d3efa5e917c0585b0b5885ac0e851177133b8696716cde27bf1fb68"
+    }
+  }
 }

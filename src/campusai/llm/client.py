@@ -665,6 +665,8 @@ class GeminiClient(OpenAICompatibleClient):
             raise failure from None
         except QuotaExceeded as error:
             failure = LLMRateLimitError('local provider budget exhausted; request stopped before transport')
+            if error.reason == 'in_flight':
+                failure.provider_error_code = 'provider_busy'
             failure.retry_after_seconds = error.retry_after_seconds
             raise failure from None
         except (sqlite3.Error, QuotaStateError):

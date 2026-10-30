@@ -149,7 +149,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
   } catch (error) {
     userMessage.failed = true;
     if (generation === epoch) $('#query-status').textContent = '';
-    if (['provider_overloaded','provider_rate_limited'].includes(error.code) && error.retryAfterSeconds)
+    if (['provider_overloaded','provider_rate_limited','provider_busy'].includes(error.code) && error.retryAfterSeconds)
       providerWaitUntil = Math.max(providerWaitUntil,Date.now()+error.retryAfterSeconds*1000);
     if (generation === epoch) messages.push({role:'assistant',error:errorText(error),question,docIds,language,
       retryUntil:Date.now()+(error.retryAfterSeconds || 0)*1000});

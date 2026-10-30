@@ -12,7 +12,7 @@ export function excerptSources(message) {
 }
 export function excerptBody(fallback, index, marker) {
   const code = fallback.providerStatus?.error_code;
-  const reason = {provider_overloaded:'Dịch vụ AI đang quá tải.',provider_rate_limited:'Đã chạm giới hạn lượt gọi AI.',provider_timeout:'Dịch vụ AI phản hồi quá thời gian chờ.',provider_authentication_failed:'Cấu hình kết nối AI chưa hợp lệ.',provider_invalid_response:'AI trả về dữ liệu chưa hợp lệ.'}[code] || '';
+  const reason = {provider_busy:'Một yêu cầu AI khác đang được xử lý. Vui lòng gửi lại sau ít giây.',provider_overloaded:'Dịch vụ AI đang quá tải.',provider_rate_limited:'Đã chạm giới hạn lượt gọi AI.',provider_timeout:'Dịch vụ AI phản hồi quá thời gian chờ.',provider_authentication_failed:'Cấu hình kết nối AI chưa hợp lệ.',provider_invalid_response:'AI trả về dữ liệu chưa hợp lệ.'}[code] || '';
   return `<div class="answer-note" role="status">${esc(reason ? reason+' Chưa có câu trả lời đã kiểm chứng.' : excerptNotice)}</div><details><summary>Mở trích đoạn nguồn để đối chiếu</summary><div class="answer-body">`+
     fallback.citations.map((citation,i) => `<blockquote>${esc(citation.quote)}</blockquote>${marker(i,index)}`).join('')+'</div></details>';
 }

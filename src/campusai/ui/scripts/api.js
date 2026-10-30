@@ -17,6 +17,7 @@ const messages = {
   provider_timeout:'Yêu cầu mất quá nhiều thời gian. Bạn có thể thử lại.',
   provider_overloaded:'Dịch vụ Gemini đang quá tải (503).',
   provider_rate_limited:'Gemini đang giới hạn tần suất hoặc hạn mức sử dụng (429). Kiểm tra quota API nếu lỗi tiếp diễn.',
+  provider_busy:'Một yêu cầu AI khác đang được xử lý. Vui lòng gửi lại sau ít giây.',
   provider_authentication_failed:'Credential AI không hợp lệ hoặc không có quyền. Hãy kiểm tra cấu hình máy chủ.',
   provider_invalid_response:'AI trả về dữ liệu không hợp lệ. Câu trả lời chưa được công bố; bạn có thể thử lại.',
   provider_unavailable:'Không kết nối được dịch vụ AI. Bạn có thể thử lại sau.',

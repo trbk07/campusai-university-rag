@@ -77,8 +77,11 @@ def test_twenty_http_queries_during_outage_then_real_recovery(tmp_path, monkeypa
         app.close()
 
 
-@pytest.mark.parametrize('error', [LLMProviderError('private'), LLMRateLimitError('private')])
-def test_fallback_never_caches_provider_fault_or_excerpt(tmp_path, error):
+@pytest.mark.parametrize('code', [None, 'provider_rate_limited', 'provider_busy'])
+def test_fallback_never_caches_provider_fault_or_excerpt(tmp_path, code):
+    error = LLMProviderError('private') if code is None else LLMRateLimitError('private')
+    if code is not None:
+        error.provider_error_code = code
     class Provider:
         calls = 0
         def generate_json(self, *_args, **_kwargs):
@@ -93,6 +96,7 @@ def test_fallback_never_caches_provider_fault_or_excerpt(tmp_path, error):
         for _ in range(2):
             value = json.loads(call(app, '/api/query', 'POST', {'question':'Which course?'})['body'])
             assert value['fallback']['citations'] and not value['cache_hit']
+            assert value['provider_status']['error_code'] == (code or 'provider_unavailable')
         assert provider.calls == 2
     finally:
         service.close()

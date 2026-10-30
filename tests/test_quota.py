@@ -162,6 +162,57 @@ def test_processes_share_atomic_daily_budget(tmp_path):
     assert g.snapshot()['reserved_attempts_today'] == 3 and g.snapshot()['in_flight'] == 0
 
 
+def test_in_flight_waits_for_completion_not_crash_lease(tmp_path, monkeypatch, clock):
+    g = governor(tmp_path, max_wait_seconds=6)
+    first = g.reserve(10, 10, lease_seconds=65)
+    started = clock[0]
+    def sleep(delay):
+        clock[0] += delay
+        if clock[0] - started >= 0.5:
+            # Separate worker/connection: polling must not hold a SQLite lock.
+            governor(tmp_path, max_wait_seconds=6).finish(first)
+    monkeypatch.setattr(time, 'sleep', sleep)
+    reserve(g)
+    assert clock[0] - started == 0.5
+    assert g.snapshot()['reserved_attempts_today'] == 2
+    assert g.snapshot()['in_flight'] == 0
+
+
+def test_busy_wait_is_bounded_and_not_reported_as_exhausted_quota(tmp_path, monkeypatch, clock):
+    from campusai.llm.failures import public_provider_failure
+    g = governor(tmp_path, max_wait_seconds=6)
+    g.reserve(10, 10, lease_seconds=65)
+    started = clock[0]
+    client = GeminiClient('fake', generation_config={'maxOutputTokens':100},
+                          max_retries=0, quota_governor=g)
+    monkeypatch.setattr('urllib.request.urlopen', lambda *_a, **_kw: pytest.fail('busy worker must not send'))
+    with pytest.raises(LLMRateLimitError) as error:
+        client.complete('next question')
+    assert clock[0] - started == 6
+    assert public_provider_failure(error.value)['error_code'] == 'provider_busy'
+    assert g.snapshot()['reserved_attempts_today'] == 1
+
+
+def test_hundred_distinct_questions_release_leases_and_keep_daily_accounting(tmp_path, monkeypatch, clock):
+    g = governor(tmp_path, requests_per_minute=15, requests_per_day=100, max_wait_seconds=6)
+    calls = []
+    def transport(request, **kwargs):
+        calls.append(request.data)
+        clock[0] += 2
+        return io.BytesIO(b'{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}')
+    monkeypatch.setattr('urllib.request.urlopen', transport)
+    client = GeminiClient('fake', generation_config={'maxOutputTokens':100},
+                          max_retries=0, quota_governor=g)
+    for number in range(100):
+        assert client.complete(f'question {number}').text == 'ok'
+    assert len(set(calls)) == 100
+    assert g.snapshot()['reserved_attempts_today'] == 100
+    assert g.snapshot()['in_flight'] == 0
+    with pytest.raises(LLMRateLimitError):
+        client.complete('over daily budget')
+    assert len(calls) == 100
+
+
 @pytest.mark.parametrize('status', [429, 503, 401, 'timeout'])
 def test_failed_transports_keep_budget_and_release_lease(tmp_path, monkeypatch, clock, status):
     g = governor(tmp_path, requests_per_day=1)

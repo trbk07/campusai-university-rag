@@ -212,7 +212,7 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                     if acquired:
                         query_slot.release()
                 status = 200 if value.get("ok") else {
-                    "provider_overloaded": 503, "provider_rate_limited": 429,
+                    "provider_overloaded": 503, "provider_rate_limited": 429, "provider_busy": 503,
                     "provider_timeout": 504, "provider_authentication_failed": 503,
                     "provider_invalid_response": 502, "provider_unavailable": 503,
                 }.get(value.get("error_code"), 400)

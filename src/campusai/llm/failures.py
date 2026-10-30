@@ -12,14 +12,14 @@ def public_provider_failure(error):
     if isinstance(error, LLMAuthenticationError):
         code = 'provider_authentication_failed'
     elif isinstance(error, LLMRateLimitError):
-        code = 'provider_rate_limited'
+        code = 'provider_busy' if code == 'provider_busy' else 'provider_rate_limited'
     elif isinstance(cause, HTTPError) and cause.code == 503:
         code = 'provider_overloaded'
     elif isinstance(cause, TimeoutError) or (isinstance(cause, URLError) and isinstance(cause.reason, TimeoutError)):
         code = 'provider_timeout'
     elif isinstance(error, LLMResponseError):
         code = 'provider_invalid_response'
-    allowed = {'provider_authentication_failed', 'provider_rate_limited', 'provider_overloaded',
+    allowed = {'provider_authentication_failed', 'provider_rate_limited', 'provider_busy', 'provider_overloaded',
                'provider_timeout', 'provider_invalid_response'}
     value = {'error_code': code if code in allowed else 'provider_unavailable'}
     delay = getattr(error, 'retry_after_seconds', None)
