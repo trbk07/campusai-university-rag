@@ -26199,6 +26199,19 @@
       "storage_bytes": 21404247,
       "reproducible": false,
       "restorable": true
+    },
+    ".tmp/owner-issues-20261030-interactive-multi-evidence.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": ".tmp/owner-issues-20261030-interactive-multi-evidence.zip",
+      "version_or_revision": "19da69349afaface832c818a1df140114d6360047281ed331492642b609fe511",
+      "sha256": "19da69349afaface832c818a1df140114d6360047281ed331492642b609fe511",
+      "bytes": 818175,
+      "local_or_external_uri": "objects/19/19da69349afaface832c818a1df140114d6360047281ed331492642b609fe511.gz",
+      "encoding": "gzip",
+      "storage_sha256": "9f3a75eea3dcf78169fe6c30258d9a9a98102587f9e88fbdea6b13a707711415",
+      "storage_bytes": 793068,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

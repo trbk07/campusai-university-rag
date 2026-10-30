@@ -1,0 +1,35 @@
+# Opt-in only: the owner confirmed these keys belong to three independent projects.
+# Shared admission/cooldowns and all existing usage are preserved. No HTTP retries.
+llm:
+  provider: gemini
+  model: gemini-3.5-flash-lite
+  api_key_env: GEMINI_API_KEY
+  api_key_envs: [GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3]
+  independent_projects: true
+  project_quota_failover: true
+  local_key_names:
+    GEMINI_API_KEY: key_1
+    GEMINI_API_KEY_2: key_2
+    GEMINI_API_KEY_3: key_3
+  timeout_seconds: 60
+  max_retries: 0
+  json_mode: native
+  overload_circuit_path: data/operations/gemini-provider-health.sqlite3
+  requests_per_minute: 15
+  cache_path: ':memory:'
+  quota:
+    state_path: data/operations/flash-lite-quota.sqlite3
+    scope: gemini:owner:gemini-3.5-flash-lite
+    max_in_flight: 1
+    max_wait_seconds: 6
+  generation_config:
+    temperature: 1
+    maxOutputTokens: 1536
+    thinkingConfig:
+      thinkingLevel: minimal
+rag:
+  context_candidates: 8
+  max_context_chars: 8000
+  balanced_context: true
+  source_citations: true
+  compact_citation_ids: true

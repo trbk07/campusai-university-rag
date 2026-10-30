@@ -540,6 +540,7 @@ class GeminiClient(OpenAICompatibleClient):
         json_mode: str = 'native',
         allow_pdf_scope: bool = False,
         project_router=None,
+        project_quota_failover: bool = False,
         **kwargs: Any,
     ) -> None:
         if generation_config is not None and not isinstance(generation_config, dict):
@@ -574,6 +575,9 @@ class GeminiClient(OpenAICompatibleClient):
                     or self.max_retries != 0 or quota_governor is None or not overload_circuit_path):
                 raise ValueError('project routing requires durable quota,shared overload protection and no retries')
         self.project_router = project_router
+        if type(project_quota_failover) is not bool or (project_quota_failover and project_router is None):
+            raise ValueError('project quota failover requires explicit independent project routing')
+        self.project_quota_failover = project_quota_failover
         self.overload_circuit = (OverloadCircuit(overload_circuit_path, _safe_endpoint(endpoint))
                                  if overload_circuit_path else None)
 
@@ -601,6 +605,24 @@ class GeminiClient(OpenAICompatibleClient):
         return self._count_tokens_governor
 
     def _send(self, request, *, token_budget=None, stream=None):
+        excluded = set()
+        while True:
+            try:
+                return self._send_once(request, token_budget=token_budget, stream=stream, excluded=excluded)
+            except LLMRateLimitError as error:
+                cause = error.__cause__
+                reference = getattr(error, 'project_reference', None)
+                # Only an actual HTTP 429 can move the same question to another
+                # independent project. Each attempt has its own charged quota
+                # reservation; never repeat a credential within this call.
+                if (not self.project_quota_failover or not reference
+                        or not isinstance(cause, urllib.error.HTTPError) or cause.code != 429):
+                    raise
+                excluded.add(reference)
+                if len(excluded) >= self.project_router.project_count:
+                    raise
+
+    def _send_once(self, request, *, token_budget=None, stream=None, excluded=()):
         circuit = self.overload_circuit
         governor = self.quota_governor
         generation = None
@@ -630,7 +652,7 @@ class GeminiClient(OpenAICompatibleClient):
                 generation = circuit.acquire(lease_timeout)
             if self.project_router is not None:
                 try:
-                    project = self.project_router.route(request, lease_timeout)
+                    project = self.project_router.route(request, lease_timeout, excluded=excluded)
                 except ValueError:
                     raise LLMProviderError('request is outside independent project routing scope') from None
                 request = project.request
@@ -672,6 +694,8 @@ class GeminiClient(OpenAICompatibleClient):
         except (sqlite3.Error, QuotaStateError):
             raise LLMProviderError("provider admission state unavailable; request stopped") from None
         except LLMError as error:
+            if project is not None:
+                error.project_reference = project.reference
             cause = error.__cause__
             structured_hint, observations = (scoped_quota_hint(error.quota_hints, self.model)
                 if hasattr(error, 'quota_hints') else (None, []))

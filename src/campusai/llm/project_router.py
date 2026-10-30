@@ -51,7 +51,11 @@ class GeminiProjectRouter:
     def __repr__(self):
         return f'GeminiProjectRouter(projects={len(self._projects)}, model={self.model!r})'
 
-    def route(self, request, timeout):
+    @property
+    def project_count(self):
+        return len(self._projects)
+
+    def route(self, request, timeout, *, excluded=()):
         parsed = urlsplit(request.full_url)
         prefix = f'/v1beta/models/{self.model}:'
         operation = parsed.path[len(prefix):] if parsed.path.startswith(prefix) else ''
@@ -66,6 +70,8 @@ class GeminiProjectRouter:
             for step in range(len(self._projects)):
                 index = (self._next + step) % len(self._projects)
                 reference, secret, circuits = self._projects[index]
+                if reference in excluded:
+                    continue
                 circuit = circuits[family]
                 try:
                     generation = circuit.acquire(timeout)
@@ -79,4 +85,4 @@ class GeminiProjectRouter:
                 routed.add_header('x-goog-api-key', secret)
                 self._next = (index + 1) % len(self._projects)
                 return ProjectRoute(routed, circuit, generation, reference)
-        raise ProviderCoolingDown(min(blocked), 'provider_rate_limited')
+        raise ProviderCoolingDown(min(blocked) if blocked else 1, 'provider_rate_limited')

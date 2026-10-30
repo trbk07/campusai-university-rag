@@ -86,7 +86,21 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
             and not (root/'data/operations/gemini-provider-health.sqlite3').exists()):
         raise LocalSetupError('Có cooldown cũ trong .tmp. Dừng app và backup SQLite sang '
                              'data/operations/gemini-provider-health.sqlite3 theo hướng dẫn local; không reset cooldown.')
-    if provider == 'gemini' and not env.get(key_name):
+    bindings = {key_name: env.get('CAMPUSAI_KEY_NAME')}
+    slots = config.get('local_key_names')
+    if slots is not None:
+        references = config.get('api_key_envs')
+        if (provider != 'gemini' or config.get('independent_projects') is not True
+                or not isinstance(references, list) or not 2 <= len(references) <= 3
+                or any(not isinstance(name, str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', name) for name in references)
+                or references[0] != key_name or len(set(references)) != len(references)
+                or not isinstance(slots, dict) or set(slots) != set(references)
+                or any(not isinstance(value, str) or value not in {'key_1', 'key_2', 'key_3'} for value in slots.values())
+                or len(set(slots.values())) != len(slots)):
+            raise LocalSetupError('Invalid independent-project local credential bindings.')
+        bindings = slots
+    missing = {name: slot for name, slot in bindings.items() if not env.get(name)}
+    if provider == 'gemini' and missing:
         credential = Path(env.get('CAMPUSAI_KEY_FILE') or root / 'configs/key.yaml')
         if not credential.is_absolute():
             credential = root / credential
@@ -96,11 +110,17 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
                 if ignored.returncode != 0:
                     raise LocalSetupError('File credential phải được Git ignore trước khi chạy ứng dụng.')
             try:
-                env[key_name] = read_key(credential, env.get('CAMPUSAI_KEY_NAME'))
+                loaded = {name: read_key(credential, slot) for name, slot in missing.items()}
+                if slots is not None and len(set(loaded.values()) | {env[name] for name in bindings if env.get(name)}) != len(bindings):
+                    raise ValueError('independent projects require distinct credentials')
+                env.update(loaded)
             except ValueError:
                 raise LocalSetupError('Credential Gemini chưa hợp lệ. Kiểm tra file key local.') from None
     if not env.get(key_name):
         raise LocalSetupError(f'Chưa có credential AI. Đặt {key_name} trong .env hoặc dùng file key local đã được Git ignore.')
+    if slots is not None and (any(not env.get(name) for name in bindings)
+            or len({env.get(name) for name in bindings}) != len(bindings)):
+        raise LocalSetupError('Independent project credentials must be present and distinct.')
     env['CAMPUSAI_LLM_CONFIG'] = str(profile)
     if not env.get('CAMPUSAI_OCR_BACKEND'):
         from campusai.ingestion.ocr_assets import validate_tesseract_assets

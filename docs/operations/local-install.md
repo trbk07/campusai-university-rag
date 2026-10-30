@@ -97,3 +97,16 @@ mọi PDF. Nghiệm thu đại diện QA PDF và cài sạch/RC vẫn đang mở
 Các bước tải ZIP/setup encoder, thông số máy đã đo và clean-install receipts sẽ
 được chốt trong chính hướng dẫn này qua L13-01–04/06; không cần Node/Playwright
 để người dùng chạy app.
+
+## Ba project Gemini độc lập
+
+Khi chủ dự án đã xác nhận key thuộc các project độc lập, đặt
+`CAMPUSAI_LLM_CONFIG=configs/free_multi_project.yaml` trong `.env`.
+Launcher đọc `key_1`, `key_2`, `key_3` từ `configs/key.yaml` đã được Git ignore;
+biến môi trường tương ứng có sẵn luôn được ưu tiên. Profile chia đều lượt gọi,
+tạm bỏ qua project đang cooldown và chuyển câu hỏi sang project khác khi nhận
+HTTP 429, tối đa một lần mỗi project. Mọi attempt vẫn tính vào ngân sách chung;
+không xóa usage/cooldown. Cả ba project hết hạn mức thì app trả lỗi có thời gian
+chờ. Profile một key vẫn dùng được độc lập qua `configs/free_llm.yaml`.
+Profile không đặt trần 100 câu trong phiên. Tiếp tục xoay các project còn quota;
+khi tất cả đang bị giới hạn, chờ cooldown/reset rồi app có thể dùng chúng lại.

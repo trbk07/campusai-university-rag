@@ -200,6 +200,9 @@ def create_llm(
         overload_path = state_path(overload_path)
 
     project_keys = config.get('api_key_envs')
+    quota_failover = config.get('project_quota_failover', False)
+    if type(quota_failover) is not bool or (quota_failover and not project_keys):
+        raise ValueError('project_quota_failover requires explicit independent project routing')
     independent_projects = config.get('independent_projects', False)
     credentials = None
     if 'api_key_envs' in config or 'independent_projects' in config:
@@ -279,6 +282,7 @@ def create_llm(
             from .project_router import GeminiProjectRouter
             gemini_options['project_router'] = GeminiProjectRouter(
                 credentials, health_path=overload_path, model=model)
+            gemini_options['project_quota_failover'] = quota_failover
         if governor is not None:
             gemini_options['quota_governor'] = governor
         if overload_path:

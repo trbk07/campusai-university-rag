@@ -259,3 +259,116 @@ def test_null_pool_without_consent_is_rejected_instead_of_silently_single_key(tm
     with pytest.raises(ValueError):
         create_llm(path, environ=dict(CREDENTIALS))
     assert not (tmp_path/'quota.db').exists()
+
+
+def test_quota_failover_answers_same_question_and_charges_each_attempt(tmp_path, monkeypatch):
+    calls = transport(monkeypatch, [429, 429])
+    client = build(tmp_path, project_quota_failover=True)
+    assert client.complete('same question').text == 'ok'
+    assert [key(r) for r in calls] == [v for _, v in CREDENTIALS]
+    assert len({r.data for r in calls}) == 1
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == 3
+    # Two exhausted projects remain unavailable to subsequent questions.
+    assert client.complete('next question').text == 'ok'
+    assert key(calls[-1]) == CREDENTIALS[2][1]
+
+
+def test_quota_failover_stops_after_each_project_was_tried_once(tmp_path, monkeypatch):
+    calls = transport(monkeypatch, [429, 429, 429])
+    client = build(tmp_path, project_quota_failover=True)
+    with pytest.raises(LLMRateLimitError):
+        client.complete('question')
+    with pytest.raises(LLMRateLimitError):
+        client.complete('later question')
+    assert len(calls) == 3
+    assert len({key(r) for r in calls}) == 3
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == 3
+
+
+@pytest.mark.parametrize('status', [401, 403, 503, 'timeout'])
+def test_quota_failover_does_not_repeat_other_provider_errors(tmp_path, monkeypatch, status):
+    calls = []
+    def send(request, **_):
+        calls.append(request)
+        if status == 'timeout':
+            raise TimeoutError()
+        raise HTTPError(request.full_url, status, 'unavailable', {}, io.BytesIO())
+    monkeypatch.setattr('urllib.request.urlopen', send)
+    client = build(tmp_path, project_quota_failover=True)
+    with pytest.raises(LLMError):
+        client.complete('question')
+    assert len(calls) == 1
+
+
+def test_local_budget_rejection_never_triggers_project_failover(tmp_path, monkeypatch):
+    calls = transport(monkeypatch, [429])
+    client = build(tmp_path, daily=1, project_quota_failover=True)
+    with pytest.raises(LLMRateLimitError):
+        client.complete('question')
+    assert len(calls) == 1
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == 1
+
+
+def test_thousand_calls_have_no_hundred_question_ceiling(tmp_path, monkeypatch):
+    from collections import Counter
+    calls = transport(monkeypatch)
+    client = build(tmp_path, daily=1000, project_quota_failover=True)
+    for i in range(1000):
+        assert client.complete(f'question {i}').text == 'ok'
+    assert sorted(Counter(key(r) for r in calls).values()) == [333, 333, 334]
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == 1000
+
+
+def test_continue_until_all_independent_projects_are_exhausted(tmp_path, monkeypatch):
+    from collections import Counter
+    budgets = {secret: limit for (_,secret),limit in zip(CREDENTIALS,[2,3,4])}
+    used, attempts = Counter(), Counter()
+    def send(request, **_):
+        secret = key(request)
+        attempts[secret] += 1
+        if used[secret] >= budgets[secret]:
+            raise HTTPError(request.full_url,429,'quota',{'Retry-After':'120'},io.BytesIO())
+        used[secret] += 1
+        return io.BytesIO(RESPONSE)
+    monkeypatch.setattr('urllib.request.urlopen',send)
+    client = build(tmp_path, project_quota_failover=True)
+    for i in range(sum(budgets.values())):
+        assert client.complete(f'question {i}').text == 'ok'
+    assert dict(used) == budgets
+    with pytest.raises(LLMRateLimitError):
+        client.complete('all projects exhausted')
+    charged = sum(attempts.values())
+    assert charged == 12  # Nine successes and one 429 from each project.
+    with pytest.raises(LLMRateLimitError):
+        client.complete('during cooldown')
+    assert sum(attempts.values()) == charged
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == charged
+
+
+def test_factory_requires_explicit_failover_opt_in(tmp_path):
+    document = config(tmp_path)
+    document['llm']['project_quota_failover'] = True
+    path = tmp_path/'config.json'
+    path.write_text(json.dumps(document))
+    client = create_llm(path, environ=dict(CREDENTIALS))
+    assert client.project_quota_failover is True
+    client.close()
+
+
+def test_streaming_quota_failover_preserves_failed_attempt_and_real_deltas(tmp_path, monkeypatch):
+    from campusai.llm.streaming import capture_stream
+    calls = []
+    def send(request, **_):
+        calls.append(request)
+        if len(calls) == 1:
+            raise HTTPError(request.full_url,429,'quota',{'Retry-After':'120'},io.BytesIO())
+        event = {'candidates':[{'index':0,'content':{'parts':[{'text':'ok'}]},'finishReason':'STOP'}]}
+        return io.BytesIO(b'data: '+json.dumps(event).encode()+b'\n\n')
+    monkeypatch.setattr('urllib.request.urlopen',send)
+    client = build(tmp_path, project_quota_failover=True)
+    with capture_stream() as stream:
+        assert client.complete('question').text == 'ok'
+    assert [key(r) for r in calls] == [v for _,v in CREDENTIALS[:2]]
+    assert [r['status'] for r in stream.summary()['calls']] == ['incomplete','complete']
+    assert stream.summary()['calls'][1]['first_text_delta_ms'] is not None
+    assert client.quota_governor.snapshot()['reserved_attempts_today'] == 2

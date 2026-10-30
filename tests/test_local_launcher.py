@@ -146,3 +146,41 @@ def test_port_is_reserved_before_model_load_and_resources_close(configured_root,
     assert local.main([]) == 0
     assert calls == ['bound','model_loaded','set_app','serve','server_closed','app_closed']
     assert web_options == [{'max_concurrent_queries':4,'enable_query_streaming':streaming}]
+
+
+def project_profile(root, *, slots=None):
+    refs = ['GEMINI_API_KEY', 'GEMINI_API_KEY_2', 'GEMINI_API_KEY_3']
+    config = {'provider':'gemini','model':'fixture-model','api_key_env':refs[0],
+              'api_key_envs':refs,'independent_projects':True,
+              'local_key_names':slots if slots is not None else dict(zip(refs,['key_1','key_2','key_3']))}
+    (root/'configs/free_llm.yaml').write_text(json.dumps({'llm':config}))
+    return config
+
+
+def test_local_launcher_loads_three_explicit_independent_projects(configured_root):
+    project_profile(configured_root)
+    (configured_root/'configs/key.yaml').write_text('key_1: credentialfirst123\nkey_2: credentialsecond456\nkey_3: credentialthird789\n')
+    env = {'GEMINI_API_KEY_2':'explicitcredential456'}
+    local.configure_local(configured_root,env)
+    assert [env[k] for k in ['GEMINI_API_KEY','GEMINI_API_KEY_2','GEMINI_API_KEY_3']] == [
+        'credentialfirst123','explicitcredential456','credentialthird789']
+
+
+@pytest.mark.parametrize('slots', [
+    {'GEMINI_API_KEY':'key_1'},
+    {'GEMINI_API_KEY':'key_1','GEMINI_API_KEY_2':'key_1','GEMINI_API_KEY_3':'key_3'},
+    {'GEMINI_API_KEY':'key_1','GEMINI_API_KEY_2':[],'GEMINI_API_KEY_3':'key_3'},
+])
+def test_invalid_project_bindings_fail_safely(configured_root, slots):
+    project_profile(configured_root, slots=slots)
+    with pytest.raises(local.LocalSetupError,match='bindings'):
+        local.configure_local(configured_root,{})
+
+
+def test_partial_project_file_does_not_publish_partial_credentials(configured_root):
+    project_profile(configured_root)
+    (configured_root/'configs/key.yaml').write_text('key_1: credentialfirst123\nkey_2: credentialsecond456\n')
+    env = {}
+    with pytest.raises(local.LocalSetupError):
+        local.configure_local(configured_root,env)
+    assert not any(k.startswith('GEMINI_API_KEY') for k in env)
