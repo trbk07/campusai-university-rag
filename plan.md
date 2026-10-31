@@ -60,19 +60,32 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   tái tạo được bằng test; không thay kiểm chất lượng font lỗi thực tế.
 - [ ] **QA-07c:** đo extraction ≥98%, OCR ≥90%, evidence/retrieval ≥95% trên bộ
   đại diện với reference được review; không dùng confidence OCR thay accuracy.
-- [ ] **FIX-05:** nghiệm thu chất lượng/tốc độ trên cùng candidate cuối. Đã chạy
-  đủ 60/60 lượt owner ở baseline: schema/citation vật lý đều hợp lệ, 0 timeout,
-  p95 15,098s nên chưa đạt tốc độ. Các lỗi đã tái hiện được sửa và kiểm riêng;
-  cần chấm lại toàn bộ trên candidate khóa. F24 vẫn `review_required`;
-  F02/F05/N03 thiếu trường khi chọn cả 3 PDF, không đưa cột school vào inference.
-- [ ] **R-01:** đo lại 100 HTTP / ít nhất 54 inference provider thành công,
-  p95 ≤10s, timeout ≤0,5%, RSS ≤75% RAM, profile phân phối và quota hiện có.
-  Đếm RPC inference thật, tách local answer/cache/countTokens; chưa ghi PASS.
-- [ ] **R-02:** kiểm schema/public citation và model/config version thực nhận
-  trên chính lượt candidate cuối; không ghép cohort khác source.
+- [x] **FIX-05a — DONE phần sửa đã kiểm:** giữ ý định câu hỏi tiếp; trả đủ điểm
+  chữ/hệ 4 và so sánh bằng chứng riêng từng nguồn; xử lý đăng ký hè khẩu ngữ,
+  học phần học trước; chặn suy diễn tổng tuần cả năm thành một học kỳ và kết luận
+  thiếu thông tin khi chưa kiểm đủ nguồn. Không dùng ID/đáp án benchmark trong runtime.
+- [ ] **FIX-05 — chất lượng cuối:** đã có một lượt đủ 60 câu gốc trên `3289f41f`
+  (nằm trong 112 HTTP), không còn ghép cohort để báo đủ 60. Vẫn cần chấm semantic
+  và điều kiện đầy đủ; C04 còn từ chối. F24 cần review gold; F02/F05/N03 cần review
+  scope, không đưa nhãn school vào inference. Bản vá bullet GPA sau đó kiểm riêng,
+  không ghép vào lượt 112 để tự nhận bản cuối PASS.
+- [x] **R-01 — DONE qualification profile trên `3289f41f`:** 112/112 HTTP,
+  83 inference provider thật, 0 timeout/lỗi HTTP, 0 cache hit; p95 **8,514s**,
+  RSS đỉnh **8,00% RAM**. Đạt nguyên ngưỡng ≥100 HTTP/≥54 inference, p95 ≤10s,
+  timeout ≤0,5%, RSS ≤75%; không reset quota. Receipt: `owner112-final.json`.
+- [x] **R-02 — DONE trên cùng lượt 112:** public schema/citation vật lý hợp lệ
+  112/112; provider thực báo `gemini-3.5-flash-lite`, bind profile/index/source hash.
+  Không có lỗi output schema. Đây không phải chứng nhận độ đúng semantic.
 - [ ] **Fresh holdout:** đóng băng tập chưa exposure, protocol/ngưỡng trước đo;
   không dùng tập đã tuning làm holdout.
 - [ ] **QA-09d:** vòng kiểm cuối và bàn giao candidate đã khóa.
+
+R-01/R-02 ghi đúng bản đã đo. Bản vá parser bullet GPA sau `3289f41f` đã kiểm
+tập trung: **4/4 HTTP PASS** trên `fc8a56af`; N06 trả đúng literal nguồn trong
+0,539s, không cache/provider; 3 lượt còn lại dùng cache đã kiểm chứng. Nghiệm thu
+chất lượng và bàn giao toàn bộ bản mới vẫn nằm ở FIX-05/QA-09d.
+Hồi quy gần nhất: 106 tests hiện tại + 164 tests tương thích = **270 PASS**;
+1 test lịch sử thiếu fixture đã dọn không chạy, không tính PASS.
 
 Evidence local đang giữ: `data/operations/local-acceptance-20261101/`.
 Lệnh đo dùng `scripts/release/measure_ocr.py`, collector HTTP dùng

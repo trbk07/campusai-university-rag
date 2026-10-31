@@ -83,13 +83,89 @@ Raw baseline, protocol khóa trước đo, PDF/hash và predictions được gi�
 Git. Script đo và tests được giữ trong source để tái chạy. Fresh holdout,
 semantic quality và RC cuối vẫn cần evidence riêng theo [plan](../plan.md).
 
+### Qualification mới và sửa lỗi nội dung
+
+Đã chạy **112 HTTP liên tiếp trên một commit `3289f41f`**: đủ 60 lượt gốc của
+owner và một biến thể lịch sự cho từng câu đơn (52 câu). Đây là bộ dev đã
+exposure, không phải fresh holdout. Mỗi request chỉ nhận câu hỏi, PDF được chọn,
+ngôn ngữ và hội thoại thực tế trước đó; không nhận school/gold/expected/nhãn.
+
+| Gate / phép đo | Kết quả trên `3289f41f` |
+|---|---|
+| R-01 profile qualification | PASS: 112/112 HTTP; 83 RPC inference thành công, không tính countTokens/local answer |
+| Latency / availability | p95 nearest-rank 8,514353s; 0 timeout, 0 lỗi HTTP, 0 cache hit |
+| RAM | RSS server và process con đỉnh 7,9951% RAM máy |
+| R-02 API format | 112/112 public responses đúng schema, citation trỏ đúng chunk/page-range trong index khóa |
+| Provider identity | Phản hồi thật báo `gemini-3.5-flash-lite`; profile, code, index và benchmark có hash |
+| Semantic quality / public release | Chưa PASS; không dùng số HTTP thành công làm accuracy |
+
+Lượt 100 HTTP trước đó trên `4ec44369` cũng không timeout nhưng p95 11,366472s,
+nên giữ nguyên kết quả FAIL của lượt ấy. Không chọn ca tốt rồi ghép thành lượt
+PASS. Hai lượt đều có protocol lưu trước request đầu, cùng các đầu ra lỗi/abstain.
+
+Lượt 112 xác nhận sửa được hỏi tiếp về thời điểm kỳ thi phụ, trả đủ điểm chữ/hệ 4,
+quy đổi độc lập giữa hai PDF (4,0 và 3,7 từ từng nguồn), đăng ký hè khẩu ngữ và
+định nghĩa học phần học trước. Rule chỉ đọc literal source fields, giữ điều kiện
+và xung đột, không chứa tên trường, ID benchmark hoặc giá trị gold cố định.
+Guard cũng chặn public answer gán số tuần của cả năm cho một học kỳ và nhận ra
+phát biểu thiếu thông tin có tên/chủ sở hữu nguồn ở giữa câu.
+
+Ca CPA không còn công bố kết luận sai “tài liệu không quy định”, nhưng còn từ
+chối trên `3289f41f`: bullet nguồn xuống dòng và kết thúc bằng `;`. Bản vá
+`fc8a56af` chỉ mở nhận định dạng bullet này, giữ nguyên literal quote/threshold;
+kiểm hồi quy 106 tests hiện tại + 164 tests tương thích PASS. Một test lịch sử
+phụ thuộc fixture đã dọn bị loại riêng. CI của `3289f41f` PASS cả Windows/Linux,
+Python 3.11/3.12/3.14, package và container:
+[run 41232112418](https://github.com/trbk07/campusai-university-rag/actions/runs/41232112418).
+Không gọi lượt 112 là đo toàn bộ bản vá sau đó; FIX-05/QA-09d vẫn mở.
+
+CI bản vá `fc8a56af` cũng PASS:
+[run 41233159681](https://github.com/trbk07/campusai-university-rag/actions/runs/41233159681).
+164 tests tương thích lấy nguyên assertions từ `f9d8ba10`: `test_basic_rag`,
+`test_grounding_policies`, `test_source_windows`, `test_grade_ranges`,
+`test_presentation_fidelity`, `test_explicit_request_completeness`,
+`test_cross_language_grounding`; helper model/payload từ `test_grounding`.
+Loại riêng `existing_dev_positive_control_remains_answerable_before_provider`
+vì thiếu corpus cũ. Các bản trích và thư mục pytest tạm đã dọn; source gốc vẫn
+trong Git, 106 tests hiện hành giữ lại trong repo. Không thay assertions để tăng PASS.
+
+Kiểm HTTP tập trung sau bản vá `fc8a56af`: F27, N06 và hai lượt M04 đều hợp lệ.
+N06 trả đúng literal điều kiện 2,8 từ nguồn trong **0,538821s**, không cache và
+không gọi provider; ba lượt khác dùng cache đã kiểm chứng. Không tính bốn lượt
+này là bốn inference Gemini mới hoặc ghép vào phép đo 112 ở commit trước.
+
+Các finding còn cần giải quyết: C04 còn abstain dù có nguồn; C02 chưa nêu thời
+điểm thi phụ trong comparison; một số gold có thông tin ngoài câu hỏi (ví dụ
+F01 thêm thời gian đào tạo, F26 thêm giới hạn tối thiểu). Giữ rubric/gold gốc
+cho review, không tự bỏ các ý để tăng điểm. F24 và ba ca scope vẫn cần quyết
+định review cụ thể; không tự tạo owner sign-off.
+
+### Protocol fresh holdout trước khi đo
+
+Chưa có tập mới đủ provenance để đóng gate. Không tái gắn nhãn bộ owner hoặc
+52 biến thể làm holdout. Việc chuẩn bị/đo tiếp phải giữ đúng
+[release contract trong lịch sử Git](https://github.com/trbk07/campusai-university-rag/blob/f9d8ba10/docs/grounding/grounding_release_gates.md):
+
+- Holdout mới ≥150 record trong tổng benchmark ≥400 (dev ≥120, test ≥130),
+  đủ category, cả answerable và abstention; family nguồn/template/intent không
+  trùng split. Audit exposure cả lịch sử; chia lại dữ liệu đã tuning không làm mới nó.
+- Khóa question/gold/evidence, source hash, review provenance và protocol trước
+  inference; independent AI review được ghi đúng là AI, owner sign-off bind bộ cụ thể.
+- Giữ leakage 0, coordinate validity 100%; citation precision/recall ≥0,99/0,98;
+  grounded precision/recall ≥0,99/0,95; abstention precision/recall ≥0,99/0,98,
+  reason accuracy ≥0,95. Calibration fit dev và pin trước held-out; các gate
+  calibration còn lại giữ nguyên contract, không thay bằng số trên bộ owner.
+- Khóa candidate/config/index trước đo, lưu predictions/RPC thật; không dùng gold
+  trong inference. Nếu xem kết quả rồi sửa runtime/tuning, ghi exposure và dùng
+  fresh holdout khác cho lần chứng nhận public tiếp theo.
+
 | Nhóm | Việc còn lại |
 |---|---|
-| Chất lượng câu trả lời — FIX-05 | Kiểm đủ các điều kiện trong câu trả lời, chốt trên một bản cuối; 19 case còn PARTIAL |
+| Chất lượng câu trả lời — FIX-05 | Đã có đủ 60 lượt gốc trên một code; còn chấm semantic, xử lý C04, điều kiện thiếu và review rubric/gold |
 | Gold F24 | Nguồn đã xem nói không vượt quá 15 giờ/tuần cho học phần học tập trung; chưa chứng minh từng học kỳ ít nhất 15 tuần như gold. Giữ trạng thái cần review |
 | Nguồn mơ hồ | N03 không nêu trường; khi chọn cả ba PDF không được dùng nhãn trường trong CSV để ngầm định hướng inference |
-| PDF/OCR — QA-03b, QA-07c, FIX-03b | Hoàn thiện bộ PDF đại diện, đo p95 OCR trên ảnh thật, kiểm scan/mixed/bảng/lỗi font và nguồn/trang |
-| Provider — R-01/R-02 | Chưa đạt nghiệm thu đầy đủ hiệu năng, availability và native API format trên profile phân phối |
+| PDF/OCR — QA-07c | FIX-03b/QA-03b DONE theo scope trên; còn đo accuracy với reference được review, không dùng OCR confidence thay accuracy |
+| Provider — R-01/R-02 | Qualification trên `3289f41f` PASS; không thay nghiệm thu chất lượng/bàn giao toàn bộ candidate sau bản vá |
 | Streaming — QA-08c | Mục tiêu p95 TTFT ≤5s chưa được nghiệm thu; giữ OFF mặc định |
 | Phát hành local — Phase 13/14 | Cài sạch, khóa RC, holdout, backup/restore/rollback và vòng kiểm cuối còn mở |
 
