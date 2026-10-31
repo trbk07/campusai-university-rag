@@ -18,6 +18,7 @@ from campusai.web import make_wsgi_app
 from .serve import build_application
 from .with_gemini_key import read_key
 from .local_state import configure_paths, inspect_local, prepare_state
+from .encoder_assets import configure_encoder
 
 ROOT = Path(__file__).resolve().parents[2]
 URL = 'http://127.0.0.1:8000'
@@ -122,6 +123,10 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
             or len({env.get(name) for name in bindings}) != len(bindings)):
         raise LocalSetupError('Independent project credentials must be present and distinct.')
     env['CAMPUSAI_LLM_CONFIG'] = str(profile)
+    try:
+        configure_encoder(root, env)
+    except ValueError as error:
+        raise LocalSetupError(str(error)) from None
     if not env.get('CAMPUSAI_OCR_BACKEND'):
         from campusai.ingestion.ocr_assets import validate_tesseract_assets
         data_dir = env.get('CAMPUSAI_OCR_DATA_DIR') or Path(env['CAMPUSAI_MODEL_CACHE'])/'ocr/tessdata_fast'

@@ -1,7 +1,7 @@
 @echo off
 cd /d "%~dp0"
 if not exist ".venv\Scripts\python.exe" (
-  echo Chua co moi truong Python. Chay: uv sync --extra dev --extra feasibility
+  echo Chua co moi truong Python. Chay: uv sync --frozen --extra feasibility --extra ocr
   pause
   exit /b 1
 )

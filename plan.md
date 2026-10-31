@@ -2,9 +2,6 @@
 
 Cập nhật: **31/10/2026 · Asia/Bangkok**.
 
-Đích phát hành: **Windows x64, một người dùng, chạy local**. Gemini cần mạng và
-credentials riêng. Giữ `plan.md` tại root và tracked Git đến khi chủ dự án xóa.
-
 ## Trạng thái
 
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có

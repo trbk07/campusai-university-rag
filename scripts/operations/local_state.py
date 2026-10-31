@@ -95,14 +95,13 @@ def inspect_local(env: dict, *, port: int = 8000, min_free_bytes: int = 1024**3)
         record('port', False, 'port_in_use')
     else:
         record('port', True, '')
-    model = env.get('CAMPUSAI_DENSE_MODEL', 'BAAI/bge-m3')
-    snapshot = env.get('CAMPUSAI_DENSE_SNAPSHOT')
-    if snapshot:
-        available = (Path(snapshot) / 'modules.json').is_file()
+    from .encoder_assets import verify_encoder
+    try:
+        verify_encoder(env)
+    except (OSError, ValueError, KeyError):
+        record('dense_model', False, 'dense_model_missing_or_checksum_mismatch_run_setup')
     else:
-        snapshots = Path(env['HF_HUB_CACHE']) / ('models--' + model.replace('/', '--')) / 'snapshots'
-        available = snapshots.is_dir() and any((p / 'modules.json').is_file() for p in snapshots.iterdir())
-    record('dense_model', available, 'dense_model_missing_run_setup')
+        record('dense_model', True, '')
     backend = env.get('CAMPUSAI_OCR_BACKEND', 'rapidocr')
     if backend in {'tesseract', 'vietocr'}:
         from campusai.ingestion.ocr_assets import validate_tesseract_assets, validate_vietocr_assets
@@ -113,7 +112,15 @@ def inspect_local(env: dict, *, port: int = 8000, min_free_bytes: int = 1024**3)
             record('ocr_assets', False, 'ocr_assets_missing_or_checksum_mismatch')
         else:
             record('ocr_assets', True, '')
-    elif backend != 'rapidocr':
+    elif backend == 'rapidocr':
+        from campusai.ingestion.ocr_assets import validate_rapidocr_assets
+        try:
+            validate_rapidocr_assets()
+        except ValueError:
+            record('ocr_assets',False,'ocr_assets_missing_or_checksum_mismatch')
+        else:
+            record('ocr_assets',True,'')
+    else:
         record('ocr_backend', False, 'unsupported_ocr_backend')
     try:
         device, fallback = resolve_device(env)

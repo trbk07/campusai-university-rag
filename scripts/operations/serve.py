@@ -22,6 +22,8 @@ from campusai.retrieval.reranker_activation import build_phase7_retriever
 from campusai.retrieval.canary_rollout import CanaryController
 from campusai.llm.factory import create_llm, _read_config
 from campusai.rag.calibration import load_calibration_artifact
+from campusai.retrieval.model_runtime import retrieval_runtime
+from .encoder_assets import verify_encoder
 
 
 def _load_answer_calibrator():
@@ -52,12 +54,22 @@ def build_application():
     # User uploads form a different corpus. Deployments opt into their own
     # matching calibration explicitly; never silently bind the MVP to fixtures.
     calibration = Path(os.getenv("CAMPUSAI_RETRIEVAL_CALIBRATION", ""))
+    pinned = bool(os.getenv('CAMPUSAI_DENSE_MANIFEST'))
+    revision = os.getenv('CAMPUSAI_DENSE_REVISION', '1')
+    if pinned:
+        snapshot = verify_encoder(os.environ)
+        retrieval_runtime().register_encoder_snapshot(os.environ['CAMPUSAI_DENSE_MODEL'], revision,
+            snapshot, os.environ['CAMPUSAI_DENSE_MANIFEST_SHA256'], allowed_devices=('cpu','cuda','cuda:0'))
+        if calibration.is_file():
+            raise ValueError('Pinned local release does not enable experimental reranker calibration')
     if calibration.is_file():
         retriever = build_phase7_retriever(index_dir, calibration,
             Path(os.getenv("CAMPUSAI_RERANKER_DEV", "data/benchmark/human_retrieval_dev.jsonl")),
             dense_device=device)
     else:
-        retriever = HybridRetriever(index_dir, dense_device=device)
+        retriever = HybridRetriever(index_dir, dense_device=device,
+            **({'dense_model_name':os.environ['CAMPUSAI_DENSE_MODEL'],
+                'dense_model_revision':revision} if pinned else {}))
     service = None
     llm = None
     jobs = None
@@ -102,6 +114,10 @@ def build_application():
         # Complete dense model/index initialization before HTTP can report ready.
         # This is local retrieval work only; it never asks the answer provider.
         warm_retrieval = getattr(retriever, "warm_up", None)
+        if pinned:
+            encoder = retrieval_runtime().get_encoder(os.environ['CAMPUSAI_DENSE_MODEL'], device=device, revision=revision)
+            encoder.encode(['CampusAI retrieval readiness.'], batch_size=1,
+                           show_progress_bar=False, normalize_embeddings=True)
         if warm_retrieval is not None:
             warm_retrieval()
         return CampusAIApplication(
@@ -111,6 +127,7 @@ def build_application():
                 "store_dir": store_dir,
                 "index_dir": index_dir,
                 "dense_model": os.getenv("CAMPUSAI_DENSE_MODEL", "BAAI/bge-m3"),
+                "dense_model_revision": revision,
                 "device": device,
                 "ocr_backend": os.getenv('CAMPUSAI_OCR_BACKEND','rapidocr'),
                 "ocr_data_dir": os.getenv('CAMPUSAI_OCR_DATA_DIR') or None,
