@@ -42,7 +42,9 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   entrypoint và Compose. Publish/deploy chưa chạy vì chưa tạo Release/máy đích.
 - [x] **Docker Windows prerequisites:** đã bật Virtual Machine Platform và WSL feature.
 - [x] **WSL:** đã cài WSL 3.0.3 từ MSI Microsoft, kiểm tra SHA-256 và chữ ký hợp lệ.
-- [ ] **Docker local:** bật virtualization trong BIOS và restart rồi kiểm tra Engine.
+- [x] **Docker local:** virtualization/hypervisor đã hoạt động sau restart;
+  Docker Desktop 4.89.0 / Linux Engine 29.7.2 và container `hello-world` PASS.
+  Đây là kiểm tra Engine, chưa phải nghiệm thu CampusAI chạy trong container.
 - [ ] **Production deployment:** cần máy Linux/runner và environment; chưa triển khai thực tế.
 
 ## Ưu tiên còn mở
