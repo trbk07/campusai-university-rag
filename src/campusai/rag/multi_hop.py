@@ -91,6 +91,10 @@ def plan_request(question, documents):
         return MultiHopRequest('unsupported_relation', tuple(roles), problem='recognition_rule_not_established')
     if prerequisite and roles:
         if (len(roles) == 1 and not codes and not credit
+                and re.search(r'\b(?:hoc phan|mon)\s+[a-z]\s+(?:la\s+)?(?:hoc phan\s+)?tien quyet\s+cho\s+[a-z]\b', text)):
+            # Single-letter placeholders describe a policy, not graph nodes.
+            return MultiHopRequest()
+        if (len(roles) == 1 and not codes and not credit
                 and (re.search(r'\b(?:what does .{0,50}prerequisite mean|tien quyet la gi)\b', text)
                      or (re.search(r'\b(?:neu|if)\s+[a-z]\s+(?:la|is)\b', text)
                          and re.search(r'\b(?:dieu kien|condition|requirement)\b', text)))):

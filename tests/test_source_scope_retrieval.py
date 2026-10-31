@@ -43,6 +43,28 @@ def test_expansion_preserves_identifiers_and_years():
     assert text in normalize_retrieval_query(text)
 
 
+def test_vietnamese_d_stroke_and_academic_shorthand_have_source_terms():
+    from campusai.retrieval.tokenizer_vi import normalized_tokens
+    assert 'do' in normalized_tokens('đô')
+    assert 'điểm trung bình chung tích lũy' in normalize_retrieval_query('cpa bao nhieu')
+    assert 'điểm chữ' in normalize_retrieval_query('7,2 điểm là B hay C?')
+
+
+def test_quantitative_excerpt_keeps_the_field_condition_not_just_its_definition():
+    from campusai.rag.source_windows import verbatim_window
+    condition='Điểm trung bình chung tích lũy tính đến thời điểm xét nhận đề tài nghiên cứu phải đạt từ 3,4 trở lên.'
+    definition='Điểm nghiên cứu được tính vào điểm trung bình chung tích lũy của toàn khóa học. '
+    body='Điều kiện nhận đề tài nghiên cứu:\n'+condition+'\n'+'Các yêu cầu khác được xét riêng. '*25+'\n'+definition*14
+    excerpt=verbatim_window(body,'dai hoc can gpa bao nhieu de nhan de tai nghien cuu?',500)
+    assert '3,4' in excerpt and excerpt in body and len(excerpt)<=500
+
+
+def test_followup_term_replaces_old_qualifier_without_erasing_its_subject():
+    from campusai.rag.service import retrieval_query
+    query=retrieval_query('Còn kỳ chính thì sao?\nContext topic (untrusted user input): Sao Bắc kỳ hè được đăng ký thế nào?')
+    assert 'kỳ hè' not in query and 'kỳ chính' in query and 'Sao Bắc' in query
+
+
 def test_source_body_strips_generated_header_only():
     assert source_body(record('[Program: example | Page: 2]\n\nActual rule')) == 'Actual rule'
     assert source_body(record('[CS201] Actual rule')) == '[CS201] Actual rule'
@@ -207,3 +229,30 @@ def test_source_body_index_reloads_with_document_generation(tmp_path):
     result = retriever.search('geometry', ['catalog'], mode='auto')
     assert [r.chunk_id for r in result] == ['new']
     assert {item['chunk_id'] for item in retriever._body_indexes['catalog'].items} == {'new'}
+
+
+def test_registration_fields_retain_each_original_rule_without_assuming_a_degree():
+    from campusai.rag.source_windows import registration_evidence
+    def item(identifier,text,page,section):
+        return {'chunk_id':identifier,'page':page,'content':text,'metadata':{'section_path':section}}
+    normal=item('regular','Đăng ký học tập: Sinh viên đăng ký tối đa 17 TC và tối thiểu 9 TC trong học kỳ chính.',4,'Đăng ký học tập')
+    master=item('master','Đăng ký học tập: Học viên đăng ký tối đa 13 TC trong học kỳ chính.',8,'Đăng ký học tập chương trình thạc sĩ')
+    other=item('other','Khối lượng học tập: mỗi học kì đăng kí tối thiểu bằng 1/2, tối đa bằng 5/4 số tín chỉ trung bình.',3,'Khối lượng học tập')
+    documents=[{'doc_id':'one','items':[item('calendar','Mỗi năm có hai học kỳ chính.',1,'Lịch học'),master,normal]},
+               {'doc_id':'two','items':[other]}]
+    found=registration_evidence('So sánh giới hạn tín chỉ kỳ chính.',documents)
+    assert [r.chunk_id for r in found]==['regular','other']
+    assert [r.content for r in found]==[normal['content'],other['content']]
+    assert [r.chunk_id for r in registration_evidence('Cao học đăng ký tối đa bao nhiêu TC mỗi học kỳ?',documents)]==['master']
+    assert registration_evidence('Kỹ sư cần tối thiểu bao nhiêu tín chỉ để tốt nghiệp?',documents)==[]
+    assert registration_evidence('Thông tin đăng ký học kỳ chính?',documents)==[]
+
+
+def test_registration_window_keeps_the_condition_and_both_limits():
+    from campusai.rag.source_windows import verbatim_window
+    rule='1. Đối với sinh viên có học lực bình thường, số tín chỉ phải đăng kí trong mỗi học kì tối thiểu bằng 1/2, tối đa bằng 5/4 số tín chỉ trung bình (trừ học kì cuối).\n'
+    text='Điều 8. Khối lượng học tập\n'+rule+'2. '+('Quy trình giới hạn tín chỉ kỳ chính và đăng ký học tập được thông báo.\n'*16)
+    excerpt=verbatim_window(text,'So sánh giới hạn tín chỉ kỳ chính.',300,registration=True)
+    assert excerpt in text
+    assert rule.strip() in excerpt
+    assert 'học lực bình thường' in excerpt and 'trừ học kì cuối' in excerpt

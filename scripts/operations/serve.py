@@ -67,10 +67,12 @@ def build_application():
         llm = (create_llm(llm_config, state_root=os.environ['CAMPUSAI_STATE_ROOT'])
                if llm_config and os.getenv('CAMPUSAI_STATE_ROOT') else create_llm(llm_config) if llm_config else None)
         rag = _read_config(llm_config).get('rag', {}) if llm_config else {}
-        if (not isinstance(rag, dict) or set(rag) - {'context_candidates', 'max_context_chars', 'balanced_context', 'source_citations', 'compact_citation_ids'}
+        if (not isinstance(rag, dict) or set(rag) - {'context_candidates', 'max_context_chars', 'balanced_context', 'source_citations', 'compact_citation_ids', 'repair_invalid_answers'}
                 or type(rag.get('balanced_context', False)) is not bool
                 or type(rag.get('source_citations', False)) is not bool
                 or type(rag.get('compact_citation_ids', False)) is not bool
+                or type(rag.get('repair_invalid_answers', False)) is not bool
+                or rag.get('repair_invalid_answers', False) and not rag.get('source_citations', False)
                 or rag.get('compact_citation_ids', False) and not rag.get('source_citations', False)
                 or type(rag.get('max_context_chars', 12000)) is not int
                 or not 1000 <= rag.get('max_context_chars', 12000) <= 12000
@@ -86,7 +88,8 @@ def build_application():
         service = CampusAIQueryService(retriever, GroundedAnswerGenerator(llm,
             max_context_chars=rag.get('max_context_chars', 12000), balanced_context=rag.get('balanced_context', False),
             source_citations=rag.get('source_citations', False),
-            compact_citation_ids=rag.get('compact_citation_ids', False), calibrator=answer_calibrator),
+            compact_citation_ids=rag.get('compact_citation_ids', False),
+            repair_invalid_answers=rag.get('repair_invalid_answers', False), calibrator=answer_calibrator),
             cache=answer_cache, cache_namespace=namespace,
             context_candidates=rag.get('context_candidates'),
             document_scope_reader=RegisteredDocumentScopeReader(store_dir,

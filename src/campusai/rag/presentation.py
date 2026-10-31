@@ -138,7 +138,7 @@ def quantities(text):
 _SCOPE_CUES = re.compile(
     r"\b(?:admission|cohort|intake|academic year|school year|curriculum|programme|program|"
     r"issued|published|effective|version|regulations?|policy|quy che|quy dinh|ban hanh|nam hoc|khoa tuyen sinh|khoa|ap dung|"
-    r"dieu chinh|cap nhat)\b",
+    r"dieu chinh|cap nhat|so tay|handbook)\b",
     re.I,
 )
 _SCOPE_CUES_AFTER = re.compile(
@@ -154,7 +154,7 @@ _VERIFICATION_QUESTION = re.compile(
 _AFFIRMATIVE = re.compile(r"^\s*(?:yes|correct|that is correct|that's correct|đúng|chính xác)\b", re.I)
 _NEGATIVE_CORRECTION = re.compile(r"\b(?:no|not correct|incorrect|không đúng|sai)\b", re.I)
 _QUESTION_SCOPE_NUMBER = re.compile(
-    r"\b(admission\s+cohort|cohort|semester|term|article|dieu|section|muc|chapter|chuong|page|trang)\s+("+LOCATION_VALUE+r")(?![\w(]|\.\d)",
+    r"\b(admission\s+cohort|cohort|semester|term|article|dieu|điều|section|muc|mục|mức|chapter|chuong|chương|page|trang)\s+("+LOCATION_VALUE+r")(?![\w(]|\.\d)",
     re.I,
 )
 
@@ -227,12 +227,112 @@ def code_markers(text):
         course_code_key(m[0]).casefold() for m in COURSE_MARKER.finditer(text) if not re.search(r'\s', m[0])}
 
 
+def omit_unverified_context(answer,claims,question):
+    """Remove optional scope decorations, never an answer value or condition."""
+    support='\n'.join(c.text for c in claims if c.status=='supported')
+    scales=set(re.findall(r'\b(?:thang(?: diem)?|diem he|scale)\s+(\d+)\b',folded(support)))
+    answer=re.sub(r'\(\s*(?:thang(?: điểm)?|hệ|scale)\s+(\d+)\s*\)',
+        lambda m:m[0] if m[1] in scales else '',answer,flags=re.I)
+    # A document number supplied as context is not the requested cohort/date.
+    # If it is not source-proved, omit the repeated number rather than publish
+    # it as a verified identifier. Identity/yes-no questions remain fail-closed.
+    q=folded(str(question or ''))
+    if (re.search(r'\b(?:quy doi|diem chu|letter grade)\b',q)
+            and re.search(r'\b[ABCDF][+-]?\s+quy đổi\s+thành\s+\d',support)):
+        # Omit only a trailing decoration after a proved grade mapping.
+        # Converted values, units and explicitly requested scale labels stay.
+        asked=set(re.findall(r'\b(?:thang(?: diem)?|diem he|scale)\s+(\d+)\b',q))
+        answer=re.sub(r'(?:theo\s+)?thang(?:\s+điểm)?\s+(\d+)(?=\s*[.!?;]*$)',
+            lambda m:m[0] if m[1] in scales|asked else '',answer,flags=re.I)
+    identity_question=re.search(r'\b(?:so (?:may|nao)|ma (?:gi|nao)|what number|which identifier)\b|'
+                                r'\b(?:khong|ko|correct|right)\s*[?!.]*$',q)
+    if not identity_question:
+        scope=re.compile(r'^(?P<label>(?:(?:Theo|According to)\s+)?(?:Quy chế|Quyết định|Tài liệu|Văn bản|Regulation|Decision|Document)\s+(?:số\s+)?)(?P<id>\d{2,6})(?=\s|[,;:])',re.I)
+        m=scope.search(answer)
+        if m and re.search(r'(?<!\w)'+re.escape(m['id'])+r'(?!\w)',q) and number(m['id']) not in {number(v) for v in NUMBER.findall(support)}:
+            answer=answer[:m.start('id')]+answer[m.end('id'):]
+    return re.sub(r'\s+([.!?,;])',r'\1',re.sub(r'[ \t]{2,}',' ',answer)).strip()
+
+
+def _threshold_premise_view(answer, supported, question):
+    """Prove a repeated credit premise against one literal strict lower bound.
+
+    Output values remain claim-checked. Multiple bounds, different units,
+    negative decisions and an input outside the source condition stay strict.
+    """
+    if len(supported)!=1:
+        return answer
+    rule=folded(supported[0])
+    if len(NUMBER.findall(rule))!=1:
+        return answer
+    # A negative decision for an input above an explicit cap/deadline is a
+    # literal numeric comparison. It cannot whitelist an output amount or a
+    # premise in a different unit.
+    families=[(r'(?:tin(?: chi)?|tc|credits?)',r'(?:tín(?: chỉ)?|tc|credits?)'),
+              (r'(?:ngay|days?)',r'(?:ngày|days?)')]
+    maximum=re.search(r'\b(?:toi da|at most|maximum(?: of)?|thoi han|within)\s+(\d+(?:[.,]\d+)?)',rule)
+    if maximum:
+        for query_unit,visible_unit in families:
+            if not re.search(r'\b'+query_unit+r'\b',rule):
+                continue
+            values={number(m[1]) for m in re.finditer(r'(?<![\w.,])(\d+(?:[.,]\d+)?)\s*'+query_unit+r'\b',folded(str(question or '')))}
+            if len(values)!=1 or next(iter(values))<=number(maximum[1]):
+                continue
+            value=next(iter(values))
+            def negative_clause(match):
+                clause=match[0]
+                if re.search(r'\b(?:ma|nhung|but|however|instead)\b',folded(clause)):
+                    return clause
+                return re.sub(r'(?<![\w.,])(\d+(?:[.,]\d+)?)(?=\s*'+visible_unit+r'\b)',
+                    lambda m:' ' if number(m[1])==value else m[0],clause,flags=re.I)
+            return re.sub(r'\b(?:không\s+(?:thể|được|kịp|còn(?:\s+kịp)?)|cannot|may not|no)\b[^.!?;\n]{0,200}',
+                          negative_clause,answer,flags=re.I)
+    if re.match(r'^\s*(?:khong|no|not)\b',folded(answer)):
+        return answer
+    thresholds=list(re.finditer(r'\b(?:lon hon|greater than)\s+('+r'\d+(?:[.,]\d+)?'+r')(?!\w)',rule))
+    if len(thresholds)!=1 or not re.search(r'\b(?:tc|tin chi|credits?)\b',rule):
+        return answer
+    outcome=re.split(r'\b(?:doi voi|when|if)\b',rule,maxsplit=1)
+    if len(outcome)!=2 or not 3<=len(outcome[0].split())<=16 or outcome[0].strip() not in folded(answer):
+        return answer
+    unit=r'(?:tin(?: chi)?|tc|credits?)'
+    values={number(m[1]) for m in re.finditer(r'(?<![\w.,])('+r'\d+(?:[.,]\d+)?'+r')\s*'+unit+r'\b',folded(str(question or '')))}
+    if len(values)!=1 or next(iter(values))<=number(thresholds[0][1]):
+        return answer
+    value=next(iter(values))
+    return re.sub(r'(?<![\w.,])(\d+(?:[.,]\d+)?)(?=\s*(?:tín(?: chỉ)?|tc|credits?)\b)',
+        lambda m:' ' if number(m[1])==value else m[0],answer,flags=re.I)
+
+
+def institution_names_supported(answer, results):
+    """An acronym does not license an invented expanded university name."""
+    from ..retrieval.tokenizer_vi import source_body
+    allowed=folded('\n'.join(source_body({'content':r.content}) for r in results))
+    prefixes=list(re.finditer(r'\b(?:Trường\s+)?Đại\s+học\s+',answer,re.I))
+    for i,match in enumerate(prefixes):
+        end=prefixes[i+1].start() if i+1<len(prefixes) else len(answer)
+        tail=re.split(r'[\n,.;:()]',answer[match.end():min(end,match.end()+120)],maxsplit=1)[0].strip()
+        if not tail or not tail[0].isupper():continue
+        name=re.split(r'\s+(?:có|được|không|theo|trong|sẽ|tại|là|với|đã)\b',tail,maxsplit=1,flags=re.I)[0]
+        name=re.sub(r'\s+và\s*$','',name,flags=re.I).strip()
+        if 'dai hoc '+folded(name) not in allowed:return False
+    return True
+
+
 def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=()):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
         return True
     visible = prose(answer)
+    visible = _threshold_premise_view(visible,supported,question)
+    # A requested scale label is context, not an extra output quantity. Mask
+    # that label only; the same digit used as the converted value still needs
+    # ordinary claim support. This does not authorize changing the scale.
+    if re.search(r'\b(?:diem|score|grade|quy doi)\b',folded(str(question or ''))):
+        scales=set(re.findall(r'\b(?:thang(?: diem)?|diem he|scale)\s+(\d+)\b',folded(str(question or ''))))
+        visible=re.sub(r'\b(?:thang(?: điểm)?|thang(?: diem)?|hệ|he|scale)\s+(\d+)\b',
+            lambda m:' ' if m[1] in scales else m[0],visible,flags=re.I)
     shared_scope_numbers = _question_scope_numbers(question) & _question_scope_numbers(visible)
     # Remove only a proved location label. Its number must never become an
     # allowable factual quantity elsewhere in the sentence (e.g.9 credits).

@@ -11,6 +11,18 @@ from .course_credits import COURSE_CODE, course_code_key, folded
 _TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,5}[A-Za-z]?(?![A-Za-z0-9])')
 
 
+def _wrapped_line(previous, following):
+    return (len(previous) >= 25 and len(following) >= 10 and following[0].islower()
+            and previous.rstrip()[-1] not in '.;:?!'
+            and not re.match(r'^[^:]{1,45}:', following))
+
+
+def wrapped_prose(rows):
+    """Some PDF extractors encode wrapped prose as a one-column table."""
+    return (len(rows) > 1 and all(isinstance(r,list) and len(r)==1 and isinstance(r[0],str) for r in rows)
+            and any(_wrapped_line(a[0],b[0]) for a,b in zip(rows,rows[1:])))
+
+
 def relocate_literal_page_references(payload, results):
     """Resolve a wrong page ID only through unique literal same-PDF proof.
 
@@ -52,6 +64,11 @@ def source_quote(result, claims, question=''):
     if not texts:
         return None
     body = sanitize_evidence_text(source_body({'content': result.content}, decode_tables=False))
+    if result.content_type=='text':
+        from .grade_ranges import flattened_quote
+        converted=flattened_quote(body,texts,question)
+        if converted is not None:
+            return converted
     if result.content_type == 'table':
         start = body.find('{"headers"')
         try:
@@ -67,6 +84,10 @@ def source_quote(result, claims, question=''):
         headers = table.get('headers', [])
         if not isinstance(headers, list) or any(not isinstance(header, str) for header in headers):
             return None
+        from .grade_ranges import column_quote
+        converted = column_quote(body, texts, question)
+        if converted is not None:
+            return converted
         from .year_cells import binding
         cells = [binding(text, body, question,
                          numeric_cells=result.metadata.get('numeric_cell_policy') == 'ruled-ocr-numeric-v1')
@@ -115,6 +136,18 @@ def source_quote(result, claims, question=''):
             # lexical overlap with a neighbouring row cannot choose the quote.
             codes.update(m.group().upper() for m in _TABLE_IDENTIFIER.finditer(text))
             pools = []
+            if len(headers) == 1 and all(len(row) == 1 for row in rows):
+                # A one-column record may carry its identity before a colon.
+                # A matching number in another named record is not evidence.
+                labels = [(i, folded(row[0].split(':',1)[0])) for i,row in enumerate(rows)
+                          if ':' in row[0] and 2 <= len(row[0].split(':',1)[0]) <= 80]
+                requested = [(i,label) for i,label in labels
+                             if re.search(r'(?<!\w)'+re.escape(label)+r'(?!\w)',folded(question))]
+                if not requested:
+                    requested = [(i,label) for i,label in labels
+                                 if re.search(r'(?<!\w)'+re.escape(label)+r'(?!\w)',folded(text))]
+                if requested:
+                    pools.extend([[i] for i,_label in requested])
             for code in sorted(codes):
                 matching = []
                 for i, row in enumerate(rows):
@@ -140,6 +173,16 @@ def source_quote(result, claims, question=''):
                 if not eligible:
                     return None
                 selected.add(max(eligible, key=lambda i: len(terms & set(normalized_tokens(' '.join(rows[i]))))))
+        if len(headers) == 1 and wrapped_prose(rows):
+            expanded = set(selected)
+            for index in selected:
+                left = right = index
+                while left > 0 and index-left < 4 and _wrapped_line(rows[left-1][0],rows[left][0]):
+                    left -= 1
+                while right+1 < len(rows) and right-index < 4 and _wrapped_line(rows[right][0],rows[right+1][0]):
+                    right += 1
+                expanded.update(range(left,right+1))
+            selected = expanded
         ordered = [row for i, row in enumerate(rows) if i in selected]
         # Bind a visible row to its physical semester scope when the PDF
         # provides one. Keep row boundaries in JSON; never paraphrase cells.

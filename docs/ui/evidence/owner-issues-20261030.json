@@ -287,5 +287,271 @@
     "configuration": "Opt-in free_multi_project profile active in ignored owner .env; no question-count ceiling; credentials never copied into tracked files.",
     "prior_single_key_diagnostic": "61 retained rows; 429 first occurred at row33, followed by slower unattempted rows; stopped for owner-requested routing fix. All old failures/usage preserved.",
     "independent_answer_accuracy_certified": false
+  },
+  "owner_golden_qa_20261031": {
+    "date": "2026-10-31",
+    "gold_csv_sha256": "07f1ac1782b058bb9ce824490cd8c77521b0ab0fee5998a139a4e2ee2d1fb2fc",
+    "gold_md_sha256": "6d8977565a96da2b102c2e4598e4943850738057dfecff1630779957b9e55dab",
+    "cases": 56,
+    "turns": 60,
+    "runtime_reads_gold": false,
+    "all_three_pdfs_selected": true,
+    "assessment": "Assistant manual assessment of supplied gold; no independent/human review or owner sign-off asserted. Parenthetical grade ranges are source proof. Explicit extra gold facts absent from main answer are PARTIAL.",
+    "counts": {
+      "broad_run_verdict": {
+        "PARTIAL": 18,
+        "PASS": 31,
+        "REVIEW_REQUIRED": 1,
+        "FAIL": 6
+      },
+      "latest_observed_verdict": {
+        "PARTIAL": 19,
+        "PASS": 36,
+        "REVIEW_REQUIRED": 1
+      }
+    },
+    "latest_is_mixed_cohort_not_final_full_run": true,
+    "cohorts": {
+      "run": {
+        "planned_cases": 56,
+        "planned_turns": 60,
+        "completed_turns": 60,
+        "stop_reason": null,
+        "elapsed_seconds": 258.21145009994507,
+        "http_failures": 0,
+        "provider_failures": 0,
+        "cache_hits": 2,
+        "answered_turns": 28,
+        "abstained_turns": 32,
+        "median_seconds": 2.2350241999997706,
+        "p95_seconds": 2.9392784000001484,
+        "max_seconds": 3.367393500000162,
+        "input_sha256": "b692ff55ef8bc6a272a9a55968f8e11c51c9688162c3f16c04dd38ebcf8941b6",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 56,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      },
+      "run-r3": {
+        "planned_cases": 56,
+        "planned_turns": 60,
+        "completed_turns": 60,
+        "stop_reason": null,
+        "elapsed_seconds": 258.86236357688904,
+        "http_failures": 0,
+        "provider_failures": 0,
+        "cache_hits": 0,
+        "answered_turns": 32,
+        "abstained_turns": 28,
+        "median_seconds": 2.0796046000000388,
+        "p95_seconds": 2.959225800000013,
+        "max_seconds": 4.791781399999991,
+        "input_sha256": "ee1fb10e447d4718b8ef36ae1e0d823e7972967831ab3cc1a9eaf30bb7770ef1",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 57,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      },
+      "run-r6-31": {
+        "planned_cases": 56,
+        "planned_turns": 60,
+        "completed_turns": 60,
+        "stop_reason": null,
+        "elapsed_seconds": 551.9112899303436,
+        "http_failures": 0,
+        "provider_failures": 3,
+        "cache_hits": 0,
+        "answered_turns": 42,
+        "abstained_turns": 18,
+        "median_seconds": 5.980792400000155,
+        "p95_seconds": 47.71625779999977,
+        "max_seconds": 64.26679809999996,
+        "input_sha256": "ee1fb10e447d4718b8ef36ae1e0d823e7972967831ab3cc1a9eaf30bb7770ef1",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 57,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      },
+      "run-final": {
+        "planned_cases": 56,
+        "planned_turns": 60,
+        "completed_turns": 60,
+        "stop_reason": null,
+        "elapsed_seconds": 258.1300644874573,
+        "http_failures": 0,
+        "provider_failures": 0,
+        "cache_hits": 0,
+        "answered_turns": 48,
+        "abstained_turns": 12,
+        "median_seconds": 2.0040879999978642,
+        "p95_seconds": 2.8268215999996755,
+        "max_seconds": 3.1669236999987334,
+        "input_sha256": "483d69ed2efd64ed5dbda84817371036253f4cb6552ea628bc54535f2fe5cd2c",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 57,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      },
+      "run-repair-final": {
+        "planned_cases": 7,
+        "planned_turns": 9,
+        "completed_turns": 9,
+        "stop_reason": null,
+        "elapsed_seconds": 45.008304595947266,
+        "http_failures": 0,
+        "provider_failures": 0,
+        "cache_hits": 0,
+        "answered_turns": 7,
+        "abstained_turns": 2,
+        "median_seconds": 2.6427718000013556,
+        "p95_seconds": 8.639711899999384,
+        "max_seconds": 8.639711899999384,
+        "input_sha256": "22354723b4837e67aed081d0709e9f4a625145b82f3c23df372969f6267667a9",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 11,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      },
+      "run-grade-final": {
+        "planned_cases": 2,
+        "planned_turns": 3,
+        "completed_turns": 3,
+        "stop_reason": null,
+        "elapsed_seconds": 12.903529167175293,
+        "http_failures": 0,
+        "provider_failures": 0,
+        "cache_hits": 0,
+        "answered_turns": 3,
+        "abstained_turns": 0,
+        "median_seconds": 0.7102648000000045,
+        "p95_seconds": 1.555182000000059,
+        "max_seconds": 1.555182000000059,
+        "input_sha256": "dd8d965c55ef2d8f0fadf67e66aaeacca9c30adaa8642af0edbaf001f1acede0",
+        "gold_read_by_runner": false,
+        "retried_turns": 0,
+        "observed_shared_provider_posts": 0,
+        "scope": "Unchanged real HTTP app; all three PDFs selected; actual answers in history. Quality scored separately. Completion time, not TTFT."
+      }
+    },
+    "review_required": [
+      "F24"
+    ],
+    "remaining_detail_cases": [
+      "F01",
+      "F02",
+      "F04",
+      "F07",
+      "F10",
+      "F14",
+      "F17",
+      "F20",
+      "F21",
+      "F25",
+      "F26",
+      "F27",
+      "N01",
+      "N03",
+      "N04",
+      "N06",
+      "N07",
+      "R06",
+      "C02"
+    ],
+    "artifact": "evaluation/results/owner-golden-qa-20261031/reproduction.zip",
+    "tests": {
+      "focused-v57.xml": {
+        "tests": "427",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "7.451"
+      },
+      "staged-focused.xml": {
+        "tests": "427",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "0",
+        "time": "4.111"
+      },
+      "full-frozen-final.xml": {
+        "tests": "3742",
+        "failures": "0",
+        "errors": "0",
+        "skipped": "2",
+        "time": "652.742"
+      }
+    },
+    "source_policy": "grounding-v57",
+    "citation_audit": {
+      "run": {
+        "citations": 30,
+        "errors": [],
+        "scope": "Original index ownership/page/quote; not semantic correctness or independent gold approval."
+      },
+      "run-r6-31": {
+        "citations": 47,
+        "errors": [],
+        "scope": "Original index ownership/page/quote; not semantic correctness or independent gold approval."
+      },
+      "run-final": {
+        "citations": 53,
+        "errors": [],
+        "scope": "Original index ownership/page/quote; not semantic correctness or independent gold approval."
+      },
+      "run-repair-final": {
+        "citations": 9,
+        "errors": [],
+        "scope": "Original index ownership/page/quote; not semantic correctness or independent gold approval."
+      },
+      "run-grade-final": {
+        "citations": 4,
+        "errors": [],
+        "scope": "Original index ownership/page/quote; not semantic correctness or independent gold approval."
+      }
+    },
+    "runtime_configuration": {
+      "profile": "configs/free_multi_project.yaml",
+      "ocr_backend": "tesseract",
+      "ocr_languages": "vie+eng",
+      "ocr_data_dir": ".cache/ocr/tessdata_fast",
+      "device": "cuda",
+      "model": "configured gemini-3.5-flash-lite; resolved provider weight version not recorded",
+      "source_freeze_unchanged": true
+    },
+    "source_base_commit": "1e85f3cb8c29397b4f9dcd9bf0393997d728fc40",
+    "scoped_serve_sha256": "efa48b672d16e350573549e787f5215c13be81d9b89ebdbfdd4fec23694555c9",
+    "runtime_worktree_serve_sha256": "0a660bdf6a68f140a97de258553574c3597fac0304415a0c77e217b3ffc58eab",
+    "preexisting_dependency_note": "Native runs used existing local encoder/packaging changes in the owner worktree. Only this task RAG changes and scoped serve configuration changes are committed. Source/dependency hashes are retained; this is not a clean release qualification.",
+    "source_snapshots": {
+      "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b": {
+        "pdf_sha256": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+        "bm25.json": "16a28f5781cb4323d093abaf1ecfb39da1de3b771ad83fc82f5b65340a6f0a63",
+        "dense.json": "2d9e12128dd7b31237a1a22104eb63ec9adebee506e86d73e2a05752a4405417"
+      },
+      "6a3c5f98161eae23012569d8184979b478eb945fb12112b186f03773359af0bb": {
+        "pdf_sha256": "6a3c5f98161eae23012569d8184979b478eb945fb12112b186f03773359af0bb",
+        "bm25.json": "293f36b7c7c06cdafb9d3a1ba058bd2167c10dd6212d3913024c3fe1b0600c38",
+        "dense.json": "f50853c56be72c80341987643fe71c62f973caa4e3fedf5e4d1dcbf1dbfdbc26"
+      },
+      "8bc0a4fbc6adbac3c062f356eb5356ef49586502b2fb3b50405f70d6e76d1c37": {
+        "pdf_sha256": "8bc0a4fbc6adbac3c062f356eb5356ef49586502b2fb3b50405f70d6e76d1c37",
+        "bm25.json": "ab494abca0f65e602dbce795c2bd5cef2a981804d722c4358c49b69457cbe2fd",
+        "dense.json": "06b4e79f9de40525d806113e1c206345c5a47d6b4b39fef28dc332b9a1dfb1dc"
+      }
+    },
+    "assessment_csv_sha256": "970fdc098a85ca84e6bccaba50200590eda79057520d0869bc2eb93753ec32c6",
+    "archive_record": {
+      "artifact_type": "reproduction_archive",
+      "identity": "evaluation/results/owner-golden-qa-20261031/reproduction.zip",
+      "version_or_revision": "8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8",
+      "sha256": "8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8",
+      "bytes": 27926797,
+      "local_or_external_uri": "objects/8b/8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8.gz",
+      "encoding": "gzip",
+      "storage_sha256": "afb1c105c51832a899a16d10d2552abddae907a75d70d00f9790bc571ca475c2",
+      "storage_bytes": 27745861,
+      "reproducible": false,
+      "restorable": true
+    }
   }
 }

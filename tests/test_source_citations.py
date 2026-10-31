@@ -13,6 +13,27 @@ def payload(text='MATH101 is required.', chunk='c1'):
             'citations': [{'chunk_id': chunk}]}
 
 
+def test_wrapped_one_column_prose_preserves_the_complete_source_sentence():
+    rows=[['Applications must be submitted no later than 11'],['days after the assessment date.'],
+          ['Other independent requirements apply.']]
+    item=replace(evidence(content=json.dumps({'headers':['Regulations'],'rows':rows})),content_type='table')
+    text='Applications must be submitted no later than 11 days after the assessment date.'
+    answer=GroundedAnswerGenerator(FakeLLM(payload(text)),source_citations=True).answer('When are applications due?',[item],'en')
+    assert not answer.abstained
+    quote=json.loads(answer.citations[0].quote)
+    assert quote==rows[:2] or quote.get('rows')==rows[:2]
+    assert validate_citation(answer.citations[0],item).valid
+    wrong=payload(text.replace('11','12'))
+    assert GroundedAnswerGenerator(FakeLLM(wrong),source_citations=True).answer('When are applications due?',[item],'en').abstained
+
+
+def test_independent_one_column_records_cannot_be_joined_into_a_new_fact():
+    rows=[['Student Alpha: the permitted credit limit is 13'],['student Beta: the permitted credit limit is 21']]
+    item=replace(evidence(content=json.dumps({'headers':['Students'],'rows':rows})),content_type='table')
+    bad=payload('Student Alpha has a permitted credit limit of 21.')
+    assert GroundedAnswerGenerator(FakeLLM(bad),source_citations=True).answer('What is the credit limit for Student Alpha?',[item],'en').abstained
+
+
 def test_programme_group_is_preserved_when_adjacent_degrees_share_identical_values():
     headers = ['Chương trình', 'Người học', 'Thời gian', 'Khối lượng tối thiểu']
     rows = [['Kỹ sư', 'Tốt nghiệp cử nhân theo chương trình tích hợp', '1,5 năm', '48 tín chỉ'],
@@ -311,6 +332,17 @@ def test_public_answer_does_not_keep_an_unrequested_adjacent_role():
     assert answer.answer == answer_text
     assert 'Giảng viên/Trợ giảng' in answer.claims[0].text
     assert 'nghiên cứu viên' not in answer.claims[0].text
+
+
+def test_credit_abbreviation_does_not_change_the_supported_quantity():
+    row=evidence(content='Sinh viên được đăng ký tối đa 11 TC trong kỳ phụ.')
+    model={'answer':'Tối đa 11 tín chỉ trong kỳ phụ.','confidence':'high','abstained':False,
+        'claims':[{'claim_id':'one','text':'Sinh viên được đăng ký tối đa 11 tín chỉ trong kỳ phụ.','citation_ids':['c1']}],
+        'citations':[{'chunk_id':'c1'}]}
+    answer=GroundedAnswerGenerator(FakeLLM(model),source_citations=True).answer('Kỳ phụ tối đa bao nhiêu tín chỉ?',[row])
+    assert not answer.abstained
+    model['claims'][0]['text']=model['claims'][0]['text'].replace('11','12')
+    assert GroundedAnswerGenerator(FakeLLM(model),source_citations=True).answer('Kỳ phụ tối đa bao nhiêu tín chỉ?',[row]).abstained
 
 
 def test_table_footnote_date_is_answered_from_the_matching_exact_source_clause():

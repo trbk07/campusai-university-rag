@@ -42,7 +42,7 @@ def normalized_tokens(text: str, language: str | None = None) -> list[str]:
     """Return original tokens plus accent-folded forms for tolerant matching."""
     tokens = tokenize(text, language)
     folded = [
-        unicodedata.normalize("NFKD", token).encode("ascii", "ignore").decode("ascii")
+        unicodedata.normalize("NFKD", token.replace('đ','d')).encode("ascii", "ignore").decode("ascii")
         for token in tokens
     ]
     return tokens + [token for token in folded if token and token not in tokens]
@@ -65,7 +65,11 @@ def normalize_retrieval_query(text: str) -> str:
     academic_aliases = (
         (r'\b(?:ths|master(?:s)?|thac\s+s[yi])\b', 'thạc sĩ master'),
         (r'\b(?:pv|interview|phong van)\b', 'phỏng vấn interview'),
-        (r'\b(?:tc|tin chi|credits?)\b|\b(?:may|bao nhieu|bn|\d{1,2})\s*tin\b', 'tín chỉ credits'),
+        (r'\b(?:tc|tin chi|credits?)\b|\b(?:may|bao nhieu|bn|\d{1,2})\s*tin\b', 'tín chỉ credits TC'),
+        (r'\b(?:gpa|cpa)\b', 'điểm trung bình chung tích lũy GPA CPA'),
+        (r'\b(?:bao lau|how long|duration)\b', 'thời gian duration'),
+        (r'\b(?:truot|rot|failed)\b', 'không đạt học phần'),
+        (r'\b(?:thi lai|thi nua|resit|re[- ]?exam)\b', 'thi lại kỳ thi phụ kỳ thi chính'),
         (r'\b(?:hp|hoc phi|tuition)\b', 'học phí tuition'),
         (r'\b(?:nn|ngoai ngu|english|language)\b', 'ngoại ngữ tiếng Anh language'),
         (r'\b(?:xtt|xet tuyen thang|direct admission)\b', 'xét tuyển thẳng direct admission'),
@@ -80,6 +84,11 @@ def normalize_retrieval_query(text: str) -> str:
     for pattern, expansion in academic_aliases:
         if re.search(pattern, folded):
             aliases.append(expansion)
+    if (re.search(r'\b(?:tin(?: chi)?|tc|credits?)\b',folded)
+            and re.search(r'\b(?:toi da|toi thieu|gioi han|limit|dang k[yi]|registration)\b',folded)):
+        aliases.append('đăng ký học tập số lượng TC khối lượng học tập')
+    if re.search(r'\b(?:quy doi|diem chu|letter grade)\b',folded) or re.search(r'\b[ABCDF][+]?\s+hay\s+[ABCDF][+]?(?!\w)',original):
+        aliases.append('điểm chữ quy đổi điểm học phần')
     if re.search(r"thac\s+s[yi]|thạc\s+s[ĩỹ]", lowered):
         aliases.extend(("thạc sĩ", "thac si", "master"))
     if re.search(r'(?:dao\s*tao|training).*?(?:may\s*nam|bn\s*nam|bao\s*lau|duration|years?)|training duration|\bduration\b', folded):

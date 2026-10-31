@@ -264,6 +264,7 @@ def test_complete_scope_cannot_publish_positive_fragment_with_missing_remainder(
     'A code is stated; the supplied documents do not specify its effective date.',
     'Tài liệu không đề cập thời gian áp dụng.',
     'Các tài liệu được tải lên không có thông tin này.',
+    'Các tài liệu cung cấp không quy định điều kiện đầu vào này.',
     'Nguồn này chưa ghi ngày hiệu lực.',
     'Tài liệu chưa xác lập được điểm trúng tuyển của năm đó.',
     'Tài liệu này là thông tin tuyển sinh nên chưa có điểm trúng tuyển chính thức.',

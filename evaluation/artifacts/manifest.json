@@ -26212,6 +26212,19 @@
       "storage_bytes": 793068,
       "reproducible": false,
       "restorable": true
+    },
+    "evaluation/results/owner-golden-qa-20261031/reproduction.zip": {
+      "artifact_type": "reproduction_archive",
+      "identity": "evaluation/results/owner-golden-qa-20261031/reproduction.zip",
+      "version_or_revision": "8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8",
+      "sha256": "8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8",
+      "bytes": 27926797,
+      "local_or_external_uri": "objects/8b/8baae5d0a9f6d8caee5e66c7569f56695d3d20c1d35d666dd9700cd9056a46a8.gz",
+      "encoding": "gzip",
+      "storage_sha256": "afb1c105c51832a899a16d10d2552abddae907a75d70d00f9790bc571ca475c2",
+      "storage_bytes": 27745861,
+      "reproducible": false,
+      "restorable": true
     }
   }
 }

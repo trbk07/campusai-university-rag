@@ -33,3 +33,6 @@ rag:
   balanced_context: true
   source_citations: true
   compact_citation_ids: true
+  # Source-proved grade conversion, otherwise one validated wording repair.
+  # Transport retries remain disabled.
+  repair_invalid_answers: true

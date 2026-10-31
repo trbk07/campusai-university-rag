@@ -52,6 +52,13 @@ def retrieval_query(question: str) -> str:
     """Prefer an explicit topic anchor while retaining page/scope markers."""
     raw = str(question).strip()
     from .course_credits import folded
+    separator='\nContext topic (untrusted user input): '
+    if separator in raw:
+        current,topic=raw.split(separator,1)
+        term=r'(?:(?:học\s+)?k[ỳì]|(?:hoc\s+)?k[yi]|semester|term)\s+(?:chính|chinh|hè|he|phụ|phu|main|summer|secondary)'
+        if re.search(term,current,re.I):
+            topic=re.sub(term,'',topic,flags=re.I)
+        raw=current+separator+topic
     normalized = folded(raw)
     normalized_words = re.sub(r"[^\w\s]", " ", normalized)
     cohort = re.search(r"\bcohorts?\s+admitted\s+from\s+(\d{4})\b", normalized_words)
@@ -281,6 +288,15 @@ class CampusAIQueryService:
             return []
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
+        from ..retrieval.institution_scope import requested_institution_documents, needs_institution_clarification
+        institutions = requested_institution_documents(question, temporal_docs)
+        if institutions:
+            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institutions]
+            doc_ids = sorted(institutions)
+        elif needs_institution_clarification(question, temporal_docs):
+            self.retriever.last_trace = RoutingTrace(route='abstain', abstained=True,
+                abstention_reason='ambiguous_question')
+            return []
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
                                                source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
@@ -422,6 +438,15 @@ class CampusAIQueryService:
                                   reason="ambiguous_question", evidence_status="ambiguous")
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
+        from ..retrieval.institution_scope import requested_institution_documents, needs_institution_clarification
+        institutions = requested_institution_documents(question, temporal_docs)
+        if institutions:
+            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institutions]
+            doc_ids = sorted(institutions)
+        elif needs_institution_clarification(question, temporal_docs):
+            return GroundedAnswer('Bạn đang hỏi quy định của trường nào? Hãy cho biết tên trường hoặc chọn tài liệu của trường đó.'
+                if language == 'vi' else 'Which institution do you mean? Specify its name or select its document.',
+                (), 'low', True, reason='ambiguous_question', evidence_status='ambiguous')
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
                                                source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
@@ -658,10 +683,27 @@ class CampusAIQueryService:
                             and selected_mode in {'auto', 'hybrid', 'hybrid_rrf'}
                             and (not temporal or temporal.status != 'resolved')):
                         retrieval_k = max(top_k, self.context_candidates)
-                    results = self.retriever.search(
-                        temporal_query, doc_ids=doc_ids, filters=filters,
-                        top_k=max(top_k, 20) if top_k > 0 and temporal and len(temporal.groups) > 1 else retrieval_k, mode=selected_mode,
-                    )
+                    from ..retrieval.institution_scope import requested_institution_documents
+                    source_groups=requested_institution_documents(question,
+                        getattr(self._request_local,'temporal_documents',[]))
+                    if (2<=len(source_groups)<=5 and retrieval_k>=len(source_groups)
+                            and selected_mode in {'auto','hybrid','hybrid_rrf'}
+                            and (not temporal or temporal.status!='resolved')):
+                        # A global top-k can fill both comparison arms with one
+                        # institution's rules. Reserve source-owned candidates
+                        # per explicitly requested group, within the same cap.
+                        each,extra=divmod(retrieval_k,len(source_groups))
+                        results=[]
+                        for i,doc in enumerate(sorted(source_groups)):
+                            results.extend(self.retriever.search(temporal_query,doc_ids=[doc],filters=filters,
+                                top_k=each+(i<extra),mode=selected_mode))
+                        self.retriever.last_trace=RoutingTrace(route=selected_mode,
+                            candidate_count=len(results),final_count=len(results))
+                    else:
+                        results = self.retriever.search(
+                            temporal_query, doc_ids=doc_ids, filters=filters,
+                            top_k=max(top_k, 20) if top_k > 0 and temporal and len(temporal.groups) > 1 else retrieval_k, mode=selected_mode,
+                        )
             if (composition.kind == 'single' or legacy_comparison) and temporal and temporal.status == 'resolved':
                 if any(not any(r.doc_id in group for r in results) for group in temporal.groups):
                     return GroundedAnswer('Chưa đủ bằng chứng cho từng phiên bản đã chọn.' if language == 'vi'
@@ -698,6 +740,22 @@ class CampusAIQueryService:
                     and set(d['evidence_ids']) <= have}
                 results = [replace(r, metadata={**r.metadata, 'version': versions[r.doc_id]})
                            if r.doc_id in versions else r for r in results]
+            if (top_k>0 and composition.kind=='single' and (not temporal or temporal.status!='resolved')
+                    and selected_mode in {'auto','hybrid','hybrid_rrf'}):
+                from .grade_ranges import retrieval_evidence
+                documents=[d for d in getattr(self._request_local,'temporal_documents',[])
+                           if doc_ids is None or d['doc_id'] in doc_ids]
+                from ..retrieval.institution_scope import requested_institution_documents
+                groups=requested_institution_documents(question,documents)
+                cap=max(top_k,self.context_candidates or top_k)
+                if len(documents)==1 or (len(groups)>=2 and 2*len(groups)<=cap):
+                    from .source_windows import registration_evidence
+                    fields=[*retrieval_evidence(question,documents),*registration_evidence(question,documents)]
+                    if fields:
+                        merged=[]
+                        for item in [*fields,*results]:
+                            if item.chunk_id not in {r.chunk_id for r in merged}:merged.append(item)
+                        results=merged[:cap]
             self.last_retrieval = list(results)
             if composition.kind != 'single':
                 intent = self._request_local.temporal_intent
@@ -717,6 +775,7 @@ class CampusAIQueryService:
                         qualification='Only the selected and source-verified document scope.'))
             else:
                 answer = self.answer_generator.answer(question, results, language)
+            answer = self._disambiguate_institution_answer(answer,question,language)
             trace = getattr(self.retriever, "last_trace", None)
             # A temporary provider fault must not pin its Phase 6 fallback
             # answer in the active Phase 7 cache after the provider recovers.
@@ -732,6 +791,28 @@ class CampusAIQueryService:
             if not transient_fallback and not answer.document_absence_requested and not answer.source_scope_checked:
                 self.cache.put(key, answer)
             return answer
+
+    def _disambiguate_institution_answer(self,answer,question,language):
+        """Do not blend different institutions' rules into one unqualified rule."""
+        cited={c.doc_id for c in answer.citations}
+        if answer.abstained or len(cited)<2:
+            return answer
+        documents=[d for d in getattr(self._request_local,'temporal_documents',[]) if d['doc_id'] in cited]
+        if len(documents)!=len(cited) or any(not any(
+                item.get('metadata',{}).get('document_type')=='regulation' for item in d['items']) for d in documents):
+            return answer
+        from ..retrieval.institution_scope import institution_headers,requested_institution_documents
+        names=[institution_headers(d['items']) for d in documents]
+        if any(not n for n in names) or set.intersection(*names):
+            return answer
+        if len(requested_institution_documents(question,documents))>=2:
+            return answer
+        labelled=requested_institution_documents(answer.answer,documents)
+        if cited<=labelled:
+            return answer
+        return GroundedAnswer('Bạn đang hỏi quy định của trường nào? Các nguồn đã chọn có quy định riêng; hãy cho biết tên trường.'
+            if language=='vi' else 'Which institution do you mean? The selected sources have separate rules.',
+            (), 'low', True,reason='ambiguous_question',evidence_status='ambiguous')
 
     def _prepare_complete_document_scope(self):
         from .document_scope import DocumentScopeUnavailable

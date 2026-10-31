@@ -40,6 +40,47 @@ def valid_payload():
     }
 
 
+def test_opt_in_repair_rechecks_the_new_model_answer_and_is_bounded():
+    import copy
+    good=valid_payload()
+    good['citations']=[{'chunk_id':'c1'}]
+    good['claims']=[{'claim_id':'required','text':'MATH101 is required.','citation_ids':['c1']}]
+    bad={**good,'answer':'MATH101 is required for 19 days.'}
+    class SequenceLLM(FakeLLM):
+        def __init__(self,payloads):
+            super().__init__(None);self.payloads=payloads
+        def generate_json(self,prompt,schema=None,**kwargs):
+            self.payload=copy.deepcopy(self.payloads[min(self.calls,len(self.payloads)-1)])
+            return super().generate_json(prompt,schema,**kwargs)
+    llm=SequenceLLM([bad,good])
+    response=GroundedAnswerGenerator(llm,source_citations=True,repair_invalid_answers=True).answer('Which course is required?',[evidence()])
+    assert not response.abstained and response.answer==good['answer'] and llm.calls==2
+    assert 'APPLICATION VALIDATION FEEDBACK' in llm.prompts[-1]
+    llm=SequenceLLM([bad,bad,good])
+    response=GroundedAnswerGenerator(llm,source_citations=True,repair_invalid_answers=True).answer('Which course is required?',[evidence()])
+    assert response.abstained and llm.calls==2
+    llm=SequenceLLM([bad,good])
+    assert GroundedAnswerGenerator(llm,source_citations=True).answer('Which course is required?',[evidence()]).abstained
+    assert llm.calls==1
+    llm=SequenceLLM([good])
+    assert not GroundedAnswerGenerator(llm,source_citations=True,repair_invalid_answers=True).answer('Which course is required?',[evidence()]).abstained
+    assert llm.calls==1
+
+
+def test_failed_repair_cannot_start_an_additional_absence_generation():
+    payload=valid_payload();payload['answer']='MATH101 is required for 19 days.'
+    payload['citations']=[{'chunk_id':'c1'}]
+    payload['claims']=[{'claim_id':'required','text':'MATH101 is required.','citation_ids':['c1']}]
+    class RepairAbsence(FakeLLM):
+        def generate_json(self,prompt,schema=None,**kwargs):
+            if self.calls:self.payload={'answer':'Not stated.','confidence':'low','abstained':True,
+                'abstention_reason':'document_does_not_mention','citations':[],'claims':[]}
+            return super().generate_json(prompt,schema,**kwargs)
+    llm=RepairAbsence(payload)
+    response=GroundedAnswerGenerator(llm,source_citations=True,repair_invalid_answers=True).answer('Which course is required?',[evidence()])
+    assert response.abstained and not response.document_absence_requested and llm.calls==2
+
+
 def test_context_contains_only_top_k_evidence_and_provenance():
     context = build_context([evidence("c1"), evidence("c2", content="second")], max_chars=1000)
     assert "chunk_id=c1" in context and "chunk_id=c2" in context

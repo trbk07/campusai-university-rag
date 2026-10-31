@@ -45,7 +45,8 @@ def depends_on_previous_topic(question):
                     r'them vi du(?: nua)?|ngan gon hon|don gian hon(?: chut)?|noi ro cho nay|tl dr|'
                     r'(?:this|that) one|give me another example|'
                     r'(?:tom tat|giai thich)(?: lai| them)|tai sao|vi sao|why|how|credits|'
-                    r'how many credits|how much|give (?:me )?an example|explain (?:more|again)|simplify it)', text):
+                    r'how many credits|how much|give (?:me )?an example|explain (?:more|again)|simplify it|'
+                    r'(?:(?:som|muon) nhat )?(?:la )?(?:sau )?bao lau)', text):
         return True
     # Explicit document/section questions have their subject in the current
     # request and selected scope, even when a previous question was very short.

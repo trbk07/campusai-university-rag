@@ -3,6 +3,7 @@ from dataclasses import replace
 import pytest
 from campusai.rag.claims import Claim
 from campusai.rag.presentation import presentation_conflicts
+from campusai.rag.presentation import omit_unverified_context
 from campusai.rag.cache import build_rag_cache_key
 from campusai.rag.grounding import GroundedAnswerGenerator
 from tests.test_basic_rag import FakeLLM, evidence
@@ -10,6 +11,55 @@ from tests.test_basic_rag import FakeLLM, evidence
 
 def supported(text):
     return [Claim('one', text, citation_ids=('c1',), status='supported')]
+
+
+def test_optional_unproved_scope_is_removed_without_whitelisting_a_fact():
+    claim=supported('Quy chế áp dụng từ khóa tuyển sinh năm 2031.')
+    assert omit_unverified_context('Quy chế 2468 áp dụng từ năm 2031.',claim,
+        'Quy chế 2468 áp dụng khóa nào?')=='Quy chế áp dụng từ năm 2031.'
+    assert '2468' in omit_unverified_context('Quy chế 2468 áp dụng từ năm 2031.',claim,
+        'Quy chế 2468 đúng không?')
+    assert '2469' in omit_unverified_context('Quy chế 2469 áp dụng từ năm 2031.',claim,
+        'Quy chế 2468 áp dụng khóa nào?')
+    assert omit_unverified_context('Điểm 6,9 (thang điểm 10) quy đổi thành B.',supported('B thuộc khoảng 6,2 đến 7,4.'),
+        '6,9 điểm quy đổi ra sao?')=='Điểm 6,9 quy đổi thành B.'
+
+
+def test_requested_scale_label_does_not_whitelist_its_digit_as_a_value():
+    claim=supported('B quy đổi thành 3,2.')
+    assert not presentation_conflicts('B là 3,2 trên thang điểm 5.',claim,question='B quy đổi thang 5 là mấy?')
+    assert presentation_conflicts('B là 5 trên thang điểm 5.',claim,question='B quy đổi thang 5 là mấy?')
+    assert presentation_conflicts('B là 3,2 trên thang điểm 6.',claim,question='B quy đổi thang 5 là mấy?')
+
+
+def test_credit_input_is_exempt_only_after_a_literal_threshold_application():
+    claim=supported('Nhắc nhở một cấp đối với học viên có số TC không đạt lớn hơn 11.')
+    question='Em trượt 13 tín có bị nhắc nhở không?'
+    answer='Nhắc nhở một cấp đối với học viên có số TC không đạt lớn hơn 11. Với 13 tín chỉ không đạt, điều kiện này được đáp ứng.'
+    assert not presentation_conflicts(answer,claim,question=question)
+    assert presentation_conflicts(answer.replace('13','10'),claim,question=question.replace('13','10'))
+    assert presentation_conflicts(answer.replace('13 tín chỉ','13 USD'),claim,question=question)
+    assert presentation_conflicts('Không. '+answer,claim,question=question)
+
+
+def test_accented_requested_level_is_context_and_not_a_factual_quantity():
+    claim=supported('Nhóm chuẩn được đăng ký tối đa 17 TC.')
+    question='Cảnh báo mức 3 thì đăng ký thế nào?'
+    assert not presentation_conflicts('Ở mức 3, nhóm chuẩn được đăng ký tối đa 17 TC.',claim,question=question)
+    assert presentation_conflicts('Ở mức 3, nhóm chuẩn được đăng ký tối đa 3 TC.',claim,question=question)
+
+
+@pytest.mark.parametrize('rule,question,answer',[
+    ('Được đăng ký tối đa 11 tín chỉ trong kỳ phụ.','Đăng ký 13 tín kỳ phụ được không?',
+     'Tối đa 11 tín chỉ; không thể đăng ký 13 tín chỉ.'),
+    ('Được đề nghị trong thời hạn 11 ngày.','Sau 13 ngày còn kịp không?',
+     'Không còn kịp sau 13 ngày; thời hạn là 11 ngày.'),
+])
+def test_outside_upper_bound_can_repeat_only_the_same_typed_input(rule,question,answer):
+    assert not presentation_conflicts(answer,supported(rule),question=question)
+    assert presentation_conflicts(answer.replace('13','10'),supported(rule),question=question.replace('13','10'))
+    assert presentation_conflicts('Bạn có thể đăng ký 13 tín chỉ.',supported(rule),question=question)
+    assert presentation_conflicts('Được đăng ký 13 tín chỉ không đạt.',supported(rule),question=question)
 
 
 def test_requested_admission_notice_year_is_scope_not_an_unproved_quantity():
@@ -204,6 +254,35 @@ def test_correction_to_a_wrong_question_premise_still_passes_when_cited():
     answer='No. The field knowledge block requires 19 credits.'
     claims=supported('The field knowledge block requires 19 credits.')
     assert not presentation_conflicts(answer, claims, question=question)
+
+
+def test_requested_grade_scale_label_is_not_a_converted_value():
+    claims=supported('B quy đổi thành 2,3;')
+    question='Điểm chữ B và điểm hệ 4 là gì?'
+    assert not presentation_conflicts('B quy đổi hệ 4 là 2,3.',claims,question=question)
+    assert presentation_conflicts('B quy đổi hệ 5 là 2,3.',claims,question=question)
+    assert presentation_conflicts('B quy đổi hệ 4 là 4.',claims,question=question)
+
+
+def test_optional_scale_decoration_does_not_hide_a_wrong_converted_value():
+    from campusai.rag.presentation import omit_unverified_context
+    claims=supported('B quy đổi thành 2,3;')
+    question='Điểm chữ B quy đổi ra sao?'
+    cleaned=omit_unverified_context('B quy đổi thành 2,3 điểm theo thang điểm 4.',claims,question)
+    assert 'thang điểm 4' not in cleaned and '2,3' in cleaned
+    assert not presentation_conflicts(cleaned,claims,question=question)
+    wrong=omit_unverified_context('B quy đổi thành 2,4 điểm theo thang điểm 4.',claims,question)
+    assert presentation_conflicts(wrong,claims,question=question)
+    assert 'thang điểm 4' in omit_unverified_context('B quy đổi thành 2,3 điểm theo thang điểm 4.',claims,'B quy đổi trên thang điểm 4 ra sao?')
+
+
+def test_institution_expansion_needs_a_literal_source_name_for_each_side():
+    from campusai.rag.presentation import institution_names_supported
+    from campusai.retrieval.hybrid import RetrievalResult
+    source=RetrievalResult('s','d',1,'Trường Đại học Sao Bắc và Đại học Âm nhạc Miền Tây.','text',1,'test',{})
+    assert institution_names_supported('Đại học Sao Bắc và Đại học Âm nhạc Miền Tây có quy định khác nhau.',[source])
+    assert not institution_names_supported('Đại học Sao Bắc và Đại học Sao Nam (WIM) có quy định khác nhau.',[source])
+    assert institution_names_supported('SBU và WIM có quy định khác nhau.',[source])
 
 
 def test_visible_prose_quote_must_support_the_claim_not_another_paragraph():

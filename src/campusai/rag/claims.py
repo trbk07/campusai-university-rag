@@ -18,7 +18,7 @@ CLAIM_STATUSES = {"supported", "partial", "partially_supported", "unsupported", 
 
 STOPWORDS = {"the", "and", "are", "is", "of", "to", "a", "an", "what", "how", "là", "và", "của", "là", "cần", "phải"}
 CODE_RE = re.compile(r"\b[A-Z]{2,}[A-Z0-9]*\d{2,}\b", re.I)
-NUMBER_RE = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?\s*(?:%|credits?|tín\s*chỉ|ngày|năm)?", re.I)
+NUMBER_RE = re.compile(r"(?<!\w)\d+(?:[.,]\d+)?\s*(?:%|credits?|tín\s*chỉ|tc\b|ngày|năm)?", re.I)
 YEAR_RE = re.compile(r"\b(?:19|20)\d{2}\b")
 DATE_RE = re.compile(r"\b(?:\d{4}[-/]\d{1,2}[-/]\d{1,2}|\d{1,2}[-/]\d{1,2}[-/]\d{4})\b")
 POSITIVE_POLARITY_RE = re.compile(
@@ -147,9 +147,12 @@ def extract_claims(answer: str, supplied: Iterable[dict] | None = None) -> list[
 
 def _exact_markers(text: str) -> set[str]:
     normalized = normalize_text(text)
+    def quantity_marker(item):
+        value=normalize_text(item)
+        return re.sub(r'\s*(?:tc|tín\s*chỉ)$',' tín chỉ',value)
     markers = (
         {f"code:{normalize_text(item)}" for item in CODE_RE.findall(text)}
-        | {f"value:{normalize_text(item)}" for item in NUMBER_RE.findall(semester_spacing(text))}
+        | {f"value:{quantity_marker(item)}" for item in NUMBER_RE.findall(semester_spacing(text))}
         | {f"year:{item}" for item in YEAR_RE.findall(text)}
         | {f"date:{normalize_text(item)}" for item in DATE_RE.findall(text)}
     )
@@ -221,6 +224,17 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
                 tuple(typed_cells), 'supported' if supported else 'unsupported',
                 1.0 if supported else 0.0, tuple(typed_cells), False))
+            continue
+        from .grade_ranges import column_quote
+        columns = [item.chunk_id for item in evidence if item.content_type=='table'
+                   and column_quote(item.content,[claim.text],question) is not None
+                   and (original_registry is None or (original_registry.get(item.chunk_id) is not None
+                        and column_quote(original_registry.get(item.chunk_id).content,[claim.text],question) is not None))]
+        if columns and len(columns)==len(evidence) and not missing_requested_evidence:
+            # Exact interval/category cells in the same physical column prove
+            # this relation; escaped line breaks in JSON are not missing values.
+            aligned.append(Claim(claim.claim_id,claim.text,claim.claim_type,claim.required_citations,
+                tuple(columns),'supported',1.0,tuple(columns),False))
             continue
         relation = prerequisite_claim_support(claim.text, evidence)
         if relation is None:

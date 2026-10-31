@@ -16,6 +16,11 @@ def test_conditional_prerequisite_definition_does_not_become_a_course_graph_look
     assert plan_request('Theo alpha_2023.pdf, tiên quyết của môn này là gì?', docs()[:1]).kind == 'unresolved'
 
 
+def test_named_single_letter_policy_scenario_is_not_a_missing_course_node():
+    assert plan_request('Môn X là tiên quyết cho Y, đã học X nhưng chưa đạt có học Y được không?',docs()[:1]).kind=='single'
+    assert plan_request('Học phần CS201 là tiên quyết cho CS301, có bao nhiêu tín chỉ?',docs()[:1]).kind!='single'
+
+
 def test_direct_prerequisite_question_does_not_require_a_credit_hop():
     plan = plan_request('Use only the uploaded alpha_2023.pdf. Which prerequisite code is listed for CS201?', docs()[:1])
     assert plan.kind == 'single' and plan.problem is None

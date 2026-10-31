@@ -406,6 +406,20 @@ def build_context(
             if not synthesis:
                 allocations = [len(p[2]) if p[0].content_type == 'table'
                                else min(len(p[2]), per_prose) for p in parts]
+                # Preserve more of the highest-ranked rule before distributing
+                # the remaining budget. Equal slices can show eight headings
+                # while cutting the main rule's actual condition off.
+                first = next((i for i,p in enumerate(parts) if p[0].content_type!='table'),None)
+                if first is not None:
+                    desired=min(len(parts[first][2]),max(allocations[first],int(prose_budget*.4)))
+                    needed=desired-allocations[first]
+                    for i in reversed(range(len(parts))):
+                        if i==first or parts[i][0].content_type=='table':
+                            continue
+                        released=min(needed,max(0,allocations[i]-minimum))
+                        allocations[i]-=released
+                        allocations[first]+=released
+                        needed-=released
                 # Return unused space from short chunks to longer passages
                 # before cutting their qualifications/deadlines off mid-rule.
                 remaining = available - sum(allocations)
@@ -430,7 +444,8 @@ def build_context(
             for i, (result, metadata, content) in enumerate(parts):
                 limit = allocations[i]
                 if result.content_type != 'table' and len(content) > limit:
-                    content = verbatim_window(content, question, limit - len(marker)) + marker
+                    content = verbatim_window(content, question, limit - len(marker),
+                        registration=result.retriever=='source_registration_fields') + marker
                 blocks.append(metadata + content)
             return '\n\n'.join(blocks)
         # Oversized tables/headers retain the established bounded serializer.
@@ -487,6 +502,7 @@ class GroundedAnswerGenerator:
         balanced_context: bool = False,
         source_citations: bool = False,
         compact_citation_ids: bool = False,
+        repair_invalid_answers: bool = False,
     ) -> None:
         self.llm = llm
         self.max_context_chars = max(1000, max_context_chars)
@@ -498,6 +514,9 @@ class GroundedAnswerGenerator:
         if type(compact_citation_ids) is not bool or compact_citation_ids and not source_citations:
             raise ValueError('compact_citation_ids requires source_citations and a boolean')
         self.compact_citation_ids = compact_citation_ids
+        if type(repair_invalid_answers) is not bool or repair_invalid_answers and not source_citations:
+            raise ValueError('repair_invalid_answers requires source_citations and a boolean')
+        self.repair_invalid_answers = repair_invalid_answers
 
     @property
     def citation_handle_policy(self):
@@ -558,6 +577,23 @@ class GroundedAnswerGenerator:
             'statement in the exact wording of the cited evidence; do not add inferred details '
             'or synonyms to claims[].text. Preserve the explicit course-credit and calculation '
             'formats above where applicable. Write answer naturally in the requested language.'
+        )
+        instructions += (
+            '\nWhen answering a rule or eligibility question, include its material '
+            'prerequisites, exceptions, eligible population and time reference from '
+            'the same source provision in answer, not only in verification claims. '
+            'A concise answer must not omit a condition that changes who may apply '
+            'or when the rule holds. Never apply one institution\'s rule to another.'
+            '\nDo not repeat numerical premises, scale labels or document identifiers from '
+            'the question in answer unless those numbers also occur in your directly cited '
+            'verification claims. Give the requested conclusion without restating the input. '
+            'For a conversion lookup, claims should quote the original range/category and '
+            'converted value; never substitute the input score for the printed range.'
+            '\nIn a short follow-up, the CURRENT question replaces any earlier qualifier '
+            '(institution, term, programme, level or date). Keep only the subject from the '
+            'older user topic. Do not invent an eligibility, warning or exception status '
+            'for the user. Distinguish the normal rule from restrictions that apply only '
+            'under explicitly established conditions.'
         )
         instructions += (
             '\nHonor explicit requests to quote only one condition or phrase: return the '
@@ -623,6 +659,24 @@ class GroundedAnswerGenerator:
         # by deterministic source alignment; retain the original evidence
         # wording instead of lowering any entailment or citation threshold.
         target_language = language.casefold().split('-')[0]
+        instructions += (
+            '\nAnswer the requested rule concisely, with its applicable conditions; do not add '
+            'unrequested categories from adjacent rules. Verification claims must retain every '
+            'numeric condition used in answer, including a bullet\'s governing lead-in. '
+            'Retain the original numeric notation of ratios and fractions. '
+            'Never expand an institutional acronym into a full name unless that full name '
+            'occurs literally in evidence. Otherwise retain its short label or omit the optional heading.')
+        from .grade_ranges import score_input
+        if score_input(question) is not None and re.search(r'\b(?:quy doi|convert)\b',_fold(question)):
+            instructions += (
+                '\nFor an unspecified score conversion, report both the source letter grade '
+                'and its mapped numeric grade when provided. Do not substitute overall academic '
+                'standing for a course grade. Explicit letter-only requests remain letter-only.')
+        if explicit_comparison_request(question) or re.search(r'\b(?:giong nhau|same|similar|identical)\b',_fold(question)):
+            instructions += (
+                "\nFor comparisons, state each source's rule separately and compare only their "
+                "supported values. Sources need not contain a sentence explicitly comparing "
+                "each other. Cite both sides; missing evidence on one side is not proof of absence.")
         source_languages = {str(result.metadata.get('language') or '').casefold().split('-')[0]
                             for result in results}
         if any(source in {'vi', 'en'} and source != target_language for source in source_languages):
@@ -722,7 +776,32 @@ class GroundedAnswerGenerator:
         return f"{instructions}\n\nQUESTION:\n{current}\n\nEVIDENCE:\n{context}"
 
     @timed_stage("grounding")
-    def answer(
+    def answer(self, question: str, results: list[RetrievalResult], language: str='vi', *,
+               temporal_context: dict | None=None, multi_hop_context: dict | None=None,
+               verified_document_absence: bool=False, document_scope_context: dict | None=None,
+               pdf_documents: list[dict] | tuple[dict,...] | None=None) -> GroundedAnswer:
+        options=dict(temporal_context=temporal_context,multi_hop_context=multi_hop_context,
+                     verified_document_absence=verified_document_absence,
+                     document_scope_context=document_scope_context,pdf_documents=pdf_documents)
+        state={}
+        answer=self._answer_once(question,results,language,**options,_generation_state=state)
+        from .presentation import institution_names_supported
+        if self.repair_invalid_answers and not answer.abstained and not institution_names_supported(answer.answer,results):
+            answer=_abstention('unsupported_claim',language=language)
+        if (self.repair_invalid_answers and state.get('positive') and answer.abstained
+                and answer.reason in {'unsupported_claim','contradicted_claim','invalid_citation','citation_not_in_evidence'}
+                and temporal_context is None and multi_hop_context is None
+                and document_scope_context is None and not pdf_documents and not verified_document_absence):
+            answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason)
+            if not answer.abstained and not institution_names_supported(answer.answer,results):
+                answer=_abstention('unsupported_claim',language=language)
+            # This consumes the one extra generation. Do not start a second
+            # full-document follow-up after an unsuccessful wording repair.
+            if answer.abstained:
+                answer=replace(answer,document_absence_requested=False)
+        return answer
+
+    def _answer_once(
         self,
         question: str,
         results: list[RetrievalResult],
@@ -731,6 +810,8 @@ class GroundedAnswerGenerator:
         verified_document_absence: bool = False,
         document_scope_context: dict | None = None,
         pdf_documents: list[dict] | tuple[dict, ...] | None = None,
+        _generation_state: dict | None = None,
+        _repair_reason: str | None = None,
     ) -> GroundedAnswer:
         def abstain(reason, citations=(), **kwargs):
             kwargs.setdefault("language", language)
@@ -843,6 +924,11 @@ class GroundedAnswerGenerator:
             calculated = deterministic_semester_total(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
+        if (self.repair_invalid_answers and temporal_context is None and multi_hop_context is None
+                and document_scope_context is None and pdf_documents is None and not incomplete_source):
+            from .grade_ranges import deterministic_grade_answer
+            calculated=deterministic_grade_answer(question,results,language,calibrator=self.calibrator)
+            if calculated is not None:return calculated
         if self.llm is None:
             return abstain("llm_not_configured")
         if not build_context(results, self.max_context_chars, max_tokens=self.max_context_tokens, evidence_ids=handles):
@@ -855,10 +941,20 @@ class GroundedAnswerGenerator:
             if multi_hop_context is not None: kwargs['multi_hop_context'] = multi_hop_context
             if document_scope_context is not None: kwargs['document_scope_context'] = document_scope_context
             prompt = self.prompt(question, results, language, **kwargs)
+            if _repair_reason:
+                prompt += (
+                    '\n\n[APPLICATION VALIDATION FEEDBACK]\nThe previous positive answer failed '
+                    f'{_repair_reason}. This is the only repair. Answer the original question '
+                    'using only the same supplied evidence and shortest complete source-faithful claims. '
+                    'Do not repeat hypothetical input numbers; state the conclusion and the source rule. '
+                    'Omit unrequested classifications, unverified scale decorations, and expanded institution names absent from evidence. '
+                    'Keep all material conditions. If still unsupported, abstain; do not certify document absence.')
             with stage("llm"):
                 schema = self.response_schema(results)
                 payload = (self.llm.generate_json(prompt, schema=schema, pdf_documents=pdf_documents)
                     if pdf_documents is not None else self.llm.generate_json(prompt, schema=schema))
+                if _generation_state is not None:
+                    _generation_state['positive']=isinstance(payload,dict) and payload.get('abstained') is False
         except LLMError as error:
             return abstain("llm_error", language=language,
                                provider_failure=public_provider_failure(error))
@@ -1097,6 +1193,12 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
                 [selected] if isinstance(selected, list) and all(isinstance(c, str) for c in selected)
                 else selected)
         if isinstance(rows, list) and rows:
+            from .source_citations import wrapped_prose
+            if len(source.get('headers', [])) == 1 and wrapped_prose(rows):
+                # Citation validation already proved these exact original
+                # contiguous cells. Verify their wrapped sentence as prose,
+                # rather than treating a line-ending number as a whole fact.
+                return replace(result, content='\n'.join(row[0] for row in rows), content_type='text')
             return replace(result, content=json.dumps({'headers': source['headers'], 'rows': rows}, ensure_ascii=False))
         return None
     visible_results = [visible_evidence(result) for result in results if result.chunk_id in quote_by_id]
@@ -1116,13 +1218,19 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
     used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
-    from .presentation import presentation_conflicts, location_proofs, code_markers
+    from .presentation import presentation_conflicts, location_proofs, code_markers, omit_unverified_context
+    answer=omit_unverified_context(answer,claims,question)
     source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
     locations = location_proofs(citations, registry)
     from .year_cells import numeric_answer_units_valid
     if not numeric_answer_units_valid(answer, claims, registry, question, locations=locations):
         return _abstention('unsupported_claim', language=language)
-    if presentation_conflicts(answer, claims, locations=locations,
+    from .grade_ranges import application_view
+    applied = application_view(answer, [citation.quote for citation in citations], question,
+                               doc_ids=[citation.doc_id for citation in citations])
+    if applied is False:
+        return _abstention('unsupported_claim', language=language)
+    if presentation_conflicts(applied if isinstance(applied,str) else answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes):
         return _abstention('unsupported_claim', language=language)
     if used_citation_ids:

@@ -38,7 +38,7 @@ def asserts_document_absence(answer):
     vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
         r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
         r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
-        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia|liet ke)\b')
+        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia|liet ke|quy dinh)\b')
     if re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text):
         return True
     # The source can be the subject of a qualified clause: "the document only
