@@ -46,7 +46,7 @@ def is_ambiguous_question(question: str, results: list[RetrievalResult]) -> bool
 
 def explicit_comparison_request(question: str) -> bool:
     intent = folded(str(question).split("Topic:", 1)[0])
-    return bool(re.search(r"\b(?:compare|comparison|difference|versus|vs|so sanh|chenh lech|tru)\b", intent)
+    return bool(re.search(r"\b(?:compare|comparison|differences?|versus|vs|so sanh|chenh lech|tru|giong nhau|khac nhau|the same|identical|differ(?:ent)?)\b", intent)
         and not re.search(r"\b(?:do not|don't|not|khong)\s+(?:compare|so sanh)\b", intent))
 
 
@@ -92,7 +92,7 @@ def has_conflicting_numeric_evidence(results: list[RetrievalResult], question: s
         ))
         if not numeric_intent:
             return False
-        query_tokens = {token for token in _tokens(intent_question) if len(token) >= 4}
+        query_tokens = {token for token in _tokens(intent_question) if len(token) >= 3}
         related = [result for result in results if query_tokens & _tokens(result.content)]
         if not related:
             return False

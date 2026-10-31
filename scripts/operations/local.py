@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import threading
 from urllib.error import URLError
 from urllib.request import urlopen
 import webbrowser
@@ -22,6 +23,30 @@ from .encoder_assets import configure_encoder
 
 ROOT = Path(__file__).resolve().parents[2]
 URL = 'http://127.0.0.1:8000'
+
+
+def timing_observer(path):
+    """Opt-in numeric diagnostics; never record prompts, answers or credentials."""
+    path = Path(path).absolute()
+    if path.suffix != '.jsonl' or path.exists():
+        raise LocalSetupError('Timing log requires a new .jsonl path; keep existing evidence.')
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.touch(exist_ok=False)
+    lock = threading.Lock()
+    failed = False
+    def observe(trace):
+        nonlocal failed
+        value = {key: trace[key] for key in ('request_id', 'server_total_ms', 'stages_ms', 'stage_calls', 'cache_hit') if key in trace}
+        with lock:
+            if failed:
+                return
+            try:
+                with path.open('a', encoding='utf-8') as stream:
+                    stream.write(json.dumps(value, allow_nan=False) + '\n')
+            except OSError:
+                failed = True
+                print('Không ghi được timing log; câu trả lời vẫn hoạt động.', flush=True)
+    return observe
 
 
 class LocalSetupError(ValueError):
@@ -156,6 +181,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--open-browser', action='store_true')
     parser.add_argument('--check', action='store_true', help='Read-only prerequisites; no provider call')
+    parser.add_argument('--timing-log', type=Path, help='Optional new JSONL log of numeric request stages only')
     args = parser.parse_args(argv)
     os.chdir(ROOT)
     if args.check:
@@ -197,6 +223,7 @@ def main(argv=None) -> int:
             print(f'Đang khởi động CampusAI · {configured["model"]} · giữ cửa sổ này mở...', flush=True)
             application = build_application()
             server.set_app(make_wsgi_app(application,
+                telemetry_hook=timing_observer(args.timing_log) if args.timing_log else None,
                 max_concurrent_queries=int(os.getenv('CAMPUSAI_QUERY_WORKERS', '4')),
                 enable_query_streaming=os.getenv('CAMPUSAI_QUERY_STREAMING','0')=='1'))
             print(f'CampusAI đã sẵn sàng: {URL}', flush=True)

@@ -12,6 +12,17 @@ import time
 from .ocr_assets import TESSDATA_SHA256, VIETOCR_SHA256, validate_tesseract_assets, validate_vietocr_assets
 
 
+def worker_environment(environ):
+    """Pass OS/native-library settings, never provider keys or app credentials."""
+    allowed = {'PATH', 'PATHEXT', 'SYSTEMROOT', 'WINDIR', 'SYSTEMDRIVE', 'COMSPEC',
+        'TEMP', 'TMP', 'TMPDIR', 'HOME', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA',
+        'PROGRAMDATA', 'LANG', 'LC_ALL', 'LC_CTYPE', 'LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH',
+        'CUDA_VISIBLE_DEVICES', 'NVIDIA_VISIBLE_DEVICES', 'CUDA_DEVICE_ORDER', 'CUDA_MODULE_LOADING'}
+    result = {name: value for name, value in environ.items() if name.upper() in allowed}
+    result.update(OMP_THREAD_LIMIT='1', OMP_NUM_THREADS='1')
+    return result
+
+
 def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
                   include_layout=False, hybrid_regions=None, backend='tesseract', page_bounds=None):
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
@@ -24,9 +35,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
         identity = (validate_vietocr_assets if backend == 'vietocr' else validate_tesseract_assets)(data_dir)
     except ValueError as error:
         raise OCRUnavailable(str(error)) from error
-    environment = {k: v for k, v in os.environ.items()
-                   if k not in {'PYTHONPATH', 'PYTHONHOME', 'GEMINI_API_KEY', 'OPENAI_API_KEY', 'GROQ_API_KEY'}}
-    environment.update(OMP_THREAD_LIMIT='1', OMP_NUM_THREADS='1')
+    environment = worker_environment(os.environ)
     worker = Path(__file__).with_name('vietocr_worker.py' if backend == 'vietocr' else 'tesseract_worker.py')
     process = subprocess.Popen([sys.executable, '-I', '-u', str(worker)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,

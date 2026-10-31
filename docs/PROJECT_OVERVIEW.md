@@ -1,6 +1,6 @@
 # CampusAI — Tổng quan chất lượng và vận hành
 
-**Cập nhật 31/10/2026 · Phạm vi: web app local, một người dùng trên Windows.**
+**Cập nhật 01/11/2026 · Phạm vi: web app local, một người dùng trên Windows.**
 
 Tài liệu này thay các báo cáo kiểm tra, nghiệm thu, hiệu năng và nhật ký rời.
 Các số lịch sử bên dưới được tổng hợp trước khi xóa đầu ra cũ; chúng không
@@ -45,6 +45,43 @@ Riêng scan Thủ đô 34 trang: lần đo Tesseract `vie+eng` là 21,805s so v�
 cache, không gọi Gemini. Đây là các quan sát trên ca cụ thể.
 
 ## 3. Vấn đề chưa đóng
+
+### Kiểm tra mới ngày 01/11
+
+- **FIX-03b DONE:** chốt trước 20 trang ảnh thật của 3 PDF, 3 lần lặp, Tesseract
+  `vie+eng`, scale 1,5, worker mới mỗi batch, nguyên deadline 120s. 60/60 lượt
+  trang và 9/9 batch thành công; p95 nearest-rank **1,874079s/trang**,
+  **12,676236s/batch**. OS/model file cache không bị purge; app đã nạp model,
+  không có workload truy vấn kiểm soát đồng thời. Không suy rộng mọi PDF.
+- **QA-03b DONE về chọn bộ:** native HUST tr.6; scan HNMU tr.7/14; mixed NUAE
+  tr.31–33; bảng HUST tr.9; thêm fixture font ToUnicode sai được ghi rõ controlled.
+  Đã xem trang render. Fixture giữ nguyên chữ hiển thị, parser không công bố lớp
+  text sai, yêu cầu OCR; OCR khớp toàn bộ text reference sau chuẩn hóa whitespace.
+  Reference fixture là dữ liệu kiểm soát tự tạo; không phải bằng chứng accuracy
+  đại diện để đóng QA-07c. Bộ chọn và hash nằm trong `pdf-suite.json` local.
+- **Baseline owner:** 56 case/60 HTTP liên tiếp trên cùng code và index, không
+  cache hit, không timeout, schema/citation vật lý hợp lệ 60/60. p95 **15,097723s**,
+  nên không đóng R-01. Chưa có independent semantic grading trên lượt này;
+  số câu trả lời dương tính không được tính là accuracy.
+- **Sửa code:** tổng trang PDF/file số nhiều dùng metadata (HTTP 0,049s);
+  học trước không bị mở rộng thành tiên quyết; truy hồi địa chỉ/khóa áp dụng;
+  nhận diện “giống/khác nhau” khi so sánh và vẫn chặn mâu thuẫn trong một nguồn.
+  Source fields giữ nguyên điều kiện năm cuối, mức cảnh báo/học kỳ của giới hạn
+  đăng ký và mệnh đề khóa áp dụng. Bốn ca trước chậm/sai trả đúng nguồn trong
+  **0,508–0,981s**, không dùng giá trị/ID tài liệu cố định.
+- **An toàn OCR:** subprocess chỉ nhận environment hệ điều hành/native cần
+  thiết, không nhận key phụ/custom credential hoặc Python injection settings.
+  Các RPC Gemini được ghi counter inference/countTokens riêng và model version
+  thực nhận trong diagnostics opt-in; không ghi prompt/answer/key vào timing log.
+- **F24:** đã đọc ảnh gốc cả tr.6 và tr.7: nguồn xác lập 2 học kỳ chính với tổng
+  tối thiểu 30 tuần; không xác lập riêng mỗi kỳ tối thiểu 15 tuần. Giữ gold cũ
+  nguyên vẹn, đánh dấu cần review; không tự phê duyệt gold thay thế. F02/F05/N03
+  cần review scope vì input không nêu trường khi cả ba PDF được chọn.
+
+Raw baseline, protocol khóa trước đo, PDF/hash và predictions được giữ local ở
+`data/operations/local-acceptance-20261101/`; không đưa PDF/state/credentials vào
+Git. Script đo và tests được giữ trong source để tái chạy. Fresh holdout,
+semantic quality và RC cuối vẫn cần evidence riêng theo [plan](../plan.md).
 
 | Nhóm | Việc còn lại |
 |---|---|

@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **31/10/2026 · Asia/Bangkok**.
+Cập nhật: **01/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -30,6 +30,9 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 | FIX-09b | [x] DONE — Khi viết tắt chưa có trong PDF, tối đa 1 lượt Gemini đối chiếu với tên trường trong nguồn được chọn; chỉ khớp rõ một trường mới tiếp tục câu hỏi gốc. Mơ hồ/lỗi API thì nói rõ và hỏi tên đầy đủ. Native `hust/HUST/Hust` đúng nguồn, chỉ 1 lượt đối chiếu; 44 tests liên quan PASS. |
 | FIX-10 | [x] DONE — Thêm nút “Chọn tất cả” trong bộ chọn nguồn. Chọn mọi PDF sẵn sàng, không giới hạn 5 tài liệu; cập nhật checkbox và nút chọn/bỏ chọn đồng bộ. Kiểm tra callback/render PASS với 6 PDF sẵn sàng và 1 PDF chưa sẵn sàng. |
 | FIX-11 | [x] DONE — Giữ chủ đề và trường đang hỏi khi nối tiếp/đổi trường (HUST → NUAE → HUST); tái dùng câu trả lời đã kiểm chứng đúng nguồn. 143 tests liên quan PASS; đã kiểm tra HTTP thật. |
+| FIX-12 | [x] DONE — Câu hỏi tổng số trang bằng dạng số nhiều PDF/file được trả lời bằng metadata: HTTP thực tế 0,049s, không gọi model. |
+| FIX-13 | [x] DONE — Tách “học trước” khỏi “tiên quyết”, bổ sung truy hồi địa chỉ/khóa áp dụng và nhận diện so sánh “giống/khác nhau”; vẫn chặn mâu thuẫn trong cùng nguồn. |
+| FIX-14 | [x] DONE — Tra giới hạn đăng ký và khóa áp dụng từ mệnh đề nguồn rõ ràng, giữ điều kiện năm cuối, mức cảnh báo và học kỳ; không có nguồn đúng mẫu thì giữ pipeline model. Bốn ca HTTP 0,51–0,98s. |
 
 ## Hạ tầng bổ sung — 31/10/2026
 
@@ -47,18 +50,34 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   Đây là kiểm tra Engine, chưa phải nghiệm thu CampusAI chạy trong container.
 - [ ] **Production deployment:** cần máy Linux/runner và environment; chưa triển khai thực tế.
 
-## Ưu tiên còn mở
+## Nghiệm thu đang chốt — 01/11/2026
 
-- [ ] **FIX-03b:** đo p95 OCR trên PDF ảnh thực tế với workload xác định.
-- [ ] **FIX-05:** kiểm chất lượng/tốc độ trên cùng bản cuối. Bộ owner gần nhất
-  còn 19 PARTIAL và F24 cần review nguồn/gold; cohort gộp không phải một lần
-  chạy đủ 60 lượt trên bản cuối.
-- [ ] **QA-03b / QA-07c:** chốt PDF đại diện: native, scan, mixed, bảng, lỗi font.
-- [ ] **R-01 / R-02:** hiệu năng, availability và format API thật trên profile
-  phân phối; vẫn **NOT PASSED**.
+- [x] **FIX-03b — DONE:** 20 trang ảnh thật / 3 PDF, lặp 3 lần; 60/60 lượt trang,
+  0 lỗi/timeout; p95 **1,874s/trang**, **12,676s/batch**. Workload/threshold được
+  khóa trước đo. Đây là đo tốc độ OCR; độ đúng ký tự thuộc QA-07c.
+- [x] **QA-03b — DONE:** khóa đủ 5 loại: native, scan, mixed, bảng trên PDF đang
+  giữ, cộng 1 PDF font-mapping lỗi **có kiểm soát, ghi rõ synthetic**. Fixture font
+  tái tạo được bằng test; không thay kiểm chất lượng font lỗi thực tế.
+- [ ] **QA-07c:** đo extraction ≥98%, OCR ≥90%, evidence/retrieval ≥95% trên bộ
+  đại diện với reference được review; không dùng confidence OCR thay accuracy.
+- [ ] **FIX-05:** nghiệm thu chất lượng/tốc độ trên cùng candidate cuối. Đã chạy
+  đủ 60/60 lượt owner ở baseline: schema/citation vật lý đều hợp lệ, 0 timeout,
+  p95 15,098s nên chưa đạt tốc độ. Các lỗi đã tái hiện được sửa và kiểm riêng;
+  cần chấm lại toàn bộ trên candidate khóa. F24 vẫn `review_required`;
+  F02/F05/N03 thiếu trường khi chọn cả 3 PDF, không đưa cột school vào inference.
+- [ ] **R-01:** đo lại 100 HTTP / ít nhất 54 inference provider thành công,
+  p95 ≤10s, timeout ≤0,5%, RSS ≤75% RAM, profile phân phối và quota hiện có.
+  Đếm RPC inference thật, tách local answer/cache/countTokens; chưa ghi PASS.
+- [ ] **R-02:** kiểm schema/public citation và model/config version thực nhận
+  trên chính lượt candidate cuối; không ghép cohort khác source.
 - [ ] **Fresh holdout:** đóng băng tập chưa exposure, protocol/ngưỡng trước đo;
   không dùng tập đã tuning làm holdout.
 - [ ] **QA-09d:** vòng kiểm cuối và bàn giao candidate đã khóa.
+
+Evidence local đang giữ: `data/operations/local-acceptance-20261101/`.
+Lệnh đo dùng `scripts/release/measure_ocr.py`, collector HTTP dùng
+`scripts/release/verify_answers.py`; không gửi expected/gold/school vào inference.
+Chi tiết kết quả mới cập nhật tại [báo cáo tổng quan](docs/PROJECT_OVERVIEW.md).
 
 Streaming mặc định OFF; p95 TTFT ≤5 giây chưa đạt nghiệm thu. Graph/reranker OFF.
 R-03 cloud đã rút khỏi scope, không ghi PASS.

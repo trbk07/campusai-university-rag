@@ -17,6 +17,17 @@ def regulation_request(question):
     text = folded(question).strip()
     text = re.sub(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', '', text)
     text = ' '.join(text.strip(' .?!').split())
+    if (re.search(r'\bco\b.{1,160}\bky thi phu khong$', text)
+            and not re.search(r'\b(?:neu|va|dong thoi|hoc phi|mat khau|so sanh)\b', text)):
+        return ('exam_presence',)
+    if (re.search(r'\b(?:quy che|quy dinh|van ban|regulation|policy)\b', text)
+            and re.search(r'\b(?:ap dung|applicable)\b', text)
+            and re.search(r'\b(?:khoa|cohort|intake)\b', text)
+            and not re.search(r'\b(?:va|and|dong thoi|ngoai ra|also|deadline|hoc phi|mat khau)\b', text)):
+        return ('cohort',)
+    registration = registration_request(text)
+    if registration is not None:
+        return registration
     match = re.fullmatch(r'(?P<field>thoi gian dao tao chuan|khoi luong hoc tap toi thieu) cua chuong trinh '
         r'(?P<degree>cu nhan|ky su|thac si|tien si) danh cho nguoi tot nghiep '
         r'(?P<prior>thpt|cu nhan|dai hoc|thac si)(?P<ordinary> thong thuong)?(?P<integrated> theo chuong trinh tich hop)?'
@@ -50,6 +61,61 @@ def regulation_request(question):
     return None
 
 
+def registration_request(text):
+    """A single registration-limit field; unknown or compound requests fall back."""
+    if (not re.search(r'\b(?:tin chi|tc|tin|credits?)\b', text)
+            or not re.search(r'\b(?:toi da|toi thieu|bao nhieu|may|gioi han)\b', text)
+            or re.search(r'\b(?:hoc phi|le phi|gpa|cpa|mat khau|tai khoan|hoc bong|ngoai ngu|'
+                         r'bao gio|ngay nao|het han|dong thoi|ngoai ra|also|so sanh|giong nhau|khac nhau|'
+                         r'thac si|tien si|ky su|masters?|doctoral|hau qua|xu ly|bi gi|se bi|what happens)\b', text)):
+        return None
+    summer = bool(re.search(r'\bk[yi] he\b', text))
+    primary = bool(re.search(r'\bk[yi] chinh\b', text))
+    if summer == primary:
+        return None
+    warning = re.search(r'\bcanh bao(?: hoc tap)? muc (\d+)\b', text)
+    if 'canh bao' in text and not warning and not re.search(r'\bkhong (?:bi|thuoc dien) canh bao\b', text):
+        return None
+    if warning and ('chuan' not in text or summer):
+        return None
+    return ('registration', 'summer' if summer else 'primary', warning[1] if warning else None)
+
+
+def _registration_facts(body, request):
+    text, offsets = _fold_with_offsets(body)
+    unit = r'(?:tc|tin\s+chi)'
+    if request[2]:
+        level = re.escape(request[2])
+        pattern = (r'(?P<fact>han che khoi luong hoc tap[^.]{0,200}?canh bao hoc tap tu muc '
+            + level + r' tro len[^.]{0,180}?tai hoc ky (?P<term>\d+) cua nam hoc,?\s*cu the nhu sau:\s*'
+            r'a\)\s*sinh vien thuoc cac (?:ctdt|chuong trinh dao tao) chuan duoc dang ky '
+            r'toi da (?P<maximum>\d+)\s*' + unit + r' va toi thieu (?P<minimum>\d+)\s*' + unit +
+            r' cho mot hoc ky chinh[.;])')
+    elif request[1] == 'summer':
+        pattern = (r'(?P<fact>sinh vien duoc dang ky toi da (?P<maximum>\d+)\s*' + unit +
+                   r' trong hoc ky he\.)')
+    else:
+        pattern = (r'(?P<fact>sinh vien khong thuoc dien canh bao hoc tap[^.]{0,160}?duoc dang ky '
+            r'toi da (?P<maximum>\d+)\s*' + unit + r' va toi thieu (?P<minimum>\d+)\s*' + unit +
+            r' trong hoc ky chinh[^.]{0,220}\.)')
+    found = []
+    for match in re.finditer(pattern.replace(' ', r'\s+'), text):
+        start, end = match.span('fact')
+        # Require a source paragraph/bullet boundary, not a quoted example.
+        prefix = text[max(0, start - 6):start]
+        if start and not re.search(r'(?:^|\n|[.;])\s*(?:\d+[.)]|[a-z][)])?\s*$', prefix):
+            continue
+        if re.search(r'\b(?:vi du|gia su|example)\b[^\n]{0,100}$', text[max(0, start - 110):start]):
+            continue
+        quote = body[offsets[start]:offsets[end - 1] + 1]
+        fields = match.groupdict()
+        values = tuple(int(fields[name]) if fields.get(name) else None for name in ('minimum', 'maximum', 'term'))
+        if values[0] is not None and values[0] > values[1]:
+            continue
+        found.append((quote, [' '.join(quote.split())], values))
+    return found
+
+
 def programme_rows(content):
     try:
         table = json.loads(content[content.index('{"headers"'):])
@@ -78,8 +144,25 @@ def programme_rows(content):
 
 def _assessment_facts(content, request, metadata=None):
     body = sanitize_evidence_text(source_body({'content':content}, decode_tables=False))
+    if request[0] == 'registration':
+        return _registration_facts(body, request)
     text, offsets = _fold_with_offsets(body)
-    if request[0] == 'weight':
+    if request[0] == 'exam_presence':
+        pattern = (r'(?m)(?:^[ \t]*(?:[a-z][)])?\s*|(?<=[.;])\s*)'
+            r'(?P<fact>cuoi\s+moi\s+hoc\s+ky,\s*(?:nha\s+truong|truong)\s+to\s+chuc\s+'
+            r'mot\s+ky\s+thi\s+chinh\s+va\s+mot\s+ky\s+thi\s+phu\.)')
+        found = []
+        for match in re.finditer(pattern, text):
+            start, end = match.span('fact')
+            if re.search(r'\b(?:vi du|gia su|example)\b[^\n]{0,100}$', text[max(0,start-110):start]):
+                continue
+            quote = body[offsets[start]:offsets[end-1]+1]
+            found.append((quote, [' '.join(quote.split())], ('explicit_supplementary_exam',)))
+        return found
+    if request[0] == 'cohort':
+        pattern = (r'(?P<whole>(?P<fact>(?:quyet dinh|quy che|quy dinh|van ban) nay '
+            r'[^.]{0,180}?ap dung doi voi cac\s+khoa tuyen sinh tu nam (?P<a>(?:19|20|21)\d{2})\.))')
+    elif request[0] == 'weight':
         decimal = r'\d+(?:[.,]\d+)?'
         pattern = (r'(?P<whole>mot\s+hoc\s+phan\s+tu\s+'+re.escape(request[1])+r'\s+tc\s+tro\s+len'
             r'[^.;]{1,180}?trong\s+do\s+(?P<fact>diem\s+cuoi\s+ky\s+co\s+trong\s+so\s+tu\s+'
@@ -127,7 +210,8 @@ def _assessment_facts(content, request, metadata=None):
         def original(group):
             start, end = match.span(group)
             return body[offsets[start]:offsets[end-1]+1]
-        if not (0 < a <= b <= (1 if request[0] == 'weight' else 100)):
+        maximum = 1 if request[0] == 'weight' else 2199 if request[0] == 'cohort' else 100
+        if not (0 < a <= b <= maximum):
             result.append((original('whole'), [], (a,b)))
             continue
         result.append((original('whole'), [original('fact')], (a,b)))
@@ -148,6 +232,8 @@ def regulation_candidates(question, records):
 def deterministic_regulation_fact(question, results, language, *, calibrator=None):
     request = regulation_request(question)
     if request is None or not results or len({r.doc_id for r in results}) != 1:
+        return None
+    if request[0] in {'registration', 'cohort', 'exam_presence'} and not language.startswith('vi'):
         return None
     named = {n.casefold() for n in re.findall(r'[\w.-]+\.pdf\b', question, re.I)}
     if named and not named <= {str(r.metadata.get('source_name','')).casefold() for r in results}:

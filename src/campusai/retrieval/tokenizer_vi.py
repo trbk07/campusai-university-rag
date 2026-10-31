@@ -79,7 +79,10 @@ def normalize_retrieval_query(text: str) -> str:
         (r'\b(?:lp|le phi|phi du tuyen|fee)\b', 'lệ phí fee'),
         (r'\b(?:when|ngay nao|ngay may|bao gio)\b', 'thời gian ngày'),
         (r'\b(?:deadline|han chot|het han|dong|closure)\b', 'hạn cuối thời gian đăng ký deadline'),
-        (r'\b(?:prerequisite|hoc truoc|tien quyet)\b', 'tiên quyết prerequisite'),
+        (r'\b(?:prerequisite|tien quyet)\b', 'tiên quyết prerequisite'),
+        (r'\b(?:hoc truoc|prior course|previous course)\b', 'học phần học trước'),
+        (r'\b(?:tru so|dia chi|headquarters|office address|located)\b', 'địa chỉ trụ sở address'),
+        (r'\b(?:ap dung|applicable|applied)\b.*\b(?:khoa|cohort|intake)\b', 'áp dụng khóa tuyển sinh cohort'),
     )
     for pattern, expansion in academic_aliases:
         if re.search(pattern, folded):

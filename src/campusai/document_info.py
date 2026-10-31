@@ -30,12 +30,12 @@ def page_count_request(question, documents):
     remaining = re.sub(quantity, ' ', text).split()
     allowed = set(('tai lieu file pdf tep nay do no cua co gom dai trong la tong tat ca cac vay nhi ban cho minh t toi em va and bao nhieu may bn cong nhe oi dem the ko khong cu da chon '
                    'biet hoi voi xin giup a please how many pages page count number what is the in this that document '
-                   'documents have has does do it are there total all selected uploaded tell me can could you of length long').split())
+                   'documents pdfs files these those have has does do it are there total all selected uploaded tell me can could you of length long').split())
     if any(word not in allowed for word in remaining):
         return None  # Not page-specific content, an injection, or a compound request.
     named = [d for d in documents if folded(d['name']) in filenames]
     unknown_name = bool(filenames and len({folded(d['name']) for d in named}) != len(set(filenames)))
-    all_documents = len(set(filenames)) > 1 or bool(re.search(r'\b(?:tat ca|cac tai lieu|tong|total|all|documents)\b', text))
+    all_documents = len(set(filenames)) > 1 or bool(re.search(r'\b(?:tat ca|cac tai lieu|tong|total|all|documents|pdfs|files)\b', text))
     selected = named if filenames else documents
     return selected, unknown_name or not selected or (len(selected) > 1 and not all_documents)
 

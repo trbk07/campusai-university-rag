@@ -20,6 +20,7 @@ from .retry import retry503
 from .overload import OverloadCircuit, ProviderCoolingDown
 from .quota_hints import google_quota_hints, scoped_quota_hint
 from .quota import QuotaExceeded, QuotaStateError, estimate_gemini_tokens
+from ..request_timings import stage, record_stage
 from contextlib import contextmanager
 from dataclasses import dataclass
 from email.utils import parsedate_to_datetime
@@ -674,11 +675,23 @@ class GeminiClient(OpenAICompatibleClient):
                 stream.begin(self.model)
                 reader = lambda response: read_gemini_stream(response, stream, self.timeout)
             attempted = True
-            result = _request_json(request, self.timeout, self.limiter, 0 if stream is not None else self.max_retries,
+            operation = ('provider_token_count' if urllib.parse.urlsplit(request.full_url).path.endswith(':countTokens')
+                         else 'provider_inference')
+            with stage(operation):
+                result = _request_json(request, self.timeout, self.limiter, 0 if stream is not None else self.max_retries,
                                    retry_only_503=self.retry_only_503,
                                    retry_min_wait_seconds=self.retry_min_wait_seconds,
                                    retry_max_wait_seconds=self.retry_max_wait_seconds,
                                    **({'response_reader': reader} if reader is not None else {}))
+            record_stage(operation + '_success', 0.)
+            if project:
+                record_stage(operation + '_project.' + project.reference, 0.)
+            if operation == 'provider_inference' and isinstance(result, dict):
+                version = result.get('modelVersion')
+                if isinstance(version, str) and re.fullmatch(r'gemini-[A-Za-z0-9._-]{1,100}', version):
+                    record_stage('provider_model.' + version, 0.)
+                else:
+                    record_stage('provider_model.unreported', 0.)
         except ProviderCoolingDown as error:
             failure_type = LLMRateLimitError if error.provider_error_code == 'provider_rate_limited' else LLMProviderError
             failure = failure_type("provider is cooling down; please try again later")

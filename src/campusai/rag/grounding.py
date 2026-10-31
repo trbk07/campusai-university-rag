@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ..request_timings import stage, timed_stage
+from ..request_timings import stage, timed_stage, record_stage
 
 from dataclasses import dataclass, replace
 import json
@@ -795,6 +795,7 @@ class GroundedAnswerGenerator:
         answer=self._answer_once(question,results,language,**options,_generation_state=state)
         from .presentation import institution_names_supported
         if self.repair_invalid_answers and not answer.abstained and not institution_names_supported(answer.answer,results):
+            record_stage('grounding_reject.institution_name', 0.)
             answer=_abstention('unsupported_claim',language=language)
         if (self.repair_invalid_answers and state.get('positive') and answer.abstained
                 and answer.reason in {'unsupported_claim','contradicted_claim','invalid_citation','citation_not_in_evidence'}
@@ -802,6 +803,7 @@ class GroundedAnswerGenerator:
                 and document_scope_context is None and not pdf_documents and not verified_document_absence):
             answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason)
             if not answer.abstained and not institution_names_supported(answer.answer,results):
+                record_stage('grounding_reject.institution_name', 0.)
                 answer=_abstention('unsupported_claim',language=language)
             # This consumes the one extra generation. Do not start a second
             # full-document follow-up after an unsuccessful wording repair.
@@ -1218,6 +1220,9 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     # unsupported number, code, date, or polarity change.
     decision = decide(claims, allow_partial=False)
     if decision.status != "answered":
+        record_stage('grounding_reject.claim_alignment', 0.)
+        for claim in claims:
+            record_stage('grounding_claim.' + claim.status, 0.)
         mapped_ids = {item for claim in claims for item in claim.citation_ids}
         safe_citations = tuple(citation for citation in citations if citation.chunk_id in mapped_ids)
         return GroundedAnswer(
@@ -1232,14 +1237,17 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     locations = location_proofs(citations, registry)
     from .year_cells import numeric_answer_units_valid
     if not numeric_answer_units_valid(answer, claims, registry, question, locations=locations):
+        record_stage('grounding_reject.numeric_units', 0.)
         return _abstention('unsupported_claim', language=language)
     from .grade_ranges import application_view
     applied = application_view(answer, [citation.quote for citation in citations], question,
                                doc_ids=[citation.doc_id for citation in citations])
     if applied is False:
+        record_stage('grounding_reject.grade_application', 0.)
         return _abstention('unsupported_claim', language=language)
     if presentation_conflicts(applied if isinstance(applied,str) else answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes):
+        record_stage('grounding_reject.presentation', 0.)
         return _abstention('unsupported_claim', language=language)
     if used_citation_ids:
         citations = tuple(citation for citation in citations if citation.chunk_id in used_citation_ids)
