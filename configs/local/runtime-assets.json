@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "encoder": {
+    "manifest": "configs/local/dense-manifest.json",
+    "manifest_sha256": "db8ceaa057afc89a288f264555ce38d9a9cdbee351c3d88be3199545cef486d1"
+  },
+  "tesseract": {
+    "package": "tesserocr",
+    "version": "2.12.0",
+    "language_revision": "tessdata_fast4.1.0",
+    "license": "Apache-2.0",
+    "license_url": "https://github.com/tesseract-ocr/tessdata_fast/blob/4.1.0/LICENSE",
+    "files": {
+      "vie.traineddata": {
+        "bytes": 531275,
+        "sha256": "79df64caf7bcfb2a27df5042ecb6121e196eada34da774956995747636d5bfa1"
+      },
+      "eng.traineddata": {
+        "bytes": 4113088,
+        "sha256": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2"
+      }
+    }
+  },
+  "vietocr": {
+    "optional": true,
+    "license": "Apache-2.0",
+    "license_file": "src/campusai/ingestion/vietocr.LICENSE",
+    "checkpoint_url": "https://vocr.vn/data/vietocr/vgg_seq2seq.pth",
+    "files": {
+      "vgg_seq2seq.pth": {
+        "bytes": 89575371,
+        "sha256": "0921503a41375a0584268e23ef3d414ea478a8fe8777865c7745d38f2d0bc5db"
+      },
+      "detector.onnx": {
+        "bytes": 4745517,
+        "sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9"
+      }
+    }
+  },
+  "rapidocr": {
+    "package": "rapidocr-onnxruntime",
+    "version": "1.4.4",
+    "license": "Apache-2.0",
+    "files": {
+      "ch_PP-OCRv4_det_infer.onnx": {
+        "bytes": 4745517,
+        "sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9"
+      },
+      "ch_PP-OCRv4_rec_infer.onnx": {
+        "bytes": 10857958,
+        "sha256": "48fc40f24f6d2a207a2b1091d3437eb3cc3eb6b676dc3ef9c37384005483683b"
+      },
+      "ch_ppocr_mobile_v2.0_cls_infer.onnx": {
+        "bytes": 585532,
+        "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c"
+      }
+    }
+  },
+  "dependency_lock": {
+    "path": "uv.lock",
+    "sha256": "b75308c7f69f6b4127a123f0f5b5a27f1a3bf4fc9bf8e677b2eafef31b3abdcf",
+    "install_command": "uv sync --frozen --extra feasibility --extra ocr",
+    "optional_vietocr_command": "uv sync --frozen --extra feasibility --extra ocr --extra ocr-vietnamese"
+  },
+  "scope": "Runtime input identities; no credentials or personal documents. Final RC source commit/ZIP binding belongs to L13-07."
+}

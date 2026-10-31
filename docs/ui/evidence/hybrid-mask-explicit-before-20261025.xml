@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="1" time="0.772" timestamp="2026-10-25T21:52:15.389408+07:00" hostname="Bao_Kien"><testcase classname="tests.test_hybrid_pdf" name="test_image_soft_mask_cannot_reveal_invisible_bitmap_text" time="0.541"><failure message="AssertionError: assert ('Only this native content is visible.' in '## Page 1\nOnly this native content is visible.\nINVISIBLE TEST TEXT Z9' and 'INVISIBLE' not in '## Page 1\n...TEST TEXT Z9'&#10;  &#10;  'INVISIBLE' is contained here:&#10;     visible.&#10;    INVISIBLE TEST TEXT Z9)">tests\test_hybrid_pdf.py:192: in test_image_soft_mask_cannot_reveal_invisible_bitmap_text
-    assert 'Only this native content is visible.' in text and 'INVISIBLE' not in text and 'Z9' not in text
-E   AssertionError: assert ('Only this native content is visible.' in '## Page 1\nOnly this native content is visible.\nINVISIBLE TEST TEXT Z9' and 'INVISIBLE' not in '## Page 1\n...TEST TEXT Z9'
-E     
-E     'INVISIBLE' is contained here:
-E        visible.
-E       INVISIBLE TEST TEXT Z9)</failure></testcase></testsuite></testsuites>

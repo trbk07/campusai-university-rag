@@ -1,276 +1,47 @@
 # CampusAI
 
-Canonical repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
+Web app local hỏi đáp tài liệu đại học bằng tiếng Việt/Anh, có trích dẫn theo
+trang. PDF, chỉ mục và OCR xử lý trên máy; Gemini cần Internet và API key riêng.
 
-CampusAI is an evidence-grounded university knowledge assistant. It ingests
-university PDFs and produces Vietnamese or English answers with page-level
-citations and explicit abstention when evidence is missing.
+Repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
 
-The runtime indexes documents uploaded by the user and scopes queries to the
-selected document IDs. `data/corpus/university/` is an evaluation fixture.
+## Chạy ứng dụng
 
-Phase 7/8 are complete under the owner's Chat-quality acceptance scope. Live
-provider performance, availability and native API format qualification remain
-open release conditions. Optional reranker qualification is deferred and the
-feature stays disabled. See [the current roadmap](plan.md); historical
-20-task/19-gate reports remain available for audit and future activation.
+Nhấp đúp **`start-campusai.cmd`**, giữ cửa sổ launcher mở và truy cập
+**http://127.0.0.1:8000**. Tải tối đa 5 PDF mỗi lượt, chọn tài liệu và hỏi.
+App chạy OCR nền khi cần, cho phép hỏi trên phần đã đọc và xem citation tại
+trang nguồn. Không cần Node hoặc bước build frontend.
 
-## Evaluation artifact storage
-
-Git keeps benchmark/gold references, summaries and hash manifests. Historical
-raw observations, corpus PDFs, models and indexes live in ignored local/external
-storage. A clean clone needs the artifact bundle for historical recomputation;
-missing evidence fails release validation. See [artifact storage and restore
-commands](docs/operations/artifact_storage.md) and the [2026-10-05 size/history
-audit](docs/operations/storage_audit_20261005.md). Run `make storage-check` before
-committing and `make storage-verify` before release.
-
-## Setup
-
-Python 3.11–3.14 is supported. Run commands from the repository root.
+Kiểm tra cấu hình và model mà không gọi Gemini:
 
 ```powershell
-uv sync --extra dev
-uv run pytest -q
-uv run python -m scripts.dev.secret_scan
+.venv/Scripts/python.exe -m scripts.operations.local --check
 ```
 
-With an existing virtual environment:
+Đọc [hướng dẫn cài đặt và vận hành](docs/operations/local-install.md) khi cài
+máy mới, backup hoặc xử lý lỗi. Giữ `.env` và `configs/key.yaml` trên máy.
 
-```powershell
-.venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe -m scripts.dev.secret_scan
-```
+## Cấu trúc
 
-Optional parser, embedding, and reranker dependencies:
+| Thành phần | Mục đích |
+|---|---|
+| `src/campusai/` | Backend, ingestion/OCR, truy hồi, kiểm chứng và UI HTML/CSS/JS |
+| `scripts/operations/` | Khởi động, preflight và setup encoder/OCR |
+| `scripts/release/package_local.py` | Đóng gói source từ một Git commit |
+| `scripts/dev/secret_scan.py` | Kiểm tra credential trước commit |
+| `configs/` | Profile AI và manifest model/OCR |
+| `pyproject.toml`, `uv.lock` | Dependency và phiên bản cài đặt |
+| `docs/PROJECT_OVERVIEW.md` | Tổng quan chất lượng, hiệu năng, giới hạn và dọn dẹp |
+| `plan.md` | Roadmap và công việc còn mở |
 
-```powershell
-uv sync --extra dev --extra feasibility
-```
+Máy hiện tại dùng `.venv`, encoder trong `models/`, dữ liệu tại `data/web-test/`,
+quota/cooldown trong `data/operations/` và OCR tại `.cache/ocr/tessdata_fast/`.
+`.env` có thể chọn đường dẫn khác. Các kho PDF/index cũ tại `data/store` và
+`data/index` cũng được giữ để tránh mất dữ liệu người dùng. Các thành phần
+local này không đưa vào Git; xóa chúng có thể mất dữ liệu hoặc phải cài/tải lại.
 
-Copy `.env.example` to `.env` and supply provider credentials in the environment
-for live LLM calls. Offline tests do not require an API key. Live provider tests
-require `RUN_LLM_INTEGRATION=1` and `GEMINI_API_KEY`.
-
-## Repository layout
-
-```text
-src/campusai/          application package
-  documents/          document registry
-  ingestion/          PDF parsing, OCR, tables, metadata, chunks, jobs
-  retrieval/          BM25, dense search, fusion, routing, reranking
-  llm/                provider clients, cache, retries, rate limits
-  rag/                grounded answers, claims, citations, abstention
-scripts/              operational commands, grouped by task
-  dev/                environment setup and secret scanning
-  ingestion/          corpus download, PDF acceptance and feasibility
-  benchmarks/         dataset construction, review and validation
-  retrieval/          index construction, isolation and warming
-  operations/         server, load, accessibility, security, recovery
-  release/            annotation signoff and release packaging
-evaluation/           metrics and evaluation workflows
-  common/             shared metrics and artifact bindings
-  benchmarks/         schemas, human intake and dataset freezing
-  grounding/          answer quality and grounding calibration
-  retrieval/          baseline and hybrid retrieval evaluation
-  reranker/           model, calibration, capacity, canary and release
-  release/            grounding package validation
-  artifacts/          raw artifact catalog and runtime manifests
-  results/            canonical summaries and historical manifests
-tests/                offline tests, fixtures and opt-in integrations
-configs/              defaults, example records and release settings
-data/benchmark/       versioned benchmark datasets
-data/corpus/          source metadata; ignored local corpus PDFs
-docs/                 architecture, task guides, operations and planning
-plan.md               permanent project roadmap, retained by the owner
-```
-
-Naming and artifact rules are in [the contribution guide](docs/contributing.md).
-
-## Run locally
-
-Local release installation/state/preflight and upgrade notes are maintained in
-[the Windows local guide](docs/operations/local-install.md). Phase 13 acceptance
-is in progress; a prerequisites check is not a release qualification.
-
-On Windows, double-click **`start-campusai.cmd`** to start CampusAI and open the
-browser. The launcher loads `.env` and your existing ignored `configs/key.yaml`
-when needed, using the checked-in `free_llm.yaml` profile (Gemini 3.5 Flash-Lite). It never prints
-keys, rotates credentials or enables billing. Existing environment settings
-take priority. Keep its console open while using the app.
-
-For local Vietnamese/English scan OCR, install the optional package and pinned
-language data once:
-
-```powershell
-uv sync --extra dev --extra feasibility --extra ocr
-uv run python -m scripts.operations.setup_ocr
-```
-
-The launcher selects this backend when its package and language checksums
-validate. OCR runs in a separate bounded process; cancelling or timing out a
-document stops that process. Open document details to start OCR on an existing
-scan or mixed PDF. Uploads never download OCR models or send PDFs to an OCR
-service. Explicit `CAMPUSAI_OCR_BACKEND` settings take priority.
-
-An additional local Vietnamese recognizer is available as an explicit option.
-It improves the observed corrupted course-code fields in the real scan fixture;
-representative PDF/OCR qualification remains open. Install its optional runtime
-and pinned models once, then select it before launching:
-
-```powershell
-uv sync --extra dev --extra feasibility --extra ocr --extra ocr-vietnamese
-uv run python -m scripts.operations.setup_vietocr
-$env:CAMPUSAI_OCR_BACKEND='vietocr'
-$env:CAMPUSAI_OCR_DATA_DIR='.cache/ocr/vietocr'
-```
-
-The inference adapter uses the pinned VietOCR checkpoint, without installing
-its training package or changing Pillow/dependency versions. Models load only
-inside the cancellable OCR child process. CUDA is used when available; CPU is
-supported. This option does not change the default backend or reprocess existing
-documents automatically. [Measurements and limits](docs/ui/evidence/vietnamese-ocr-20261028.json).
-
-For explicitly headed, ruled course tables, this backend also preserves row/cell
-associations and physical-page provenance. A merged name/credit region is read
-again from separate pixel crops; uncertain cells leave the table unpublished.
-This is limited to supported table layouts, not general table reconstruction.
-[Table checks and scope](docs/ui/evidence/ocr-table-grounding-20261028.json).
-
-An available CUDA GPU can be selected with `CAMPUSAI_DEVICE=cuda` in `.env`.
-The owner laptop uses this setting after a same-model comparison:five real PDFs
-finish in46.85s versus255.41s on CPU, with matching content hashes and near-identical
-vectors. This is a local workload result; the full-app performance gates remain
-in[the roadmap](plan.md).
-
-Gemini 503 responses open a shared 60–300 second cooldown. During a provider
-failure, the local app can show up to three verified original-source excerpts
-with PDF links, so document lookup remains usable. The UI labels this degraded
-view explicitly; the AI answer stays abstained, and excerpts are neither cached
-as generated answers nor included in conversation history. Further lookups during
-the cooldown do not call Gemini. The next user query after cooldown can recover
-normal generation; the app never automatically resends a question.
-
-A 429 response identifies an API quota/rate limit or a busy local query separately.
-Four active queries are admitted by default; health, UI, document polling
-and source lookup continue while that query waits. Corpus deletion waits for
-the query to finish using its sources. No provider error is cached as an answer.
-The [source-excerpt review](docs/deployment/phase13/provider-continuity.md) records
-the failed live Flash-Lite experiment and the separate offline recovery tests.
-Free API availability and unlimited generated answers have not been established.
-
-The release target is a **local, single-user application** (owner decision,
-28 October 2026). Phase 13 covers reproducible local packaging and installation;
-Phase 14 covers hardening, acceptance and release. See [the roadmap](plan.md#phase-13).
-Cloud provisioning is outside the current release scope. The Gemini profile still
-needs Internet access and the user's credentials; local hosting does not mean
-offline AI generation.
-
-The historical [cloud configuration/preflight guide](docs/deployment/phase13/runtime-configuration.md)
-defines external state/config/model/release paths and pinned encoder identity.
-`python -m scripts.operations.preflight --config /etc/campusai/deployment.json`
-audits prerequisites without provider calls; it does not accept deployment.
-
-```powershell
-.venv\Scripts\python.exe -m scripts.operations.local --open-browser
-.venv\Scripts\python.exe -m scripts.retrieval.build_index --help
-.venv\Scripts\python.exe -m scripts.retrieval.warm_retrieval --help
-```
-
-Open **http://127.0.0.1:8000** for the CampusAI UI: AI assistant, document
-library, metadata collections and guide. Upload a PDF, wait for **Sẵn sàng**,
-select the source, ask a question, then open its citation or submit feedback.
-The HTML/CSS/JavaScript frontend lives in `src/campusai/ui/`; no Node/build step
-is needed to run the application. Assets are included in the Python package.
-
-The default free profile admits one model request at a time, paced at ten
-requests per minute with a bounded wait. New questions asked immediately after
-one another can take about 6 seconds; an exact-context cache hit is much faster.
-Validated answers are stored locally in `data/cache/grounded-answers.sqlite3`
-across app restarts. Set `CAMPUSAI_RAG_CACHE_PATH=:memory:` to keep answer bodies
-only until the process exits. Document deletion clears stored answers.
-
-The profile retrieves up to eight ordinary-query candidates and fits verbatim
-source windows into an 8,000-character evidence budget. Tables retain their
-serialization; temporal/multi-hop requests retain the established serializer.
-Durable admission and separate 429/503 cooldowns prevent repeated sends during
-known faults. The owner confirmed Free tier; a bounded probe observed a Free
-limit of 15 RPM and stopped at the first 429. Production stays at 10 RPM;
-TPM/RPD ceilings remain unverified. During cooldown, manual local lookups stay
-available and failed-question retries wait. See [quota result and handoff](docs/deployment/phase13/quota-exhaustion.md),
-[model qualification and limits](docs/deployment/phase13/model-selection.md)
-and [applied repository ideas](docs/deployment/phase13/repo-application-review.md).
-The historical `product_llm.yaml` stays unchanged for explicit evaluation;
-explicit environment/.env profile choices continue to take priority.
-
-Questions about an uploaded PDF such as “tài liệu có mấy trang” are answered directly
-from PDF metadata. Natural follow-ups keep their topic; a complete new question
-starts a new topic. Section summaries retain more relevant source context, and
-the active Free profile resolves model-selected citation IDs to original source
-pages/quotes. See [natural conversation checks and fixes](docs/deployment/phase13/natural-conversation.md).
-
-The local MVP is single-user. Set `CAMPUSAI_LLM_CONFIG` to select a different
-existing provider configuration. Without credentials, the launcher shows setup
-instructions. The advanced `scripts.operations.serve` transport still requires
-explicit environment settings; it does not auto-load credentials. Real
-embedding uploads need the optional `feasibility` dependencies and the model
-available locally. The app uses `CAMPUSAI_STORE_DIR` / `CAMPUSAI_INDEX_DIR` for runtime
-storage. An evaluation calibration is no longer selected implicitly for user
-uploads; set `CAMPUSAI_RETRIEVAL_CALIBRATION` only to a calibration matching your
-runtime corpus. Explicit calibration fingerprint checks remain enforced.
-
-See [UI architecture, API mapping and acceptance](docs/ui/phase12-ui.md) for
-screenshots, offline test results, clean setup and browser test commands.
-Local release acceptance still requires source-bound quality, provider,
-installation and recovery evidence; R-01/R-02 remain open in [plan.md](plan.md#phase-14).
-
-The default PDF path uses PyMuPDF and a SHA-256 cache. Docling is an optional
-layout/table review tool. Scan-only PDFs require explicit bounded OCR; otherwise
-ingestion returns a review-required status. Normal hybrid queries avoid loading
-the cross-encoder. The optional reranker is enabled explicitly for hard queries.
-
-## Evaluation and release commands
-
-Use `python -m package.module` for consistent imports on Windows and Unix.
-The Makefile selects the virtual environment's Python for the current platform.
-
-| Task | Make target | Python module |
-| --- | --- | --- |
-| Offline tests | `make test` | `pytest -q` |
-| Grounding fixture diagnostics | `make grounding-eval` | `evaluation.grounding.run_grounding_eval` (gold-derived; not release evidence) |
-| Grounding report validation | `make release-validate` | `evaluation.grounding.validate_grounding_release` |
-| Grounding package validation | `make grounding-package-validate` | `scripts.release.package_grounding_release` |
-| Hybrid benchmark construction | `make hybrid-benchmark` | `scripts.benchmarks.build_hybrid_benchmark` |
-| Corpus index construction | `make hybrid-index` | `scripts.retrieval.build_corpus_index` |
-| Hybrid confidence calibration | `make hybrid-calibrate` | `evaluation.retrieval.calibrate_hybrid_confidence` |
-| Hybrid quality evaluation | `make hybrid-evaluate` | `evaluation.retrieval.evaluate_hybrid_release` |
-| Hybrid release validation | `make hybrid-validate` | `evaluation.retrieval.validate_hybrid_release` |
-| Student query dataset | `make student-natural-benchmark` | `evaluation.benchmarks.build_student_natural_benchmark` |
-| Reranker release stages | `make reranker-<stage>` | `evaluation.reranker.release_workflow <stage>` |
-
-Phase 5 native inference, benchmark repair and independent-review requirements:
-[current audit and handoff](docs/grounding/phase5_completion.md),
-[operations workflow](docs/operations/grounding_operations.md).
-
-Reranker stages are `baseline`, `human-freeze`, `candidate`, `model`, `route`,
-`calibration`, `quality`, `performance`, `security`, `faults`, `rollback`,
-`staging`, `staging-collect`, `validate`, and `release`. Pass extra options with
-`RERANKER_ARGS`. The workflow enforces prerequisites and evidence bindings.
-
-For hybrid CPU measurements, set `OMP_NUM_THREADS=1` and `MKL_NUM_THREADS=1`
-before running `make hybrid-operations`.
-
-## Documentation
-
-- [Product roadmap](plan.md) and [release hardening plan](docs/planning/release_hardening_plan.md)
-- [Provider acceptance](docs/llm/provider_acceptance.md)
-- [Ingestion release](docs/ingestion/ingestion_release.md) and [PDF feasibility](docs/ingestion/pdf_pipeline_feasibility.md)
-- [Grounding contract](docs/architecture/grounding_contract.md) and [production reproducibility](docs/grounding/production_reproducibility.md)
-- [Hybrid retrieval release](docs/retrieval/hybrid_release.md) and [hybrid operations](docs/operations/hybrid_operations.md)
-- [Reranker release runbook](docs/reranker/reranker_release_runbook.md) and [release plan](docs/reranker/release_plan.md)
-- [Data governance](docs/operations/data_governance.md)
-
-Checked-in reports retain their original measurements, hashes and release IDs.
-Source-bound release fingerprints must be regenerated after this restructuring
-from a clean, reviewed commit. The historical manifests cannot certify the
-current source tree. See [artifact rules](docs/contributing.md#evaluation-evidence).
+Benchmark, bộ kiểm thử, log, ảnh nghiệm thu, archive và môi trường thử nghiệm
+cũ đã được bỏ khỏi cây dự án theo yêu cầu ngày 31/10/2026. File đã commit vẫn
+có lịch sử Git; đầu ra local đã xóa không được cam kết khôi phục. Đọc
+[báo cáo tổng quan](docs/PROJECT_OVERVIEW.md) và [roadmap](plan.md) trước khi
+coi số liệu lịch sử là nghiệm thu bản hiện tại.

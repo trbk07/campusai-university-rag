@@ -1,9 +1,0 @@
-{
-  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12",
-  "source_cycle": "evaluation\\results\\phase7-source-decoding-20261003-r13",
-  "heldout_reused_unchanged": true,
-  "new_heldout_claim": false,
-  "benchmark_changed": false,
-  "dataset_sha256": "c146996dc514fe4fa0c6d4c27967a9678193a4c7278f9e39b83c6249d05327b2",
-  "reason": "decode source table cells; distinguish credit shorthand from information; preserve metadata-linked candidate context while final exact lookup requires actual source code"
-}

@@ -1,8 +1,0 @@
-{
-  "gates": true,
-  "supplemental_gates": true,
-  "errors": true,
-  "artifact_sha256": true,
-  "status": true,
-  "score": true
-}

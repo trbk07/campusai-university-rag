@@ -1,7 +1,0 @@
-{
-  "benchmark_dir": "data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8",
-  "source_cycle": "evaluation/results/phase7-owner-20261003-r8",
-  "benchmark_reused_unchanged": true,
-  "new_heldout_claim": false,
-  "reason": "candidate generation repaired using historical human dev only; original M2 failure preserved"
-}

@@ -1,6 +1,7 @@
 """Resolve institution references from source headers, not a school/answer list."""
 import re
 import unicodedata
+from dataclasses import dataclass
 
 
 def folded(text):
@@ -9,6 +10,27 @@ def folded(text):
 
 
 _GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung'.split())
+_ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl'}
+_CONTEXT = '\nContext topic (untrusted user input): '
+
+
+def _institution_groups(documents):
+    """Group repeated files, without merging different schools under a parent."""
+    profiles={d['doc_id']:institution_headers(d.get('items',[])) for d in documents}
+    keys={}
+    for ident,names in profiles.items():
+        compact={name.replace(' ','') for name in names}
+        primary={name for name in compact if name.startswith('truong')}
+        primary=primary or {name for name in compact if re.match(r'^(?:daihoc|dh|hocvien)',name)} or compact
+        keys[ident]={re.sub(r'^(?:truong)?(?:daihoc|dh)','daihoc',name) for name in primary}
+    parents={ident:ident for ident in profiles}
+    def root(ident):
+        while parents[ident]!=ident:ident=parents[ident]
+        return ident
+    for i,ident in enumerate(profiles):
+        for other in list(profiles)[:i]:
+            if keys[ident]&keys[other]:parents[root(ident)]=root(other)
+    return profiles,{ident:root(ident) for ident in profiles}
 
 
 def institution_headers(items):
@@ -31,13 +53,11 @@ def institution_headers(items):
     return names
 
 
-def requested_institution_documents(question, documents):
-    # The current request may replace the previous school in a follow-up.
-    raw = question.split('\nContext topic (untrusted user input): ', 1)[0]
+def _references(raw, documents):
     words = folded(raw).split()
     pairs = {a+b for a,b in zip(words,words[1:]) if not (a in _GENERIC and b in _GENERIC)
              and a.isalpha() and b.isalpha() and len(a+b) >= 5}
-    query_words = {w for w in words if w not in _GENERIC and len(w) >= 2}
+    query_words = {w for w in words if w not in _GENERIC|_ACADEMIC and len(w) >= 2}
     matches = {}
     for doc in documents:
         names = institution_headers(doc.get('items', []))
@@ -52,24 +72,183 @@ def requested_institution_documents(question, documents):
                 aliases.update(''.join(w[0] for w in terms[i:i+n]) for i in range(len(terms)-n+1))
         for reference in {pair for pair in pairs if any(pair in name for name in compact_names)} | (query_words & aliases):
             matches.setdefault(reference, set()).add(doc['doc_id'])
-    # A shared city name cannot override a more specific institution name.
-    # Comparisons retain every independently identified institution.
-    unique = set().union(*(ids for ids in matches.values() if len(ids) == 1)) if matches else set()
+    return matches
+
+
+def _unmatched_name(raw, documents):
+    # A new named school must not silently inherit the previous school.
+    for part in re.split(r'\b(?:va|voi|and|versus|vs)\b|[,;]',folded(raw)):
+        # Quantified common nouns ("all schools require ...") are not names.
+        # Remove only that noun phrase; a separately named unknown school
+        # in the same comparison must still trigger confirmation.
+        part = re.sub(r'\b(?:tat ca(?: cac)?|cac|moi|hai|ba|\d+)\s+truong\b', ' ', part)
+        named=re.search(r'\b(?:truong(?: dai hoc)?|dai hoc|dh|university|college|institute)\s+(\w+)',part)
+        if (named and named[1] not in _GENERIC|{'do','khac','chinh','dao','vua','tu','thac','tien'}
+                and not _references(part,documents)):
+            return True
+    acronyms=set(re.findall(r'\b[A-Z]{2,12}\b',raw))
+    unknown={a for a in acronyms if a.casefold() not in _ACADEMIC and not _references(a,documents)}
+    return bool(unknown and _institution_dependent(raw,documents) and (raw.strip() in unknown or re.match(
+        r'^(?:con|the|vay|o|tai|what about|at)\b',folded(raw))))
+
+
+def requested_institution_documents(question, documents):
+    # A shared city name cannot override a specific school. Multiple files
+    # of one school count as one institution, not an ambiguous abbreviation.
+    raw = question.split(_CONTEXT, 1)[0]
+    matches=_references(raw,documents)
+    _,groups=_institution_groups(documents)
+    unique = set().union(*(ids for ids in matches.values() if len({groups[i] for i in ids}) == 1)) if matches else set()
     matched = unique or (set().union(*matches.values()) if matches else set())
-    if not matched and '\nContext topic (untrusted user input): ' in question:
-        # A subject-less follow-up inherits its user's topic; a newly named
-        # institution must not silently inherit the previous institution.
-        explicit_new = (re.search(r'\b(?:dai hoc|truong|university|college|institute)\b',folded(raw))
-                        or re.search(r'\b[A-Z]{2,12}\b',raw))
-        if not explicit_new:
-            return requested_institution_documents(question.split('\nContext topic (untrusted user input): ',1)[1],documents)
+    if not matched and _CONTEXT in question and not _unmatched_name(raw,documents):
+        return requested_institution_documents(question.split(_CONTEXT,1)[1],documents)
     return matched
 
 
-def needs_institution_clarification(question, documents):
+def needs_institution_clarification(question, documents, *, strict=True):
+    if strict:return resolve_institution_request(question,documents).needs_clarification
     value=folded(question.split('\nContext topic (untrusted user input): ',1)[0])
     if not re.search(r'\b(?:truong (?:cua )?(?:em|minh|toi|t)|my (?:university|college|school))\b',value):
         return False
     known=[institution_headers(d.get('items',[])) for d in documents]
     known=[names for names in known if names]
     return len(known)>1 and not set.intersection(*known)
+
+
+@dataclass(frozen=True)
+class InstitutionRequest:
+    question: str
+    doc_ids: frozenset[str]=frozenset()
+    needs_clarification: bool=False
+    unknown_name: bool=False
+
+    def clarification(self,language='vi'):
+        if self.unknown_name:
+            return ('Mình chưa xác định được trường đó trong các PDF đang chọn. Bạn xác minh tên trường hoặc chọn đúng PDF giúp mình.'
+                if language=='vi' else 'I cannot identify that institution in the selected PDFs. Please confirm its name or select the matching PDF.')
+        return ('Bạn muốn hỏi trường nào? Các PDF đang chọn có thể thuộc nhiều trường. Hãy nêu tên/viết tắt của trường hoặc chọn đúng PDF.'
+            if language=='vi' else 'Which institution do you mean? Please give its name or abbreviation, or select its PDF.')
+
+
+def _multi_source_request(raw):
+    value=folded(raw)
+    return bool(re.search(r'\b(?:cac truong|moi truong|hai truong|ba truong|(?:tat ca(?: cac)?|ca (?:hai|ba|\d+)) (?:truong|tai lieu|nguon|pdf)|all (?:schools|institutions|sources|documents)|both (?:schools|institutions|sources|documents))\b',value)
+        or re.search(r'\b(?:tom tat|tong hop|summari[sz]e|overview)\b',value)
+        and re.search(r'\b(?:tai lieu|nguon|pdf|documents|sources)\b',value))
+
+
+def _institution_dependent(question,documents):
+    """Affiliation in a book/paper is not an instruction to ask for a school.
+
+    Require an institutional rule question and source evidence of academic
+    administration. Other PDF subjects retain ordinary content retrieval.
+    """
+    value=folded(question)
+    if re.search(r'\b(?:truong (?:cua )?(?:em|minh|toi|t)|my (?:school|university|college))\b',value):return True
+    administrative=False
+    for doc in documents:
+        for item in doc.get('items',[]):
+            kind=folded(str(item.get('metadata',{}).get('document_type','')))
+            if kind in {'regulation','admission','curriculum','handbook','academic calendar'}:
+                administrative=True;break
+            if item.get('page',999)<=5:
+                from .tokenizer_vi import source_body
+                if re.search(r'\b(?:quy che dao tao|quy dinh tuyen sinh|student handbook|academic regulations|academic calendar)\b',folded(source_body(item))):
+                    administrative=True;break
+        if administrative:break
+    return administrative and bool(re.search(
+        r'\b(?:quy che|quy dinh|tin chi|tc|gpa|cpa|hoc phi|le phi|hoc bong|tot nghiep|khoa luan|'
+        r'phuc khao|phuc tra|hoan thi|thi lai|thi cuoi|ky thi|hoc ky|hoc ki|ky chinh|ky he|'
+        r'dang k[yi]|hoc lai|hoc cai thien|hoc truoc|tien quyet|canh bao|tuyen sinh|nhap hoc|'
+        r'diem chu|quy doi diem|thoi gian hoc|tuan hoc|'
+        r'credits?|tuition|scholarship|graduation|admission|register|registration|prerequisite|exam|semester)\b|'
+        r'\b(?:\d+(?:[.,]\d+)?|may|bao nhieu)\s+(?:tin|diem)\b|\bdiem\s+[a-f][+-]?(?!\w)',value)
+        or re.search(r'\bthi\b',question,re.I))
+
+
+def _scope_decision(question,documents):
+    raw,separator,topic=question.partition(_CONTEXT)
+    profiles,groups=_institution_groups(documents)
+    refs=_references(raw,documents)
+    if _unmatched_name(raw,documents) and any(profiles.values()):
+        return InstitutionRequest(question,needs_clarification=True,unknown_name=True)
+    if not refs and separator:
+        inherited=_scope_decision(topic,documents)
+        if inherited.doc_ids or inherited.unknown_name:
+            return InstitutionRequest(question,inherited.doc_ids,inherited.needs_clarification,inherited.unknown_name)
+    matched=requested_institution_documents(raw,documents)
+    all_sources=_multi_source_request(raw)
+    if matched:
+        chosen_groups={groups[i] for i in matched}
+        precise={groups[next(iter(ids))] for ids in refs.values() if len({groups[i] for i in ids})==1}
+        unresolved=any(len({groups[i] for i in ids})>1 and not {groups[i] for i in ids}&precise for ids in refs.values())
+        listed=bool(re.search(r'\b(?:va|voi|and|vs|versus|so sanh|compare|khac nhau|giong nhau)\b|[,;]',folded(raw)))
+        ambiguous=(unresolved or len(chosen_groups)>1 and not (len(precise)>1 and listed)) and not all_sources
+        return InstitutionRequest(question,frozenset(matched),ambiguous)
+    # No identified institution in ordinary textbooks is not evidence that
+    # they come from different schools. Unknown files remain separate when
+    # other selected PDFs do establish institution-specific scopes.
+    ambiguous=bool(any(profiles.values()) and len(set(groups.values()))>1 and not all_sources
+                   and _institution_dependent(raw,documents))
+    return InstitutionRequest(question,needs_clarification=ambiguous)
+
+
+def _school_clarification(text):
+    return bool(re.search(r'\b(?:truong nao|xac minh ten truong|which institution|confirm its name)\b',folded(text)))
+
+
+def _reference_only(raw,documents):
+    refs=_references(raw,documents)
+    if not refs:return False
+    words=folded(raw).split();covered=set()
+    for i,word in enumerate(words):
+        if word in refs:covered.add(i)
+        if i+1<len(words) and word+words[i+1] in refs:covered.update((i,i+1))
+    extras={word for i,word in enumerate(words) if i not in covered}-_GENERIC-set('hoi ve dung roi nhe a ah yes please do con the vay'.split())
+    return not extras
+
+
+def resolve_institution_request(question,documents,history=()):
+    """Resolve source intent from user input; never use a model answer as fact."""
+    turns=[(turn['role'],turn['content']) if isinstance(turn,dict) else turn for turn in history]
+    raw=question.partition(_CONTEXT)[0]
+    if not _references(raw,documents) and re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+        return InstitutionRequest(question,needs_clarification=True)
+    if turns:
+        if _reference_only(raw,documents):
+            # A school-only reply is a source choice, not a new subject.
+            # Skip earlier choices too, so successive school switches retain
+            # the user's substantive question rather than the last acronym.
+            pending=next((text for role,text in reversed(turns) if role=='user'
+                          and not _reference_only(text.partition(_CONTEXT)[0],documents)),None)
+            confirmed=_scope_decision(raw,documents)
+            if pending and confirmed.doc_ids and not confirmed.needs_clarification:
+                # Keep a complete pending question as the main request so
+                # ordinary content/structured retrieval still sees its intent.
+                prior=pending.partition(_CONTEXT)[0]
+                effective=(raw+_CONTEXT+pending if _references(prior,documents)
+                           or _unmatched_name(prior,documents) else pending)
+                return InstitutionRequest(effective,confirmed.doc_ids)
+            if pending:question=raw+_CONTEXT+pending
+        elif turns[-1][0]=='assistant' and _school_clarification(turns[-1][1]):
+            words=re.findall(r'[^\W\d_]+',raw)
+            if words and len(words)<=5 and all(word[0].isupper() for word in words):
+                return InstitutionRequest(question,needs_clarification=True,unknown_name=True)
+    decision=_scope_decision(question,documents)
+    if decision.doc_ids or decision.unknown_name or _multi_source_request(raw):return decision
+    if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+        return InstitutionRequest(question,needs_clarification=True)
+    if not _institution_dependent(question,documents):return decision
+    # An explicit user school remains usable for a new subject in the same
+    # bounded conversation. A clarification or comparison is a scope boundary.
+    for role,text in reversed(turns):
+        if role=='assistant' and _school_clarification(text):break
+        if role!='user':continue
+        previous=_scope_decision(text,documents)
+        if previous.unknown_name:break
+        if previous.doc_ids:
+            _,groups=_institution_groups(documents)
+            if not previous.needs_clarification and len({groups[i] for i in previous.doc_ids})==1:
+                return InstitutionRequest(question,previous.doc_ids)
+            break
+    return decision

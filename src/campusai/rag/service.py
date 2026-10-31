@@ -97,6 +97,7 @@ class CampusAIQueryService:
         cache_namespace: str | None = None,
         context_candidates: int | None = None,
         document_scope_reader=None,
+        confirm_institution_scope: bool = False,
     ) -> None:
         self.retriever = retriever
         self.answer_generator = answer_generator
@@ -104,6 +105,9 @@ class CampusAIQueryService:
         self.cache_namespace = cache_namespace
         self.context_candidates = context_candidates
         self.document_scope_reader = document_scope_reader
+        if type(confirm_institution_scope) is not bool:
+            raise ValueError('confirm_institution_scope must be boolean')
+        self.confirm_institution_scope = confirm_institution_scope
         self._request_local = local()
         self._corpus_identity_lock = RLock()
         self._corpus_file_hashes = OrderedDict()
@@ -116,6 +120,15 @@ class CampusAIQueryService:
         self.temporal_clock = temporal_clock or (lambda: datetime.now(ZoneInfo(temporal_timezone)).date())
         self._temporal_index_cache = OrderedDict()
         self.relation_index = relation_index
+
+    def _institution_request(self, question, documents, history):
+        from ..retrieval.institution_scope import (InstitutionRequest, resolve_institution_request,
+            requested_institution_documents, needs_institution_clarification)
+        if self.confirm_institution_scope:
+            return resolve_institution_request(question,documents,history)
+        matched=requested_institution_documents(question,documents)
+        return InstitutionRequest(question,frozenset(matched),not matched and
+            needs_institution_clarification(question,documents,strict=False))
 
     def _calibration_cache_identity(self):
         from .calibration import calibration_payload_sha256
@@ -288,15 +301,15 @@ class CampusAIQueryService:
             return []
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
-        from ..retrieval.institution_scope import requested_institution_documents, needs_institution_clarification
-        institutions = requested_institution_documents(question, temporal_docs)
-        if institutions:
-            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institutions]
-            doc_ids = sorted(institutions)
-        elif needs_institution_clarification(question, temporal_docs):
+        institution = self._institution_request(question,temporal_docs,resolved.history)
+        if institution.needs_clarification:
             self.retriever.last_trace = RoutingTrace(route='abstain', abstained=True,
                 abstention_reason='ambiguous_question')
             return []
+        question=institution.question
+        if institution.doc_ids:
+            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institution.doc_ids]
+            doc_ids = sorted(institution.doc_ids)
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
                                                source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
@@ -438,15 +451,18 @@ class CampusAIQueryService:
                                   reason="ambiguous_question", evidence_status="ambiguous")
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
-        from ..retrieval.institution_scope import requested_institution_documents, needs_institution_clarification
-        institutions = requested_institution_documents(question, temporal_docs)
-        if institutions:
-            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institutions]
-            doc_ids = sorted(institutions)
-        elif needs_institution_clarification(question, temporal_docs):
-            return GroundedAnswer('Bạn đang hỏi quy định của trường nào? Hãy cho biết tên trường hoặc chọn tài liệu của trường đó.'
-                if language == 'vi' else 'Which institution do you mean? Specify its name or select its document.',
+        institution = self._institution_request(question,temporal_docs,resolved.history)
+        if institution.needs_clarification:
+            self.retriever.last_trace = RoutingTrace(route='abstain',abstained=True,abstention_reason='ambiguous_question')
+            return GroundedAnswer(institution.clarification(language),
                 (), 'low', True, reason='ambiguous_question', evidence_status='ambiguous')
+        question=institution.question
+        if institution.doc_ids:
+            temporal_docs = [d for d in temporal_docs if d['doc_id'] in institution.doc_ids]
+            doc_ids = sorted(institution.doc_ids)
+        cache_context=resolved.cache_context()
+        if self.confirm_institution_scope:
+            cache_context={**cache_context,'institution_scope':'confirmed-v1','institution_question':question}
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
                                                source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
@@ -467,7 +483,7 @@ class CampusAIQueryService:
                 raise ValueError('unsupported retrieval mode')
             related = self._ask_relation_if_supported(question, doc_ids, filters, top_k,
                 selected_mode, language, corpus_version, [d for d in temporal_docs
-                    if doc_ids is None or d['doc_id'] in doc_ids], resolved.cache_context())
+                    if doc_ids is None or d['doc_id'] in doc_ids], cache_context)
             if related is not None:
                 return related
         composition = plan_request(question, [d for d in temporal_docs
@@ -527,7 +543,7 @@ class CampusAIQueryService:
             model=getattr(self.answer_generator.llm, "model", None) or getattr(self.answer_generator.llm, "model_name", None),
             context_budget=budget,
             calibration_artifact_sha256=self._calibration_cache_identity(),
-            request_context=resolved.cache_context(),
+            request_context=cache_context,
         )
         with self.metrics.observe("rag.ask"):
             return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)

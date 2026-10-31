@@ -92,6 +92,7 @@ def build_application():
             repair_invalid_answers=rag.get('repair_invalid_answers', False), calibrator=answer_calibrator),
             cache=answer_cache, cache_namespace=namespace,
             context_candidates=rag.get('context_candidates'),
+            confirm_institution_scope=True,
             document_scope_reader=RegisteredDocumentScopeReader(store_dir,
                 allow_pdf_scope=getattr(llm, 'allow_pdf_scope', False)),
             default_mode=None if active else "auto", canary=CanaryController() if active else None)

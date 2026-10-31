@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="3" time="0.736" timestamp="2026-10-25T16:44:37.486815+07:00" hostname="Bao_Kien"><testcase classname="tests.test_ocr_job_cancellation" name="test_cancelling_active_ocr_does_not_recognize_remaining_pages" time="0.222" /><testcase classname="tests.test_ocr_job_cancellation" name="test_ocr_exposes_page_progress_and_never_moves_progress_backwards[False]" time="0.148" /><testcase classname="tests.test_ocr_job_cancellation" name="test_ocr_exposes_page_progress_and_never_moves_progress_backwards[True]" time="0.132"><failure message="AssertionError: Later metadata stages must not reset completed OCR progress&#10;assert [0.05, 0.08, ...67, 0.45, ...] == [0.05, 0.08, ...67, 0.45, ...]&#10;  &#10;  At index 16 diff: 1 != 0.9&#10;  Use -v to get more diff">tests\test_ocr_job_cancellation.py:83: in test_ocr_exposes_page_progress_and_never_moves_progress_backwards
-    assert values==sorted(values),'Later metadata stages must not reset completed OCR progress'
-E   AssertionError: Later metadata stages must not reset completed OCR progress
-E   assert [0.05, 0.08, ...67, 0.45, ...] == [0.05, 0.08, ...67, 0.45, ...]
-E     
-E     At index 16 diff: 1 != 0.9
-E     Use -v to get more diff</failure></testcase></testsuite></testsuites>

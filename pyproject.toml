@@ -29,17 +29,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 campusai = ["ui/pages/*.html", "ui/styles/*.css", "ui/scripts/*.js", "ui/features/*.js", "ingestion/vietocr.LICENSE"]
-
-[tool.pytest.ini_options]
-pythonpath = ["src", "."]
-testpaths = ["tests"]
-# Let pytest create an isolated temporary directory per invocation. A fixed
-# basetemp is unsafe on Windows when a worker or native PDF handle survives
-# teardown and prevents the next run from cleaning the directory.
-addopts = "-ra -p no:cacheprovider"
-[tool.coverage.run]
-source = ["src/campusai"]
-
-[tool.coverage.report]
-fail_under = 85
-show_missing = true

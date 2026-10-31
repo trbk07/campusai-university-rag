@@ -1,94 +1,16 @@
-# Keep the new portable benchmark and its checksums identical on Windows/Linux.
-/data/benchmark/student_natural_queries.spec text eol=lf
-/data/benchmark/student_natural_queries.jsonl text eol=lf
-/data/benchmark/student_natural_queries.manifest.json text eol=lf
-
-# Hash-bound owner evidence must retain its exact physical bytes on checkout.
-/data/benchmark/human_retrieval*.jsonl -text
-/data/benchmark/owner_confirmed_inputs/** -text
-/data/benchmark/phase7_owner_confirmation.json -text
-/data/benchmark/phase7_review_policy.json -text
-/data/benchmark/phase7_exposure_registry.json -text
-/data/benchmark/phase7_review_cycles/phase7-owner-20261003-r8/** -text
-/evaluation/results/phase7-owner-20261003-r8/** -text
-/evaluation/results/phase7_code_verification_20261003_r8.json -text
-/evaluation/results/phase7-candidate-20261003-r9/** -text
-/evaluation/results/phase7_code_verification_20261003_r9.json -text
-/data/benchmark/phase7_review_cycles/phase7-dev-metadata-20261003-r10/** -text
-/evaluation/results/phase7-dev-metadata-20261003-r10/** -text
-/evaluation/results/phase7_code_verification_20261003_r10.json -text
-/evaluation/results/phase7-source-routing-task-20261003-r11/** -text
-/evaluation/results/phase7-dev-extension-20261003-r12/** -text
-/data/benchmark/phase7_review_cycles/phase7-dev-extension-20261003-r12/** -text
-/evaluation/results/phase7-source-decoding-20261003-r13/** -text
-/evaluation/results/phase7-source-context-20261003-r14/** -text
-# CRLF is part of archived Windows evidence, not trailing content whitespace.
-/data/benchmark/** whitespace=cr-at-eol
-/evaluation/results/** whitespace=cr-at-eol
-/evaluation/results/phase7-completion-20261004/** -text
-/data/corpus/phase7_source_expansion/** -text
-
-# Publish every hash-bound benchmark/corpus/evidence file without EOL conversion.
-# Existing frozen bindings refer to the exact working bytes, including CRLF.
-/data/benchmark/** -text
-/data/corpus/** -text
-/evaluation/results/** -text
-
-# Phase 8 frozen benchmark/review packets also bind exact physical bytes.
-/evaluation/phase8/*.jsonl -text
-/evaluation/phase8/*.md -text
-/evaluation/phase8/** whitespace=cr-at-eol
-
-# Phase 7 Chat collection manifest binds exact upload packet bytes.
-/evaluation/phase7/chat-quality-20261013/manifest.json -text
-# The frozen collection manifest contains historical CR-CR-LF; do not rewrite its hash.
-/evaluation/phase7/chat-quality-20261013/manifest.json whitespace=-blank-at-eol
-
-# Frozen temporal/composition inputs and bound handoffs retain exact bytes.
-/evaluation/phase9/*.json -text
-/evaluation/phase9/*.jsonl -text
-/evaluation/phase9/*.md -text
-/evaluation/phase10/*.json -text
-/evaluation/phase10/*.jsonl -text
-/evaluation/phase10/*.md -text
-/docs/phase*_*.md -text
+# Preserve runtime source and pinned configuration bytes on checkout.
 /plan.md -text
-/evaluation/phase9/** whitespace=cr-at-eol
-/evaluation/phase10/** whitespace=cr-at-eol
-/docs/phase*_*.md whitespace=cr-at-eol
 /plan.md whitespace=cr-at-eol
-
-# Freeze the source-owned relation benchmark and exact runtime bytes for audit.
-/evaluation/phase11/*.json -text
-/evaluation/phase11/*.jsonl -text
-/evaluation/phase11/*.py -text
-/evaluation/phase11/** whitespace=cr-at-eol
 /src/campusai/rag/relation_index.py -text
 /src/campusai/rag/relations.py -text
-/tests/test_relation_index.py -text
-/tests/test_relation_application.py -text
-
-# Preserve physical hashes in the hybrid-PDF QA receipts on every checkout.
-/docs/ui/evidence/hybrid-* -text whitespace=cr-at-eol
-/docs/ui/evidence/hybrid-*/** -text whitespace=cr-at-eol
-
-# Keep natural-query inference captures and their producing source byte-exact.
-/evaluation/results/full-app-natural-20261026/** -text whitespace=cr-at-eol
 /src/campusai/rag/source_windows.py -text
-/tests/test_source_windows.py -text
 /src/campusai/rag/course_lookup.py -text
 /src/campusai/rag/multi_hop_evidence.py -text
 /src/campusai/rag/cache.py -text
 /src/campusai/rag/grounding.py text eol=crlf whitespace=cr-at-eol
-/tests/test_course_lookup.py -text whitespace=cr-at-eol
 /src/campusai/rag/semester_totals.py -text whitespace=cr-at-eol
-/tests/test_semester_totals.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/table_extractor.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/chunker.py -text whitespace=cr-at-eol
-/tests/test_unruled_credit_table.py -text whitespace=cr-at-eol
-/tests/test_course_table_scope.py -text whitespace=cr-at-eol
-
-# Preserve streaming transport, measurement and regression producer bytes.
 /src/campusai/llm/client.py -text whitespace=cr-at-eol
 /src/campusai/llm/streaming.py -text whitespace=cr-at-eol
 /src/campusai/web_streaming.py -text whitespace=cr-at-eol
@@ -98,19 +20,6 @@
 /src/campusai/ui/scripts/shared.js -text whitespace=cr-at-eol
 /scripts/operations/local.py -text whitespace=cr-at-eol
 /scripts/operations/serve.py -text whitespace=cr-at-eol
-/scripts/operations/benchmark_query_streaming.py -text whitespace=cr-at-eol
-/tests/test_gemini_streaming.py -text whitespace=cr-at-eol
-/tests/test_query_streaming_benchmark.py -text whitespace=cr-at-eol
-/tests/test_web_streaming.py -text whitespace=cr-at-eol
-/tests/test_web_documents.py -text whitespace=cr-at-eol
-/tests/test_local_launcher.py -text whitespace=cr-at-eol
-/tests/ui/query_stream.cjs -text whitespace=cr-at-eol
-/tests/ui/browser_smoke.cjs -text whitespace=cr-at-eol
-/tests/ui/serve_fixture.py -text whitespace=cr-at-eol
-/tests/ui/package.json -text whitespace=cr-at-eol
-/docs/ui/evidence/query-streaming-20261028.json -text whitespace=cr-at-eol
-
-# Preserve pinned local OCR producer and evidence bytes.
 /src/campusai/ingestion/ocr.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/ocr_assets.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/tesseract_process.py -text whitespace=cr-at-eol
@@ -118,107 +27,38 @@
 /src/campusai/ingestion/vietocr_worker.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/vietocr.LICENSE -text whitespace=cr-at-eol
 /scripts/operations/setup_vietocr.py -text whitespace=cr-at-eol
-/tests/test_vietocr.py -text whitespace=cr-at-eol
-/docs/ui/evidence/vietnamese-ocr-20261028.json -text whitespace=cr-at-eol
-
-# Preserve the exact local HTTP recovery/security producer and evidence bytes.
 /src/campusai/web.py -text whitespace=cr-at-eol
 /src/campusai/deployment/local_server.py -text whitespace=cr-at-eol
-/tests/test_web.py -text whitespace=cr-at-eol
-/tests/deployment/test_local_transport_capacity.py -text whitespace=cr-at-eol
-/docs/ui/evidence/request-safety-recovery-20261027.json -text whitespace=cr-at-eol
-/docs/ui/evidence/raster-table-ocr-diagnostic-20261027.json -text whitespace=cr-at-eol
-/tests/deployment/test_provider_recovery.py text eol=crlf whitespace=cr-at-eol
 /src/campusai/rag/claims.py -text whitespace=cr-at-eol
 /src/campusai/rag/source_citations.py -text whitespace=cr-at-eol
 /src/campusai/rag/semester_citations.py -text whitespace=cr-at-eol
 /src/campusai/rag/presentation.py text eol=crlf whitespace=cr-at-eol
-/tests/test_semester_citations.py -text whitespace=cr-at-eol
 /src/campusai/rag/temporal.py text eol=crlf whitespace=cr-at-eol
 /src/campusai/rag/service.py text eol=crlf whitespace=cr-at-eol
-/tests/test_temporal_resolver.py text eol=crlf whitespace=cr-at-eol
-/tests/test_temporal_application.py text eol=crlf whitespace=cr-at-eol
 /src/campusai/rag/curriculum_lookup.py -text whitespace=cr-at-eol
-/tests/test_curriculum_lookup.py -text whitespace=cr-at-eol
-/evaluation/grounding/scoped_checkpoint.py -text whitespace=cr-at-eol
-/tests/test_scoped_checkpoint.py -text whitespace=cr-at-eol
 /src/campusai/rag/notice_dates.py -text whitespace=cr-at-eol
 /src/campusai/rag/award_conditions.py -text whitespace=cr-at-eol
-/tests/test_notice_dates.py -text whitespace=cr-at-eol
-/tests/test_award_conditions.py -text whitespace=cr-at-eol
 /src/campusai/rag/course_schedule.py -text whitespace=cr-at-eol
-/tests/test_course_schedule.py -text whitespace=cr-at-eol
-/evaluation/grounding/natural_context.py -text whitespace=cr-at-eol
-/tests/test_natural_context_quality.py -text whitespace=cr-at-eol
-/tests/test_artifact_store.py -text whitespace=cr-at-eol
-/evaluation/grounding/natural_accuracy.py -text whitespace=cr-at-eol
-/tests/test_natural_accuracy.py -text whitespace=cr-at-eol
-/evaluation/grounding/natural_quality.py -text whitespace=cr-at-eol
-/tests/test_natural_quality.py -text whitespace=cr-at-eol
 /pyproject.toml -text whitespace=cr-at-eol
 /uv.lock -text whitespace=cr-at-eol
 /src/campusai/ingestion/docling_parser.py -text whitespace=cr-at-eol
-/src/campusai/ingestion/table_extractor.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/pipeline.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/background/state.py -text whitespace=cr-at-eol
 /src/campusai/rag/document_scope.py -text whitespace=cr-at-eol
 /src/campusai/web_documents.py -text whitespace=cr-at-eol
-/tests/test_pdf_visibility.py -text whitespace=cr-at-eol
-/tests/test_hybrid_pdf.py -text whitespace=cr-at-eol
-/tests/test_job_identity_migration.py -text whitespace=cr-at-eol
-/scripts/operations/benchmark_pdf_readiness.py -text whitespace=cr-at-eol
-/scripts/operations/benchmark_native_readiness.py -text whitespace=cr-at-eol
-/tests/test_pdf_readiness_benchmark.py -text whitespace=cr-at-eol
-/tests/test_parallel_table_extraction.py -text whitespace=cr-at-eol
-/tests/test_course_table_scope.py -text whitespace=cr-at-eol
 /src/campusai/ingestion/ocr_tables.py -text whitespace=cr-at-eol
-/tests/test_ocr_tables.py -text whitespace=cr-at-eol
-/docs/ui/evidence/ocr-table-grounding-20261028.json -text whitespace=cr-at-eol
-
-# Keep measured PDF-quality producer and receipt bytes stable.
-/evaluation/pdf_text_quality.py -text whitespace=cr-at-eol
-/tests/test_pdf_text_quality.py -text whitespace=cr-at-eol
-/tests/test_pdf_native_mapping.py -text whitespace=cr-at-eol
-/docs/ui/evidence/pdf-text-quality-20261028.json -text whitespace=cr-at-eol
-
-# Preserve independent-project routing producer and receipt bytes.
+/configs/local/** -text whitespace=cr-at-eol
+/scripts/operations/encoder_assets.py -text whitespace=cr-at-eol
+/scripts/operations/setup_encoder.py -text whitespace=cr-at-eol
+/scripts/operations/local_state.py -text whitespace=cr-at-eol
+/scripts/release/package_local.py -text whitespace=cr-at-eol
+/src/campusai/retrieval/model_runtime.py -text whitespace=cr-at-eol
 /src/campusai/llm/factory.py -text whitespace=cr-at-eol
 /src/campusai/llm/project_router.py -text whitespace=cr-at-eol
-/configs/candidates/flash-lite-three-projects.yaml -text whitespace=cr-at-eol
-/tests/test_gemini_project_router.py -text whitespace=cr-at-eol
-/docs/ui/evidence/project-routing-20261028.json -text whitespace=cr-at-eol
-
-# Preserve the measured partial-numeric table producer and evidence.
 /src/campusai/ingestion/partial_numeric_tables.py -text whitespace=cr-at-eol
-/tests/test_partial_numeric_tables.py -text whitespace=cr-at-eol
-/docs/ui/evidence/partial-numeric-tables-20261029.json -text whitespace=cr-at-eol
-
-# Preserve compact-citation helper, tests and receipt bytes.
 /src/campusai/rag/citation_handles.py -text whitespace=cr-at-eol
-/tests/test_citation_handles.py -text whitespace=cr-at-eol
-/docs/ui/evidence/citation-handles-20261029.json -text whitespace=cr-at-eol
-
-# Preserve source-aligned text-table producer and evidence bytes.
 /src/campusai/ingestion/leader_text_tables.py -text whitespace=cr-at-eol
-/tests/test_leader_text_tables.py -text whitespace=cr-at-eol
-/docs/ui/evidence/leader-text-tables-20261029.json -text whitespace=cr-at-eol
-
-# Preserve vertical-closure table evidence bytes.
-/docs/ui/evidence/vertical-numeric-tables-20261029.json -text whitespace=cr-at-eol
-
-# Preserve literal year/column proof code and audit bytes.
 /src/campusai/rag/year_cells.py -text whitespace=cr-at-eol
-/tests/test_year_cells.py -text whitespace=cr-at-eol
-/docs/ui/evidence/year-cell-grounding-20261029.json -text whitespace=cr-at-eol
-
-# Preserve optical scalar-grid producer, contract tests and evidence bytes.
 /src/campusai/ingestion/ocr_numeric_tables.py -text whitespace=cr-at-eol
-/tests/test_ocr_numeric_tables.py -text whitespace=cr-at-eol
-/tests/test_numeric_cell_grounding.py -text whitespace=cr-at-eol
-/docs/ui/evidence/scanned-numeric-tables-20261029.json -text whitespace=cr-at-eol
-
-# Preserve automatic OCR producers and the owner issue verification receipt.
 /configs/free_llm.yaml -text whitespace=cr-at-eol
 /src/campusai/ingestion/background/progressive.py -text whitespace=cr-at-eol
-/tests/test_progressive_ocr.py -text whitespace=cr-at-eol
-/docs/ui/evidence/owner-issues-20261030.json -text whitespace=cr-at-eol

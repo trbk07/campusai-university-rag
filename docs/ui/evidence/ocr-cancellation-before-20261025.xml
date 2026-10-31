@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="2" skipped="0" tests="2" time="0.829" timestamp="2026-10-25T15:49:59.195514+07:00" hostname="Bao_Kien"><testcase classname="tests.test_ocr_job_cancellation" name="test_cancelling_active_ocr_does_not_recognize_remaining_pages" time="0.331"><failure message="AssertionError: Cancellation must be checked before processing the next physical page&#10;assert 3 == 1&#10; +  where 3 = len([(450, 450, 3), (450, 450, 3), (450, 450, 3)])">tests\test_ocr_job_cancellation.py:58: in test_cancelling_active_ocr_does_not_recognize_remaining_pages
-    assert len(calls)==1,'Cancellation must be checked before processing the next physical page'
-E   AssertionError: Cancellation must be checked before processing the next physical page
-E   assert 3 == 1
-E    +  where 3 = len([(450, 450, 3), (450, 450, 3), (450, 450, 3)])</failure></testcase><testcase classname="tests.test_ocr_job_cancellation" name="test_ocr_exposes_page_progress_and_never_moves_progress_backwards" time="0.188"><failure message="AssertionError: assert ('ocr' == 'ocr'&#10;  &#10;    ocr and 0.45 &gt; 0.45)">tests\test_ocr_job_cancellation.py:76: in test_ocr_exposes_page_progress_and_never_moves_progress_backwards
-    assert active['stage']=='ocr' and active['progress']&gt;.45
-E   AssertionError: assert ('ocr' == 'ocr'
-E     
-E       ocr and 0.45 &gt; 0.45)</failure></testcase></testsuite></testsuites>
