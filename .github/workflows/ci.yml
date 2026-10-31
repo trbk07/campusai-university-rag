@@ -53,7 +53,7 @@ jobs:
         run: uv run --no-sync python -m scripts.dev.secret_scan
       - name: Run offline tests
         run: uv run --no-sync python -m pytest -q tests --junitxml=dist/tests.xml
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, Node 24
         if: always()
         with:
           name: tests-${{ matrix.os }}-${{ matrix.python }}
@@ -76,7 +76,7 @@ jobs:
         run: uv run --no-project --python 3.14 python -c "import glob,zipfile; z=zipfile.ZipFile(glob.glob('dist/*.whl')[0]); assert 'campusai/ui/pages/index.html' in z.namelist(); assert 'campusai/ui/features/chat.js' in z.namelist()"
       - name: Build immutable local source bundle
         run: uv run --no-project --python 3.14 python -m scripts.release.package_local --commit "${{ github.sha }}" --output dist/campusai-local-source.zip
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6, Node 24
         with:
           name: campusai-packages
           path: dist/
@@ -99,6 +99,8 @@ jobs:
           cache-to: type=gha,mode=max
       - name: Smoke test image entrypoint
         run: docker run --rm campusai:ci --help
+      - name: Verify CPU encoder and OCR imports
+        run: docker run --rm --entrypoint /app/.venv/bin/python campusai:ci -c "import torch,tesserocr,sentence_transformers,fastembed; assert not torch.cuda.is_available(); print(torch.__version__)"
       - name: Check private deployment configuration
         env:
           GEMINI_API_KEY: config-check-only

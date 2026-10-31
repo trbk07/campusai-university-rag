@@ -7,6 +7,9 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in your environment or env file}
+      GEMINI_API_KEY_2: ${GEMINI_API_KEY_2:-}
+      GEMINI_API_KEY_3: ${GEMINI_API_KEY_3:-}
+      CAMPUSAI_LLM_CONFIG: ${CAMPUSAI_LLM_CONFIG:-/app/configs/free_llm.yaml}
       CAMPUSAI_STATE_ROOT: /var/lib/campusai
       CAMPUSAI_DEVICE: cpu
     volumes:

@@ -37,7 +37,9 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 - [x] **CI/CD implementation:** thêm GitHub Actions cho Windows/Linux, package và Docker;
   Release publish image GHCR, deploy opt-in có health check/rollback. 56 tests local
   PASS, Compose config PASS. Hướng dẫn: [ci-cd.md](docs/operations/ci-cd.md).
-- [ ] **CI run:** xác nhận pipeline/build image thực tế trên GitHub sau push.
+- [x] **CI run:** [run 41192650931](https://github.com/trbk07/campusai-university-rag/actions/runs/41192650931)
+  trên source `dadfcfa0` PASS: 56 tests ở cả 4 môi trường, package, build image CPU,
+  entrypoint và Compose. Publish/deploy chưa chạy vì chưa tạo Release/máy đích.
 - [x] **Docker Windows prerequisites:** đã bật Virtual Machine Platform và WSL feature.
 - [x] **WSL:** đã cài WSL 3.0.3 từ MSI Microsoft, kiểm tra SHA-256 và chữ ký hợp lệ.
 - [ ] **Docker local:** bật virtualization trong BIOS và restart rồi kiểm tra Engine.

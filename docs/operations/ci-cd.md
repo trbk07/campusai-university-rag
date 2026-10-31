@@ -20,7 +20,14 @@ bật Intel Virtualization Technology (hoặc SVM trên AMD), lưu và khởi đ
 Tham khảo [Docker Windows](https://docs.docker.com/desktop/setup/install/windows-install/).
 
 Đặt `GEMINI_API_KEY` trong environment hoặc file `.env` local đã được Git ignore.
-Không đưa key vào Dockerfile, image hay repository. Từ thư mục dự án:
+Không đưa key vào Dockerfile, image hay repository.
+
+Muốn dùng profile xoay vòng ba project độc lập hiện có, đặt
+`CAMPUSAI_LLM_CONFIG=configs/free_multi_project.yaml` và cung cấp thêm
+`GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` trong cùng file environment. Không copy
+`configs/key.yaml` vào image. Ba key cùng project không tạo thêm quota độc lập.
+
+Từ thư mục dự án:
 
 ```sh
 docker compose build
