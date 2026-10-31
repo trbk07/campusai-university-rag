@@ -59,6 +59,8 @@ function renderScope() {
   const focusedId = document.activeElement.closest('#scope-dialog')?.querySelector(':focus')?.dataset.select;
   $('#scope-documents').innerHTML = state.documents.length ? state.documents.map(doc => `<label class="scope-row"><input type="checkbox" data-select="${doc.doc_id}" ${state.selected.has(doc.doc_id) ? 'checked' : ''} ${doc.ready ? '' : 'disabled'}><span>${esc(doc.name)}<small>${doc.page_count} trang${doc.metadata.academic_year ? ' · '+esc(doc.metadata.academic_year) : ''}</small></span>${badge(doc)}</label>`).join('') : '<p class="muted">Chưa có tài liệu sẵn sàng. Hãy tải PDF và chờ xử lý hoàn tất.</p>';
   const chosen = readySelected();
+  $('#select-all-scope').disabled = !state.documents.some(doc => doc.ready && !state.selected.has(doc.doc_id));
+  $('#clear-scope').disabled = !state.selected.size;
   $('#scope-label').textContent = chosen.length === 1 ? chosen[0].name : chosen.length ? `${chosen.length} tài liệu đã chọn` : 'Chọn tài liệu để hỏi đáp';
   if (focusedId) $(`[data-select="${focusedId}"]`, $('#scope-documents'))?.focus();
 }
@@ -238,6 +240,10 @@ export function initDocuments() {
   $('#dropzone').addEventListener('drop', event => { event.preventDefault(); $('#dropzone').classList.remove('dragover'); chooseFiles(event.dataTransfer.files); });
   $('#upload-submit').addEventListener('click', submitUpload);
   $('#scope-open').addEventListener('click', () => { renderScope(); showDialog('scope-dialog'); });
+  $('#select-all-scope').addEventListener('click', () => {
+    state.documents.filter(doc => doc.ready).forEach(doc => state.selected.add(doc.doc_id));
+    notify('selection');
+  });
   $('#clear-scope').addEventListener('click', () => { state.selected.clear(); notify('selection'); });
   $('#delete-confirm').addEventListener('click', async () => {
     if (!deleteId || $('#delete-confirm').disabled) return;
