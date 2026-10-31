@@ -1,0 +1,103 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  HF_HUB_OFFLINE: "1"
+  TRANSFORMERS_OFFLINE: "1"
+  PYTHONUTF8: "1"
+
+jobs:
+  tests:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: "3.11"
+          - os: ubuntu-24.04
+            python: "3.14"
+          - os: windows-2025
+            python: "3.14"
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.11.28"
+          enable-cache: true
+      - name: Install frozen test dependencies
+        run: uv sync --locked --extra dev
+      - name: Scan tracked files for credentials
+        run: uv run --no-sync python -m scripts.dev.secret_scan
+      - name: Run offline tests
+        run: uv run --no-sync python -m pytest -q tests --junitxml=dist/tests.xml
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: tests-${{ matrix.os }}-${{ matrix.python }}
+          path: dist/tests.xml
+          retention-days: 7
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: "0.11.28"
+          python-version: "3.14"
+      - name: Build wheel and source distribution
+        run: uv build --out-dir dist
+      - name: Verify bundled web assets
+        run: uv run --no-project --python 3.14 python -c "import glob,zipfile; z=zipfile.ZipFile(glob.glob('dist/*.whl')[0]); assert 'campusai/ui/pages/index.html' in z.namelist(); assert 'campusai/ui/features/chat.js' in z.namelist()"
+      - name: Build immutable local source bundle
+        run: uv run --no-project --python 3.14 python -m scripts.release.package_local --commit "${{ github.sha }}" --output dist/campusai-local-source.zip
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: campusai-packages
+          path: dist/
+          retention-days: 14
+  container:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build CPU image (no keys, PDFs or model weights)
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          load: true
+          tags: campusai:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Smoke test image entrypoint
+        run: docker run --rm campusai:ci --help
+      - name: Check private deployment configuration
+        env:
+          GEMINI_API_KEY: config-check-only
+        run: docker compose config --quiet

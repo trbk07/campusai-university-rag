@@ -1,5 +1,7 @@
 # CampusAI
 
+[![CI](https://github.com/trbk07/campusai-university-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/trbk07/campusai-university-rag/actions/workflows/ci.yml)
+
 Web app local hỏi đáp tài liệu đại học bằng tiếng Việt/Anh, có trích dẫn theo
 trang. PDF, chỉ mục và OCR xử lý trên máy; Gemini cần Internet và API key riêng.
 
@@ -20,6 +22,15 @@ Kiểm tra cấu hình và model mà không gọi Gemini:
 
 Đọc [hướng dẫn cài đặt và vận hành](docs/operations/local-install.md) khi cài
 máy mới, backup hoặc xử lý lỗi. Giữ `.env` và `configs/key.yaml` trên máy.
+
+## CI/CD và Docker
+
+GitHub Actions kiểm tra tests trên Windows/Linux, đóng gói source/wheel và build
+Docker image. Publish GitHub Release sẽ chạy kiểm tra rồi đẩy image lên GHCR;
+deploy tự động có health check/rollback khi cấu hình máy đích.
+
+Xem [hướng dẫn CI/CD và Docker](docs/operations/ci-cd.md) để chạy bằng Compose
+hoặc bật deployment. Pipeline không thay nghiệm thu chất lượng RAG.
 
 ## Cấu trúc
 

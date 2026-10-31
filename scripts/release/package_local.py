@@ -11,12 +11,13 @@ import zipfile
 
 ROOT=Path(__file__).resolve().parents[2]
 EXACT={'.env.example','README.md','plan.md','pyproject.toml','uv.lock','start-campusai.cmd',
+    'Dockerfile','.dockerignore','compose.yaml','docs/operations/ci-cd.md',
     'configs/free_llm.yaml','configs/free_multi_project.yaml',
     'configs/local/dense-manifest.json','configs/local/runtime-assets.json',
     'docs/operations/local-install.md','docs/operations/local-third-party.md','docs/PROJECT_OVERVIEW.md',
-    'scripts/__init__.py','scripts/operations/__init__.py',
+    'scripts/__init__.py','scripts/operations/__init__.py','scripts/release/install_cpu_runtime.py',
     *(f'scripts/operations/{name}.py' for name in (
-        'local','local_state','encoder_assets','serve','with_gemini_key','setup_encoder','setup_ocr','setup_vietocr'))}
+        'local','local_state','encoder_assets','serve','with_gemini_key','setup_encoder','setup_ocr','setup_vietocr','container'))}
 SOURCE_SUFFIXES={'.py','.html','.css','.js','.LICENSE'}
 SECRET_PATTERNS=(re.compile(rb'AIza[0-9A-Za-z_-]{20,}'), re.compile(rb'\bsk-[A-Za-z0-9]{20,}\b'))
 

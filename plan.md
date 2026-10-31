@@ -31,6 +31,17 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 | FIX-10 | [x] DONE — Thêm nút “Chọn tất cả” trong bộ chọn nguồn. Chọn mọi PDF sẵn sàng, không giới hạn 5 tài liệu; cập nhật checkbox và nút chọn/bỏ chọn đồng bộ. Kiểm tra callback/render PASS với 6 PDF sẵn sàng và 1 PDF chưa sẵn sàng. |
 | FIX-11 | [x] DONE — Giữ chủ đề và trường đang hỏi khi nối tiếp/đổi trường (HUST → NUAE → HUST); tái dùng câu trả lời đã kiểm chứng đúng nguồn. 143 tests liên quan PASS; đã kiểm tra HTTP thật. |
 
+## Hạ tầng bổ sung — 31/10/2026
+
+- [x] **Supermemory:** dừng theo yêu cầu; không thêm SDK, key hoặc gửi hội thoại tới dịch vụ này.
+- [x] **CI/CD implementation:** thêm GitHub Actions cho Windows/Linux, package và Docker;
+  Release publish image GHCR, deploy opt-in có health check/rollback. 56 tests local
+  PASS, Compose config PASS. Hướng dẫn: [ci-cd.md](docs/operations/ci-cd.md).
+- [ ] **CI run:** xác nhận pipeline/build image thực tế trên GitHub sau push.
+- [x] **Docker Windows prerequisites:** đã bật Virtual Machine Platform và WSL feature.
+- [ ] **Docker local:** hoàn tất WSL, bật virtualization trong BIOS và restart rồi kiểm tra Engine.
+- [ ] **Production deployment:** cần máy Linux/runner và environment; chưa triển khai thực tế.
+
 ## Ưu tiên còn mở
 
 - [ ] **FIX-03b:** đo p95 OCR trên PDF ảnh thực tế với workload xác định.

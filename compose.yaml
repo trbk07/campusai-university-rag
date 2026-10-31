@@ -1,0 +1,33 @@
+name: campusai
+services:
+  app:
+    image: ${CAMPUSAI_IMAGE:-campusai:local}
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:?Set GEMINI_API_KEY in your environment or env file}
+      CAMPUSAI_STATE_ROOT: /var/lib/campusai
+      CAMPUSAI_DEVICE: cpu
+    volumes:
+      - campusai-state:/var/lib/campusai
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 120s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+  assets:
+    image: ${CAMPUSAI_IMAGE:-campusai:local}
+    build: .
+    profiles: [setup]
+    volumes:
+      - campusai-state:/var/lib/campusai
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - >-
+        python -m scripts.operations.setup_encoder --model-cache /var/lib/campusai/models &&
+        python -m scripts.operations.setup_ocr --output /var/lib/campusai/models/ocr/tessdata_fast
+volumes:
+  campusai-state:
