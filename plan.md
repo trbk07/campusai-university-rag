@@ -39,7 +39,8 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   PASS, Compose config PASS. Hướng dẫn: [ci-cd.md](docs/operations/ci-cd.md).
 - [ ] **CI run:** xác nhận pipeline/build image thực tế trên GitHub sau push.
 - [x] **Docker Windows prerequisites:** đã bật Virtual Machine Platform và WSL feature.
-- [ ] **Docker local:** hoàn tất WSL, bật virtualization trong BIOS và restart rồi kiểm tra Engine.
+- [x] **WSL:** đã cài WSL 3.0.3 từ MSI Microsoft, kiểm tra SHA-256 và chữ ký hợp lệ.
+- [ ] **Docker local:** bật virtualization trong BIOS và restart rồi kiểm tra Engine.
 - [ ] **Production deployment:** cần máy Linux/runner và environment; chưa triển khai thực tế.
 
 ## Ưu tiên còn mở

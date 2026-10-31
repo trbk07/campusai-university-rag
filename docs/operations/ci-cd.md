@@ -5,7 +5,7 @@
 [GitHub Actions](https://github.com/trbk07/campusai-university-rag/actions) chạy
 khi push `main`, mở pull request hoặc chọn **Run workflow**:
 
-- Tests offline trên Linux/Python 3.11, Linux/Python 3.14 và Windows/Python 3.14.
+- Tests offline trên Linux/Python 3.11/3.12/3.14 và Windows/Python 3.14.
 - Quét credential; đóng gói wheel, sdist và ZIP source từ đúng commit.
 - Build Docker image CPU và kiểm tra entrypoint/Compose.
 
@@ -39,7 +39,8 @@ docker compose stop app
 
 State/PDF/index/quota nằm trong volume `campusai-state`, vẫn giữ khi stop hoặc
 recreate container. Không dùng `down --volumes` khi cần giữ dữ liệu. Container
-CPU có thể chậm hơn profile CUDA trên Windows. Cấu hình này phục vụ máy riêng;
+CPU dùng Python 3.12 để tương thích metadata của OCR và có thể chậm hơn profile
+CUDA trên Windows. Cấu hình này phục vụ máy riêng;
 chưa cung cấp authentication/TLS cho public hosting.
 
 ## Publish và triển khai
