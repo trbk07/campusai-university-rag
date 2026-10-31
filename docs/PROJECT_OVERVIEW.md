@@ -133,6 +133,27 @@ hỏi trường 0,166s; NUAE trả A/3,7 trong 0,150s (cache); đổi Bách khoa
 trong 0,262s (không cache), citation đúng từng PDF. Đây là kiểm tra luồng cụ thể,
 không phải đo chất lượng trên mọi PDF hay nghiệm thu toàn bộ bản phát hành.
 
+**FIX-09b, 31/10:** Bổ sung đối chiếu viết tắt chưa có trong PDF qua Gemini hiện
+cấu hình, tối đa một lượt phân loại cho một viết tắt và bộ nguồn; chỉ gửi viết
+tắt và các tên trường lấy từ nguồn được chọn. Chỉ chấp nhận một candidate hợp lệ
+được model xác nhận là alias/name variant, không chọn tên gần giống nhất. Tri
+thức model ở bước này chỉ dùng chọn nguồn; câu trả lời vẫn phải kiểm chứng bằng
+PDF và citation. Kết quả nhớ tạm 5 phút, phân biệt bộ nguồn; lỗi dịch vụ giữ 30
+giây để tránh gọi dồn. Không thêm retry, key hoặc reset quota.
+
+Kết quả chưa rõ thì app giải thích thông tin còn thiếu, liệt kê tên trường từ
+PDF và hỏi tên đầy đủ/chọn nguồn. API lỗi được báo riêng. Xác nhận lại không làm
+mất câu hỏi gốc. Prompt và thông báo phân biệt thiếu phạm vi người dùng với thiếu
+bằng chứng nguồn; không mặc định mọi PDF là tài liệu đại học.
+
+44 tests liên quan PASS (34 hiện tại và 10 tương thích từ mốc `f9d8ba10`; 1 test
+cũ phụ thuộc fixture đã dọn không chạy), gồm alias được xác nhận, mơ hồ/unknown, kết quả sai schema/ngoài
+scope, lỗi API, cache theo nguồn và hướng dẫn bổ sung thông tin. HTTP thật với
+3 PDF: câu hỏi gốc → `hust` → `HUST` → `Hust`; cả ba câu trả lời tiếp tục quy đổi
+điểm và chỉ trích PDF Bách khoa Hà Nội. Thời gian 2,554s / 0,644s / 0,736s;
+metric đối chiếu tăng đúng 1, không lỗi, khoảng 1,21 giây. Các số này là kiểm tra luồng
+cụ thể, không phải full regression hay accuracy cho mọi tên trường/PDF.
+
 Không commit PDF cá nhân, model, môi trường Python, database, cache hoặc log.
 Chỉ tạo đầu ra chẩn đoán khi xử lý sự cố cụ thể và xóa khi xong. Kết quả cần
 lưu lâu dài cập nhật ngắn gọn vào chính báo cáo này; các bước còn làm cập nhật

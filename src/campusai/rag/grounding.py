@@ -604,6 +604,14 @@ class GroundedAnswerGenerator:
             'do not publish a bare cell number as an independent factual claim.'
         )
         instructions += (
+            '\nMISSING USER SCOPE: If a missing subject, source identity or applicable version '
+            'would change the answer, do not guess it: abstain with ambiguous_question. '
+            'Do not repeat a clarification already resolved by the question/context. '
+            'If the scope is clear but the evidence is insufficient, use unsupported_claim '
+            'rather than pretending the user omitted information. A retrieval miss does not '
+            'establish that the entire document lacks the information.'
+        )
+        instructions += (
             '\nAnswer only the requested entity, date, group, or table scope. When a source '
             'sentence lists neighboring groups or alternatives, use only the clause that '
             'answers this question; omit the other groups, dates, and alternatives unless '

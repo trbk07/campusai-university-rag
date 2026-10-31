@@ -31,11 +31,11 @@ CANONICAL_ABSTENTION_REASONS = frozenset({
 
 
 MESSAGES = {
-    "no_evidence_found": "Không tìm thấy bằng chứng phù hợp trong các tài liệu đã lập chỉ mục.",
-    "document_does_not_mention": "Các tài liệu đã kiểm tra không đề cập đến thông tin này.",
+    "no_evidence_found": "Chưa tìm thấy đoạn nguồn phù hợp. Bạn có thể chọn đúng PDF, chỉ rõ mục/trang cần tra cứu hoặc bổ sung tài liệu liên quan.",
+    "document_does_not_mention": "Các tài liệu đã kiểm tra không đề cập đến thông tin này. Bạn có thể bổ sung một nguồn khác có nội dung cần tra cứu.",
     "conflicting_evidence": "Các tài liệu hiện có đưa ra thông tin khác nhau; cần xác định phiên bản hoặc năm áp dụng.",
-    "ambiguous_question": "Câu hỏi chưa đủ rõ về chương trình, năm hoặc phạm vi cần tra cứu.",
-    "unsupported_claim": "Chưa đủ bằng chứng để xác nhận đầy đủ câu trả lời.",
+    "ambiguous_question": "Bạn đang hỏi về đối tượng hoặc phần nào trong tài liệu? Hãy cho biết tên đầy đủ, mục/trang hoặc phiên bản cần tra cứu để mình xác định đúng phạm vi.",
+    "unsupported_claim": "Mình chưa xác minh đầy đủ câu trả lời từ các đoạn nguồn hiện có. Bạn có thể chỉ rõ mục/trang cần tra cứu hoặc bổ sung tài liệu liên quan.",
     "contradicted_claim": "Bằng chứng hiện có mâu thuẫn với nội dung câu trả lời.",
     "invalid_citation": "Không thể xác minh nguồn trích dẫn trong bằng chứng hiện có.",
     "retrieval_below_threshold": "Kết quả tìm kiếm chưa đạt ngưỡng bằng chứng cần thiết.",
@@ -100,14 +100,14 @@ def canonicalize_abstention_reason(
 def user_message(reason: str, language: str = "vi") -> str:
     if language.casefold().startswith("en"):
         return {
-            "no_evidence_found": "No relevant evidence was found in the indexed documents.",
-            "document_does_not_mention": "The checked documents do not mention this information.",
+            "no_evidence_found": "No relevant source passage was found. Please select the matching PDF, specify a section/page, or add a relevant document.",
+            "document_does_not_mention": "The checked documents do not mention this information. You can add another source that covers it.",
             "conflicting_evidence": "The available documents contain conflicting information.",
             "provider_error": "The answer service is temporarily unavailable. Please try again later.",
-            "unsupported_claim": "There is not enough evidence to verify the complete answer.",
+            "unsupported_claim": "I could not verify the complete answer from the available passages. Please specify a section/page or add a relevant document.",
             "contradicted_claim": "The available evidence contradicts the proposed answer.",
             "invalid_citation": "The cited source could not be verified against the available evidence.",
-            "ambiguous_question": "Please clarify the programme, year or scope of your question.",
+            "ambiguous_question": "Which subject or part of the document do you mean? Please give its full name, section/page, or relevant version so I can identify the correct scope.",
             "provider_abstention": "The model did not provide an answer that could be verified.",
         }.get(reason, "There is not enough verified evidence to answer safely.")
     return MESSAGES.get(reason, MESSAGES["system_error"])

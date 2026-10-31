@@ -1,7 +1,7 @@
 """Resolve institution references from source headers, not a school/answer list."""
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 def folded(text):
@@ -121,13 +121,68 @@ class InstitutionRequest:
     doc_ids: frozenset[str]=frozenset()
     needs_clarification: bool=False
     unknown_name: bool=False
+    source_options: tuple[str, ...]=()
+    unrecognized_reference: str=''
+    alias_check_unavailable: bool=False
 
     def clarification(self,language='vi'):
         if self.unknown_name:
-            return ('Mình chưa xác định được trường đó trong các PDF đang chọn. Bạn xác minh tên trường hoặc chọn đúng PDF giúp mình.'
-                if language=='vi' else 'I cannot identify that institution in the selected PDFs. Please confirm its name or select the matching PDF.')
-        return ('Bạn muốn hỏi trường nào? Các PDF đang chọn có thể thuộc nhiều trường. Hãy nêu tên/viết tắt của trường hoặc chọn đúng PDF.'
-            if language=='vi' else 'Which institution do you mean? Please give its name or abbreviation, or select its PDF.')
+            reference=f' “{self.unrecognized_reference[:80]}”' if self.unrecognized_reference else ''
+            message=(f'Mình chưa khớp được tên/viết tắt{reference} với trường trong các PDF đang chọn. '
+                'Bạn xác minh tên trường đầy đủ hoặc chọn đúng PDF giúp mình. Mình sẽ tiếp tục câu hỏi trước sau khi bạn xác nhận.'
+                if language=='vi' else f'I cannot match the institution name/abbreviation{reference} to the selected PDFs. '
+                'Please confirm its full name or select its PDF; I will then continue your previous question.')
+            if self.alias_check_unavailable:
+                message=('Lượt đối chiếu tên/viết tắt qua dịch vụ AI chưa thực hiện được lúc này. '
+                    if language=='vi' else 'The AI abbreviation check is currently unavailable. ')+message
+        else:
+            message=('Bạn muốn hỏi trường nào? Các PDF đang chọn có thể thuộc nhiều trường. Hãy nêu tên trường hoặc chọn đúng PDF.'
+                if language=='vi' else 'Which institution do you mean? Please give its name or select its PDF.')
+        if self.source_options:
+            message+=('\nCác nguồn đang chọn:\n' if language=='vi' else '\nSelected sources:\n')
+            message+='\n'.join('- '+option for option in self.source_options)
+        return message
+
+
+def _source_options(documents):
+    """Show actual source labels, rather than suggesting unsupported aliases."""
+    profiles,groups=_institution_groups(documents)
+    options=[];seen=set()
+    for doc in documents:
+        group=groups[doc['doc_id']]
+        if group in seen:continue
+        seen.add(group)
+        label='';source=''
+        for item in doc.get('items',[]):
+            metadata=item.get('metadata') or {}
+            source=source or str(metadata.get('source_name') or '')
+            candidates=[str(metadata.get('institution') or '')]
+            if item.get('page',999)<=5:
+                from .tokenizer_vi import source_body
+                candidates.extend(source_body(item).splitlines())
+            label=next((value.strip() for value in candidates
+                        if folded(value) in profiles[doc['doc_id']]),'')
+            if label:break
+        option=label[:160] or source[:160]
+        if option:options.append(option)
+        if len(options)>=6:break
+    return tuple(options)
+
+
+def institution_alias_candidates(documents):
+    """Candidate names come from authorized sources; IDs are local to this list."""
+    profiles,groups=_institution_groups(documents)
+    candidates=[]
+    for group in sorted(set(groups.values())):
+        members=[doc for doc in documents if groups[doc['doc_id']]==group]
+        names=set().union(*(profiles[doc['doc_id']] for doc in members))
+        if not names:continue
+        labels=_source_options(members)
+        if not labels:continue
+        candidates.append({'candidate_id':f'c{len(candidates)}','name':labels[0],
+            'names':sorted({labels[0],*names})[:6],
+            'doc_ids':tuple(sorted(doc['doc_id'] for doc in members))})
+    return candidates
 
 
 def _multi_source_request(raw):
@@ -208,7 +263,28 @@ def _reference_only(raw,documents):
     return not extras
 
 
-def resolve_institution_request(question,documents,history=()):
+def _unrecognized_choice(raw):
+    words=re.findall(r'[^\W\d_]+',raw)
+    if not words or len(words)>5:return False
+    if re.fullmatch(r'[\w.-]{2,32}',raw.strip()):
+        return folded(raw) not in _GENERIC|_ACADEMIC
+    return all(word[0].isupper() for word in words)
+
+
+def _pending_question(turns,documents):
+    for index in range(len(turns)-1,-1,-1):
+        role,text=turns[index]
+        if role!='user':continue
+        raw=text.partition(_CONTEXT)[0]
+        if _reference_only(raw,documents):continue
+        if (index and turns[index-1][0]=='assistant'
+                and _school_clarification(turns[index-1][1]) and _unrecognized_choice(raw)):
+            continue
+        return text
+    return None
+
+
+def _resolve_institution_request(question,documents,history=()):
     """Resolve source intent from user input; never use a model answer as fact."""
     turns=[(turn['role'],turn['content']) if isinstance(turn,dict) else turn for turn in history]
     raw=question.partition(_CONTEXT)[0]
@@ -219,8 +295,7 @@ def resolve_institution_request(question,documents,history=()):
             # A school-only reply is a source choice, not a new subject.
             # Skip earlier choices too, so successive school switches retain
             # the user's substantive question rather than the last acronym.
-            pending=next((text for role,text in reversed(turns) if role=='user'
-                          and not _reference_only(text.partition(_CONTEXT)[0],documents)),None)
+            pending=_pending_question(turns,documents)
             confirmed=_scope_decision(raw,documents)
             if pending and confirmed.doc_ids and not confirmed.needs_clarification:
                 # Keep a complete pending question as the main request so
@@ -231,9 +306,9 @@ def resolve_institution_request(question,documents,history=()):
                 return InstitutionRequest(effective,confirmed.doc_ids)
             if pending:question=raw+_CONTEXT+pending
         elif turns[-1][0]=='assistant' and _school_clarification(turns[-1][1]):
-            words=re.findall(r'[^\W\d_]+',raw)
-            if words and len(words)<=5 and all(word[0].isupper() for word in words):
-                return InstitutionRequest(question,needs_clarification=True,unknown_name=True)
+            if _unrecognized_choice(raw) or _unmatched_name(raw,documents):
+                return InstitutionRequest(question,needs_clarification=True,unknown_name=True,
+                    unrecognized_reference=raw)
     decision=_scope_decision(question,documents)
     if decision.doc_ids or decision.unknown_name or _multi_source_request(raw):return decision
     if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
@@ -252,3 +327,10 @@ def resolve_institution_request(question,documents,history=()):
                 return InstitutionRequest(question,previous.doc_ids)
             break
     return decision
+
+
+def resolve_institution_request(question,documents,history=()):
+    request=_resolve_institution_request(question,documents,history)
+    if request.needs_clarification:
+        request=replace(request,source_options=_source_options(documents))
+    return request
