@@ -32,13 +32,8 @@ máy mới, backup hoặc xử lý lỗi. Giữ `.env` và `configs/key.yaml` tr
 | `configs/` | Profile AI và manifest model/OCR |
 | `pyproject.toml`, `uv.lock` | Dependency và phiên bản cài đặt |
 | `docs/PROJECT_OVERVIEW.md` | Tổng quan chất lượng, hiệu năng, giới hạn và dọn dẹp |
-| `plan.md` | Roadmap và công việc còn mở |
+| `plan.md` | Roadmap |
 
-Máy hiện tại dùng `.venv`, encoder trong `models/`, dữ liệu tại `data/web-test/`,
-quota/cooldown trong `data/operations/` và OCR tại `.cache/ocr/tessdata_fast/`.
-`.env` có thể chọn đường dẫn khác. Các kho PDF/index cũ tại `data/store` và
-`data/index` cũng được giữ để tránh mất dữ liệu người dùng. Các thành phần
-local này không đưa vào Git; xóa chúng có thể mất dữ liệu hoặc phải cài/tải lại.
 
 Benchmark, bộ kiểm thử, log, ảnh nghiệm thu, archive và môi trường thử nghiệm
 cũ đã được bỏ khỏi cây dự án theo yêu cầu ngày 31/10/2026. File đã commit vẫn
