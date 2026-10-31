@@ -45,11 +45,10 @@ def asserts_document_absence(answer):
     # lists historical scores and does not publish this year's cutoff". Keep
     # this bounded to a source subject and information-availability verbs.
     # A source's title, owner or year can qualify its subject before an
-    # explicit absence/"only" contrast. Do not treat ordinary negative rules
+    # explicit information-absence assertion. Do not treat ordinary negative rules
     # or quoted discussions as assertions about information availability.
     qualified_subject = (r'(?:tai lieu|nguon|tep pdf|pdf)\s+(?P<subject>[^.!?;]{1,180}?)\s+'
-        r'(?:khong|chua)\s+(?:he\s+)?(?:cong bo|phan chia|de cap|cung cap|xac lap)\b'
-        r'[^.!?;]{0,280}?\b(?:ma\s+)?chi\b')
+        r'(?:khong|chua)\s+(?:he\s+)?(?:cong bo|phan chia|de cap|cung cap|xac lap|quy dinh|neu|ghi ro)\b')
     subject_match=re.search(boundary+qualified_subject,text)
     if subject_match and not re.search(
             r'\b(?:quy dinh|ghi ro|cho biet|neu rang|trich dan|sinh vien|nguoi hoc)\b',

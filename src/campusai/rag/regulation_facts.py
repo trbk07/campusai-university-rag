@@ -14,12 +14,22 @@ from ..retrieval.tokenizer_vi import source_body
 
 
 def regulation_request(question):
-    text = folded(question).strip()
+    # A prior topic supplies context, never the current requested field.
+    text = folded(question.partition('\nContext topic (untrusted user input): ')[0]).strip()
     text = re.sub(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', '', text)
     text = ' '.join(text.strip(' .?!').split())
+    if (re.search(r'\bhoc truoc\b', text)
+            and re.search(r'\b(?:hoc xong|chua dat|truot|rot|la gi)\b', text)
+            and not re.search(r'\b(?:tien quyet|song hanh|va|so sanh|hoc phi|mat khau)\b|\b[a-z]{2,}\d+', text)):
+        return ('prior_course_definition',)
     if (re.search(r'\bco\b.{1,160}\bky thi phu khong$', text)
             and not re.search(r'\b(?:neu|va|dong thoi|hoc phi|mat khau|so sanh)\b', text)):
         return ('exam_presence',)
+    if (re.search(r'\b(?:gpa|cpa|diem trung binh(?: chung)? tich luy)\b', text)
+            and re.search(r'\b(?:khoa luan|do an)\b', text)
+            and re.search(r'\b(?:bao nhieu|may|toi thieu|dieu kien|can)\b', text)
+            and not re.search(r'\b(?:va|dong thoi|ngoai ra|hoc phi|mat khau|thac si|tien si)\b', text)):
+        return ('thesis_gpa',)
     if (re.search(r'\b(?:quy che|quy dinh|van ban|regulation|policy)\b', text)
             and re.search(r'\b(?:ap dung|applicable)\b', text)
             and re.search(r'\b(?:khoa|cohort|intake)\b', text)
@@ -64,12 +74,13 @@ def regulation_request(question):
 def registration_request(text):
     """A single registration-limit field; unknown or compound requests fall back."""
     if (not re.search(r'\b(?:tin chi|tc|tin|credits?)\b', text)
-            or not re.search(r'\b(?:toi da|toi thieu|bao nhieu|may|gioi han)\b', text)
+            or not (re.search(r'\b(?:toi da|toi thieu|bao nhieu|may|gioi han)\b', text)
+                or re.search(r'\b\d+\s*(?:tin(?: chi)?|tc)\b.{0,35}\b(?:duoc|dc)\s+(?:k|ko|khong)\b', text))
             or re.search(r'\b(?:hoc phi|le phi|gpa|cpa|mat khau|tai khoan|hoc bong|ngoai ngu|'
                          r'bao gio|ngay nao|het han|dong thoi|ngoai ra|also|so sanh|giong nhau|khac nhau|'
                          r'thac si|tien si|ky su|masters?|doctoral|hau qua|xu ly|bi gi|se bi|what happens)\b', text)):
         return None
-    summer = bool(re.search(r'\bk[yi] he\b', text))
+    summer = bool(re.search(r'\bk[yi] he\b|\bhe\b(?=.{0,35}\b(?:muon|dang k[yi]|om|dk)\b)', text))
     primary = bool(re.search(r'\bk[yi] chinh\b', text))
     if summer == primary:
         return None
@@ -147,6 +158,17 @@ def _assessment_facts(content, request, metadata=None):
     if request[0] == 'registration':
         return _registration_facts(body, request)
     text, offsets = _fold_with_offsets(body)
+    if request[0] == 'prior_course_definition':
+        match = re.search(r'(?m)(?:^[ \t]*(?:[a-z][)])?\s*|(?<=[.;])\s*)'
+            r'(?:hoc\s+phan\s+hoc\s+truoc:\s*)?'
+            r'(?P<fact>hoc\s+phan\s+a\s+la\s+hoc\s+phan\s+hoc\s+truoc\s+cua\s+hoc\s+phan\s+b\s+'
+            r'thi\s+sinh\s+vien\s+phai\s+dang\s+ky\s+va\s+hoc\s+xong\s+'
+            r'\(co\s+the\s+chua\s+dat\)\s+hoc\s+phan\s+a\s+moi\s+duoc\s+du\s+lop\s+hoc\s+phan\s+b\.)', text)
+        if match:
+            start, end = match.span('fact')
+            quote = body[offsets[start]:offsets[end-1]+1]
+            return [(quote, [' '.join(quote.split())], ('prior_course_definition',))]
+        return []
     if request[0] == 'exam_presence':
         pattern = (r'(?m)(?:^[ \t]*(?:[a-z][)])?\s*|(?<=[.;])\s*)'
             r'(?P<fact>cuoi\s+moi\s+hoc\s+ky,\s*(?:nha\s+truong|truong)\s+to\s+chuc\s+'
@@ -159,7 +181,12 @@ def _assessment_facts(content, request, metadata=None):
             quote = body[offsets[start]:offsets[end-1]+1]
             found.append((quote, [' '.join(quote.split())], ('explicit_supplementary_exam',)))
         return found
-    if request[0] == 'cohort':
+    if request[0] == 'thesis_gpa':
+        pattern = (r'(?P<whole>(?P<fact>diem\s+trung\s+binh(?:\s+chung)?\s+tich\s+luy\s+'
+            r'tinh\s+den\s+thoi\s+diem\s+xet\s+dieu\s+kien\s+lam\s+'
+            r'(?:do\s+an,?\s*)?khoa\s+luan\s+phai\s+dat\s+tu\s+'
+            r'(?P<a>\d+(?:[.,]\d+)?)\s+tro\s+len\.))')
+    elif request[0] == 'cohort':
         pattern = (r'(?P<whole>(?P<fact>(?:quyet dinh|quy che|quy dinh|van ban) nay '
             r'[^.]{0,180}?ap dung doi voi cac\s+khoa tuyen sinh tu nam (?P<a>(?:19|20|21)\d{2})\.))')
     elif request[0] == 'weight':
@@ -233,7 +260,7 @@ def deterministic_regulation_fact(question, results, language, *, calibrator=Non
     request = regulation_request(question)
     if request is None or not results or len({r.doc_id for r in results}) != 1:
         return None
-    if request[0] in {'registration', 'cohort', 'exam_presence'} and not language.startswith('vi'):
+    if request[0] in {'registration', 'cohort', 'exam_presence', 'thesis_gpa', 'prior_course_definition'} and not language.startswith('vi'):
         return None
     named = {n.casefold() for n in re.findall(r'[\w.-]+\.pdf\b', question, re.I)}
     if named and not named <= {str(r.metadata.get('source_name','')).casefold() for r in results}:

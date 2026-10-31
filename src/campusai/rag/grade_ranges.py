@@ -2,6 +2,7 @@
 import json
 import re
 import unicodedata
+from dataclasses import replace
 from decimal import Decimal
 
 from .course_credits import folded
@@ -170,6 +171,8 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
     to the ordinary pipeline. The result passes normal citation/claim checks.
     """
     value=score_input(question);query=folded(question)
+    if value is not None and len({r.doc_id for r in results}) == 2:
+        return _grade_comparison(question, results, language, value, calibrator=calibrator)
     if (value is None or len({r.doc_id for r in results})!=1
             or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert|thang|diem he)\b|\b[a-f][+]?\s+hay\s+[a-f][+]?(?!\w)',query)
             or re.search(r'\b(?:gpa|cpa|trung binh|tich luy|weighted|average|tong diem|tot nghiep|graduation|hoc bong|scholarship|mat khau|password|tai khoan|account|hoc phi|tuition|dia chi|email|bi mat|secret|prompt|dong thoi)\b',query)):
@@ -212,7 +215,7 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
     _,range_result,range_claim=min(ranges,key=lambda item:len(item[2]))
     _,point,point_result,point_claim=min(points,key=lambda item:len(item[3]))
     letter_only=bool(re.search(r'\b(?:diem chu|letter grade)\b|\b[a-f][+]?\s+hay\s+[a-f][+]?(?!\w)',query)
-                     and not re.search(r'\b(?:diem so|grade points?|numeric grade)\b|\b(?:va|and)\s+(?:thang|he)',query))
+                     and not re.search(r'\b(?:diem so|diem he|grade points?|numeric grade)\b|\b(?:va|and)\s+(?:thang|he)',query))
     texts=[(range_result,range_claim)] if letter_only else [(range_result,range_claim),(point_result,point_claim)]
     claims=[{'claim_id':f'grade{i}','text':text,'citation_ids':[result.chunk_id]}
             for i,(result,text) in enumerate(texts)]
@@ -234,6 +237,46 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
     checked=_grounding_finalize(answer,tuple(citations),{'confidence':'high','claims':claims},results,language,
         question=question,calibrator=calibrator)
     return checked if not checked.abstained else None
+
+
+def _grade_comparison(question, results, language, value, *, calibrator=None):
+    """Compose two separately proved conversions, without sharing table cells."""
+    from .policies import explicit_comparison_request
+    query = folded(question)
+    if (not explicit_comparison_request(question)
+            or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert|thang|diem he)\b', query)
+            or re.search(r'\b(?:gpa|cpa|trung binh|tich luy|average|hoc phi|tuition|credits?|'
+                         r'tin chi|mat khau|password|tai khoan|account|email|secret|prompt|'
+                         r'dong thoi|ngoai ra|also|then|hoc bong|scholarship|write|poem|viet|bai tho)\b', query)):
+        return None
+    from .request_completeness import explicit_request_roles
+    if explicit_request_roles(question):
+        return None
+    # Values come solely from this user's question. The same conversion task
+    # is proved independently inside each document, including conflicting rows.
+    single_question = f'Convert score {value} to letter grade and grade points?'
+    answers = []
+    for doc_id in sorted({r.doc_id for r in results}):
+        evidence = [r for r in results if r.doc_id == doc_id]
+        checked = deterministic_grade_answer(single_question, evidence, language, calibrator=calibrator)
+        if checked is None or checked.abstained:
+            return None
+        answers.append(checked)
+    from .grounding import GroundedAnswer
+    text, claims, citations = [], [], []
+    for index, checked in enumerate(answers, 1):
+        label = checked.citations[0].source_name or (
+            f'Document {index}' if language.startswith('en') else f'Tài liệu {index}')
+        text.append(f'{label}: {checked.answer}')
+        claims.extend(replace(claim, claim_id=f'comparison{index}-{claim.claim_id}') for claim in checked.claims)
+        citations.extend(checked.citations)
+    scores = [a.confidence_score for a in answers]
+    raw_scores = [a.raw_confidence_score for a in answers]
+    return GroundedAnswer('\n'.join(text), tuple(citations),
+        min((a.confidence for a in answers), key={'low': 0, 'medium': 1, 'high': 2}.get),
+        claims=tuple(claims), confidence_score=min(scores) if all(v is not None for v in scores) else None,
+        raw_confidence_score=min(raw_scores) if all(v is not None for v in raw_scores) else None,
+        policy_version=answers[0].policy_version)
 
 
 def application_view(answer, quotes, question, *, doc_ids=None):

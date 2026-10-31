@@ -238,6 +238,143 @@ def test_explicit_exam_organization_answers_existence_without_guessing_eligibili
     assert regulation_request('Nếu em trượt thì có kỳ thi phụ không?') is None
 
 
+def test_prior_topic_cannot_override_the_current_requested_field():
+    question = ('Sớm nhất là sau bao lâu?\nContext topic (untrusted user input): '
+                'Trường có kỳ thi phụ không?')
+    assert regulation_request(question) is None
+    assert regulation_request('Vậy thời gian làm bao lâu?\nContext topic (untrusted user input): '
+                              'Điều kiện CPA làm khóa luận là gì?') is None
+
+
+def test_prior_course_definition_preserves_unpassed_course_qualification():
+    source = source_rule('b) Học phần học trước: Học phần A là học phần học trước của học phần B '
+        'thì sinh viên phải đăng ký và học xong (có thể chưa đạt) học phần A mới được dự lớp học phần B.')
+    answer = deterministic_regulation_fact('Môn A là học trước của B, em học xong A nhưng chưa đạt thì sao?', [source], 'vi')
+    assert answer and not answer.abstained and '(có thể chưa đạt)' in answer.answer
+    assert answer.citations[0].quote in source.content
+    assert regulation_request('CS123 là học trước của CS456, em chưa đạt thì sao?') is None
+    assert regulation_request('So sánh môn tiên quyết và học trước, có phải học xong?') is None
+
+
+def test_colloquial_summer_registration_reads_the_source_limit():
+    result = source_rule('Sinh viên được đăng ký tối đa 9 TC trong học kỳ hè.')
+    question = 'Em hè muốn ôm 12 tín được k ạ'
+    answer = deterministic_regulation_fact(question, [result], 'vi')
+    assert answer and not answer.abstained and '9 TC' in answer.answer
+    assert '12' not in answer.answer
+    assert regulation_request('Điểm hệ 4 môn 3 tín có được không?') is None
+    assert regulation_request('Hè muốn ôm 12 tín được k và học phí là bao nhiêu?') is None
+
+
+def test_cpa_threshold_is_source_derived_and_keeps_the_assessment_time():
+    text = ('c) Điểm trung bình chung tích lũy tính đến thời điểm xét điều kiện làm đồ án, '
+            'khóa luận phải đạt từ 3,1 trở lên.')
+    result = source_rule(text)
+    answer = deterministic_regulation_fact('Muốn làm khóa luận cần CPA bao nhiêu?', [result], 'vi')
+    assert answer and not answer.abstained and '3,1' in answer.answer
+    assert 'thời điểm xét điều kiện' in answer.answer
+    assert answer.citations[0].quote in result.content
+    assert deterministic_regulation_fact('Muốn làm khóa luận cần CPA bao nhiêu?',
+        [result, source_rule(text.replace('3,1', '3,3'), 'conflict')], 'vi').abstained
+    assert regulation_request('Khóa luận cần CPA bao nhiêu và học phí bao nhiêu?') is None
+
+
+@pytest.mark.parametrize('text', [
+    'Tài liệu của Cơ quan A không quy định ngưỡng điểm này.',
+    'Nguồn đào tạo năm 2032 không đề cập điều kiện này.',
+])
+def test_qualified_source_absence_requires_a_full_source_audit(text):
+    from campusai.rag.request_completeness import asserts_document_absence
+    assert asserts_document_absence(text)
+    assert not asserts_document_absence('Tài liệu ghi rõ sinh viên không phải đóng học phí.')
+    assert not asserts_document_absence('Quy chế quy định người học không được thi lại.')
+
+
+def test_annual_total_cannot_be_relabelled_as_one_semester():
+    from campusai.rag.presentation import aggregate_period_conflict
+    source = 'Một năm\nhọc có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.'
+    assert aggregate_period_conflict('Học kỳ chính kéo dài ít nhất 36 tuần.', [source])
+    assert not aggregate_period_conflict('Ba học kỳ chính có tổng số tối thiểu 36 tuần.', [source])
+    assert not aggregate_period_conflict('Một năm học có 36 tuần lên lớp.', [source])
+    assert not aggregate_period_conflict('Học kỳ chính kéo dài ít nhất 12 tuần.', [source])
+    assert not aggregate_period_conflict('Học kỳ chính kéo dài ít nhất 36 tuần.',
+        ['Mỗi học kỳ chính kéo dài ít nhất 36 tuần.'])
+
+
+@pytest.mark.parametrize('answer,claim,source,question', [
+    ('Học kỳ chính kéo dài ít nhất 36 tuần.',
+     'học có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
+     'Một năm\nhọc có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
+     'Một học kỳ chính dài bao nhiêu tuần?'),
+    ('Tài liệu của Cơ quan A không quy định mức học phí.',
+     'Sinh viên được đăng ký học phần.', 'Sinh viên được đăng ký học phần.',
+     'Học phí bao nhiêu?'),
+])
+def test_correct_diagnostic_claim_cannot_license_false_visible_answer(answer, claim, source, question):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class Model:
+        def generate_json(self, prompt, schema=None):
+            return {'answer': answer, 'confidence': 'high', 'abstained': False,
+                    'citations': [{'chunk_id': 'rule'}],
+                    'claims': [{'claim_id': 'c1', 'text': claim, 'citation_ids': ['rule']}]}
+    result = GroundedAnswerGenerator(Model(), source_citations=True).answer(question, [source_rule(source)])
+    assert result.abstained
+    assert result.answer != answer
+
+
+@pytest.mark.parametrize('answer,claim,source,question', [
+    ('Học kỳ chính kéo dài ít nhất 36 tuần.',
+     'học có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
+     'Một năm\nhọc có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
+     'Một học kỳ chính dài bao nhiêu tuần?'),
+    ('Tài liệu của Cơ quan A không quy định mức học phí.',
+     'Sinh viên được đăng ký học phần.', 'Sinh viên được đăng ký học phần.',
+     'Học phí bao nhiêu?'),
+])
+def test_correct_diagnostic_claim_cannot_license_false_visible_answer(answer, claim, source, question):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class Model:
+        def generate_json(self, prompt, schema=None):
+            return {'answer': answer, 'confidence': 'high', 'abstained': False,
+                    'citations': [{'chunk_id': 'rule'}],
+                    'claims': [{'claim_id': 'c1', 'text': claim, 'citation_ids': ['rule']}]}
+    result = GroundedAnswerGenerator(Model(), source_citations=True).answer(question, [source_rule(source)])
+    assert result.abstained
+    assert result.answer != answer
+
+
+def test_letter_and_numeric_grade_fields_are_both_answered():
+    import json
+    from campusai.rag.grade_ranges import deterministic_grade_answer
+    source = RetrievalResult('grid', 'fictional', 2, json.dumps({
+        'headers': ['Điểm theo thang 10', '6,2÷7,4'],
+        'rows': [['Điểm chữ', 'B'], ['Điểm số', '3,2']]}), 'table', 1., 'test', {})
+    answer = deterministic_grade_answer('Em đạt 6,9 điểm thì điểm chữ và điểm hệ 4 là gì?', [source])
+    assert answer and 'B' in answer.answer and '3,2' in answer.answer
+
+
+def test_grade_comparison_requires_two_complete_independent_source_proofs():
+    from dataclasses import replace
+    from campusai.rag.grade_ranges import deterministic_grade_answer
+    def sources(doc, point):
+        return [RetrievalResult(doc + '-range', doc, 2, 'B: từ 6,2 đến 7,4;', 'text', 1., 'test',
+                                {'source_name': doc + '.pdf'}),
+                RetrievalResult(doc + '-point', doc, 3, f'B quy đổi thành {point};', 'text', 1., 'test',
+                                {'source_name': doc + '.pdf'})]
+    first, second = sources('first', '3,2'), sources('second', '2,7')
+    q = 'Cùng 6,9 điểm, hai tài liệu quy đổi thang 4 có giống nhau không?'
+    answer = deterministic_grade_answer(q, first + second)
+    assert answer and '3,2' in answer.answer and '2,7' in answer.answer
+    assert len({c.doc_id for c in answer.citations}) == 2
+    assert len({c.claim_id for c in answer.claims}) == len(answer.claims)
+    assert deterministic_grade_answer(q, first + second[:1]) is None
+    assert deterministic_grade_answer(q, first[:1] + second[1:]) is None
+    conflict = replace(first[1], chunk_id='conflict', content='B quy đổi thành 3,8;')
+    assert deterministic_grade_answer(q, first + second + [conflict]) is None
+    assert deterministic_grade_answer(q + ' Đồng thời cho biết học phí.', first + second) is None
+    assert deterministic_grade_answer(q.replace('không?', 'không và viết một bài thơ?'), first + second) is None
+
+
 def font_mapping_fixture(path):
     """Visible ASCII stays intact while ToUnicode deliberately lies about glyphs."""
     import pymupdf as fitz

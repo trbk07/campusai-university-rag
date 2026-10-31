@@ -135,6 +135,36 @@ def quantities(text):
     return result
 
 
+def aggregate_period_conflict(answer, quotes):
+    """An annual multi-term total cannot become one term's duration.
+
+    Read the period and quantity from the actual citation, not the model's
+    potentially truncated claim. This is a bounded veto, not division or a
+    guessed per-term minimum. Unrecognized wording keeps ordinary validation.
+    """
+    term = r'(?:hoc\s+k[yi](?:\s+chinh)?|semester|term)'
+    unit = r'(?:tuan|weeks?|ngay|days?|gio|hours?)'
+    total = (r'(?:mot\s+nam\s+hoc|(?:an?\s+)?(?:academic|school)\s+year)'
+             r'[^.!?;]{0,60}?\b(?:0?[2-9]|two|three|four)\s+' + term + r's?\b'
+             r'[^.!?;]{0,60}?\b(?:tong\s+so|tong|total(?:ing)?)\b'
+             r'[^.!?;]{0,40}?(?P<value>\d+(?:[.,]\d+)?)\s*(?P<unit>' + unit + r')\b')
+    aliases = {'tuan': 'week', 'weeks': 'week', 'ngay': 'day', 'days': 'day',
+               'gio': 'hour', 'hours': 'hour'}
+    totals = set()
+    for quote in quotes:
+        for match in re.finditer(total, ' '.join(folded(quote).split())):
+            totals.add((number(match['value']), aliases.get(match['unit'], match['unit'])))
+    for clause in re.split(r'[.!?;]\s+|\n+', folded(answer)):
+        if (not re.search(r'\b' + term + r'\b', clause)
+                or re.search(r'\b(?:tong|total|nam\s+hoc|academic\s+year|school\s+year)\b', clause)
+                or re.search(r'\b(?:0?[2-9]|two|three|four)\s+' + term, clause)):
+            continue
+        for match in re.finditer(r'(?P<value>\d+(?:[.,]\d+)?)\s*(?P<unit>' + unit + r')\b', clause):
+            if (number(match['value']), aliases.get(match['unit'], match['unit'])) in totals:
+                return True
+    return False
+
+
 _SCOPE_CUES = re.compile(
     r"\b(?:admission|cohort|intake|academic year|school year|curriculum|programme|program|"
     r"issued|published|effective|version|regulations?|policy|quy che|quy dinh|ban hanh|nam hoc|khoa tuyen sinh|khoa|ap dung|"

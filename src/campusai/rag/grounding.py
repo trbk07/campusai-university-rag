@@ -1231,8 +1231,11 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
     used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
-    from .presentation import presentation_conflicts, location_proofs, code_markers, omit_unverified_context
+    from .presentation import presentation_conflicts, location_proofs, code_markers, omit_unverified_context, aggregate_period_conflict
     answer=omit_unverified_context(answer,claims,question)
+    if aggregate_period_conflict(answer, [citation.quote for citation in citations]):
+        record_stage('grounding_reject.aggregate_period', 0.)
+        return _abstention('unsupported_claim', language=language)
     source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
     locations = location_proofs(citations, registry)
     from .year_cells import numeric_answer_units_valid
