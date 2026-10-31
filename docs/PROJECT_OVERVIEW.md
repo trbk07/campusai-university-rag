@@ -113,8 +113,9 @@ Xác minh ngày 31/10/2026:
 - `uv lock --check --offline` đạt; lockfile dependency không đổi.
 
 Trong lúc dọn có công việc khác tiếp tục sửa runtime và tạo lại
-`tests/test_institution_context.py`. Các thay đổi mới này được giữ ngoài commit
-dọn dẹp. Không xóa lặp lại file đang được tạo bởi công việc hiện hành.
+`tests/test_institution_context.py`. Các thay đổi mới này được giữ nguyên;
+file test mới thuộc công việc đang diễn ra, không phải bộ nghiệm thu lịch sử.
+Không xóa lặp lại file đang được tạo bởi công việc hiện hành.
 
 Các bước trên xác nhận khởi động và các đường đọc cơ bản sau dọn; chưa thay
 nghiệm thu chất lượng câu trả lời hoặc tốc độ provider trong mục 3.

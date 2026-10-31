@@ -66,7 +66,7 @@ license: [runtime assets](local-third-party.md). Chưa công bố gate chất l�
 Sau setup, chạy `--check`, rồi mở `start-campusai.cmd`. Chọn mục tải tài liệu,
 thêm tối đa 5 PDF mỗi lượt và đợi trạng thái sẵn sàng; có thể tải lượt tiếp.
 Trong Trợ lý AI, chọn nguồn cần hỏi, nhập câu hỏi rồi mở citation để xem đúng
-tài liệu/trang. Với scan hoặc mixed PDF chưa đọc đủ, mở chi tiết tài liệu và
+tài liệu/trang. Với scan hoặc mixed PDF chưa đọc đủ, mở chi tiết tài liệu để
 theo dõi OCR nền và coverage; các tác vụ đã hủy/lỗi cần lựa chọn thử lại.
 Xóa tài liệu từ thư viện khi không dùng nữa.
 
