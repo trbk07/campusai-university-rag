@@ -185,7 +185,7 @@ def _assessment_facts(content, request, metadata=None):
         pattern = (r'(?P<whole>(?P<fact>diem\s+trung\s+binh(?:\s+chung)?\s+tich\s+luy\s+'
             r'tinh\s+den\s+thoi\s+diem\s+xet\s+dieu\s+kien\s+lam\s+'
             r'(?:do\s+an,?\s*)?khoa\s+luan\s+phai\s+dat\s+tu\s+'
-            r'(?P<a>\d+(?:[.,]\d+)?)\s+tro\s+len\.))')
+            r'(?P<a>\d+(?:[.,]\d+)?)\s+tro\s+len[.;]))')
     elif request[0] == 'cohort':
         pattern = (r'(?P<whole>(?P<fact>(?:quyet dinh|quy che|quy dinh|van ban) nay '
             r'[^.]{0,180}?ap dung doi voi cac\s+khoa tuyen sinh tu nam (?P<a>(?:19|20|21)\d{2})\.))')
@@ -228,6 +228,8 @@ def _assessment_facts(content, request, metadata=None):
     # normative fact. A quoted assertion in the middle of prose is not a rule.
     prefix=(r'(?m)^[ \t]*(?:\d+[.)]\s*)?' if request[0] in {'weight','deferral'} else
             r'(?m)(?:^[ \t]*(?:(?:\d+|[a-zđ])[.)]\s*)?|(?<=[.;])\s+)')
+    if request[0] == 'thesis_gpa':
+        prefix = r'(?m)^[ \t]*(?:[-–—•~]\s*|(?:\d+|[a-zđ])[.)]\s*)?'
     for match in re.finditer(prefix+pattern, text):
         if re.search(r'(?m)(?:^|[.;])\s*(?:khong phai|not)\s+\d+[.)]\s*$',text[:match.start('whole')]):
             continue

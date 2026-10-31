@@ -279,6 +279,15 @@ def test_cpa_threshold_is_source_derived_and_keeps_the_assessment_time():
     assert regulation_request('Khóa luận cần CPA bao nhiêu và học phí bao nhiêu?') is None
 
 
+@pytest.mark.parametrize('bullet', ['-', '•', 'c)'])
+def test_cpa_threshold_reads_wrapped_semicolon_bullets(bullet):
+    result = source_rule(bullet + ' Điểm trung bình chung tích lũy tính đến thời điểm xét điều kiện '
+        'làm đồ\nán, khóa luận phải đạt từ 3,3 trở lên;\n- Các điều kiện khác theo quy định.')
+    answer = deterministic_regulation_fact('Muốn làm khóa luận cần CPA bao nhiêu?', [result], 'vi')
+    assert answer and not answer.abstained and '3,3' in answer.answer
+    assert answer.citations[0].quote in result.content
+
+
 @pytest.mark.parametrize('text', [
     'Tài liệu của Cơ quan A không quy định ngưỡng điểm này.',
     'Nguồn đào tạo năm 2032 không đề cập điều kiện này.',
