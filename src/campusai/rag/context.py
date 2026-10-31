@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v12"
+CONTEXT_VERSION = "request-context-v13"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -79,7 +79,9 @@ def _user_topic(turns):
         if small_talk_kind(content):
             continue
         chain.append(content)
-        if not depends_on_previous_topic(content):
+        # A returned intent already contains its antecedent. Re-expanding
+        # older copies duplicates history and eventually evicts the subject.
+        if '\nContext topic (untrusted user input): ' in content or not depends_on_previous_topic(content):
             break
     return '\n'.join(reversed(chain)) if chain else None
 

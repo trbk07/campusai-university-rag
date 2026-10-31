@@ -117,6 +117,9 @@ class CampusAIApplication:
         kind = getattr(getattr(self.query_service, '_request_local', None), 'conversation_kind', None)
         if kind:
             response['conversation_kind'] = kind
+        context_question=getattr(getattr(self.query_service,'_request_local',None),'context_question',None)
+        if isinstance(context_question,str) and context_question:
+            response['context_question']=context_question
         return response
 
     def metrics_snapshot(self) -> dict[str, Any]:

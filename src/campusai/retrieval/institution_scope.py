@@ -124,9 +124,13 @@ class InstitutionRequest:
     source_options: tuple[str, ...]=()
     unrecognized_reference: str=''
     alias_check_unavailable: bool=False
+    question_clarification: bool=False
 
     def clarification(self,language='vi'):
-        if self.unknown_name:
+        if self.question_clarification:
+            message=('Mình đã nhận lựa chọn trường. Bạn muốn hỏi riêng nội dung nào, hay so sánh với trường nào?'
+                if language=='vi' else 'I have the institution choice. Which topic do you want, or which institution should I compare it with?')
+        elif self.unknown_name:
             reference=f' “{self.unrecognized_reference[:80]}”' if self.unrecognized_reference else ''
             message=(f'Mình chưa khớp được tên/viết tắt{reference} với trường trong các PDF đang chọn. '
                 'Bạn xác minh tên trường đầy đủ hoặc chọn đúng PDF giúp mình. Mình sẽ tiếp tục câu hỏi trước sau khi bạn xác nhận.'
@@ -216,7 +220,7 @@ def _institution_dependent(question,documents):
         r'phuc khao|phuc tra|hoan thi|thi lai|thi cuoi|ky thi|hoc ky|hoc ki|ky chinh|ky he|'
         r'dang k[yi]|hoc lai|hoc cai thien|hoc truoc|tien quyet|canh bao|tuyen sinh|nhap hoc|'
         r'diem chu|quy doi diem|thoi gian hoc|tuan hoc|'
-        r'credits?|tuition|scholarship|graduation|admission|register|registration|prerequisite|exam|semester)\b|'
+        r'rules?|regulations?|polic(?:y|ies)|credits?|tuition|scholarship|graduation|admission|register|registration|prerequisite|exam|semester)\b|'
         r'\b(?:\d+(?:[.,]\d+)?|may|bao nhieu)\s+(?:tin|diem)\b|\bdiem\s+[a-f][+-]?(?!\w)',value)
         or re.search(r'\bthi\b',question,re.I))
 
@@ -271,6 +275,72 @@ def _unrecognized_choice(raw):
     return all(word[0].isupper() for word in words)
 
 
+def unresolved_institution_reference(question,documents):
+    """Find a name-like token in a rule question, without a school whitelist."""
+    raw,separator,topic=question.partition(_CONTEXT)
+    contextual=bool(separator and _institution_dependent(topic,documents))
+    if not (_institution_dependent(raw,documents) or contextual):return ''
+    words=list(re.finditer(r'[^\W_]+',raw))
+    refs=_references(raw,documents)
+    covered=set()
+    for index,word in enumerate(words):
+        if folded(word.group()) in refs:covered.add(index)
+        if index+1<len(words) and folded(word.group())+folded(words[index+1].group()) in refs:
+            covered.update((index,index+1))
+    for index,word in enumerate(words):
+        if index in covered:continue
+        token=word.group();value=folded(token)
+        if (not re.fullmatch(r'[A-Za-z]{3,12}',token) or value in _GENERIC|_ACADEMIC
+                or _references(token,documents)):
+            continue
+        previous=folded(words[index-1].group()) if index else ''
+        following=folded(words[index+1].group()) if index+1<len(words) else ''
+        named=(previous in {'cua','tai','o','truong','ben','about','at','of','for'}
+               and following in {'','la','co','thi','nhu','quy','yeu','hoc','can','duoc','ap','rules','policy'})
+        named=named or contextual and previous in {'con','the','vay'} and following in {'','thi','sao'}
+        if named or token.isupper() and value not in {'sv','student','students','pdf'}:
+            return token
+    return ''
+
+
+def replace_institution_alias(question,reference,canonical):
+    return re.sub(r'(?<!\w)'+re.escape(reference)+r'(?!\w)',lambda _m:canonical,question,flags=re.I)
+
+
+def _retarget_question(pending,documents,name):
+    """Keep the requested rule/attribute, replacing its old institution only."""
+    raw,separator,topic=pending.partition(_CONTEXT)
+    suffix=separator+_retarget_question(topic,documents,name) if separator else ''
+    refs=_references(raw,documents)
+    words=list(re.finditer(r'[^\W_]+',raw))
+    spans=[]
+    for index,word in enumerate(words):
+        if folded(word.group()) in refs:spans.append(word.span())
+        if index+1<len(words) and folded(word.group())+folded(words[index+1].group()) in refs:
+            spans.append((word.start(),words[index+1].end()))
+    if spans:
+        # Keep separate mentions separate; do not erase conditions between them.
+        merged=[]
+        for start,end in sorted(spans):
+            if merged and (start<=merged[-1][1] or not raw[merged[-1][1]:start].strip()):
+                merged[-1]=(merged[-1][0],max(end,merged[-1][1]))
+            else:merged.append((start,end))
+        start,end=max(merged,key=lambda span:span[1]-span[0])
+        prefix=[word for word in words if word.end()<=start]
+        initial=[word for word in words if start<=word.start()<end][:2]
+        institution_prefixes={'truong','dai hoc','truong dai hoc','dh','truong dh','hoc vien','hocvien',
+                              'university','university of','the university of','college','college of','institute','institute of'}
+        for offset in range(max(0,len(prefix)-4),len(prefix)):
+            phrases=[' '.join(folded(word.group()) for word in prefix[offset:]+initial[:count])
+                     for count in range(len(initial)+1)]
+            if any(phrase in institution_prefixes for phrase in phrases):
+                start=prefix[offset].start();break
+        return raw[:start]+name+raw[end:]+suffix
+    unknown=unresolved_institution_reference(raw,documents)
+    if unknown:return replace_institution_alias(raw,unknown,name)+suffix
+    return raw+suffix
+
+
 def _pending_question(turns,documents):
     for index in range(len(turns)-1,-1,-1):
         role,text=turns[index]
@@ -300,9 +370,15 @@ def _resolve_institution_request(question,documents,history=()):
             if pending and confirmed.doc_ids and not confirmed.needs_clarification:
                 # Keep a complete pending question as the main request so
                 # ordinary content/structured retrieval still sees its intent.
-                prior=pending.partition(_CONTEXT)[0]
-                effective=(raw+_CONTEXT+pending if _references(prior,documents)
-                           or _unmatched_name(prior,documents) else pending)
+                previous_ids=requested_institution_documents(pending,documents)
+                _,groups=_institution_groups(documents)
+                if (len({groups[ident] for ident in previous_ids})>1
+                        and re.search(r'\b(?:so sanh|compare|comparison|khac nhau)\b',folded(pending))):
+                    return InstitutionRequest(question,confirmed.doc_ids,needs_clarification=True,
+                        question_clarification=True)
+                selected=[doc for doc in documents if doc['doc_id'] in confirmed.doc_ids]
+                labels=_source_options(selected)
+                effective=_retarget_question(pending,documents,labels[0]) if labels else pending
                 return InstitutionRequest(effective,confirmed.doc_ids)
             if pending:question=raw+_CONTEXT+pending
         elif turns[-1][0]=='assistant' and _school_clarification(turns[-1][1]):
@@ -331,6 +407,16 @@ def _resolve_institution_request(question,documents,history=()):
 
 def resolve_institution_request(question,documents,history=()):
     request=_resolve_institution_request(question,documents,history)
+    if not request.unrecognized_reference:
+        reference=unresolved_institution_reference(question,documents)
+        if reference:
+            request=replace(request,doc_ids=frozenset(),needs_clarification=True,
+                unknown_name=True,unrecognized_reference=reference)
+    if request.doc_ids and not request.needs_clarification:
+        _,groups=_institution_groups(documents)
+        if len({groups[ident] for ident in request.doc_ids})==1:
+            labels=_source_options([doc for doc in documents if doc['doc_id'] in request.doc_ids])
+            if labels:request=replace(request,question=_retarget_question(request.question,documents,labels[0]),source_options=labels)
     if request.needs_clarification:
         request=replace(request,source_options=_source_options(documents))
     return request

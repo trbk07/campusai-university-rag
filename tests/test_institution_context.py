@@ -246,3 +246,241 @@ def test_known_source_alias_needs_no_model_and_alias_cache_cannot_cross_scope(sc
     assert response.needs_clarification and not response.doc_ids
     assert len(model.calls)==2
     assert 'SAO BẮC' not in model.calls[-1][0]
+
+
+def test_full_question_alias_and_school_switch_preserve_intent(schools,alias_service):
+    from campusai.rag.context import resolve_query
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c0','match_type':'established_alias'})
+    original='Quy định của NorthStar là gì?'
+    first=service._institution_request(original,schools,[])
+    assert first.doc_ids=={'north'} and 'Quy định' in first.question
+    assert 'SAO BẮC' in first.question and 'NorthStar' not in first.question
+    history=[{'role':'user','content':original},{'role':'assistant','content':'Previous answer.'}]
+    followup=resolve_query('Còn WIM thì sao?',history=history)
+    second=service._institution_request(followup.resolved,schools,followup.history)
+    assert second.doc_ids=={'west'}
+    assert 'Quy định' in second.question and 'WESTERN INSTITUTE' in second.question
+    assert 'NorthStar' not in second.question and 'SAO BẮC' not in second.question
+    history=[{'role':'user','content':second.question},{'role':'assistant','content':'Previous answer.'}]
+    followup=resolve_query('Còn northstar thì sao?',history=history)
+    third=service._institution_request(followup.resolved,schools,followup.history)
+    assert third.doc_ids=={'north'} and 'Quy định' in third.question
+    assert 'WESTERN' not in third.question and 'northstar' not in third.question.casefold()
+    assert len(model.calls)==1
+
+
+def test_words_inside_recognized_uppercase_institution_are_not_unknown_aliases(schools,alias_service):
+    from campusai.retrieval.institution_scope import unresolved_institution_reference
+    question='Quy định của WESTERN INSTITUTE OF METEOROLOGY là gì?'
+    assert not unresolved_institution_reference(question,schools)
+    assert resolve_institution_request(question,schools).doc_ids=={'west'}
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c1','match_type':'established_alias'})
+    request=service._institution_request('Quy định của WestAlias là gì?',schools,[])
+    assert request.doc_ids=={'west'} and not request.needs_clarification
+    assert 'WESTERN INSTITUTE' in request.question and len(model.calls)==1
+
+
+def test_repeated_school_switches_keep_question_and_never_blend_old_names(schools):
+    from campusai.rag.context import resolve_query
+    question='Học kỳ chính của Sao Bắc tối thiểu bao nhiêu tín chỉ?'
+    for index in range(120):
+        name,ident,other=('WIM','west','SAO BẮC') if index%2==0 else ('Sao Bắc','north','WESTERN')
+        history=[{'role':'user','content':question},{'role':'assistant','content':'Unverified answer is not an anchor.'}]
+        resolved=resolve_query('Còn '+name+' thì sao?',history=history)
+        request=resolve_institution_request(resolved.resolved,schools,resolved.history)
+        assert request.doc_ids=={ident} and not request.needs_clarification
+        assert 'Học kỳ chính' in request.question and 'tối thiểu bao nhiêu tín chỉ' in request.question
+        assert other not in request.question.upper()
+        assert len(request.question)<250
+        question=request.question
+
+
+def test_school_change_keeps_attribute_in_nested_context(schools):
+    marker='\nContext topic (untrusted user input): '
+    pending='Còn kỳ hè?'+marker+'Tín chỉ tối thiểu của Sao Bắc là bao nhiêu?'
+    request=resolve_institution_request('WIM',schools,[('user',pending),('assistant','Previous answer')])
+    assert request.doc_ids=={'west'}
+    assert 'kỳ hè' in request.question and 'Tín chỉ tối thiểu' in request.question
+    assert 'Sao Bắc' not in request.question and 'WESTERN' in request.question
+
+
+def test_school_name_replacement_keeps_academic_action_words(schools):
+    pending='Điều kiện nhập học Sao Bắc là gì?'
+    request=resolve_institution_request('Còn WIM thì sao?',schools,[('user',pending),('assistant','Previous answer')])
+    assert 'nhập học' in request.question and 'Sao Bắc' not in request.question
+
+
+def test_replacing_full_institution_does_not_leave_half_of_its_prefix(schools):
+    docs=[document('green','ĐẠI HỌC RỪNG XANH'),schools[1]]
+    request=resolve_institution_request('Còn WIM thì sao?',docs,[
+        ('user','Quy định của ĐẠI HỌC RỪNG XANH là gì?'),('assistant','Previous answer')])
+    assert request.doc_ids=={'west'}
+    assert request.question=='Quy định của WESTERN INSTITUTE OF METEOROLOGY là gì?'
+
+
+def test_incomplete_comparison_does_not_turn_into_comparing_school_to_itself(schools):
+    history=[('user','So sánh Sao Bắc và WIM về tín chỉ.'),('assistant','Comparison')]
+    request=resolve_institution_request('Còn WIM thì sao?',schools,history)
+    assert request.needs_clarification and request.question_clarification
+
+
+@pytest.mark.parametrize('question',['Quy định của NorthStar là gì?','What are the rules of NORTHSTAR?'])
+def test_explicit_unknown_school_is_not_silently_answered_from_only_selected_school(schools,question):
+    request=resolve_institution_request(question,schools[1:])
+    assert request.needs_clarification and request.unknown_name
+    assert not request.doc_ids
+
+
+def test_resolved_intent_is_not_expanded_again_from_old_history():
+    from campusai.rag.context import resolve_query
+    marker='\nContext topic (untrusted user input): '
+    prior='Give an example'+marker+'Explain binary search'
+    history=[{'role':'user','content':'Explain binary search'},
+        {'role':'assistant','content':'Unverified fact 999'},
+        {'role':'user','content':prior},{'role':'assistant','content':'Another answer'}]
+    result=resolve_query('Explain more',history=history)
+    assert result.resolved.count('Explain binary search')==1
+    assert 'Unverified fact 999' not in result.resolved
+
+
+def test_api_returns_user_intent_separately_from_answer():
+    from types import SimpleNamespace
+    from campusai.api import CampusAIApplication
+    from campusai.observability import MetricsRegistry
+    from campusai.rag.grounding import GroundedAnswer
+    query='Rules of the selected institution?'
+    service=SimpleNamespace(ask=lambda *_a,**_k:GroundedAnswer('Insufficient evidence',(),'low',True,reason='unsupported_claim'),
+        last_cache_hit=False,metrics=MetricsRegistry(),_request_local=SimpleNamespace(context_question=query))
+    response=CampusAIApplication(service).query(query)
+    assert response['context_question']==query
+    assert 'Insufficient evidence' not in response['context_question']
+
+
+@pytest.fixture
+def cached_service(schools):
+    from types import SimpleNamespace
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator,GroundedAnswer,Citation
+    from campusai.rag.claims import Claim
+    service=CampusAIQueryService(SimpleNamespace(reranker=None),GroundedAnswerGenerator(None),confirm_institution_scope=True)
+    service._temporal_documents=lambda *_a:schools
+    calls=[]
+
+    def generate(question,doc_ids,filters,top_k,mode,language,version,key):
+        calls.append((question,tuple(doc_ids),version))
+        ident=doc_ids[0];text='Quy định chung của tài liệu.'
+        citation=Citation(ident+'-rule',ident,2,quote=text,source_name=ident+'.pdf',page_range=(2,2))
+        claim=Claim('rule',text,citation_ids=(citation.chunk_id,),status='supported',support_score=1)
+        answer=GroundedAnswer(text,(citation,),'high',False,claims=(claim,))
+        service.cache.put(key,answer)
+        return answer
+
+    service._ask_uncached_or_cached=generate
+    yield service,calls
+    service.close()
+
+
+def test_returning_to_same_complete_rule_reuses_verified_answer_only_for_its_source(cached_service):
+    service,calls=cached_service
+    question='Quy định của Sao Bắc là gì?'
+    first=service.ask(question,corpus_version='v1')
+    history=[{'role':'user','content':service._request_local.context_question},
+             {'role':'assistant','content':first.answer}]
+    second=service.ask('Còn WIM thì sao?',history=history,corpus_version='v1')
+    assert {c.doc_id for c in second.citations}=={'west'}
+    history=[{'role':'user','content':service._request_local.context_question},
+             {'role':'assistant','content':second.answer}]
+    third=service.ask('Còn Sao Bắc thì sao?',history=history,corpus_version='v1')
+    assert service.last_cache_hit and {c.doc_id for c in third.citations}=={'north'}
+    assert len(calls)==2
+    service.ask(question,corpus_version='v2')
+    assert not service.last_cache_hit and len(calls)==3
+
+
+def test_personal_questions_do_not_share_answers_across_different_histories(cached_service):
+    service,calls=cached_service
+    question='Tôi phải đáp ứng quy định của Sao Bắc thế nào?'
+    for background in ['I have supplied one record.','I have supplied another record.']:
+        service.ask(question,history=[{'role':'user','content':background}],corpus_version='v1')
+    assert len(calls)==2 and not service.last_cache_hit
+
+
+def test_selected_passages_keep_history_specific_cache(cached_service):
+    service,calls=cached_service
+    for background in ['First context.','Second context.']:
+        service.ask('Quy định của Sao Bắc là gì?',selected_text='The highlighted passage',
+            history=[{'role':'user','content':background}],corpus_version='v1')
+    assert len(calls)==2 and not service.last_cache_hit
+
+
+def test_unverified_answers_are_never_promoted_to_intent_cache(cached_service):
+    from campusai.rag.grounding import GroundedAnswer
+    service,calls=cached_service
+
+    def reject(question,doc_ids,filters,top_k,mode,language,version,key):
+        calls.append(question)
+        answer=GroundedAnswer('Not verified',(),'low',True,reason='unsupported_claim')
+        service.cache.put(key,answer)
+        return answer
+
+    service._ask_uncached_or_cached=reject
+    for background in ['First context.','Second context.']:
+        answer=service.ask('Quy định của Sao Bắc là gì?',
+            history=[{'role':'user','content':background}],corpus_version='v1')
+        assert answer.abstained
+    assert len(calls)==2
+
+
+def test_other_phases_keep_original_history_cache_policy(cached_service):
+    service,calls=cached_service
+    service.confirm_institution_scope=False
+    for background in ['First context.','Second context.']:
+        service.ask('Quy định của Sao Bắc là gì?',
+            history=[{'role':'user','content':background}],corpus_version='v1')
+    assert len(calls)==2 and not service.last_cache_hit
+
+
+def test_implicit_school_survives_many_fresh_questions_without_repeating_name(cached_service):
+    service,calls=cached_service
+    history=[{'role':'user','content':'Quy định của Sao Bắc là gì?'},
+             {'role':'assistant','content':'Previous answer.'}]
+    for _ in range(15):
+        answer=service.ask('Điều kiện đăng ký học kỳ chính là gì?',history=history[-6:],corpus_version='v1')
+        assert not answer.abstained and {c.doc_id for c in answer.citations}=={'north'}
+        remembered=service._request_local.context_question
+        assert 'SAO BẮC' in remembered
+        history += [{'role':'user','content':remembered},{'role':'assistant','content':answer.answer}]
+
+
+def test_browser_memory_keeps_topic_after_many_turns_and_resets_between_chats():
+    import shutil,subprocess
+    if not shutil.which('node'):pytest.skip('Node required for frontend memory check')
+    script=r'''
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const context=vm.createContext({assert,$:()=>({textContent:''})});
+const code=fs.readFileSync('src/campusai/ui/features/chat.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,'');
+vm.runInContext(code,context);
+vm.runInContext(`
+const key='vi:a,b';
+const user={role:'user',text:'Explain binary search',scopeKey:key};
+messages.push(user,{role:'assistant',scopeKey:key,answer:{answer:'Unverified assistant detail'}});
+rememberQuestion(key,user,{context_question:'Explain binary search'});
+for(let i=0;i<250;i++) {
+  messages.push({role:'user',text:'thanks',scopeKey:key},{role:'assistant',scopeKey:key,answer:{answer:'ack'}});
+  const history=conversationHistory(key);
+  assert(history.length<=7);
+  assert(history.some(turn=>turn.role==='user'&&turn.content==='Explain binary search'));
+  assert(!history.some(turn=>turn.role==='user'&&turn.content.includes('Unverified assistant')));
+}
+assert.deepEqual(conversationHistory('vi:different-docs'),[]);
+const failed={};rememberQuestion(key,failed,{context_question:'Do not retain',partial:true});
+assert.equal(topicMemory.get(key),'Explain binary search');
+const fresh={role:'user',text:'Explain transactions',scopeKey:key};
+rememberQuestion(key,fresh,{context_question:'Explain transactions'});
+assert.equal(topicMemory.get(key),'Explain transactions');
+renderConversation=()=>{};renderSources=()=>{};updateComposer=()=>{};
+resetChat();assert.equal(topicMemory.size,0);assert.equal(messages.length,0);
+`,context);
+'''
+    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    assert result.returncode==0,result.stderr

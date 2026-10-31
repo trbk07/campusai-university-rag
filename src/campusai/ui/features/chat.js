@@ -4,6 +4,22 @@ import {readySelected, preview} from './documents.js';
 import {excerptFallback, excerptSources, excerptBody, excerptCopy} from './excerpts.js';
 
 let messages = [], activeSources = null, epoch = 0;
+const topicMemory = new Map();
+function conversationHistory(scopeKey) {
+  const history = messages.filter(message => message.scopeKey === scopeKey && !message.error && !message.failed && !message.fallback).slice(-6)
+    .map(message => ({role:message.role,content:String(message.role === 'user' ? message.contextQuestion || message.text : message.answer.answer).slice(0,2000)}));
+  const topic = topicMemory.get(scopeKey);
+  if (topic && !history.some(turn => turn.role === 'user' && turn.content === topic))
+    history.unshift({role:'user',content:topic});
+  return history;
+}
+function rememberQuestion(scopeKey, message, response) {
+  const question = response.context_question;
+  if (typeof question !== 'string' || !question.trim() || question.length > 2000 || response.partial || response.fallback) return;
+  message.contextQuestion = question;
+  topicMemory.delete(scopeKey); topicMemory.set(scopeKey,question);
+  if (topicMemory.size > 8) topicMemory.delete(topicMemory.keys().next().value);
+}
 const formatInline = value => esc(value).replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/`([^`\n]+)`/g,'<code>$1</code>');
 // A deliberately small renderer: text, lists, headings, tables and emphasis.
 // Escape first; raw HTML, links, images and scripts are never interpreted.
@@ -119,8 +135,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
   if (state.busy || !state.aiConfigured || !question.trim() || !docIds.length) return;
   const generation = epoch;
   const scopeKey = language + ':' + [...docIds].sort().join(',');
-  const history = messages.filter(message => message.scopeKey === scopeKey && !message.error && !message.failed && !message.fallback)
-    .map(message => ({role:message.role,content:String(message.role === 'user' ? message.text : message.answer.answer).slice(0,2000)})).slice(-6);
+  const history = conversationHistory(scopeKey);
   state.busy = true; updateComposer();
   const userMessage = {role:'user',text:question,scopeKey};
   messages.push(userMessage);
@@ -138,6 +153,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     }, state.queryTimeoutMs) : post('/api/query', payload, state.queryTimeoutMs));
     if (generation !== epoch) return;
     if (!response.answer || typeof response.answer.answer !== 'string') throw new Error('invalid_response');
+    rememberQuestion(scopeKey,userMessage,response);
     const answer = {...response.answer, documentInfo:response.document_info, conversationKind:response.conversation_kind};
     $('#query-status').textContent = '';
     if (answer.abstained) { answer.citations = []; answer.claims = []; }
@@ -160,7 +176,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     if (state.tab === 'assistant' && !document.querySelector('dialog[open]')) $('#question').focus();
   }
 }
-function resetChat() { epoch++; messages = []; renderConversation(); renderSources(null); $('#query-status').textContent = ''; updateComposer(); }
+function resetChat() { epoch++; messages = []; topicMemory.clear(); renderConversation(); renderSources(null); $('#query-status').textContent = ''; updateComposer(); }
 export function initChat() {
   suggestions(); renderSources(null); updateComposer();
   events.addEventListener('selection', () => { suggestions(); updateComposer(); });

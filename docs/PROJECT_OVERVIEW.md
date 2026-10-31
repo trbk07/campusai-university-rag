@@ -154,6 +154,45 @@ scope, lỗi API, cache theo nguồn và hướng dẫn bổ sung thông tin. HT
 metric đối chiếu tăng đúng 1, không lỗi, khoảng 1,21 giây. Các số này là kiểm tra luồng
 cụ thể, không phải full regression hay accuracy cho mọi tên trường/PDF.
 
+**FIX-11, 31/10 — Hội thoại liền mạch:** Client giữ ý định câu hỏi đã giải quyết
+theo cuộc chat, bộ PDF và ngôn ngữ, thay vì chỉ dựa vào 6 tin gần nhất. Ý định
+được giữ riêng với câu trả lời/citation; lịch sử chat không trở thành bằng chứng
+nguồn. Chat mới xóa bộ nhớ. Câu hỏi ngắn đổi trường được viết lại giữ thuộc tính
+đang hỏi và thay tên nguồn cũ; hỗ trợ alias nằm trong cả câu hỏi đầy đủ. Mơ hồ
+về đối tượng so sánh vẫn hỏi lại, không tự suy đoán.
+
+Tái dùng chỉ câu trả lời dương tính đã được cache kiểm chứng chấp nhận, khi câu
+hỏi đã đủ nghĩa và nêu rõ trường, cùng PDF/corpus, model, cấu hình và ngôn ngữ.
+Câu cá nhân, trích đoạn đang chọn, câu còn phụ thuộc ngữ cảnh và câu trả lời
+chưa xác minh không dùng cơ chế này. Policy cache của các phase khác vẫn giữ
+qua opt-in web; context policy đổi sang `request-context-v13` để tránh dùng lại
+cách mở rộng lịch sử cũ. Không đổi ngưỡng grounding hoặc citation.
+
+Kiểm tra: 52 tests hiện tại + 91 tests tương thích từ `f9d8ba10` = 143 PASS.
+Một assert phiên bản cache của test cũ được chuyển v12 → v13; logic/ngưỡng khác
+giữ nguyên. Có 120 lần đổi trường và 250 lượt hội thoại **giả lập**, kiểm tra
+đổi chủ đề, reset chat, cô lập nguồn, giữ trường qua 15 câu mới không nhắc tên
+và không đưa câu trả lời AI thành user intent.
+Đây là focused regression, không phải full regression hay 250 inference thật.
+
+HTTP thật nguyên ví dụ: “quy định của hust là gì” → “còn nuae thì sao” → “còn
+hust thì sao”; cả ba trả lời đúng nguồn HUST/NUAE/HUST, citation lần lượt trang
+5 / 84,85,109 / 5. Lượt cuối 2,952s / 0,548s / 0,910s, **cả ba dùng câu trả lời
+đã kiểm chứng trong cache**; lượt đầu vẫn đối chiếu alias qua Gemini. Các lượt
+sinh câu trả lời trước đó đo 10,606s cho HUST và 8,384s cho NUAE. Không coi số
+cache warm này là latency inference mới hoặc accuracy cho mọi hội thoại.
+
+Tiếp tục thêm 6 câu mới về quy đổi điểm, không nhắc tên trường trong câu hỏi:
+6/6 trả lời từ PDF HUST, vẫn giữ trường khi câu nhắc HUST ban đầu đã ra khỏi
+6 tin gần nhất. Các câu dùng phép chiếu bảng nguồn (`grade0/grade1`), hoàn tất
+trong 1,014–1,325s; đây không phải 6 inference Gemini mới.
+
+Thiết kế tham khảo [bộ nhớ theo thread của LangChain](https://docs.langchain.com/oss/python/langchain/short-term-memory),
+[query rewriting trong RAG nhiều lượt của NVIDIA](https://docs.nvidia.com/rag/latest/multiturn.html)
+và [cách lưu/truy hồi memory của Supermemory](https://supermemory.ai/docs/concepts/how-it-works).
+Phần triển khai hiện dùng state local và Gemini sẵn có; chưa tích hợp dịch vụ
+Supermemory hay huấn luyện thêm RNN. FIX-05 và nghiệm thu release cuối vẫn mở.
+
 Không commit PDF cá nhân, model, môi trường Python, database, cache hoặc log.
 Chỉ tạo đầu ra chẩn đoán khi xử lý sự cố cụ thể và xóa khi xong. Kết quả cần
 lưu lâu dài cập nhật ngắn gọn vào chính báo cáo này; các bước còn làm cập nhật

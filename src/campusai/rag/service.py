@@ -134,7 +134,8 @@ class CampusAIQueryService:
 
     def _resolve_institution_alias(self, question, documents, history):
         from ..retrieval.institution_scope import (resolve_institution_request,
-            institution_alias_candidates, folded, _CONTEXT)
+            institution_alias_candidates, folded, _CONTEXT,
+            unresolved_institution_reference,replace_institution_alias)
         from ..llm.client import LLMError
         initial=resolve_institution_request(question,documents,history)
         if initial.doc_ids and not initial.needs_clarification:return initial
@@ -159,7 +160,10 @@ class CampusAIQueryService:
         def rewrite(text):
             raw,separator,topic=text.partition(_CONTEXT)
             item=cached(key_for(raw))
-            return item[0]+separator+topic if item and item[0] else text
+            if item and item[0]:return item[0]+separator+topic
+            reference=unresolved_institution_reference(text,documents)
+            item=cached(key_for(reference)) if reference else None
+            return replace_institution_alias(text,reference,item[0]) if item and item[0] else text
 
         # Remember confirmed choices for later questions without more API calls.
         turns=[(turn['role'],turn['content']) if isinstance(turn,dict) else turn for turn in history]
@@ -210,7 +214,8 @@ class CampusAIQueryService:
             canonical,unavailable=item
         self._request_local.institution_alias_trace={'status':'confirmed' if canonical else 'unavailable' if unavailable else 'unresolved'}
         if canonical:
-            return resolve_institution_request(canonical,documents,turns)
+            rewritten=replace_institution_alias(question,request.unrecognized_reference,canonical)
+            return resolve_institution_request(rewritten,documents,turns)
         return replace(request,alias_check_unavailable=unavailable)
 
     def _calibration_cache_identity(self):
@@ -286,6 +291,7 @@ class CampusAIQueryService:
         self._request_local.document_scope_audit = None
         self._request_local.document_scope_request = None
         self._request_local.institution_alias_trace = None
+        self._request_local.context_question = None
 
     @timed_stage("corpus_identity")
     def corpus_version(self, doc_ids: list[str] | None = None) -> str:
@@ -546,7 +552,14 @@ class CampusAIQueryService:
             doc_ids = sorted(institution.doc_ids)
         cache_context=resolved.cache_context()
         if self.confirm_institution_scope:
-            cache_context={**cache_context,'institution_scope':'confirmed-v2-guidance','institution_question':question}
+            from ..retrieval.institution_scope import requested_institution_documents as named_documents
+            # User intent only: never summarize model answers into evidence.
+            remembered=question
+            if institution.doc_ids and institution.source_options and not named_documents(question,temporal_docs):
+                remembered+='\nContext topic (untrusted user input): '+institution.source_options[0]
+            if len(remembered)<=2000:self._request_local.context_question=remembered
+        if self.confirm_institution_scope:
+            cache_context={**cache_context,'institution_scope':'confirmed-v3-conversation','institution_question':question}
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
                                                source_selected=doc_ids is not None and len(doc_ids) == 1)
         temporal = resolve_temporal(temporal_intent, temporal_docs)
@@ -616,7 +629,7 @@ class CampusAIQueryService:
         self._request_local.temporal_documents = temporal_docs
         self._request_local.temporal_intent = temporal_intent
         self._request_local.document_scope_request = (question, doc_ids, filters, language)
-        key = build_rag_cache_key(
+        cache_parameters = dict(
             question=question,
             language=language,
             doc_ids=doc_ids,
@@ -627,9 +640,31 @@ class CampusAIQueryService:
             model=getattr(self.answer_generator.llm, "model", None) or getattr(self.answer_generator.llm, "model_name", None),
             context_budget=budget,
             calibration_artifact_sha256=self._calibration_cache_identity(),
-            request_context=cache_context,
         )
+        key=build_rag_cache_key(**cache_parameters,request_context=cache_context)
         with self.metrics.observe("rag.ask"):
+            from .context import depends_on_previous_topic, _fold
+            from ..retrieval.institution_scope import requested_institution_documents
+            reusable=(self.confirm_institution_scope and institution.doc_ids
+                and composition.kind=='single' and temporal.status=='not_applicable'
+                and selected_text is None and '\nContext topic (untrusted user input): ' not in question
+                and not depends_on_previous_topic(question)
+                and not re.search(r'\b(?:toi|minh|em|t|my|me|our|i|we)\b',_fold(question))
+                and institution.doc_ids==requested_institution_documents(question,temporal_docs))
+            if reusable:
+                reuse_key=build_rag_cache_key(**cache_parameters,request_context={
+                    'version':cache_context['version'],'intent_reuse':'institution-single-v1',
+                    'resolved':' '.join(question.split()).casefold()})
+                with self.cache.lock(reuse_key):
+                    cached=self.cache.get(reuse_key)
+                    if cached is not None and not cached.abstained:
+                        return self._cached_answer(cached,selected_mode)
+                    answer=self._ask_uncached_or_cached(question,doc_ids,filters,top_k,selected_mode,language,version,key)
+                    # Promote only a positive answer accepted by the normal
+                    # evidence/corpus-bound cache. Failures stay history-specific.
+                    accepted=self.cache.get(key) if not answer.abstained else None
+                    if accepted is not None and not accepted.abstained:self.cache.put(reuse_key,accepted)
+                    return answer
             return self._ask_uncached_or_cached(question, doc_ids, filters, top_k, selected_mode, language, version, key)
 
     def _ask_relation_if_supported(self, question, doc_ids, filters, top_k, selected_mode,
