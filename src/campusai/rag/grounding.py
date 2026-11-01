@@ -1131,7 +1131,8 @@ class GroundedAnswerGenerator:
                            document_absence_requested=not verified_document_absence)
         answer = _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
                                      question=question,
-                                     calibrator=self.calibrator)
+                                     calibrator=self.calibrator,
+                                     complete_row_context=self.repair_invalid_answers)
         if multi_hop_context is not None:
             from .multi_hop_evidence import composition_complete
             if not composition_complete(answer, multi_hop_context, results):
@@ -1170,7 +1171,8 @@ class GroundedAnswerGenerator:
 def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: dict[str, Any],
                      results: list[RetrievalResult], language: str,
                      question: str = '',
-                     calibrator: IsotonicCalibrator | None = None) -> GroundedAnswer:
+                     calibrator: IsotonicCalibrator | None = None, *,
+                     complete_row_context: bool = False) -> GroundedAnswer:
     """Recompute claim support/confidence; provider labels are never trusted."""
     registry = EvidenceRegistry(results)
     citation_ids = tuple(citation.chunk_id for citation in citations)
@@ -1308,10 +1310,21 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     evidence_status = "partial" if any(claim.status == "partial" for claim in claims) else "found"
     from .presentation import complete_material_conditions
     answer=complete_material_conditions(answer,claims,citations,language)
-    return GroundedAnswer(answer=answer, citations=citations, confidence=confidence.label,
+    checked=GroundedAnswer(answer=answer, citations=citations, confidence=confidence.label,
                           abstained=False, claims=tuple(claims), evidence_status=evidence_status,
                           confidence_score=confidence.score, raw_confidence_score=confidence.raw_score,
                           policy_version=confidence.policy_version)
+    if complete_row_context:
+        from .regulation_facts import programme_row_context
+        context=programme_row_context(question,answer,claims,citations,results,visible_results,language)
+        if context:
+            expanded,extra=context
+            retained=[{'claim_id':claim.claim_id,'text':claim.text,'type':claim.claim_type,
+                       'required_citations':claim.required_citations,'citation_ids':list(claim.citation_ids)} for claim in claims]
+            completed=_grounding_finalize(expanded,citations,{'claims':retained+extra},results,language,
+                                          question=question,calibrator=calibrator)
+            if not completed.abstained:return completed
+    return checked
 
 
 def format_citation(citation: Citation, language: str = "vi") -> str:

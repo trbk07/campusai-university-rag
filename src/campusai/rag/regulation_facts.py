@@ -258,6 +258,66 @@ def regulation_candidates(question, records):
                 and _assessment_facts(item.get('content',''), request,item.get('metadata')))]
 
 
+def programme_row_context(question, answer, claims, citations, results, visible_results, language):
+    """Complete paired fields only from one already cited programme row.
+
+    Both the visible quotation and original table must identify the same
+    unique entry group. An omitted learner group cannot select a convenient
+    duration from several rows. This adds no inference call or new citation.
+    """
+    from .policies import explicit_comparison_request
+    if explicit_comparison_request(question):return None
+    query=folded(question.partition('\nContext topic (untrusted user input): ')[0])
+    if (not re.search(r'\b(?:chuong trinh|programme|program)\b',query)
+            or not re.search(r'\b(?:tin chi|credits?|thoi gian|duration|how long)\b',query)
+            or re.search(r'\b(?:chi (?:can|muon)|only|do not add|khong can|khong neu|dung neu)\b',query)):
+        return None
+    aliases={'cu nhan':'cu nhan','bachelor':'cu nhan','ky su':'ky su','engineer':'ky su',
+             'thac si':'thac si','master':'thac si','tien si':'tien si','doctorate':'tien si'}
+    degrees={aliases[m[0]] for m in re.finditer(r'\b(?:'+'|'.join(aliases)+r')\b',query)}
+    if len(degrees)!=1:return None
+    degree=next(iter(degrees));used={i for claim in claims for i in claim.citation_ids}
+    cited={citation.chunk_id for citation in citations};candidates=[]
+    for result in visible_results:
+        if result.chunk_id not in used&cited or result.content_type!='table':continue
+        candidates.extend((result,record) for record in programme_rows(result.content) if record[0]==degree)
+    if len(candidates)!=1:return None
+    result,record=candidates[0]
+    original=next((item for item in results if item.chunk_id==result.chunk_id),None)
+    rows=[item for item in programme_rows(original.content) if item[0]==degree] if original else []
+    if len(rows)!=1 or rows[0][:4]!=record[:4]:return None
+    _,prior,duration,credits,_=record
+    if re.search(r'\btot nghiep\b',query) and prior not in query:return None
+    if re.search(r'\b(?:graduates?|entry group|entry qualification)\b',query):return None
+    names={'cu nhan':('cử nhân','bachelor'),'ky su':('kỹ sư','engineer'),
+           'thac si':('thạc sĩ','master'),'tien si':('tiến sĩ','doctorate')}
+    learners={'tot nghiep thpt':('THPT','high school'), 'tot nghiep dai hoc':('đại học','university'),
+        'tot nghiep cu nhan':('cử nhân',"a bachelor's programme"),
+        'tot nghiep thac si':('thạc sĩ',"a master's programme"),
+        'tot nghiep cu nhan theo chuong trinh tich hop':('cử nhân theo chương trình tích hợp',"an integrated bachelor's programme")}
+    year=re.fullmatch(r'(\d+(?:[.,]\d+)?)\s+nam',folded(duration))
+    credit=re.fullmatch(r'(\d+)\s+(?:tin chi|tc)',folded(credits))
+    if prior not in learners or not year or not credit or float(year[1].replace(',','.'))<=0 or int(credit[1])<=0:
+        return None
+    visible=folded(answer);fields=[];extra=[];identities={claim.claim_id for claim in claims}
+    def add(text):
+        index=1
+        while 'programme_context_'+str(index) in identities:index+=1
+        identity='programme_context_'+str(index);identities.add(identity)
+        extra.append({'claim_id':identity,'text':text,'citation_ids':[result.chunk_id]})
+    dname,dname_en=names[degree];pname,pname_en=learners[prior]
+    if not re.search(r'\d+(?:[.,]\d+)?\s*(?:nam|years?)\b',visible):
+        fields.append(('duration: '+year[1].replace(',','.')+' years') if language.startswith('en') else 'thời gian: '+duration.strip())
+        add(f'Thời gian của chương trình {dname} dành cho người tốt nghiệp {pname} là {duration.strip()}.')
+    if not re.search(r'\d+\s*(?:tin chi|tc|credits?)\b',visible):
+        fields.append(('minimum workload: '+credit[1]+' credits') if language.startswith('en') else 'khối lượng tối thiểu: '+credits.strip())
+        add(f'Khối lượng học tập tối thiểu của chương trình {dname} dành cho người tốt nghiệp {pname} là {credits.strip()}.')
+    if not fields:return None
+    prefix=(f'The same table row describes the {dname_en} programme for graduates of {pname_en}: '
+        if language.startswith('en') else f'Cùng hàng trong bảng, chương trình {dname} dành cho người tốt nghiệp {pname}: ')
+    return answer+'\n\n'+prefix+'; '.join(fields)+'.',extra
+
+
 def condition_list_quote(content, anchor):
     """Return a closed, explicitly headed bullet list containing an exact fact.
 

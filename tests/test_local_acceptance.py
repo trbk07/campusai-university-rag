@@ -682,6 +682,61 @@ def test_equivalent_exclusion_wording_does_not_duplicate_a_verified_condition():
     assert text in complete_material_conditions(affirmative,[claim],[citation])
 
 
+def programme_context_source(duration='3,5 năm', duplicate=False):
+    import json
+    from dataclasses import replace
+    rows=[['Cử nhân','Tốt nghiệp THPT',duration,'128 tín chỉ'],
+          ['Thạc sĩ','Tốt nghiệp cử nhân','2 năm','62 tín chỉ']]
+    if duplicate:rows.insert(1,['','Tốt nghiệp đại học','2 năm','128 tín chỉ'])
+    return replace(source_rule(json.dumps({'headers':['Chương trình','Người học','Thời gian','Khối lượng tối thiểu'],
+        'rows':rows},ensure_ascii=False)),content_type='table')
+
+
+def programme_context_answer(source,question='Chương trình cử nhân tối thiểu bao nhiêu tín chỉ?',enabled=True,language='vi'):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class Model:
+        calls=0
+        def generate_json(self,prompt,schema=None):
+            self.calls+=1
+            return {'answer':'The minimum workload is 128 credits.' if language=='en' else 'Khối lượng tối thiểu là 128 tín chỉ.',
+                'confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'minimum','text':'Chương trình cử nhân có khối lượng tối thiểu là 128 tín chỉ.',
+                           'citation_ids':['rule']}]}
+    model=Model();answer=GroundedAnswerGenerator(model,source_citations=True,repair_invalid_answers=enabled).answer(question,[source],language)
+    return answer,model.calls
+
+
+@pytest.mark.parametrize('duration',['3,5 năm','5 năm'])
+def test_programme_context_uses_the_cited_row_and_revalidates_without_an_extra_call(duration):
+    answer,calls=programme_context_answer(programme_context_source(duration))
+    assert not answer.abstained and duration in answer.answer and 'THPT' in answer.answer
+    assert '2 năm' not in answer.answer and calls==1
+    assert all(claim.status=='supported' for claim in answer.claims) and len(answer.claims)==2
+
+
+def test_programme_context_does_not_guess_entry_group_or_ignore_a_short_answer_request():
+    source=programme_context_source(duplicate=True)
+    answer,calls=programme_context_answer(source)
+    assert not answer.abstained and 'năm' not in answer.answer and calls==1
+    for question,enabled in [('Chỉ cần số tín chỉ tối thiểu của chương trình cử nhân.',True),
+                             ('Chương trình cử nhân tối thiểu bao nhiêu tín chỉ?',False)]:
+        answer,calls=programme_context_answer(programme_context_source(),question,enabled)
+        assert not answer.abstained and 'năm' not in answer.answer and calls==1
+    answer,calls=programme_context_answer(programme_context_source('không rõ'))
+    assert not answer.abstained and 'năm' not in answer.answer and calls==1
+    answer,_=programme_context_answer(programme_context_source(),
+        'Chương trình cử nhân dành cho người tốt nghiệp đại học tối thiểu bao nhiêu tín chỉ?')
+    assert '3,5 năm' not in answer.answer
+
+
+def test_programme_context_keeps_the_source_claim_language_for_an_english_answer():
+    answer,calls=programme_context_answer(programme_context_source(),
+        'What is the minimum credit workload of the bachelor programme?',language='en')
+    assert not answer.abstained and '3.5 years' in answer.answer and '128 credits' in answer.answer and calls==1
+    assert '3,5 năm' in answer.claims[-1].text and answer.claims[-1].status=='supported'
+
+
 def test_grade_comparison_requires_two_complete_independent_source_proofs():
     from dataclasses import replace
     from campusai.rag.grade_ranges import deterministic_grade_answer
