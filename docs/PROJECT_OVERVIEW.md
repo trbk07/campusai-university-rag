@@ -42,33 +42,61 @@ chạy. Các bản test tạm tự xóa; không thêm báo cáo JSON vào repo.
 
 **Hỏi đáp, 01/11:** sửa guard tên trường theo provenance của nguồn được trích;
 chặn đảo số liệu đơn giản giữa hai PDF dù các số đều xuất hiện trong tổng bằng
-chứng. Khôi phục ngoại lệ/thời hạn gắn liền trong quote khi model cắt ngắn claim,
-kiểm chứng lại rồi giữ điều kiện trong phần trả lời. Đây là kiểm tra có giới hạn,
-không phải bộ suy luận ngữ nghĩa đầy đủ cho mọi cách diễn đạt/PDF.
+chứng; coi `TC` và `tín chỉ` là cùng đơn vị. Khôi phục điều kiện từ nguồn rồi kiểm
+chứng lại; giữ các điều kiện trong cùng danh sách và ngoại lệ ở câu liền sau,
+không lặp ghi chú khi phần trả lời đã diễn đạt ngoại lệ tương đương. Quy đổi điểm
+hiển thị khoảng điểm làm căn cứ. Đây là kiểm tra có giới hạn, không phải bộ suy
+luận ngữ nghĩa đầy đủ cho mọi cách diễn đạt/PDF.
 
-Một lượt đủ bộ owner gốc trên `7ca85979`: **56 case / 60 HTTP**, 25 local,
-1 cache, 34 HTTP có provider / 36 attempts; **0 timeout, 0 lỗi schema/citation**,
-p95 **5,590s**, tối đa **7,611s**. Benchmark SHA-256
+C03 từng bị chặn trên `0fe1cdc1`: parser lưu đoạn văn thành bảng hai cột, một
+cột rỗng; citation chỉ lấy một dòng nên claim đầy đủ bị coi là mâu thuẫn. Bản sửa
+giữ nguyên các hàng liên tiếp trong cột không có tiêu đề, không ghép qua cột có
+dữ liệu, hàng rời hoặc đoạn lặp mơ hồ. Claim phải khớp đủ nguyên văn trước khi
+được kiểm chứng như văn xuôi; sai phủ định hoặc đổi từ cuối vẫn bị chặn.
+
+Các lượt đủ bộ owner gốc, cùng **56 case / 60 HTTP**:
+
+| Source | Local / cache / HTTP có provider | Provider attempts | p95 / tối đa | Chấm dev theo toàn bộ gold |
+|---|---|---|---|---|
+| `7ca85979` | 25 / 1 / 34 | 36 | 5,590 / 7,611s | 40 PASS / 12 PARTIAL / 4 REVIEW_REQUIRED |
+| `0fe1cdc1` | 25 / 0 / 35 | 36 | 4,571 / 8,001s | Phát hiện C03 từ chối; không nghiệm thu chất lượng |
+| `f5a5356f` | 25 / 0 / 35 | 36 | **4,513 / 8,423s** | **43 PASS / 9 PARTIAL / 4 REVIEW_REQUIRED** |
+
+Cả ba lượt không timeout hoặc lỗi schema/citation. Benchmark SHA-256
 `07f1ac1782b058bb9ce824490cd8c77521b0ab0fee5998a139a4e2ee2d1fb2fc`;
 154 file runtime không đổi trong lượt chạy. Chỉ input câu hỏi/lịch sử thật và
 ba PDF đã chọn đi vào inference; không dùng school label/gold/expected.
 
-Chấm AI bảo thủ theo **toàn bộ gold**: **40 PASS, 12 PARTIAL, 4 REVIEW_REQUIRED**.
-PARTIAL: F01, F04, F18, F19, F20, F25, F26, F27, N01, N04, N06, M04; cần đối chiếu
-độ đầy đủ và ý gold ngoài câu hỏi, không tự thu hẹp rubric để tăng điểm.
+Chấm AI bảo thủ dùng để theo dõi dev, chưa phải review độc lập/owner sign-off.
+F18, F27, N06 và M04 đã đủ ý trong lượt mới; F17 vẫn thiếu ngày ban hành có trong
+gold. Chín ca PARTIAL cần đối chiếu phần gold bổ sung so với câu hỏi:
+
+| Ca | Phần gold chưa xuất hiện đầy đủ trong câu trả lời |
+|---|---|
+| F01 | Thời gian chuẩn 4 năm ngoài mức tín chỉ được hỏi |
+| F04 | Điều kiện số tín chỉ khi dùng học phần tương đương thay thế |
+| F17 | Ngày 09/06/2021 ngoài số quyết định được hỏi |
+| F19 | Đối chiếu A+ = 4,0 ngoài phép quy đổi A được hỏi |
+| F20, N04 | Các mức D/D+ được học cải thiện, ngoài việc từ chối mức C |
+| F25 | Khả năng tổ chức học kỳ phụ ngoài số kỳ chính được hỏi |
+| F26 | Cận tối thiểu 2/3 ngoài cận tối đa 3/2 được hỏi |
+| N01 | Lưu ý phải xét các điều kiện cảnh báo khác |
+
+Giữ nguyên gold/rubric; không tự thu hẹp để tính các ca này thành PASS.
 F02/F05/N03 thiếu trường trong input khi chọn nhiều nguồn; app hỏi làm rõ, không
 được lấy school label để trả thay. F24 gold “15 tuần/kỳ” chưa được chứng minh:
 trang 6 chỉ nêu hai kỳ tổng tối thiểu 30 tuần, còn 15 giờ/tuần ở đoạn khác không
 phải 15 tuần/kỳ. Giữ nguyên gold gốc, review riêng; không tính 4 ca này thành PASS.
 
-Sau đó `d370b6ea` thêm kiểm tra phạm vi: tổng thời lượng nhiều kỳ không thay câu
-trả lời thời lượng từng kỳ; app giải thích giới hạn bằng chứng và yêu cầu mục/trang
-hoặc nguồn phù hợp. **134 tests hiện hành + 164 tương thích PASS**, 1 test cũ thiếu
-corpus không chạy. **8 HTTP trọng tâm** (F24/C04/C02/A06/M02/M04), tất cả không
-cache, schema/citation hợp lệ; C04 giữ đủ hai ngoại lệ, C02 giữ hạn hai tuần,
-hội thoại giữ đúng chủ đề. Không ghép lượt này vào cohort 60 để chứng nhận bản cuối.
+Từ `d370b6ea`, tổng thời lượng nhiều kỳ không thay thời lượng từng kỳ; 8 HTTP
+trọng tâm đã kiểm trước đó. Bản hiện hành `190fa8bb` giữ cả đuôi văn bản ngắn và
+tránh lặp ngoại lệ: **145 tests hiện hành + 164 tests tương thích PASS**, 1 test
+cũ thiếu corpus không chạy. **9 HTTP trọng tâm** trên chính bản này, 3 local,
+6 HTTP có provider / 7 attempts, 0 cache, không lỗi schema/citation; C03 đúng hai
+nguồn, N07 giữ ngoại lệ không lặp, GPA giữ điều kiện, F24 giải thích giới hạn bằng
+chứng. Không ghép 9 lượt này thành một cohort 60 mới.
 Goal chất lượng vẫn mở; chưa có bằng chứng 99–100% và chưa mời owner nghiệm thu.
-CI source `d370b6ea` đã PASS: [run 41287270280](https://github.com/trbk07/campusai-university-rag/actions/runs/41287270280),
+CI source `190fa8bb` đã PASS: [run 41290867645](https://github.com/trbk07/campusai-university-rag/actions/runs/41290867645),
 gồm Windows/Linux, package và container. Không coi CI là phép chấm semantic.
 
 | Nội dung | Kết quả lịch sử | Phạm vi / giới hạn |

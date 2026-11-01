@@ -36,27 +36,30 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
   “hiệu trưởng” thành tên trường. Giữ các ca này làm hồi quy, dùng dữ liệu phản
   chứng/tên giả trong test; F24 vẫn review gold riêng, không sửa đáp án để tăng điểm.
 - [x] **ASK-02 — Nhiều nguồn DONE:** sửa nhận diện tên trong nguồn được trích,
-  giữ phân bổ context và chặn đảo số liệu giữa hai nguồn. C01–C04 trả đúng nguồn
-  trong lượt 60 HTTP trên `7ca85979`; C02/C04 kiểm lại trên `d370b6ea` không cache,
-  giữ cả thời hạn/ngoại lệ. Tests vẫn chặn mâu thuẫn nội bộ, tên bịa và số liệu tráo nguồn.
+  chặn đảo số liệu và chuẩn hóa `TC`/`tín chỉ`. Đoạn văn bị trích thành bảng cột
+  rỗng được giữ đủ dòng, không làm mất cấu trúc bảng thật. C01–C04 trả đúng nguồn
+  trong lượt 60 HTTP trên `f5a5356f`; C03/C04 kiểm lại trên `190fa8bb` không cache.
+  Tests vẫn chặn mâu thuẫn nội bộ, tên bịa, sai phủ định và số liệu tráo nguồn.
 - [ ] **ASK-03 — Câu trả lời đủ nghĩa:** giữ điều kiện, ngoại lệ, thời hạn và
-  đối tượng áp dụng. **Đã sửa:** khôi phục điều kiện gắn liền trong quote rồi
-  kiểm chứng lại; giữ ngoại lệ trong phần trả lời; không dùng tổng nhiều kỳ thay
-  thời lượng từng kỳ; giải thích thiếu bằng chứng thay vì nhận tài liệu không đề cập.
-  **Còn:** 12 ca PARTIAL theo toàn bộ gold/rubric (kể cả ý gold ngoài câu hỏi);
+  đối tượng áp dụng. **Code đã DONE cho các lỗi đã tái hiện:** giữ điều kiện trong
+  cùng danh sách, ngoại lệ ở câu liền sau và khoảng điểm làm căn cứ; kiểm chứng
+  lại thay vì hạ gate. Giải thích thiếu bằng chứng thời lượng từng kỳ; không nhận
+  tài liệu không đề cập chỉ từ tổng thời lượng năm. Tránh lặp ghi chú khi ngoại lệ
+  đã hiện rõ. **Còn:** 9 ca PARTIAL theo toàn bộ gold/rubric và 4 ca review nguồn/scope;
   danh sách và phạm vi review nằm trong báo cáo tổng quan. Không tự tính thành PASS.
 - [x] **ASK-04 — Hội thoại tự nhiên DONE trong phạm vi lỗi đã xác định:** 4 hội thoại
   M01–M04/8 lượt giữ đúng trường, điểm, học kỳ và chủ đề. Role “hiệu trưởng” không
   còn bị nhận nhầm thành tên trường; thiếu thời điểm thì yêu cầu nguồn cập nhật.
   Regression dùng tên/đối tượng giả, không whitelist trường hoặc câu hỏi owner.
-- [x] **ASK-05 — Tốc độ DONE trong workload đã đo:** 60 HTTP trên `7ca85979`,
-  p95 **5,590s**, tối đa **7,611s**, không timeout; 25 lượt local, 1 cache,
-  34 lượt có provider/36 attempts. Giữ quota/cooldown; không đổi chất lượng lấy tốc độ.
+- [x] **ASK-05 — Tốc độ DONE trong workload đã đo:** 60 HTTP trên `f5a5356f`,
+  p95 **4,513s**, tối đa **8,423s**, không timeout; 25 lượt local, 0 cache,
+  35 lượt có provider/36 attempts. Giữ quota/cooldown; không đổi chất lượng lấy tốc độ.
 - [ ] **ASK-06 — Chốt:** regression cả ca đúng/sai/phản chứng và HTTP trên bản
-  đang chạy. **Đã xong:** 134 tests hiện hành + 164 tests tương thích PASS,
-  1 test cũ thiếu corpus không chạy; 8 HTTP trọng tâm trên `d370b6ea` không cache,
+  đang chạy. **Đã xong:** 145 tests hiện hành + 164 tests tương thích PASS,
+  1 test cũ thiếu corpus không chạy; 9 HTTP trọng tâm trên `190fa8bb` không cache,
   đúng hành vi và schema/citation, code đã push origin CampusAI. **Còn:** hoàn thiện
-  chất lượng/rubric; chưa đạt mốc 99–100%, không ghép 8 lượt này thành một cohort 60 mới.
+  chất lượng/rubric; chấm dev hiện 43 PASS / 9 PARTIAL / 4 REVIEW_REQUIRED,
+  chưa đạt mốc 99–100%. Không ghép 9 lượt này thành một cohort 60 mới.
 - [x] **ASK-07 — OCR nhanh hơn DONE (`c54b2b8b`):** OCR song song có giới hạn,
   lô tăng theo tốc độ thực và chỉ encode đoạn mới/thay đổi. PDF scan 34 trang:
   toàn bộ pipeline **52,81 → 29,48s**, phần đầu sẵn sàng **4,27s**, đủ 34/34 trang;
