@@ -248,7 +248,9 @@ def ingest_document(
             cache_versions_current = True
         if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
             cache_versions_current = False
-        if enable_ocr and ocr_backend == 'tesseract' and cached_ocr:
+        # The progressive native-only first pass must also reject stale OCR;
+        # otherwise its old full-coverage flag would stop the upgrade loop.
+        if ocr_backend == 'tesseract' and cached_ocr:
             if (cached_ocr.get('model_identity') or {}).get('render_policy') != RENDER_POLICY:
                 cache_versions_current = False
         if enable_ocr and ocr_backend=='vietocr' and cached_ocr:

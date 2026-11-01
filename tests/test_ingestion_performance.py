@@ -299,6 +299,9 @@ def test_new_ocr_policy_reprocesses_legacy_checkpoints_then_reuses_current_resul
     encoded=json.dumps(raw).encode('utf-8');pages.write_bytes(encoded)
     saved['metadata']['ocr_pages_sha256']=hashlib.sha256(encoded).hexdigest()
     meta.write_text(json.dumps(saved),encoding='utf-8')
+    native=pipeline.ingest_document(source,**{**options,'enable_ocr':False})
+    assert not native.cached and native.metadata['unread_pages']==[1]
+    assert len(calls)==1
     current=pipeline.ingest_document(source,**options)
     assert len(calls)==2 and not current.cached and 'pass 2' in current.chunks[0].content
     assert current.metadata['ocr']['model_identity']['render_policy']==RENDER_POLICY
