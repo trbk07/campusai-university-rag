@@ -1132,7 +1132,7 @@ class GroundedAnswerGenerator:
         answer = _grounding_finalize(str(payload["answer"]), tuple(citations), payload, results, language,
                                      question=question,
                                      calibrator=self.calibrator,
-                                     complete_row_context=self.repair_invalid_answers)
+                                     complete_source_context=self.repair_invalid_answers)
         if multi_hop_context is not None:
             from .multi_hop_evidence import composition_complete
             if not composition_complete(answer, multi_hop_context, results):
@@ -1172,7 +1172,7 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
                      results: list[RetrievalResult], language: str,
                      question: str = '',
                      calibrator: IsotonicCalibrator | None = None, *,
-                     complete_row_context: bool = False) -> GroundedAnswer:
+                     complete_source_context: bool = False) -> GroundedAnswer:
     """Recompute claim support/confidence; provider labels are never trusted."""
     registry = EvidenceRegistry(results)
     citation_ids = tuple(citation.chunk_id for citation in citations)
@@ -1314,14 +1314,25 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
                           abstained=False, claims=tuple(claims), evidence_status=evidence_status,
                           confidence_score=confidence.score, raw_confidence_score=confidence.raw_score,
                           policy_version=confidence.policy_version)
-    if complete_row_context:
+    if complete_source_context:
         from .regulation_facts import programme_row_context
+        from .policy_context import complete_policy_context
         context=programme_row_context(question,answer,claims,citations,results,visible_results,language)
         if context:
             expanded,extra=context
+            context=(expanded,citations,extra)
+        else:
+            context=complete_policy_context(question,answer,claims,citations,results,language)
+        if context:
+            expanded,updated_citations,extra=context
             retained=[{'claim_id':claim.claim_id,'text':claim.text,'type':claim.claim_type,
                        'required_citations':claim.required_citations,'citation_ids':list(claim.citation_ids)} for claim in claims]
-            completed=_grounding_finalize(expanded,citations,{'claims':retained+extra},results,language,
+            # Extra context is optional, but its source proof is not. Validate
+            # even an expanded quote before checking its claims and display.
+            originals={result.chunk_id:result for result in results}
+            if not all(citation.chunk_id in originals and validate_citation(citation,originals[citation.chunk_id],require_quote=True).valid
+                       for citation in updated_citations):return checked
+            completed=_grounding_finalize(expanded,updated_citations,{'claims':retained+extra},results,language,
                                           question=question,calibrator=calibrator)
             if not completed.abstained:return completed
     return checked
