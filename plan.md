@@ -29,16 +29,28 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
   claim thời hạn đã kiểm chứng nhưng phần trả lời bỏ mất; A06 nhầm chức danh
   “hiệu trưởng” thành tên trường. Giữ các ca này làm hồi quy, dùng dữ liệu phản
   chứng/tên giả trong test; F24 vẫn review gold riêng, không sửa đáp án để tăng điểm.
-- [ ] **ASK-02 — Nhiều nguồn:** sửa truy hồi/phân bổ context và kiểm chứng từng
-  nguồn; phân biệt hai quy tắc khác nhau với bằng chứng mâu thuẫn trong cùng nguồn.
+- [x] **ASK-02 — Nhiều nguồn DONE:** sửa nhận diện tên trong nguồn được trích,
+  giữ phân bổ context và chặn đảo số liệu giữa hai nguồn. C01–C04 trả đúng nguồn
+  trong lượt 60 HTTP trên `7ca85979`; C02/C04 kiểm lại trên `d370b6ea` không cache,
+  giữ cả thời hạn/ngoại lệ. Tests vẫn chặn mâu thuẫn nội bộ, tên bịa và số liệu tráo nguồn.
 - [ ] **ASK-03 — Câu trả lời đủ nghĩa:** giữ điều kiện, ngoại lệ, thời hạn và
-  đối tượng áp dụng; phân biệt thiếu đoạn truy hồi với tài liệu không đề cập.
-- [ ] **ASK-04 — Hội thoại tự nhiên:** giữ chủ đề khi hỏi tiếp/đổi nguồn, nhận
-  diện tên/đối tượng từ PDF bất kỳ; chỉ hỏi lại thông tin thực sự còn thiếu.
-- [ ] **ASK-05 — Tốc độ:** ưu tiên proof/caching hợp lệ và tránh lượt AI thừa,
-  giữ quota/cooldown; không đổi độ chính xác lấy tốc độ hoặc hứa số câu vô hạn.
+  đối tượng áp dụng. **Đã sửa:** khôi phục điều kiện gắn liền trong quote rồi
+  kiểm chứng lại; giữ ngoại lệ trong phần trả lời; không dùng tổng nhiều kỳ thay
+  thời lượng từng kỳ; giải thích thiếu bằng chứng thay vì nhận tài liệu không đề cập.
+  **Còn:** 12 ca PARTIAL theo toàn bộ gold/rubric (kể cả ý gold ngoài câu hỏi);
+  danh sách và phạm vi review nằm trong báo cáo tổng quan. Không tự tính thành PASS.
+- [x] **ASK-04 — Hội thoại tự nhiên DONE trong phạm vi lỗi đã xác định:** 4 hội thoại
+  M01–M04/8 lượt giữ đúng trường, điểm, học kỳ và chủ đề. Role “hiệu trưởng” không
+  còn bị nhận nhầm thành tên trường; thiếu thời điểm thì yêu cầu nguồn cập nhật.
+  Regression dùng tên/đối tượng giả, không whitelist trường hoặc câu hỏi owner.
+- [x] **ASK-05 — Tốc độ DONE trong workload đã đo:** 60 HTTP trên `7ca85979`,
+  p95 **5,590s**, tối đa **7,611s**, không timeout; 25 lượt local, 1 cache,
+  34 lượt có provider/36 attempts. Giữ quota/cooldown; không đổi chất lượng lấy tốc độ.
 - [ ] **ASK-06 — Chốt:** regression cả ca đúng/sai/phản chứng và HTTP trên bản
-  đang chạy; ghi rõ local/cache/provider, tick DONE, commit/push đúng origin.
+  đang chạy. **Đã xong:** 134 tests hiện hành + 164 tests tương thích PASS,
+  1 test cũ thiếu corpus không chạy; 8 HTTP trọng tâm trên `d370b6ea` không cache,
+  đúng hành vi và schema/citation, code đã push origin CampusAI. **Còn:** hoàn thiện
+  chất lượng/rubric; chưa đạt mốc 99–100%, không ghép 8 lượt này thành một cohort 60 mới.
 - [x] **ASK-07 — OCR nhanh hơn DONE (`c54b2b8b`):** OCR song song có giới hạn,
   lô tăng theo tốc độ thực và chỉ encode đoạn mới/thay đổi. PDF scan 34 trang:
   toàn bộ pipeline **52,81 → 29,48s**, phần đầu sẵn sàng **4,27s**, đủ 34/34 trang;

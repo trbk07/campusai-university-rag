@@ -516,25 +516,6 @@ def test_correct_diagnostic_claim_cannot_license_false_visible_answer(answer, cl
     assert result.answer != answer
 
 
-@pytest.mark.parametrize('answer,claim,source,question', [
-    ('Học kỳ chính kéo dài ít nhất 36 tuần.',
-     'học có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
-     'Một năm\nhọc có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.',
-     'Một học kỳ chính dài bao nhiêu tuần?'),
-    ('Tài liệu của Cơ quan A không quy định mức học phí.',
-     'Sinh viên được đăng ký học phần.', 'Sinh viên được đăng ký học phần.',
-     'Học phí bao nhiêu?'),
-])
-def test_correct_diagnostic_claim_cannot_license_false_visible_answer(answer, claim, source, question):
-    from campusai.rag.grounding import GroundedAnswerGenerator
-    class Model:
-        def generate_json(self, prompt, schema=None):
-            return {'answer': answer, 'confidence': 'high', 'abstained': False,
-                    'citations': [{'chunk_id': 'rule'}],
-                    'claims': [{'claim_id': 'c1', 'text': claim, 'citation_ids': ['rule']}]}
-    result = GroundedAnswerGenerator(Model(), source_citations=True).answer(question, [source_rule(source)])
-    assert result.abstained
-    assert result.answer != answer
 
 
 def test_letter_and_numeric_grade_fields_are_both_answered():

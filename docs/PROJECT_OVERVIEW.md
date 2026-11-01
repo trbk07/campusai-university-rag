@@ -40,6 +40,37 @@ warm encoder 16,27s tách riêng. Không phải p95 hoặc phép đo accuracy đ
 và 164 tests tương thích hỏi đáp từ `f9d8ba10` PASS; 1 test cũ thiếu corpus không
 chạy. Các bản test tạm tự xóa; không thêm báo cáo JSON vào repo.
 
+**Hỏi đáp, 01/11:** sửa guard tên trường theo provenance của nguồn được trích;
+chặn đảo số liệu đơn giản giữa hai PDF dù các số đều xuất hiện trong tổng bằng
+chứng. Khôi phục ngoại lệ/thời hạn gắn liền trong quote khi model cắt ngắn claim,
+kiểm chứng lại rồi giữ điều kiện trong phần trả lời. Đây là kiểm tra có giới hạn,
+không phải bộ suy luận ngữ nghĩa đầy đủ cho mọi cách diễn đạt/PDF.
+
+Một lượt đủ bộ owner gốc trên `7ca85979`: **56 case / 60 HTTP**, 25 local,
+1 cache, 34 HTTP có provider / 36 attempts; **0 timeout, 0 lỗi schema/citation**,
+p95 **5,590s**, tối đa **7,611s**. Benchmark SHA-256
+`07f1ac1782b058bb9ce824490cd8c77521b0ab0fee5998a139a4e2ee2d1fb2fc`;
+154 file runtime không đổi trong lượt chạy. Chỉ input câu hỏi/lịch sử thật và
+ba PDF đã chọn đi vào inference; không dùng school label/gold/expected.
+
+Chấm AI bảo thủ theo **toàn bộ gold**: **40 PASS, 12 PARTIAL, 4 REVIEW_REQUIRED**.
+PARTIAL: F01, F04, F18, F19, F20, F25, F26, F27, N01, N04, N06, M04; cần đối chiếu
+độ đầy đủ và ý gold ngoài câu hỏi, không tự thu hẹp rubric để tăng điểm.
+F02/F05/N03 thiếu trường trong input khi chọn nhiều nguồn; app hỏi làm rõ, không
+được lấy school label để trả thay. F24 gold “15 tuần/kỳ” chưa được chứng minh:
+trang 6 chỉ nêu hai kỳ tổng tối thiểu 30 tuần, còn 15 giờ/tuần ở đoạn khác không
+phải 15 tuần/kỳ. Giữ nguyên gold gốc, review riêng; không tính 4 ca này thành PASS.
+
+Sau đó `d370b6ea` thêm kiểm tra phạm vi: tổng thời lượng nhiều kỳ không thay câu
+trả lời thời lượng từng kỳ; app giải thích giới hạn bằng chứng và yêu cầu mục/trang
+hoặc nguồn phù hợp. **134 tests hiện hành + 164 tương thích PASS**, 1 test cũ thiếu
+corpus không chạy. **8 HTTP trọng tâm** (F24/C04/C02/A06/M02/M04), tất cả không
+cache, schema/citation hợp lệ; C04 giữ đủ hai ngoại lệ, C02 giữ hạn hai tuần,
+hội thoại giữ đúng chủ đề. Không ghép lượt này vào cohort 60 để chứng nhận bản cuối.
+Goal chất lượng vẫn mở; chưa có bằng chứng 99–100% và chưa mời owner nghiệm thu.
+CI source `d370b6ea` đã PASS: [run 41287270280](https://github.com/trbk07/campusai-university-rag/actions/runs/41287270280),
+gồm Windows/Linux, package và container. Không coi CI là phép chấm semantic.
+
 | Nội dung | Kết quả lịch sử | Phạm vi / giới hạn |
 |---|---|---|
 | Grounding Phase 5 | 400/400 kết quả, 5/5 gates nội bộ | Bộ đã exposure; chưa thay fresh holdout cho bản cuối |
