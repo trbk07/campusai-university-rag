@@ -437,6 +437,16 @@ class WebDocuments:
                     raise WebError('document_deleting', 409)
             return self._upload(data, name, environ)
 
+    def _needs_ocr_upgrade(self, record):
+        defaults = self.application.ingestion_defaults
+        ocr = record.get('metadata', {}).get('ocr')
+        if not (defaults.get('enable_ocr') and defaults.get('ocr_backend') == 'tesseract' and isinstance(ocr, dict)):
+            return False
+        from .ingestion.tesseract_worker import RENDER_POLICY
+        identity = ocr.get('model_identity')
+        return (ocr.get('backend') != 'tesseract' or not isinstance(identity, dict)
+                or identity.get('render_policy') != RENDER_POLICY)
+
     def _upload(self, data, name, environ):
         if "campusai.authorized_doc_ids" in environ:
             # Assignment of a new document to a user requires real ownership
@@ -454,7 +464,7 @@ class WebDocuments:
         directory = contained(self.store, self.uploads / digest)
         source = contained(self.store, directory / name)
         existing = self.registry.get(digest)
-        if existing and self.public_document(existing)['ready']:
+        if existing and self.public_document(existing)['ready'] and not self._needs_ocr_upgrade(existing):
             return {"ok": True, "document": self.public_document(existing), "duplicate": True}
         previous = next((job for job in self.application.jobs_snapshot()["jobs"]
                          if Path(job["source_path"]).parent == directory and job["state"] in {"staging","queued","running"}), None)

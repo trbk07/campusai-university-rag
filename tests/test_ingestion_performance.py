@@ -322,6 +322,33 @@ def test_upgraded_ocr_upload_has_a_new_identity_without_invalidating_the_old_jou
     assert job_identity('c'*64,options)==job_identity('c'*64,dict(options))
 
 
+@pytest.mark.parametrize('kind',['legacy','current','native','disabled'])
+def test_ready_upload_only_bypasses_ingestion_when_its_ocr_policy_is_current(tmp_path,kind):
+    import threading
+    from campusai.web_documents import WebDocuments,WebError
+    from campusai.ingestion.jobs import JobQueueFull
+    from campusai.ingestion.tesseract_worker import RENDER_POLICY
+    metadata={} if kind=='native' else {'ocr':{'backend':'tesseract','model_identity':
+        {'render_policy':RENDER_POLICY} if kind=='current' else {}}}
+    calls=[]
+    def prepare(*a,**k):
+        calls.append(True);raise JobQueueFull('test capacity gate before any file write')
+    api=WebDocuments.__new__(WebDocuments)
+    api.application=SimpleNamespace(ingestion_defaults={'enable_ocr':kind!='disabled','ocr_backend':'tesseract'},
+        jobs=SimpleNamespace(prepare_upload=prepare),jobs_snapshot=lambda:{'jobs':[]})
+    api.store=tmp_path;api.uploads=tmp_path/'uploads';api.max_mb=50
+    api.lock=threading.RLock()
+    api._registry=SimpleNamespace(get=lambda _:{'metadata':metadata})
+    api.public_document=lambda _:{'ready':True}
+    if kind=='legacy':
+        with pytest.raises(WebError) as caught:api._upload(b'%PDF-test','source.pdf',{})
+        assert caught.value.code=='ingestion_busy' and calls==[True]
+        assert not api.uploads.exists()
+    else:
+        assert api._upload(b'%PDF-test','source.pdf',{})['duplicate'] is True
+        assert not calls
+
+
 @pytest.mark.parametrize('language',['en','vi'])
 @pytest.mark.parametrize('size',[20,24,28])
 def test_real_ocr_small_print_keeps_character_error_below_two_percent(language,size,monkeypatch):
