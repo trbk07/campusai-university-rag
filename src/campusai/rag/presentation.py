@@ -474,6 +474,7 @@ def source_ownership_conflicts(answer, claims, citations, results, question=''):
 MATERIAL_CONDITION = re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong hop|hoc k[yi]|nam|khi)|'
     r'khong ap dung|chi (?:ap dung|khi|duoc|danh)|som nhat|cham nhat|'
     r'ke tu|tinh tu|voi dieu kien|provided that|except|unless|only if|'
+    r'this (?:rule |condition )?does not apply|does not apply|'
     r'no (?:earlier|later) than|at (?:the )?earliest)\b')
 
 
@@ -499,6 +500,12 @@ def restore_claim_conditions(claims, citations):
                     tail=quote[match.end():]
                     condition=MATERIAL_CONDITION.match(folded(tail.lstrip(' ,(:')))
                     if not condition:
+                        separator=re.match(r'^\.\s+',tail)
+                        if separator:
+                            from .source_citations import attached_exception_end
+                            begin=match.end()+separator.end()
+                            end=attached_exception_end(quote,begin,core)
+                            if end>begin:candidates.add(quote[match.start():end].strip())
                         continue
                     # Sentence stops exclude decimal punctuation. A directly
                     # attached parenthesis or comma condition stays in place.

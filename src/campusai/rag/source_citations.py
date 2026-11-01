@@ -23,6 +23,20 @@ def wrapped_prose(rows):
             and any(_wrapped_line(a[0],b[0]) for a,b in zip(rows,rows[1:])))
 
 
+def attached_exception_end(source, start, action):
+    """Keep an immediately following exception about the same explicit action."""
+    if re.search(r'\n\s*\n\s*$',action):return start
+    tail=source[start:]
+    stop=re.search(r'[.!?;](?:\s+|$)',tail)
+    if stop is None:return start
+    exception=tail[:stop.end()]
+    if len(exception)>600 or not re.match(
+            r'\s*(?:khong ap dung|ngoai tru|this (?:rule |condition )?does not apply|except)\b',folded(exception)):
+        return start
+    shared=set(normalized_tokens(action))&set(normalized_tokens(exception))
+    return start+stop.end() if len(shared)>=3 else start
+
+
 def sparse_prose_text(table, selected):
     """Read a contiguous prose run in one unheaded, otherwise empty column.
 
@@ -303,6 +317,7 @@ def source_quote(result, claims, question=''):
     def sentence_bounds(match):
         left=max((m.end() for m in boundaries if m.end()<=match.start()),default=0)
         right=next((m.end() for m in boundaries if m.end()>=match.end()),len(source))
+        right=attached_exception_end(source,right,source[left:right])
         return left,right
     matches=[]
     for text in texts:
@@ -319,6 +334,8 @@ def source_quote(result, claims, question=''):
         start=min(m.start() for m in matches);end=max(m.end() for m in matches)
         left=max((m.end() for m in boundaries if m.end()<=start),default=0)
         right=next((m.end() for m in boundaries if m.end()>=end),len(source))
+        original_right=right
+        right=attached_exception_end(source,right,source[left:right])
         # A period in a short article heading is a locator boundary, not a
         # separate supporting sentence. Keep that actual adjacent heading.
         headings = list(re.finditer(r'(?mi)^[ \t]*(?:(?:article|\u0111i\u1ec1u|dieu)\s+\d+[.:)]|'
@@ -327,6 +344,8 @@ def source_quote(result, claims, question=''):
             if right - headings[-1].start() <= 1200:
                 left = headings[-1].start()
         quote=source[left:right].strip()
-        if len(quote)>1200:quote=source[start:end].strip()
+        if len(quote)>1200:
+            if right>original_right:return None  # Never drop the discovered exception to fit.
+            quote=source[start:end].strip()
         return quote if len(quote)<=1200 else None
     return verbatim_window(body, ' '.join(texts), 1200).strip() or None

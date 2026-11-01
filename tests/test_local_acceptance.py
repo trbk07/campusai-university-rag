@@ -631,6 +631,31 @@ def test_sparse_prose_never_flattens_real_columns_or_disjoint_rows():
     assert sparse_prose_text({**table,'rows':rows+rows},rows) is None
 
 
+@pytest.mark.parametrize('core,exception,question,language,unrelated',[
+    ('Người thuê có thể đề nghị phúc tra khoản phí trong thời hạn 9 ngày.',
+     'Không áp dụng phúc tra khoản phí đã được hội đồng xét duyệt.',
+     'Thời hạn phúc tra khoản phí?','vi','Không áp dụng đăng ký xe đối với người tham quan.'),
+    ('Residents may request a review of the fee within 9 days.',
+     'This rule does not apply to a review of the fee approved by the panel.',
+     'What is the deadline for a fee review?','en','This rule does not apply to vehicles parked by visitors.'),
+])
+def test_source_quote_keeps_the_next_sentence_exception_for_the_same_action(core,exception,question,language,unrelated):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class Model:
+        def generate_json(self,prompt,schema=None):
+            return {'answer':core,'confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'deadline','text':core,'citation_ids':['rule']}]}
+    answer=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+        question, [source_rule(core+' '+exception)],language)
+    assert not answer.abstained and exception in answer.answer
+    assert exception in answer.citations[0].quote and exception in answer.claims[0].text
+    for after in (' '+unrelated,'\n\n'+exception):
+        answer=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+            question, [source_rule(core+after)],language)
+        assert not answer.abstained and after.strip() not in answer.citations[0].quote
+
+
 def test_grade_comparison_requires_two_complete_independent_source_proofs():
     from dataclasses import replace
     from campusai.rag.grade_ranges import deterministic_grade_answer
