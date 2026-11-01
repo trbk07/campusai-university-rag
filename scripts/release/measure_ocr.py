@@ -62,6 +62,11 @@ def main(argv=None):
     import pymupdf
     from campusai.ingestion.ocr import ocr_pdf
     from campusai.ingestion.ocr_assets import validate_tesseract_assets
+    from campusai.ingestion import tesseract_process
+    # This protocol measures per-page completion intervals, which are only
+    # identifiable in a serial worker. Production throughput uses the bounded
+    # parallel scheduler and must be reported separately as batch latency.
+    tesseract_process._PAGE_WORKER_LIMIT = 1
 
     identity = validate_tesseract_assets(args.data_dir)
     sources = []
@@ -74,7 +79,7 @@ def main(argv=None):
                ('ocr', 'ocr_assets', 'tesseract_process', 'tesseract_worker')]
     tracked += ['scripts/release/measure_ocr.py', 'uv.lock']
     protocol = {'sources': sources, 'repeats': args.repeats, 'backend': 'tesseract',
-        'scale': args.scale, 'timeout_seconds': args.timeout,
+        'scale': args.scale, 'timeout_seconds': args.timeout, 'page_workers': 1,
         'page_p95_limit_seconds': args.page_p95_limit, 'model': identity,
         'quantile_method': 'nearest_rank',
         'timing_scope': 'page completion intervals; first page includes worker startup; batch includes cleanup',

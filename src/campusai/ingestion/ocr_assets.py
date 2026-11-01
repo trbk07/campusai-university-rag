@@ -2,6 +2,7 @@
 from hashlib import sha256
 from importlib.metadata import PackageNotFoundError, distribution, version
 from pathlib import Path
+from .tesseract_worker import RENDER_POLICY
 
 TESSEROCR_VERSION = '2.12.0'
 TESSDATA_SHA256 = {
@@ -74,5 +75,5 @@ def validate_tesseract_assets(directory):
                 raise ValueError('OCR language data checksum mismatch')
     except (OSError, PackageNotFoundError) as error:
         raise ValueError('install the pinned local OCR package and language data') from error
-    return {'tesserocr': TESSEROCR_VERSION, 'languages': 'vie+eng',
+    return {'tesserocr': TESSEROCR_VERSION, 'languages': 'vie+eng', 'render_policy': RENDER_POLICY,
             'model_sha256': dict(TESSDATA_SHA256)}

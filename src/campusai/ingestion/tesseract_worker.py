@@ -6,6 +6,67 @@ import os
 from pathlib import Path
 import sys
 
+RENDER_POLICY = 'gray-small-print-v3'
+
+
+def paper_like(image):
+    """Do not mistake photographic texture for fine print on a light page."""
+    import numpy as np
+    pixels = np.asarray(image)
+    return pixels.ndim == 2 and (pixels >= 225).mean() >= .85 and (pixels < 160).mean() <= .18
+
+
+def text_render_scale(image, scale, *, max_scale=3.):
+    """Spend extra pixels only on several consistently small printed lines.
+
+    Projection is a rendering hint, never text proof or an accuracy score.
+    Short decorations, isolated rules and photographs keep the ordinary path.
+    """
+    import numpy as np
+    if scale >= max_scale: return scale
+    gray = np.asarray(image)
+    if gray.ndim != 2 or min(gray.shape) < 40 or not paper_like(image): return scale
+    active = (gray < 160).sum(axis=1) >= max(8, gray.shape[1] * .01)
+    edges = np.flatnonzero(np.diff(np.r_[False, active, False]))
+    heights = edges[1::2] - edges[::2]
+    heights = heights[(heights >= 5) & (heights <= 40)]
+    if len(heights) < 6: return scale
+    median = float(np.median(heights))
+    if median > 10: return scale
+    # A large persistent gutter identifies separate columns. Do not change
+    # their segmentation into a single block merely because the text is small.
+    ink = gray < 160
+    rows = active & (ink.mean(axis=1) < .6)
+    columns = ink[rows].sum(axis=0) >= max(2, rows.sum() * .01)
+    occupied = np.flatnonzero(columns)
+    if not len(occupied): return scale
+    interior = columns[occupied[0]:occupied[-1] + 1]
+    edges = np.flatnonzero(np.diff(np.r_[True, interior, True]))
+    if any(edges[1::2] - edges[::2] >= max(4, len(interior) * .025)): return scale
+    return min(max_scale, scale * 16 / median)
+
+
+def render_page(page, scale, *, clip=None):
+    """Render displayed content, preserving overlays, masks and physical origin."""
+    import pymupdf as fitz
+    from PIL import Image
+    area = (clip or page.rect).get_area()
+    if area * scale ** 2 > 20_000_000: raise ValueError('OCR pixel limit')
+    options = dict(alpha=False, colorspace=fitz.csGRAY)
+    if clip is not None: options['clip'] = clip
+    pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), **options)
+    image = Image.frombytes('L', (pix.width, pix.height), pix.samples)
+    if not paper_like(image):
+        options['colorspace'] = fitz.csRGB
+        pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), **options)
+        return pix, Image.frombytes('RGB', (pix.width, pix.height), pix.samples), scale
+    selected = min(text_render_scale(image, scale), math.sqrt(20_000_000 / area))
+    if selected > scale * 1.05:
+        scale = selected
+        pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), **options)
+        image = Image.frombytes('L', (pix.width, pix.height), pix.samples)
+    return pix, image, scale
+
 
 def emit(value):
     print(json.dumps(value, ensure_ascii=True, allow_nan=False), flush=True)
@@ -37,6 +98,7 @@ def main():
             psm=tesserocr.PSM.AUTO) as api:
         emit({'type': 'ready', 'engine': 'tesseract-vie-eng',
               'tesseract_version': tesserocr.tesseract_version().splitlines()[0],
+              'render_policy': RENDER_POLICY,
               'model_sha256': models})
         for number in request['page_numbers']:
             if type(number) is not int or not 1 <= number <= len(pdf):
@@ -55,9 +117,9 @@ def main():
                         raise ValueError('image region outside page')
                     if expected.get_area() * scale ** 2 > 20_000_000:
                         emit({'type': 'limit'}); return 2
-                    pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale),
-                        clip=expected * page.rotation_matrix, alpha=False, colorspace=fitz.csRGB)
-                    api.SetImage(Image.frombytes('RGB', (pix.width, pix.height), pix.samples))
+                    pix, image, render_scale = render_page(page, scale, clip=expected * page.rotation_matrix)
+                    api.SetPageSegMode(tesserocr.PSM.SINGLE_BLOCK if render_scale > scale * 1.05 else tesserocr.PSM.AUTO)
+                    api.SetImage(image)
                     text = api.GetUTF8Text()
                     confidence = api.MeanTextConf() / 100
                     iterator = api.GetIterator()
@@ -68,8 +130,8 @@ def main():
                             box = line.BoundingBox(tesserocr.RIL.TEXTLINE)
                             if value and value.strip() and box:
                                 x0, y0, x1, y1 = box
-                                rect = fitz.Rect((x0 + pix.x) / scale, (y0 + pix.y) / scale,
-                                                (x1 + pix.x) / scale, (y1 + pix.y) / scale) * page.derotation_matrix
+                                rect = fitz.Rect((x0 + pix.x) / render_scale, (y0 + pix.y) / render_scale,
+                                                (x1 + pix.x) / render_scale, (y1 + pix.y) / render_scale) * page.derotation_matrix
                                 region_lines.append({'text': value.strip(), 'bbox': list(rect)})
                     detected = bool(text.strip() or api.GetComponentImages(tesserocr.RIL.TEXTLINE, True))
                     outcome = 'recognized' if region_lines else 'unreadable' if detected else 'no_detected_text'
@@ -83,8 +145,9 @@ def main():
                 continue
             if page.rect.width * page.rect.height * scale ** 2 > 20_000_000:
                 emit({'type': 'limit'}); return 2
-            pix = page.get_pixmap(matrix=fitz.Matrix(scale, scale), alpha=False)
-            api.SetImage(Image.frombytes('RGB', (pix.width, pix.height), pix.samples))
+            pix, image, render_scale = render_page(page, scale)
+            api.SetPageSegMode(tesserocr.PSM.SINGLE_BLOCK if render_scale > scale * 1.05 else tesserocr.PSM.AUTO)
+            api.SetImage(image)
             text = api.GetUTF8Text()
             result = {'type': 'page', 'page': number, 'text': text,
                       'confidence': api.MeanTextConf() / 100}
@@ -96,7 +159,7 @@ def main():
                         value = line.GetUTF8Text(tesserocr.RIL.TEXTLINE)
                         box = line.BoundingBox(tesserocr.RIL.TEXTLINE)
                         if value and value.strip() and box:
-                            rect = fitz.Rect([coordinate / scale for coordinate in box]) * page.derotation_matrix
+                            rect = fitz.Rect([coordinate / render_scale for coordinate in box]) * page.derotation_matrix
                             lines.append({'text': value.strip(), 'bbox': list(rect)})
                 result['lines'] = lines
             emit(result)

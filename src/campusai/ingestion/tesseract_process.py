@@ -31,7 +31,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
     """Keep independent MuPDF/Tesseract processes behind a global CPU bound.
 
     No PDF handle or recognizer crosses threads/processes. The first small
-    searchable batch keeps the serial path; larger batches use two workers.
+    searchable batch uses at most two workers; large batches use up to four.
     Progress/cancellation remain on the caller thread and one shared deadline.
     """
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
@@ -54,16 +54,17 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
         finally:
             _PAGE_SLOTS.release()
 
-    if backend!='tesseract' or len(selected)<8 or _PAGE_WORKER_LIMIT<2:
+    workers=min(_PAGE_WORKER_LIMIT,max(2,math.ceil(len(selected)/4)))
+    if backend!='tesseract' or len(selected)<4 or workers<2:
         return run(selected,progress)
-    stopped=threading.Event();lock=threading.Lock();counts=[0,0]
+    stopped=threading.Event();lock=threading.Lock();counts=[0]*workers
     def callback(index):
         def update(completed,total):
             if stopped.is_set():raise OCRLimitExceeded('OCR batch stopped')
             with lock:counts[index]=max(counts[index],completed)
         return update
-    pool=ThreadPoolExecutor(max_workers=2,thread_name_prefix='local-ocr-pages')
-    futures=[pool.submit(run,selected[index::2],callback(index)) for index in range(2)]
+    pool=ThreadPoolExecutor(max_workers=workers,thread_name_prefix='local-ocr-pages')
+    futures=[pool.submit(run,selected[index::workers],callback(index)) for index in range(workers)]
     pending=set(futures);failure=None
     try:
         while pending:
@@ -96,7 +97,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
         pages={page['page']:page for doc in documents for page in doc.pages}
         ordered=[pages[number] for number in selected if number in pages]
         if ordered:
-            identity={**(first.model_identity or {}),'page_workers':2}
+            identity={**(first.model_identity or {}),'page_workers':workers}
             combined=OCRDocument(ordered,first.engine,round(sum(page['confidence'] for page in ordered)/len(ordered),6),
                                  round(time.perf_counter()-started,6),identity)
     if failure is not None:
@@ -192,6 +193,8 @@ def _recognize_one(path, selected, *, data_dir, scale, timeout_seconds, progress
                 if message.get('model_sha256') != expected or message.get('engine') != engine:
                     raise OCRUnavailable('local OCR identity mismatch')
                 if backend == 'tesseract':
+                    if message.get('render_policy') != identity['render_policy']:
+                        raise OCRUnavailable('local OCR rendering policy mismatch')
                     identity['tesseract_version'] = message.get('tesseract_version')
                 else:
                     identity.update(device=message.get('device'),render_scale=scale)

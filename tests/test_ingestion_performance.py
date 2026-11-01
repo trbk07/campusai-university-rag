@@ -199,3 +199,168 @@ def test_parallel_ocr_honors_global_worker_limit_across_documents(monkeypatch):
             scale=1.5,timeout_seconds=3,progress=None) for _ in range(2)]
         assert all(len(future.result().pages)==8 for future in futures)
     assert active[0]==0 and active[1]<=2
+
+
+def test_large_ocr_batch_uses_four_bounded_workers_and_preserves_order(monkeypatch):
+    import threading
+    barrier=threading.Barrier(4);threads=set()
+    def worker(path,numbers,**options):
+        threads.add(threading.get_ident());barrier.wait(timeout=2)
+        return page_result(numbers)
+    process=parallel_setup(monkeypatch,worker)
+    monkeypatch.setattr(process,'_PAGE_WORKER_LIMIT',4)
+    monkeypatch.setattr(process,'_PAGE_SLOTS',threading.BoundedSemaphore(4))
+    result=process.recognize_pdf('source.pdf',list(range(1,17)),data_dir='models',scale=1.5,
+                                 timeout_seconds=3,progress=None)
+    assert len(threads)==4 and result.pages==page_result(list(range(1,17))).pages
+    assert result.model_identity['page_workers']==4
+
+
+def print_image(height=8, *, columns=False, lines=8):
+    from PIL import Image,ImageDraw
+    image=Image.new('L',(400,400),255);draw=ImageDraw.Draw(image)
+    ranges=[(30,170),(230,370)] if columns else [(30,370)]
+    for index in range(lines):
+        for left,right in ranges:
+            for x in range(left,right,6):draw.rectangle((x,20+index*40,x+2,19+index*40+height),fill=0)
+    return image
+
+
+def test_ocr_extra_pixels_target_small_single_column_text_only():
+    from campusai.ingestion.tesseract_worker import text_render_scale
+    assert text_render_scale(print_image(),1.5)==3.
+    assert text_render_scale(print_image(16),1.5)==1.5
+    assert text_render_scale(print_image(columns=True),1.5)==1.5
+    assert text_render_scale(print_image(lines=3),1.5)==1.5
+    assert text_render_scale(print_image(),4.)==4.
+    assert text_render_scale(print_image().point(lambda value:170 if value else 20),1.5)==1.5
+
+
+def test_ocr_grayscale_rerender_keeps_clip_origin_and_original_page():
+    import io
+    import pymupdf as fitz
+    from campusai.ingestion.tesseract_worker import render_page
+    image=print_image();stream=io.BytesIO();image.save(stream,format='PNG')
+    with fitz.open() as pdf:
+        page=pdf.new_page(width=250,height=240)
+        region=fitz.Rect(30,20,230,220)
+        page.insert_image(region,stream=stream.getvalue())
+        pix,rendered,scale=render_page(page,1.5,clip=region)
+        assert scale>1.5 and rendered.mode=='L' and pix.n==1
+        assert abs(pix.x/scale-region.x0)<1/scale and abs(pix.y/scale-region.y0)<1/scale
+        assert list(page.rect)==[0,0,250,240]
+        assert len(pdf)==1
+
+
+def test_ocr_requested_pixel_limit_is_not_bypassed_by_adaptive_scaling():
+    import pymupdf as fitz
+    from campusai.ingestion.tesseract_worker import render_page
+    with fitz.open() as pdf:
+        page=pdf.new_page(width=4000,height=4000)
+        with pytest.raises(ValueError,match='pixel limit'):render_page(page,1.5)
+
+
+def test_ocr_coloured_regions_keep_the_original_rgb_pixels_and_resolution():
+    import io
+    import pymupdf as fitz
+    from PIL import Image
+    from campusai.ingestion.tesseract_worker import render_page
+    image=Image.new('RGB',(200,200),(30,80,130));stream=io.BytesIO();image.save(stream,format='PNG')
+    with fitz.open() as pdf:
+        page=pdf.new_page(width=100,height=100);page.insert_image(page.rect,stream=stream.getvalue())
+        pix,rendered,scale=render_page(page,1.5)
+        original=page.get_pixmap(matrix=fitz.Matrix(1.5,1.5),alpha=False,colorspace=fitz.csRGB)
+        assert rendered.mode=='RGB' and pix.n==3 and scale==1.5
+        assert pix.samples==original.samples
+
+
+def test_new_ocr_policy_reprocesses_legacy_checkpoints_then_reuses_current_results(tmp_path,monkeypatch):
+    import json,hashlib
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.ocr import OCRDocument
+    from campusai.ingestion.tesseract_worker import RENDER_POLICY
+    source=tmp_path/'source.pdf';source.write_bytes(b'controlled source identity for the mocked parser')
+    store=tmp_path/'store';calls=[]
+    monkeypatch.setattr(pipeline,'validate_pdf',lambda *a,**k:SimpleNamespace(pages=1,warnings=[]))
+    monkeypatch.setattr(pipeline,'parse_pdf',lambda *a,**k:[{'page':1,'text':'','requires_ocr':True,'lines_meta':[]}])
+    monkeypatch.setattr(pipeline,'extract_tables',lambda *a,**k:[])
+    def recognize(*a,**k):
+        calls.append(True)
+        return OCRDocument([{'page':1,'text':f'Readable reference paragraph from recognition pass {len(calls)}.',
+                             'confidence':.95}], 'tesseract-vie-eng',.95,.1,{'render_policy':RENDER_POLICY})
+    monkeypatch.setattr(pipeline,'_bounded_ocr',recognize)
+    options=dict(store_dir=store,enable_ocr=True,ocr_backend='tesseract',allow_partial=True)
+    first=pipeline.ingest_document(source,**options)
+    meta=store/first.doc_id/'meta.json';pages=meta.with_name('ocr-pages.json')
+    saved=json.loads(meta.read_text(encoding='utf-8'));raw=json.loads(pages.read_text(encoding='utf-8'))
+    saved['metadata']['ocr_resume_identity'].pop('render_policy')
+    saved['metadata']['ocr']['model_identity'].pop('render_policy')
+    raw['ocr']['model_identity'].pop('render_policy')
+    encoded=json.dumps(raw).encode('utf-8');pages.write_bytes(encoded)
+    saved['metadata']['ocr_pages_sha256']=hashlib.sha256(encoded).hexdigest()
+    meta.write_text(json.dumps(saved),encoding='utf-8')
+    current=pipeline.ingest_document(source,**options)
+    assert len(calls)==2 and not current.cached and 'pass 2' in current.chunks[0].content
+    assert current.metadata['ocr']['model_identity']['render_policy']==RENDER_POLICY
+    cached=pipeline.ingest_document(source,**options)
+    assert cached.cached and len(calls)==2
+
+
+@pytest.mark.parametrize('progressive',[False,True])
+def test_upgraded_ocr_upload_has_a_new_identity_without_invalidating_the_old_journal(progressive):
+    import json,hashlib
+    from campusai.ingestion.background.state import job_identity,accepted_job_identities
+    from campusai.ingestion.docling_parser import TEXT_COVERAGE_VERSION
+    from campusai.ingestion.table_extractor import TABLE_EXTRACTOR_VERSION
+    options=normalize_options({'enable_ocr':True,'ocr_backend':'tesseract','progressive_ocr':progressive})
+    prior={key:value for key,value in options.items() if key!='progressive_ocr' or value}
+    old=hashlib.sha256(json.dumps({'source_sha256':'c'*64,'options':prior,
+        'text_coverage_version':TEXT_COVERAGE_VERSION,'table_extractor_version':TABLE_EXTRACTOR_VERSION},
+        sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    assert old in accepted_job_identities('c'*64,options)
+    assert job_identity('c'*64,options)!=old
+    assert job_identity('c'*64,options)==job_identity('c'*64,dict(options))
+
+
+@pytest.mark.parametrize('language',['en','vi'])
+@pytest.mark.parametrize('size',[20,24,28])
+def test_real_ocr_small_print_keeps_character_error_below_two_percent(language,size,monkeypatch):
+    """Optional local integration: pinned OCR assets and a fixed Windows font.
+
+    The reference creates only the source image; the recognizer receives pixels,
+    never reference text. Nothing is written to the document library or Git.
+    """
+    import io,os,unicodedata
+    from pathlib import Path
+    data=Path(os.environ.get('CAMPUSAI_OCR_TEST_DATA_DIR','.cache/ocr/tessdata_fast'))
+    font_path=Path('C:/Windows/Fonts/arial.ttf')
+    if not (data/'vie.traineddata').exists() or not font_path.exists():
+        pytest.skip('pinned local OCR assets and Windows Arial are required')
+    monkeypatch.setenv('OMP_THREAD_LIMIT','1')
+    tesserocr=pytest.importorskip('tesserocr')
+    import pymupdf as fitz
+    from PIL import Image,ImageDraw,ImageFont
+    from campusai.ingestion.ocr_assets import validate_tesseract_assets
+    from campusai.ingestion.tesseract_worker import render_page
+    validate_tesseract_assets(data)
+    lines=[(f'Record {n:02d}: minimum workload {110+n} credits; deadline 17 August 2025.' if language=='en' else
+            f'Mục {n:02d}: người học cần đạt {110+n} tín chỉ; hạn nộp ngày 17 tháng 8 năm 2025.') for n in range(1,13)]
+    image=Image.new('RGB',(2000,1600),'white');draw=ImageDraw.Draw(image)
+    for index,line in enumerate(lines):
+        draw.text((120,120+index*90),line,font=ImageFont.truetype(str(font_path),size),fill='black')
+    stream=io.BytesIO();image.save(stream,format='PNG')
+    with fitz.open() as pdf:
+        page=pdf.new_page(width=500,height=400);page.insert_image(page.rect,stream=stream.getvalue())
+        _,rendered,scale=render_page(page,1.5)
+        mode=tesserocr.PSM.SINGLE_BLOCK if scale>1.5*1.05 else tesserocr.PSM.AUTO
+        with tesserocr.PyTessBaseAPI(path=str(data),lang='vie+eng',psm=mode,oem=tesserocr.OEM.LSTM_ONLY) as api:
+            api.SetImage(rendered);actual=api.GetUTF8Text()
+    normalize=lambda text:' '.join(unicodedata.normalize('NFC',text).split())
+    expected=normalize('\n'.join(lines));actual=normalize(actual)
+    previous=list(range(len(expected)+1))
+    for index,char in enumerate(actual,1):
+        current=[index]
+        for pos,reference in enumerate(expected,1):
+            current.append(min(current[-1]+1,previous[pos]+1,previous[pos-1]+(char!=reference)))
+        previous=current
+    assert previous[-1]/len(expected)<=.02

@@ -181,6 +181,9 @@ def ingest_document(
     resume_identity = {'source': document_id, 'coverage': TEXT_COVERAGE_VERSION,
         'tables': TABLE_EXTRACTOR_VERSION, 'chunker': CHUNKER_VERSION,
         'backend': ocr_backend, 'data_dir': str(Path(ocr_data_dir).resolve()) if ocr_data_dir else None}
+    if ocr_backend == 'tesseract':
+        from .tesseract_worker import RENDER_POLICY
+        resume_identity['render_policy'] = RENDER_POLICY
     if allow_partial:
         from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
         from .ocr_tables import OCR_TABLE_POLICY
@@ -245,6 +248,9 @@ def ingest_document(
             cache_versions_current = True
         if enable_ocr and cached_ocr and cached_ocr.get('backend', 'rapidocr') != ocr_backend:
             cache_versions_current = False
+        if enable_ocr and ocr_backend == 'tesseract' and cached_ocr:
+            if (cached_ocr.get('model_identity') or {}).get('render_policy') != RENDER_POLICY:
+                cache_versions_current = False
         if enable_ocr and ocr_backend=='vietocr' and cached_ocr:
             from .ocr_tables import OCR_TABLE_POLICY
             if document.metadata.get('ocr_table_policy')!=OCR_TABLE_POLICY:cache_versions_current=False
