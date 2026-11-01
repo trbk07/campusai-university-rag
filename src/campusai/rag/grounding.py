@@ -1273,6 +1273,15 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             confidence="low", abstained=True, reason="unsupported_claim", claims=tuple(claims),
             evidence_status="unsupported_claim", confidence_score=0.0,
         )
+    from .presentation import missing_per_term_duration
+    if missing_per_term_duration(question, answer, [citation.quote for citation in citations]):
+        message = ('The retrieved passages give a combined duration for multiple terms, not a '
+                   'minimum duration for each term. Please provide the rule for individual terms '
+                   'or point to its section/page.' if language.startswith('en') else
+                   'Các đoạn đã truy hồi nêu tổng thời lượng nhiều học kỳ, chưa đủ căn cứ xác định '
+                   'thời lượng tối thiểu của từng kỳ. Bạn hãy chỉ rõ mục/trang quy định cho từng kỳ '
+                   'hoặc bổ sung nguồn phù hợp.')
+        return replace(_abstention('no_evidence_found', citations, language=language), answer=message)
     from .award_conditions import complete_award_definition
     definition = complete_award_definition(answer, citations, claims, results, language)
     if definition is not None:

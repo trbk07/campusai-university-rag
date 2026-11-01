@@ -295,6 +295,36 @@ def test_conditions_are_not_borrowed_from_a_new_sentence_or_another_source():
     assert restore_claim_conditions([claim],refs)==[claim]
 
 
+def test_annual_total_is_not_a_complete_answer_to_a_per_term_duration_question():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    source='Một năm học có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.'
+    class Model:
+        def generate_json(self,prompt,schema=None):
+            return {'answer':source,'confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'a','text':source,'citation_ids':['rule']}]}
+    answer=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+        'Mỗi học kỳ chính kéo dài ít nhất bao nhiêu tuần?', [source_rule(source)])
+    assert answer.abstained and answer.reason=='no_evidence_found'
+    assert 'từng kỳ' in answer.answer and 'mục/trang' in answer.answer
+    assert '36' not in answer.answer and not answer.citations
+
+
+def test_per_term_duration_guard_preserves_direct_and_aggregate_questions():
+    from campusai.rag.presentation import missing_per_term_duration
+    total='Một năm học có 03 học kì chính với tổng số tối thiểu 36 tuần lên lớp.'
+    query='Mỗi học kỳ chính kéo dài bao nhiêu tuần?'
+    assert missing_per_term_duration(query,total,[total])
+    assert not missing_per_term_duration('Một năm học có tổng bao nhiêu tuần?',total,[total])
+    assert not missing_per_term_duration('Ba học kỳ chính có tổng bao nhiêu tuần?',total,[total])
+    assert not missing_per_term_duration(query,'Mỗi học kỳ kéo dài 13 tuần.',[total,'Mỗi học kỳ kéo dài 13 tuần.'])
+    assert not missing_per_term_duration(query,'Mỗi học kỳ kéo dài 13 tuần.',['Mỗi học kỳ kéo dài 13 tuần.'])
+    assert missing_per_term_duration(query,total,[total,'Trong mỗi học kỳ, học 15 giờ trên lớp mỗi tuần.'])
+    from campusai.rag.presentation import aggregate_period_conflict
+    assert not aggregate_period_conflict('Mỗi học kỳ kéo dài ít nhất 36 tuần.',
+        [total,'Mỗi học kỳ kéo dài ít nhất 36 tuần.'])
+
+
 def test_contact_and_cohort_expansion_contains_no_source_facts():
     assert 'địa chỉ' in normalize_retrieval_query('Trụ sở tổ chức nằm ở đâu?')
     assert 'khóa tuyển sinh' in normalize_retrieval_query('Quy định áp dụng từ khóa nào?')

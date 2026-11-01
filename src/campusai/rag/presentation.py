@@ -155,19 +155,63 @@ def aggregate_period_conflict(answer, quotes):
              r'[^.!?;]{0,40}?(?P<value>\d+(?:[.,]\d+)?)\s*(?P<unit>' + unit + r')\b')
     aliases = {'tuan': 'week', 'weeks': 'week', 'ngay': 'day', 'days': 'day',
                'gio': 'hour', 'hours': 'hour'}
-    totals = set()
+    totals = set(); direct = set()
     for quote in quotes:
-        for match in re.finditer(total, ' '.join(folded(quote).split())):
+        normalized = ' '.join(folded(quote).split())
+        for match in re.finditer(total, normalized):
             totals.add((number(match['value']), aliases.get(match['unit'], match['unit'])))
+        for clause in re.split(r'[.!?;]\s+', normalized):
+            if (re.search(r'\b(?:moi|mot|each|every|a|one)\s+'+term+r'\b',clause)
+                    and not re.search(r'\b(?:tong|total|nam hoc|academic year|school year)\b',clause)):
+                for match in re.finditer(r'(\d+(?:[.,]\d+)?)\s*('+unit+r')\b',clause):
+                    direct.add((number(match[1]), aliases.get(match[2], match[2])))
     for clause in re.split(r'[.!?;]\s+|\n+', folded(answer)):
         if (not re.search(r'\b' + term + r'\b', clause)
                 or re.search(r'\b(?:tong|total|nam\s+hoc|academic\s+year|school\s+year)\b', clause)
                 or re.search(r'\b(?:0?[2-9]|two|three|four)\s+' + term, clause)):
             continue
         for match in re.finditer(r'(?P<value>\d+(?:[.,]\d+)?)\s*(?P<unit>' + unit + r')\b', clause):
-            if (number(match['value']), aliases.get(match['unit'], match['unit'])) in totals:
+            if (number(match['value']), aliases.get(match['unit'], match['unit'])) in totals-direct:
                 return True
     return False
+
+
+def missing_per_term_duration(question, answer, quotes):
+    """A verified annual total alone does not answer a per-term duration query."""
+    term=r'(?:hoc\s+k[yi](?:\s+chinh)?|semester|term)'
+    duration=r'(?:tuan|weeks?|ngay|days?|gio|hours?)'
+    query=' '.join(folded(question).split())
+    if (not re.search(r'\b'+term+r'\b',query)
+            or not re.search(r'\b'+duration+r'\b',query)
+            or not re.search(r'\b(?:bao nhieu|keo dai|how (?:many|long)|duration|length)\b',query)
+            or re.search(r'\b(?:tong|total|nam hoc|academic year|school year)\b',query)
+            or re.search(r'\b(?:0?[2-9]|two|three|four)\s+'+term,query)):
+        return False
+    units=[pattern for pattern in (r'(?:tuan|weeks?)',r'(?:ngay|days?)',r'(?:gio|hours?)')
+           if re.search(r'\b'+pattern+r'\b',query)]
+    if len(units)!=1:
+        return False
+    duration=units[0]
+    # Use the existing total/individual distinction. Re-labelling a sentinel
+    # individual statement exposes only totals actually printed in the quotes.
+    totals=[]
+    for quote in quotes:
+        for match in re.finditer(r'(\d+(?:[.,]\d+)?)\s*('+duration+r')\b',folded(quote)):
+            if aggregate_period_conflict('semester '+match[1]+' '+match[2], [quote]):
+                totals.append(quote)
+                break
+    if not totals:
+        return False
+    # An explicit individual-period statement in either the visible answer
+    # or a cited source stays on ordinary grounding. Do not infer equal terms.
+    for text in [answer,*quotes]:
+        for clause in re.split(r'[.!?;]\s+|\n+', ' '.join(folded(text).split())):
+            if (re.search(r'\b'+term+r'\b',clause)
+                    and re.search(r'\d+(?:[.,]\d+)?\s*'+duration+r'\b',clause)
+                    and not re.search(r'\b(?:tong|total|nam hoc|academic year|school year)\b',clause)
+                    and not re.search(r'\b(?:0?[2-9]|two|three|four)\s+'+term,clause)):
+                return False
+    return True
 
 
 _SCOPE_CUES = re.compile(
