@@ -15,7 +15,7 @@ from .claims import CODE_RE, normalize_text
 from .course_credits import COURSE_CODE, course_code_key
 
 NUMBER = re.compile(r'(?<!\w)\d+(?:[.,]\d+)?')
-UNIT = re.compile(r'(?<!\w)(\d+(?:[.,]\d+)?)\s*(%|percent\b|phan tram\b|credits?\b|tin chi\b|vnd\b|usd\b|dollars?\b|dong\b)')
+UNIT = re.compile(r'(?<!\w)(\d+(?:[.,]\d+)?)\s*(%|percent\b|phan tram\b|credits?\b|tin chi\b|tc\b|vnd\b|usd\b|dollars?\b|dong\b)')
 NEGATION = re.compile(r'\b(?:not|khong)\b')
 COURSE_MARKER = re.compile(r'(?<!\w)' + COURSE_CODE + r'(?!\w)', re.I)
 LOCATION_VALUE = r'[0-9]+(?:\.[0-9]+)*(?:\([a-z]\))?'
@@ -128,7 +128,7 @@ def prose(text):
 def quantities(text):
     result = defaultdict(set)
     for value, unit in UNIT.findall(folded(text)):
-        unit = ('credits' if unit in {'credit', 'credits', 'tin chi'} else
+        unit = ('credits' if unit in {'credit', 'credits', 'tin chi', 'tc'} else
                 'percent' if unit in {'%', 'percent', 'phan tram'} else
                 'vnd' if unit in {'dong', 'vnd'} else 'usd')
         result[number(value)].add(unit)

@@ -262,6 +262,28 @@ def test_source_binding_protects_ranges_and_generic_pdf_labels():
     assert source_ownership_conflicts('first.pdf: 31–19 USD; second.pdf: 11 USD.',claims,citations,[first,second])
 
 
+def test_credit_abbreviation_and_full_unit_keep_their_original_source():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from dataclasses import replace
+    first=replace(source_rule('Khối lượng đăng ký tối đa là 21 TC.','first'),doc_id='one',
+        metadata={'institution':'Trường Đại học Sao Bắc','source_name':'one.pdf'})
+    second=replace(source_rule('Khối lượng đăng ký tối đa là 17 tín chỉ.','second'),doc_id='two',
+        metadata={'institution':'Trường Đại học Mây Tím','source_name':'two.pdf'})
+    class Model:
+        def __init__(self,swapped):self.swapped=swapped
+        def generate_json(self,prompt,schema=None):
+            a,b=(17,21) if self.swapped else (21,17)
+            return {'answer':f'Đại học Sao Bắc: {a} tín chỉ; Đại học Mây Tím: {b} TC.',
+                'confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'first'},{'chunk_id':'second'}],
+                'claims':[{'claim_id':'a','text':first.content,'citation_ids':['first']},
+                          {'claim_id':'b','text':second.content,'citation_ids':['second']}]}
+    for swapped in (False,True):
+        answer=GroundedAnswerGenerator(Model(swapped),source_citations=True,repair_invalid_answers=True).answer(
+            'So sánh giới hạn tín chỉ trong hai nguồn.',[first,second])
+        assert answer.abstained==swapped
+
+
 @pytest.mark.parametrize('condition', [
     ', không áp dụng với người thuê năm cuối.',
     ' (trừ trường hợp đang sửa chữa).',
