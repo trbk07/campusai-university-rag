@@ -61,10 +61,12 @@ Các lượt đủ bộ owner gốc, cùng **56 case / 60 HTTP**:
 | `7ca85979` | 25 / 1 / 34 | 36 | 5,590 / 7,611s | 40 PASS / 12 PARTIAL / 4 REVIEW_REQUIRED |
 | `0fe1cdc1` | 25 / 0 / 35 | 36 | 4,571 / 8,001s | Phát hiện C03 từ chối; không nghiệm thu chất lượng |
 | `f5a5356f` | 25 / 0 / 35 | 36 | **4,513 / 8,423s** | **43 PASS / 9 PARTIAL / 4 REVIEW_REQUIRED** |
+| `cacb4bdd` | 25 / 0 / 35 | 37 | **4,700 / 7,735s** | **52 PASS / 0 PARTIAL / 4 REVIEW_REQUIRED** |
 
-Cả ba lượt không timeout hoặc lỗi schema/citation. Benchmark SHA-256
+Các lượt trong bảng không timeout hoặc lỗi schema/citation. Benchmark SHA-256
 `07f1ac1782b058bb9ce824490cd8c77521b0ab0fee5998a139a4e2ee2d1fb2fc`;
-154 file runtime không đổi trong lượt chạy. Chỉ input câu hỏi/lịch sử thật và
+154 file runtime ở ba lượt đầu, 155 ở lượt `cacb4bdd`, không đổi trong từng lượt.
+Chỉ input câu hỏi/lịch sử thật và
 ba PDF đã chọn đi vào inference; không dùng school label/gold/expected.
 
 Chấm AI bảo thủ dùng để theo dõi dev, chưa phải review độc lập/owner sign-off.
@@ -95,7 +97,7 @@ cũ thiếu corpus không chạy. **9 HTTP trọng tâm** trên chính bản nà
 6 HTTP có provider / 7 attempts, 0 cache, không lỗi schema/citation; C03 đúng hai
 nguồn, N07 giữ ngoại lệ không lặp, GPA giữ điều kiện, F24 giải thích giới hạn bằng
 chứng. Không ghép 9 lượt này thành một cohort 60 mới.
-Goal chất lượng vẫn mở; chưa có bằng chứng 99–100% và chưa mời owner nghiệm thu.
+Tại mốc này goal chất lượng vẫn mở; chưa có bằng chứng 99–100% để mời owner nghiệm thu.
 CI source `190fa8bb` đã PASS: [run 41290867645](https://github.com/trbk07/campusai-university-rag/actions/runs/41290867645),
 gồm Windows/Linux, package và container. Không coi CI là phép chấm semantic.
 
@@ -112,9 +114,43 @@ bản tiếng Anh **2,130s**, mỗi câu 1 inference, không có call bổ sung 
 hàng bảng. C03/C04 và hội thoại đổi trường M01 vẫn đúng, F02 vẫn hỏi rõ nguồn.
 CI [run 41293834828](https://github.com/trbk07/campusai-university-rag/actions/runs/41293834828) PASS.
 
-F01 DONE khỏi backlog; còn F04/F17/F19/F20/F25/F26/N01/N04 và bốn ca review đã
-nêu. Lượt đủ 60 trên `f5a5356f` giữ nguyên 43/9/4; không ghép bảy lượt kiểm riêng
-thành cohort mới hoặc tự nhận 99–100%.
+Tại mốc `9ec52954`, F01 DONE khỏi backlog; còn tám ca thiếu ý và bốn ca review.
+Lượt đủ 60 trên `f5a5356f` giữ nguyên kết quả lịch sử 43/9/4; không ghép bảy lượt
+kiểm riêng thành cohort mới. Khi đối chiếu đầy đủ hơn, R06 còn thiếu lưu ý các
+điều kiện khác dù các lần chấm trước coi định nghĩa điều kiện học trước là đủ.
+
+**Chốt goal cải thiện hỏi đáp trên `cacb4bdd`, 01/11:** chín ca thiếu ý nêu trên
+đã đủ nội dung; R06 cũng giữ lưu ý phạm vi trên nhánh local, không gọi thêm AI.
+Thông tin bổ sung lấy từ cùng hàng bảng hoặc mục nguồn đã trích: điều kiện thay
+thế, quyền được phép đi kèm giới hạn, học kỳ phụ, hai cận tín chỉ, ngày của đúng
+quyết định và mức điểm có dấu `+/-`. Mục phải khép bằng nhãn kế tiếp, không dùng
+đoạn bị cắt, nhóm đầu vào mơ hồ hoặc cột dữ liệu thật để đoán. Citation mở rộng
+và mọi claim được kiểm chứng lại; phần thêm không qua proof thì giữ câu trả lời
+đã hợp lệ. Không hạ thresholds, đưa gold vào inference hoặc hard-code tên trường,
+case ID hay con số đáp án. Không lặp cận đã hiện đủ chỉ vì bỏ số điều/khoản.
+
+**173 tests hiện hành + 164 tương thích PASS**, 1 test lịch sử thiếu corpus không
+chạy. **56 case / 60 HTTP trong một lượt trên cùng bản cuối**, 25 local, 35 HTTP
+có provider/37 attempts, 0 cache; 2 attempts bổ sung là sửa diễn đạt, không phải
+retry lỗi dịch vụ. Không timeout, lỗi provider, schema hoặc citation. p95
+**4,699678s**, tối đa **7,735061s**, đo thời gian hoàn tất, không phải TTFT; app
+đã khởi động và ba tài liệu đã sẵn sàng, không có tải đồng thời được kiểm soát.
+CI [run 41298104439](https://github.com/trbk07/campusai-university-rag/actions/runs/41298104439)
+PASS trên Windows/Linux Python 3.11/3.12/3.14, package và container.
+
+Chấm dev của Codex: **52 PASS / 0 PARTIAL / 4 REVIEW_REQUIRED**. Đạt 52/52 trên
+các ca đủ input/gold trong bộ đã exposure; không phải review độc lập, owner
+sign-off mới hoặc chứng nhận 100% trên PDF bất kỳ. Bốn ca F02/F05/N03/F24 đã
+được tách để review từ trước lượt cuối, không tự tính PASS. Ba ca đầu cần nêu
+trường hoặc gold chấp nhận hỏi rõ nguồn; F24 cần proof số tuần từng kỳ hoặc gold
+abstention đã review. Goal sửa lỗi đóng; các gate nghiệm thu bản phát hành vẫn mở.
+
+Các lượt trước vẫn giữ giới hạn riêng: `a6dbec56` chạy đủ 60 HTTP, p95 15,811s,
+tối đa 27,708s; `d3869da0` có 1 lỗi provider ở F03, giữ 2 kết quả thành công rồi
+hoàn tất phần còn lại và kiểm F03 một lần sau cooldown (61 HTTP, gồm lỗi cũ).
+Không dùng checkpoint hoặc lượt chậm này thay cho cohort cuối `cacb4bdd`.
+Không tạo thêm báo cáo JSON/txt; giữ CSV owner gốc, cache/usage vận hành và các
+baseline cần audit, chỉ cập nhật tài liệu hiện có và regression tests.
 
 | Nội dung | Kết quả lịch sử | Phạm vi / giới hạn |
 |---|---|---|
@@ -227,11 +263,11 @@ N06 trả đúng literal điều kiện 2,8 từ nguồn trong **0,538821s**, kh
 không gọi provider; ba lượt khác dùng cache đã kiểm chứng. Không tính bốn lượt
 này là bốn inference Gemini mới hoặc ghép vào phép đo 112 ở commit trước.
 
-Các finding còn cần giải quyết: C04 còn abstain dù có nguồn; C02 chưa nêu thời
-điểm thi phụ trong comparison; một số gold có thông tin ngoài câu hỏi (ví dụ
-F01 thêm thời gian đào tạo, F26 thêm giới hạn tối thiểu). Giữ rubric/gold gốc
-cho review, không tự bỏ các ý để tăng điểm. F24 và ba ca scope vẫn cần quyết
-định review cụ thể; không tự tạo owner sign-off.
+Các finding tại mốc `fc8a56af` gồm C04 abstain dù có nguồn, C02 thiếu thời điểm
+thi phụ trong comparison, F01 thiếu thời gian và F26 thiếu cận tối thiểu. Những
+lỗi này đã đóng trên `cacb4bdd` theo lượt 60 HTTP ở mục 2; không tự bỏ ý gold để
+tăng điểm. F24 và ba ca scope vẫn cần quyết định review cụ thể, không tự tạo
+owner sign-off.
 
 ### Protocol fresh holdout trước khi đo
 
@@ -254,7 +290,7 @@ Chưa có tập mới đủ provenance để đóng gate. Không tái gắn nhã
 
 | Nhóm | Việc còn lại |
 |---|---|
-| Chất lượng câu trả lời — FIX-05 | Đã có đủ 60 lượt gốc trên một code; còn chấm semantic, xử lý C04, điều kiện thiếu và review rubric/gold |
+| Chất lượng câu trả lời — FIX-05 | Sửa lỗi và chấm dev DONE: 60 HTTP trên `cacb4bdd`, 52 PASS/0 PARTIAL/4 REVIEW_REQUIRED; còn review 4 ca và nghiệm thu độc lập chính thức |
 | Gold F24 | Nguồn đã xem nói không vượt quá 15 giờ/tuần cho học phần học tập trung; chưa chứng minh từng học kỳ ít nhất 15 tuần như gold. Giữ trạng thái cần review |
 | Nguồn mơ hồ | N03 không nêu trường; khi chọn cả ba PDF không được dùng nhãn trường trong CSV để ngầm định hướng inference |
 | PDF/OCR — QA-07c | FIX-03b/QA-03b DONE theo scope trên; còn đo accuracy với reference được review, không dùng OCR confidence thay accuracy |

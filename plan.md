@@ -22,7 +22,7 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Goal hiện tại — cải thiện hỏi đáp PDF
 
-Goal active ngày **01/11/2026**. Tập trung chất lượng trao đổi với người dùng,
+Goal hoàn tất ngày **01/11/2026**, source **`cacb4bdd`**. Tập trung chất lượng trao đổi với người dùng,
 không mở lại OCR/Docker hoặc qualification đã DONE nếu không có hồi quy.
 Theo yêu cầu mới: lặp tái hiện → sửa → hồi quy, chỉ mời owner kiểm khi đã đạt
 mục tiêu 99–100% trên bộ ca hợp lệ chốt trước và không còn lỗi nghiêm trọng đã biết.
@@ -38,31 +38,30 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
 - [x] **ASK-02 — Nhiều nguồn DONE:** sửa nhận diện tên trong nguồn được trích,
   chặn đảo số liệu và chuẩn hóa `TC`/`tín chỉ`. Đoạn văn bị trích thành bảng cột
   rỗng được giữ đủ dòng, không làm mất cấu trúc bảng thật. C01–C04 trả đúng nguồn
-  trong lượt 60 HTTP trên `f5a5356f`; C03/C04 kiểm lại trên `190fa8bb` không cache.
+  trong lượt 60 HTTP trên `cacb4bdd`, không cache.
   Tests vẫn chặn mâu thuẫn nội bộ, tên bịa, sai phủ định và số liệu tráo nguồn.
-- [ ] **ASK-03 — Câu trả lời đủ nghĩa:** giữ điều kiện, ngoại lệ, thời hạn và
-  đối tượng áp dụng. **Code đã DONE cho các lỗi đã tái hiện:** giữ điều kiện trong
-  cùng danh sách, ngoại lệ ở câu liền sau và khoảng điểm làm căn cứ; kiểm chứng
-  lại thay vì hạ gate. Giải thích thiếu bằng chứng thời lượng từng kỳ; không nhận
-  tài liệu không đề cập chỉ từ tổng thời lượng năm. Tránh lặp ghi chú khi ngoại lệ
-  đã hiện rõ. **F01 DONE trên `9ec52954`:** đủ tín chỉ và thời gian từ cùng hàng
-  bảng đã kiểm chứng, không đoán nhóm đầu vào, không thêm lượt AI. **Còn:** 8 ca
-  trong backlog PARTIAL và 4 ca review nguồn/scope;
-  danh sách và phạm vi review nằm trong báo cáo tổng quan. Không tự tính thành PASS.
+- [x] **ASK-03 — Câu trả lời đủ nghĩa DONE:** giữ điều kiện, ngoại lệ, thời hạn,
+  đối tượng, khoảng điểm và ngữ cảnh cùng hàng/mục nguồn. Chín ca thiếu ý
+  F01/F04/F17/F19/F20/F25/F26/N01/N04 đã đủ ý trong lượt cuối; R06 cũng giữ lưu ý
+  về các điều kiện khác trên nhánh local. Không đoán nhóm đầu vào hoặc cộng thêm
+  lượt AI. Mục chưa khép, bảng thật, bằng chứng mơ hồ hoặc thông tin đã hiện đủ
+  không được dùng để thêm/lặp ghi chú. Mọi phần bổ sung phải kiểm chứng lại.
+  F24 giải thích thiếu bằng chứng từng kỳ, không suy từ tổng năm hoặc tự kết luận
+  toàn tài liệu không đề cập. Bốn ca cần review gold/scope giữ riêng ở ASK-08.
 - [x] **ASK-04 — Hội thoại tự nhiên DONE trong phạm vi lỗi đã xác định:** 4 hội thoại
   M01–M04/8 lượt giữ đúng trường, điểm, học kỳ và chủ đề. Role “hiệu trưởng” không
   còn bị nhận nhầm thành tên trường; thiếu thời điểm thì yêu cầu nguồn cập nhật.
   Regression dùng tên/đối tượng giả, không whitelist trường hoặc câu hỏi owner.
-- [x] **ASK-05 — Tốc độ DONE trong workload đã đo:** 60 HTTP trên `f5a5356f`,
-  p95 **4,513s**, tối đa **8,423s**, không timeout; 25 lượt local, 0 cache,
-  35 lượt có provider/36 attempts. Giữ quota/cooldown; không đổi chất lượng lấy tốc độ.
-- [ ] **ASK-06 — Chốt:** regression cả ca đúng/sai/phản chứng và HTTP trên bản
-  đang chạy. **Đã xong:** 149 tests hiện hành + 164 tests tương thích PASS,
-  1 test cũ thiếu corpus không chạy; 7 HTTP trọng tâm trên `9ec52954` không cache,
-  đúng hành vi và schema/citation, code đã push origin CampusAI. **Còn:** hoàn thiện
-  chất lượng/rubric; lượt đủ 60 gần nhất trên `f5a5356f` là 43 PASS / 9 PARTIAL /
-  4 REVIEW_REQUIRED. F01 kiểm riêng sau đó; chưa ghép kết quả thành điểm cohort mới
-  hoặc nhận đạt mốc 99–100%.
+- [x] **ASK-05 — Tốc độ DONE trong workload đã đo:** 60 HTTP liên tục trên
+  `cacb4bdd`, p95 **4,700s**, tối đa **7,735s**, không timeout hoặc lỗi provider;
+  25 lượt local, 0 cache, 35 lượt có provider/37 attempts (2 lượt sửa diễn đạt).
+  Giữ quota/cooldown; đây là thời gian hoàn tất, không phải TTFT hoặc cam kết mọi PDF.
+- [x] **ASK-06 — Chốt goal DONE:** **173 tests hiện hành + 164 tương thích PASS**;
+  1 test cũ thiếu corpus không chạy. Đủ **56 case / 60 HTTP trên cùng `cacb4bdd`**,
+  155 file runtime không đổi; C01–C04, M01–M04 và thiếu ý đều được đối chiếu.
+  Chấm dev: **52 PASS / 0 PARTIAL / 4 REVIEW_REQUIRED**; 52/52 ca đủ input/gold
+  đạt trong bộ đã exposure, không phải chứng nhận độc lập hoặc accuracy mọi PDF.
+  CI Windows/Linux, package/container PASS; code đã push đúng origin CampusAI.
 - [x] **ASK-07 — OCR nhanh hơn DONE (`c54b2b8b`):** OCR song song có giới hạn,
   lô tăng theo tốc độ thực và chỉ encode đoạn mới/thay đổi. PDF scan 34 trang:
   toàn bộ pipeline **52,81 → 29,48s**, phần đầu sẵn sàng **4,27s**, đủ 34/34 trang;
@@ -70,6 +69,11 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
   4,65s**, text/layout/confidence giống bản tuần tự. Đã kiểm cancel, partial timeout,
   checkpoint, giới hạn worker và rollback index. Đây là A/B warm một lượt/workload,
   không phải p95 hay chứng nhận accuracy trên mọi PDF; giữ nguyên FIX-03b trước đó.
+- [ ] **ASK-08 — Review input/gold, giữ mở:** F02/F05/N03 cần nêu trường trong
+  input hoặc nghiệm thu hành vi hỏi rõ nguồn; không dùng school label để trả thay.
+  F24 cần bằng chứng quy định số tuần **từng kỳ** hoặc gold abstention đã review;
+  tổng 30 tuần/năm không chứng minh mỗi kỳ tối thiểu 15 tuần. Không tự sửa gold,
+  không đếm bốn ca thành PASS. Fresh holdout/public release vẫn theo gate riêng.
 
 Không hard-code bộ owner vào runtime, không đưa gold/nhãn vào inference và
 không hạ gate grounding/citation. Hoàn tất goal này là đóng các lỗi hỏi đáp đã
@@ -96,8 +100,8 @@ xác định và kiểm chứng; fresh holdout/review gold/public release vẫn 
 | FIX-14 | [x] DONE — Tra giới hạn đăng ký và khóa áp dụng từ mệnh đề nguồn rõ ràng, giữ điều kiện năm cuối, mức cảnh báo và học kỳ; không có nguồn đúng mẫu thì giữ pipeline model. Bốn ca HTTP 0,51–0,98s. |
 
 ## Hạ tầng bổ sung — 31/10/2026
-
 - [x] **Supermemory:** dừng theo yêu cầu; không thêm SDK, key hoặc gửi hội thoại tới dịch vụ này.
+
 - [x] **CI/CD implementation:** thêm GitHub Actions cho Windows/Linux, package và Docker;
   Release publish image GHCR, deploy opt-in có health check/rollback. 56 tests local
   PASS, Compose config PASS. Hướng dẫn: [ci-cd.md](docs/operations/ci-cd.md).
@@ -125,11 +129,11 @@ xác định và kiểm chứng; fresh holdout/review gold/public release vẫn 
   chữ/hệ 4 và so sánh bằng chứng riêng từng nguồn; xử lý đăng ký hè khẩu ngữ,
   học phần học trước; chặn suy diễn tổng tuần cả năm thành một học kỳ và kết luận
   thiếu thông tin khi chưa kiểm đủ nguồn. Không dùng ID/đáp án benchmark trong runtime.
-- [ ] **FIX-05 — chất lượng cuối:** đã có một lượt đủ 60 câu gốc trên `3289f41f`
-  (nằm trong 112 HTTP), không còn ghép cohort để báo đủ 60. Vẫn cần chấm semantic
-  và điều kiện đầy đủ; C04 còn từ chối. F24 cần review gold; F02/F05/N03 cần review
-  scope, không đưa nhãn school vào inference. Bản vá bullet GPA sau đó kiểm riêng,
-  không ghép vào lượt 112 để tự nhận bản cuối PASS.
+- [ ] **FIX-05 — nghiệm thu chất lượng cuối:** phần sửa lỗi và chấm dev **DONE**
+  ở ASK-01–ASK-06: đủ 60 lượt trên `cacb4bdd`, **52 PASS / 0 PARTIAL / 4 REVIEW_REQUIRED**.
+  C04, điều kiện và nhánh local đã khắc phục. Còn review gold F24, scope
+  F02/F05/N03 và nghiệm thu chính thức; không dùng điểm dev của bộ đã exposure
+  thay independent review/holdout hoặc tự tạo owner sign-off.
 - [x] **R-01 — DONE qualification profile trên `3289f41f`:** 112/112 HTTP,
   83 inference provider thật, 0 timeout/lỗi HTTP, 0 cache hit; p95 **8,514s**,
   RSS đỉnh **8,00% RAM**. Đạt nguyên ngưỡng ≥100 HTTP/≥54 inference, p95 ≤10s,
@@ -145,8 +149,9 @@ R-01/R-02 ghi đúng bản đã đo. Bản vá parser bullet GPA sau `3289f41f` 
 tập trung: **4/4 HTTP PASS** trên `fc8a56af`; N06 trả đúng literal nguồn trong
 0,539s, không cache/provider; 3 lượt còn lại dùng cache đã kiểm chứng. Nghiệm thu
 chất lượng và bàn giao toàn bộ bản mới vẫn nằm ở FIX-05/QA-09d.
-Hồi quy gần nhất: 106 tests hiện tại + 164 tests tương thích = **270 PASS**;
-1 test lịch sử thiếu fixture đã dọn không chạy, không tính PASS.
+Hồi quy hiện hành trên `cacb4bdd`: **173 tests hiện tại + 164 tương thích = 337 PASS**;
+1 test lịch sử thiếu fixture đã dọn không chạy, không tính PASS. Kết quả
+106 + 164 trên `fc8a56af` giữ là mốc lịch sử.
 
 Evidence local đang giữ: `data/operations/local-acceptance-20261101/`.
 Lệnh đo dùng `scripts/release/measure_ocr.py`, collector HTTP dùng
