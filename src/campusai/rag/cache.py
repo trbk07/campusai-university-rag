@@ -18,7 +18,7 @@ from .schemas import SCHEMA_VERSION
 
 
 PROMPT_VERSION = "grounding-context-v15"
-GROUNDING_POLICY_VERSION = "grounding-v73"
+GROUNDING_POLICY_VERSION = "grounding-v74"
 ABSTENTION_POLICY_VERSION = "grounding-v3"
 
 

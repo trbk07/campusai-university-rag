@@ -821,6 +821,22 @@ def test_paired_fraction_bounds_remain_visible_from_the_already_supported_claim(
     assert len(response.claims)==1
 
 
+def test_paired_bound_context_does_not_repeat_a_complete_answer_for_omitted_cross_references():
+    full=('Người học theo quy định tại khoản 2 Điều 15 được đăng ký tối đa 26 TC và tối thiểu 11 TC trong học kỳ chính, '
+          'không áp dụng ngưỡng TC đăng ký tối thiểu với người học trình độ năm cuối.')
+    public=('Người học được đăng ký tối đa 26 TC và tối thiểu 11 TC trong học kỳ chính, '
+            'không áp dụng ngưỡng TC đăng ký tối thiểu với người học trình độ năm cuối.')
+    response,calls=policy_context_answer(full,full,answer=public,language='vi')
+    assert not response.abstained and response.answer==public and calls==1
+
+
+def test_optional_bound_context_tolerates_invalid_pdf_ratios_and_preserves_exact_decimal_ratios():
+    from campusai.rag.policy_context import _bounds
+    from fractions import Fraction
+    assert _bounds('Minimum 1/0 and maximum 4')['lower']==set()
+    assert _bounds('Minimum 2.5/3.5 and maximum 4')['lower']=={Fraction(5,7)}
+
+
 @pytest.mark.parametrize('date',['17 tháng 8 năm 2022','03 tháng 2 năm 2024'])
 def test_printed_document_date_is_retained_with_its_verified_reference(date):
     full=f'QUY ĐỊNH AN TOÀN (Ban hành kèm theo Quyết định số 459/QĐ-TT ngày {date} của Trung tâm)'

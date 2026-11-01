@@ -7,6 +7,7 @@ import json
 import re
 import unicodedata
 from dataclasses import replace
+from fractions import Fraction
 
 from .course_credits import folded
 from .policies import explicit_comparison_request, sanitize_evidence_text
@@ -31,6 +32,22 @@ def _covered(text, answer):
     labels = lambda value: set(re.findall(r'(?<!\w)[A-Z][+-]?(?!\w)', value))
     return (numbers(text) <= numbers(answer) and labels(text) <= labels(answer)
             and len(words & available) / max(1, len(words)) >= .8)
+
+
+def _bounds(text):
+    patterns = {'lower': r'toi thieu|minimum|at least', 'upper': r'toi da|maximum|at most'}
+    found = {}
+    for key, cue in patterns.items():
+        values = set()
+        for match in re.finditer(r'\b(?:' + cue + r')\s+(?:(?:bang|la|of|is)\s+)?'
+                                 r'(\d+(?:[.,]\d+)?(?:/\d+(?:[.,]\d+)?)?)', folded(text)):
+            try:
+                parts = [Fraction(part.replace(',', '.')) for part in match[1].split('/')]
+                values.add(parts[0] / parts[1] if len(parts) == 2 else parts[0])
+            except (ValueError, ZeroDivisionError):
+                continue
+        found[key] = values
+    return found
 
 
 def _closed_items(body, *, leaf_only=True):
@@ -156,8 +173,9 @@ def verified_field_context(question, answer, claims, citations, language):
         vietnamese = bool(re.search(r'[ăâđêôơưáàảãạấầẩẫậắằẳẵặếềểễệốồổỗộớờởỡợứừửữự]', text, re.I))
         if vietnamese != language.startswith('vi') or _covered(text, answer): continue
         same_sentence = not re.search(r'[.!?;]\s+[A-ZÀ-Ỹ]', text)
-        paired = (same_sentence and re.search(r'\b(?:toi thieu|minimum|at least)\b', norm)
-                  and re.search(r'\b(?:toi da|maximum|at most)\b', norm)
+        source_bounds, shown_bounds = _bounds(text), _bounds(answer)
+        paired = (same_sentence and all(source_bounds.values())
+                  and any(not values <= shown_bounds[key] for key, values in source_bounds.items())
                   and len(_words(text) & _words(answer)) >= 4)
         dates = calendar_presentation(text)[1]
         refs = references(text)
