@@ -23,6 +23,69 @@ def wrapped_prose(rows):
             and any(_wrapped_line(a[0],b[0]) for a,b in zip(rows,rows[1:])))
 
 
+def sparse_prose_text(table, selected):
+    """Read a contiguous prose run in one unheaded, otherwise empty column.
+
+    Preserve genuine table relationships: populated neighbour cells, named
+    column headers, disjoint rows and ambiguous repetitions cannot be prose.
+    """
+    headers,rows=table.get('headers',[]),table.get('rows',[])
+    if (not isinstance(headers,list) or len(headers)<2 or any(not isinstance(h,str) for h in headers)
+            or not isinstance(rows,list) or not selected
+            or any(not isinstance(row,list) or len(row)!=len(headers) or any(not isinstance(c,str) for c in row)
+                   for row in selected)):return None
+    columns={i for row in selected for i,cell in enumerate(row) if cell.strip()}
+    if len(columns)!=1:return None
+    column=next(iter(columns))
+    if headers[column].strip() or not wrapped_prose([[row[column]] for row in selected]):return None
+    if sum(rows[i:i+len(selected)]==selected for i in range(len(rows)-len(selected)+1))!=1:return None
+    return '\n'.join(row[column] for row in selected)
+
+
+def sparse_prose_quote(table, texts):
+    """Locate literal sparse-column claims, or fail closed on partial prose.
+
+    Lexical overlap only recognizes that a claim targets prose. It never
+    proves the claim; complete literal matching and original rows do that.
+    """
+    headers,rows=table.get('headers',[]),table.get('rows',[])
+    if len(headers)<2 or not texts:return False,None
+    compact=lambda value:' '.join(unicodedata.normalize('NFC',value).casefold().split())
+    candidates=[];applicable=False
+    for column,header in enumerate(headers):
+        if header.strip():continue
+        runs=[];run=[]
+        for index,row in enumerate(rows):
+            if (isinstance(row,list) and len(row)==len(headers) and all(isinstance(c,str) for c in row)
+                    and row[column].strip() and all(not c.strip() for i,c in enumerate(row) if i!=column)):
+                run.append(index)
+            else:
+                if run:runs.append(run)
+                run=[]
+        if run:runs.append(run)
+        for run in runs:
+            pieces=[compact(rows[i][column]) for i in run];joined=' '.join(pieces);bounds=[];offset=0
+            if wrapped_prose([[rows[i][column]] for i in run]):
+                available=set(normalized_tokens(joined))
+                for text in texts:
+                    terms=set(normalized_tokens(text))
+                    if len(terms)>=4 and len(terms&available)/len(terms)>=.7:applicable=True
+            for piece in pieces:
+                bounds.append((offset,offset+len(piece)));offset+=len(piece)+1
+            spans=[]
+            for text in texts:
+                matches=list(re.finditer(re.escape(compact(text)),joined))
+                if len(matches)!=1:break
+                spans.append(matches[0].span())
+            if len(spans)!=len(texts):continue
+            begin=min(start for start,end in spans);end=max(end for start,end in spans)
+            selected=[rows[run[i]] for i,(left,right) in enumerate(bounds) if right>begin and left<end]
+            if sparse_prose_text(table,selected) is not None:
+                quote=json.dumps({'headers':headers,'rows':selected},ensure_ascii=False)
+                if len(quote)<=1200:candidates.append(quote)
+    return applicable or bool(candidates),candidates[0] if len(candidates)==1 else None
+
+
 def relocate_literal_page_references(payload, results):
     """Resolve a wrong page ID only through unique literal same-PDF proof.
 
@@ -88,6 +151,8 @@ def source_quote(result, claims, question=''):
         converted = column_quote(body, texts, question)
         if converted is not None:
             return converted
+        prose,quote=sparse_prose_quote(table,texts)
+        if prose:return quote
         from .year_cells import binding
         cells = [binding(text, body, question,
                          numeric_cells=result.metadata.get('numeric_cell_policy') == 'ruled-ocr-numeric-v1')

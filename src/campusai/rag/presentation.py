@@ -176,6 +176,15 @@ def aggregate_period_conflict(answer, quotes):
     return False
 
 
+def per_term_duration_guidance(language):
+    return ('The retrieved passages give a combined duration for multiple terms, not a '
+            'minimum duration for each term. Please provide the rule for individual terms '
+            'or point to its section/page.' if language.startswith('en') else
+            'Các đoạn đã truy hồi nêu tổng thời lượng nhiều học kỳ, chưa đủ căn cứ xác định '
+            'thời lượng tối thiểu của từng kỳ. Bạn hãy chỉ rõ mục/trang quy định cho từng kỳ '
+            'hoặc bổ sung nguồn phù hợp.')
+
+
 def missing_per_term_duration(question, answer, quotes):
     """A verified annual total alone does not answer a per-term duration query."""
     term=r'(?:hoc\s+k[yi](?:\s+chinh)?|semester|term)'

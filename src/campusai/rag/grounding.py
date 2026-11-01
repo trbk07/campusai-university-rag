@@ -825,6 +825,12 @@ class GroundedAnswerGenerator:
             # full-document follow-up after an unsuccessful wording repair.
             if answer.abstained:
                 answer=replace(answer,document_absence_requested=False)
+        if answer.abstained and not answer.provider_failure and answer.reason in {'unsupported_claim','no_evidence_found'}:
+            from .presentation import missing_per_term_duration,per_term_duration_guidance
+            from ..retrieval.tokenizer_vi import source_body
+            quotes=[source_body({'content':result.content}) for result in results]
+            if missing_per_term_duration(question,'',quotes):
+                answer=replace(answer,answer=per_term_duration_guidance(language))
         return answer
 
     def _answer_once(
@@ -1221,12 +1227,15 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
                 [selected] if isinstance(selected, list) and all(isinstance(c, str) for c in selected)
                 else selected)
         if isinstance(rows, list) and rows:
-            from .source_citations import wrapped_prose
+            from .source_citations import wrapped_prose, sparse_prose_text
             if len(source.get('headers', [])) == 1 and wrapped_prose(rows):
                 # Citation validation already proved these exact original
                 # contiguous cells. Verify their wrapped sentence as prose,
                 # rather than treating a line-ending number as a whole fact.
                 return replace(result, content='\n'.join(row[0] for row in rows), content_type='text')
+            prose=sparse_prose_text(source,rows)
+            if prose is not None:
+                return replace(result,content=prose,content_type='text')
             return replace(result, content=json.dumps({'headers': source['headers'], 'rows': rows}, ensure_ascii=False))
         return None
     visible_results = [visible_evidence(result) for result in results if result.chunk_id in quote_by_id]
@@ -1278,15 +1287,10 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             confidence="low", abstained=True, reason="unsupported_claim", claims=tuple(claims),
             evidence_status="unsupported_claim", confidence_score=0.0,
         )
-    from .presentation import missing_per_term_duration
+    from .presentation import missing_per_term_duration,per_term_duration_guidance
     if missing_per_term_duration(question, answer, [citation.quote for citation in citations]):
-        message = ('The retrieved passages give a combined duration for multiple terms, not a '
-                   'minimum duration for each term. Please provide the rule for individual terms '
-                   'or point to its section/page.' if language.startswith('en') else
-                   'Các đoạn đã truy hồi nêu tổng thời lượng nhiều học kỳ, chưa đủ căn cứ xác định '
-                   'thời lượng tối thiểu của từng kỳ. Bạn hãy chỉ rõ mục/trang quy định cho từng kỳ '
-                   'hoặc bổ sung nguồn phù hợp.')
-        return replace(_abstention('no_evidence_found', citations, language=language), answer=message)
+        return replace(_abstention('no_evidence_found', citations, language=language),
+                       answer=per_term_duration_guidance(language))
     from .award_conditions import complete_award_definition
     definition = complete_award_definition(answer, citations, claims, results, language)
     if definition is not None:
