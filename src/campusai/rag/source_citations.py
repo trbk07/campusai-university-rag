@@ -11,16 +11,16 @@ from .course_credits import COURSE_CODE, course_code_key, folded
 _TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,5}[A-Za-z]?(?![A-Za-z0-9])')
 
 
-def _wrapped_line(previous, following):
-    return (len(previous) >= 25 and len(following) >= 10 and following[0].islower()
+def _wrapped_line(previous, following, *, min_following=10):
+    return (len(previous) >= 25 and len(following) >= min_following and following[0].islower()
             and previous.rstrip()[-1] not in '.;:?!'
             and not re.match(r'^[^:]{1,45}:', following))
 
 
-def wrapped_prose(rows):
+def wrapped_prose(rows, *, min_following=10):
     """Some PDF extractors encode wrapped prose as a one-column table."""
     return (len(rows) > 1 and all(isinstance(r,list) and len(r)==1 and isinstance(r[0],str) for r in rows)
-            and any(_wrapped_line(a[0],b[0]) for a,b in zip(rows,rows[1:])))
+            and any(_wrapped_line(a[0],b[0],min_following=min_following) for a,b in zip(rows,rows[1:])))
 
 
 def attached_exception_end(source, start, action):
@@ -51,7 +51,7 @@ def sparse_prose_text(table, selected):
     columns={i for row in selected for i,cell in enumerate(row) if cell.strip()}
     if len(columns)!=1:return None
     column=next(iter(columns))
-    if headers[column].strip() or not wrapped_prose([[row[column]] for row in selected]):return None
+    if headers[column].strip() or not wrapped_prose([[row[column]] for row in selected],min_following=2):return None
     if sum(rows[i:i+len(selected)]==selected for i in range(len(rows)-len(selected)+1))!=1:return None
     return '\n'.join(row[column] for row in selected)
 
@@ -79,7 +79,7 @@ def sparse_prose_quote(table, texts):
         if run:runs.append(run)
         for run in runs:
             pieces=[compact(rows[i][column]) for i in run];joined=' '.join(pieces);bounds=[];offset=0
-            if wrapped_prose([[rows[i][column]] for i in run]):
+            if wrapped_prose([[rows[i][column]] for i in run],min_following=2):
                 available=set(normalized_tokens(joined))
                 for text in texts:
                     terms=set(normalized_tokens(text))

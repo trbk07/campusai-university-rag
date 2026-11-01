@@ -656,6 +656,32 @@ def test_source_quote_keeps_the_next_sentence_exception_for_the_same_action(core
         assert not answer.abstained and after.strip() not in answer.citations[0].quote
 
 
+def test_short_wrapped_prose_tail_is_preserved_and_cannot_be_replaced():
+    from campusai.rag.source_citations import sparse_prose_quote,sparse_prose_text
+    rows=[['Review is not available for claims already approved by the',''],['panel.','']]
+    table={'headers':['','Other category'],'rows':rows}
+    text='Review is not available for claims already approved by the panel.'
+    applicable,quote=sparse_prose_quote(table,[text])
+    assert applicable and quote and 'panel.' in quote
+    assert sparse_prose_text(table,rows)
+    applicable,quote=sparse_prose_quote(table,[text.replace('panel.','court.')])
+    assert applicable and quote is None
+
+
+def test_equivalent_exclusion_wording_does_not_duplicate_a_verified_condition():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import complete_material_conditions
+    core='Người thuê có thể đề nghị phúc tra khoản phí trong thời hạn 9 ngày.'
+    text=core+' Không áp dụng phúc tra khoản phí đã được hội đồng xét duyệt.'
+    claim=Claim('a',text,citation_ids=('source',),status='supported')
+    citation=Citation('source','doc',1,text)
+    public=core+' Ngoại trừ khoản phí đã được hội đồng xét duyệt.'
+    assert complete_material_conditions(public,[claim],[citation])==public
+    affirmative=core+' Khoản phí đã được hội đồng xét duyệt.'
+    assert text in complete_material_conditions(affirmative,[claim],[citation])
+
+
 def test_grade_comparison_requires_two_complete_independent_source_proofs():
     from dataclasses import replace
     from campusai.rag.grade_ranges import deterministic_grade_answer

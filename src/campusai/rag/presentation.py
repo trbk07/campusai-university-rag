@@ -527,8 +527,10 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
     """
     stop=set(('a an the of to for and or in is are be with as '
               'la va cua cho cac nhung mot duoc theo trong tai co da thi quy che nay dinh').split())
+    exclusion=re.compile(r'\b(?:khong ap dung|ngoai tru|(?:this (?:rule |condition )?)?does not apply|except)\b')
     def words(text):
         text=folded(text)
+        text=exclusion.sub('__exception__',text)
         # Legal cross-references are not the action being summarized. The
         # separate numeric coverage check still protects condition quantities.
         text=re.sub(r'\b(?:khoan|dieu|muc|chuong|clause|article|section)\s+\d+(?:[.]\d+)*\b',' ',text)
@@ -549,7 +551,12 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
             anchor=words(normalized[:match.start()])
             if len(anchor)<4:
                 continue
-            matching=[part for part in clauses if len(anchor & words(part))/len(anchor)>=.7]
+            matching=[]
+            for index,part in enumerate(clauses):
+                if len(anchor & words(part))/len(anchor)<.7:continue
+                matching.append(part)
+                if index+1<len(clauses) and exclusion.match(folded(clauses[index+1]).lstrip()):
+                    matching.append(part+' '+clauses[index+1])
             if not matching:
                 continue
             condition=words(normalized[match.start():])
@@ -557,7 +564,7 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
                 available=words(part)
                 numbers={number(v) for v in NUMBER.findall(normalized[match.start():])}
                 return (numbers <= {number(v) for v in NUMBER.findall(part)}
-                    and all(neg not in condition or neg in available for neg in ('khong','not'))
+                    and all(neg not in condition or neg in available for neg in ('khong','not','__exception__'))
                     and len(condition & available)/max(1,len(condition))>=.8)
             if not any(covers(part) for part in matching):
                 key=(refs[0].doc_id,' '.join(normalized.split()))
