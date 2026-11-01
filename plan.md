@@ -14,6 +14,43 @@ artifact nghiệm thu cũ đã bỏ khỏi cây làm việc. Mốc công việc 
 trạng thái lịch sử. Muốn chứng nhận lại cần bằng chứng mới khớp source được
 chọn; không dựa vào đường dẫn artifact đã xóa.
 
+## Goal hiện tại — cải thiện hỏi đáp PDF
+
+Goal active ngày **01/11/2026**. Tập trung chất lượng trao đổi với người dùng,
+không mở lại OCR/Docker hoặc qualification đã DONE nếu không có hồi quy.
+Theo yêu cầu mới: lặp tái hiện → sửa → hồi quy, chỉ mời owner kiểm khi đã đạt
+mục tiêu 99–100% trên bộ ca hợp lệ chốt trước và không còn lỗi nghiêm trọng đã biết.
+Đếm riêng semantic quality, thiếu ý, từ chối nhầm và HTTP/schema; không tính ca
+cần review gold là PASS. Không tạo JSON/log nghiệm thu rời nếu không cần thiết;
+giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression test khóa lỗi.
+
+- [x] **ASK-01 — Rà soát ban đầu DONE:** C04 bị guard tên trường chặn cả hai
+  lượt do tách nhầm tên/predicate và thiếu proof tên trong đoạn truy hồi; C02 có
+  claim thời hạn đã kiểm chứng nhưng phần trả lời bỏ mất; A06 nhầm chức danh
+  “hiệu trưởng” thành tên trường. Giữ các ca này làm hồi quy, dùng dữ liệu phản
+  chứng/tên giả trong test; F24 vẫn review gold riêng, không sửa đáp án để tăng điểm.
+- [ ] **ASK-02 — Nhiều nguồn:** sửa truy hồi/phân bổ context và kiểm chứng từng
+  nguồn; phân biệt hai quy tắc khác nhau với bằng chứng mâu thuẫn trong cùng nguồn.
+- [ ] **ASK-03 — Câu trả lời đủ nghĩa:** giữ điều kiện, ngoại lệ, thời hạn và
+  đối tượng áp dụng; phân biệt thiếu đoạn truy hồi với tài liệu không đề cập.
+- [ ] **ASK-04 — Hội thoại tự nhiên:** giữ chủ đề khi hỏi tiếp/đổi nguồn, nhận
+  diện tên/đối tượng từ PDF bất kỳ; chỉ hỏi lại thông tin thực sự còn thiếu.
+- [ ] **ASK-05 — Tốc độ:** ưu tiên proof/caching hợp lệ và tránh lượt AI thừa,
+  giữ quota/cooldown; không đổi độ chính xác lấy tốc độ hoặc hứa số câu vô hạn.
+- [ ] **ASK-06 — Chốt:** regression cả ca đúng/sai/phản chứng và HTTP trên bản
+  đang chạy; ghi rõ local/cache/provider, tick DONE, commit/push đúng origin.
+- [x] **ASK-07 — OCR nhanh hơn DONE (`c54b2b8b`):** OCR song song có giới hạn,
+  lô tăng theo tốc độ thực và chỉ encode đoạn mới/thay đổi. PDF scan 34 trang:
+  toàn bộ pipeline **52,81 → 29,48s**, phần đầu sẵn sàng **4,27s**, đủ 34/34 trang;
+  hash toàn văn giống baseline. Hai PDF scan/mixed chạy cùng lúc: OCR **14,92 →
+  4,65s**, text/layout/confidence giống bản tuần tự. Đã kiểm cancel, partial timeout,
+  checkpoint, giới hạn worker và rollback index. Đây là A/B warm một lượt/workload,
+  không phải p95 hay chứng nhận accuracy trên mọi PDF; giữ nguyên FIX-03b trước đó.
+
+Không hard-code bộ owner vào runtime, không đưa gold/nhãn vào inference và
+không hạ gate grounding/citation. Hoàn tất goal này là đóng các lỗi hỏi đáp đã
+xác định và kiểm chứng; fresh holdout/review gold/public release vẫn theo gate riêng.
+
 ## Những lỗi đã xử lý
 
 | ID | Kết quả |

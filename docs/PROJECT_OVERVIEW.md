@@ -23,6 +23,23 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Cải thiện OCR ngày 01/11 (`c54b2b8b`):** giữ nguyên Tesseract vie+eng, độ phân
+giải và BGE-M3 đã pin; chia OCR thành hai worker khi đủ trang, giới hạn tổng
+worker trên nhiều tài liệu. Lô đầu vẫn nhỏ để hỏi sớm; các lô sau tăng theo tốc
+độ thực. Chỉ tái dùng vector khi input embedding, model và document khớp chính
+xác; metadata/coverage được cập nhật và index vẫn commit nguyên tử.
+
+Trên PDF scan thật 34 trang, pipeline đọc → OCR → index giảm **52,811 → 29,479s**
+(giảm 44,2%); phần đầu sẵn sàng **4,265s**, cuối cùng đủ 34/34 trang và hash toàn
+văn giống bản tuần tự. Số đoạn encode cộng dồn giảm **363 → 98**. Thử riêng
+workload hai PDF gồm 10 trang scan + 5 trang mixed/10 vùng ảnh: OCR **14,923 →
+4,652s**, text, layout, confidence và audit vùng ảnh giống bản tuần tự.
+Đây là A/B một lượt trên máy local, cache hệ điều hành/model warm; thời gian
+warm encoder 16,27s tách riêng. Không phải p95 hoặc phép đo accuracy độc lập.
+128 tests hiện hành PASS; thêm 20 tests tương thích ingestion/cancel/progressive
+và 164 tests tương thích hỏi đáp từ `f9d8ba10` PASS; 1 test cũ thiếu corpus không
+chạy. Các bản test tạm tự xóa; không thêm báo cáo JSON vào repo.
+
 | Nội dung | Kết quả lịch sử | Phạm vi / giới hạn |
 |---|---|---|
 | Grounding Phase 5 | 400/400 kết quả, 5/5 gates nội bộ | Bộ đã exposure; chưa thay fresh holdout cho bản cuối |
