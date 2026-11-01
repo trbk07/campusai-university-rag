@@ -669,7 +669,12 @@ class GroundedAnswerGenerator:
         target_language = language.casefold().split('-')[0]
         instructions += (
             '\nAnswer the requested rule concisely, with its applicable conditions; do not add '
-            'unrequested categories from adjacent rules. Verification claims must retain every '
+            'unrelated rules or categories. Give the direct answer first. When the same rule '
+            'or table row supplies a paired bound, eligibility qualifier, or closely linked '
+            'field needed to interpret it, add at most one short contextual sentence with its '
+            'own supported claim and citation. Do not invent that context when it is absent. '
+            'A numeric eligibility threshold alone does not prove every condition is met. '
+            'Verification claims must retain every '
             'numeric condition used in answer, including a bullet\'s governing lead-in. '
             'Retain the original numeric notation of ratios and fractions. '
             'Never expand an institutional acronym into a full name unless that full name '

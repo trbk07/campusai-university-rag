@@ -17,7 +17,7 @@ from .grounding import Citation, GroundedAnswer
 from .schemas import SCHEMA_VERSION
 
 
-PROMPT_VERSION = "grounding-context-v14"
+PROMPT_VERSION = "grounding-context-v15"
 GROUNDING_POLICY_VERSION = "grounding-v67"
 ABSTENTION_POLICY_VERSION = "grounding-v3"
 
