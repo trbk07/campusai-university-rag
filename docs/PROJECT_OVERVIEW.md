@@ -99,6 +99,23 @@ Goal chất lượng vẫn mở; chưa có bằng chứng 99–100% và chưa m�
 CI source `190fa8bb` đã PASS: [run 41290867645](https://github.com/trbk07/campusai-university-rag/actions/runs/41290867645),
 gồm Windows/Linux, package và container. Không coi CI là phép chấm semantic.
 
+**F01 đã khắc phục trên `9ec52954`:** khi bảng được trích và bảng gốc cùng xác
+định duy nhất một hàng/nhóm đầu vào, app bổ sung trường thời gian hoặc tín chỉ
+còn thiếu rồi kiểm chứng lại. Có nhiều nhóm, trường không hợp lệ, câu so sánh
+hoặc yêu cầu trả ngắn thì không tự thêm. Opt-in qua profile web hiện hành; các
+phase khác giữ mặc định. Giá trị lấy từ ô nguồn, không từ ID câu hỏi/gold.
+
+**149 tests hiện hành + 164 tương thích PASS** (1 corpus cũ thiếu nên không chạy).
+**7 HTTP** trên source này: 3 local, 4 có provider/4 attempts, 0 cache, không lỗi
+schema/citation; runtime không đổi. F01 đủ 132 tín chỉ/4 năm trong **2,807s**;
+bản tiếng Anh **2,130s**, mỗi câu 1 inference, không có call bổ sung cho ngữ cảnh
+hàng bảng. C03/C04 và hội thoại đổi trường M01 vẫn đúng, F02 vẫn hỏi rõ nguồn.
+CI [run 41293834828](https://github.com/trbk07/campusai-university-rag/actions/runs/41293834828) PASS.
+
+F01 DONE khỏi backlog; còn F04/F17/F19/F20/F25/F26/N01/N04 và bốn ca review đã
+nêu. Lượt đủ 60 trên `f5a5356f` giữ nguyên 43/9/4; không ghép bảy lượt kiểm riêng
+thành cohort mới hoặc tự nhận 99–100%.
+
 | Nội dung | Kết quả lịch sử | Phạm vi / giới hạn |
 |---|---|---|
 | Grounding Phase 5 | 400/400 kết quả, 5/5 gates nội bộ | Bộ đã exposure; chưa thay fresh holdout cho bản cuối |

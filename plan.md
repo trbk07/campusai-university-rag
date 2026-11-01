@@ -45,7 +45,9 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
   cùng danh sách, ngoại lệ ở câu liền sau và khoảng điểm làm căn cứ; kiểm chứng
   lại thay vì hạ gate. Giải thích thiếu bằng chứng thời lượng từng kỳ; không nhận
   tài liệu không đề cập chỉ từ tổng thời lượng năm. Tránh lặp ghi chú khi ngoại lệ
-  đã hiện rõ. **Còn:** 9 ca PARTIAL theo toàn bộ gold/rubric và 4 ca review nguồn/scope;
+  đã hiện rõ. **F01 DONE trên `9ec52954`:** đủ tín chỉ và thời gian từ cùng hàng
+  bảng đã kiểm chứng, không đoán nhóm đầu vào, không thêm lượt AI. **Còn:** 8 ca
+  trong backlog PARTIAL và 4 ca review nguồn/scope;
   danh sách và phạm vi review nằm trong báo cáo tổng quan. Không tự tính thành PASS.
 - [x] **ASK-04 — Hội thoại tự nhiên DONE trong phạm vi lỗi đã xác định:** 4 hội thoại
   M01–M04/8 lượt giữ đúng trường, điểm, học kỳ và chủ đề. Role “hiệu trưởng” không
@@ -55,11 +57,12 @@ giữ checklist/kết quả trong tài liệu hiện có, chỉ thêm regression
   p95 **4,513s**, tối đa **8,423s**, không timeout; 25 lượt local, 0 cache,
   35 lượt có provider/36 attempts. Giữ quota/cooldown; không đổi chất lượng lấy tốc độ.
 - [ ] **ASK-06 — Chốt:** regression cả ca đúng/sai/phản chứng và HTTP trên bản
-  đang chạy. **Đã xong:** 145 tests hiện hành + 164 tests tương thích PASS,
-  1 test cũ thiếu corpus không chạy; 9 HTTP trọng tâm trên `190fa8bb` không cache,
+  đang chạy. **Đã xong:** 149 tests hiện hành + 164 tests tương thích PASS,
+  1 test cũ thiếu corpus không chạy; 7 HTTP trọng tâm trên `9ec52954` không cache,
   đúng hành vi và schema/citation, code đã push origin CampusAI. **Còn:** hoàn thiện
-  chất lượng/rubric; chấm dev hiện 43 PASS / 9 PARTIAL / 4 REVIEW_REQUIRED,
-  chưa đạt mốc 99–100%. Không ghép 9 lượt này thành một cohort 60 mới.
+  chất lượng/rubric; lượt đủ 60 gần nhất trên `f5a5356f` là 43 PASS / 9 PARTIAL /
+  4 REVIEW_REQUIRED. F01 kiểm riêng sau đó; chưa ghép kết quả thành điểm cohort mới
+  hoặc nhận đạt mốc 99–100%.
 - [x] **ASK-07 — OCR nhanh hơn DONE (`c54b2b8b`):** OCR song song có giới hạn,
   lô tăng theo tốc độ thực và chỉ encode đoạn mới/thay đổi. PDF scan 34 trang:
   toàn bộ pipeline **52,81 → 29,48s**, phần đầu sẵn sàng **4,27s**, đủ 34/34 trang;
