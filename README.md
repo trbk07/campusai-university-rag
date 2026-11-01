@@ -1,53 +1,208 @@
 # CampusAI
 
+**Evidence-grounded conversations with your PDF documents.**
+
 [![CI](https://github.com/trbk07/campusai-university-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/trbk07/campusai-university-rag/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.11%E2%80%933.14-3776AB?logo=python&logoColor=white)
 
-Web app local hỏi đáp tài liệu đại học bằng tiếng Việt/Anh, có trích dẫn theo
-trang. PDF, chỉ mục và OCR xử lý trên máy; Gemini cần Internet và API key riêng.
+CampusAI is a local web application for asking questions across PDFs in
+Vietnamese and English. It combines text and table extraction, background OCR,
+hybrid retrieval, and answer validation to connect responses to the documents
+and physical pages that support them.
 
-Repository: [trbk07/campusai-university-rag](https://github.com/trbk07/campusai-university-rag).
+Built around university regulations and student handbooks, CampusAI also accepts
+other PDF content. Document identity and scope come from the selected sources;
+when a request is ambiguous or evidence is insufficient, the application asks
+for clarification or explains what is missing.
 
-## Chạy ứng dụng
+**Status:** actively developed, single-user local MVP. Final release acceptance
+and representative quality evaluation remain in progress. See the
+[quality overview](docs/PROJECT_OVERVIEW.md) and [roadmap](plan.md) for measured
+results, limitations, and remaining work.
 
-Nhấp đúp **`start-campusai.cmd`**, giữ cửa sổ launcher mở và truy cập
-**http://127.0.0.1:8000**. Tải tối đa 5 PDF mỗi lượt, chọn tài liệu và hỏi.
-App chạy OCR nền khi cần, cho phép hỏi trên phần đã đọc và xem citation tại
-trang nguồn. Không cần Node hoặc bước build frontend.
+[Capabilities](#capabilities) · [Quick start](#quick-start-windows) ·
+[Architecture](#how-it-works) · [Docker](#docker) ·
+[Development](#development) · [Documentation](#documentation)
 
-Kiểm tra cấu hình và model mà không gọi Gemini:
+## Capabilities
+
+| Area | What CampusAI provides |
+|---|---|
+| Document library | Upload, select, and delete PDFs. Add up to **5 PDFs per upload batch**, then add further batches to the same library. |
+| Extraction and OCR | Read native text and tables; process scanned pages and image regions in the background, with checkpoints, cancellation, and coverage tracking. |
+| Document Q&A | Retrieve from selected sources and return answers with document names, physical page references, and source excerpts. |
+| Multi-document reasoning | Compare source-specific rules while keeping citations and supported values attached to their documents. |
+| Conversation context | Carry the topic into follow-up questions and resolve source changes; request clarification when the intended source is unclear. |
+| Grounding | Check claims, citations, numeric values, and supported conditions before presenting an answer. Explain insufficient evidence rather than infer an unsupported fact. |
+| Provider management | Use a single Gemini project or an optional profile for three independent projects, with persistent quota and cooldown tracking. |
+
+There is no fixed 100-question session limit. Available provider quota,
+cooldowns, document coverage, and workload determine how many requests can be
+served. Multiple keys from the same project do not provide independent quota.
+
+## Quick start (Windows)
+
+The primary local workflow targets **Windows x64**. Use Python **3.14** and
+`uv` for the setup below. The package declares Python 3.11–3.14 support;
+environment-specific validation is documented separately.
+
+You will need Git, `uv`, Internet access for initial dependency/model setup,
+and a Gemini API key. The pinned retrieval model download is approximately
+**2.3 GB**, in addition to Python dependencies and OCR assets.
+
+### 1. Clone and install
+
+Run in PowerShell:
+
+```powershell
+git clone https://github.com/trbk07/campusai-university-rag.git
+cd campusai-university-rag
+uv sync --frozen --python 3.14 --extra feasibility --extra ocr
+Copy-Item .env.example .env
+```
+
+These steps are for a fresh installation. For an existing installation, retain
+your configuration and state directory and follow the
+[update instructions](docs/operations/local-install.md).
+
+### 2. Configure the provider
+
+Open `.env` in your editor and set `GEMINI_API_KEY` to your own key.
+The default profile is `configs/free_llm.yaml`.
+
+For three **independent Google projects**, select
+`configs/free_multi_project.yaml` through `CAMPUSAI_LLM_CONFIG` and supply
+`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, and `GEMINI_API_KEY_3`.
+See the [multi-project setup](docs/operations/local-install.md)
+for credential-file support and quota behavior.
+
+### 3. Install local model assets
+
+```powershell
+$modelCache = Join-Path $env:LOCALAPPDATA 'CampusAI/models'
+.venv/Scripts/python.exe -m scripts.operations.setup_encoder --model-cache "$modelCache"
+.venv/Scripts/python.exe -m scripts.operations.setup_ocr --output "$modelCache/ocr/tessdata_fast"
+```
+
+Setup downloads the pinned encoder and Vietnamese/English OCR language data and
+verifies their checksums. If you choose a custom model cache, configure the same
+absolute path in `.env` as `CAMPUSAI_MODEL_CACHE`.
+
+### 4. Check and launch
 
 ```powershell
 .venv/Scripts/python.exe -m scripts.operations.local --check
+.\start-campusai.cmd
 ```
 
-Đọc [hướng dẫn cài đặt và vận hành](docs/operations/local-install.md) khi cài
-máy mới, backup hoặc xử lý lỗi. Giữ `.env` và `configs/key.yaml` trên máy.
+The preflight check verifies local prerequisites without calling Gemini.
+Open **[http://127.0.0.1:8000](http://127.0.0.1:8000)** and keep the launcher
+window open. Use **Ctrl+C** in that window to stop the server.
 
-## CI/CD và Docker
+Upload your PDFs, select the sources for your question, and start a conversation.
+For scanned or mixed PDFs, follow OCR progress and page coverage; searchable
+content becomes available progressively. Open citations to inspect the original
+source pages.
 
-GitHub Actions kiểm tra tests trên Windows/Linux, đóng gói source/wheel và build
-Docker image. Publish GitHub Release sẽ chạy kiểm tra rồi đẩy image lên GHCR;
-deploy tự động có health check/rollback khi cấu hình máy đích.
+The frontend uses bundled HTML, CSS, and JavaScript; running the application
+requires no Node.js installation or frontend build step.
 
-Xem [hướng dẫn CI/CD và Docker](docs/operations/ci-cd.md) để chạy bằng Compose
-hoặc bật deployment. Pipeline không thay nghiệm thu chất lượng RAG.
+## How it works
 
-## Cấu trúc
+A typical generated answer follows this path:
 
-| Thành phần | Mục đích |
+```mermaid
+flowchart LR
+    PDFs[PDF documents] --> Extract[Text, tables, and local OCR]
+    Extract --> Index[BM25 and dense indexes]
+    Question[Question and conversation context] --> Retrieve[Selected-source retrieval]
+    Index --> Retrieve
+    Retrieve --> Generate[Gemini generation]
+    Generate --> Validate[Claim and citation validation]
+    Validate --> Response[Answer with citations or evidence limitation]
+```
+
+Retrieval uses BM25 and a pinned BGE-M3 encoder. OCR runs locally with bounded
+workers, and indexing reuses unchanged embeddings when their input and model
+identity match. Some lookups verified against the source and validated cache
+hits complete locally without a generation request.
+
+### Data and privacy
+
+- Uploaded PDFs, extracted content, indexes, job state, and answer caches are
+  stored locally. A fresh Windows installation uses `%LOCALAPPDATA%/CampusAI`
+  as its default state root.
+- Answer generation sends the question and retrieved context to Gemini. When
+  document-scope follow-ups are enabled, additional source text or PDF content
+  may also be sent to the provider.
+- Keep `.env`, `configs/key.yaml`, personal PDFs, model weights, databases, and
+  logs out of Git and shared support bundles.
+- Back up the state directory before updates. Quota and cooldown records are
+  persistent and should be preserved with application state.
+
+The application is intended for private local use. Public hosting requires
+additional authentication, TLS, and deployment review.
+
+## Docker
+
+Docker provides a separate **CPU-based** runtime with persistent state in the
+`campusai-state` volume. Set `GEMINI_API_KEY` in your local environment or `.env`,
+then run from the repository root:
+
+```sh
+docker compose build
+docker compose --profile setup run --rm assets
+docker compose up -d --wait --wait-timeout 180 app
+```
+
+The setup service installs verified model assets into the volume. Images do not
+include credentials, uploaded PDFs, or model weights. Stop an existing local
+CampusAI server before using the same port for Docker.
+
+See [CI/CD and Docker operations](docs/operations/ci-cd.md) for prerequisites,
+logs, deployment configuration, health checks, and rollback behavior.
+
+## Development
+
+Install development dependencies alongside the application extras:
+
+```powershell
+uv sync --frozen --extra dev --extra feasibility --extra ocr
+uv run --no-sync python -m pytest -q tests
+uv run --no-sync python -m scripts.dev.secret_scan
+```
+
+Node.js is used by frontend regression checks in development and CI.
+GitHub Actions runs offline tests on Windows and Linux, scans tracked files for
+credentials, builds Python packages, and builds and smoke-tests the CPU image.
+CI success covers those checks; semantic answer quality and real-PDF OCR
+evaluation are tracked separately.
+
+Publishing a GitHub Release triggers the container release workflow. Automated
+deployment is opt-in and requires a configured Linux runner and production
+environment; it is not enabled by cloning the repository.
+
+### Repository layout
+
+| Path | Purpose |
 |---|---|
-| `src/campusai/` | Backend, ingestion/OCR, truy hồi, kiểm chứng và UI HTML/CSS/JS |
-| `scripts/operations/` | Khởi động, preflight và setup encoder/OCR |
-| `scripts/release/package_local.py` | Đóng gói source từ một Git commit |
-| `scripts/dev/secret_scan.py` | Kiểm tra credential trước commit |
-| `configs/` | Profile AI và manifest model/OCR |
-| `pyproject.toml`, `uv.lock` | Dependency và phiên bản cài đặt |
-| `docs/PROJECT_OVERVIEW.md` | Tổng quan chất lượng, hiệu năng, giới hạn và dọn dẹp |
-| `plan.md` | Roadmap |
+| `src/campusai/` | Application API, ingestion/OCR, retrieval, grounding, and bundled web UI |
+| `scripts/operations/` | Local launcher, preflight checks, and model setup |
+| `scripts/release/` | Source packaging and release verification tools |
+| `scripts/dev/` | Development utilities, including credential scanning |
+| `configs/` | Provider profiles and pinned model manifests |
+| `tests/` | Maintained regression tests |
+| `.github/workflows/` | CI, container release, and deployment automation |
+| `Dockerfile`, `compose.yaml` | Container image and local Compose services |
+| `pyproject.toml`, `uv.lock` | Package metadata and locked dependencies |
+| `plan.md` | Project roadmap and task status |
 
+## Documentation
 
-Benchmark, bộ kiểm thử, log, ảnh nghiệm thu, archive và môi trường thử nghiệm
-cũ đã được bỏ khỏi cây dự án theo yêu cầu ngày 31/10/2026. File đã commit vẫn
-có lịch sử Git; đầu ra local đã xóa không được cam kết khôi phục. Đọc
-[báo cáo tổng quan](docs/PROJECT_OVERVIEW.md) và [roadmap](plan.md) trước khi
-coi số liệu lịch sử là nghiệm thu bản hiện tại.
+The operational guides and roadmap are currently maintained in Vietnamese.
+
+- [Local installation, configuration, backup, and troubleshooting](docs/operations/local-install.md)
+- [CI/CD, Docker, and deployment](docs/operations/ci-cd.md)
+- [Quality measurements and known limitations](docs/PROJECT_OVERVIEW.md)
+- [Third-party runtime and model notices](docs/operations/local-third-party.md)
+- [Roadmap and remaining work](plan.md)

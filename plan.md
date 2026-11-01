@@ -14,6 +14,12 @@ artifact nghiệm thu cũ đã bỏ khỏi cây làm việc. Mốc công việc 
 trạng thái lịch sử. Muốn chứng nhận lại cần bằng chứng mới khớp source được
 chọn; không dựa vào đường dẫn artifact đã xóa.
 
+## Tài liệu
+
+- [x] **DOC-01 — README tiếng Anh DONE (01/11):** viết lại giới thiệu, tính năng,
+  sơ đồ xử lý, setup Windows/Docker, quyền riêng tư, development/CI và mục lục tài
+  liệu; đối chiếu lệnh với code/config, kiểm tra liên kết nội bộ. Không thêm file báo cáo.
+
 ## Goal hiện tại — cải thiện hỏi đáp PDF
 
 Goal active ngày **01/11/2026**. Tập trung chất lượng trao đổi với người dùng,
