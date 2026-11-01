@@ -30,6 +30,13 @@ def test_content_or_explicit_comparison_does_not_need_school(schools, question):
     assert not resolve_institution_request(question, schools).needs_clarification
 
 
+def test_role_title_is_not_an_unknown_school_name(schools):
+    result = resolve_institution_request('Hiệu trưởng hiện tại của cả hai trường là ai?', schools)
+    assert not result.needs_clarification and not result.unknown_name
+    unknown = resolve_institution_request('Hiệu trưởng Trường Đại học Mây Trắng là ai?', schools)
+    assert unknown.needs_clarification and unknown.unknown_name
+
+
 @pytest.mark.parametrize('question', [
     'Giải thích thuật toán', 'How does credit assignment work?',
     'Quy đổi đơn vị trong bài này', 'Tóm tắt hướng dẫn vận hành',

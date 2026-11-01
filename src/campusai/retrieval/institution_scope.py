@@ -78,6 +78,9 @@ def _references(raw, documents):
 def _unmatched_name(raw, documents):
     # A new named school must not silently inherit the previous school.
     for part in re.split(r'\b(?:va|voi|and|versus|vs)\b|[,;]',folded(raw)):
+        # "Hiệu trưởng hiện tại" names a role, not a school called Hiện.
+        # A following explicit school ("Hiệu trưởng Trường ...") stays intact.
+        part=re.sub(r'\bhieu truong\b',' ',part)
         # Quantified common nouns ("all schools require ...") are not names.
         # Remove only that noun phrase; a separately named unknown school
         # in the same comparison must still trigger confirmation.

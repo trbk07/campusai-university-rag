@@ -337,16 +337,80 @@ def _threshold_premise_view(answer, supported, question):
 def institution_names_supported(answer, results):
     """An acronym does not license an invented expanded university name."""
     from ..retrieval.tokenizer_vi import source_body
-    allowed=folded('\n'.join(source_body({'content':r.content}) for r in results))
+    # The institution is source-derived document provenance. Its printed
+    # heading may be on another page than the cited policy paragraph. Never
+    # expand an acronym, or use a filename/programme as identity evidence.
+    evidence=[]
+    for result in results:
+        evidence.append(source_body({'content':result.content}))
+        institution=result.metadata.get('institution')
+        if isinstance(institution,str):evidence.append(institution)
+    allowed=' '.join(folded('\n'.join(evidence)).split())
     prefixes=list(re.finditer(r'\b(?:Trường\s+)?Đại\s+học\s+',answer,re.I))
     for i,match in enumerate(prefixes):
         end=prefixes[i+1].start() if i+1<len(prefixes) else len(answer)
         tail=re.split(r'[\n,.;:()]',answer[match.end():min(end,match.end()+120)],maxsplit=1)[0].strip()
         if not tail or not tail[0].isupper():continue
-        name=re.split(r'\s+(?:có|được|không|theo|trong|sẽ|tại|là|với|đã)\b',tail,maxsplit=1,flags=re.I)[0]
+        name=re.split(r'\s+(?:có|được|không|theo|trong|sẽ|tại|là|với|đã|áp dụng|giới hạn|'
+                      r'quy định|cho phép|yêu cầu|quy đổi|tổ chức|đăng ký|thực hiện)\b',
+                      tail,maxsplit=1,flags=re.I)[0]
         name=re.sub(r'\s+và\s*$','',name,flags=re.I).strip()
-        if 'dai hoc '+folded(name) not in allowed:return False
+        if not re.search(r'(?<!\w)'+re.escape('dai hoc '+' '.join(folded(name).split()))+r'(?!\w)',allowed):return False
     return True
+
+
+def complete_material_conditions(answer, claims, citations, language='vi'):
+    """Expose an already-proved condition dropped from an otherwise valid summary.
+
+    Never add a new claim or borrow facts from an uncited paragraph. Numeric
+    grids and unrelated diagnostic claims do not match a prose action anchor.
+    Source labels keep a multi-document note attached to its actual evidence.
+    """
+    stop=set(('a an the of to for and or in is are be with as '
+              'la va cua cho cac nhung mot duoc theo trong tai co da thi').split())
+    def words(text):
+        text=folded(text)
+        text=NUMBER.sub(lambda m:format(number(m[0]),'f').rstrip('0').rstrip('.')
+            if '.' in format(number(m[0]),'f') else str(number(m[0])),text)
+        return set(re.findall(r'\w+',text))-stop
+    marker=re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong hop|hoc k[yi]|nam|khi)|'
+        r'khong ap dung|chi (?:ap dung|khi|duoc|danh)|som nhat|cham nhat|'
+        r'ke tu|tinh tu|voi dieu kien|provided that|except|unless|only if|'
+        r'no (?:earlier|later) than|at (?:the )?earliest)\b')
+    clauses=re.split(r'[!?;\n]+|\.(?:\s+|$)',answer)
+    by_id={citation.chunk_id:citation for citation in citations}
+    additions=[];seen=set()
+    for claim in claims:
+        if claim.status!='supported' or not claim.citation_ids:
+            continue
+        refs=[by_id[ident] for ident in claim.citation_ids if ident in by_id]
+        if not refs or len({ref.doc_id for ref in refs})!=1:
+            continue
+        text=claim.text;normalized=folded(text)
+        for match in marker.finditer(normalized):
+            anchor=words(normalized[:match.start()])
+            if len(anchor)<4:
+                continue
+            matching=[part for part in clauses if len(anchor & words(part))/len(anchor)>=.7]
+            if not matching:
+                continue
+            condition=words(normalized[match.start():])
+            def covers(part):
+                available=words(part)
+                numbers={number(v) for v in NUMBER.findall(normalized[match.start():])}
+                return (numbers <= {number(v) for v in NUMBER.findall(part)}
+                    and ('khong' not in condition or 'khong' in available)
+                    and len(condition & available)/max(1,len(condition))>=.8)
+            if not any(covers(part) for part in matching):
+                key=(refs[0].doc_id,' '.join(normalized.split()))
+                if key not in seen:
+                    label=' '.join(refs[0].source_name.split())
+                    prefix=('Condition in '+label if language.startswith('en') else 'Điều kiện trong '+label) if label else (
+                        'Source condition' if language.startswith('en') else 'Điều kiện theo nguồn')
+                    additions.append(prefix+': '+' '.join(text.split()))
+                    seen.add(key)
+                break
+    return answer+('\n\n'+'\n'.join(additions) if additions else '')
 
 
 def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=()):

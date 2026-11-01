@@ -794,7 +794,10 @@ class GroundedAnswerGenerator:
         state={}
         answer=self._answer_once(question,results,language,**options,_generation_state=state)
         from .presentation import institution_names_supported
-        if self.repair_invalid_answers and not answer.abstained and not institution_names_supported(answer.answer,results):
+        def supported_names(response):
+            cited_docs={citation.doc_id for citation in response.citations}
+            return institution_names_supported(response.answer,[r for r in results if r.doc_id in cited_docs])
+        if self.repair_invalid_answers and not answer.abstained and not supported_names(answer):
             record_stage('grounding_reject.institution_name', 0.)
             answer=_abstention('unsupported_claim',language=language)
         if (self.repair_invalid_answers and state.get('positive') and answer.abstained
@@ -802,7 +805,7 @@ class GroundedAnswerGenerator:
                 and temporal_context is None and multi_hop_context is None
                 and document_scope_context is None and not pdf_documents and not verified_document_absence):
             answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason)
-            if not answer.abstained and not institution_names_supported(answer.answer,results):
+            if not answer.abstained and not supported_names(answer):
                 record_stage('grounding_reject.institution_name', 0.)
                 answer=_abstention('unsupported_claim',language=language)
             # This consumes the one extra generation. Do not start a second
@@ -1275,6 +1278,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     confidence = score_confidence(retrieval_support=retrieval_support, claim_entailment=claim_support,
                                   citation_completeness=completeness, calibrator=calibrator)
     evidence_status = "partial" if any(claim.status == "partial" for claim in claims) else "found"
+    from .presentation import complete_material_conditions
+    answer=complete_material_conditions(answer,claims,citations,language)
     return GroundedAnswer(answer=answer, citations=citations, confidence=confidence.label,
                           abstained=False, claims=tuple(claims), evidence_status=evidence_status,
                           confidence_score=confidence.score, raw_confidence_score=confidence.raw_score,

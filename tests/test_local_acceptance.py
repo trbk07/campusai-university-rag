@@ -140,6 +140,78 @@ def test_previous_course_does_not_expand_to_passed_prerequisite():
     assert 'prerequisite' in normalize_retrieval_query('Điều kiện tiên quyết là gì?')
 
 
+def test_source_derived_institution_names_allow_predicates_and_pdf_wrapping():
+    from campusai.rag.presentation import institution_names_supported
+    from dataclasses import replace
+    result = source_rule('TRƯỜNG ĐẠI HỌC MÂY\nTÍM\nQuy định đăng ký theo tỷ lệ.')
+    assert institution_names_supported('Đại học Mây Tím áp dụng giới hạn theo tỷ lệ.', [result])
+    provenance = replace(result, content='Giới hạn đăng ký là 17 tín chỉ.',
+                         metadata={'institution': 'Trường Đại học Mây Tím'})
+    assert institution_names_supported('Đại học Mây Tím giới hạn 17 tín chỉ.', [provenance])
+    assert not institution_names_supported('Đại học Mây Tím Thành phố Sao Nam giới hạn 17 tín chỉ.', [provenance])
+    acronym = replace(provenance, metadata={'institution': 'MTU'})
+    assert not institution_names_supported('Đại học Mây Tím giới hạn 17 tín chỉ.', [acronym])
+
+
+def test_visible_summary_keeps_source_proved_deadline_and_its_document():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import complete_material_conditions
+    text='Người dùng có thể gửi yêu cầu bảo trì và được tiếp nhận sớm nhất sau 03 ngày.'
+    claim=Claim('condition',text,'fact',1,('source',),'supported',1.,('source',),False)
+    citation=Citation('source','manual',2,text,source_name='manual.pdf')
+    public='Người dùng có thể gửi yêu cầu bảo trì.'
+    completed=complete_material_conditions(public,[claim],[citation])
+    assert text in completed and 'manual.pdf' in completed
+    assert complete_material_conditions(text.replace('03','3'),[claim],[citation])==text.replace('03','3')
+    unrelated='Công ty có thể thay đổi địa chỉ.'
+    assert complete_material_conditions(unrelated,[claim],[citation])==unrelated
+    from dataclasses import replace
+    assert complete_material_conditions(public,[replace(claim,status='unsupported')],[citation])==public
+
+
+def test_visible_summary_keeps_a_non_numeric_exception():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import complete_material_conditions
+    text='Người thuê phải báo trước khi trả phòng, trừ trường hợp hợp đồng có thỏa thuận khác.'
+    claim=Claim('exception',text,'fact',1,('source',),'supported',1.,('source',),False)
+    citation=Citation('source','agreement',1,text,source_name='agreement.pdf')
+    assert text in complete_material_conditions('Người thuê phải báo trước khi trả phòng.',[claim],[citation])
+
+
+def test_grounding_exposes_a_verified_condition_without_an_extra_model_call():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    rule='Người dùng có thể gửi yêu cầu bảo trì và được tiếp nhận sớm nhất sau 03 ngày.'
+    class Model:
+        calls=0
+        def generate_json(self,prompt,schema=None):
+            self.calls+=1
+            return {'answer':'Người dùng có thể gửi yêu cầu bảo trì.', 'confidence':'high', 'abstained':False,
+                    'citations':[{'chunk_id':'rule'}],
+                    'claims':[{'claim_id':'condition','text':rule,'citation_ids':['rule']}]}
+    model=Model()
+    answer=GroundedAnswerGenerator(model,source_citations=True).answer('Quy định tiếp nhận bảo trì?', [source_rule(rule)])
+    assert not answer.abstained and rule in answer.answer and model.calls==1
+
+
+def test_uncited_document_cannot_authorize_an_expanded_institution_name():
+    from dataclasses import replace
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    text='Người dùng có thể gửi yêu cầu bảo trì.'
+    cited=replace(source_rule(text),metadata={'institution':'Trường Đại học Mây Tím'})
+    uncited=replace(source_rule('Quy định khác.','other'),doc_id='other',
+                    metadata={'institution':'Trường Đại học Sao Bắc'})
+    class Model:
+        def generate_json(self,prompt,schema=None):
+            return {'answer':'Đại học Sao Bắc: '+text, 'confidence':'high', 'abstained':False,
+                    'citations':[{'chunk_id':'rule'}],
+                    'claims':[{'claim_id':'fact','text':text,'citation_ids':['rule']}]}
+    answer=GroundedAnswerGenerator(Model(),source_citations=True,repair_invalid_answers=True).answer(
+        'Quy định tiếp nhận bảo trì?', [cited,uncited])
+    assert answer.abstained
+
+
 def test_contact_and_cohort_expansion_contains_no_source_facts():
     assert 'địa chỉ' in normalize_retrieval_query('Trụ sở tổ chức nằm ở đâu?')
     assert 'khóa tuyển sinh' in normalize_retrieval_query('Quy định áp dụng từ khóa nào?')
