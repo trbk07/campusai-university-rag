@@ -793,12 +793,16 @@ class GroundedAnswerGenerator:
                      document_scope_context=document_scope_context,pdf_documents=pdf_documents)
         state={}
         answer=self._answer_once(question,results,language,**options,_generation_state=state)
-        from .presentation import institution_names_supported
+        from .presentation import institution_names_supported, source_ownership_conflicts
         def supported_names(response):
             cited_docs={citation.doc_id for citation in response.citations}
             return institution_names_supported(response.answer,[r for r in results if r.doc_id in cited_docs])
         if self.repair_invalid_answers and not answer.abstained and not supported_names(answer):
             record_stage('grounding_reject.institution_name', 0.)
+            answer=_abstention('unsupported_claim',language=language)
+        if self.repair_invalid_answers and not answer.abstained and source_ownership_conflicts(
+                answer.answer,answer.claims,answer.citations,results,question):
+            record_stage('grounding_reject.source_ownership',0.)
             answer=_abstention('unsupported_claim',language=language)
         if (self.repair_invalid_answers and state.get('positive') and answer.abstained
                 and answer.reason in {'unsupported_claim','contradicted_claim','invalid_citation','citation_not_in_evidence'}
@@ -807,6 +811,10 @@ class GroundedAnswerGenerator:
             answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason)
             if not answer.abstained and not supported_names(answer):
                 record_stage('grounding_reject.institution_name', 0.)
+                answer=_abstention('unsupported_claim',language=language)
+            if not answer.abstained and source_ownership_conflicts(
+                    answer.answer,answer.claims,answer.citations,results,question):
+                record_stage('grounding_reject.source_ownership',0.)
                 answer=_abstention('unsupported_claim',language=language)
             # This consumes the one extra generation. Do not start a second
             # full-document follow-up after an unsuccessful wording repair.

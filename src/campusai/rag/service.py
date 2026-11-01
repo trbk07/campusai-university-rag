@@ -571,6 +571,12 @@ class CampusAIQueryService:
             self.retriever.last_trace = RoutingTrace(route='abstain', abstained=True, abstention_reason=reason)
             message = ('Chưa đủ bằng chứng để xác định đúng phiên bản hoặc thời điểm áp dụng trong tài liệu đã chọn.'
                        if language == 'vi' else 'The selected sources do not establish the requested version or applicability date.')
+            if temporal.status=='needs_clarification':
+                message+=(' Bạn muốn tra cứu ở mốc thời gian hoặc phiên bản nào?'
+                          if language=='vi' else ' Which date or version do you want to check?')
+            else:
+                message+=(' Bạn hãy bổ sung nguồn cập nhật có ngày áp dụng rõ ràng để xác minh thời điểm đang hỏi.'
+                          if language=='vi' else ' Please add an updated source with an explicit applicability date for the requested time.')
             return GroundedAnswer(message, (), 'low', True, reason=reason, evidence_status='ambiguous')
         if temporal.status == 'resolved':
             doc_ids = list(temporal.eligible_doc_ids)

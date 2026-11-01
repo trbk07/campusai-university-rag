@@ -180,6 +180,18 @@ def test_visible_summary_keeps_a_non_numeric_exception():
     assert text in complete_material_conditions('Người thuê phải báo trước khi trả phòng.',[claim],[citation])
 
 
+def test_legal_cross_references_cannot_hide_a_missing_material_exception():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import complete_material_conditions
+    text=('Sinh viên không thuộc diện cảnh báo học tập theo quy định tại khoản 4 Điều 17 của Quy chế này '
+          'được đăng ký tối đa 21 TC và tối thiểu 9 TC, không áp dụng ngưỡng tối thiểu với sinh viên năm cuối.')
+    claim=Claim('exception',text,'fact',1,('source',),'supported',1.,('source',),False)
+    citation=Citation('source','manual',1,text,source_name='manual.pdf')
+    public='Sinh viên không thuộc diện cảnh báo được đăng ký tối đa 21 TC và tối thiểu 9 TC.'
+    assert 'năm cuối' in complete_material_conditions(public,[claim],[citation])
+
+
 def test_grounding_exposes_a_verified_condition_without_an_extra_model_call():
     from campusai.rag.grounding import GroundedAnswerGenerator
     rule='Người dùng có thể gửi yêu cầu bảo trì và được tiếp nhận sớm nhất sau 03 ngày.'
@@ -210,6 +222,44 @@ def test_uncited_document_cannot_authorize_an_expanded_institution_name():
     answer=GroundedAnswerGenerator(Model(),source_citations=True,repair_invalid_answers=True).answer(
         'Quy định tiếp nhận bảo trì?', [cited,uncited])
     assert answer.abstained
+
+
+def test_model_cannot_swap_scalar_values_between_two_correctly_cited_sources():
+    from dataclasses import replace
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    first=replace(source_rule('Phí đăng ký là 17 USD.','first'),doc_id='north',
+        metadata={'institution':'Trường Đại học Sao Bắc','source_name':'north.pdf','document_type':'regulation'})
+    second=replace(source_rule('Phí đăng ký là 31 USD.','second'),doc_id='south',
+        metadata={'institution':'Trường Đại học Mây Tím','source_name':'south.pdf','document_type':'regulation'})
+    class Model:
+        def __init__(self,swapped):self.swapped=swapped
+        def generate_json(self,prompt,schema=None):
+            a,b=(31,17) if self.swapped else (17,31)
+            return {'answer':f'Đại học Sao Bắc: {a} USD; Đại học Mây Tím: {b} USD.',
+                'confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'first'},{'chunk_id':'second'}],
+                'claims':[{'claim_id':'a','text':first.content,'citation_ids':['first']},
+                          {'claim_id':'b','text':second.content,'citation_ids':['second']}]}
+    question='So sánh phí đăng ký của hai trường.'
+    assert GroundedAnswerGenerator(Model(True),source_citations=True,repair_invalid_answers=True).answer(
+        question,[first,second]).abstained
+    assert not GroundedAnswerGenerator(Model(False),source_citations=True,repair_invalid_answers=True).answer(
+        question,[first,second]).abstained
+
+
+def test_source_binding_protects_ranges_and_generic_pdf_labels():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import source_ownership_conflicts
+    from dataclasses import replace
+    first=replace(source_rule('The fee is 11–19 USD.','a'),doc_id='one')
+    second=replace(source_rule('The fee is 31 USD.','b'),doc_id='two')
+    citations=[Citation('a','one',2,first.content,source_name='first.pdf'),
+               Citation('b','two',2,second.content,source_name='second.pdf')]
+    claims=[Claim('a',first.content,'fact',1,('a',),'supported',1.,('a',),False),
+            Claim('b',second.content,'fact',1,('b',),'supported',1.,('b',),False)]
+    assert not source_ownership_conflicts('first.pdf: 11–19 USD; second.pdf: 31 USD.',claims,citations,[first,second])
+    assert source_ownership_conflicts('first.pdf: 31–19 USD; second.pdf: 11 USD.',claims,citations,[first,second])
 
 
 def test_contact_and_cohort_expansion_contains_no_source_facts():

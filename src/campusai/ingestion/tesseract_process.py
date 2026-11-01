@@ -11,6 +11,9 @@ import time
 
 from .ocr_assets import TESSDATA_SHA256, VIETOCR_SHA256, validate_tesseract_assets, validate_vietocr_assets
 
+_PAGE_WORKER_LIMIT=min(4,max(1,(os.cpu_count() or 1)//2))
+_PAGE_SLOTS=threading.BoundedSemaphore(_PAGE_WORKER_LIMIT)
+
 
 def worker_environment(environ):
     """Pass OS/native-library settings, never provider keys or app credentials."""
@@ -24,6 +27,88 @@ def worker_environment(environ):
 
 
 def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
+                  include_layout=False, hybrid_regions=None, backend='tesseract', page_bounds=None):
+    """Keep independent MuPDF/Tesseract processes behind a global CPU bound.
+
+    No PDF handle or recognizer crosses threads/processes. The first small
+    searchable batch keeps the serial path; larger batches use two workers.
+    Progress/cancellation remain on the caller thread and one shared deadline.
+    """
+    from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
+    from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+    selected=list(selected);started=time.perf_counter()
+    options=dict(data_dir=data_dir,scale=scale,include_layout=include_layout,
+                 hybrid_regions=hybrid_regions,backend=backend,page_bounds=page_bounds)
+
+    def run(numbers, callback):
+        if backend!='tesseract':
+            return _recognize_one(path,numbers,timeout_seconds=timeout_seconds,progress=callback,**options)
+        while not _PAGE_SLOTS.acquire(timeout=.05):
+            if callback:callback(0,len(numbers))
+            if time.perf_counter()-started>=timeout_seconds:
+                raise OCRLimitExceeded('OCR time limit exceeded while waiting for a local worker')
+        try:
+            remaining=timeout_seconds-(time.perf_counter()-started)
+            if remaining<=0:raise OCRLimitExceeded('OCR time limit exceeded')
+            return _recognize_one(path,numbers,timeout_seconds=remaining,progress=callback,**options)
+        finally:
+            _PAGE_SLOTS.release()
+
+    if backend!='tesseract' or len(selected)<8 or _PAGE_WORKER_LIMIT<2:
+        return run(selected,progress)
+    stopped=threading.Event();lock=threading.Lock();counts=[0,0]
+    def callback(index):
+        def update(completed,total):
+            if stopped.is_set():raise OCRLimitExceeded('OCR batch stopped')
+            with lock:counts[index]=max(counts[index],completed)
+        return update
+    pool=ThreadPoolExecutor(max_workers=2,thread_name_prefix='local-ocr-pages')
+    futures=[pool.submit(run,selected[index::2],callback(index)) for index in range(2)]
+    pending=set(futures);failure=None
+    try:
+        while pending:
+            if progress:
+                with lock:completed=sum(counts)
+                progress(completed,len(selected))
+            remaining=timeout_seconds-(time.perf_counter()-started)
+            if remaining<=0:raise OCRLimitExceeded('OCR time limit exceeded')
+            done,pending=wait(pending,timeout=min(.05,remaining),return_when=FIRST_COMPLETED)
+            for future in done:future.result()
+    except BaseException as error:
+        failure=error
+    finally:
+        stopped.set()
+        pool.shutdown(wait=True,cancel_futures=True)
+    documents=[]
+    for future in futures:
+        if future.cancelled():continue
+        try:
+            documents.append(future.result())
+        except OCRLimitExceeded as error:
+            if error.partial:documents.append(error.partial)
+        except BaseException:
+            pass  # The original failure is re-raised after sibling cleanup.
+    combined=None
+    if documents:
+        first=documents[0]
+        if any(doc.engine!=first.engine or doc.model_identity!=first.model_identity for doc in documents):
+            raise OCRUnavailable('local OCR workers disagree on model identity')
+        pages={page['page']:page for doc in documents for page in doc.pages}
+        ordered=[pages[number] for number in selected if number in pages]
+        if ordered:
+            identity={**(first.model_identity or {}),'page_workers':2}
+            combined=OCRDocument(ordered,first.engine,round(sum(page['confidence'] for page in ordered)/len(ordered),6),
+                                 round(time.perf_counter()-started,6),identity)
+    if failure is not None:
+        if isinstance(failure,OCRLimitExceeded):failure.partial=combined
+        raise failure
+    if combined is None or len(combined.pages)!=len(selected):
+        raise OCRUnavailable('local OCR workers returned incomplete pages')
+    if progress:progress(len(selected),len(selected))
+    return combined
+
+
+def _recognize_one(path, selected, *, data_dir, scale, timeout_seconds, progress,
                   include_layout=False, hybrid_regions=None, backend='tesseract', page_bounds=None):
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
     started = time.perf_counter()
@@ -168,6 +253,9 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
         return OCRDocument(pages, engine,
             round(sum(p['confidence'] for p in pages) / len(pages), 6),
             round(time.perf_counter() - started, 6), identity)
+    except OCRLimitExceeded as error:
+        if error.partial is None:error.partial=limit(str(error)).partial
+        raise
     finally:
         stopped.set()
         if process.poll() is None:

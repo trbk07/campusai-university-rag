@@ -1,4 +1,5 @@
 """Publish useful page snapshots, then resume bounded automatic OCR batches."""
+import time
 from .commit import build_indexes
 
 
@@ -21,8 +22,18 @@ def ingest_progressively(manager, job_id, options, progress, ingest):
         if not unread or not options['enable_ocr']:
             break
         previous = set(unread)
+        started=time.monotonic()
         document = ingest(job.source_path, enable_ocr=True, **common)
-        if set(document.metadata.get('unread_pages', [])) >= previous:
+        remaining=set(document.metadata.get('unread_pages', []))
+        if remaining >= previous:
             # No progress: no automatic retry loop on a broken/unreadable page.
             break
+        completed=len(previous-remaining)
+        elapsed=max(.001,time.monotonic()-started)
+        # Keep the first searchable OCR snapshot small. Later batches amortize
+        # parsing/worker/index overhead, while slow pages shrink the next batch
+        # to a conservative fraction of the existing hard deadline.
+        budget=min(20.,options['ocr_timeout_seconds']*.5)
+        common['ocr_max_pages']=max(1,min(options['ocr_max_pages'],
+            common['ocr_max_pages']*2,int(budget*completed/elapsed)))
     return document

@@ -132,6 +132,11 @@ def quantities(text):
                 'percent' if unit in {'%', 'percent', 'phan tram'} else
                 'vnd' if unit in {'dong', 'vnd'} else 'usd')
         result[number(value)].add(unit)
+    # A printed range shares its explicit trailing unit with both bounds.
+    # Do not infer intermediate values or propagate another occurrence's unit.
+    ranged=r'(?<!\w)(\d+(?:[.,]\d+)?)\s*(?:[-–—÷]|\bden\b|\bto\b)\s*'+UNIT.pattern
+    for lower,upper,unit in re.findall(ranged,folded(text)):
+        result[number(lower)].update(quantities(upper+' '+unit)[number(upper)])
     return result
 
 
@@ -359,6 +364,60 @@ def institution_names_supported(answer, results):
     return True
 
 
+def source_ownership_conflicts(answer, claims, citations, results, question=''):
+    """Veto simple scalar facts borrowed from a different cited source.
+
+    Resolve labels from actual filenames and source-derived institution names,
+    never a list of schools. Only forward, explicit subject/value assertions
+    are checked. Joint calculations keep their existing multi-source proof.
+    """
+    from ..retrieval.institution_scope import _references
+    by_id={citation.chunk_id:citation for citation in citations}
+    texts={}
+    for claim in claims:
+        if claim.status!='supported':continue
+        owners={by_id[i].doc_id for i in claim.citation_ids if i in by_id}
+        if len(owners)>1:return False
+        if owners:texts.setdefault(next(iter(owners)),[]).append(claim.text)
+    documents={doc:{'doc_id':doc,'items':[]} for doc in texts}
+    labels={}
+    for result in results:
+        if result.doc_id in documents:
+            documents[result.doc_id]['items'].append({'page':result.page,'content':result.content,'metadata':result.metadata})
+    for citation in citations:
+        if citation.source_name:labels.setdefault(folded(citation.source_name),set()).add(citation.doc_id)
+    allowed={doc:quantities('\n'.join(parts)) for doc,parts in texts.items()}
+    view=_threshold_premise_view(answer,[c.text for c in claims if c.status=='supported'],question)
+    for clause in re.split(r'[;!?\n]+|\.(?:\s+|$)',view):
+        value=folded(clause);words=list(re.finditer(r'\w+',value));mentions=[]
+        refs=_references(clause,list(documents.values()))
+        for index,word in enumerate(words):
+            candidates=[(word[0],word.start(),word.end())]
+            if index+1<len(words):candidates.append((word[0]+words[index+1][0],word.start(),words[index+1].end()))
+            for key,start,end in candidates:
+                if len(owners:=refs.get(key,()))==1:mentions.append((start,end,next(iter(owners))))
+        for label,owners in labels.items():
+            if len(owners)==1:
+                mentions.extend((m.start(),m.end(),next(iter(owners))) for m in re.finditer(re.escape(label),value))
+        merged=[]
+        for start,end,owner in sorted(set(mentions)):
+            if merged and start<merged[-1][1] and owner!=merged[-1][2]:
+                merged=[];break  # Ambiguous overlapping labels do not prove ownership.
+            if (merged and owner==merged[-1][2]
+                    and (start<=merged[-1][1] or re.fullmatch(r'[\s(),/-]*',value[merged[-1][1]:start]))):
+                merged[-1]=(merged[-1][0],max(end,merged[-1][1]),owner)
+            else:merged.append((start,end,owner))
+        for index,(_start,end,owner) in enumerate(merged):
+            segment=value[end:merged[index+1][0] if index+1<len(merged) else len(value)]
+            first=UNIT.search(segment)
+            if not first or not re.search(r'[:=]|\b(?:co|la|duoc|phi|gioi han|toi da|toi thieu|'
+                                          r'ap dung|dang k[yi]|has|have|is|are|allows?)\b',segment[:first.start()]):
+                continue
+            if any(not units<=allowed.get(owner,{}).get(number,set()) for number,units in quantities(segment).items()):
+                return True
+    return False
+
+
 def complete_material_conditions(answer, claims, citations, language='vi'):
     """Expose an already-proved condition dropped from an otherwise valid summary.
 
@@ -367,9 +426,12 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
     Source labels keep a multi-document note attached to its actual evidence.
     """
     stop=set(('a an the of to for and or in is are be with as '
-              'la va cua cho cac nhung mot duoc theo trong tai co da thi').split())
+              'la va cua cho cac nhung mot duoc theo trong tai co da thi quy che nay dinh').split())
     def words(text):
         text=folded(text)
+        # Legal cross-references are not the action being summarized. The
+        # separate numeric coverage check still protects condition quantities.
+        text=re.sub(r'\b(?:khoan|dieu|muc|chuong|clause|article|section)\s+\d+(?:[.]\d+)*\b',' ',text)
         text=NUMBER.sub(lambda m:format(number(m[0]),'f').rstrip('0').rstrip('.')
             if '.' in format(number(m[0]),'f') else str(number(m[0])),text)
         return set(re.findall(r'\w+',text))-stop
@@ -399,7 +461,7 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
                 available=words(part)
                 numbers={number(v) for v in NUMBER.findall(normalized[match.start():])}
                 return (numbers <= {number(v) for v in NUMBER.findall(part)}
-                    and ('khong' not in condition or 'khong' in available)
+                    and all(neg not in condition or neg in available for neg in ('khong','not'))
                     and len(condition & available)/max(1,len(condition))>=.8)
             if not any(covers(part) for part in matching):
                 key=(refs[0].doc_id,' '.join(normalized.split()))

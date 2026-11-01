@@ -142,13 +142,40 @@ class DenseIndex:
     def _encode(self, texts: list[str]) -> list[list[float]]:
         return self._provider().encode_documents(texts)
 
-    def build(self, items: list[dict], *, corpus_id: str | None = None, document_id: str | None = None) -> None:
+    def build(self, items: list[dict], *, corpus_id: str | None = None, document_id: str | None = None,
+              previous: DenseIndex | None = None) -> None:
         started = time.perf_counter()
         self.items = list(items)
-        self.vectors = self._encode([retrieval_text(item) for item in self.items])
+        reusable={}
+        if (previous is not None and previous is not self
+                and previous.model_name==self.model_name and previous.model_revision==self.model_revision
+                and previous.device==self.device and previous.batch_size==self.batch_size
+                and previous.manifest.get('schema_version')==SCHEMA_VERSION
+                and previous.manifest.get('model_name')==self.model_name
+                and previous.manifest.get('model_revision')==self.model_revision
+                and previous.manifest.get('metric')=='cosine' and previous.manifest.get('normalized') is True
+                and previous.manifest.get('document_id')==document_id
+                and previous.manifest.get('corpus_hash')==corpus_hash(previous.items)
+                and len(previous.items)==len(previous.vectors)):
+            dimension=previous.manifest.get('embedding_dimension')
+            if type(dimension) is int and dimension>0 and all(
+                    isinstance(v,list) and len(v)==dimension and all(type(n) in (int,float) and math.isfinite(n) for n in v)
+                    for v in previous.vectors):
+                reusable={retrieval_text(item):vector for item,vector in zip(previous.items,previous.vectors)}
+        texts=[retrieval_text(item) for item in self.items]
+        missing=list(dict.fromkeys(text for text in texts if text not in reusable))
+        encoded=self._encode(missing) if missing else []
+        if len(encoded)!=len(missing):
+            raise IndexCorruptError('embedding count mismatch')
+        fresh=dict(zip(missing,encoded))
+        self.vectors=[list(reusable[text] if text in reusable else fresh[text]) for text in texts]
         self._matrix_cache = None
         dimension = len(self.vectors[0]) if self.vectors else (256 if self.model_name == HASH_MODEL else 0)
+        if any(len(vector)!=dimension or any(type(n) not in (int,float) or not math.isfinite(n) for n in vector)
+               for vector in self.vectors):
+            raise IndexCorruptError('invalid or incompatible embedding vectors')
         self.manifest = self._make_manifest(corpus_id, document_id, dimension, time.perf_counter() - started, corpus_hash(self.items))
+        self.manifest.update(reused_vectors=sum(text in reusable for text in texts), encoded_vectors=len(missing))
 
     def _make_manifest(self, corpus_id, document_id, dimension, build_seconds, content_fingerprint) -> dict[str, Any]:
         return {"schema_version": SCHEMA_VERSION, "index_type": "dense", "corpus_id": corpus_id or "default",
@@ -237,7 +264,9 @@ class DenseIndex:
         if int(manifest["item_count"]) != len(items) or manifest["corpus_hash"] != corpus_hash(items):
             raise IndexCorruptError("dense index content fingerprint mismatch")
         dimension = int(manifest["embedding_dimension"])
-        if any(not isinstance(vector, list) or len(vector) != dimension for vector in vectors):
+        if any(not isinstance(vector, list) or len(vector) != dimension
+               or any(type(value) not in (int,float) or not math.isfinite(value) for value in vector)
+               for vector in vectors):
             raise IndexCorruptError("vector dimension mismatch")
         index = cls(items, data.get("model_name", HASH_MODEL), data.get("device", "cpu"), int(data.get("batch_size", 8)), data.get("model_revision", "1"))
         index.vectors, index.manifest = vectors, manifest

@@ -50,13 +50,18 @@ def build_indexes(manager,job_id,document,options,builder):
     from ...retrieval.index_builder import chunk_records, _write_corpus_manifest
     root = Path(options['index_dir']).resolve()
     target = _inside(root,root/document.doc_id)
+    current_items=chunk_records(document)
     expected = {'expected_model_name':options['dense_model'],
         'expected_model_revision':options['dense_model_revision'],
-        'expected_corpus_hash':corpus_hash(chunk_records(document))}
+        'expected_corpus_hash':corpus_hash(current_items)}
+    previous_dense=None
     try:
-        dense = DenseIndex.load(target/'dense.json',**expected)
+        dense = DenseIndex.load(target/'dense.json',expected_model_name=options['dense_model'],
+                                expected_model_revision=options['dense_model_revision'])
         if BM25Index.load(target/'bm25.json').items != dense.items:
             raise ValueError('index pair mismatch')
+        if dense.manifest.get('corpus_hash')!=expected['expected_corpus_hash'] or dense.items!=current_items:
+            previous_dense,dense=dense,None
     except (OSError,ValueError,RuntimeError,TypeError,KeyError):
         dense = None
     if dense is not None:
@@ -70,7 +75,7 @@ def build_indexes(manager,job_id,document,options,builder):
     try:
         builder(document,stage,dense_model=options['dense_model'],device=options['device'],
                 batch_size=options['batch_size'],model_revision=options['dense_model_revision'],
-                corpus_id=root.name)
+                corpus_id=root.name,**({'previous_dense':previous_dense} if previous_dense is not None else {}))
         complete = _inside(root,stage/document.doc_id)
         dense = DenseIndex.load(complete/'dense.json',**expected)
         if BM25Index.load(complete/'bm25.json').items != dense.items:
