@@ -258,6 +258,43 @@ def regulation_candidates(question, records):
                 and _assessment_facts(item.get('content',''), request,item.get('metadata')))]
 
 
+def condition_list_quote(content, anchor):
+    """Return a closed, explicitly headed bullet list containing an exact fact.
+
+    Keep the source bytes and stop at a new heading/paragraph. An isolated
+    numeric criterion must not silently become all of an eligibility policy.
+    Ambiguous, oversized or unheaded lists stay on ordinary generation.
+    """
+    body=source_body({'content':content},decode_tables=False)
+    lines=body.splitlines(keepends=True);found=[]
+    normalized=lambda text:' '.join(text.casefold().split()).strip(' .;')
+    bullet=re.compile(r'^\s*[-–—•~]\s+(.+)')
+    for index,line in enumerate(lines):
+        heading=folded(line.strip())
+        if (len(heading)>160 or not heading.endswith(':')
+                or not re.search(r'\b(?:dieu kien|conditions?|requirements?|eligibility)\b',heading)
+                or re.search(r'\b(?:vi du|example|illustration|khong|not)\b',heading)):
+            continue
+        items=[];current=[];end=index+1;closed=False
+        for pos in range(index+1,len(lines)):
+            value=lines[pos];match=bullet.match(value)
+            if match:
+                if current:items.append(''.join(current).strip())
+                current=[match[1]+('\n' if value.endswith('\n') else '')]
+            elif current and value.strip() and not re.match(r'^\s*(?:\d+|[a-zđ])[.)]\s+',value,re.I):
+                current.append(value)
+            else:
+                closed=bool(current and re.match(r'^\s*(?:\d+|[a-zđ])[.)]\s+',value,re.I))
+                break
+            end=pos+1
+        if current:items.append(''.join(current).strip())
+        if not closed or len(items)<2 or sum(normalized(item)==normalized(anchor) for item in items)!=1:
+            continue
+        quote=''.join(lines[index:end]).strip()
+        if len(quote)<=1200 and sanitize_evidence_text(quote)==quote:found.append((quote,items))
+    return found[0] if len(found)==1 else None
+
+
 def deterministic_regulation_fact(question, results, language, *, calibrator=None):
     request = regulation_request(question)
     if request is None or not results or len({r.doc_id for r in results}) != 1:
@@ -303,6 +340,16 @@ def deterministic_regulation_fact(question, results, language, *, calibrator=Non
     if len({m[3] for m in matches}) != 1:
         return _abstention('conflicting_evidence', language=language)
     result, quote, texts, _ = min(matches, key=lambda m:(len(m[1]), -m[0].score))
+    conditions=None
+    if request[0]=='thesis_gpa':
+        lists=[condition_list_quote(match[0].content,match[2][0]) for match in matches]
+        signatures={tuple(' '.join(item.split()) for item in entry[1]) if entry else None for entry in lists}
+        if len(signatures)>1:return None
+        conditions=condition_list_quote(result.content,texts[0])
+        if conditions:
+            quote,items=conditions
+            core=' '.join(texts[0].split()).strip(' .;')
+            texts=[texts[0],*[item for item in items if ' '.join(item.split()).strip(' .;')!=core]]
     if len(quote) > 1200:
         return _abstention('context_budget_exceeded', language=language)
     citation = Citation(result.chunk_id, result.doc_id, result.page, quote,
@@ -311,6 +358,13 @@ def deterministic_regulation_fact(question, results, language, *, calibrator=Non
         result.metadata.get('table_id',''), result.metadata.get('source_hash',''))
     if not validate_citation(citation, result, require_quote=True).valid:
         return _abstention('invalid_citation', language=language)
+    if conditions:
+        from .grounding import _grounding_finalize
+        answer=texts[0]+'\n\nĐiều kiện cùng mục:\n'+'\n'.join('- '+' '.join(text.split()) for text in texts[1:])
+        checked=_grounding_finalize(answer,(citation,),{'confidence':'high','claims':[
+            {'claim_id':f'regulation-{i}','text':text,'citation_ids':[result.chunk_id]}
+            for i,text in enumerate(texts,1)]},results,language,question=question,calibrator=calibrator)
+        return checked if not checked.abstained else None
     claims = tuple(Claim(f'regulation-{i}', text, 'fact', 1, (result.chunk_id,),
         'supported', 1., (result.chunk_id,), False) for i,text in enumerate(texts,1))
     confidence = score_confidence(retrieval_support=max(0.,min(1.,result.score)),

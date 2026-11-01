@@ -234,6 +234,12 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
         citations.append(citation)
     answer=(f'Letter grade: {grade}.' if language.startswith('en') else f'Điểm chữ: {grade}.')
     if not letter_only:answer+=(f' Converted grade points: {point}.' if language.startswith('en') else f' Điểm số quy đổi: {point}.')
+    intervals=[m.groups() for m in INTERVAL.finditer(folded(range_claim))
+               if decimal(m[1])<=value<=decimal(m[2])]
+    if len({(decimal(a),decimal(b)) for a,b in intervals})==1:
+        lower,upper=intervals[0]
+        label='Source score range' if language.startswith('en') else 'Khoảng điểm theo nguồn'
+        answer+=f' {label}: {lower}–{upper}.'
     checked=_grounding_finalize(answer,tuple(citations),{'confidence':'high','claims':claims},results,language,
         question=question,calibrator=calibrator)
     return checked if not checked.abstained else None
