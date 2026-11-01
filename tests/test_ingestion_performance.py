@@ -325,6 +325,31 @@ def test_upgraded_ocr_upload_has_a_new_identity_without_invalidating_the_old_jou
     assert job_identity('c'*64,options)==job_identity('c'*64,dict(options))
 
 
+@pytest.mark.parametrize('second_audit',[False,True])
+def test_progressive_ocr_keeps_all_image_audits_and_averages_all_completed_pages(tmp_path,monkeypatch,second_audit):
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.ocr import OCRDocument
+    from campusai.ingestion.tesseract_worker import RENDER_POLICY
+    source=tmp_path/'source.pdf';source.write_bytes(b'controlled two-page source for the mocked parser')
+    monkeypatch.setattr(pipeline,'validate_pdf',lambda *a,**k:SimpleNamespace(pages=2,warnings=[]))
+    monkeypatch.setattr(pipeline,'parse_pdf',lambda *a,**k:[{'page':n,'text':'','requires_ocr':True,'lines_meta':[]} for n in [1,2]])
+    monkeypatch.setattr(pipeline,'extract_tables',lambda *a,**k:[])
+    def recognize(*a,**options):
+        number=options['page_numbers'][0];confidence=.8 if number==1 else 1.
+        return OCRDocument([{'page':number,'text':f'Recognized source paragraph on physical page {number}.',
+            'confidence':confidence,**({'image_audit':[{'bbox':[0,0,10,10],'outcome':'recognized'}]}
+                                      if number==1 or second_audit else {})}],
+            'tesseract-vie-eng',confidence,.1,{'render_policy':RENDER_POLICY})
+    monkeypatch.setattr(pipeline,'_bounded_ocr',recognize)
+    options=dict(store_dir=tmp_path/'store',enable_ocr=True,ocr_backend='tesseract',allow_partial=True,ocr_max_pages=1)
+    partial=pipeline.ingest_document(source,**options)
+    assert partial.metadata['ocr']['page_numbers']==[1]
+    complete=pipeline.ingest_document(source,**options)
+    assert complete.metadata['ocr']['page_numbers']==[1,2]
+    assert [row['page'] for row in complete.metadata['ocr']['image_audits']]==([1,2] if second_audit else [1])
+    assert complete.metadata['ocr']['average_confidence']==.9
+
+
 @pytest.mark.parametrize('kind',['legacy','current','native','disabled'])
 def test_ready_upload_only_bypasses_ingestion_when_its_ocr_policy_is_current(tmp_path,kind):
     import threading
@@ -393,4 +418,5 @@ def test_real_ocr_small_print_keeps_character_error_below_two_percent(language,s
         for pos,reference in enumerate(expected,1):
             current.append(min(current[-1]+1,previous[pos]+1,previous[pos-1]+(char!=reference)))
         previous=current
+    print('CONTROLLED_OCR',language,size,'errors',previous[-1],'reference_characters',len(expected))
     assert previous[-1]/len(expected)<=.02

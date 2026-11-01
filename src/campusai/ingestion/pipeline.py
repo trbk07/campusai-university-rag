@@ -335,10 +335,14 @@ def ingest_document(
                 ocr_info['page_numbers'] = sorted(resumed_pages)
                 ocr_info['pages'] = len(resumed_pages)
                 ocr_info['elapsed_seconds'] += (resumed_ocr or {}).get('elapsed_seconds', 0)
+                ocr_info['average_confidence'] = round(sum(float(page.get('confidence', 0))
+                    for page in resumed_pages.values()) / len(resumed_pages), 6)
             image_audits = [{'page': page['page'], 'regions': page['image_audit']}
                             for page in ocr_result.pages if page.get('image_audit')]
-            if image_audits:
-                ocr_info['image_audits'] = image_audits
+            previous_audits = (resumed_ocr or {}).get('image_audits', []) if allow_partial else []
+            if image_audits or previous_audits:
+                by_page = {audit['page']:audit for audit in [*previous_audits, *image_audits]}
+                ocr_info['image_audits'] = [by_page[number] for number in sorted(by_page)]
             unread_pages = [number for number in unread_pages if number not in recognized]
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
