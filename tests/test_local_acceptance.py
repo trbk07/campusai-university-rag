@@ -886,6 +886,20 @@ def test_personal_scope_guidance_requires_several_closed_criteria_and_a_personal
         assert not response.abstained and response.answer==anchor and calls==1
 
 
+def test_local_rule_answers_keep_personal_scope_without_calling_the_model():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    anchor='Học phần A là học phần học trước của học phần B thì sinh viên phải đăng ký và học xong (có thể chưa đạt) học phần A mới được dự lớp học phần B.'
+    body=('1. Điều kiện học phần được quy định như sau:\na) Hồ sơ học tập cần được kiểm tra.\nb) '+anchor+'\n'
+          'c) Học phần song hành được xét theo quy định riêng.\n2. Thời khóa biểu được công bố sau.')
+    source=RetrievalResult('rule','manual',3,body,'text',1.,'test',{'source_name':'workshop.pdf'})
+    class NoModel:
+        def generate_json(self,*args,**kwargs):raise AssertionError('No generation is needed for the printed definition')
+    question='Môn A là học trước của B, em học xong A nhưng chưa đạt thì học B được không?'
+    response=GroundedAnswerGenerator(NoModel(),source_citations=True,repair_invalid_answers=True).answer(question,[source],'vi')
+    assert not response.abstained and 'các điều kiện khác trong cùng mục nguồn' in response.answer
+    assert anchor in response.answer and len(response.claims)==1 and response.claims[0].status=='supported'
+
+
 def test_grade_comparison_requires_two_complete_independent_source_proofs():
     from dataclasses import replace
     from campusai.rag.grade_ranges import deterministic_grade_answer

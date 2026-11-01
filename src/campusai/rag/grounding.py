@@ -913,6 +913,12 @@ class GroundedAnswerGenerator:
             from .regulation_facts import deterministic_regulation_fact
             calculated = deterministic_regulation_fact(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
+                if self.repair_invalid_answers and not calculated.abstained:
+                    from .policy_context import complete_policy_context
+                    context=complete_policy_context(question,calculated.answer,calculated.claims,
+                                                    calculated.citations,results,language)
+                    if context:
+                        return _verify_optional_context(context,calculated,results,language,question,self.calibrator)
                 return calculated
         if pdf_documents is None and not incomplete_source and multi_hop_context is None and temporal_context is None:
             from .admission_facts import deterministic_admission_fact
@@ -1324,18 +1330,21 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
         else:
             context=complete_policy_context(question,answer,claims,citations,results,language)
         if context:
-            expanded,updated_citations,extra=context
-            retained=[{'claim_id':claim.claim_id,'text':claim.text,'type':claim.claim_type,
-                       'required_citations':claim.required_citations,'citation_ids':list(claim.citation_ids)} for claim in claims]
-            # Extra context is optional, but its source proof is not. Validate
-            # even an expanded quote before checking its claims and display.
-            originals={result.chunk_id:result for result in results}
-            if not all(citation.chunk_id in originals and validate_citation(citation,originals[citation.chunk_id],require_quote=True).valid
-                       for citation in updated_citations):return checked
-            completed=_grounding_finalize(expanded,updated_citations,{'claims':retained+extra},results,language,
-                                          question=question,calibrator=calibrator)
-            if not completed.abstained:return completed
+            return _verify_optional_context(context,checked,results,language,question,calibrator)
     return checked
+
+
+def _verify_optional_context(context, checked, results, language, question, calibrator):
+    """Use the same proof path for optional context on local and model answers."""
+    expanded,citations,extra=context
+    retained=[{'claim_id':claim.claim_id,'text':claim.text,'type':claim.claim_type,
+               'required_citations':claim.required_citations,'citation_ids':list(claim.citation_ids)} for claim in checked.claims]
+    originals={result.chunk_id:result for result in results}
+    if not all(citation.chunk_id in originals and validate_citation(citation,originals[citation.chunk_id],require_quote=True).valid
+               for citation in citations):return checked
+    completed=_grounding_finalize(expanded,citations,{'claims':retained+extra},results,language,
+                                  question=question,calibrator=calibrator)
+    return completed if not completed.abstained else checked
 
 
 def format_citation(citation: Citation, language: str = "vi") -> str:
