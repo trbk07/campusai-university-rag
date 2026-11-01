@@ -262,6 +262,39 @@ def test_source_binding_protects_ranges_and_generic_pdf_labels():
     assert source_ownership_conflicts('first.pdf: 31–19 USD; second.pdf: 11 USD.',claims,citations,[first,second])
 
 
+@pytest.mark.parametrize('condition', [
+    ', không áp dụng với người thuê năm cuối.',
+    ' (trừ trường hợp đang sửa chữa).',
+    ', only if the tenant has completed the safety inspection.',
+])
+def test_truncated_claim_and_summary_recover_only_the_immediate_cited_condition(condition):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    core='Người thuê được đăng ký tối đa 7 phòng trong mỗi đợt'
+    rule=core+condition
+    class Model:
+        calls=0
+        def generate_json(self,prompt,schema=None):
+            self.calls+=1
+            return {'answer':core+'.','confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'a','text':core,'citation_ids':['rule']}]}
+    model=Model()
+    answer=GroundedAnswerGenerator(model,source_citations=True).answer('Quy định đăng ký phòng?', [source_rule(rule)])
+    assert not answer.abstained and condition in answer.answer
+    assert answer.claims[0].text==rule and model.calls==1
+
+
+def test_conditions_are_not_borrowed_from_a_new_sentence_or_another_source():
+    from campusai.rag.presentation import restore_claim_conditions
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    core='Người thuê được đăng ký tối đa 7 phòng trong mỗi đợt'
+    claim=Claim('a',core,citation_ids=('one',))
+    refs=[Citation('one','one',2,core+'. Chỉ áp dụng giá ưu đãi khi thanh toán sớm.'),
+          Citation('two','two',3,core+', không áp dụng với khách hàng mới.')]
+    assert restore_claim_conditions([claim],refs)==[claim]
+
+
 def test_contact_and_cohort_expansion_contains_no_source_facts():
     assert 'địa chỉ' in normalize_retrieval_query('Trụ sở tổ chức nằm ở đâu?')
     assert 'khóa tuyển sinh' in normalize_retrieval_query('Quy định áp dụng từ khóa nào?')

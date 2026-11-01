@@ -418,6 +418,46 @@ def source_ownership_conflicts(answer, claims, citations, results, question=''):
     return False
 
 
+MATERIAL_CONDITION = re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong hop|hoc k[yi]|nam|khi)|'
+    r'khong ap dung|chi (?:ap dung|khi|duoc|danh)|som nhat|cham nhat|'
+    r'ke tu|tinh tu|voi dieu kien|provided that|except|unless|only if|'
+    r'no (?:earlier|later) than|at (?:the )?earliest)\b')
+
+
+def restore_claim_conditions(claims, citations):
+    """Keep a literal cited clause's immediate qualifier before re-verifying it.
+
+    A provider can truncate both its summary and its diagnostic claim. Extend
+    only an exact claim substring followed directly by a condition in the
+    already validated quote, never another sentence or an uncited paragraph.
+    The caller must align and validate the resulting claims normally.
+    """
+    from dataclasses import replace
+    by_id={citation.chunk_id:citation for citation in citations}
+    restored=[]
+    for claim in claims:
+        refs=[by_id[ident] for ident in claim.citation_ids if ident in by_id]
+        candidates=set()
+        core=' '.join(claim.text.split()).rstrip(' .;')
+        if len(core.split())>=5 and refs and len({ref.doc_id for ref in refs})==1:
+            for ref in refs:
+                quote=' '.join(ref.quote.split())
+                for match in re.finditer(r'(?<!\w)'+re.escape(core)+r'(?!\w)',quote,re.I):
+                    tail=quote[match.end():]
+                    condition=MATERIAL_CONDITION.match(folded(tail.lstrip(' ,(:')))
+                    if not condition:
+                        continue
+                    # Sentence stops exclude decimal punctuation. A directly
+                    # attached parenthesis or comma condition stays in place.
+                    boundary=re.search(r'[;!?]|\.(?:\s+|$)',tail)
+                    end=match.end()+(boundary.end() if boundary else len(tail))
+                    full=quote[match.start():end].strip()
+                    if len(full)<=1200:
+                        candidates.add(full)
+        restored.append(replace(claim,text=next(iter(candidates))) if len(candidates)==1 else claim)
+    return restored
+
+
 def complete_material_conditions(answer, claims, citations, language='vi'):
     """Expose an already-proved condition dropped from an otherwise valid summary.
 
@@ -435,10 +475,6 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
         text=NUMBER.sub(lambda m:format(number(m[0]),'f').rstrip('0').rstrip('.')
             if '.' in format(number(m[0]),'f') else str(number(m[0])),text)
         return set(re.findall(r'\w+',text))-stop
-    marker=re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong hop|hoc k[yi]|nam|khi)|'
-        r'khong ap dung|chi (?:ap dung|khi|duoc|danh)|som nhat|cham nhat|'
-        r'ke tu|tinh tu|voi dieu kien|provided that|except|unless|only if|'
-        r'no (?:earlier|later) than|at (?:the )?earliest)\b')
     clauses=re.split(r'[!?;\n]+|\.(?:\s+|$)',answer)
     by_id={citation.chunk_id:citation for citation in citations}
     additions=[];seen=set()
@@ -449,7 +485,7 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
         if not refs or len({ref.doc_id for ref in refs})!=1:
             continue
         text=claim.text;normalized=folded(text)
-        for match in marker.finditer(normalized):
+        for match in MATERIAL_CONDITION.finditer(normalized):
             anchor=words(normalized[:match.start()])
             if len(anchor)<4:
                 continue

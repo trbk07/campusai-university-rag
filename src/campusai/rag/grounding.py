@@ -1168,6 +1168,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     claims = extract_claims(answer, raw_claims)
     claims = [replace(claim, text=trim_unrequested_university_roles(claim.text, question, answer))
               for claim in claims]
+    from .presentation import restore_claim_conditions
+    claims = restore_claim_conditions(claims, citations)
     # Keep claim-to-citation links precise. Claims without an explicit mapping
     # are resolved against the registry by ``align_claims``.
     citation_map = {claim.claim_id: claim.citation_ids for claim in claims}
