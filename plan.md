@@ -20,6 +20,26 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   sơ đồ xử lý, setup Windows/Docker, quyền riêng tư, development/CI và mục lục tài
   liệu; đối chiếu lệnh với code/config, kiểm tra liên kết nội bộ. Không thêm file báo cáo.
 
+## Tối ưu truy hồi và RAM — 02/11
+
+- [x] **OPT-01 — BM25 nhẹ RAM DONE (`ed7cac5f`):** chia sẻ chuỗi token bất biến,
+  tính IDF một lần mỗi query term, giữ thứ tự cộng điểm và tie-break. Index thật
+  918 đoạn: phần RAM token/counter **18,00 → 5,84 MiB**; 100 lượt search
+  **0,1222 → 0,0980s**. Đây là bộ phận truy hồi, không phải RAM toàn app.
+- [x] **OPT-02 — Dense search tránh copy ma trận DONE:** phạm vi đủ mọi hàng dùng
+  ma trận float64 hiện có; filter một phần vẫn lấy đúng hàng. 100 lượt tính điểm
+  **0,4399 → 0,2254s**, peak cấp phát tạm **7,217 → 0,105 MiB**; thứ hạng và điểm
+  trên ca đối chiếu giống baseline, không đổi model/ngưỡng/candidate limit.
+- [x] **OPT-03 — Dùng lại metadata nguồn đã nạp DONE:** chỉ reuse khi identity của
+  file khớp; đổi/xóa/thay thế index làm mất hiệu lực cache. Với 4 PDF đã load:
+  chuẩn bị metadata thời gian **1,6777 → 0,0037s**, phần RAM giữ thêm **46,37 →
+  0,01 MiB**; metadata và proof giống nhau. **208 tests hiện hành + 164 hỏi đáp
+  + 17 truy hồi tương thích PASS**. Một positive control và module failure-case
+  lịch sử thiếu evaluation/fixture đã dọn không chạy, không tính PASS.
+  100 HTTP metadata local: **p95 0,0293s**, max **0,0338s**, 0 model calls;
+  đây không phải nghiệm thu 100 câu AI hoặc semantic quality mọi PDF.
+  CI Windows/Linux, package/container PASS; task chỉ chốt trong phạm vi đã đo.
+
 ## Đọc PDF và OCR — yêu cầu bổ sung 02/11
 
 - [x] **OCR-07 — Hoàn tất scan nhanh hơn, giữ CPU nhẹ DONE (`22baa126`):** bỏ

@@ -23,6 +23,46 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Truy hồi/RAM, 02/11 (`ed7cac5f`):** giảm các bản sao trong bộ truy hồi thay vì
+đổi model, precision hoặc ngưỡng. BM25 intern token bất biến, dùng IDF đã tính
+cho từng query term; giữ duplicate terms, thứ tự cộng điểm, filter và tie-break.
+Dense search dùng ma trận float64 sẵn có khi tất cả hàng đủ điều kiện, tránh
+advanced-indexing copy; trường hợp filter một phần vẫn lấy đúng các hàng đó.
+Đối chiếu hành vi với [NumPy copies/views](https://numpy.org/doc/stable/user/basics.copies.html)
+và [Python string interning](https://docs.python.org/3.14/library/sys.html#sys.intern).
+
+A/B từ source `ab3753dd` trên index NUAE thật **918 chunks × 1.024 chiều**,
+2 luồng BLAS, dữ liệu đã load: BM25 token/counter giữ **17,998 → 5,843 MiB**
+(peak **18,038 → 5,883 MiB**); 100 search **0,1222 → 0,0980s**. Dense 100 search
+với query vector có sẵn **0,4399 → 0,2254s**, peak cấp phát tạm **7,217 →
+0,105 MiB**. Dense timing có tracemalloc ở cả hai nhánh; không gồm encode query
+hoặc provider. Thứ hạng/score khớp chính xác với method baseline trong các ca
+đối chiếu, gồm full scope, filter một phần, scope rỗng và nhiều vector đầu vào.
+Các số RAM này là từng thành phần, không đại diện RAM toàn app hoặc model.
+
+Metadata thời gian/nguồn tái dùng BM25 items đã nạp chỉ khi file generation
+khớp; identity gồm device/inode/size/mtime/ctime. Index bị thay thế cùng size và
+mtime, sửa hoặc xóa phải invalidate; nguồn chưa nạp vẫn đọc từ file như cũ.
+Không copy thêm toàn bộ source body để tạo temporal view. Trên 4 PDF: bước này
+**1,6777 → 0,0037s**, RAM giữ thêm **46,370 → 0,010 MiB**, peak **58,193 →
+0,017 MiB**. Metadata, source items và proofs có cùng hash trong phép so sánh.
+Đây là lần dựng view từ index đã warm; không phải thời gian HTTP hoặc tốc độ AI.
+
+**208 tests hiện hành PASS**, gồm 6 OCR integration cần assets/font local;
+**164 tests hỏi đáp + 17 tests retrieval/calibration/persistence từ `f9d8ba10`
+PASS**, không sửa asserts. Positive control cũ và module retrieval failure-case
+không chạy vì evaluation/fixture đã được dọn; không tính thành PASS.
+HTTP trên app chuẩn source này: **100 câu hỏi metadata** xoay phạm vi 1–4 PDF,
+tất cả status/schema/số trang đúng, p95 **0,0293s**, max **0,0338s**, 0 Gemini
+calls. Đây là kiểm tra nhánh metadata, không phải 100 model predictions mới.
+Giữ nguyên thư viện, OCR workflow và quota; chỉ dùng scratch tự dọn, không thêm
+dependency hoặc file báo cáo rời. Các gate semantic/public release vẫn theo
+phạm vi nghiệm thu riêng.
+CI source `ed7cac5f`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41480177117).
+CI source `ed7cac5f`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41480177117).
+
 **Hoàn tất toàn bộ scan, 02/11 (`22baa126`):** profile app thật xác định OCR chỉ
 chiếm **5,584s** trong **32,766s** của workload scan EREER 16 trang; phần lớn chi
 phí là đọc/ghi lại registry và manifest của các PDF khác trong thư viện.
