@@ -22,6 +22,17 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Đọc PDF và OCR — yêu cầu bổ sung 02/11
 
+- [x] **OCR-07 — Hoàn tất scan nhanh hơn, giữ CPU nhẹ DONE (`22baa126`):** bỏ
+  đọc lặp registry/index, chia sẻ riêng metadata đã commit và cache manifest nhỏ
+  có giới hạn; chia lô theo thời gian OCR thật thay vì thời gian I/O/index.
+  Scan EREER 16 trang qua HTTP: baseline **32,766s**, hai lượt cuối **11,686s /
+  10,396s**, đủ 16/16 trang và cùng hash toàn văn. Hỏi phần đầu **5,640s / 3,445s**.
+  CPU toàn app/process con trên máy 20 luồng: trung bình **4,27% / 4,00%**, đỉnh
+  **5,85% / 5,78%**. Giữ 1 OCR engine, 2 luồng CPU inference, model/quality cũ.
+  **205 tests hiện hành + 15 tương thích registry/index PASS**; không thêm
+  dependency hoặc báo cáo rời; CI Windows/Linux, package/container PASS.
+  Đây là workload đã đo, không phải SLO mọi PDF.
+
 - [x] **OCR-05 — Web app nhẹ CPU DONE (`4f19e9e3`):** mặc định 1 job tài liệu,
   1 OCR engine, 1 worker bảng và 2 luồng CPU inference; tắt tokenizer song song.
   Hỏi sớm trên 4 trang native hoặc 2 trang scan đã đọc, phần còn lại tiếp tục nền
@@ -36,9 +47,10 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   lịch sử không chạy; CI Windows/Linux, package/container PASS. Không thêm model,
   service hoặc artifact nghiệm thu mới.
 
-- [x] **OCR-02 — Tốc độ và chữ nhỏ DONE:** render xám cho trang giấy, tăng độ phân
+- [x] **OCR-02 — Tốc độ và chữ nhỏ DONE (profile lịch sử):** render xám cho trang giấy, tăng độ phân
   giải có chọn lọc cho chữ nhỏ một cột; giữ RGB/độ phân giải cũ cho vùng ảnh màu.
-  OCR tối đa 4 worker dùng chung, không hạ giới hạn pixel, timeout hoặc coverage.
+  Profile đã đo dùng tối đa 4 worker; mặc định hiện tại 1 theo OCR-05/07.
+  Không hạ giới hạn pixel, timeout hoặc coverage.
   Workload 5 PDF / 41 trang cần OCR, hai lần A/B: trung bình **8,42 → 6,59s**
   (nhanh hơn 21,8%, chỉ phần OCR). Sáu mẫu raster Việt/Anh có reference xác định:
   CER **34,01% → 0,58%** trên 4.998 ký tự; không suy thành accuracy mọi PDF.

@@ -23,6 +23,45 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Hoàn tất toàn bộ scan, 02/11 (`22baa126`):** profile app thật xác định OCR chỉ
+chiếm **5,584s** trong **32,766s** của workload scan EREER 16 trang; phần lớn chi
+phí là đọc/ghi lại registry và manifest của các PDF khác trong thư viện.
+Đã tái dùng registry theo file identity dưới khóa, trả bản sao riêng cho caller;
+lỗi ghi làm cache mất hiệu lực, không dùng trạng thái chưa commit. Các reader
+chia sẻ metadata nhẹ đã commit thay vì đọc lại toàn bộ chunks. Cache manifest
+giới hạn 128 record, chỉ chứa facts/hash nhỏ; kiểm tra identity cả dense/BM25,
+không giữ vector và không bỏ các bước xác minh index hiện có.
+
+Lô đầu vẫn nhỏ; lô sau lấy tốc độ OCR thực từ checkpoint để tránh bị chi phí
+I/O làm chia lô nhỏ liên tục. Giữ hard deadline, cancellation, model, ảnh render
+và giới hạn 1 OCR engine/2 luồng CPU inference. Tham khảo
+[LlamaIndex: cache theo input và transformation](https://developers.llamaindex.ai/python/framework/module_guides/loading/ingestion_pipeline/#caching),
+[Paperless-ngx: reuse text trên máy yếu](https://github.com/paperless-ngx/paperless-ngx/blob/dev/docs/faq.md)
+và [OCRmyPDF: ngân sách luồng Tesseract](https://github.com/ocrmypdf/OCRmyPDF/blob/main/src/ocrmypdf/builtin_plugins/tesseract_ocr.py).
+Không thêm các framework này làm dependency.
+
+Cùng profile HTTP local, 4 PDF nền, BGE-M3/CUDA warm, wrapper đo stage tạm:
+baseline **32,766s**; hai lượt trên source cuối **11,686s / 10,396s** (giảm
+64–68%). Hỏi phần đầu **5,640s / 3,445s**. Cả hai đủ **16/16 trang**, **7 chunks**,
+0 bảng như baseline; hash toàn văn gồm page markers giống hệt:
+`ee1dacba65b23fc213e875e5f3570252320a9fb9dc1d2f6f7772cf76be5315bb`.
+OCR riêng **5,390s / 5,232s**; cải thiện chủ yếu đến từ loại việc lặp.
+
+CPU app và process con, sampler 250ms trên máy 20 logical CPU: trung bình
+**4,27% / 4,00%**, đỉnh **5,85% / 5,78%**. Hai probe đều xóa sau đo, thư viện
+giữ nguyên 4 PDF; không gọi Gemini. Đây là 1 baseline/2 lượt candidate trong
+workload đã exposure, không phải p95, accuracy mọi PDF, hoặc kết quả máy yếu.
+Lượt trung gian 13,141s trên `51e0b423` và 19,772s trên `7077ba19` phát hiện
+batch bị nhiễu bởi I/O; không dùng thay hai lượt trên source cuối.
+**205 tests hiện hành PASS** (6 ca OCR thật cần assets/font local), thêm **15
+tests registry concurrency/index persistence lịch sử PASS**, không sửa asserts.
+Kiểm tra fail-closed khi ghi lỗi, invalidation khi file đổi/xóa, cô lập dữ liệu
+reader, giới hạn cache và coverage đều giữ nguyên.
+CI source `22baa126`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41473340899).
+CI source `22baa126`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41473340899).
+
 **Ưu tiên máy mát/nhẹ, 02/11 (`4f19e9e3`, lưu index `86843d81`):** launcher
 giới hạn mặc định 1 ingestion job, 1 Tesseract engine dùng chung, 1 worker bảng,
 2 luồng CPU inference; tắt tokenizer parallelism. Windows OCR dùng priority
@@ -50,8 +89,6 @@ pipeline. Hai lượt HTTP phía trên thuộc `4f19e9e3`, chưa chạy lại tr
 chỉ ghi JSON; không gán số đo đó thành nghiệm thu source khác.
 199 tests hiện hành PASS, gồm 6 ca OCR thật local; 24 tests bảng lịch sử PASS,
 3 ca thiếu corpus không chạy. Không thêm dependency hoặc báo cáo JSON rời.
-CI source `86843d81`: Windows/Linux Python 3.11/3.12/3.14, package và container
-[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41467345962).
 CI source `86843d81`: Windows/Linux Python 3.11/3.12/3.14, package và container
 [đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41467345962).
 
