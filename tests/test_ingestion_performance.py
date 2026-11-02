@@ -98,6 +98,7 @@ def test_managed_snapshot_updates_coverage_without_reencoding_and_retains_old_in
 def run_progressive(monkeypatch, *, elapsed=1., stalled=False):
     remaining=list(range(1,21));batches=[];clock=[0.]
     monkeypatch.setattr(progressive.time,'monotonic',lambda:clock[0])
+    monkeypatch.setattr(progressive,'DocumentRegistry',lambda *a:None)
     def ingest(path, *, enable_ocr, **options):
         if enable_ocr:
             batches.append(options['ocr_max_pages']);clock[0]+=elapsed
@@ -111,7 +112,7 @@ def run_progressive(monkeypatch, *, elapsed=1., stalled=False):
 
 def test_progressive_ocr_keeps_first_snapshot_small_then_amortizes_work(monkeypatch):
     batches,document=run_progressive(monkeypatch)
-    assert batches==[2,4,8,16] and not document.metadata['unread_pages']
+    assert batches==[2,16,16] and not document.metadata['unread_pages']
 
 
 def test_slow_ocr_shrinks_batches_and_stalled_ocr_never_retries_automatically(monkeypatch):
@@ -246,6 +247,72 @@ def test_scan_progressive_first_snapshot_is_two_pages_and_finishes_all_pages(tmp
     assert snapshots[0].metadata['coverage_complete'] is False
     assert sorted(recognized)==list(range(1,11)) and len(set(recognized))==len(recognized)
     assert complete.status=='succeeded' and complete.metadata['readable_pages']==list(range(1,11))
+
+
+@pytest.mark.parametrize('existing',[False,True])
+def test_registry_cache_keeps_public_reads_isolated_and_never_reuses_failed_writes(tmp_path,monkeypatch,existing):
+    from campusai.documents.registry import DocumentRegistry
+    import campusai.documents.registry as module
+    path=tmp_path/'registry.json';registry=DocumentRegistry(path)
+    def document(name):
+        return SimpleNamespace(doc_id=name,to_dict=lambda:{'doc_id':name,'metadata':{'source':'original'}})
+    if existing:registry.add(document('first'))
+    original_replace=module.os.replace
+    def fail(*args):raise OSError('controlled publish failure')
+    monkeypatch.setattr(module.os,'replace',fail)
+    with pytest.raises(OSError,match='publish failure'):registry.add(document('uncommitted'))
+    assert registry.get('uncommitted') is None
+    monkeypatch.setattr(module.os,'replace',original_replace)
+    other=DocumentRegistry(path);other.add(document('external'))
+    assert registry.get('external')['metadata']['source']=='original'
+    snapshot=registry.get('external');snapshot['metadata']['source']='caller mutation'
+    assert registry.get('external')['metadata']['source']=='original'
+    snapshot=registry.list();snapshot[0]['metadata']['source']='list mutation'
+    assert all(row['metadata']['source']=='original' for row in registry.list())
+    other.remove('external');assert registry.get('external') is None
+
+
+def test_manifest_cache_reuses_only_unchanged_files_and_retains_exact_corpus_hash(tmp_path,monkeypatch):
+    import json,hashlib,os
+    from collections import OrderedDict
+    from campusai.retrieval import index_builder as builder
+    monkeypatch.setattr(builder,'_DOCUMENT_MANIFESTS',OrderedDict())
+    root=tmp_path/'index';document=root/('a'*64);document.mkdir(parents=True)
+    dense=document/'dense.json';bm25=document/'bm25.json'
+    dense.write_text(json.dumps({'manifest':{'corpus_hash':'source-v1','item_count':2}}),encoding='utf-8')
+    bm25.write_bytes(b'source A')
+    first=builder._document_manifest(document)
+    first['item_count']=900  # Public records cannot alter the cache.
+    assert builder._document_manifest(document)['item_count']==2
+    before=bm25.stat();replacement=document/'replacement'
+    replacement.write_bytes(b'source B');os.utime(replacement,ns=(before.st_atime_ns,before.st_mtime_ns));replacement.replace(bm25)
+    second=builder._document_manifest(document)
+    assert second['bm25_sha256']==hashlib.sha256(b'source B').hexdigest()
+    dense.write_text(json.dumps({'manifest':{'corpus_hash':'source-v2','item_count':3}}),encoding='utf-8')
+    third=builder._document_manifest(document)
+    assert third['corpus_hash']=='source-v2' and third['item_count']==3
+    builder._write_corpus_manifest(root,'a'*64,[],{'model_name':'fixture','model_revision':'1','embedding_dimension':2})
+    published=json.loads((root/'manifest.json').read_text(encoding='utf-8'))
+    expected=hashlib.sha256(json.dumps([third],ensure_ascii=False,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    assert published['corpus_hash']==expected
+    dense.unlink()
+    builder._write_corpus_manifest(root,'a'*64,[],{})
+    assert json.loads((root/'manifest.json').read_text())['documents']==[]
+
+
+def test_manifest_cache_is_bounded_and_contains_no_vector_payload(tmp_path,monkeypatch):
+    import json
+    from collections import OrderedDict
+    from campusai.retrieval import index_builder as builder
+    monkeypatch.setattr(builder,'_DOCUMENT_MANIFESTS',OrderedDict())
+    monkeypatch.setattr(builder,'_DOCUMENT_MANIFEST_LIMIT',2)
+    for index in range(3):
+        path=tmp_path/str(index);path.mkdir()
+        (path/'dense.json').write_text(json.dumps({'manifest':{'item_count':1},'vectors':[[1,2,3]]}))
+        builder._document_manifest(path)
+    assert len(builder._DOCUMENT_MANIFESTS)==2
+    assert all(set(record[1])=={'document_id','corpus_hash','item_count','bm25_sha256'}
+               for record in builder._DOCUMENT_MANIFESTS.values())
 
 
 def test_quiet_default_runs_one_ocr_process_and_cpu_budget_is_bounded(monkeypatch):

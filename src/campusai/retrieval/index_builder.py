@@ -10,10 +10,48 @@ import hashlib
 import os
 import tempfile
 import time
+from collections import OrderedDict
+from threading import RLock
 
 from ..schemas import Document
 from .bm25_index import BM25Index
 from .dense_index import DenseIndex, SCHEMA_VERSION, corpus_hash
+
+_DOCUMENT_MANIFESTS = OrderedDict()
+_DOCUMENT_MANIFEST_LOCK = RLock()
+_DOCUMENT_MANIFEST_LIMIT = 128
+
+
+def _file_identity(path):
+    try:
+        stat = path.stat()
+    except FileNotFoundError:
+        return None
+    return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+
+
+def _document_manifest(document_root):
+    """Cache small manifest facts, never vectors, against both live index files."""
+    dense, bm25 = document_root/'dense.json', document_root/'bm25.json'
+    identity = (_file_identity(dense), _file_identity(bm25))
+    key = str(document_root.resolve())
+    with _DOCUMENT_MANIFEST_LOCK:
+        cached = _DOCUMENT_MANIFESTS.get(key)
+        if cached is not None and cached[0] == identity:
+            _DOCUMENT_MANIFESTS.move_to_end(key)
+            return dict(cached[1])
+    manifest = json.loads(dense.read_text(encoding='utf-8')).get('manifest', {})
+    record = {'document_id':document_root.name, 'corpus_hash':manifest.get('corpus_hash'),
+        'item_count':manifest.get('item_count'),
+        'bm25_sha256':hashlib.sha256(bm25.read_bytes()).hexdigest() if identity[1] is not None else None}
+    if identity != (_file_identity(dense), _file_identity(bm25)):
+        raise OSError('index changed while reading its corpus manifest')
+    with _DOCUMENT_MANIFEST_LOCK:
+        _DOCUMENT_MANIFESTS[key] = (identity, dict(record))
+        _DOCUMENT_MANIFESTS.move_to_end(key)
+        while len(_DOCUMENT_MANIFESTS) > _DOCUMENT_MANIFEST_LIMIT:
+            _DOCUMENT_MANIFESTS.popitem(last=False)
+    return record
 
 
 def chunk_records(document: Document) -> list[dict]:
@@ -69,17 +107,10 @@ def _write_corpus_manifest(root: Path, doc_id: str, items: list[dict], dense_man
         if not document_root.is_dir() or not dense_path.is_file():
             continue
         try:
-            data = json.loads(dense_path.read_text(encoding="utf-8"))
-            manifest = data.get("manifest", {})
+            record = _document_manifest(document_root)
         except (OSError, json.JSONDecodeError):
             continue
-        document_manifests.append({
-            "document_id": document_root.name,
-            "corpus_hash": manifest.get("corpus_hash"),
-            "item_count": manifest.get("item_count"),
-            "bm25_sha256": hashlib.sha256((document_root / "bm25.json").read_bytes()).hexdigest()
-            if (document_root / "bm25.json").is_file() else None,
-        })
+        document_manifests.append(record)
     corpus_fingerprint = hashlib.sha256(
         json.dumps(document_manifests, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()

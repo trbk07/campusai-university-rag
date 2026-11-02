@@ -43,6 +43,7 @@ class DocumentRegistry:
         self._lock = _path_lock(self.path)
         self._metadata_cache = None
         self._metadata_identity = None
+        self._items_identity = object()
         with self._lock, self._process_lock():
             self.items: dict[str, dict[str, Any]] = self._load()
 
@@ -90,12 +91,20 @@ class DocumentRegistry:
     def _load(self) -> dict[str, dict[str, Any]]:
         """Load the registry, or return an empty registry for a new project."""
 
-        if not self.path.exists():
-            return {}
-        return json.loads(self.path.read_text(encoding="utf-8"))
+        identity = self._file_identity()
+        if hasattr(self, 'items') and identity == self._items_identity:
+            return self.items
+        items = {} if identity is None else json.loads(self.path.read_text(encoding="utf-8"))
+        if self._file_identity() != identity:
+            raise OSError('registry changed during read')
+        self._items_identity = identity
+        return items
 
     def _save(self) -> None:
         """Write the current registry to disk."""
+        # A failed write must make the next reader reload the durable snapshot,
+        # rather than reuse the caller's uncommitted in-memory modification.
+        self._items_identity = object()
         fd, name = tempfile.mkstemp(prefix='.' + self.path.name + '.', suffix='.tmp', dir=self.path.parent)
         temporary = Path(name)
         try:
@@ -110,6 +119,7 @@ class DocumentRegistry:
             for attempt in range(6):
                 try:
                     os.replace(temporary, self.path)
+                    self._items_identity = self._file_identity()
                     break
                 except PermissionError as error:
                     if os.name != 'nt' or getattr(error, 'winerror', None) not in {5,32,33} or attempt == 5:
@@ -163,14 +173,14 @@ class DocumentRegistry:
 
         with self._lock, self._process_lock():
             self.items = self._load()
-            return self.items.get(doc_id)
+            return deepcopy(self.items.get(doc_id))
 
     def list(self) -> list[dict[str, Any]]:
         """Return all registered document records."""
 
         with self._lock, self._process_lock():
             self.items = self._load()
-            return list(self.items.values())
+            return deepcopy(list(self.items.values()))
 
     def remove(self, doc_id: str) -> dict[str, Any] | None:
         """Remove a record if it exists."""
