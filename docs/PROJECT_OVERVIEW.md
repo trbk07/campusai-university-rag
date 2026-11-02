@@ -1,6 +1,6 @@
 # CampusAI — Tổng quan chất lượng và vận hành
 
-**Cập nhật 01/11/2026 · Phạm vi: web app local, một người dùng trên Windows.**
+**Cập nhật 02/11/2026 · Phạm vi: web app local, một người dùng trên Windows.**
 
 Tài liệu này thay các báo cáo kiểm tra, nghiệm thu, hiệu năng và nhật ký rời.
 Các số lịch sử bên dưới được tổng hợp trước khi xóa đầu ra cũ; chúng không
@@ -22,6 +22,46 @@ project độc lập đã được chủ dự án xác nhận. Quota, cooldown v
 không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
+
+**Đọc PDF/OCR, 02/11 (`c05007b0`):** render grayscale cho giấy trắng, chỉ tăng
+độ phân giải khi phát hiện chữ nhỏ một cột; ảnh màu giữ RGB và kích thước cũ.
+OCR chia tối đa 4 worker dùng chung. Workload cố định 5 PDF, 41 trang OCR,
+hai tài liệu chạy đồng thời: hai lần A/B **8,453 → 6,604s** và **8,395 → 6,577s**,
+trung bình giảm **21,8%**. Đây là phần OCR, không phải thời gian upload/index
+hoặc p95. Workload gồm scan EREER 16 trang, NUAE 5 trang, HUST 4 trang,
+sổ tay 2025 14 trang và slide CSDL 2 trang; giữ vùng hybrid từ parser.
+
+Sáu mẫu raster chữ nhỏ Việt/Anh có reference xác định (3 cỡ chữ mỗi ngôn ngữ):
+CER Levenshtein sau chuẩn hóa NFC/whitespace giảm **1.700/4.998 (34,01%) →
+29/4.998 (0,58%)**. Không đưa reference vào recognizer. Đây là mẫu kiểm soát,
+không phải chứng nhận accuracy trên ảnh chụp mờ, bảng phức tạp hoặc mọi PDF.
+Ảnh hướng dẫn có chữ UI rất nhỏ vẫn có lỗi; QA-07c với nguồn thật đã review còn mở.
+
+Upload lại PDF cũ tự nâng policy OCR, không tạo tài liệu trùng. Lượt HTTP trên
+NUAE 148 trang trước tối ưu cache bảng: nhận upload **0,246s**, có phần hỏi được
+**14,045s**, hoàn tất **44,000s**, đủ coverage/audit 5/5 trang OCR. Upload lại cùng
+policy **0,232s**, duplicate, không chạy OCR. Lượt này không đo lại latency nhận
+upload trên bản cache bảng; không gán 44s là kết quả bản cuối.
+
+Bản cuối giữ kết quả giải mã bảng trong bộ nhớ riêng từng progressive job,
+ràng buộc đường dẫn, source hash, file identity và visibility. Mỗi snapshot vẫn
+lắp lại ngữ nghĩa bảng theo thứ tự trang; bản sao riêng tránh thay đổi snapshot
+trước. Không lưu thêm file cache, không nới grounding/citation hay coverage.
+Đo A/B toàn luồng trên NUAE 148 trang, store/index tạm sạch mỗi lượt, cùng
+BGE-M3 đã pin chạy CUDA và OCR policy hiện hành: **122,506 → 94,940s**
+(giảm 22,5%), giải mã bảng **3 → 1 lần**. Phần đầu hỏi được **54,018 → 53,070s**;
+918 chunks, toàn văn, bảng, trang và audit giống hệt nhau (SHA-256 nội dung
+so sánh `57332a77698b2e09afafb5f9121c95f29c244c8e131412f3b14f8c8f0d738b08`).
+Warm encoder 69,044s được tách khỏi cả hai lượt. Đây là A/B một cặp trên máy
+local, không phải p95 hoặc latency HTTP; điều kiện khác lượt 44s trước đó nên
+không so chéo hai phép đo. Lập chỉ mục đầu tiên trên PDF dài vẫn còn tốn thời
+gian; không giảm chất lượng bằng cách bỏ trang hoặc cắt context embedding.
+**196 tests hiện hành PASS**, gồm 6 integration OCR thật cần model/font local;
+CI thiếu assets/font skip 6 ca. Thêm 24 tests bảng lịch sử PASS; 3 ca không chạy
+được vì corpus cũ đã dọn, không tính PASS. Các test và script đo tạm được dọn
+sau khi ghi kết quả vào tài liệu hiện có.
+CI source `c05007b0`: Windows, Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41461275905).
 
 **Cải thiện OCR ngày 01/11 (`c54b2b8b`):** giữ nguyên Tesseract vie+eng, độ phân
 giải và BGE-M3 đã pin; chia OCR thành hai worker khi đủ trang, giới hạn tổng

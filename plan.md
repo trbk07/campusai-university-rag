@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **01/11/2026 · Asia/Bangkok**.
+Cập nhật: **02/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -20,7 +20,28 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   sơ đồ xử lý, setup Windows/Docker, quyền riêng tư, development/CI và mục lục tài
   liệu; đối chiếu lệnh với code/config, kiểm tra liên kết nội bộ. Không thêm file báo cáo.
 
-## Goal hiện tại — cải thiện hỏi đáp PDF
+## Đọc PDF và OCR — yêu cầu bổ sung 02/11
+
+- [x] **OCR-02 — Tốc độ và chữ nhỏ DONE:** render xám cho trang giấy, tăng độ phân
+  giải có chọn lọc cho chữ nhỏ một cột; giữ RGB/độ phân giải cũ cho vùng ảnh màu.
+  OCR tối đa 4 worker dùng chung, không hạ giới hạn pixel, timeout hoặc coverage.
+  Workload 5 PDF / 41 trang cần OCR, hai lần A/B: trung bình **8,42 → 6,59s**
+  (nhanh hơn 21,8%, chỉ phần OCR). Sáu mẫu raster Việt/Anh có reference xác định:
+  CER **34,01% → 0,58%** trên 4.998 ký tự; không suy thành accuracy mọi PDF.
+- [x] **OCR-03 — Cache và upload DONE:** upload lại PDF có policy OCR cũ sẽ xử lý
+  nâng cấp, giữ cùng tài liệu; policy hiện hành vẫn trả duplicate nhanh. Checkpoint,
+  coverage và audit vùng ảnh khớp policy mới, không mất audit giữa các lô.
+- [x] **OCR-04 — Không đọc lại bảng mỗi lô DONE (`c05007b0`):** tái dùng kết quả
+  giải mã vật lý trong cùng job; ràng buộc source/visibility, cô lập từng snapshot
+  và job, giải phóng khi hoàn tất hoặc lỗi. Không thêm cache/báo cáo trên đĩa.
+  A/B toàn pipeline NUAE 148 trang: **122,51 → 94,94s**, bảng **3 → 1 lần đọc**,
+  output giống hệt; phần đầu sẵn sàng **53,07s**, vẫn còn chi phí index lần đầu.
+  **196 tests hiện hành PASS**, gồm 6 ca OCR thật local; CI không có font/model
+  sẽ skip 6 ca này. Kiểm tra tương thích bảng: 24 PASS, 3 ca thiếu corpus cũ.
+  CI Windows/Linux, package/container PASS. QA-07c accuracy nguồn thật còn mở;
+  không tuyên bố mọi PDF đạt 99–100% hoặc mọi upload hoàn tất trong vài giây.
+
+## Goal đã hoàn tất — cải thiện hỏi đáp PDF
 
 Goal hoàn tất ngày **01/11/2026**, source **`cacb4bdd`**. Tập trung chất lượng trao đổi với người dùng,
 không mở lại OCR/Docker hoặc qualification đã DONE nếu không có hồi quy.
