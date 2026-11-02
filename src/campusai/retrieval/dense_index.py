@@ -220,10 +220,13 @@ class DenseIndex:
         payload = self.to_dict()
         canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         payload["checksum"] = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        del canonical
         fd, temporary_name = tempfile.mkstemp(prefix=target.name + ".", suffix=".tmp", dir=target.parent)
         try:
             with os.fdopen(fd, "w", encoding="utf-8") as handle:
-                json.dump(payload, handle, ensure_ascii=False)
+                # dumps uses the native encoder; dump iterates/writes every
+                # scalar of a potentially million-value vector index in Python.
+                handle.write(json.dumps(payload, ensure_ascii=False))
                 handle.flush()
                 os.fsync(handle.fileno())
             os.replace(temporary_name, target)

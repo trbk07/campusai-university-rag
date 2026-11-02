@@ -100,7 +100,7 @@ class DocumentRegistry:
         temporary = Path(name)
         try:
             with os.fdopen(fd, 'w', encoding='utf-8') as stream:
-                json.dump(self.items, stream, ensure_ascii=False, indent=2)
+                stream.write(json.dumps(self.items, ensure_ascii=False, indent=2))
                 stream.flush()
                 os.fsync(stream.fileno())
             # Windows readers/scanners can briefly hold a non-delete-sharing
