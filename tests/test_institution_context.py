@@ -558,7 +558,7 @@ def test_web_content_questions_use_only_explicit_named_pdf_scope(named_pdf_web,s
 
 
 @pytest.mark.parametrize('question',[
-    'What is the deadline in Missing.pdf?', 'Do not use Alpha.pdf',
+    'What is the deadline in Missing.pdf?', 'Do not use Alpha.pdf', "Don't use Alpha.pdf", 'Don’t use Alpha.pdf',
     'Compare Alpha.pdf and Missing.pdf',
 ])
 def test_unknown_or_negative_pdf_scope_clarifies_before_retrieval(named_pdf_web,question):

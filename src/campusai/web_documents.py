@@ -301,7 +301,7 @@ class WebDocuments:
             raw = unicodedata.normalize('NFC', text)
             matches = list(pattern.finditer(raw))
             negative |= any(re.search(r'\b(?:not|don t|do not|khong|dung)\s*(?:read|use|lay|doc)?\s*$',
-                                     folded(raw[max(0,match.start()-40):match.start()])) for match in matches)
+                                     re.sub(r'[^\w\s]', ' ', folded(raw[max(0,match.start()-40):match.start()]))) for match in matches)
             return [match.group() for match in matches]
         fragments = references(resolved.raw)
         if not fragments and resolved.contextual:
