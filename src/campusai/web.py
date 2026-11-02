@@ -182,8 +182,13 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                                         raise WebError("document_not_ready", 409)
                                     validated_documents.append(selected)
                         try:
-                            value = documents.answer_document_info(payload.get("question", ""), options, environ,
-                                metadata_only=metadata_query, source_documents=validated_documents)
+                            value = None
+                            if not metadata_query and validated_documents:
+                                validated_documents, value = documents.named_query_scope(
+                                    payload.get('question', ''), options, validated_documents)
+                            if value is None:
+                                value = documents.answer_document_info(payload.get("question", ""), options, environ,
+                                    metadata_only=metadata_query, source_documents=validated_documents)
                             if value is None:
                                 if query_slot is not None and not acquired:
                                     if not query_slot.acquire(blocking=False):

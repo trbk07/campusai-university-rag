@@ -277,6 +277,52 @@ class WebDocuments:
                    and (wanted is None or record['doc_id'] in wanted)]
         return sorted(records, key=lambda record: record.get("uploaded_at") or 0, reverse=True)
 
+    def named_query_scope(self, question, options, source_documents):
+        """Honor explicit PDF-source phrases before retrieval/model inference.
+
+        This only narrows the already authorized, ready source list. A filename
+        mentioned as document content is not automatically a source selection.
+        """
+        if not isinstance(question, str) or not source_documents:
+            return source_documents, None
+        import unicodedata
+        from .document_info import match_pdf_names, folded
+        from .rag.context import resolve_query
+        resolved = resolve_query(question, history=options.get('history'), selected_text=options.get('selected_text'),
+                                 requires_context=options.get('requires_context', False))
+        known = sorted({unicodedata.normalize('NFC', doc['name']) for doc in source_documents}
+                       | {folded(doc['name']) for doc in source_documents}, key=len, reverse=True)
+        filename = '(?:' + '|'.join(re.escape(name) for name in known) + r'|[\w .-]{1,160}?\.pdf)(?![\w-]|\.\w)'
+        prefix = r'\b(?:trong|theo|từ|tu|ở|o|còn|con|what\s+about|in|from|according\s+to|using|use(?:\s+only)?)\s+(?:(?:the|uploaded|file|pdf|document|tài\s+liệu|tai\s+lieu|tep|tệp)\s+)*["\x27`“]?'
+        pattern = re.compile(prefix + filename + r'(?:["\x27`”]?\s*(?:,|và|va|and|với|voi|&)\s*["\x27`“]?' + filename + r')*', re.I)
+        negative = False
+        def references(text):
+            nonlocal negative
+            raw = unicodedata.normalize('NFC', text)
+            matches = list(pattern.finditer(raw))
+            negative |= any(re.search(r'\b(?:not|don t|do not|khong|dung)\s*(?:read|use|lay|doc)?\s*$',
+                                     folded(raw[max(0,match.start()-40):match.start()])) for match in matches)
+            return [match.group() for match in matches]
+        fragments = references(resolved.raw)
+        if not fragments and resolved.contextual:
+            fragments = references(resolved.resolved)
+        comparison = re.search(r'\b(?:so sanh|compare|comparison|difference between)\b', folded(resolved.raw))
+        names = match_pdf_names(resolved.raw if comparison else '\n'.join(fragments), source_documents)
+        if not fragments and not (comparison and names.mentioned):
+            return source_documents, None
+        if names.mentioned and not names.ambiguous and not names.unknown and not negative:
+            selected = {doc['doc_id'] for doc in names.documents}
+            options['doc_ids'] = sorted(selected)
+            return [doc for doc in source_documents if doc['doc_id'] in selected], None
+        from .rag.grounding import GroundedAnswer
+        self.application.query_service.reset_request_state()
+        english = options.get('language', 'vi') == 'en'
+        message = ('The PDF name is missing or ambiguous within the selected sources. Select the intended PDF or give its exact name.'
+                   if english else 'Chưa xác định đúng PDF trong các nguồn đang chọn. Hãy chọn riêng tài liệu cần hỏi hoặc ghi đúng tên file.')
+        message += '\n' + '\n'.join('- ' + doc['name'] for doc in source_documents[:6])
+        answer = GroundedAnswer(message, (), 'low', True, reason='ambiguous_question', evidence_status='ambiguous')
+        return source_documents, {'ok':True, 'answer':answer.to_public_dict(), 'cache_hit':False}
+
     def answer_document_info(self, question, options, environ, *, metadata_only=False, source_documents=None):
         from .document_info import document_info_response
         # Ordinary content queries must not enumerate the upload registry or

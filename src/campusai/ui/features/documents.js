@@ -87,8 +87,11 @@ function schedulePoll() {
 export async function refreshDocuments() {
   if (refreshing) return;
   refreshing = true;
+  let libraryChanged = true;
   try {
     const value = await request('/api/documents');
+    libraryChanged = state.loading || !!state.error || JSON.stringify([state.documents,state.limits,state.uploadAvailable])
+      !== JSON.stringify([value.documents,value.limits,value.upload_available]);
     state.documents = value.documents; state.jobs = value.jobs; state.limits = value.limits; state.uploadAvailable = value.upload_available; state.aiConfigured = value.runtime?.ai_configured === true; state.error = '';
     state.queryStreaming = value.runtime?.query_streaming === true;
     const deadline = value.runtime?.query_timeout_ms;
@@ -97,7 +100,14 @@ export async function refreshDocuments() {
     state.selected.forEach(id => { if (!valid.has(id)) state.selected.delete(id); });
     $('#upload-limits').textContent = `Tối đa ${MAX_UPLOAD_FILES} PDF mỗi lượt · ${state.limits.max_mb} MB / ${state.limits.max_pages} trang mỗi file`;
   } catch (error) { state.error = errorText(error); }
-  finally { refreshing = false; state.loading = false; renderAll(); schedulePoll(); }
+  finally {
+    refreshing = false; state.loading = false;
+    // Job heartbeats must not replace search inputs, open filters or source
+    // checkboxes when the actual document library has not changed.
+    if (libraryChanged || state.error) renderAll();
+    else { renderJobs(); notify('documents'); }
+    schedulePoll();
+  }
 }
 function reviewNotice(doc) {
   if (doc.ready && doc.coverage_complete === false) return `Bạn có thể hỏi trên phần đã đọc. Còn ${doc.unread_pages.length} trang chưa nhận diện xong; câu trả lời có thể chưa bao quát toàn bộ tài liệu.`;

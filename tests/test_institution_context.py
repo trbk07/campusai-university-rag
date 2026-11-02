@@ -491,3 +491,173 @@ resetChat();assert.equal(topicMemory.size,0);assert.equal(messages.length,0);
 '''
     result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
     assert result.returncode==0,result.stderr
+
+
+@pytest.fixture
+def named_pdf_web(tmp_path):
+    """Routing-only WSGI fixture: valid local PDFs/indexes, no model inference."""
+    import hashlib,io,json
+    import pymupdf as fitz
+    from types import SimpleNamespace
+    from campusai.schemas import Document,Chunk
+    from campusai.documents.registry import DocumentRegistry
+    from campusai.retrieval.index_builder import build_document_indexes
+    from campusai.observability import MetricsRegistry
+    from campusai.rag.grounding import GroundedAnswer
+    from campusai.api import CampusAIApplication
+    from campusai.web import make_wsgi_app
+    store=tmp_path/'store';index=tmp_path/'index';registry=DocumentRegistry(store/'registry.json')
+    ids={};calls=[]
+    for number,name in enumerate(['Alpha.pdf','Beta.pdf','Gamma.pdf'],1):
+        text=f'Controlled source {number}: deadline {number+10} August 2025.'
+        with fitz.open() as pdf:
+            pdf.new_page().insert_text((40,50),text);raw=pdf.tobytes()
+        ident=hashlib.sha256(raw).hexdigest();ids[name]=ident
+        path=store/'uploads'/ident/name;path.parent.mkdir(parents=True);path.write_bytes(raw)
+        document=Document(ident,str(path),1,language='en',metadata={'text_coverage_version':4,
+            'coverage_complete':True,'unread_pages':[],'readable_pages':[1]},
+            chunks=[Chunk(ident+'_one',ident,1,text)])
+        registry.add(document);build_document_indexes(document,index)
+    def ask(question,**options):
+        calls.append((question,options))
+        return GroundedAnswer('Routing-only fixture; no generated answer.',(), 'low',True,
+                              reason='insufficient_evidence',evidence_status='not_found')
+    service=SimpleNamespace(ask=ask,metrics=MetricsRegistry(),last_cache_hit=False,
+        reset_request_state=lambda:None,retriever=SimpleNamespace(index_root=index))
+    application=CampusAIApplication(service,ingestion_defaults={'store_dir':store,'index_dir':index})
+    def request(question,*,streaming=False,selected=None,authorized=None,history=None):
+        web=make_wsgi_app(application,enable_query_streaming=streaming)
+        payload={'question':question,'doc_ids':[ids[name] for name in selected or ids],'language':'en'}
+        if history is not None:payload['history']=history
+        body=json.dumps(payload).encode();response={}
+        environ={'REQUEST_METHOD':'POST','PATH_INFO':'/api/query','CONTENT_TYPE':'application/json',
+            'CONTENT_LENGTH':str(len(body)),'wsgi.input':io.BytesIO(body),
+            'HTTP_ACCEPT':'application/x-ndjson' if streaming else 'application/json'}
+        if authorized is not None:environ['campusai.authorized_doc_ids']=[ids[name] for name in authorized]
+        output=b''.join(web(environ,lambda status,headers:response.update(status=status,headers=headers)))
+        assert response['status'].startswith('200'),output
+        return json.loads(output)
+    request.application=application
+    return request,ids,calls
+
+
+@pytest.mark.parametrize('streaming',[False,True])
+@pytest.mark.parametrize('question,expected',[
+    ('What is the deadline in Alpha.pdf?',{'Alpha.pdf'}),
+    ('Theo file Alpha.pdf, hạn nộp là khi nào?',{'Alpha.pdf'}),
+    ('According to Beta.pdf, what deadline applies?',{'Beta.pdf'}),
+    ('Trong Alpha.pdf và Beta.pdf có mốc nào?',{'Alpha.pdf','Beta.pdf'}),
+    ('Compare Alpha.pdf and Beta.pdf',{'Alpha.pdf','Beta.pdf'}),
+    ('Does the manual mention Beta.pdf?',{'Alpha.pdf','Beta.pdf','Gamma.pdf'}),
+])
+def test_web_content_questions_use_only_explicit_named_pdf_scope(named_pdf_web,streaming,question,expected):
+    request,ids,calls=named_pdf_web
+    request(question,streaming=streaming)
+    assert len(calls)==1
+    assert set(calls[0][1]['doc_ids'])=={ids[name] for name in expected}
+
+
+@pytest.mark.parametrize('question',[
+    'What is the deadline in Missing.pdf?', 'Do not use Alpha.pdf',
+    'Compare Alpha.pdf and Missing.pdf',
+])
+def test_unknown_or_negative_pdf_scope_clarifies_before_retrieval(named_pdf_web,question):
+    request,ids,calls=named_pdf_web
+    result=request(question)
+    assert not calls and result['answer']['abstained']
+    assert result['answer']['abstention_reason']=='ambiguous_question'
+
+
+def test_pdf_scope_cannot_expand_authorized_sources_or_lose_current_followup_name(named_pdf_web):
+    request,ids,calls=named_pdf_web
+    result=request('What is the deadline in Gamma.pdf?',selected=['Alpha.pdf','Beta.pdf'],authorized=['Alpha.pdf','Beta.pdf'])
+    assert result['answer']['abstained'] and not calls
+    history=[{'role':'user','content':'What is the deadline in Alpha.pdf?'},
+             {'role':'assistant','content':'Previous verified answer.'}]
+    request('Còn file Beta.pdf thì sao?',history=history)
+    assert calls[-1][1]['doc_ids']==[ids['Beta.pdf']]
+
+
+@pytest.mark.parametrize('target',['Alpha.pdf','Beta.pdf'])
+@pytest.mark.parametrize('streaming',[False,True])
+def test_grounded_web_answer_cannot_use_another_selected_pdf_for_a_named_source(named_pdf_web,target,streaming):
+    """Scripted unit model: provenance check, not native-model quality evidence."""
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from campusai.retrieval.hybrid import HybridRetriever
+    request,ids,calls=named_pdf_web
+    number=1 if target=='Alpha.pdf' else 2
+    class Model:
+        model='scripted-provenance-unit'
+        def __init__(self):self.calls=0
+        def generate_json(self,*a,**k):
+            self.calls+=1
+            return {'answer':f'The deadline is {number+10} August 2025.','confidence':'high','abstained':False,
+                'citations':[{'chunk_id':ids[target]+'_one','doc_id':ids[target],'page':1,'page_range':[1,1],
+                              'quote':f'Controlled source {number}: deadline {number+10} August 2025.'}]}
+    model=Model();application=request.application
+    service=CampusAIQueryService(HybridRetriever(application.ingestion_defaults['index_dir']),GroundedAnswerGenerator(model))
+    application.query_service=service
+    try:
+        response=request('What deadline is stated in Alpha.pdf?',streaming=streaming)
+        assert model.calls==1
+        if target=='Alpha.pdf':
+            assert not response['answer']['abstained']
+            assert {citation['doc_id'] for citation in response['answer']['citations']}=={ids['Alpha.pdf']}
+        else:
+            assert response['answer']['abstained'] and not response['answer']['citations']
+    finally:service.close()
+
+
+def test_chat_clarification_editing_restores_exact_scope_without_sending_and_renders_correct_notices():
+    import shutil,subprocess
+    if not shutil.which('node'):pytest.skip('Node required for frontend behavior checks')
+    script=r'''
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const nodes=new Map();let sends=0,notifications=0;
+const $=key=>{if(!nodes.has(key))nodes.set(key,{value:'',textContent:'',style:{},focus(){this.focused=true},dispatchEvent(){},setAttribute(){}});return nodes.get(key)};
+const state={busy:false,aiConfigured:true,documents:[{doc_id:'a',ready:true},{doc_id:'b',ready:true}],selected:new Set(['b']),replyLanguage:'vi'};
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const context=vm.createContext({assert,$,state,esc,icon:()=>'',readySelected:()=>state.documents.filter(doc=>doc.ready&&state.selected.has(doc.doc_id)),Event:class{constructor(type){this.type=type}},notify:()=>notifications++,post:()=>{sends++;throw Error('must not submit')},postQuery:()=>{sends++;throw Error('must not submit')}});
+vm.runInContext(fs.readFileSync('src/campusai/ui/features/chat.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,''),context);
+vm.runInContext(`
+messages.push({role:'assistant',error:'Failure',question:'Original user question',docIds:['a'],language:'en'});
+editQuestion(0);
+assert.equal($('#question').value,'Original user question');assert.equal(state.replyLanguage,'en');
+assert.deepEqual([...state.selected],['a']);assert.equal($('#question').focused,true);
+state.documents=[{doc_id:'b',ready:true}];editQuestion(0);
+assert.equal(state.selected.size,0);assert($('#query-status').textContent.includes('Nguồn cũ'));
+state.busy=true;$('#question').value='Keep draft';editQuestion(0);assert.equal($('#question').value,'Keep draft');state.busy=false;
+const ambiguous={role:'assistant',answer:{answer:'Choose a PDF',abstained:true,documentInfo:{kind:'page_count'}},question:'Original',docIds:['b'],time:'12:00'};
+const html=renderMessage(ambiguous,1);assert(!html.includes('<div class="answer-note"></div>'));
+assert(html.includes('data-edit-question="1"')&&html.includes('data-clarify-scope'));
+const partial=renderMessage({role:'assistant',answer:{answer:'Checked answer',abstained:false,citations:[]},coverage:{complete:false,documents:[{unread_pages:[5,6]}]}},2);
+assert(partial.includes('Còn 2 trang đang xử lý'));assert(!partial.includes('trang ảnh'));
+assert(note({abstained:true,abstention_reason:'conflicting_evidence'}).includes('mâu thuẫn'));
+assert(!safeMarkdown('<img src=x onerror=alert(1)>').includes('<img'));
+`,context);
+assert.equal(sends,0);assert.equal(notifications,2);
+'''
+    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    assert result.returncode==0,result.stderr
+
+
+def test_library_heartbeat_does_not_replace_controls_when_only_job_progress_changes():
+    import shutil,subprocess
+    if not shutil.which('node'):pytest.skip('Node required for frontend behavior checks')
+    script=r'''
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const state={documents:[{doc_id:'a',ready:true}],jobs:[],limits:{max_mb:50,max_pages:218},uploadAvailable:true,loading:false,error:'',selected:new Set(['a'])};
+const next={documents:state.documents,jobs:[{state:'running',progress:.5}],limits:state.limits,upload_available:true,runtime:{ai_configured:true}};
+const context=vm.createContext({assert,state,icon:()=>'',request:async()=>next,$:()=>({textContent:''}),notify:()=>{}});
+vm.runInContext(fs.readFileSync('src/campusai/ui/features/documents.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,''),context);
+vm.runInContext('globalThis.full=0;globalThis.jobsOnly=0;renderAll=()=>full++;renderJobs=()=>jobsOnly++;schedulePoll=()=>{};',context);
+(async()=>{
+ await vm.runInContext('refreshDocuments()',context);
+ assert.equal(context.full,0);assert.equal(context.jobsOnly,1);assert(state.selected.has('a'));
+ next.documents=[{doc_id:'a',ready:false}];await vm.runInContext('refreshDocuments()',context);
+ assert.equal(context.full,1);assert.equal(state.selected.size,0);
+})().catch(error=>{console.error(error);process.exitCode=1});
+'''
+    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    assert result.returncode==0,result.stderr

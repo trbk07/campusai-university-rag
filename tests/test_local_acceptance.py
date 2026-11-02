@@ -49,6 +49,59 @@ def test_singular_unspecified_file_still_requires_clarification(documents):
     assert response['document_info']['needs_clarification'] is True
 
 
+@pytest.mark.parametrize('question',[
+    'Mỗi file có bao nhiêu trang?', 'Từng tài liệu có mấy trang?',
+    'Moi file co bn trang?', 'How many pages does each document have?',
+    'How many pages per document?',
+])
+def test_distributive_page_questions_use_each_selected_document(question,documents):
+    result=document_info_response(question,documents,'en')
+    assert result and not result['answer']['abstained']
+    assert {row['doc_id'] for row in result['document_info']['documents']}=={'alpha','beta'}
+    assert result['answer']['answer'].endswith('Total: 18 pages.')
+
+
+@pytest.mark.parametrize('question',[
+    'How many pages discuss each course?', 'Mỗi học phần có bao nhiêu trang?',
+    'How many pages have been OCR processed?', 'Đừng đếm số trang mỗi file.',
+])
+def test_distributive_metadata_does_not_replace_content_coverage_or_negative_requests(question,documents):
+    assert page_count_request(question,documents) is None
+
+
+@pytest.mark.parametrize('name,expected', [('Résumé.pdf','accented'),('resume.PDF','plain'),('Re\u0301sume\u0301.pdf','accented')])
+def test_exact_filename_retains_accents_and_unicode_normalization(name,expected):
+    sources=[{'doc_id':'accented','name':'Résumé.pdf','page_count':7},
+             {'doc_id':'plain','name':'Resume.pdf','page_count':11}]
+    result=document_info_response(f'Tổng số trang của {name}?',sources)
+    assert not result['answer']['abstained']
+    assert [row['doc_id'] for row in result['document_info']['documents']]==[expected]
+    assert 'Tổng cộng: 18' not in result['answer']['answer']
+
+
+def test_duplicate_or_ambiguous_folded_names_require_scope_even_for_total_request():
+    same_name=[{'doc_id':'one','name':'Guide.pdf','page_count':7},
+               {'doc_id':'two','name':'Guide.pdf','page_count':11}]
+    result=document_info_response('Tổng số trang của Guide.pdf?',same_name)
+    assert result['answer']['abstained'] and not result['document_info']['documents']
+    assert not document_info_response('Guide.pdf có mấy trang?',same_name[:1])['answer']['abstained']
+    folded=[{'doc_id':'one','name':'Bản mới.pdf','page_count':7},
+            {'doc_id':'two','name':'Bán mới.pdf','page_count':11}]
+    assert document_info_response('Tổng số trang của Ban moi.pdf?',folded)['answer']['abstained']
+    both=document_info_response('Résumé.pdf và Resume.pdf có bao nhiêu trang?',[
+        {'doc_id':'accented','name':'Résumé.pdf','page_count':7},
+        {'doc_id':'plain','name':'Resume.pdf','page_count':11}])
+    assert not both['answer']['abstained'] and len(both['document_info']['documents'])==2
+
+
+def test_metadata_clarification_lists_only_available_scoped_documents(documents):
+    result=document_info_response('File này có bao nhiêu trang?',documents)
+    assert result['answer']['abstained']
+    assert all(doc['name'] in result['answer']['answer'] for doc in documents)
+    assert not result['document_info']['documents']
+    assert 'Chưa có PDF' in document_info_response('File có bao nhiêu trang?',[])['answer']['answer']
+
+
 def test_ocr_child_does_not_inherit_secondary_or_custom_credentials():
     original = {'Path': '/bin', 'SystemRoot': 'C:/Windows', 'TEMP': '/tmp',
         'CUDA_VISIBLE_DEVICES': '0', 'OMP_NUM_THREADS': '64', 'PYTHONPATH': '/untrusted',

@@ -49,14 +49,18 @@ function note(answer) {
   if (answer.documentInfo || answer.conversationKind) return '';
   if (!answer.abstained) return '';
   if (answer.abstention_reason === 'provider_abstention') return 'Dịch vụ AI chưa sẵn sàng hoặc đang quá tải. Vui lòng thử lại sau.';
-  if (['ambiguous_question','ambiguous_scope','conflicting_evidence'].includes(answer.abstention_reason)) return 'Cần làm rõ phạm vi hoặc phiên bản tài liệu.';
+  if (answer.abstention_reason === 'conflicting_evidence') return 'Các nguồn đang mâu thuẫn. Cần đối chiếu phạm vi áp dụng và thời điểm hiệu lực.';
+  if (['ambiguous_question','ambiguous_scope'].includes(answer.abstention_reason)) return 'Chưa xác định rõ tài liệu hoặc đối tượng bạn muốn hỏi.';
   return 'Chưa đủ bằng chứng trong tài liệu đã chọn.';
 }
 function renderMessage(message, index) {
   if (message.role === 'user') return `<article class="message user-message"><span class="message-avatar" aria-hidden="true">${icon('user')}</span><div class="message-bubble">${esc(message.text)}</div></article>`;
-  if (message.error) return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble"><p>${esc(message.error)}</p><button class="text-button" data-retry="${index}" ${state.busy ? 'disabled' : ''}>${icon('refresh')}Thử lại câu hỏi này</button></div></article>`;
+  if (message.error) return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble"><p>${esc(message.error)}</p><button class="text-button" data-retry="${index}" ${state.busy ? 'disabled' : ''}>${icon('refresh')}Thử lại câu hỏi này</button><button class="text-button" data-edit-question="${index}" ${state.busy ? 'disabled' : ''}>Sửa câu hỏi</button></div></article>`;
   const answer = message.answer, citations = answer.abstained ? [] : answer.citations || [];
-  const coverageNote = message.coverage?.complete === false ? '<div class="answer-note">Câu trả lời dựa trên phần tài liệu đã đọc; một số trang ảnh chưa xử lý xong.</div>' : '';
+  const unread = (message.coverage?.documents || []).reduce((count,doc) => count + (Array.isArray(doc.unread_pages) ? doc.unread_pages.length : 0),0);
+  const coverageNote = message.coverage?.complete === false ? `<div class="answer-note">Câu trả lời chỉ dựa trên phần tài liệu đã đọc.${unread ? ` Còn ${unread} trang đang xử lý.` : ' Các trang còn lại chưa xử lý xong.'}</div>` : '';
+  const answerNote = note(answer);
+  const clarifyActions = answer.abstained && !answer.conversationKind ? `<div class="message-actions"><button class="text-button" data-edit-question="${index}" ${state.busy ? 'disabled' : ''}>Sửa câu hỏi</button><button class="text-button" data-clarify-scope ${state.busy ? 'disabled' : ''}>Chọn tài liệu</button></div>` : '';
   const claims = answer.abstained ? [] : answer.claims || [];
   const claimSources = claims.map(claim => {
     const indexes = (claim.citation_ids || []).map(id => citations.findIndex(citation => citation.chunk_id === id)).filter(i => i >= 0);
@@ -64,7 +68,7 @@ function renderMessage(message, index) {
   }).join('');
   const sourceLinks = citations.map((citation,i) => marker(i,index)).join('');
   if (message.fallback) return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${excerptBody(message.fallback,index,marker)}<button class="text-button" data-copy="${index}">${icon('copy')}Sao chép trích đoạn</button><span class="message-time">${esc(message.time)}</span></div></article>`;
-  return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${coverageNote}${answer.abstained ? `<div class="answer-note">${esc(note(answer))}</div>` : ''}<div class="answer-body">${safeMarkdown(answer.answer)}</div>${sourceLinks ? `<div class="claim-sources">Nguồn ${sourceLinks}</div>` : ''}${claimSources ? `<details class="claim-sources"><summary>Kiểm chứng các ý chính</summary>${claimSources}</details>` : ''}<div class="message-actions"><button class="text-button ${message.feedback === 'helpful' ? 'selected' : ''}" data-feedback="helpful" data-message="${index}" aria-pressed="${message.feedback === 'helpful'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-up')}Hữu ích</button><button class="text-button ${message.feedback === 'incorrect' ? 'selected' : ''}" data-feedback="incorrect" data-message="${index}" aria-pressed="${message.feedback === 'incorrect'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-down')}Chưa chính xác</button><button class="text-button" data-copy="${index}">${icon('copy')}Sao chép</button><span class="message-time">${esc(message.time)}</span></div><p class="inline-status" data-feedback-status="${index}" role="status">${esc(message.feedbackError || '')}</p></div></article>`;
+  return `<article class="message assistant-message"><span class="message-avatar" aria-hidden="true">${icon('cap')}</span><div class="message-bubble">${coverageNote}${answerNote ? `<div class="answer-note">${esc(answerNote)}</div>` : ''}<div class="answer-body">${safeMarkdown(answer.answer)}</div>${clarifyActions}${sourceLinks ? `<div class="claim-sources">Nguồn ${sourceLinks}</div>` : ''}${claimSources ? `<details class="claim-sources"><summary>Kiểm chứng các ý chính</summary>${claimSources}</details>` : ''}<div class="message-actions"><button class="text-button ${message.feedback === 'helpful' ? 'selected' : ''}" data-feedback="helpful" data-message="${index}" aria-pressed="${message.feedback === 'helpful'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-up')}Hữu ích</button><button class="text-button ${message.feedback === 'incorrect' ? 'selected' : ''}" data-feedback="incorrect" data-message="${index}" aria-pressed="${message.feedback === 'incorrect'}" ${message.saving ? 'disabled' : ''}>${icon('thumb-down')}Chưa chính xác</button><button class="text-button" data-copy="${index}">${icon('copy')}Sao chép</button><span class="message-time">${esc(message.time)}</span></div><p class="inline-status" data-feedback-status="${index}" role="status">${esc(message.feedbackError || '')}</p></div></article>`;
 }
 function renderConversation() {
   $('#conversation').innerHTML = messages.map(renderMessage).join('') + (state.busy ? '<div class="loading-line"><span class="spinner" aria-hidden="true"></span>Đang tìm kiếm và kiểm tra bằng chứng...</div>' : '');
@@ -159,7 +163,7 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     if (answer.abstained) { answer.citations = []; answer.claims = []; }
     const fallback = excerptFallback(response);
     if (fallback || response.partial) userMessage.failed = true;
-    const message = {role:'assistant',answer,fallback,coverage:response.source_coverage,failed:!!response.partial,scopeKey,responseId:response.responseId,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})};
+    const message = {role:'assistant',answer,fallback,question,docIds:[...docIds],language,coverage:response.source_coverage,failed:!!response.partial,scopeKey,responseId:response.responseId,time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Bangkok'})};
     messages.push(message);
     renderSources(excerptSources(message));
   } catch (error) {
@@ -176,6 +180,22 @@ async function send(question, docIds = readySelected().map(doc => doc.doc_id), l
     if (state.tab === 'assistant' && !document.querySelector('dialog[open]')) $('#question').focus();
   }
 }
+function editQuestion(index) {
+  if (state.busy) return;
+  const message = messages[index];
+  if (!message?.question || !Array.isArray(message.docIds)) return;
+  const valid = new Set(state.documents.filter(doc => doc.ready).map(doc => doc.doc_id));
+  const available = message.docIds.length > 0 && message.docIds.every(id => valid.has(id));
+  state.selected = new Set(available ? message.docIds : []);
+  state.replyLanguage = message.language || state.replyLanguage;
+  $('#reply-language').value = state.replyLanguage;
+  notify('selection');
+  $('#question').value = message.question;
+  $('#question').dispatchEvent(new Event('input'));
+  $('#query-status').textContent = available ? 'Sửa hoặc bổ sung câu hỏi rồi nhấn gửi.' : 'Nguồn cũ đã thay đổi. Hãy chọn lại tài liệu trước khi gửi.';
+  $('#question').focus();
+  updateComposer();
+}
 function resetChat() { epoch++; messages = []; topicMemory.clear(); renderConversation(); renderSources(null); $('#query-status').textContent = ''; updateComposer(); }
 export function initChat() {
   suggestions(); renderSources(null); updateComposer();
@@ -188,6 +208,8 @@ export function initChat() {
   $('#question').addEventListener('keydown', event => { if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) { event.preventDefault(); if (!$('#send').disabled) $('#query-form').requestSubmit(); } });
   $('#query-form').addEventListener('submit', event => { event.preventDefault(); send($('#question').value); });
   document.addEventListener('click', async event => {
+    const edit = event.target.closest('[data-edit-question]'); if (edit) editQuestion(Number(edit.dataset.editQuestion));
+    if (event.target.closest('[data-clarify-scope]') && !state.busy) $('#scope-open').click();
     const info = event.target.closest('[data-info-preview]'); if (info) preview(info.dataset.infoPreview,1);
     const prompt = event.target.closest('[data-prompt]'); if (prompt && !prompt.disabled) { $('#question').value = prompt.dataset.prompt; updateComposer(); $('#question').focus(); }
     const citation = event.target.closest('[data-citation]');
