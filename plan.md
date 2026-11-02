@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **02/11/2026 · Asia/Bangkok**.
+Cập nhật: **03/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -19,6 +19,28 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 - [x] **DOC-01 — README tiếng Anh DONE (01/11):** viết lại giới thiệu, tính năng,
   sơ đồ xử lý, setup Windows/Docker, quyền riêng tư, development/CI và mục lục tài
   liệu; đối chiếu lệnh với code/config, kiểm tra liên kết nội bộ. Không thêm file báo cáo.
+
+## Chất lượng trả lời và thao tác hỏi — 02/11
+
+- [x] **ANS-01 — Đúng PDF được hỏi DONE (`0d8b5a1a`):** câu hỏi nội dung nêu rõ
+  “trong/theo/in/according to” tên PDF chỉ truy hồi nguồn đó trong phạm vi đã chọn
+  và được cấp quyền; câu so sánh giữ các nguồn được nêu. Tên thiếu, không tồn tại,
+  trùng hoặc chỉ dẫn loại trừ chưa rõ được hỏi lại trước khi gọi model. JSON và
+  streaming dùng chung xử lý. Test grounding xác nhận citation từ PDF khác bị từ chối.
+- [x] **ANS-02 — Nhận diện tên và câu hỏi số trang DONE:** ưu tiên tên chính xác
+  trước so khớp bỏ dấu; không cộng nhầm `Résumé.pdf` với `Resume.pdf`. Hiểu câu hỏi
+  “mỗi/từng/each” PDF qua metadata thật, không dùng model để đoán số trang.
+- [x] **UX-01 — Sửa câu hỏi và chọn lại nguồn DONE:** thêm thao tác ngay trên câu
+  chưa trả lời được; khôi phục câu hỏi/ngôn ngữ/nguồn cũ khi còn hợp lệ, không tự gửi.
+  Nêu số trang chưa xử lý và phân biệt nguồn mâu thuẫn với câu hỏi chưa rõ.
+- [x] **UX-02 — Giữ thao tác khi polling DONE:** cập nhật tiến độ job không dựng lại
+  bộ lọc và checkbox thư viện nếu danh sách tài liệu không đổi.
+  **246 tests hiện hành + 164 tests hồi quy hỏi đáp PASS**; một positive control cũ
+  thiếu fixture không chạy. Không thêm dependency hoặc file báo cáo rời. Tests model
+  có kiểm soát xác minh provenance, không phải predictions Gemini thật; chưa xác nhận
+  chất lượng semantic toàn bộ PDF hoặc giao diện trực quan do không có browser kết nối.
+  CI source `0d8b5a1a`: Windows/Linux, package và container PASS. Ba ca HTTP local
+  trên runtime cuối PASS (0,027–0,036s), không gọi model.
 
 ## Tối ưu truy hồi và RAM — 02/11
 

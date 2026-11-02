@@ -1,6 +1,6 @@
 # CampusAI — Tổng quan chất lượng và vận hành
 
-**Cập nhật 02/11/2026 · Phạm vi: web app local, một người dùng trên Windows.**
+**Cập nhật 03/11/2026 · Phạm vi: web app local, một người dùng trên Windows.**
 
 Tài liệu này thay các báo cáo kiểm tra, nghiệm thu, hiệu năng và nhật ký rời.
 Các số lịch sử bên dưới được tổng hợp trước khi xóa đầu ra cũ; chúng không
@@ -22,6 +22,32 @@ project độc lập đã được chủ dự án xác nhận. Quota, cooldown v
 không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
+
+**Hỏi đúng nguồn và trải nghiệm hỏi đáp, 02/11 (`0d8b5a1a`):** web phân tích các
+cách chỉ nguồn rõ như “theo Alpha.pdf” hoặc “in Alpha.pdf” trước truy hồi. Chỉ thu
+hẹp các PDF đã chọn, sẵn sàng và được cấp quyền; câu so sánh giữ các tên được nêu.
+Tên không có, trùng hoặc chỉ dẫn phủ định chưa rõ được hỏi lại, không gọi model.
+Tên file xuất hiện như nội dung cần tìm không tự động bị coi là lệnh chọn nguồn.
+Nguồn được nêu trong câu hiện tại được ưu tiên khi đổi chủ đề qua follow-up.
+
+Đã sửa trường hợp hai tên chỉ khác dấu bị cộng nhầm số trang; ưu tiên tên chính xác
+trước fallback bỏ dấu. Câu hỏi “mỗi/từng/each PDF có bao nhiêu trang” dùng metadata
+thật. Khi chưa trả lời được, người dùng có thể sửa câu hỏi hoặc chọn lại tài liệu;
+không tự gửi lại, không âm thầm thay nguồn khi tài liệu cũ đã mất. Cảnh báo coverage
+nêu số trang còn xử lý, không gán mọi trang chưa đọc thành trang ảnh. Polling tiến
+độ không dựng lại bộ lọc/checkbox khi thư viện không đổi.
+
+**246 tests hiện hành và 164 tests hỏi đáp tương thích PASS**; một positive control
+lịch sử thiếu fixture không chạy. Có kiểm thử qua WSGI JSON/streaming, authorization,
+follow-up và generator grounding thật với model có kịch bản: nguồn đúng được chấp
+nhận, citation từ PDF khác bị từ chối ngay cả khi PDF ấy cũng được chọn. Frontend
+được kiểm logic bằng Node, không có browser kết nối để xác nhận trực quan. Không
+gửi Gemini trong lượt này; đây không phải benchmark semantic mới hay bằng chứng
+mọi câu hỏi/PDF đạt 99–100%. Không thêm dependency hoặc file nghiệm thu rời.
+Ba ca HTTP local trên runtime cuối (số trang từng PDF, tên nguồn không có, chỉ dẫn
+“Don't use”) PASS trong 0,027–0,036s; không gọi model. Giữ nguyên 4 PDF sẵn sàng.
+CI source `0d8b5a1a`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41486822800).
 
 **Truy hồi/RAM, 02/11 (`ed7cac5f`):** giảm các bản sao trong bộ truy hồi thay vì
 đổi model, precision hoặc ngưỡng. BM25 intern token bất biến, dùng IDF đã tính
