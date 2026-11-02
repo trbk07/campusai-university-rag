@@ -22,6 +22,26 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Chất lượng trả lời và thao tác hỏi — 02/11
 
+- [x] **ANS-03 — Đo Gemini thật DONE (03/11, `9753ddb1`):** chạy cùng một bản
+  đủ 56 case / 60 lượt với 4 PDF đang có; 35 lượt cần model, 37 Gemini calls thành
+  công chia 13/12/12 giữa 3 project, 25 lượt xử lý local, 0 cache. Không timeout
+  hoặc lỗi schema/citation; median **2,83s**, p95 **5,39s**, max **8,46s**.
+  Riêng 35 lượt có gọi model: p95 **8,00s**, không gộp thành tốc độ mọi câu Gemini.
+  Chấm dev chặt phần trả lời chính theo gold gốc: **49 PASS / 1 PARTIAL / 2 FAIL /
+  4 REVIEW_REQUIRED**; 49/52 case đủ điều kiện = **94,23%**, chưa đạt mục tiêu 99%.
+  F01 có đủ ý trong claims nhưng thiếu thời gian ở phần trả lời chính; tính thêm
+  claims thì 50/52 = 96,15%, báo riêng. Đây là AI dev review, không phải holdout
+  mới hoặc nghiệm thu độc lập. Evidence local tại `data/operations/local-acceptance-20261103/`;
+  chỉ giữ packet đã duyệt, raw responses kèm review và timing cần đối chiếu.
+- [ ] **ANS-04 — Từ chối nhầm địa chỉ:** F15 không trả địa chỉ NUAE dù PDF trang 4
+  có đầy đủ thông tin; cần xác định và sửa nguyên nhân kiểm chứng, không nới grounding.
+- [ ] **ANS-05 — Không áp quy tắc chung thành dữ kiện cá nhân:** A01 lấy quy tắc
+  mật khẩu lần đầu/reset của Đại học Tây Nguyên để trả lời câu hỏi mật khẩu cá nhân
+  chưa rõ trường. Cần phân biệt thông tin hướng dẫn với dữ kiện riêng của người hỏi.
+- [ ] **ANS-06 — Đủ ý ở câu trả lời chính:** trường dữ liệu nguồn đã xác minh cần
+  xuất hiện rõ trong câu trả lời khi cần, tránh chỉ nằm trong claims thu gọn (F01).
+  Bốn ca F02/F05/N03/F24 vẫn cần review gold/scope; không tự chuyển thành PASS.
+
 - [x] **ANS-01 — Đúng PDF được hỏi DONE (`0d8b5a1a`):** câu hỏi nội dung nêu rõ
   “trong/theo/in/according to” tên PDF chỉ truy hồi nguồn đó trong phạm vi đã chọn
   và được cấp quyền; câu so sánh giữ các nguồn được nêu. Tên thiếu, không tồn tại,

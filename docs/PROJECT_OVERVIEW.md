@@ -23,6 +23,53 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Đo hỏi đáp bằng Gemini thật, 03/11 (`9753ddb1`):** sau chấp thuận packet
+SHA-256 `260f94e9b99dc839a7f52559d94f88c39d5dae5b9727ebd5c31549c44b4add9d`,
+chạy đủ **56 case / 60 lượt HTTP** của bộ owner trên cùng runtime, index và profile
+không đổi. Chọn cả 4 PDF hiện có: HUST, NUAE, Đại học Thủ đô và Đại học Tây Nguyên
+(264 trang). Khác các lượt cũ chỉ chọn 3 PDF, vì vậy không coi đây là phép A/B chỉ
+thay code. Benchmark gốc giữ nguyên SHA-256
+`07f1ac1782b058bb9ce824490cd8c77521b0ab0fee5998a139a4e2ee2d1fb2fc`.
+Không đưa gold, expected hoặc nhãn trường/category vào inference.
+
+| Chỉ số trên lượt mới | Kết quả |
+|---|---|
+| HTTP hoàn tất | 60/60, không timeout hoặc lỗi schema/citation |
+| Model / local | 35 lượt có model, 25 lượt local; 0 cache hits |
+| Gemini thật | 37 calls thành công, `gemini-3.5-flash-lite`; project 1/2/3: 13/12/12 |
+| Thời gian HTTP | Median 2,828s; p95 5,391s; max 8,462s |
+| Riêng 35 lượt có gọi model | p95 thời gian HTTP 8,003s, gồm cả truy hồi/kiểm chứng |
+| Peak RAM process và process con | 2,119 GB, 8,32% RAM máy đo |
+| Chấm chặt câu trả lời chính theo gold | 49 PASS / 1 PARTIAL / 2 FAIL / 4 REVIEW_REQUIRED |
+| Tỷ lệ case đủ ý, loại riêng 4 ca cần review | 49/52 = 94,23%; chưa đạt 99% |
+| Theo từng lượt hội thoại | 53 PASS / 1 PARTIAL / 2 FAIL / 4 REVIEW_REQUIRED |
+| Các cuộc hội thoại hai lượt | M01–M04: cả 8 lượt PASS |
+
+Đây là **Codex AI dev review**, không phải independent review/owner sign-off hoặc
+fresh holdout. Chấm phần `answer` chính; không tự cộng ý chỉ xuất hiện trong quote
+nguồn hay claims thu gọn. F01 có thời gian 4 năm trong claims, còn phần trả lời chính
+chỉ nêu 132 tín chỉ: giữ PARTIAL cho phần chính. Nếu tính cả public claims thì có
+50/52 case PASS (96,15%), báo riêng thay vì đổi rubric để tăng tỷ lệ.
+
+Hai lỗi: **F15** từ chối địa chỉ NUAE với reason `unsupported_claim` dù PDF vật lý
+trang 4 ghi rõ địa chỉ; **A01** trả quy tắc mật khẩu lần đầu/reset trong sổ tay Đại học
+Tây Nguyên cho câu hỏi mật khẩu cá nhân chưa xác định trường/người dùng. Citation
+có thật không chứng minh được dữ kiện riêng của người hỏi. Không tính hai ca này
+thành PASS. F02/F05/N03 thiếu trường trong câu hỏi; F24 gold đòi tối thiểu 15 tuần
+từng kỳ trong khi nguồn chỉ chứng minh tổng 30 tuần hai kỳ. Giữ 4 ca cần review,
+không sửa gold hoặc tự chấp thuận thay owner. Locator F03 trong CSV ghi PDF tr.8,
+trong khi chứng cứ trích dẫn nằm ở trang vật lý 7; chỉ ghi đề xuất sửa locator.
+
+Evidence tối thiểu, không track dữ liệu phát sinh vào Git: thư mục local
+`data/operations/local-acceptance-20261103/` có `egress.json`, `owner60.json`
+(protocol, raw responses, timing từng request và review riêng) và `stages.jsonl`.
+Hash canonical các payload prediction, không gồm annotation review:
+`4e4c767a765a12896f8e19509f7a6bf121ed7f80a59362a4d11be99538ffab26`.
+Dùng collector hiện có `scripts.release.verify_answers`, không sửa code giữa lượt
+hoặc retry câu đã chạy. Mẫu này chưa đạt yêu cầu R-01 tối thiểu 100 HTTP/54 provider
+successes, dù transport đạt ngưỡng p95/timeout của lượt đo. Không dùng 60 lượt này
+để tuyên bố mọi PDF hoặc mọi câu hỏi đạt 99–100%.
+
 **Hỏi đúng nguồn và trải nghiệm hỏi đáp, 02/11 (`0d8b5a1a`):** web phân tích các
 cách chỉ nguồn rõ như “theo Alpha.pdf” hoặc “in Alpha.pdf” trước truy hồi. Chỉ thu
 hẹp các PDF đã chọn, sẵn sàng và được cấp quyền; câu so sánh giữ các tên được nêu.
