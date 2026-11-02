@@ -11,7 +11,7 @@ import time
 
 from .ocr_assets import TESSDATA_SHA256, VIETOCR_SHA256, validate_tesseract_assets, validate_vietocr_assets
 
-_PAGE_WORKER_LIMIT=min(4,max(1,(os.cpu_count() or 1)//2))
+_PAGE_WORKER_LIMIT=1  # Quiet default: one native OCR core across all documents.
 _PAGE_SLOTS=threading.BoundedSemaphore(_PAGE_WORKER_LIMIT)
 
 
@@ -31,7 +31,7 @@ def recognize_pdf(path, selected, *, data_dir, scale, timeout_seconds, progress,
     """Keep independent MuPDF/Tesseract processes behind a global CPU bound.
 
     No PDF handle or recognizer crosses threads/processes. The first small
-    searchable batch uses at most two workers; large batches use up to four.
+    searchable batch and later work share one OCR core by default.
     Progress/cancellation remain on the caller thread and one shared deadline.
     """
     from .ocr import OCRDocument, OCRLimitExceeded, OCRUnavailable
@@ -125,7 +125,8 @@ def _recognize_one(path, selected, *, data_dir, scale, timeout_seconds, progress
     worker = Path(__file__).with_name('vietocr_worker.py' if backend == 'vietocr' else 'tesseract_worker.py')
     process = subprocess.Popen([sys.executable, '-I', '-u', str(worker)],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-        env=environment, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
+        env=environment, creationflags=(getattr(subprocess, 'CREATE_NO_WINDOW', 0)
+            | getattr(subprocess, 'BELOW_NORMAL_PRIORITY_CLASS', 0)))
     messages = queue.Queue(maxsize=2)
     stopped = threading.Event()
 

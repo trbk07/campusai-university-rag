@@ -19,6 +19,20 @@ _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
 TABLE_EXTRACTOR_VERSION = "table-v7-vertical-numeric-grid"
 _PACKET_SESSION = ContextVar('table_packet_session', default=None)
+_PACKET_PAGES = ContextVar('table_packet_pages', default=None)
+
+
+@contextmanager
+def table_page_selection(numbers):
+    """Restrict a preview to its actual physical pages, including table proof."""
+    selected = tuple(numbers)
+    if any(type(number) is not int or number < 1 for number in selected) or len(set(selected)) != len(selected):
+        raise ValueError('invalid table page selection')
+    token = _PACKET_PAGES.set(tuple(sorted(selected)))
+    try:
+        yield
+    finally:
+        _PACKET_PAGES.reset(token)
 
 
 @contextmanager
@@ -26,7 +40,7 @@ def table_extraction_session():
     """Reuse physical decoding only within one progressive ingestion job.
 
     No disk cache or shared mutable tables: each snapshot still assembles its
-    own semantics. The single-entry cache is dropped on success or failure.
+    own semantics. Physical page packets are dropped on success or failure.
     """
     token = _PACKET_SESSION.set({})
     try:
@@ -253,23 +267,43 @@ def _table_page_packets(pdf_path, doc_id, visibility):
         return _decode_table_page_packets(pdf_path, doc_id, visibility)
     path = Path(pdf_path).resolve()
     stat = path.stat()
-    visibility_hash = hashlib.sha256(json.dumps(visibility, sort_keys=True,
-        separators=(',', ':'), allow_nan=False).encode('utf-8')).digest()
     key = (str(path), doc_id, stat.st_dev, stat.st_ino, stat.st_size,
-           stat.st_mtime_ns, stat.st_ctime_ns, TABLE_EXTRACTOR_VERSION, visibility_hash)
-    if session.get('key') == key:
-        return deepcopy(session['packets'])
-    packets = _decode_table_page_packets(pdf_path, doc_id, visibility)
-    session.update(key=key, packets=deepcopy(packets))
-    return packets
+           stat.st_mtime_ns, stat.st_ctime_ns, TABLE_EXTRACTOR_VERSION)
+    if session.get('key') != key:
+        session.clear()
+        session.update(key=key, packets={})
+    def page_key(number):
+        # Missing visibility means the original native page, while [] proves
+        # that no native characters may be used. These are distinct inputs.
+        value = (visibility or {}).get(number)
+        digest = hashlib.sha256(json.dumps(value, sort_keys=True,
+            separators=(',', ':'), allow_nan=False).encode('utf-8')).digest()
+        return number, digest
+    selected = _PACKET_PAGES.get()
+    if selected is None:
+        selected = session.get('all_numbers')
+    if selected is None:
+        packets = _decode_table_page_packets(pdf_path, doc_id, visibility)
+        selected = tuple(packet['page'] for packet in packets)
+        session['all_numbers'] = selected
+    else:
+        missing = [number for number in selected if page_key(number) not in session['packets']]
+        if not missing:
+            return [deepcopy(session['packets'][page_key(number)]) for number in selected]
+        with table_page_selection(missing):
+            packets = _decode_table_page_packets(pdf_path, doc_id, visibility)
+        if [packet['page'] for packet in packets] != missing:
+            raise ValueError('physical table pages do not match requested pages')
+    for packet in packets:
+        session['packets'][page_key(packet['page'])] = deepcopy(packet)
+    return [deepcopy(session['packets'][page_key(number)]) for number in selected]
 
 
 def _decode_table_page_packets(pdf_path, doc_id, visibility):
     """Parallelize only physical decoding; semantics stay ordered in the parent.
 
-    Four workers per document, at most twelve with the app's three ingestion
-    jobs. Each reads the original PDF, never shares an interpreter/file handle.
-    Small PDFs and environments unable to spawn keep the sequential path.
+    Default to sequential decoding to avoid several CPU-heavy interpreters.
+    An explicitly configured worker count can opt into parallel decoding.
     """
     import fitz
     import multiprocessing
@@ -277,11 +311,18 @@ def _decode_table_page_packets(pdf_path, doc_id, visibility):
     from concurrent.futures.process import BrokenProcessPool
     with fitz.open(pdf_path) as pdf:
         count = len(pdf)
-    workers = min(4, os.cpu_count() or 1, max(1, count//24))
+    selected = _PACKET_PAGES.get()
+    numbers = list(range(1,count+1)) if selected is None else list(selected)
+    if any(number > count for number in numbers):
+        raise ValueError('table page outside source')
+    configured = int(os.environ.get('CAMPUSAI_TABLE_WORKERS', '1'))
+    if not 1 <= configured <= 4:
+        raise ValueError('table worker limit must be between 1 and 4')
+    workers = min(configured, os.cpu_count() or 1, max(1, len(numbers)//24))
     if workers > 1:
         try:
-            size = (count+workers-1)//workers
-            batches = [list(range(start, min(count+1, start+size))) for start in range(1,count+1,size)]
+            size = (len(numbers)+workers-1)//workers
+            batches = [numbers[start:start+size] for start in range(0,len(numbers),size)]
             with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context('spawn')) as pool:
                 futures = [pool.submit(_read_page_batch, str(pdf_path), doc_id, batch, visibility)
                            for batch in batches]
@@ -291,7 +332,7 @@ def _decode_table_page_packets(pdf_path, doc_id, visibility):
             return packets
         except (OSError, BrokenProcessPool):
             pass
-    return _read_page_batch(pdf_path, doc_id, range(1,count+1), visibility)
+    return _read_page_batch(pdf_path, doc_id, numbers, visibility)
 
 
 def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -> list[Table]:
@@ -315,8 +356,12 @@ def _extract_pdfplumber(pdf_path: str | Path, doc_id: str, *, visibility=None) -
         # still match the actual explicit header's physical grid.
         return all(abs((b-a)-(d-c)) <= 1.0 for a,b,c,d in
                    zip(edges, edges[1:], header_edges, header_edges[1:]))
+    previous_page = None
     for packet in _table_page_packets(pdf_path, doc_id, visibility):
         page_number = packet['page']
+        if previous_page is not None and page_number != previous_page + 1:
+            course_headers = course_columns = header_source = header_edges = None
+        previous_page = page_number
         if visibility is not None and page_number in visibility:
             course_headers = course_columns = header_source = header_edges = None
         page_start=len(tables)

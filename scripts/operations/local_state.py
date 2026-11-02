@@ -76,6 +76,23 @@ def resolve_device(env: dict) -> tuple[str, str | None]:
     return (requested, None) if available else ('cpu', 'cuda_unavailable_using_cpu')
 
 
+def configure_cpu_budget(env: dict) -> int:
+    """Keep local tokenization and CPU inference from occupying every core."""
+    count = int(env.get('CAMPUSAI_CPU_THREADS', '2'))
+    if not 1 <= count <= 4:
+        raise ValueError('CAMPUSAI_CPU_THREADS must be between 1 and 4')
+    env['TOKENIZERS_PARALLELISM'] = 'false'
+    for name in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'OPENBLAS_NUM_THREADS'):
+        env[name] = str(count)
+    try:
+        import torch
+    except ImportError:
+        pass  # Startup's existing model preflight reports missing dependencies.
+    else:
+        torch.set_num_threads(count)
+    return count
+
+
 def inspect_local(env: dict, *, port: int = 8000, min_free_bytes: int = 1024**3) -> dict:
     """Check only local prerequisites. Write permissions are advisory until start."""
     checks = []

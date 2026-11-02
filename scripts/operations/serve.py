@@ -108,7 +108,7 @@ def build_application():
             document_scope_reader=RegisteredDocumentScopeReader(store_dir,
                 allow_pdf_scope=getattr(llm, 'allow_pdf_scope', False)),
             default_mode=None if active else "auto", canary=CanaryController() if active else None)
-        jobs = IngestionJobManager(max_workers=int(os.getenv('CAMPUSAI_INGESTION_WORKERS','3')),
+        jobs = IngestionJobManager(max_workers=int(os.getenv('CAMPUSAI_INGESTION_WORKERS','1')),
             max_pending=int(os.getenv('CAMPUSAI_INGESTION_PENDING','8')),
             journal_path=os.getenv('CAMPUSAI_JOB_DB',str(store_dir.parent/'operations/ingestion-jobs.sqlite3')))
         # Complete dense model/index initialization before HTTP can report ready.

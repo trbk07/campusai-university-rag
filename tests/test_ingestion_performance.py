@@ -111,14 +111,14 @@ def run_progressive(monkeypatch, *, elapsed=1., stalled=False):
 
 def test_progressive_ocr_keeps_first_snapshot_small_then_amortizes_work(monkeypatch):
     batches,document=run_progressive(monkeypatch)
-    assert batches==[4,8,16] and not document.metadata['unread_pages']
+    assert batches==[2,4,8,16] and not document.metadata['unread_pages']
 
 
 def test_slow_ocr_shrinks_batches_and_stalled_ocr_never_retries_automatically(monkeypatch):
     batches,document=run_progressive(monkeypatch,elapsed=80.)
-    assert batches[0]==4 and batches[1]==1 and not document.metadata['unread_pages']
+    assert batches[0]==2 and batches[1]==1 and not document.metadata['unread_pages']
     batches,document=run_progressive(monkeypatch,stalled=True)
-    assert batches==[4] and len(document.metadata['unread_pages'])==20
+    assert batches==[2] and len(document.metadata['unread_pages'])==20
 
 
 def test_progressive_table_cache_is_source_and_visibility_bound_and_does_not_share_tables(tmp_path,monkeypatch):
@@ -190,6 +190,75 @@ def test_progressive_reuses_decoding_without_changing_real_table_cells_or_physic
         for _ in range(3):
             assert [asdict(table) for table in tables._extract_pdfplumber(source,'controlled')]==expected
     assert calls==[True]
+
+
+def test_preview_publishes_only_read_pages_and_full_ingestion_keeps_later_tables(tmp_path):
+    import pymupdf as fitz
+    from campusai.ingestion.pipeline import ingest_document
+    source=tmp_path/'native.pdf'
+    with fitz.open() as pdf:
+        for number in range(1,7):
+            page=pdf.new_page(width=400,height=300)
+            page.insert_text((40,40),f'Native source paragraph on physical page {number}.',fontsize=11)
+            if number==6:
+                for y in [80,110,140]:page.draw_line((40,y),(340,y))
+                for x in [40,240,340]:page.draw_line((x,80),(x,140))
+                for index,(name,value) in enumerate([('Unseen table','Value'),('Pending source cell','19')]):
+                    page.insert_text((50,100+index*30),name,fontsize=10)
+                    page.insert_text((250,100+index*30),value,fontsize=10)
+        pdf.save(source)
+    options=dict(store_dir=tmp_path/'store',allow_partial=True,ocr_backend='tesseract')
+    preview=ingest_document(source,preview_page_limit=4,**options)
+    assert preview.page_count==6 and preview.status=='partial'
+    assert preview.metadata['readable_pages']==[1,2,3,4]
+    assert preview.metadata['unread_pages']==preview.metadata['deferred_pages']==[5,6]
+    assert preview.metadata['coverage_complete'] is False
+    assert not any(6 in table.pages for table in preview.tables)
+    assert not any('Pending source cell' in chunk.content for chunk in preview.chunks)
+    complete=ingest_document(source,**options)
+    assert complete.status=='succeeded' and complete.metadata['coverage_complete'] is True
+    assert complete.metadata['readable_pages']==[1,2,3,4,5,6]
+    assert any(6 in table.pages for table in complete.tables)
+    cached=ingest_document(source,preview_page_limit=4,**options)
+    assert cached.cached and cached.metadata['readable_pages']==[1,2,3,4,5,6]
+
+
+def test_scan_progressive_first_snapshot_is_two_pages_and_finishes_all_pages(tmp_path,monkeypatch):
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.ocr import OCRDocument
+    from campusai.ingestion.tesseract_worker import RENDER_POLICY
+    source=tmp_path/'scan.pdf';source.write_bytes(b'controlled mocked ten-page scan')
+    monkeypatch.setattr(pipeline,'validate_pdf',lambda *a,**k:SimpleNamespace(pages=10,warnings=[]))
+    monkeypatch.setattr(pipeline,'parse_pdf',lambda *a,**k:[{'page':n,'text':'','requires_ocr':True,'lines_meta':[]} for n in range(1,11)])
+    monkeypatch.setattr(pipeline,'extract_tables',lambda *a,**k:[])
+    recognized=[];snapshots=[]
+    def ocr(*a,**k):
+        selected=k['page_numbers'];recognized.extend(selected)
+        return OCRDocument([{'page':n,'text':f'Original recognized paragraph on page {n}.','confidence':.95} for n in selected],
+                           'tesseract-vie-eng',.95,.1,{'render_policy':RENDER_POLICY})
+    monkeypatch.setattr(pipeline,'_bounded_ocr',ocr)
+    monkeypatch.setattr(progressive,'build_indexes',lambda manager,job,document,*a:snapshots.append(deepcopy(document)))
+    manager=SimpleNamespace(_jobs={'job':SimpleNamespace(source_path=source)},_checkpoint=lambda _:None,_update=lambda *a,**k:None)
+    options=normalize_options(dict(store_dir=tmp_path/'store',index_dir=tmp_path/'index',enable_ocr=True,
+                                   ocr_backend='tesseract',ocr_max_pages=16))
+    complete=progressive.ingest_progressively(manager,'job',options,lambda *a:None,pipeline.ingest_document)
+    assert snapshots[0].metadata['readable_pages']==[1,2]
+    assert snapshots[0].metadata['coverage_complete'] is False
+    assert sorted(recognized)==list(range(1,11)) and len(set(recognized))==len(recognized)
+    assert complete.status=='succeeded' and complete.metadata['readable_pages']==list(range(1,11))
+
+
+def test_quiet_default_runs_one_ocr_process_and_cpu_budget_is_bounded(monkeypatch):
+    import sys
+    from campusai.ingestion import tesseract_process
+    from scripts.operations.local_state import configure_cpu_budget
+    calls=[]
+    monkeypatch.setitem(sys.modules,'torch',SimpleNamespace(set_num_threads=lambda count:calls.append(count)))
+    env={}
+    assert configure_cpu_budget(env)==2 and calls==[2]
+    assert env['TOKENIZERS_PARALLELISM']=='false' and env['OMP_NUM_THREADS']=='2'
+    assert tesseract_process._PAGE_WORKER_LIMIT==1
+    with pytest.raises(ValueError):configure_cpu_budget({'CAMPUSAI_CPU_THREADS':'100'})
 
 
 def parallel_setup(monkeypatch,worker):

@@ -15,7 +15,7 @@ from .background.commit import atomic_text
 from .docling_parser import TEXT_COVERAGE_VERSION, parse_pdf
 from .metadata_detector import detect_metadata
 from .ocr import OCRLimitExceeded, OCRUnavailable, ocr_pdf
-from .table_extractor import TABLE_EXTRACTOR_VERSION, extract_tables
+from .table_extractor import TABLE_EXTRACTOR_VERSION, extract_tables, table_page_selection
 from .validate import ValidationError, validate_pdf
 from ..documents.registry import DocumentRegistry
 
@@ -157,11 +157,14 @@ def ingest_document(
     ocr_backend: str = 'rapidocr',
     ocr_data_dir: str | Path | None = None,
     allow_partial: bool = False,
+    preview_page_limit: int | None = None,
 ) -> Document:
     """Ingest one PDF and reuse its stored result on repeated uploads."""
 
     if type(allow_partial) is not bool:
         raise ValueError('partial ingestion flag must be boolean')
+    if preview_page_limit is not None and (not allow_partial or type(preview_page_limit) is not int or preview_page_limit < 1):
+        raise ValueError('preview requires partial ingestion and a positive page limit')
     pdf_path = Path(path)
     registry = registry or DocumentRegistry(Path(store_dir) / "registry.json")
     # Parsing below already reads every page. Deferring validation's text probe
@@ -260,6 +263,11 @@ def ingest_document(
             from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
             if document.metadata.get('ocr_numeric_policy') != NUMERIC_TABLE_POLICY:
                 cache_versions_current = False
+        if preview_page_limit is not None and cache_versions_current and document.chunks:
+            # Never downgrade an existing useful snapshot to a small preview.
+            document.cached = True
+            registry.add(document)
+            return document
         if allow_partial and document.status in {'partial', 'review_required'}:
             # Keep already recognized pages and the last published snapshot.
             # A later bounded OCR pass resumes; it must not erase useful work.
@@ -290,6 +298,13 @@ def ingest_document(
         progress=lambda value: report_progress("parsing", value),
     )
     report_progress("parsing", 1.0)
+    deferred_pages = []
+    if preview_page_limit is not None:
+        native = [page for page in pages if not page.get('requires_ocr') and str(page.get('text', '')).strip()]
+        selected = (native or [page for page in pages if page.get('requires_ocr')] or pages)[:preview_page_limit]
+        selected_numbers = {page['page'] for page in selected}
+        deferred_pages = [page['page'] for page in pages if page['page'] not in selected_numbers]
+        pages = selected
     ocr_info = None
     untrusted_pages = [int(page['page']) for page in pages if page.get('untrusted_native_mapping')]
     unread_pages = [int(page['page']) for page in pages if page.get('requires_ocr')]
@@ -347,6 +362,10 @@ def ingest_document(
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:
             review_reason, review_warning = 'ocr_unavailable', str(error)
+    if deferred_pages:
+        unread_pages = sorted(set(unread_pages + deferred_pages))
+        if set(unread_pages) == set(deferred_pages):
+            review_reason = 'processing_pending'
     if unread_pages and (not allow_partial or not any(
             page['page'] not in unread_pages and str(page.get('text', '')).strip() for page in pages)):
         metadata = detect_metadata('')
@@ -363,6 +382,8 @@ def ingest_document(
             'warnings': warnings, 'unread_pages': unread_pages})
         if allow_partial:
             metadata.update(coverage_complete=False, readable_pages=[])
+            if deferred_pages:
+                metadata['deferred_pages'] = deferred_pages
         if ocr_info is not None:
             metadata['ocr'] = ocr_info
         document = Document(doc_id=document_id, source_path=str(pdf_path.resolve()),
@@ -391,6 +412,8 @@ def ingest_document(
         metadata.update(unread_pages=unread_pages,
             readable_pages=[page['page'] for page in pages],
             coverage_complete=not bool(unread_pages))
+        if deferred_pages:
+            metadata['deferred_pages'] = deferred_pages
         if unread_pages:
             metadata.update(status='partial', review_reason=review_reason)
         if resumed_pages:
@@ -414,7 +437,8 @@ def ingest_document(
             metadata['ocr_numeric_policy']=NUMERIC_TABLE_POLICY
     report_progress("detecting_metadata", 1.0)
     report_progress("extracting_tables", 0.0)
-    tables = extract_tables(pages, document_id, pdf_path=pdf_path)
+    with table_page_selection(page['page'] for page in pages):
+        tables = extract_tables(pages, document_id, pdf_path=pdf_path)
     for table in tables:
         table.schema.update(
             {

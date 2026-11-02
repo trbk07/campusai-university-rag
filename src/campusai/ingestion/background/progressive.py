@@ -12,20 +12,23 @@ def ingest_progressively(manager, job_id, options, progress, ingest):
     common = {key:options[key] for key in ('store_dir', 'max_mb', 'max_pages',
         'ocr_timeout_seconds', 'ocr_backend', 'ocr_data_dir')}
     common.update(progress=progress, allow_partial=True,
-        ocr_max_pages=min(4, options['ocr_max_pages']))
+        ocr_max_pages=min(2, options['ocr_max_pages']))
     # The first snapshot exposes native pages without waiting for image OCR.
-    document = ingest(job.source_path, enable_ocr=False, **common)
+    document = ingest(job.source_path, enable_ocr=False, preview_page_limit=4, **common)
     for _ in range(document.page_count + 1):
         manager._checkpoint(job_id)
         if document.chunks and options['index_dir'] is not None:
             build_indexes(manager, job_id, document, options, build_document_indexes)
             manager._update(job_id, ready=True, index_status='ready')
         unread = document.metadata.get('unread_pages', [])
-        if not unread or not options['enable_ocr']:
+        if not unread or not options['enable_ocr'] and not document.metadata.get('deferred_pages'):
             break
         previous = set(unread)
         started=time.monotonic()
-        document = ingest(job.source_path, enable_ocr=True, **common)
+        # Scan-only PDFs get a small first OCR/index snapshot too. Once useful
+        # pages exist, expand to all native pages and resume remaining OCR.
+        preview = {'preview_page_limit':4} if not document.chunks else {}
+        document = ingest(job.source_path, enable_ocr=options['enable_ocr'], **preview, **common)
         remaining=set(document.metadata.get('unread_pages', []))
         if remaining >= previous:
             # No progress: no automatic retry loop on a broken/unreadable page.

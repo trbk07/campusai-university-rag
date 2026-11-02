@@ -18,7 +18,7 @@ from campusai.llm.factory import _read_config
 from campusai.web import make_wsgi_app
 from .serve import build_application
 from .with_gemini_key import read_key
-from .local_state import configure_paths, inspect_local, prepare_state
+from .local_state import configure_paths, inspect_local, prepare_state, configure_cpu_budget
 from .encoder_assets import configure_encoder
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -210,6 +210,7 @@ def main(argv=None) -> int:
     application = None
     try:
         configured = configure_local()
+        configure_cpu_budget(os.environ)
         report = inspect_local(os.environ)
         if report['status'] != 'PREREQUISITES_PASS':
             raise LocalSetupError('Preflight: ' + ', '.join(c['code'] for c in report['checks'] if not c['ok']))
