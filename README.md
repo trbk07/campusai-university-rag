@@ -107,6 +107,52 @@ source pages.
 The frontend uses bundled HTML, CSS, and JavaScript; running the application
 requires no Node.js installation or frontend build step.
 
+### Resource-conscious local operation
+
+The local launcher defaults to one ingestion job, one Tesseract recognition
+worker, one table-decoding worker, and two CPU inference threads. Tokenizer
+parallelism is disabled. Existing OCR checkpoints and unchanged embeddings are
+reused; no additional OCR or document-conversion framework is required.
+
+Large documents expose a small searchable snapshot first, then continue in the
+background. A partial document is labeled with its actual readable pages; it
+does not imply that the remaining pages have been checked. Full completion
+depends on document complexity and hardware, rather than a fixed ten-second
+promise. The pinned retrieval model still requires the local model assets and
+memory described above.
+
+| Optional setting | Default | Purpose |
+|---|---|---|
+| `CAMPUSAI_CPU_THREADS` | `2` | CPU inference budget; use `1` on a constrained machine, maximum `4` |
+| `CAMPUSAI_INGESTION_WORKERS` | `1` | Number of documents processed concurrently |
+| `CAMPUSAI_TABLE_WORKERS` | `1` | Table-decoding workers; explicit opt-in up to `4` |
+
+Keep the defaults when responsiveness and lower CPU load matter more than
+maximum background throughput. Restart the launcher after changing settings.
+
+### Resource-conscious local operation
+
+The local launcher defaults to one ingestion job, one Tesseract recognition
+worker, one table-decoding worker, and two CPU inference threads. Tokenizer
+parallelism is disabled. Existing OCR checkpoints and unchanged embeddings are
+reused; no additional OCR or document-conversion framework is required.
+
+Large documents expose a small searchable snapshot first, then continue in the
+background. A partial document is labeled with its actual readable pages; it
+does not imply that the remaining pages have been checked. Full completion
+depends on document complexity and hardware, rather than a fixed ten-second
+promise. The pinned retrieval model still requires the local model assets and
+memory described above.
+
+| Optional setting | Default | Purpose |
+|---|---|---|
+| `CAMPUSAI_CPU_THREADS` | `2` | CPU inference budget; use `1` on a constrained machine, maximum `4` |
+| `CAMPUSAI_INGESTION_WORKERS` | `1` | Number of documents processed concurrently |
+| `CAMPUSAI_TABLE_WORKERS` | `1` | Table-decoding workers; explicit opt-in up to `4` |
+
+Keep the defaults when responsiveness and lower CPU load matter more than
+maximum background throughput. Restart the launcher after changing settings.
+
 ## How it works
 
 A typical generated answer follows this path:

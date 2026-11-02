@@ -23,6 +23,45 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Ưu tiên máy mát/nhẹ, 02/11 (`4f19e9e3`, lưu index `86843d81`):** launcher
+giới hạn mặc định 1 ingestion job, 1 Tesseract engine dùng chung, 1 worker bảng,
+2 luồng CPU inference; tắt tokenizer parallelism. Windows OCR dùng priority
+BelowNormal. Không hạ độ phân giải/chất lượng OCR, đổi model embedding hay gửi
+PDF sang dịch vụ mới. Các thiết lập và giới hạn RAM được ghi trong README.
+
+Upload HTTP vào app thật, BGE-M3/CUDA đã warm, thư viện có 4 PDF: bản sao PDF
+NUAE 148 trang nhận trong **0,518s**, hỏi được 4 trang đầu đã đọc sau **10,877s**,
+hoàn tất **114,786s**; PDF scan EREER 16 trang nhận trong **0,915s**, hỏi được 2
+trang sau **10,644s**, hoàn tất **31,753s**. Cả hai đủ coverage toàn bộ khi xong;
+tài liệu probe đã xóa, giữ nguyên 4 tài liệu ban đầu. Không gọi Gemini.
+
+Sampler psutil mỗi 250ms đo app và process con: CPU trung bình **4,74% / 4,31%**
+toàn máy 20 logical CPU; đỉnh **6,01% / 5,56%**. Mẫu idle 2s gần 0%.
+Một OCR engine có hai PID trên Windows do venv launcher và interpreter;
+không tính hai PID thành hai recognizer. Đây là một lượt mỗi PDF, không phải
+p95, phép đo nhiệt độ/RPM, hoặc chứng nhận tốc độ trên máy yếu. Mốc khoảng 10s
+chỉ là phần đầu có thể hỏi; toàn văn vẫn xử lý nền với coverage minh bạch.
+
+Tái sử dụng packet bảng theo từng trang, source/file identity và visibility;
+chỉ trích bảng của trang đã đưa vào snapshot, không lấy bảng ở trang còn chờ.
+Lưu JSON index giảm các lần ghi nhỏ, giữ cùng byte/format/checksum. A/B file
+31.245.151 byte: **1,294 → 1,246s**, không phải cải thiện lớn hoặc phép đo toàn
+pipeline. Hai lượt HTTP phía trên thuộc `4f19e9e3`, chưa chạy lại trên thay đổi
+chỉ ghi JSON; không gán số đo đó thành nghiệm thu source khác.
+199 tests hiện hành PASS, gồm 6 ca OCR thật local; 24 tests bảng lịch sử PASS,
+3 ca thiếu corpus không chạy. Không thêm dependency hoặc báo cáo JSON rời.
+CI source `86843d81`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41467345962).
+CI source `86843d81`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41467345962).
+
+Tham khảo thiết kế từ [Paperless-ngx: worker/thread budget](https://docs.paperless-ngx.com/configuration/#software-tweaks),
+[OCRmyPDF: performance](https://ocrmypdf.readthedocs.io/en/stable/performance.html)
+và [Docling: accelerator options](https://docling-project.github.io/docling/reference/pipeline_options/).
+Áp dụng giới hạn tải, OCR khi cần và xử lý theo trang trong pipeline hiện có.
+Đã xem [RAGFlow](https://github.com/infiniflow/ragflow); không cài thêm stack của
+repo này vào ứng dụng local vì kiến trúc triển khai và ngân sách tài nguyên khác.
+
 **Đọc PDF/OCR, 02/11 (`c05007b0`):** render grayscale cho giấy trắng, chỉ tăng
 độ phân giải khi phát hiện chữ nhỏ một cột; ảnh màu giữ RGB và kích thước cũ.
 OCR chia tối đa 4 worker dùng chung. Workload cố định 5 PDF, 41 trang OCR,

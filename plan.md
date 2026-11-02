@@ -22,6 +22,20 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Đọc PDF và OCR — yêu cầu bổ sung 02/11
 
+- [x] **OCR-05 — Web app nhẹ CPU DONE (`4f19e9e3`):** mặc định 1 job tài liệu,
+  1 OCR engine, 1 worker bảng và 2 luồng CPU inference; tắt tokenizer song song.
+  Hỏi sớm trên 4 trang native hoặc 2 trang scan đã đọc, phần còn lại tiếp tục nền
+  với coverage thật. Không coi phần chưa đọc là không có thông tin.
+  HTTP local: PDF 148 trang hỏi phần đầu sau **10,88s**, scan 16 trang sau
+  **10,64s**; hoàn tất lần lượt **114,79s / 31,75s**, đủ 148/148 và 16/16 trang.
+  CPU app trung bình **4,74% / 4,31%** toàn máy 20 luồng, đỉnh **6,01% / 5,56%**;
+  idle mẫu 2s gần 0%. Chưa đo nhiệt độ/RPM hoặc xác nhận máy yếu đạt cùng tốc độ.
+- [x] **OCR-06 — Giảm chi phí lưu index DONE (`86843d81`):** ghi JSON thành khối,
+  giữ nguyên format, checksum, fsync/atomic replace; file index 31,25 MB giống byte
+  baseline. **199 tests hiện hành + 24 tương thích bảng PASS**, 3 ca thiếu corpus
+  lịch sử không chạy; CI Windows/Linux, package/container PASS. Không thêm model,
+  service hoặc artifact nghiệm thu mới.
+
 - [x] **OCR-02 — Tốc độ và chữ nhỏ DONE:** render xám cho trang giấy, tăng độ phân
   giải có chọn lọc cho chữ nhỏ một cột; giữ RGB/độ phân giải cũ cho vùng ảnh màu.
   OCR tối đa 4 worker dùng chung, không hạ giới hạn pixel, timeout hoặc coverage.
