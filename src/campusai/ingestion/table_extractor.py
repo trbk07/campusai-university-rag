@@ -4,6 +4,11 @@ from __future__ import annotations
 
 import re
 import os
+import hashlib
+import json
+from contextlib import contextmanager
+from contextvars import ContextVar
+from copy import deepcopy
 from pathlib import Path
 
 from ..schemas import Table
@@ -13,6 +18,21 @@ _NUMBER = re.compile(r"[-+]?\(?\d[\d.,]*\)?%?")
 _COURSE_CODE = re.compile(r"(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?",re.I)
 _COURSE_SERIAL = re.compile(r"\d+(?:\.\d+)*")
 TABLE_EXTRACTOR_VERSION = "table-v7-vertical-numeric-grid"
+_PACKET_SESSION = ContextVar('table_packet_session', default=None)
+
+
+@contextmanager
+def table_extraction_session():
+    """Reuse physical decoding only within one progressive ingestion job.
+
+    No disk cache or shared mutable tables: each snapshot still assembles its
+    own semantics. The single-entry cache is dropped on success or failure.
+    """
+    token = _PACKET_SESSION.set({})
+    try:
+        yield
+    finally:
+        _PACKET_SESSION.reset(token)
 
 
 def _word_lines(words):
@@ -228,6 +248,23 @@ def _read_page_batch(pdf_path, doc_id, page_numbers, visibility):
 
 
 def _table_page_packets(pdf_path, doc_id, visibility):
+    session = _PACKET_SESSION.get()
+    if session is None:
+        return _decode_table_page_packets(pdf_path, doc_id, visibility)
+    path = Path(pdf_path).resolve()
+    stat = path.stat()
+    visibility_hash = hashlib.sha256(json.dumps(visibility, sort_keys=True,
+        separators=(',', ':'), allow_nan=False).encode('utf-8')).digest()
+    key = (str(path), doc_id, stat.st_dev, stat.st_ino, stat.st_size,
+           stat.st_mtime_ns, stat.st_ctime_ns, TABLE_EXTRACTOR_VERSION, visibility_hash)
+    if session.get('key') == key:
+        return deepcopy(session['packets'])
+    packets = _decode_table_page_packets(pdf_path, doc_id, visibility)
+    session.update(key=key, packets=deepcopy(packets))
+    return packets
+
+
+def _decode_table_page_packets(pdf_path, doc_id, visibility):
     """Parallelize only physical decoding; semantics stay ordered in the parent.
 
     Four workers per document, at most twelve with the app's three ingestion

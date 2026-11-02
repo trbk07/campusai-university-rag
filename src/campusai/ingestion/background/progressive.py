@@ -1,8 +1,10 @@
 """Publish useful page snapshots, then resume bounded automatic OCR batches."""
 import time
 from .commit import build_indexes
+from ..table_extractor import table_extraction_session
 
 
+@table_extraction_session()
 def ingest_progressively(manager, job_id, options, progress, ingest):
     from ...retrieval.index_builder import build_document_indexes
 

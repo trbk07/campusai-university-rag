@@ -121,6 +121,77 @@ def test_slow_ocr_shrinks_batches_and_stalled_ocr_never_retries_automatically(mo
     assert batches==[4] and len(document.metadata['unread_pages'])==20
 
 
+def test_progressive_table_cache_is_source_and_visibility_bound_and_does_not_share_tables(tmp_path,monkeypatch):
+    from campusai.ingestion import table_extractor as tables
+    source=tmp_path/'source.pdf';source.write_bytes(b'first source')
+    calls=[]
+    def decode(path,doc_id,visibility):
+        calls.append((doc_id,deepcopy(visibility)))
+        return [{'page':1,'records':[{'rows':[['Header'],['Exact source cell']]}]}]
+    monkeypatch.setattr(tables,'_decode_table_page_packets',decode)
+    with tables.table_extraction_session():
+        first=tables._table_page_packets(source,'source-a',{})
+        first[0]['records'][0]['rows'][1][0]='caller changed its own snapshot'
+        assert tables._table_page_packets(source,'source-a',{})[0]['records'][0]['rows'][1]==['Exact source cell']
+        assert len(calls)==1
+        tables._table_page_packets(source,'source-b',{})
+        tables._table_page_packets(source,'source-b',{1:[]})
+        source.write_bytes(b'a different source with another size')
+        tables._table_page_packets(source,'source-b',{1:[]})
+        assert len(calls)==4
+    tables._table_page_packets(source,'source-b',{1:[]})
+    assert len(calls)==5  # Nothing survives this job's session.
+
+
+def test_table_cache_is_discarded_when_ingestion_fails_and_isolated_across_threads(tmp_path,monkeypatch):
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    from campusai.ingestion import table_extractor as tables
+    source=tmp_path/'source.pdf';source.write_bytes(b'source')
+    calls=[];barrier=threading.Barrier(2)
+    def decode(*args):
+        calls.append(threading.get_ident())
+        return [{'page':1}]
+    monkeypatch.setattr(tables,'_decode_table_page_packets',decode)
+    with pytest.raises(ValueError,match='cancelled'):
+        with tables.table_extraction_session():
+            tables._table_page_packets(source,'source',{})
+            raise ValueError('cancelled')
+    assert tables._PACKET_SESSION.get() is None
+    def job():
+        with tables.table_extraction_session():
+            barrier.wait(timeout=2)
+            for _ in range(3):tables._table_page_packets(source,'source',{})
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        list(pool.map(lambda _:job(),range(2)))
+    assert len(calls)==3
+
+
+def test_progressive_reuses_decoding_without_changing_real_table_cells_or_physical_pages(tmp_path,monkeypatch):
+    from dataclasses import asdict
+    import pymupdf as fitz
+    from campusai.ingestion import table_extractor as tables
+    source=tmp_path/'table.pdf'
+    with fitz.open() as pdf:
+        for number in [1,2]:
+            page=pdf.new_page(width=400,height=300)
+            for y in [40,70,100,130]:page.draw_line((40,y),(340,y))
+            for x in [40,240,340]:page.draw_line((x,40),(x,130))
+            for index,(name,value) in enumerate([('Item','Value'),(f'Physical page {number}','17'),('Another item','29')]):
+                page.insert_text((50,60+30*index),name,fontsize=10)
+                page.insert_text((250,60+30*index),value,fontsize=10)
+        pdf.save(source)
+    expected=[asdict(table) for table in tables._extract_pdfplumber(source,'controlled')]
+    assert {tuple(table['pages']) for table in expected}=={(1,),(2,)}
+    calls=[];original=tables._decode_table_page_packets
+    def decode(*args):calls.append(True);return original(*args)
+    monkeypatch.setattr(tables,'_decode_table_page_packets',decode)
+    with tables.table_extraction_session():
+        for _ in range(3):
+            assert [asdict(table) for table in tables._extract_pdfplumber(source,'controlled')]==expected
+    assert calls==[True]
+
+
 def parallel_setup(monkeypatch,worker):
     import threading
     from campusai.ingestion import tesseract_process as process
