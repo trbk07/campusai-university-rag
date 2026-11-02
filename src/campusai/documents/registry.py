@@ -16,6 +16,8 @@ from typing import Any
 
 _LOCKS = weakref.WeakValueDictionary()
 _LOCKS_GUARD = threading.Lock()
+_METADATA_BY_LOCK = weakref.WeakKeyDictionary()
+_METADATA_FIELDS = frozenset({'doc_id','source_path','page_count','language','metadata','status','review_reason','cached'})
 
 
 def _path_lock(path):
@@ -120,6 +122,13 @@ class DocumentRegistry:
                 try:
                     os.replace(temporary, self.path)
                     self._items_identity = self._file_identity()
+                    # Transport readers need no chunks/tables. Share only the
+                    # committed metadata under the same path lease, not a
+                    # second full registry or any uncommitted writer state.
+                    snapshot = deepcopy({key:{name:value for name,value in row.items() if name in _METADATA_FIELDS}
+                                         for key,row in self.items.items()})
+                    with _LOCKS_GUARD:
+                        _METADATA_BY_LOCK[self._lock] = (self._items_identity, snapshot)
                     break
                 except PermissionError as error:
                     if os.name != 'nt' or getattr(error, 'winerror', None) not in {5,32,33} or attempt == 5:
@@ -145,17 +154,22 @@ class DocumentRegistry:
 
     def _metadata_snapshot(self):
         """Cache only transport metadata, checking the live file under its lock."""
-        fields = {'doc_id','source_path','page_count','language','metadata','status','review_reason','cached'}
         with self._lock, self._process_lock():
             identity = self._file_identity()
+            with _LOCKS_GUARD:
+                shared = _METADATA_BY_LOCK.get(self._lock)
+            if shared is not None and shared[0] == identity:
+                return shared[1]
             if self._metadata_cache is None or identity != self._metadata_identity:
                 items = self._load()
                 if self._file_identity() != identity:
                     raise OSError('registry changed during metadata read')
                 self.items = items
-                self._metadata_cache = deepcopy({key:{name:value for name,value in row.items() if name in fields}
+                self._metadata_cache = deepcopy({key:{name:value for name,value in row.items() if name in _METADATA_FIELDS}
                                                  for key,row in items.items()})
                 self._metadata_identity = identity
+                with _LOCKS_GUARD:
+                    _METADATA_BY_LOCK[self._lock] = (identity, self._metadata_cache)
             return self._metadata_cache
 
     def metadata_get(self, doc_id: str) -> dict[str, Any] | None:

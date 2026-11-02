@@ -272,6 +272,27 @@ def test_registry_cache_keeps_public_reads_isolated_and_never_reuses_failed_writ
     other.remove('external');assert registry.get('external') is None
 
 
+def test_metadata_readers_reuse_only_committed_writer_snapshots_and_observe_external_changes(tmp_path,monkeypatch):
+    import json
+    from pathlib import Path
+    from campusai.documents.registry import DocumentRegistry
+    path=tmp_path/'registry.json';writer=DocumentRegistry(path);reader=DocumentRegistry(path)
+    writer.add(SimpleNamespace(doc_id='one',to_dict=lambda:{'doc_id':'one','metadata':{'source':'committed'},'chunks':['large-body']}))
+    original=Path.read_text;reads=[]
+    def read(target,*a,**k):
+        if target==path:reads.append(True)
+        return original(target,*a,**k)
+    monkeypatch.setattr(Path,'read_text',read)
+    snapshot=reader.metadata_get('one')
+    assert snapshot['metadata']['source']=='committed' and 'chunks' not in snapshot and not reads
+    snapshot['metadata']['source']='caller mutation'
+    assert reader.metadata_get('one')['metadata']['source']=='committed'
+    path.write_text(json.dumps({'two':{'doc_id':'two','metadata':{'source':'external'}}}),encoding='utf-8')
+    assert reader.metadata_get('one') is None
+    assert reader.metadata_get('two')['metadata']['source']=='external'
+    assert len(reads)==1
+
+
 def test_manifest_cache_reuses_only_unchanged_files_and_retains_exact_corpus_hash(tmp_path,monkeypatch):
     import json,hashlib,os
     from collections import OrderedDict
