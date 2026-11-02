@@ -211,8 +211,26 @@ class HybridRetriever:
 
     def _generation(self, doc_id: str) -> tuple:
         root = self.index_root / doc_id
-        return tuple((path.stat().st_mtime_ns, path.stat().st_size) if path.is_file() else None
-                     for path in (root / "bm25.json", root / "dense.json"))
+        def identity(path):
+            try:
+                stat = path.stat()
+            except FileNotFoundError:
+                return None
+            return stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns
+        return tuple(identity(path) for path in (root / "bm25.json", root / "dense.json"))
+
+    def loaded_document_items(self, doc_id: str):
+        """Return a generation-bound read-only view for internal metadata readers.
+
+        Never load a model/index here. Consumers must match the file identity
+        and leave the items unchanged; stale or removed indexes return None.
+        """
+        with self._index_lock:
+            loaded = self._indexes.get(doc_id)
+            generation = self._generation(doc_id)
+            if loaded is None or generation != self._index_generations.get(doc_id):
+                return None
+            return generation[0], loaded[0].items
 
     def _records(self, doc_ids: list[str], eligible_ids: set[str] | None = None) -> dict[str, dict]:
         records = {}

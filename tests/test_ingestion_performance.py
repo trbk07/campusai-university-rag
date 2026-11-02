@@ -37,6 +37,66 @@ def test_incremental_vectors_match_full_build_and_encode_only_changed_inputs():
     assert previous.items==records(3)
 
 
+def test_bm25_optimization_preserves_scores_duplicate_terms_ties_and_filters():
+    from campusai.retrieval.bm25_index import BM25Index
+    items=[{'chunk_id':'a','content':'alpha beta beta'}, {'chunk_id':'b','content':'alpha gamma'},
+           {'chunk_id':'c','content':'delta beta'}]
+    index=BM25Index(items,'en');result=index.search('alpha beta')
+    assert [row[0] for row in result]==['a','b','c']
+    assert [row[1] for row in result]==pytest.approx([1.031416931563752,.5022939549191067,.5022939549191067],abs=1e-15)
+    assert index.search('alpha beta',eligible_ids={'b','c'})==result[1:]
+    assert not index.search('missing source term',eligible_ids=set())
+    assert not index.search('')
+    once=index.search('alpha');twice=index.search('alpha alpha')
+    assert [row[0] for row in twice]==[row[0] for row in once]
+    assert [row[1] for row in twice]==[2*row[1] for row in once]
+    assert index.tokens[0][1] is index.tokens[0][2] is index.tokens[2][1]
+
+
+def test_dense_full_scope_and_filtered_scoring_preserve_rank_and_empty_scope():
+    index=DenseIndex();index.build(records(6),document_id='source')
+    query=index.encode_query('source paragraph 3')
+    full=index.search('',top_k=6,query_vector=query)
+    assert index.search('',top_k=6,query_vector=query,eligible_ids={row['chunk_id'] for row in index.items})==full
+    allowed={'p2','p4','p6'}
+    filtered=index.search('',top_k=6,query_vector=query,eligible_ids=allowed)
+    assert [row[0] for row in filtered]==[row[0] for row in full if row[0] in allowed]
+    assert dict(filtered)==pytest.approx({key:value for key,value in full if key in allowed},abs=1e-15)
+    assert not index.search('',query_vector=query,eligible_ids=set())
+
+
+def test_temporal_metadata_reuses_only_current_loaded_source_and_observes_replacement(tmp_path,monkeypatch):
+    import os
+    from pathlib import Path
+    from campusai.retrieval.index_builder import build_document_indexes
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from campusai.schemas import Document,Chunk
+    root=tmp_path/'index';ident='a'*64
+    document=Document(ident,'source.pdf',1,language='en',metadata={'institution':'Fictional publisher'},
+                      chunks=[Chunk('one',ident,1,'Original source paragraph for the selected document.')])
+    build_document_indexes(document,root)
+    retriever=HybridRetriever(root);retriever.load_document(ident)
+    service=CampusAIQueryService(retriever,GroundedAnswerGenerator(None))
+    source=root/ident/'bm25.json';original=Path.read_text;reads=[]
+    def read(path,*a,**k):
+        if path==source:reads.append(True)
+        return original(path,*a,**k)
+    monkeypatch.setattr(Path,'read_text',read)
+    first=service._temporal_documents([ident])
+    assert first[0]['items'][0]['content'].endswith('selected document.') and not reads
+    assert not service._temporal_documents([ident],{'institution':'another publisher'})
+    stat=source.stat();replacement=source.with_name('replacement.json')
+    replacement.write_bytes(source.read_bytes().replace(b'Original',b'Modified'))
+    os.utime(replacement,ns=(stat.st_atime_ns,stat.st_mtime_ns));replacement.replace(source)
+    assert retriever.loaded_document_items(ident) is None
+    changed=service._temporal_documents([ident])
+    assert changed[0]['items'][0]['content'].startswith('Modified') and reads==[True]
+    retriever.remove_document(ident)
+    assert retriever.loaded_document_items(ident) is None
+
+
 def test_progress_metadata_is_updated_without_reencoding_or_reusing_changed_semantics():
     previous=DenseIndex();previous.build(records(2),document_id='source')
     items=records(2)

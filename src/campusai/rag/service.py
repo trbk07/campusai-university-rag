@@ -237,10 +237,13 @@ class CampusAIQueryService:
                 path = root / doc_id / 'bm25.json'
                 try:
                     stat = path.stat()
-                    generation = (stat.st_mtime_ns, stat.st_ctime_ns, stat.st_size)
+                    generation = (stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
                     cached = self._temporal_index_cache.get(path)
                     if not cached or cached[0] != generation:
-                        items = json.loads(path.read_text(encoding='utf-8'))['items']
+                        loaded_reader = getattr(self.retriever, 'loaded_document_items', None)
+                        loaded = loaded_reader(doc_id) if callable(loaded_reader) else None
+                        items = (loaded[1] if loaded is not None and loaded[0] == generation
+                                 else json.loads(path.read_text(encoding='utf-8'))['items'])
                         cached = (generation, document_from_items(doc_id, items))
                         self._temporal_index_cache[path] = cached
                     self._temporal_index_cache.move_to_end(path)

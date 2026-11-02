@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import math
+from sys import intern
 from collections import Counter
 from pathlib import Path
 
@@ -25,7 +26,10 @@ class BM25Index:
 
     def build(self, items: list[dict]) -> None:
         self.items = items
-        self.tokens = [normalized_tokens(retrieval_text(item), self.language) for item in items]
+        # Tokens are immutable. Reuse equal strings across chunks/documents
+        # instead of retaining a new Unicode allocation for every occurrence.
+        self.tokens = [[intern(token) for token in normalized_tokens(retrieval_text(item), self.language)]
+                       for item in items]
         self.term_frequency = [Counter(tokens) for tokens in self.tokens]
         self.document_frequency = Counter()
         for tokens in self.tokens:
@@ -39,19 +43,20 @@ class BM25Index:
         if not n:
             return []
         k1, b = 1.5, 0.75
+        query_terms = [(term, math.log(1.0 + (n - self.document_frequency.get(term, 0) + 0.5)
+                       / (self.document_frequency.get(term, 0) + 0.5))) for term in query_tokens]
         scored = []
         for index, frequencies in enumerate(self.term_frequency):
             if eligible_ids is not None and self.items[index]["chunk_id"] not in eligible_ids:
                 continue
             length = len(self.tokens[index]) or 1
+            length_norm = k1 * (1 - b + b * length / max(self.avgdl, 1e-9))
             score = 0.0
-            for term in query_tokens:
+            for term, idf in query_terms:
                 if not frequencies.get(term):
                     continue
-                df = self.document_frequency.get(term, 0)
-                idf = math.log(1.0 + (n - df + 0.5) / (df + 0.5))
                 tf = frequencies[term]
-                norm = tf + k1 * (1 - b + b * length / max(self.avgdl, 1e-9))
+                norm = tf + length_norm
                 score += idf * (tf * (k1 + 1)) / norm
             if score > 0:
                 scored.append((self.items[index]["chunk_id"], score))

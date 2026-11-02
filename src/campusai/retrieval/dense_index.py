@@ -202,7 +202,10 @@ class DenseIndex:
         if np is not None:
             if self._matrix_cache is None:
                 self._matrix_cache = np.asarray(self.vectors, dtype=np.float64)
-            similarities = self._matrix_cache[indices] @ np.asarray(query_vector, dtype=np.float64)
+            # Advanced indexing copies the full matrix even when every row is
+            # eligible. Keep the original float64 arithmetic and row order.
+            matrix = self._matrix_cache if len(indices) == len(self.items) else self._matrix_cache[indices]
+            similarities = matrix @ np.asarray(query_vector, dtype=np.float64)
             scored = [(self.items[index]["chunk_id"], float(score)) for index, score in zip(indices, similarities)]
         else:
             scored = [(self.items[index]["chunk_id"], _cosine(query_vector, self.vectors[index]))
