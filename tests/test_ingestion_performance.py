@@ -95,7 +95,7 @@ def test_managed_snapshot_updates_coverage_without_reencoding_and_retains_old_in
     assert not (root/'.jobs'/job).exists()
 
 
-def run_progressive(monkeypatch, *, elapsed=1., stalled=False):
+def run_progressive(monkeypatch, *, elapsed=1., stalled=False, ocr_elapsed=None):
     remaining=list(range(1,21));batches=[];clock=[0.]
     monkeypatch.setattr(progressive.time,'monotonic',lambda:clock[0])
     monkeypatch.setattr(progressive,'DocumentRegistry',lambda *a:None)
@@ -103,7 +103,10 @@ def run_progressive(monkeypatch, *, elapsed=1., stalled=False):
         if enable_ocr:
             batches.append(options['ocr_max_pages']);clock[0]+=elapsed
             if not stalled:del remaining[:options['ocr_max_pages']]
-        return SimpleNamespace(page_count=20,chunks=[],metadata={'unread_pages':list(remaining)})
+        metadata={'unread_pages':list(remaining)}
+        if ocr_elapsed is not None:
+            metadata['ocr']={'pages':20-len(remaining),'elapsed_seconds':len(batches)*ocr_elapsed}
+        return SimpleNamespace(page_count=20,chunks=[],metadata=metadata)
     manager=SimpleNamespace(_jobs={'job':SimpleNamespace(source_path='source.pdf')},_checkpoint=lambda _:None)
     options=normalize_options({'enable_ocr':True,'ocr_max_pages':16,'ocr_timeout_seconds':120})
     document=progressive.ingest_progressively(manager,'job',options,lambda *a:None,ingest)
@@ -120,6 +123,11 @@ def test_slow_ocr_shrinks_batches_and_stalled_ocr_never_retries_automatically(mo
     assert batches[0]==2 and batches[1]==1 and not document.metadata['unread_pages']
     batches,document=run_progressive(monkeypatch,stalled=True)
     assert batches==[2] and len(document.metadata['unread_pages'])==20
+
+
+def test_registry_or_index_overhead_does_not_create_repeated_tiny_ocr_batches(monkeypatch):
+    batches,document=run_progressive(monkeypatch,elapsed=80.,ocr_elapsed=2.)
+    assert batches==[2,16,16] and not document.metadata['unread_pages']
 
 
 def test_progressive_table_cache_is_source_and_visibility_bound_and_does_not_share_tables(tmp_path,monkeypatch):

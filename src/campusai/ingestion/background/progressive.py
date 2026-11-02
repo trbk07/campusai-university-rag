@@ -1,5 +1,6 @@
 """Publish useful page snapshots, then resume bounded automatic OCR batches."""
 import time
+import math
 from pathlib import Path
 from .commit import build_indexes
 from ..table_extractor import table_extraction_session
@@ -27,6 +28,7 @@ def ingest_progressively(manager, job_id, options, progress, ingest):
         if not unread or not options['enable_ocr'] and not document.metadata.get('deferred_pages'):
             break
         previous = set(unread)
+        previous_ocr = document.metadata.get('ocr') or {}
         started=time.monotonic()
         # Scan-only PDFs get a small first OCR/index snapshot too. Once useful
         # pages exist, expand to all native pages and resume remaining OCR.
@@ -38,6 +40,13 @@ def ingest_progressively(manager, job_id, options, progress, ingest):
             break
         completed=len(previous-remaining)
         elapsed=max(.001,time.monotonic()-started)
+        recognized = document.metadata.get('ocr') or {}
+        ocr_pages = recognized.get('pages', 0) - previous_ocr.get('pages', 0)
+        ocr_seconds = recognized.get('elapsed_seconds', 0) - previous_ocr.get('elapsed_seconds', 0)
+        if ocr_pages > 0 and math.isfinite(ocr_seconds) and ocr_seconds > 0:
+            # Size the next recognition batch from recognition cost. Registry,
+            # table and index I/O must not make fast OCR look like slow OCR.
+            completed, elapsed = ocr_pages, max(.001, ocr_seconds)
         # Keep the first searchable OCR snapshot small. Later batches amortize
         # parsing/worker/index overhead, while slow pages shrink the next batch
         # to a conservative fraction of the existing hard deadline.
