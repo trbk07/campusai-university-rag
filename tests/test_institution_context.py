@@ -174,6 +174,67 @@ def test_split_complete_acronym_resolves_but_ambiguous_or_partial_prefix_does_no
     assert resolve_institution_request('dhsb pn cần bao nhiêu tín chỉ?',docs).needs_clarification
 
 
+@pytest.fixture
+def literal_locator_sources(schools):
+    import copy,json
+    docs=copy.deepcopy(schools)
+    docs[0]['items'] += [
+        {'doc_id':'north','chunk_id':'article','page':8,'content':
+         'Điều 27. Điều kiện bảo trì thiết bị\nCác yêu cầu được nêu ở đây.','metadata':{}},
+        {'doc_id':'north','chunk_id':'subheading','page':9,'content':
+         '2. Điều kiện, hình thức làm đồ án, khóa luận:\nĐiểm tích lũy là một điều kiện.','metadata':{}},
+        {'doc_id':'north','chunk_id':'mapping','page':10,'content_type':'table',
+         'content':json.dumps({'scope':'Controlled','headers':['Điểm chữ','Khoảng điểm'],
+                              'rows':[['X','7,1–8,2']]},ensure_ascii=False),'metadata':{}}]
+    docs[1]['items'] += [{'doc_id':'west','chunk_id':'other','page':8,'content':
+        'Điều 27. Đăng ký môn học\nMột chủ đề khác.','metadata':{}}]
+    return docs
+
+
+@pytest.mark.parametrize('question',[
+    'Điều 27 quy định thế nào về bảo trì thiết bị?',
+    'Trang 8 Điều 27 quy định thế nào về bảo trì thiết bị?',
+    'Từ điều kiện đồ án trang 9, yêu cầu điểm là gì?',
+    'Trang 10 trong bảng điểm chữ, mức X là gì?',
+])
+def test_explicit_page_article_and_literal_title_identify_source(literal_locator_sources,question):
+    request=resolve_institution_request(question,literal_locator_sources)
+    assert request.doc_ids=={'north'} and not request.needs_clarification
+
+
+def test_locator_requires_every_explicit_coordinate_and_a_meaningful_printed_title(literal_locator_sources):
+    from campusai.retrieval.source_scope import explicit_source_documents
+    for question in ['Điều 27 có quy định gì?','Trang 8 có gì?',
+                     'Trang 10 Điều 27 nói gì về bảo trì thiết bị?',
+                     'Trang 9 có bảng điểm chữ không?',
+                     'Trang 1-999999999 bảng điểm chữ thế nào?',
+                     'Trang 0 bảng điểm chữ là gì?']:
+        assert not explicit_source_documents(question,literal_locator_sources)
+
+
+def test_locator_does_not_trust_metadata_or_resolve_unread_competing_sources(literal_locator_sources):
+    from campusai.retrieval.source_scope import explicit_source_documents
+    docs=literal_locator_sources
+    docs[0]['items'][1]['content']='Ordinary unrelated body.'
+    docs[0]['items'][1]['metadata']={'heading_path':['Điều 27. Điều kiện bảo trì thiết bị']}
+    assert not explicit_source_documents('Điều 27 nói gì về bảo trì thiết bị?',docs)
+    docs[1]['items'][0]['metadata']['coverage_complete']=False
+    assert not explicit_source_documents('Trang 10 trong bảng điểm chữ, mức X là gì?',docs)
+
+
+def test_locator_preserves_ambiguous_owners_and_explicit_school_priority(literal_locator_sources):
+    import copy
+    docs=literal_locator_sources
+    query='Trang 10 trong bảng điểm chữ, mức X là gì?'
+    duplicate=copy.deepcopy(docs[0]['items'][-1]);duplicate['doc_id']='west'
+    docs[1]['items'].append(duplicate)
+    assert resolve_institution_request(query,docs).needs_clarification
+    unknown=resolve_institution_request('Trường Đại học Mây Trắng '+query,docs)
+    assert unknown.unknown_name and not unknown.doc_ids
+    selected=resolve_institution_request('WIM: Điều 27 quy định bảo trì thiết bị ra sao?',docs)
+    assert selected.doc_ids=={'west'}  # A locator never overrides a named owner.
+
+
 def test_shared_parent_and_duplicate_files():
     first = document('a', 'ĐẠI HỌC LIÊN VÙNG\nTRƯỜNG ĐẠI HỌC SAO BẮC')
     duplicate = document('b', 'TRƯỜNG ĐẠI HỌC SAO BẮC')

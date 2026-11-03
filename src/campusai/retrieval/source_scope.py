@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import re
 import unicodedata
+import json
 
 from .routing import detected_course_codes
 from .tokenizer_vi import source_body
@@ -78,12 +79,74 @@ def explicit_source_documents(query,documents):
         # Several requested codes must all belong to the same source; a union
         # could hide a missing code or collapse an actual cross-document task.
         return set.intersection(*owners) if owners else set()
-    if not _curriculum_query(raw):return set()
-    records={str(i):{**item,'doc_id':doc['doc_id']} for i,(doc,item) in enumerate(
-        (doc,item) for doc in documents for item in doc.get('items',[]))}
-    headings=_curriculum_headings(records)
-    matched=_matching_programmes(raw,headings)
-    return {doc for (doc,_),(_,name) in headings.items() if name in matched} if len(matched)==1 else set()
+    if _curriculum_query(raw):
+        records={str(i):{**item,'doc_id':doc['doc_id']} for i,(doc,item) in enumerate(
+            (doc,item) for doc in documents for item in doc.get('items',[]))}
+        headings=_curriculum_headings(records)
+        matched=_matching_programmes(raw,headings)
+        if matched:
+            return {doc for (doc,_),(_,name) in headings.items() if name in matched} if len(matched)==1 else set()
+    return _literal_location_documents(raw,documents)
+
+
+def _literal_location_documents(query,documents):
+    """Resolve an explicit page/article AND a printed title, never a value.
+
+    A page number alone, metadata heading, generic keyword or missing title
+    does not identify a PDF. Keep all matching owners; the caller handles
+    duplicate institutions/ambiguity and the normal answer proof still runs.
+    """
+    from ..rag.page_queries import page_intervals
+    try:intervals=page_intervals(query)
+    except ValueError:return set()
+    if (any(start<1 or end<start for start,end in intervals)
+            or sum(end-start+1 for start,end in intervals)>12):return set()
+    articles=set(re.findall(r'\b(?:dieu|article|section|chapter)\s+(\d+)\b',_fold(query)))
+    if not intervals and not articles:return set()
+    # An unread competing source cannot establish unique title ownership.
+    if any(item.get('metadata',{}).get('coverage_complete') is False
+           for doc in documents for item in doc.get('items',[])):return set()
+    tokens=lambda text:tuple(re.findall(r'[a-z]+',_fold(text)))
+    content_query=re.sub(r'\b(?:dieu|article|section|chapter|pages?|trang)\s+\d+\b',' ',_fold(query))
+    words=tokens(content_query)
+    # "án" folds to English "an"; keep it as a content token so a literal
+    # Vietnamese đồ án title is not lost to a bilingual stop-word collision.
+    generic=set('the and of to in on at for is are what which how a '
+        'la va cua cho trong tai o theo co gi nao noi ve trang page article section chapter'.split())
+    phrases={words[i:i+n] for n in [2,3] for i in range(len(words)-n+1)
+             if all(len(word)>=2 for word in words[i:i+n]) and not any(word in generic for word in words[i:i+n])}
+    def matches(label,kind):
+        title=tokens(label)
+        if not 2<=len(title)<=32:return False
+        if all(len(word)>=2 for word in title) and any(
+                words[i:i+len(title)]==title for i in range(len(words)-len(title)+1)):
+            return True
+        if kind=='table':return False  # A table column needs its complete label.
+        spans=[(i,i+n) for n in [2,3] for i in range(len(title)-n+1) if title[i:i+n] in phrases]
+        return (any(end-start>=3 for start,end in spans)
+                or any(a[1]<=b[0] or b[1]<=a[0] for a in spans for b in spans))
+    found=set()
+    for doc in documents:
+        for item in doc.get('items',[]):
+            page=item.get('page')
+            if intervals and (type(page) is not int or not any(a<=page<=b for a,b in intervals)):continue
+            body=source_body(item,decode_tables=False)
+            labels=[]
+            for line in body.splitlines():
+                heading=re.match(r'^\s*(?:dieu|article|section|chapter)\s+(\d+)\s*[.:)]\s*(.+)$',_fold(line))
+                if heading:
+                    if not articles or heading[1] in articles:labels.append((heading[2],'article'))
+                elif not articles:
+                    heading=re.match(r'^\s*\d+[.)]\s+(.{3,180}):\s*$',_fold(line))
+                    if heading:labels.append((heading[1],'subheading'))
+            if not articles and item.get('content_type')=='table':
+                start=body.find('{')
+                try:table,_=json.JSONDecoder().raw_decode(body[start:]) if start>=0 else ({},0)
+                except (ValueError,TypeError):table={}
+                if isinstance(table,dict) and isinstance(table.get('headers'),list):
+                    labels.extend((header,'table') for header in table['headers'] if isinstance(header,str))
+            if any(matches(label,kind) for label,kind in labels):found.add(doc['doc_id'])
+    return found
 
 
 def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, dict]:
