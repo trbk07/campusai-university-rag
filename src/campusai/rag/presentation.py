@@ -128,7 +128,17 @@ def prose(text):
     return re.sub(r'\[\d+\]', '', text)
 
 
+def quantity_spacing(text):
+    """Separate joined quantity predicates without breaking course IDs."""
+    codes=[m.span() for m in COURSE_MARKER.finditer(text)]
+    def separate(match):
+        if any(a<=match.start()<b for a,b in codes):return match[0]
+        return match[0]+' '
+    return re.sub(r'\b(?:có|co|với|voi|là|la|phí|phi|has|with|is)(?=\d)',separate,text,flags=re.I)
+
+
 def quantities(text):
+    text=quantity_spacing(text)
     result = defaultdict(set)
     for value, unit in UNIT.findall(folded(text)):
         unit = ('credits' if unit in {'credit', 'credits', 'tin chi', 'tc'} else
@@ -473,7 +483,20 @@ def source_ownership_conflicts(answer, claims, citations, results, question=''):
     for citation in citations:
         if citation.source_name:labels.setdefault(folded(citation.source_name),set()).add(citation.doc_id)
     allowed={doc:quantities('\n'.join(parts)) for doc,parts in texts.items()}
-    view=_threshold_premise_view(answer,[c.text for c in claims if c.status=='supported'],question)
+    # A validated table row may omit the unit that is printed in its column
+    # header. Bind that unit to the claim's exact course code in the cited
+    # rectangle; other rows, documents and unit types remain unavailable.
+    from .course_credits import headed_credit_rows
+    for claim in claims:
+        if claim.status!='supported':continue
+        codes=code_markers(claim.text)
+        for identity in claim.citation_ids:
+            citation=by_id.get(identity)
+            if citation is None or citation.doc_id not in allowed:continue
+            for code,credits,_row in headed_credit_rows(citation.quote) or []:
+                if code.casefold() in codes and credits is not None:
+                    allowed[citation.doc_id][number(str(credits))].add('credits')
+    view=quantity_spacing(_threshold_premise_view(answer,[c.text for c in claims if c.status=='supported'],question))
     for clause in re.split(r'[;!?\n]+|\.(?:\s+|$)',view):
         value=folded(clause);words=list(re.finditer(r'\w+',value));mentions=[]
         refs=_references(clause,list(documents.values()))
@@ -616,7 +639,7 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
         return True
-    visible = prose(answer)
+    visible = quantity_spacing(prose(answer))
     table_semesters={value for kind,value in locations if kind=='semester'}
     if table_semesters and any(str(int(m[1])) not in table_semesters for m in SEMESTER_LOCATION.finditer(visible)):
         return True

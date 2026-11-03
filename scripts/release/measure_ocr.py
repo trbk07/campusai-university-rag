@@ -41,7 +41,16 @@ def digest(path):
 def save(path, value):
     temporary = path.with_name(path.name + '.tmp')
     temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + '\n', encoding='utf-8')
-    temporary.replace(path)
+    for attempt in range(10):
+        try:
+            temporary.replace(path)
+            return
+        except PermissionError as error:
+            # Windows readers can briefly deny rename/delete sharing. Retry
+            # only committing the already-written checkpoint, never inference.
+            if getattr(error, 'winerror', None) not in {5,32,33} or attempt==9:
+                raise
+            time.sleep(.1)
 
 
 def main(argv=None):

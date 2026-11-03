@@ -378,3 +378,41 @@ def test_spoken_numeric_alternatives_select_a_source_proved_conversion():
     answer=deterministic_grade_answer('7 phẩy 1 là 3 chấm hay 2 chấm 6?',[ranges,points])
     assert answer and not answer.abstained and '2,6' in answer.answer
     assert deterministic_grade_answer('Học phí 7 phẩy 1 là 3 chấm hay 2 chấm 6?',[ranges,points]) is None
+
+
+def test_source_ownership_binds_credit_header_to_only_the_claimed_course_row():
+    import json
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import source_ownership_conflicts,quantity_spacing
+    table={'headers':['Mã HP','Tên học phần','Tổng số TC'],
+           'rows':[['ZX987654','Điều khiển','4'],['ZX987655','Tối ưu','7']]}
+    text=json.dumps(table,ensure_ascii=False)
+    row=RetrievalResult('table','cloud',8,text,'table',1.,'test',
+        {'institution':'Trường Đại học Mây Xanh','source_name':'cloud.pdf'})
+    claim=Claim('course','ZX987654 | Điều khiển | 4','fact',1,('table',),'supported',1.,('table',),False)
+    cite=Citation('table','cloud',8,text,source_name='cloud.pdf')
+    def conflict(answer):return source_ownership_conflicts(answer,[claim],[cite],[row])
+    assert not conflict('Trường Đại học Mây Xanh có môn ZX987654 với4 tín chỉ.')
+    assert conflict('Trường Đại học Mây Xanh có môn ZX987654 với7 tín chỉ.')
+    assert conflict('Trường Đại học Mây Xanh có học phí4 USD.')
+    assert quantity_spacing('CO123456 có4 tín chỉ')=='CO123456 có 4 tín chỉ'
+
+
+def test_checkpoint_commit_recovers_a_windows_reader_lock_without_losing_data(tmp_path,monkeypatch):
+    from pathlib import Path
+    from scripts.release import measure_ocr
+    import json
+    path=tmp_path/'results.json';path.write_text('{"count":1}',encoding='utf-8')
+    original=Path.replace;attempts=[]
+    def sharing_violation_once(source,target):
+        attempts.append(source)
+        if len(attempts)==1:
+            error=PermissionError('Reader temporarily denies delete sharing');error.winerror=32
+            raise error
+        return original(source,target)
+    monkeypatch.setattr(Path,'replace',sharing_violation_once)
+    monkeypatch.setattr(measure_ocr.time,'sleep',lambda _delay:None)
+    measure_ocr.save(path,{'count':2,'response':'unchanged native answer'})
+    assert json.loads(path.read_text(encoding='utf-8'))=={'count':2,'response':'unchanged native answer'}
+    assert len(attempts)==2 and not path.with_name(path.name+'.tmp').exists()

@@ -7,6 +7,8 @@ Cập nhật: **03/11/2026 · Asia/Bangkok**.
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
+Bộ Golden 100 mới: **48/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
+lịch sử thành một chứng nhận chất lượng tổng quát.
 
 Theo yêu cầu ngày 31/10, các báo cáo được gom tại
 [báo cáo tổng quan](docs/PROJECT_OVERVIEW.md); log, bộ kiểm thử, benchmark và
@@ -35,21 +37,21 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   không ghi đè baseline. Diagnostics xác định thêm lỗi validator loại suy luận
   số học đúng, alias/so sánh thiếu nguồn và diễn giải sai nhóm môn tự chọn; tiếp tục sửa.
 - [ ] **ANS-11b — Đóng vòng sửa bằng kiểm chứng thật:** khắc phục các lỗi còn
-  quan sát được; chạy đủ 100 ca/112 lượt trên cùng bản cuối. Báo riêng strict gốc,
+  quan sát được; xác nhận ≥95% trên cùng bản cuối. Báo riêng strict gốc,
   adjudicated v2 sau review nguồn và fresh holdout được đóng băng sau sửa.
   FACT15 và các fixture phạm vi/ý phụ không tự chuyển thành PASS; chưa có bằng
   chứng thì ghi PENDING_GOLD_REVIEW/NOT PASSED.
-  Lượt đủ **100 ca / 112 lượt HTTP** trên `53b6802b` đã chạy xong: 85 Gemini
-  calls thành công, không lỗi HTTP; có 4 lượt trúng cache bản cũ, được giữ rõ
-  trong evidence. Đã sửa cache tự gắn fingerprint code khi khởi động, câu hỏi
-  nối tiếp đổi học kỳ, so sánh điểm và provenance tên nguồn. **298 tests PASS**.
-  Tiếp tục đo lại trên snapshot mới; chưa tuyên bố đạt ≥95%, chưa dùng replay
-  hoặc kiểm thử giả lập làm số liệu E2E. Bốn index tài liệu gốc giữ nguyên;
-  manifest chung có thêm tài liệu ngoài benchmark nên được ghi riêng.
-  Vòng đo tiếp giữ lại lỗi Gemini quá tải và một lần tiến trình mất trước khi
-  lưu response, không tự retry hay xóa usage. Đã tái hiện và sửa guard ghép sai
-  điều kiện–xếp loại, locator từ dòng tổng kết học kỳ và context lặp provenance.
-  **303 tests PASS**; chất lượng ≥95% vẫn chưa được xác nhận trên bản cuối.
+- [x] **ANS-11c — Đo lại đủ Golden 100 DONE (03/11, `0a96fe4b`):**
+  **100 ca /112 lượt thật**, **48 PASS /52 FAIL**, so với baseline33 PASS;
+  82 Gemini calls thành công,0 lỗi HTTP/timeout,0 answer-cache hits;
+  p50 **2,78s**, p95 **8,10s**.74 citation hợp lệ về nguồn/trang/quote.
+  Ba nhóm CTX hoàn thành cả3 lượt; chất lượng tổng vẫn **NOT PASSED**.
+  Giữ nguyên golden,4 PDF và index; lịch sử lỗi/các snapshot trước được giữ
+  riêng trong [báo cáo](evaluation/results/campusai_100_remediation_20261103/report.md).
+  Không lặp lại lượt đo đã DONE để ghép điểm của nhiều snapshot.
+  Bản sửa sau lượt đo đã **PASS305 tests**: đơn vị tín chỉ theo đúng mã/tiêu đề
+  bảng và phục hồi commit checkpoint local khi Windows có reader lock;
+  kiểm tra targeted riêng, chưa thay thế điểm48/100 của snapshot đã khóa.
 
 - [x] **ANS-07 — Baseline Golden 100 DONE (03/11, `8ddcd9c5`):** đã chạy đủ
   **100 case / 112 lượt HTTP thật** qua app với 4 PDF, không mock; CTX chạy đúng
