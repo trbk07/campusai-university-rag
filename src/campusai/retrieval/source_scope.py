@@ -13,6 +13,60 @@ def _fold(text: str) -> str:
     return ' '.join(value.encode('ascii', 'ignore').decode('ascii').split())
 
 
+def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, dict]:
+    """Exclude a different curriculum only from explicit local section proof.
+
+    Document-wide inferred ``program`` metadata may describe a later chapter.
+    Numbered programme headings and literal programme labels establish page
+    ownership until the next such heading in the same document. Ambiguous or
+    unnamed programmes retain ordinary retrieval, never guessed mappings.
+    """
+    text=' '.join(re.sub(r'[^a-z0-9]+',' ',_fold(query)).split())
+    if not re.search(r'\b(?:nganh|chuyen nganh|chuong trinh|curriculum|program(?:me)?|hk\s*\d+|hoc k[yi]\s*\d+)\b',text):
+        return records
+    headings={}
+    for item in records.values():
+        # Read the literal page text, not the generated context header.
+        for line in source_body(item).splitlines():
+            value=_fold(line)
+            priority=0
+            match=re.match(r'^\d+[.)]?\s+(?:nganh|program(?:me)?)\s+(.{2,100})$',value)
+            if not match:
+                match=re.match(r'^(?:chuyen nganh|chuong trinh)\s+dao tao\s*:\s*(.{2,100})$',value)
+                priority=1
+            if not match:continue
+            name=re.split(r'\s*\(?\d+\s*(?:tin chi|credits?)\b',match[1],maxsplit=1)[0]
+            name=' '.join(re.findall(r'[a-z]+',name))
+            if not name or len(name.split())>12:continue
+            key=(item['doc_id'],int(item['page']))
+            previous=headings.get(key)
+            if previous is None or priority>previous[0]:headings[key]=(priority,name)
+            elif priority==previous[0] and name!=previous[1]:headings[key]=(priority,None)
+    names={name for _,name in headings.values() if name}
+    matched={name for name in names if re.search(r'(?<!\w)'+re.escape(name)+r'(?!\w)',text)}
+    if matched:
+        # "Accounting" is not a second requested programme when contained in
+        # the explicit longer name "Accounting - Auditing".
+        matched={name for name in matched if not any(name!=other and name in other for other in matched)}
+    if not matched:
+        aliases={}
+        for name in names:
+            alias=''.join(word[0] for word in name.split())
+            if len(alias)>=3:aliases.setdefault(alias,set()).add(name)
+        matched=set().union(*(values for alias,values in aliases.items()
+                              if len(values)==1 and re.search(r'(?<!\w)'+re.escape(alias)+r'(?!\w)',text))) if aliases else set()
+    if len(matched)!=1:return records
+    chosen=next(iter(matched));by_doc={}
+    for (doc,page),(_priority,name) in headings.items():by_doc.setdefault(doc,[]).append((page,name))
+    for values in by_doc.values():values.sort()
+    scoped={}
+    for key,item in records.items():
+        preceding=[(page,name) for page,name in by_doc.get(item['doc_id'],[]) if page<=item['page']]
+        owner=preceding[-1][1] if preceding else None
+        if owner is None or owner==chosen:scoped[key]=item
+    return scoped
+
+
 def unsupported_source_reason(query: str, records: dict[str, dict]) -> str | None:
     """Reject absent subjects using the actual selected and filtered sources.
 

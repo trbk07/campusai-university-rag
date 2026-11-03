@@ -19,13 +19,29 @@ def decimal(value):
 
 
 def score_input(question):
-    text=folded(question)
+    from ..ingestion.numeric_normalizer import normalize_spoken_decimals
+    raw,separator,topic=question.partition('\nContext topic (untrusted user input): ')
+    text=folded(normalize_spoken_decimals(raw))
     values = {decimal(m[1] or m[2]) for m in SCORE.finditer(text)
               if not re.search(r'\b(?:thang|scale)\s*$',text[:m.start()])
               and not re.match(r'\s+scale\b',text[m.end():])}
-    if not values and re.search(r'\b(?:quy doi|convert|letter grade)\b',text):
-        values={decimal(m[1]) for m in re.finditer(r'\b(?:duoc|dat|got|scored)\s+('+NUMBER+r')(?=\s*(?:thi\b|quy doi\b|[?!.]|$))',text)}
+    if not values and conversion_request(question):
+        values={decimal(m[1]) for m in re.finditer(r'\b(?:duoc|dat|got|scored)\s+('+NUMBER+r')(?![\w.,])(?=\s*(?:thi\b|quy (?:doi|ra)\b|[?!.]|$))',text)}
+        if not values:
+            # The score precedes the requested conversion or its alternatives.
+            # Scale labels (he4/thang10) are not candidate score inputs.
+            prefix=re.split(r'\b(?:la|quy|doi he|convert|maps? to)\b',text,maxsplit=1)[0]
+            prefix=re.sub(r'\b(?:he|thang|scale)\s*\d+\b',' ',prefix)
+            values={decimal(m[0]) for m in re.finditer(r'(?<![\w.,])'+NUMBER+r'(?![\w.,])',prefix)}
+    if not values and separator:
+        return score_input(topic)
     return next(iter(values)) if len(values) == 1 else None
+
+
+def conversion_request(question):
+    value=folded(question)
+    return bool(re.search(r'\b(?:quy doi|quy ra|doi he|he\s*4|diem chu|letter grade|convert|thang|diem he)\b|'
+                          r'\b[a-f][+]?\s+(?:hay|ha)\b',value))
 
 
 def table_proof(content, value):
@@ -174,12 +190,12 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
     if value is not None and len({r.doc_id for r in results}) == 2:
         return _grade_comparison(question, results, language, value, calibrator=calibrator)
     if (value is None or len({r.doc_id for r in results})!=1
-            or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert|thang|diem he)\b|\b[a-f][+]?\s+hay\s+[a-f][+]?(?!\w)',query)
+            or not conversion_request(question)
             or re.search(r'\b(?:gpa|cpa|trung binh|tich luy|weighted|average|tong diem|tot nghiep|graduation|hoc bong|scholarship|mat khau|password|tai khoan|account|hoc phi|tuition|dia chi|email|bi mat|secret|prompt|dong thoi)\b',query)):
         return None
     from .request_completeness import explicit_request_roles
     if explicit_request_roles(question):return None
-    if re.search(r'\b(?:roi|ngoai ra|also|then|plus)\b|\b(?:va|and)\s+(?!(?:diem|thang|he|numeric|letter|grade)\b)',query):
+    if re.search(r'\b(?:roi|ngoai ra|also|then|plus)\b|\b(?:va|and)\s+(?!(?:diem|thang|he|numeric|letter|grade|quy doi|quy ra)\b)',query):
         return None
     from ..retrieval.tokenizer_vi import source_body
     from .footnotes import _fold_with_offsets
@@ -211,11 +227,11 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
     grades={grade for grade,_,_ in ranges}
     if len(grades)!=1:return None
     grade=next(iter(grades));points=[field for field in point_fields if field[0]==grade]
-    if len({decimal(field[1]) for field in points})!=1:return None
-    _,range_result,range_claim=min(ranges,key=lambda item:len(item[2]))
-    _,point,point_result,point_claim=min(points,key=lambda item:len(item[3]))
     letter_only=bool(re.search(r'\b(?:diem chu|letter grade)\b|\b[a-f][+]?\s+hay\s+[a-f][+]?(?!\w)',query)
-                     and not re.search(r'\b(?:diem so|diem he|grade points?|numeric grade)\b|\b(?:va|and)\s+(?:thang|he)',query))
+                     and not re.search(r'\b(?:diem so|diem he|he\s*4|grade points?|numeric grade)\b|\b(?:va|and)\s+(?:thang|he)',query))
+    if not letter_only and len({decimal(field[1]) for field in points})!=1:return None
+    _,range_result,range_claim=min(ranges,key=lambda item:len(item[2]))
+    if not letter_only:_,point,point_result,point_claim=min(points,key=lambda item:len(item[3]))
     texts=[(range_result,range_claim)] if letter_only else [(range_result,range_claim),(point_result,point_claim)]
     claims=[{'claim_id':f'grade{i}','text':text,'citation_ids':[result.chunk_id]}
             for i,(result,text) in enumerate(texts)]
@@ -250,7 +266,7 @@ def _grade_comparison(question, results, language, value, *, calibrator=None):
     from .policies import explicit_comparison_request
     query = folded(question)
     if (not explicit_comparison_request(question)
-            or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert|thang|diem he)\b', query)
+            or not conversion_request(question)
             or re.search(r'\b(?:gpa|cpa|trung binh|tich luy|average|hoc phi|tuition|credits?|'
                          r'tin chi|mat khau|password|tai khoan|account|email|secret|prompt|'
                          r'dong thoi|ngoai ra|also|then|hoc bong|scholarship|write|poem|viet|bai tho)\b', query)):
@@ -292,8 +308,8 @@ def application_view(answer, quotes, question, *, doc_ids=None):
     the application lacks a literal in-range proof. Thresholds stay unchanged.
     """
     value = score_input(question)
-    if value is None or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert)\b|'
-                                     r'\b[ABCDF][+]?(?!\w)(?:\s+hay\s+[ABCDF][+]?(?!\w))', folded(question), re.I):
+    if value is None or not (conversion_request(question) or re.search(r'\b(?:quy doi|diem chu|letter grade|convert)\b|'
+                                     r'\b[ABCDF][+]?(?!\w)(?:\s+hay\s+[ABCDF][+]?(?!\w))', folded(question), re.I)):
         return None
     visible_grades = set(re.findall(r'(?<!\w)[ABCDF][+-]?(?![\w+\-])', answer))
     if not visible_grades:
@@ -331,7 +347,7 @@ def retrieval_evidence(question,documents):
     or fixed scale values participate in selection.
     """
     value=score_input(question)
-    if value is None or not re.search(r'\b(?:quy doi|diem chu|letter grade|convert)\b|\b[a-f][+]?\s+hay\s+[a-f][+]?(?!\w)',folded(question)):
+    if value is None or not conversion_request(question):
         return []
     from ..retrieval.tokenizer_vi import source_body
     from ..retrieval.hybrid import RetrievalResult

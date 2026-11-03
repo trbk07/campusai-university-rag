@@ -36,9 +36,9 @@ def asserts_document_absence(answer):
         r'(?:do(?:es)?\s+not|doesn[\x27\u2019]t|don[\x27\u2019]t)\s+'
         r'(?:contain|mention|specify|provide|include|state|show|cover|address|list|establish|confirm|describe)\b')
     vietnamese=(r'(?:(?:cac|nhung)\s+)?(?:tai lieu|nguon|tep pdf|pdf)'
-        r'(?:\s+(?:duoc\s+)?(?:tai len|cung cap|chon|kiem tra))?'
+        r'(?:\s+(?:(?:duoc|dang)\s+)?(?:tai len|cung cap|chon|kiem tra)|\s+hien co)?'
         r'(?:\s+nay)?\s+(?:khong|chua)\s+(?:he\s+)?'
-        r'(?:de cap|co|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia|liet ke|quy dinh)\b')
+        r'(?:de cap|co|chua thong tin|neu|cung cap|ghi|chi ro|bao gom|the hien|xac lap|cong bo|phan chia|liet ke|quy dinh)\b')
     if re.search(boundary+r'(?:'+english+'|'+vietnamese+r')',text):
         return True
     # The source can be the subject of a qualified clause: "the document only
@@ -48,7 +48,7 @@ def asserts_document_absence(answer):
     # explicit information-absence assertion. Do not treat ordinary negative rules
     # or quoted discussions as assertions about information availability.
     qualified_subject = (r'(?:tai lieu|nguon|tep pdf|pdf)\s+(?P<subject>[^.!?;]{1,180}?)\s+'
-        r'(?:khong|chua)\s+(?:he\s+)?(?:cong bo|phan chia|de cap|cung cap|xac lap|quy dinh|neu|ghi ro)\b')
+        r'(?:khong|chua)\s+(?:he\s+)?(?:chua thong tin|cong bo|phan chia|de cap|cung cap|xac lap|quy dinh|neu|ghi ro)\b')
     subject_match=re.search(boundary+qualified_subject,text)
     if subject_match and not re.search(
             r'\b(?:quy dinh|ghi ro|cho biet|neu rang|trich dan|sinh vien|nguoi hoc)\b',
@@ -109,6 +109,9 @@ def personal_event_requires_record(question, results):
     are used as proof of a source's scope.
     """
     current = folded(question.partition('\nContext topic (untrusted user input): ')[0])
+    credential = bool(re.search(r'\b(?:mat khau|password|passcode|pin)\b',current)
+                      and re.search(r'\b(?:my|cua (?:em|minh|toi|t)|ca nhan)\b',current)
+                      and not re.search(r'\b(?:dat lai|khoi phuc|doi mat khau|reset|recover|change)\b',current))
     personal = re.search(r'\b(?:my|me|i|cua toi|ban than toi|ca nhan toi|lop toi|nhom toi)\b|'
                          r'(?:^|[.!?]\s+)toi\s+(?:duoc|co|bi)\b', current)
     event = re.search(r'\b(?:assigned|appointed|received|credited|recorded|approved|'
@@ -119,7 +122,7 @@ def personal_event_requires_record(question, results):
     policy_question = re.search(r'\b(?:must|should|required|requirements|minimum|'
         r'eligible|eligibility|procedure|procedures|can i|may i|how do i|'
         r'can phai|can duoc|phai lam|dieu kien|thu tuc|yeu cau|tieu chuan|toi thieu|co duoc)\b', current)
-    if not personal or not event or policy_question or not results:
+    if (not credential and (not personal or not event or policy_question)) or not results:
         return False
     by_doc = {}
     for result in results:

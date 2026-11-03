@@ -22,6 +22,54 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Chất lượng trả lời và thao tác hỏi — 02/11
 
+- [x] **ANS-11a — Tái hiện và hồi quy vòng sửa Golden 100 DONE (03/11):**
+  thêm regression tổng quát dùng trường/mã giả; trước sửa 11 FAIL/9 PASS trong
+  20 ca P0. Bản sửa routing/context, ràng buộc ngành theo heading nguồn, số thập
+  phân tự nhiên và guard vắng thông tin đã **PASS toàn bộ 279 tests**, không đổi
+  profile, retry, quota/cooldown hoặc index. Lượt diagnostic thật: **19 case /
+  31 turns, 36 Gemini calls**, không lỗi HTTP/provider. CTX01 trả đúng cả 3 lượt;
+  OCR02 đọc được trang scan đúng nguồn; CTX06 đã đúng chương trình ở lượt 1.
+  Đây là diagnostic, **chưa phải** điểm lại đủ 100 ca hoặc nghiệm thu ≥95%.
+  Dữ liệu mới và đề xuất gold/scope giữ tại
+  [vòng sửa Golden 100](evaluation/results/campusai_100_remediation_20261103/report.md),
+  không ghi đè baseline. Diagnostics xác định thêm lỗi validator loại suy luận
+  số học đúng, alias/so sánh thiếu nguồn và diễn giải sai nhóm môn tự chọn; tiếp tục sửa.
+- [ ] **ANS-11b — Đóng vòng sửa bằng kiểm chứng thật:** khắc phục các lỗi còn
+  quan sát được; chạy đủ 100 ca/112 lượt trên cùng bản cuối. Báo riêng strict gốc,
+  adjudicated v2 sau review nguồn và fresh holdout được đóng băng sau sửa.
+  FACT15 và các fixture phạm vi/ý phụ không tự chuyển thành PASS; chưa có bằng
+  chứng thì ghi PENDING_GOLD_REVIEW/NOT PASSED.
+
+- [x] **ANS-07 — Baseline Golden 100 DONE (03/11, `8ddcd9c5`):** đã chạy đủ
+  **100 case / 112 lượt HTTP thật** qua app với 4 PDF, không mock; CTX chạy đúng
+  thứ tự trong phiên riêng, các ca độc lập không dùng lịch sử chung. Đối chiếu đủ
+  **264/264 trang, 1.585 chunks/vectors**, hash PDF khớp bản gốc. Không đổi code,
+  config, index hoặc golden; không đưa expected/nhãn trường vào inference.
+  Chấm AI dev theo đủ ý ở câu trả lời chính: **33 PASS / 67 FAIL, accuracy 33%**;
+  **chưa đạt** ngưỡng 95%. Trong số FAIL có 7 ca chỉ thiếu ý phụ theo golden;
+  FACT15 cần review gold với trang nguồn, các câu thiếu phạm vi trường được ghi riêng.
+  Không loại các ca này khỏi mẫu để tăng điểm. Có lỗi nhầm trường/ngành/học kỳ và
+  khẳng định sai tài liệu không đề cập. **91 Gemini calls thành công** chia 31/30/30
+  giữa 3 project, 74 lượt cần model, 38 lượt local, 0 cache; 0 timeout/lỗi HTTP.
+  p95 client **7,83s** gồm overhead collector, riêng lượt có model **8,14s**;
+  5 phản hồi `document-info-v1` không đạt validator chỉ nhận grounding schema,
+  không gọi đó là lỗi HTTP hoặc tuyên bố toàn bộ schema PASS.
+  Giữ đúng 3 file được yêu cầu tại [báo cáo baseline](evaluation/results/campusai_100/report.md),
+  [CSV từng ca](evaluation/results/campusai_100/results.csv) và
+  [raw responses/protocol/review](evaluation/results/campusai_100/results.json).
+  Đây là owner benchmark đã exposure, không phải fresh holdout/nghiệm thu độc lập.
+  Đã hoàn tất báo cáo trước sửa; các đề xuất dưới đây **chưa triển khai** theo yêu cầu.
+- [ ] **ANS-08 — P0 giữ đúng phạm vi hội thoại/ngành:** CTX04 áp CPA Tây Nguyên
+  vào hội thoại Thủ đô; REA08/CTX06 lấy nhầm sơ đồ Kế toán–Kiểm toán cho Kế toán.
+  Cần khóa trường, ngành, học kỳ và đối tượng theo bằng chứng/ngữ cảnh, không chỉ so số.
+- [ ] **ANS-09 — P0 phân biệt chưa truy hồi với tài liệu không có:** CROSS03 nói
+  HUST không có quy định cải thiện dù PDF trang 10 có. Cần chứng minh đủ phạm vi
+  trước kết luận vắng thông tin và truy hồi đủ từng nguồn trong câu so sánh.
+- [ ] **ANS-10 — P1 routing/truy hồi/suy luận:** tránh nhận `SCAN`/`API` là trường,
+  hiểu trang PDF theo nguồn được nêu, giữ chủ đề khi hỏi nối tiếp; truy hồi đúng bảng
+  mã môn/ngành/học kỳ, xử lý số thập phân tự nhiên và điều kiện số học có proof.
+  Chẩn đoán từ chối nhầm trước khi sửa, không nới grounding hoặc hard-code câu owner.
+
 - [x] **UX-03 — Thẻ PDF trong khung nhập chat DONE (03/11, `01bcc838`):** hiện
   ảnh trang đầu/tên file; tải lên hoặc xử lý thì xoay, sẵn sàng thì tự chọn làm nguồn.
   File lỗi dừng xoay và có thao tác thử lại/chọn lại; × chỉ bỏ khỏi câu hỏi, giữ PDF

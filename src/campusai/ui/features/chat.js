@@ -6,7 +6,9 @@ import {excerptFallback, excerptSources, excerptBody, excerptCopy} from './excer
 let messages = [], activeSources = null, epoch = 0;
 const topicMemory = new Map();
 function conversationHistory(scopeKey) {
-  const history = messages.filter(message => message.scopeKey === scopeKey && !message.error && !message.failed && !message.fallback).slice(-6)
+  // Failed generation does not invalidate the user's stated school/topic.
+  // Keep user intent; never carry failed/fallback assistant output as facts.
+  const history = messages.filter(message => message.scopeKey === scopeKey && (message.role === 'user' || !message.error && !message.failed && !message.fallback)).slice(-6)
     .map(message => ({role:message.role,content:String(message.role === 'user' ? message.contextQuestion || message.text : message.answer.answer).slice(0,2000)}));
   const topic = topicMemory.get(scopeKey);
   if (topic && !history.some(turn => turn.role === 'user' && turn.content === topic))
@@ -15,7 +17,8 @@ function conversationHistory(scopeKey) {
 }
 function rememberQuestion(scopeKey, message, response) {
   const question = response.context_question;
-  if (typeof question !== 'string' || !question.trim() || question.length > 2000 || response.partial || response.fallback) return;
+  if (typeof question !== 'string' || !question.trim() || question.length > 2000
+      || (response.partial || response.fallback) && message.role !== 'user') return;
   message.contextQuestion = question;
   topicMemory.delete(scopeKey); topicMemory.set(scopeKey,question);
   if (topicMemory.size > 8) topicMemory.delete(topicMemory.keys().next().value);

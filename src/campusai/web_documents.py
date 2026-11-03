@@ -390,8 +390,8 @@ class WebDocuments:
         from .rag.context import resolve_query
         from .rag.page_queries import select_physical_pages
         from .retrieval.hybrid import RetrievalResult
-        resolve_query(question, history=options.get('history'), selected_text=options.get('selected_text'),
-                      requires_context=options.get('requires_context',False))
+        resolved = resolve_query(question, history=options.get('history'), selected_text=options.get('selected_text'),
+                                 requires_context=options.get('requires_context',False))
         service = self.application.query_service
         service.reset_request_state()
         named = [doc for doc in selected if re.search(r'(?<!\w)'+re.escape(folded(doc['name']))+r'(?!\w)',folded(question))]
@@ -405,6 +405,19 @@ class WebDocuments:
             return info
         if named:
             selected = named
+        # A physical page belongs to the named/remembered source, not whichever
+        # selected PDF happens to rank first. Resolve within authorization before
+        # asking for a filename; scan/image labels are not institution choices.
+        if hasattr(service, '_institution_request') and hasattr(service, '_temporal_documents'):
+            documents = service._temporal_documents([d['doc_id'] for d in selected], options.get('filters'))
+            institution = service._institution_request(resolved.resolved, documents, resolved.history)
+            if institution.needs_clarification:
+                from .rag.grounding import GroundedAnswer
+                answer = GroundedAnswer(institution.clarification(options.get('language','vi')),(), 'low',True,
+                                        reason='ambiguous_question',evidence_status='ambiguous')
+                return {'ok':True,'answer':answer.to_public_dict(),'cache_hit':False}
+            if institution.doc_ids:
+                selected = [d for d in selected if d['doc_id'] in institution.doc_ids]
         info = document_info_response('total number of pages', selected, options.get('language','vi'))
         if len(selected) != 1:
             info['answer'].update(answer='Bạn muốn hỏi trang của PDF nào?' if options.get('language','vi') == 'vi'
@@ -430,6 +443,27 @@ class WebDocuments:
                 visible_page_text(pdf[page-1]), 'text',1.0,'source_pages',
                 {'source_name':doc['name'],'source_hash':doc['doc_id'],'page_range':[page,page],
                  'heading_path':[f'PDF page {page}']}) for page in pages]
+        # Reuse the already-ingested per-page OCR, retaining the exact physical
+        # page boundary. Never OCR the file again on every chat question, and
+        # never use text from another page to fill an unreadable requested page.
+        parsed = {}
+        if any(not r.content.strip() for r in results):
+            try:
+                parsed_path = contained(self.store, self.store / doc['doc_id'] / 'parsed.md')
+                with parsed_path.open('rb') as stream:
+                    data = stream.read(4 * 1024 * 1024 + 1)
+                if len(data) <= 4 * 1024 * 1024:
+                    blocks = re.split(r'(?m)^## Page (\d+)\s*\n', data.decode('utf-8'))
+                    numbers = [int(n) for n in blocks[1::2]]
+                    if len(numbers) == len(set(numbers)) and all(1 <= n <= doc['page_count'] for n in numbers):
+                        readable = set(doc.get('readable_pages', []))
+                        parsed = {int(n):text.strip() for n,text in zip(blocks[1::2],blocks[2::2])
+                                  if int(n) in readable}
+            except (OSError, ValueError, WebError):
+                parsed = {}
+        from dataclasses import replace
+        results = [replace(r, content=parsed[r.page]) if not r.content.strip() and parsed.get(r.page,'').strip()
+                   else r for r in results]
         if any(not r.content.strip() for r in results):
             info['answer'].update(answer='Một số trang chỉ có ảnh hoặc chưa đọc được chữ; cần OCR trước khi trả lời.'
                 if options.get('language','vi') == 'vi' else 'Some pages have no readable text and require OCR.',

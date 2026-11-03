@@ -503,6 +503,7 @@ class GroundedAnswerGenerator:
         source_citations: bool = False,
         compact_citation_ids: bool = False,
         repair_invalid_answers: bool = False,
+        diagnostic_hook=None,
     ) -> None:
         self.llm = llm
         self.max_context_chars = max(1000, max_context_chars)
@@ -517,6 +518,11 @@ class GroundedAnswerGenerator:
         if type(repair_invalid_answers) is not bool or repair_invalid_answers and not source_citations:
             raise ValueError('repair_invalid_answers requires source_citations and a boolean')
         self.repair_invalid_answers = repair_invalid_answers
+        if diagnostic_hook is not None and not callable(diagnostic_hook):
+            raise ValueError('diagnostic_hook must be callable')
+        # Opt-in local test observer only; never serialized to the public API
+        # or enabled by a client request. No model keys/config are recorded.
+        self.diagnostic_hook = diagnostic_hook
 
     @property
     def citation_handle_policy(self):
@@ -798,6 +804,7 @@ class GroundedAnswerGenerator:
                      document_scope_context=document_scope_context,pdf_documents=pdf_documents)
         state={}
         answer=self._answer_once(question,results,language,**options,_generation_state=state)
+        attempts=[state]
         from .presentation import institution_names_supported, source_ownership_conflicts
         def supported_names(response):
             cited_docs={citation.doc_id for citation in response.citations}
@@ -813,7 +820,10 @@ class GroundedAnswerGenerator:
                 and answer.reason in {'unsupported_claim','contradicted_claim','invalid_citation','citation_not_in_evidence'}
                 and temporal_context is None and multi_hop_context is None
                 and document_scope_context is None and not pdf_documents and not verified_document_absence):
-            answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason)
+            repair_state={}
+            attempts.append(repair_state)
+            answer=self._answer_once(question,results,language,**options,_repair_reason=answer.reason,
+                                     _generation_state=repair_state)
             if not answer.abstained and not supported_names(answer):
                 record_stage('grounding_reject.institution_name', 0.)
                 answer=_abstention('unsupported_claim',language=language)
@@ -831,6 +841,14 @@ class GroundedAnswerGenerator:
             quotes=[source_body({'content':result.content}) for result in results]
             if missing_per_term_duration(question,'',quotes):
                 answer=replace(answer,answer=per_term_duration_guidance(language))
+        if self.diagnostic_hook is not None:
+            try:
+                self.diagnostic_hook({'attempts':attempts,'final_abstained':answer.abstained,
+                                      'final_reason':answer.reason,
+                                      'evidence_ids':[r.chunk_id for r in results]})
+            except Exception:
+                # Observer failure must not alter the answering contract.
+                record_stage('grounding_diagnostic_observer_error',0.)
         return answer
 
     def _answer_once(
@@ -993,6 +1011,11 @@ class GroundedAnswerGenerator:
                     if pdf_documents is not None else self.llm.generate_json(prompt, schema=schema))
                 if _generation_state is not None:
                     _generation_state['positive']=isinstance(payload,dict) and payload.get('abstained') is False
+                    if self.diagnostic_hook is not None:
+                        # Preserve the provider draft before citation restoration
+                        # or validation, only for an explicitly installed observer.
+                        import copy
+                        _generation_state['provider_payload']=copy.deepcopy(payload)
         except LLMError as error:
             return abstain("llm_error", language=language,
                                provider_failure=public_provider_failure(error))

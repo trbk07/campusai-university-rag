@@ -54,7 +54,8 @@ def normalize_retrieval_query(text: str) -> str:
     The original query is still retained by the caller for provenance and
     page constraints; this expanded form is used only for candidate recall.
     """
-    original = repair_mojibake(str(text)).strip()
+    from ..ingestion.numeric_normalizer import normalize_spoken_decimals
+    original = normalize_spoken_decimals(repair_mojibake(str(text)).strip())
     value = re.sub(r"[_/\\-]+", " ", original)
     aliases = []
     lowered = value.casefold()

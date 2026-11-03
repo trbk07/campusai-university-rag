@@ -482,6 +482,11 @@ for(let i=0;i<250;i++) {
 assert.deepEqual(conversationHistory('vi:different-docs'),[]);
 const failed={};rememberQuestion(key,failed,{context_question:'Do not retain',partial:true});
 assert.equal(topicMemory.get(key),'Explain binary search');
+const pendingUser={role:'user',text:'Eligibility at North Star',scopeKey:key,failed:true};
+messages.push(pendingUser,{role:'assistant',scopeKey:key,failed:true,answer:{answer:'Unverified threshold999'}});
+rememberQuestion(key,pendingUser,{context_question:'Eligibility at North Star',partial:true});
+assert(conversationHistory(key).some(turn=>turn.role==='user'&&turn.content==='Eligibility at North Star'));
+assert(!conversationHistory(key).some(turn=>turn.content.includes('Unverified threshold999')));
 const fresh={role:'user',text:'Explain transactions',scopeKey:key};
 rememberQuestion(key,fresh,{context_question:'Explain transactions'});
 assert.equal(topicMemory.get(key),'Explain transactions');
@@ -489,7 +494,7 @@ renderConversation=()=>{};renderSources=()=>{};updateComposer=()=>{};
 resetChat();assert.equal(topicMemory.size,0);assert.equal(messages.length,0);
 `,context);
 '''
-    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    result=subprocess.run(['node','-e',script],text=True,capture_output=True,timeout=30)
     assert result.returncode==0,result.stderr
 
 
@@ -638,7 +643,7 @@ assert(!safeMarkdown('<img src=x onerror=alert(1)>').includes('<img'));
 `,context);
 assert.equal(sends,0);assert.equal(notifications,2);
 '''
-    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    result=subprocess.run(['node','-e',script],text=True,capture_output=True,timeout=30)
     assert result.returncode==0,result.stderr
 
 
@@ -659,7 +664,7 @@ vm.runInContext('globalThis.full=0;globalThis.jobsOnly=0;renderAll=()=>full++;re
  assert.equal(context.full,1);assert.equal(state.selected.size,0);
 })().catch(error=>{console.error(error);process.exitCode=1});
 '''
-    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    result=subprocess.run(['node','-e',script],text=True,capture_output=True,timeout=30)
     assert result.returncode==0,result.stderr
 
 
@@ -775,5 +780,5 @@ async function batch(start){
  assert.equal(sent,0);assert.equal($('#question').value,'Keep my draft');
 })().catch(error=>{console.error(error);process.exitCode=1});
 '''
-    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    result=subprocess.run(['node','-e',script],text=True,capture_output=True,timeout=30)
     assert result.returncode==0,result.stderr

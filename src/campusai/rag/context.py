@@ -1,13 +1,13 @@
 """Bounded contextual query resolution from request input, never gold labels."""
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 import re
 import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v13"
+CONTEXT_VERSION = "request-context-v14-structured"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -40,6 +40,15 @@ def depends_on_previous_topic(question):
                       r'[\w.-]+\.pdf\.\s*', '', question, flags=re.I)
     text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
     if missing_topic_reference(question):
+        return True
+    if re.fullmatch(r'(?:(?:em|minh|toi|t|neu|the|vay|con)\s+)*'
+                    r'(?:(?:duoc|dat|len|la|co)\s+)?\d+(?:[.,]\d+)?'
+                    r'(?:\s+(?:diem|thi|sao|la|duoc|lam|ngay|chu|chua|khong|ko|a|nhi|vay))*',
+                    _fold(question).strip('?!. ')):
+        return True
+    if re.fullmatch(r'(?:(?:neu|con|vay|the|o|trong)\s+)*'
+                    r'(?:(?:hoc\s+)?k[yi]\s+(?:chinh|he|phu|\d+)|ma\s+(?:mon|hoc phan))'
+                    r'(?:\s+(?:thi|sao|la|gi|vay|nhi|a))*', text):
         return True
     if re.fullmatch(r'(?:vi du(?: di)?|cho (?:minh|t|toi) vi du|noi (?:de hieu|ngan gon)(?: hon)?|'
                     r'them vi du(?: nua)?|ngan gon hon|don gian hon(?: chut)?|noi ro cho nay|tl dr|'
@@ -202,6 +211,40 @@ def authorized_scope(doc_ids: list[str] | None, authorized_doc_ids: list[str] | 
 
 
 @dataclass(frozen=True)
+class ConversationState:
+    """Bounded user-intent slots, never source facts or assistant assertions.
+
+    Institution IDs are resolved later against authorized source metadata.
+    These slots make topic/operation/value changes observable without an
+    external memory service or treating an earlier answer as evidence.
+    """
+    topic: str
+    operation: str
+    program_mentions: tuple[str, ...]
+    semesters: tuple[str, ...]
+    course_codes: tuple[str, ...]
+    numeric_inputs: tuple[str, ...]
+
+    @classmethod
+    def from_user_input(cls, current, topic):
+        value=_fold(current); anchor=_fold(topic or '')
+        combined=value+' '+anchor
+        operation=next((name for name,pattern in (
+            ('grade_conversion',r'quy doi|he 4|diem chu|letter grade|convert'),
+            ('eligibility',r'cpa|gpa|dieu kien|eligible|khoa luan|thesis'),
+            ('course_lookup',r'ma mon|ma hoc phan|course code|mon ai'),
+            ('credit_limits',r'tin chi|bao tin|credits'),
+        ) if re.search(pattern,combined)), 'document_question')
+        programs=tuple(dict.fromkeys(m[0].strip() for m in re.finditer(
+            r'\b(?:nganh|chuyen nganh|program(?:me)?)\s+[^?;.!\n]{1,80}', topic or '', re.I)))
+        semester_pattern=r'\b(?:(?:hoc\s+)?k[yi]\s+(?:chinh|he|phu|\d+)|hk\s*\d+|semester\s*\d+)\b'
+        semesters=tuple(dict.fromkeys(re.findall(semester_pattern,value) or re.findall(semester_pattern,anchor)))
+        codes=tuple(dict.fromkeys(re.findall(r'\b[A-Z]{2,}\d{3,}[A-Z0-9]*\b',current+' '+(topic or ''),re.I)))
+        numbers=tuple(dict.fromkeys(re.findall(r'(?<!\w)\d+(?:[.,]\d+)?',current)))
+        return cls((topic or '')[:1800],operation,programs[:4],semesters[:4],codes[:8],numbers[:8])
+
+
+@dataclass(frozen=True)
 class ResolvedQuery:
     raw: str
     resolved: str
@@ -209,11 +252,13 @@ class ResolvedQuery:
     selected_text: str | None
     needs_clarification: bool
     contextual: bool
+    conversation_state: ConversationState
 
     def cache_context(self) -> dict:
         return {"version": CONTEXT_VERSION, "history": list(self.history),
                 "selected_text": self.selected_text, "resolved": " ".join(self.resolved.split()).casefold(),
-                "needs_clarification": self.needs_clarification}
+                "needs_clarification": self.needs_clarification,
+                "conversation_state": asdict(self.conversation_state)}
 
 
 def resolve_query(question: str, *, history: list[dict] | None = None,
@@ -249,7 +294,8 @@ def resolve_query(question: str, *, history: list[dict] | None = None,
     resolved = raw
     if not meaningless and anchor and (contextual or selected_text):
         resolved = raw + "\nContext topic (untrusted user input): " + sanitize_evidence_text(anchor)
-    return ResolvedQuery(raw, resolved, tuple(turns), selected_text, bool(needs_clarification), contextual)
+    state=ConversationState.from_user_input(raw,anchor if contextual else raw)
+    return ResolvedQuery(raw, resolved, tuple(turns), selected_text, bool(needs_clarification), contextual,state)
 
 
 def benchmark_request(row: dict, default_doc_ids: list[str]) -> dict:

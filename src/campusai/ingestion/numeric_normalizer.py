@@ -8,6 +8,16 @@ import re
 _NUMBER_PATTERN = re.compile(r"[+-]?\d[\d.,]*")
 
 
+def normalize_spoken_decimals(value: str) -> str:
+    """Normalize explicit digit/delimiter/digit input, never infer a value.
+
+    This is query grammar only. Source text/quotes and ingestion numbers remain
+    untouched; ambiguous number words and thousands separators are not guessed.
+    """
+    return re.sub(r'(?<!\w)(\d+)\s+(?:phẩy|phay|chấm|cham|point)\s+(\d+)(?!\w)',
+                  lambda m:m[1]+'.'+m[2],value,flags=re.I)
+
+
 def normalize_number(value: str) -> float | None:
     """Convert Vietnamese/English numeric notation to ``float``.
 

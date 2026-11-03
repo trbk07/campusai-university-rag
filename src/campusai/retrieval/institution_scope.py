@@ -10,8 +10,34 @@ def folded(text):
 
 
 _GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung'.split())
-_ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl'}
+_ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl','api','ai','ocr','llm','url','http','https'}
 _CONTEXT = '\nContext topic (untrusted user input): '
+
+
+def _identity_text(raw):
+    # User annotations and quoted technical labels are not institution names.
+    # Keep the original question intact for generation/auditing.
+    return re.sub(r'\[[^\]\n]{1,60}\]', ' ', raw)
+
+
+def _institution_label(line):
+    """Trim source prose predicates/role prefixes from a literal name label."""
+    words=list(re.finditer(r'[^\W_]+',line))
+    if not words:return ''
+    start=0
+    values=[folded(m[0]) for m in words]
+    if values[:2]==['hieu','truong']:start=2
+    if values[start:start+4]==['dai','hoc','cua','truong']:start+=3
+    text=' '.join(values[start:])
+    stop=re.search(r'\b(?:ban hanh|tu hao|la truong|theo nghi quyet|quy dinh|phe duyet|cung cap|duoc thanh lap)\b',text)
+    count=len(text[:stop.start()].split()) if stop else len(values)-start
+    if not count:return ''
+    label=line[words[start].start():words[start+count-1].end()].strip()
+    value=folded(label);compact=value.replace(' ','')
+    if not (re.match(r'^(?:truong)?(?:daihoc|dh|hocvien)',compact)
+            or re.search(r'\b(?:university|college|institute)\b',value)):
+        return ''
+    return label if 8<=len(compact)<=150 else ''
 
 
 def _institution_groups(documents):
@@ -42,8 +68,7 @@ def institution_headers(items):
             from .tokenizer_vi import source_body
             values.extend(source_body(item).splitlines())
         for line in values:
-            value = folded(line)
-            value = re.split(r'\b(?:ban hanh|tu hao|la truong|theo nghi quyet|quy dinh)\b', value, maxsplit=1)[0].strip()
+            value = folded(_institution_label(line))
             value = re.sub(r'\s+\d+$', '', value)
             compact = value.replace(' ', '')
             if (re.match(r'^(?:truong)?(?:daihoc|dh|hocvien)', compact)
@@ -66,6 +91,11 @@ def _references(raw, documents):
         for name in names:
             terms = [w for w in name.split() if w not in {'of','and','the'}]
             aliases.add(''.join(w[0] for w in terms))
+            distinctive=[w for w in terms if w not in {'truong','dai','hoc','dh','university','college','institute'}]
+            # Source-derived common short form: "Trường <distinctive name>".
+            # Do not map a geographic name shared by two source owners.
+            if terms and terms[0]=='truong' and len(distinctive)>=2:
+                aliases.add('t'+''.join(w[0] for w in distinctive))
             # Short references can name a distinctive contiguous part of a
             # header. Ambiguous acronyms retain every matching source.
             for n in range(2, min(6,len(terms))+1):
@@ -77,6 +107,7 @@ def _references(raw, documents):
 
 def _unmatched_name(raw, documents):
     # A new named school must not silently inherit the previous school.
+    raw = _identity_text(raw)
     for part in re.split(r'\b(?:va|voi|and|versus|vs)\b|[,;]',folded(raw)):
         # "Hiệu trưởng hiện tại" names a role, not a school called Hiện.
         # A following explicit school ("Hiệu trưởng Trường ...") stays intact.
@@ -86,7 +117,7 @@ def _unmatched_name(raw, documents):
         # in the same comparison must still trigger confirmation.
         part = re.sub(r'\b(?:tat ca(?: cac)?|cac|moi|hai|ba|\d+)\s+truong\b', ' ', part)
         named=re.search(r'\b(?:truong(?: dai hoc)?|dai hoc|dh|university|college|institute)\s+(\w+)',part)
-        if (named and named[1] not in _GENERIC|{'do','khac','chinh','dao','vua','tu','thac','tien'}
+        if (named and named[1] not in _GENERIC|{'do','khac','chinh','dao','vua','tu','thac','tien','nhu','the','hop'}
                 and not _references(part,documents)):
             return True
     acronyms=set(re.findall(r'\b[A-Z]{2,12}\b',raw))
@@ -167,8 +198,8 @@ def _source_options(documents):
             if item.get('page',999)<=5:
                 from .tokenizer_vi import source_body
                 candidates.extend(source_body(item).splitlines())
-            label=next((value.strip() for value in candidates
-                        if folded(value) in profiles[doc['doc_id']]),'')
+            label=next((_institution_label(value) for value in candidates
+                        if folded(_institution_label(value)) in profiles[doc['doc_id']]),'')
             if label:break
         option=label[:160] or source[:160]
         if option:options.append(option)
@@ -281,8 +312,9 @@ def _unrecognized_choice(raw):
 def unresolved_institution_reference(question,documents):
     """Find a name-like token in a rule question, without a school whitelist."""
     raw,separator,topic=question.partition(_CONTEXT)
+    raw = _identity_text(raw)
     contextual=bool(separator and _institution_dependent(topic,documents))
-    if not (_institution_dependent(raw,documents) or contextual):return ''
+    if not (_institution_dependent(raw,documents) or contextual or _references(raw,documents)):return ''
     words=list(re.finditer(r'[^\W_]+',raw))
     refs=_references(raw,documents)
     covered=set()
@@ -301,7 +333,11 @@ def unresolved_institution_reference(question,documents):
         named=(previous in {'cua','tai','o','truong','ben','about','at','of','for'}
                and following in {'','la','co','thi','nhu','quy','yeu','hoc','can','duoc','ap','rules','policy'})
         named=named or contextual and previous in {'con','the','vay'} and following in {'','thi','sao'}
-        if named or token.isupper() and value not in {'sv','student','students','pdf'}:
+        # Capitalization alone is not a school cue (API, SCAN, JSON, etc.).
+        # A bare reply, explicit institution preposition or comparison arm is.
+        comparison = bool(re.search(r'\b(?:so sanh|compare|versus|vs)\b',folded(raw)))
+        choice = folded(raw).strip()==value or comparison and previous in {'va','voi','and','vs','versus','sanh','compare'}
+        if named or choice and token.isupper() and value not in {'sv','student','students','pdf'}:
             return token
     return ''
 

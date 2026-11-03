@@ -364,7 +364,13 @@ class HybridRetriever:
         records = self._records(doc_ids, eligible_ids)
         if eligible_ids is None:
             eligible_ids = set(records)
-        from .source_scope import unsupported_source_reason
+        from .source_scope import unsupported_source_reason, curriculum_scope_records
+        # A code can occur in multiple curricula. Local programme headings
+        # constrain all candidate generators before exact-code/ranking paths.
+        scoped_records = curriculum_scope_records(query, records)
+        if scoped_records is not records:
+            records = scoped_records
+            eligible_ids = set(records)
         unsupported = unsupported_source_reason(query, records)
         if unsupported:
             self.last_trace = RoutingTrace(
