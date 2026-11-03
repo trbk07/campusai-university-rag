@@ -161,6 +161,19 @@ def test_institution_acronyms_do_not_cross_generic_name_boundary(schools):
         assert requested_institution_documents(alias,schools)==({'west'} if alias=='WIM' else {'north'})
 
 
+def test_split_complete_acronym_resolves_but_ambiguous_or_partial_prefix_does_not():
+    docs=[document('north','TRƯỜNG ĐẠI HỌC SAO BẮC PHÍA NAM'),
+          document('west','WESTERN INSTITUTE OF METEOROLOGY')]
+    for query in ['dhsb pn cần bao nhiêu tín chỉ?','DHSB PN cần bao nhiêu tín chỉ?']:
+        result=resolve_institution_request(query,docs)
+        assert result.doc_ids=={'north'} and not result.needs_clarification
+    assert not resolve_institution_request('HS cần bao nhiêu tín chỉ?',docs).doc_ids
+    docs.append(document('duplicate','TRƯỜNG ĐẠI HỌC SAO BẮC PHÍA NAM'))
+    assert resolve_institution_request('dhsb pn cần bao nhiêu tín chỉ?',docs).doc_ids=={'north','duplicate'}
+    docs[-1]=document('other','TRƯỜNG ĐẠI HỌC SÔNG BẠC PHÍA NAM')
+    assert resolve_institution_request('dhsb pn cần bao nhiêu tín chỉ?',docs).needs_clarification
+
+
 def test_shared_parent_and_duplicate_files():
     first = document('a', 'ĐẠI HỌC LIÊN VÙNG\nTRƯỜNG ĐẠI HỌC SAO BẮC')
     duplicate = document('b', 'TRƯỜNG ĐẠI HỌC SAO BẮC')

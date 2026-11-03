@@ -106,7 +106,13 @@ def _references(raw, documents):
             for n in range(2, min(6,len(distinctive))+1):
                 aliases.update(''.join(w[0] for w in distinctive[i:i+n])
                                for i in range(len(distinctive)-n+1))
-        for reference in {pair for pair in pairs if any(pair in name for name in compact_names)} | (query_words & aliases):
+        # A user can split an otherwise complete source-derived acronym into
+        # words. Joining its pieces is different from inventing a short form
+        # that crosses a generic name prefix (the latter remains excluded).
+        alias_pairs={a+b for a,b in zip(words,words[1:])
+                     if a.isalpha() and b.isalpha() and len(a)>=2 and len(b)>=2
+                     and a not in _GENERIC|_ACADEMIC and b not in _GENERIC|_ACADEMIC}
+        for reference in {pair for pair in pairs if any(pair in name for name in compact_names)} | ((query_words|alias_pairs) & aliases):
             matches.setdefault(reference, set()).add(doc['doc_id'])
     return matches
 

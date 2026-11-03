@@ -34,6 +34,16 @@ def _covered(text, answer):
             and len(words & available) / max(1, len(words)) >= .8)
 
 
+def _missing_qualifier(text, answer):
+    norm=folded(text)
+    if (len(re.findall(r'\b(?:danh cho|ap dung|doi voi|provided that|eligible|applies to)\b',norm))!=1
+            or re.search(r'\b(?:trong khi|whereas)\b',norm)):
+        return False
+    qualifiers=re.findall(r'\b(?:danh cho|doi voi|ap dung cho|applies to|provided that)\s+'
+        r'(.+?)(?=\bva (?:duoc|phai|co the)\b|[.;]|$)',norm)
+    return any(not _words(scope)<=_words(answer) for scope in qualifiers)
+
+
 def _bounds(text):
     patterns = {'lower': r'toi thieu|minimum|at least', 'upper': r'toi da|maximum|at most'}
     found = {}
@@ -100,6 +110,23 @@ def _prose_runs(result):
                 run = []
 
 
+def _closed_star_criteria(body):
+    """A following same-level requirements heading closes a bullet group.
+
+    An end-of-chunk or an isolated footnote does not prove completion. Keep
+    the original heading, conditions and exact source span together.
+    """
+    markers=list(re.finditer(r'(?m)^[ \t]*\*[ \t]+([^\r\n]+)\r?\n',body))
+    for start,end in zip(markers,markers[1:]):
+        if not all(re.search(r'\b(?:dieu kien|conditions?|requirements?)\b',folded(m[1])) for m in [start,end]):
+            continue
+        quoted=body[start.start():end.start()].strip()
+        if (len(quoted)<=1200 and sanitize_evidence_text(quoted)==quoted
+                and not re.search(r'\b(?:ví dụ|giả sử|example|illustration)\b',quoted,re.I)
+                and not re.search(r'(?:^|[.:;!?])\s*(?:vi du|gia su)\b',folded(quoted))):
+            yield quoted,quoted
+
+
 def policy_item_context(question, answer, claims, citations, results, language):
     """Add at most one missing condition/permission from the same closed item.
 
@@ -129,6 +156,13 @@ def policy_item_context(question, answer, claims, citations, results, language):
                 extras = []
                 for sentence in sentences:
                     norm = folded(sentence)
+                    # Keep an eligibility qualifier in the very sentence
+                    # containing the accepted fact. A short copied suffix
+                    # (e.g. a deadline) must not drop its governing subject.
+                    same_sentence=(all(_compact(claim.text) in _compact(sentence) for claim in related)
+                        and len(re.findall(r'\b(?:danh cho|ap dung|doi voi|provided that|eligible|applies to)\b',norm))==1
+                        and not re.search(r'\b(?:trong khi|whereas)\b',norm))
+                    missing_scope=same_sentence and _missing_qualifier(sentence,answer)
                     condition = re.search(r'\b(?:tuy nhien|voi dieu kien|can dam bao|provided that|subject to)\b', norm)
                     optional = (re.search(r'^(?:ngoai|in addition to|besides)\b', norm)
                                 and re.search(r'\b(?:co the|may|can)\b', norm))
@@ -136,7 +170,8 @@ def policy_item_context(question, answer, claims, citations, results, language):
                                   and not re.search(r'\b(?:khong|not|cannot)\b', norm))
                     shared = _words(anchor) & _words(sentence)
                     action_related = len(shared) >= 3 or (len(shared) == 2 and all(len(word) >= 5 for word in shared))
-                    if not (condition or optional or permission) or _covered(sentence, answer) or not action_related: continue
+                    if (not (condition or optional or permission or same_sentence)
+                            or _covered(sentence, answer) and not missing_scope or not action_related): continue
                     extras.append(sentence)
                 if len(extras) != 1: continue
                 if table is not None:
@@ -174,7 +209,8 @@ def verified_field_context(question, answer, claims, citations, language):
         norm = folded(text)
         if claim.status != 'supported' or len(claim.citation_ids) != 1 or len(text) > 650: continue
         vietnamese = bool(re.search(r'[ăâđêôơưáàảãạấầẩẫậắằẳẵặếềểễệốồổỗộớờởỡợứừửữự]', text, re.I))
-        if vietnamese != language.startswith('vi') or _covered(text, answer): continue
+        if (vietnamese != language.startswith('vi')
+                or _covered(text, answer) and not _missing_qualifier(text,answer)): continue
         same_sentence = not re.search(r'[.!?;]\s+[A-ZÀ-Ỹ]', text)
         source_bounds, shown_bounds = _bounds(text), _bounds(answer)
         paired = (same_sentence and all(source_bounds.values())
@@ -186,7 +222,9 @@ def verified_field_context(question, answer, claims, citations, language):
                            and len(refs) == 1 and refs == references(answer)
                            and len(dates) == 1 and next(iter(dates))[0] == 'date'
                            and not calendar_presentation(answer)[1])
-        if paired or dated_reference:
+        scoped=(same_sentence and text.endswith(('.', ';')) and _missing_qualifier(text,answer)
+                and len(_words(text)&_words(answer))>=3)
+        if paired or dated_reference or scoped:
             prefix = 'Source context' if language.startswith('en') else 'Thông tin cùng nguồn'
             candidates.append((answer + '\n\n' + prefix + ': ' + text, citations, []))
     return candidates[0] if len(candidates) == 1 else None
@@ -243,7 +281,8 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
         source = next((item for item in results if item.chunk_id == citation.chunk_id), None)
         if source is None or source.content_type == 'table': continue
         body = source_body({'content': source.content}, decode_tables=False)
-        for quoted, item in _closed_items(body, leaf_only=False):
+        starred=list(_closed_star_criteria(body))
+        for quoted, item in starred or _closed_items(body, leaf_only=False):
             markers = list(re.finditer(r'(?m)^[ \t]*(?:[a-zđ][)]|[-–—•~])\s+', item))
             if len(markers) < 2: continue
             heading = item[:markers[0].start()]
@@ -259,7 +298,22 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
                         if language.startswith('en') else
                         'Đây là đối chiếu theo điều kiện bạn vừa nêu. Để kết luận đầy đủ, cần kiểm tra cả các điều kiện khác trong cùng mục nguồn.')
             updated = tuple(replace(ref, quote=quoted) if ref.chunk_id == citation.chunk_id else ref for ref in citations)
-            candidates.append((answer + '\n\n' + guidance, updated, []))
+            expanded=answer + '\n\n' + guidance;extra=[]
+            # A closed, explicitly headed requirements group can expose its
+            # other criteria, not just an unspecified caveat. This is source
+            # text, not a personal eligibility conclusion or a new rule.
+            if starred:
+                others=[child.strip() for child in children if child not in matches]
+                if (0<len(others)<=2 and all(len(child)<=500 and child.endswith(('.', ';'))
+                        for child in others)):
+                    identities={claim.claim_id for claim in claims};index=1
+                    for text in others:
+                        if _covered(text,answer):continue
+                        while 'criterion_context_'+str(index) in identities:index+=1
+                        ident='criterion_context_'+str(index);identities.add(ident)
+                        extra.append({'claim_id':ident,'text':text,'citation_ids':[citation.chunk_id]})
+                    if extra:expanded+='\n'+'\n'.join('- '+claim['text'] for claim in extra)
+            candidates.append((expanded, updated, extra))
     return candidates[0] if len(candidates) == 1 else None
 
 

@@ -1,13 +1,13 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **03/11/2026 · Asia/Bangkok**.
+Cập nhật: **04/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 mới: **56/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
+Bộ Golden 100 mới: **66/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
 Theo yêu cầu ngày 31/10, các báo cáo được gom tại
@@ -35,8 +35,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   đại từ chỉ trường và contact có nhãn trong prose/bảng; **317 tests PASS**.
   Đã đo đủ100 ca/112 lượt trên `b6bf27e4`: **56 PASS/44 FAIL**,96 inference thật,
   0 lỗi HTTP/timeout/cache, p95 **8,098s**. Đây là dev review, chưa đạt95%.
-  Batch2 đang sửa xác nhận nguồn, viết tắt vượt ranh giới tên trường và recall
-  mệnh đề/ngưỡng có nguồn; không mở lại các task đã DONE.
+  Batch2 đã sửa xác nhận nguồn, viết tắt vượt ranh giới tên trường và recall
+  mệnh đề/ngưỡng có nguồn; kết quả đủ100 ca ở RAG-95-05b. Không mở lại task DONE.
 - [x] **RAG-95-02a — Code batch2 DONE (`eb485c16`):** xác nhận nguồn không gọi
   model giới thiệu; giữ câu hỏi chờ và trường ở lượt tiếp theo; bỏ alias cắt qua
   tiền tố tên trường; truy hồi mệnh đề nguồn và giữ trong context; chặn heading
@@ -44,6 +44,12 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   đã push origin CampusAI. Đây là DONE code/hồi quy, không phải accuracy95%.
 - [ ] **RAG-95-03 — Retrieval/grounding:** giữ trọn điều kiện, ngoại lệ và quan
   hệ bảng/học kỳ; trả lời đủ nguồn trong so sánh, giảm false abstention.
+- [x] **RAG-95-03a — Code batch3 DONE:** nối các phần của viết tắt hoàn chỉnh
+  lấy từ tên nguồn; prompt hiểu câu so sánh nối tiếp; giữ điều kiện đã được
+  kiểm chứng trong câu trả lời; đọc nhóm điều kiện đóng bằng heading cùng cấp;
+  truy hồi điều khoản cải thiện điểm của từng nguồn và giữ phần điều kiện sau
+  mệnh đề trong context. **356 tests PASS (18,97s)**, secret scan/diff check PASS.
+  Replay local trên output cũ chỉ kiểm cơ chế, không tính là prediction hoặc điểm mới.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [ ] **RAG-95-05 — Đo lại:** sau mỗi nhóm sửa, chạy hồi quy rồi khóa code,
@@ -53,10 +59,15 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   và các bước CTX. Lưu toàn bộ raw outputs/citations/traces; không ghép focused runs.
   Phát hiện hai ghi chú chấm cũ sai (CTX05/NAT12), lưu correction riêng;
   không sửa baseline hay tính điểm sửa chấm thành cải thiện nhờ code.
-- [ ] **RAG-95-05b — Đo batch2:** đã khóa source/profile/index và112 lượt HTTP;
-  automatic approval từ chối phạm vi egress mới `fae32047…` trước khi chạy,
-  **0 Gemini requests**. Đã gửi yêu cầu duyệt đúng payload/đích; không dùng lại
-  packet cũ hoặc báo PASS cho lượt chưa chạy. Các sửa code327 tests đã DONE.
+- [x] **RAG-95-05b — Đo batch2 DONE (`eb485c16`):** sau duyệt chính xác scope
+  `fae32047…`, chạy đủ112/112 lượt,95 inference Gemini thật; **66 PASS/34 FAIL**,
+  0 lỗi HTTP/provider/timeout/cache. PDF/index/profile/source giữ đúng hash.
+  Citation audit95 citations:0 lỗi tọa độ/quote, chưa phải semantic precision.
+  p50 **4,777s**, p95 **11,352s**; không nhận latency PASS theo mốc10s.
+  Golden/locator còn vấn đề giữ FAIL và review riêng; không ghép focused runs.
+- [ ] **RAG-95-05c — Đo batch3:** khóa source mới rồi chạy lại đủ100 ca/112 lượt,
+  giữ input/gold/profile/PDF/index và rubric. Chưa có prediction/accuracy batch3;
+  mốc đã đo gần nhất vẫn66/100, không suy điểm từ hồi quy hoặc replay.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -79,7 +90,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
   validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED56%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
+  Golden:NOT PASSED66%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 
 Bằng chứng dùng lại: [QA/remediation](evaluation/results/campusai_100_remediation_20261103/report.md).

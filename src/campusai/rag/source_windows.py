@@ -23,7 +23,10 @@ def verbatim_window(text: str, question: str, limit: int, *, registration: bool 
     if spans and len(spans)==len(anchors):
         begin,end=min(a for a,b in spans),max(b for a,b in spans)
         if end-begin<=limit:
-            start=max(0,min(begin-120,end-limit))
+            # Keep a little governing context before the field, then use
+            # remaining space for its following conditions. Starting at
+            # end-limit unnecessarily filled the window with earlier prose.
+            start=max(0,begin-120,end-limit)
             boundary=text.find('\n',start,begin)
             if boundary>=0:start=boundary+1
             finish=min(len(text),start+limit)
@@ -194,11 +197,15 @@ def policy_field_evidence(question, documents):
     query=folded(current)
     if separator and re.search(r'\b(?:muc do|nguong do|giong|khac|same|different)\b',query):
         query+=' '+folded(topic)
-    thesis=(re.search(r'\b(?:gpa|cpa|diem trung binh(?: chung)? tich luy)\b',query)
+    average=re.search(r'\b(?:gpa|cpa|diem trung binh(?: chung)? tich luy)\b',query)
+    eligibility_threshold=(re.search(r'\b(?:nguong|dieu kien)\b',query)
+        and not re.search(r'\b(?:tin chi|tc|credits?|hoc phi|le phi|thoi gian|thang|ngay|duration|fee)\b',query))
+    thesis=((average or eligibility_threshold)
             and re.search(r'\b(?:khoa luan|kltn|thesis|do an)\b',query))
     publication=(re.search(r'\b(?:cong bo|thong bao|publish|published|release)\b',query)
                  and re.search(r'\b(?:diem|grades?|results?)\b',query))
-    if not (thesis or publication):return []
+    improvement=re.search(r'\b(?:cai thien|hoc lai keo|grade improvement|improve (?:my |the )?grade)\b',query)
+    if not (thesis or publication or improvement):return []
     patterns=[]
     if thesis:
         patterns.append(('thesis',r'diem\s+trung\s+binh(?:\s+chung)?\s+tich\s+luy\s+'
@@ -207,6 +214,10 @@ def policy_field_evidence(question, documents):
         patterns.append(('publication',r'diem\s+(?:hoc\s+phan|thi)[^.]{0,160}?'
             r'(?:cong\s+bo|thong\s+bao)[^.]{0,180}?(?:cham\s+nhat|khong\s+qua|trong\s+thoi\s+han)\s+'
             r'\d+\s+ngay[^.]{0,100}\.'))
+    if improvement:
+        patterns.append(('improvement',r'(?:(?:nguoi\s+hoc|sinh\s+vien)\s+[^.;]{0,220}?'
+            r'(?:duoc|co\s+the)\s+[^.;]{0,100}?(?:hoc\s+lai|cai\s+thien)[^.;]{0,180}'
+            r'|khong\s+giai\s+quyet[^.;]{0,180}?hoc\s+cai\s+thien[^.;]{0,180})[.;]'))
     found=[]
     for document in documents:
         for item in document.get('items',[]):

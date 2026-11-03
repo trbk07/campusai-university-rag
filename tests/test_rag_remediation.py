@@ -461,6 +461,9 @@ def test_policy_field_recall_keeps_source_alternatives_and_comparison_topic():
     assert [row.content for row in rows]==[first,second]
     followup='Mức đó có giống không?\nContext topic (untrusted user input): CPA làm khóa luận cần bao nhiêu?'
     assert len(policy_field_evidence(followup,docs))==2
+    assert len(policy_field_evidence('So sánh ngưỡng làm khóa luận giữa hai nguồn?',docs))==2
+    assert not policy_field_evidence('Ngưỡng tín chỉ làm khóa luận bao nhiêu?',docs)
+    assert not policy_field_evidence('Điều kiện lệ phí khóa luận?',docs)
     assert not policy_field_evidence('Thời gian đăng ký học?',docs)
     for row in rows:
         anchor=row.metadata['source_field_anchors'][0]
@@ -514,3 +517,87 @@ def test_eligibility_scope_guidance_uses_closed_dash_group_not_single_threshold(
     from campusai.rag.policy_context import _closed_items
     for cue in ['Ví dụ:','Giả sử:','vi du:','gia su:','Example:']:
         assert not list(_closed_items('a) '+cue+' '+fact+'\nb) Kết thúc.'))
+
+
+def test_comparison_followup_prompt_uses_user_topic_as_intent_only():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    generator=GroundedAnswerGenerator(None)
+    row=RetrievalResult('rule','cloud',1,'A controlled source rule.','text',1.,'test',{})
+    topic='\nContext topic (untrusted user input): Điều kiện của nguồn Mây Xanh?'
+    prompt=generator.prompt('Chuyển sang Gió Tây: mức đó có giống không?'+topic,[row])
+    assert 'CONVERSATION COMPARISON INTENT' in prompt and 'cite both sides' in prompt
+    assert 'intent only, never an expected value' in prompt
+    assert 'CONVERSATION COMPARISON INTENT' not in generator.prompt('Email là gì?'+topic,[row])
+    assert 'CONVERSATION COMPARISON INTENT' not in generator.prompt('Không so sánh, chỉ tra Gió Tây.'+topic,[row])
+
+
+def test_one_source_sentence_retains_eligibility_alongside_its_deadline():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Đợt bổ sung dành cho người đã vắng đợt chính và được tổ chức sau đợt chính 19 ngày.'
+    source=RetrievalResult('rule','cloud',7,'b) '+rule+'\nc) Quy định khác.','text',1.,'test',{})
+    result=_grounding_finalize('Đợt bổ sung được tổ chức sau đợt chính 19 ngày.',
+        (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),{'claims':[{'claim_id':'deadline','text':rule,
+        'citation_ids':['rule']}]},[source],'vi',question='Đợt bổ sung được tổ chức sau bao lâu?',complete_source_context=True)
+    assert not result.abstained and 'dành cho người đã vắng đợt chính' in result.answer
+
+
+def test_closed_star_criteria_keep_credit_and_supervision_with_the_same_eligibility_rule():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    from campusai.rag.policy_context import _closed_star_criteria
+    fact='Điểm trung bình chung tích lũy phải đạt từ 3,31 trở lên.'
+    body=('* Điều kiện đăng ký khóa luận:\n- Hoàn thành tối thiểu 87 tín chỉ.\n- '+fact+
+          '\n- Đơn vị đào tạo đủ cán bộ hướng dẫn.\n'
+          '* Điều kiện đăng ký chuyên đề:\n- Hoàn thành 64 tín chỉ.\n')
+    source=RetrievalResult('rule','cloud',7,body,'text',1.,'test',{})
+    result=_grounding_finalize('CPA 3,30 chưa đạt ngưỡng làm khóa luận.',
+        (Citation('rule','cloud',7,fact,source_name='cloud.pdf',page_range=(7,7)),),{'claims':[{'claim_id':'threshold','text':fact,
+            'citation_ids':['rule']}]},[source],'vi',question='CPA 3,30 làm khóa luận được chưa?',complete_source_context=True)
+    assert not result.abstained and '87 tín chỉ' in result.answer and 'cán bộ hướng dẫn' in result.answer
+    assert '64' not in result.answer and len(result.claims)==3
+    open_body=body[:body.index('* Điều kiện đăng ký chuyên đề:')]
+    assert not list(_closed_star_criteria(open_body))
+    assert not list(_closed_star_criteria(body.replace('* Điều kiện đăng ký chuyên đề:','* Chú thích:')))
+    assert not list(_closed_star_criteria(body.replace('* Điều kiện đăng ký khóa luận:',
+        '* Ví dụ điều kiện đăng ký khóa luận:')))
+
+
+def test_improvement_recall_selects_normative_source_clauses_without_choosing_a_policy():
+    from campusai.rag.source_windows import policy_field_evidence
+    rules=['Người học có thể đăng ký học lại học phần đã đạt để cải thiện điểm.',
+           'Không giải quyết học cải thiện khi điểm đã từ B trở lên.',
+           'Sinh viên đã có điểm học phần đạt được phép học lại để cải thiện điểm.']
+    docs=[{'doc_id':str(i),'items':[{'chunk_id':str(i),'page':3,'content':rule,'metadata':{}}]}
+          for i,rule in enumerate(rules)]
+    rows=policy_field_evidence('So sánh học cải thiện ở các nguồn?',docs)
+    assert {row.doc_id for row in rows}=={'0','1','2'}
+    assert [row.content for row in rows]==rules
+    assert not policy_field_evidence('Học phí ở các nguồn?',docs)
+    crossing={'doc_id':'cross','items':[{'chunk_id':'cross','page':2,'content':
+        'Sinh viên không đạt phải học lại;\nc) Sinh viên được chọn một môn thay thế.','metadata':{}}]}
+    assert not policy_field_evidence('Học cải thiện thế nào?',[crossing])
+
+
+def test_verified_qualifier_cannot_be_hidden_by_high_word_overlap_or_add_another_group():
+    from campusai.rag.policy_context import verified_field_context
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    rule='Đợt bổ sung dành cho người đã vắng đợt chính và được tổ chức sau đợt chính 19 ngày.'
+    answer='Đợt bổ sung được tổ chức sau đợt chính 19 ngày.'
+    claim=Claim('deadline',rule,'fact',1,('rule',),'supported',1.,('rule',),False)
+    cite=Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7))
+    completed=verified_field_context('Đợt bổ sung được tổ chức sau bao lâu?',answer,[claim],[cite],'vi')
+    assert completed and 'dành cho người đã vắng đợt chính' in completed[0] and not completed[2]
+    assert verified_field_context('Sau bao lâu?',rule,[claim],[cite],'vi') is None
+    from dataclasses import replace
+    mixed=rule[:-1]+', trong khi đợt riêng dành cho nhóm khác diễn ra sau 27 ngày.'
+    assert verified_field_context('Sau bao lâu?',answer,[replace(claim,text=mixed)],[cite],'vi') is None
+
+
+def test_anchored_window_keeps_following_conditions_instead_of_unrelated_preface():
+    from campusai.rag.source_windows import verbatim_window
+    anchor='Students may repeat a passed course to improve their grade.'
+    condition='The highest grade across all attempts is used as the official result.'
+    text=('Unrelated preface about another topic.\n'*30+'Applicable group: enrolled students.\n'
+        +anchor+'\n'+condition+'\n'+('Unrelated appendix.\n'*20))
+    window=verbatim_window(text,'Can I improve a grade?',280,anchors=[anchor])
+    assert anchor in window and condition in window and window in text and len(window)<=280
