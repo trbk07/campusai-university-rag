@@ -22,6 +22,20 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Chất lượng trả lời và thao tác hỏi — 02/11
 
+- [x] **UX-03 — Thẻ PDF trong khung nhập chat DONE (03/11, `01bcc838`):** hiện
+  ảnh trang đầu/tên file; tải lên hoặc xử lý thì xoay, sẵn sàng thì tự chọn làm nguồn.
+  File lỗi dừng xoay và có thao tác thử lại/chọn lại; × chỉ bỏ khỏi câu hỏi, giữ PDF
+  trong thư viện. Chờ các file mới đính kèm sẵn sàng trước khi gửi để không âm thầm
+  bỏ qua nguồn; phần đã đọc vẫn hỏi được với coverage rõ. Hỗ trợ 5 PDF/lượt rồi thêm
+  nhiều lượt tiếp, không giới hạn tổng nguồn ở 5. Thumbnail local nhỏ, cache RAM có
+  giới hạn và kiểm quyền/hash nguồn, không OCR/model hoặc tạo ảnh trên đĩa.
+  **249 tests PASS**, gồm vòng đời upload 5+5, bỏ khi đang tải, lỗi và partial OCR.
+  HTTP local: HTML mới và 8 lượt đọc thumbnail của 4 PDF PASS; ảnh 4,7–32,8 KB,
+  lần đầu 0,033–0,046s, cache 0,002–0,012s trong mẫu đo; không gọi Gemini.
+  CI Windows/Linux, package và container PASS.
+  Chưa xác nhận giao diện trực quan vì phiên không có browser kết nối; không chạy
+  lại Gemini và không dùng task giao diện này để đóng các lỗi chất lượng ANS-04/05/06.
+
 - [x] **ANS-03 — Đo Gemini thật DONE (03/11, `9753ddb1`):** chạy cùng một bản
   đủ 56 case / 60 lượt với 4 PDF đang có; 35 lượt cần model, 37 Gemini calls thành
   công chia 13/12/12 giữa 3 project, 25 lượt xử lý local, 0 cache. Không timeout

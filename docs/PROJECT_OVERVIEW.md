@@ -23,6 +23,30 @@ không nằm trong cấu hình mặc định đang phát hành.
 
 ## 2. Kết quả đã quan sát và giới hạn diễn giải
 
+**Thẻ PDF trong composer, 03/11 (`01bcc838`):** file mới xuất hiện ngay trong
+khung chat khi bắt đầu gửi; mỗi thẻ có trạng thái tải/xử lý với vòng xoay, ảnh trang
+đầu khi nguồn có sẵn, tên file và nút bỏ khỏi câu hỏi. Khi tài liệu sẵn sàng, tự chọn
+làm nguồn; file lỗi dừng xoay và có thao tác khắc phục. Nút × không xóa PDF hoặc hủy
+job. Không gửi câu hỏi trong khi file mới đính kèm chưa sẵn sàng, tránh âm thầm
+chỉ hỏi nguồn cũ; vẫn cho hỏi phần đã đọc khi backend đã xác nhận ready một phần.
+Không mất bản nháp đang gõ; hỗ trợ 5 PDF/lượt và thêm nhiều lượt, không giới hạn tổng
+nguồn ở 5. Bản xem trước chỉ render trang đầu tối đa khoảng 320×210 pixel, giữ tối
+đa 32 ảnh trong RAM theo file identity; mọi lần đọc vẫn kiểm quyền. Hash nguồn
+được xác minh trước render; không OCR/inference hoặc ghi ảnh tạm lên đĩa.
+
+**249 tests PASS**: luồng 5+5, bỏ khi request upload chưa trả ID, không tự gắn lại
+file đã bỏ, xử lý lỗi/partial OCR, chặn gửi khi còn nguồn chưa sẵn sàng, giữ bản nháp,
+cache thumbnail, kiểm quyền trước cache và từ chối nguồn bị thay đổi/xóa. Frontend
+được kiểm bằng Node và API bằng WSGI; không có browser kết nối để xác nhận trực quan.
+Không thêm dependency hoặc file báo cáo rời. Đây là thay đổi trải nghiệm đính kèm,
+không phải phép chấm Gemini mới hay bằng chứng đã sửa các lỗi semantic dưới đây.
+HTTP trên app chuẩn: HTML mới và 8 lượt thumbnail (4 PDF, mỗi ảnh cold/warm) PASS;
+ảnh 149×210 pixel, 4,7–32,8 KB, lần đầu 0,033–0,046s và cache 0,002–0,012s.
+Không upload/xóa tài liệu hoặc gọi Gemini; giữ nguyên 4 PDF trong thư viện. Đây
+là mẫu chức năng nhỏ, không phải p95/SLO thumbnail trên mọi PDF.
+CI source `01bcc838`: Windows/Linux Python 3.11/3.12/3.14, package và container
+[đều PASS](https://github.com/trbk07/campusai-university-rag/actions/runs/41560628810).
+
 **Đo hỏi đáp bằng Gemini thật, 03/11 (`9753ddb1`):** sau chấp thuận packet
 SHA-256 `260f94e9b99dc839a7f52559d94f88c39d5dae5b9727ebd5c31549c44b4add9d`,
 chạy đủ **56 case / 60 lượt HTTP** của bộ owner trên cùng runtime, index và profile
