@@ -191,6 +191,40 @@ def literal_locator_sources(schools):
     return docs
 
 
+def test_named_prose_mapping_requires_printed_lead_in_and_keeps_duplicate_owners(schools):
+    import copy
+    from campusai.retrieval.source_scope import explicit_source_documents
+    docs=copy.deepcopy(schools)
+    text=('3. Thiết bị được phân nhóm\n'
+          'theo trạng thái an toàn trong danh sách sau.\n'
+          'a) Phân loại có nhãn, bao gồm:\n'
+          'X+: Đạt mức kiểm định nâng cao;\n'
+          'X: Đạt mức kiểm định cơ bản;\n')
+    item={'doc_id':'north','page':12,'content':text,'metadata':{}}
+    docs[0]['items'].append(item)
+    question='Theo bảng trạng thái an toàn trang 12, ký hiệu X+ nghĩa là gì?'
+    assert explicit_source_documents(question,docs)=={'north'}
+    # Neither a value, an inferred heading nor a generic word can identify
+    # an owner when the actual printed field is absent.
+    for other in [question.replace('trạng thái an toàn','số hiệu thiết bị'),
+                  question.replace('trang 12','trang 11'),
+                  question.replace('trang 12',''),
+                  'Bảng trạng thái an toàn trang 12 có mức kiểm định cơ bản không?']:
+        result=explicit_source_documents(other,docs)
+        assert result==({'north'} if other.startswith('Bảng trạng thái') else set())
+    for replacement in [text.replace('trạng thái an toàn','đặc điểm vận hành'),
+                        text.replace('X: Đạt mức kiểm định cơ bản;',''),
+                        text.replace('a) Phân loại có nhãn, bao gồm:','a) Đây là ví dụ.'),
+                        text.replace('X: Đạt mức','4. Mục khác\nX: Đạt mức')]:
+        item['content']=replacement
+        item['metadata']['heading_path']='trạng thái an toàn'
+        assert not explicit_source_documents(question,docs)
+    item['content']=text
+    docs[1]['items'].append({**item,'doc_id':'west'})
+    assert explicit_source_documents(question,docs)=={'north','west'}
+    assert not resolve_institution_request(question,docs).doc_ids
+
+
 @pytest.mark.parametrize('question',[
     'Điều 27 quy định thế nào về bảo trì thiết bị?',
     'Trang 8 Điều 27 quy định thế nào về bảo trì thiết bị?',

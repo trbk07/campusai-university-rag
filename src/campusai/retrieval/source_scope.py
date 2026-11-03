@@ -89,6 +89,42 @@ def explicit_source_documents(query,documents):
     return _literal_location_documents(raw,documents)
 
 
+def _prose_list_labels(body, query):
+    """Read a named list field in a wrapped lead-in, not arbitrary body hits.
+
+    Some PDFs print a mapping as prose rather than a drawn table. Require a
+    numbered lead-in, two following short label:value entries, and a field
+    explicitly called a table/list by the user. Values never choose a source.
+    """
+    stops=set('pages page tai o tren theo cho la thi co cua in on at from'.split())
+    fields=set()
+    # Remove coordinates before word boundaries: Vietnamese "trạng" folds
+    # to "trang" too, and must remain part of a printed field name.
+    named=re.sub(r'\b(?:trang|pages?)\s+\d+\b',' ',_fold(query))
+    for match in re.finditer(r'\b(?:bang|table|danh sach|list)\s+(?:of\s+)?([a-z ]{3,90})',named):
+        words=[]
+        for word in match[1].split():
+            if word in stops or len(words)==5:break
+            words.append(word)
+        if 2<=len(words)<=5:fields.add(' '.join(words))
+    if not fields:return []
+    entries=list(re.finditer(r'(?m)^\s*[^\W\d_][\w+\-]{0,9}\s*:\s*\S[^\r\n]{0,100}$',body))
+    labels=[]
+    for first,second in zip(entries,entries[1:]):
+        # Intervening sections/prose cannot turn unrelated colon lines into
+        # a mapping. The bounded lead-in must introduce this actual list.
+        if body[first.end():second.start()].strip():continue
+        lead=body[max(0,first.start()-650):first.start()]
+        markers=list(re.finditer(r'(?m)^\s*(?:\d+|[a-zđ])[.)]\s*',lead))
+        if not markers:continue
+        lead=lead[markers[0].start():].strip()
+        if not lead.endswith(':') or re.search(r'(?mi)^\s*(?:điều|article|chapter|section)\s+\d+\b',lead):continue
+        text=_fold(lead)
+        labels.extend((field,'table') for field in fields
+                      if re.search(r'(?<!\w)'+re.escape(field)+r'(?!\w)',text))
+    return labels
+
+
 def _literal_location_documents(query,documents):
     """Resolve an explicit page/article AND a printed title, never a value.
 
@@ -145,6 +181,8 @@ def _literal_location_documents(query,documents):
                 except (ValueError,TypeError):table={}
                 if isinstance(table,dict) and isinstance(table.get('headers'),list):
                     labels.extend((header,'table') for header in table['headers'] if isinstance(header,str))
+            elif not articles and intervals:
+                labels.extend(_prose_list_labels(body,query))
             if any(matches(label,kind) for label,kind in labels):found.add(doc['doc_id'])
     return found
 
