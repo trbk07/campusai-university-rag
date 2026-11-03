@@ -29,7 +29,7 @@ def _institution_label(line):
     if values[:2]==['hieu','truong']:start=2
     if values[start:start+4]==['dai','hoc','cua','truong']:start+=3
     text=' '.join(values[start:])
-    stop=re.search(r'\b(?:ban hanh|tu hao|la truong|theo nghi quyet|quy dinh|phe duyet|cung cap|duoc thanh lap)\b',text)
+    stop=re.search(r'\b(?:ban hanh|tu hao|la truong|theo nghi quyet|quy dinh|phe duyet|cung cap|duoc thanh lap|doc lap|cong hoa)\b',text)
     count=len(text[:stop.start()].split()) if stop else len(values)-start
     if not count:return ''
     label=line[words[start].start():words[start+count-1].end()].strip()

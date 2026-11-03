@@ -410,7 +410,8 @@ def institution_names_supported(answer, results):
         tail=re.split(r'[\n,.;:()]',answer[match.end():min(end,match.end()+120)],maxsplit=1)[0].strip()
         if not tail or not tail[0].isupper():continue
         name=re.split(r'\s+(?:có|được|không|theo|trong|sẽ|tại|là|với|đã|áp dụng|giới hạn|'
-                      r'quy định|cho phép|yêu cầu|quy đổi|tổ chức|đăng ký|thực hiện)\b',
+                      r'quy định|cho phép|yêu cầu|quy đổi|tổ chức|đăng ký|thực hiện|'
+                      r'dành cho|cung cấp|học kỳ|học kì|sinh viên)\b',
                       tail,maxsplit=1,flags=re.I)[0]
         name=re.sub(r'\s+và\s*$','',name,flags=re.I).strip()
         if not re.search(r'(?<!\w)'+re.escape('dai hoc '+' '.join(folded(name).split()))+r'(?!\w)',allowed):return False

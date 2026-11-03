@@ -72,6 +72,8 @@ def normalize_retrieval_query(text: str) -> str:
         (r'\b(?:gpa|cpa)\b', 'điểm trung bình chung tích lũy GPA CPA'),
         (r'\b(?:bao lau|how long|duration)\b', 'thời gian duration'),
         (r'\b(?:truot|rot|failed)\b', 'không đạt học phần'),
+        (r'\b(?:hoc cai thien|cai thien diem|hoc lai keo|grade improvement|grade replacement)\b',
+         'học lại học phần đã có điểm đạt cải thiện điểm'),
         (r'\b(?:thi lai|thi nua|resit|re[- ]?exam)\b', 'thi lại kỳ thi phụ kỳ thi chính'),
         (r'\b(?:hp|hoc phi|tuition)\b', 'học phí tuition'),
         (r'\b(?:nn|ngoai ngu|english|language)\b', 'ngoại ngữ tiếng Anh language'),

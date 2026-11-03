@@ -39,10 +39,13 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   adjudicated v2 sau review nguồn và fresh holdout được đóng băng sau sửa.
   FACT15 và các fixture phạm vi/ý phụ không tự chuyển thành PASS; chưa có bằng
   chứng thì ghi PENDING_GOLD_REVIEW/NOT PASSED.
-  Vòng sửa tiếp đã **PASS 292 tests**: proof riêng cho số học có điều kiện, chặn
-  diễn giải sai tổng tín chỉ tự chọn; nhận mã môn dài và tổng kết học kỳ ở cuối
-  bảng, giữ hai nguồn khi hỏi so sánh nối tiếp. Đang chuẩn bị lượt đủ 112 câu trả
-  lời thật trên snapshot mới; chưa dùng replay/kiểm thử giả lập làm số liệu E2E.
+  Lượt đủ **100 ca / 112 lượt HTTP** trên `53b6802b` đã chạy xong: 85 Gemini
+  calls thành công, không lỗi HTTP; có 4 lượt trúng cache bản cũ, được giữ rõ
+  trong evidence. Đã sửa cache tự gắn fingerprint code khi khởi động, câu hỏi
+  nối tiếp đổi học kỳ, so sánh điểm và provenance tên nguồn. **298 tests PASS**.
+  Tiếp tục đo lại trên snapshot mới; chưa tuyên bố đạt ≥95%, chưa dùng replay
+  hoặc kiểm thử giả lập làm số liệu E2E. Bốn index tài liệu gốc giữ nguyên;
+  manifest chung có thêm tài liệu ngoài benchmark nên được ghi riêng.
 
 - [x] **ANS-07 — Baseline Golden 100 DONE (03/11, `8ddcd9c5`):** đã chạy đủ
   **100 case / 112 lượt HTTP thật** qua app với 4 PDF, không mock; CTX chạy đúng

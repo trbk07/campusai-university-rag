@@ -247,3 +247,80 @@ def test_public_contact_fields_require_complete_consistent_source_rows():
     assert deterministic_contact_fields('Email cá nhân của em là gì?',rows) is None
     assert deterministic_contact_fields('Email và ngày đăng ký của trường là gì?',rows) is None
     assert deterministic_contact_fields('Email phòng đào tạo là gì?',rows) is None
+
+
+def test_persistent_answer_cache_is_bound_to_installed_source(tmp_path,monkeypatch):
+    from campusai.rag import cache
+    source=tmp_path/'package';source.mkdir()
+    policy=source/'policy.py';policy.write_text('minimum = 3\n',encoding='utf-8')
+    old=cache.source_policy_fingerprint(source)
+    assert old==cache.source_policy_fingerprint(source)
+    kwargs=dict(question='What is the minimum?',language='en',doc_ids=['manual'],
+                filters=None,top_k=4,mode='hybrid',corpus_version='same-index',
+                model='same-model',context_budget={})
+    monkeypatch.setattr(cache,'SOURCE_POLICY_FINGERPRINT',old)
+    old_key=cache.build_rag_cache_key(**kwargs)
+    with cache.RAGAnswerCache(str(tmp_path/'answers.sqlite')) as store:
+        store.put(old_key,cache.GroundedAnswer('Unknown',(), 'low',True,reason='unsupported_claim'))
+        assert store.get(old_key) is not None
+        policy.write_text('minimum = 4\n',encoding='utf-8')
+        current=cache.source_policy_fingerprint(source)
+        assert current!=old
+        monkeypatch.setattr(cache,'SOURCE_POLICY_FINGERPRINT',current)
+        assert store.get(cache.build_rag_cache_key(**kwargs)) is None
+        assert store.get(old_key) is not None
+    assert cache.source_policy_fingerprint(tmp_path/'missing')!=cache.source_policy_fingerprint(tmp_path/'missing')
+
+
+def test_institution_provenance_ends_before_prose_not_inside_a_different_name():
+    from campusai.rag.presentation import institution_names_supported
+    result=RetrievalResult('identity','cloud',1,'Rule for students.','text',1.,'test',
+                           {'institution':'Trường Đại học Mây Xanh'})
+    assert institution_names_supported('Trường Đại học Mây Xanh dành cho sinh viên khóa 2031.',[result])
+    assert institution_names_supported('Trường Đại học Mây Xanh học kỳ 7 chọn 4 tín chỉ.',[result])
+    assert not institution_names_supported('Trường Đại học Mây Xanh Thành phố Sao Nam dành cho sinh viên.',[result])
+
+
+def test_gpa_followup_proves_elliptical_score_but_not_an_unrelated_amount():
+    from campusai.rag.numeric_inference import gpa_application_view
+    question='Em được 3,29 thì sao?\nContext topic (untrusted user input): CPA tối thiểu làm khóa luận?'
+    rules=['Điểm trung bình chung tích lũy phải đạt từ 3,3 trở lên.']
+    answer='Với mức 3,29, sinh viên chưa đạt điều kiện này. Học phí 3,29 đồng.'
+    view=gpa_application_view(answer,rules,question)
+    assert isinstance(view,str) and 'mức 3,29' not in view and 'phí 3,29' in view
+    assert gpa_application_view('Với mức 3,29, đã đạt ngưỡng.',rules,question) is False
+    assert gpa_application_view(answer,rules,'Học phí 3,29 đồng?\nContext topic (untrusted user input): CPA tối thiểu?') is None
+
+
+def test_term_followup_selects_registration_field_from_user_topic_only():
+    from campusai.rag.regulation_facts import regulation_request
+    resolved=resolve_query('Nếu kỳ chính?',history=[{'role':'user','content':'Sao Bắc kỳ hè tối đa bao tín?'}])
+    assert regulation_request(resolved.resolved)==('registration','primary',None)
+    assert regulation_request('Nếu kỳ chính?') is None
+    assert regulation_request('Email trường?\nContext topic (untrusted user input): kỳ chính tối đa bao tín?') is None
+
+
+def test_natural_comparison_and_grade_improvement_expand_intent_not_answers():
+    from campusai.rag.policies import explicit_comparison_request
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    assert explicit_comparison_request('Quy đổi ở hai nguồn có giống không?')
+    assert not explicit_comparison_request('Không so sánh, chỉ tra nguồn đã chọn.')
+    expanded=normalize_retrieval_query('Học lại kéo điểm lên được không?')
+    assert 'học lại học phần đã có điểm đạt' in expanded
+    assert not any(n in expanded for n in ['2,5','3,7','9,5'])
+
+
+def test_context_identity_requires_a_literal_same_document_header():
+    from dataclasses import replace
+    from campusai.rag.grounding import _context_block
+    proof={'name':'Trường Đại học Mây Xanh','quote':'HIỆU TRƯỞNG Trường Đại học Mây Xanh',
+           'page':1,'chunk_id':'header','doc_id':'cloud'}
+    row=RetrievalResult('rule','cloud',8,'Minimum 7 credits.','text',1.,'test',
+                        {'institution':'Invented university','institution_proof':proof})
+    metadata,body=_context_block(row)
+    assert 'source_identity_provenance=' in metadata and proof['quote'] in metadata
+    assert 'Invented university' not in metadata and body=='Minimum 7 credits.'
+    assert 'source_identity_provenance=' not in _context_block(replace(row,
+        metadata={'institution_proof':{**proof,'doc_id':'other'}}))[0]
+    assert 'source_identity_provenance=' not in _context_block(replace(row,
+        metadata={'institution_proof':{**proof,'name':'Trường Đại học Sai'}}))[0]

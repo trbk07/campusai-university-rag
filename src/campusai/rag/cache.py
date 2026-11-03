@@ -6,6 +6,8 @@ import hashlib
 import json
 import re
 import threading
+from pathlib import Path
+from uuid import uuid4
 from contextlib import contextmanager
 from collections.abc import Iterator
 from typing import Any
@@ -20,6 +22,34 @@ from .schemas import SCHEMA_VERSION
 PROMPT_VERSION = "grounding-context-v15"
 GROUNDING_POLICY_VERSION = "grounding-v75"
 ABSTENTION_POLICY_VERSION = "grounding-v3"
+
+
+def source_policy_fingerprint(root: Path) -> str:
+    """Bind persistent answers to the installed application, once at startup.
+
+    Hash package source only, never user documents, configuration or secrets.
+    Source-less installations retain caching within the process but cannot
+    accidentally reuse another process's unidentifiable policy.
+    """
+    digest = hashlib.sha256()
+    try:
+        files = sorted(root.rglob('*.py'))
+        if not files:
+            raise OSError('No installed policy source')
+        for path in files:
+            name = path.relative_to(root).as_posix().encode('utf-8')
+            content = path.read_bytes()
+            digest.update(len(name).to_bytes(8, 'big'))
+            digest.update(name)
+            digest.update(hashlib.sha256(content).digest())
+        return digest.hexdigest()
+    except OSError:
+        return 'process-' + uuid4().hex
+
+
+# Do not walk the source tree on every question. Application upgrades require
+# a process restart, which also loads a new policy and a new cache identity.
+SOURCE_POLICY_FINGERPRINT = source_policy_fingerprint(Path(__file__).resolve().parents[1])
 
 
 def normalize_question(question: str) -> str:
@@ -59,6 +89,7 @@ def build_rag_cache_key(
         "corpus_version": corpus_version,
         "prompt_version": prompt_version,
         "grounding_policy_version": grounding_policy_version,
+        "source_policy_fingerprint": SOURCE_POLICY_FINGERPRINT,
         "confidence_policy_version": confidence_policy_version,
         "calibration_artifact_sha256": calibration_artifact_sha256,
         "abstention_policy_version": abstention_policy_version,

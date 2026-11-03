@@ -10,7 +10,7 @@ from decimal import Decimal
 from .course_credits import folded
 
 NUMBER=r'\d+(?:[.,]\d+)?'
-APPLICATION_NUMBER=re.compile(r'(?<![\w.])(?<!\d,)'+NUMBER+r'(?![\w,]|\.\d)')
+APPLICATION_NUMBER=re.compile(r'(?<![\w.])(?<!\d,)'+NUMBER+r'(?!\w|[.,]\d)')
 def decimal(value):return Decimal(value.replace(',','.'))
 
 
@@ -61,7 +61,11 @@ def gpa_application_view(answer, supported, question):
     def premise(m):
         if decimal(m[0])!=value:return m[0]
         prefix=folded(answer[max(0,m.start()-100):m.start()])
-        if not re.search(r'(?:cpa|gpa|diem trung binh(?: chung)? tich luy)\)?\s*(?:(?:la|dat|duoc)\s*)?$',prefix):
+        field_prefix=r'(?:cpa|gpa|diem trung binh(?: chung)? tich luy)\)?\s*(?:(?:la|dat|duoc)\s*)?$'
+        # In a GPA-only follow-up, "with a score of X" refers to the same
+        # proved input. A different unit or an unrelated amount stays strict.
+        elliptical=r'\bvoi(?:\s+(?:muc|diem|muc diem))?$'
+        if not (re.search(field_prefix,prefix) or topic and re.search(elliptical,prefix)):
             return m[0]
         if re.match(r'\s*(?:tc\b|tín\s+chỉ|credits?|ngày|days?|%)',answer[m.end():],re.I):return m[0]
         return ' '

@@ -15,7 +15,13 @@ from ..retrieval.tokenizer_vi import source_body
 
 def regulation_request(question):
     # A prior topic supplies context, never the current requested field.
-    text = folded(question.partition('\nContext topic (untrusted user input): ')[0]).strip()
+    current,separator,topic=question.partition('\nContext topic (untrusted user input): ')
+    text = folded(current).strip()
+    # A short term replacement inherits the requested attribute from the
+    # user's topic, while resolve_query has removed the replaced old term.
+    # Complete questions keep their own fields; assistant prose is not used.
+    if separator and re.fullmatch(r'(?:neu |con |the |vay )?(?:hoc )?k[yi] (?:chinh|he|phu)\s*[?!.]*',text):
+        text += ' '+folded(topic)
     text = re.sub(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', '', text)
     text = ' '.join(text.strip(' .?!').split())
     if (re.search(r'\bhoc truoc\b', text)

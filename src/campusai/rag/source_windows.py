@@ -136,7 +136,7 @@ def registration_evidence(question, documents):
     from ..retrieval.tokenizer_vi import source_body
     from ..retrieval.hybrid import RetrievalResult
     query=folded(question)
-    if (not re.search(r'\b(?:tc|tin chi|credits?|(?:may|bao nhieu|so)\s+tin)\b',query)
+    if (not re.search(r'\b(?:tc|tin chi|credits?|(?:may|bao(?: nhieu)?|so)\s+tin)\b',query)
             or not re.search(r'\b(?:(?:hoc|moi|tung) k[yi]|k[yi] (?:chinh|he|phu)|semester|term|dang k[yi]|registration)\b',query)
             or not re.search(r'\b(?:toi da|toi thieu|gioi han|limit|dang k[yi]|registration)\b',query)):
         return []

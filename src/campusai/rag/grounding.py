@@ -359,10 +359,21 @@ def _context_block(result: RetrievalResult, evidence_ids=None) -> tuple[str, str
     source_name = result.metadata.get("source_name") or result.doc_id
     section = " > ".join(result.metadata.get("heading_path", [])) or ""
     table_line = f"table_id={result.metadata.get('table_id')}\n" if result.metadata.get("table_id") else ""
+    identity_line = ''
+    proof = result.metadata.get('institution_proof')
+    if isinstance(proof, dict) and proof.get('doc_id') == result.doc_id:
+        from ..retrieval.institution_scope import _institution_label
+        name, quote = proof.get('name'), proof.get('quote')
+        if (isinstance(name, str) and isinstance(quote, str) and len(quote)<=500
+                and _institution_label(quote)==name and isinstance(proof.get('page'),int)
+                and proof['page']>0 and isinstance(proof.get('chunk_id'),str)):
+            # A literal same-document header is provenance, not the source of
+            # the cited numeric rule. Never expose inferred index annotations.
+            identity_line='source_identity_provenance='+json.dumps(proof,ensure_ascii=False)+'\n'
     metadata = (
         f"[EVIDENCE]\nchunk_id={(evidence_ids or {}).get(result.chunk_id, result.chunk_id)}\n"
         f"document={source_name}\ndoc_id={result.doc_id}\npage={result.page}\n"
-        f"page_range={page_range[0]}-{page_range[1]}\n{table_line}section={section}\ncontent:\n"
+        f"page_range={page_range[0]}-{page_range[1]}\n{table_line}{identity_line}section={section}\ncontent:\n"
     )
     # Generated index headers are not source evidence. Keep physical citation
     # coordinates above and preserve the source/table serialization verbatim.

@@ -46,7 +46,7 @@ def is_ambiguous_question(question: str, results: list[RetrievalResult]) -> bool
 
 def explicit_comparison_request(question: str) -> bool:
     intent = folded(str(question).split("Topic:", 1)[0])
-    return bool(re.search(r"\b(?:compare|comparison|differences?|versus|vs|so sanh|chenh lech|tru|giong nhau|khac nhau|the same|identical|differ(?:ent)?)\b", intent)
+    return bool(re.search(r"\b(?:compare|comparison|differences?|versus|vs|so sanh|chenh lech|tru|giong(?: nhau)?|khac nhau|the same|identical|differ(?:ent)?)\b", intent)
         and not re.search(r"\b(?:do not|don't|not|khong)\s+(?:compare|so sanh)\b", intent))
 
 

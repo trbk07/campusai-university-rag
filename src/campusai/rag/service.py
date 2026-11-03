@@ -911,6 +911,18 @@ class CampusAIQueryService:
                     labels=_source_options([document])
                     if not labels:continue
                     label=labels[0]
+                    printed=[]
+                    for item in document['items']:
+                        if item.get('page',999)>5:continue
+                        for line in source_body(item).splitlines():
+                            name=_institution_label(line)
+                            if name:printed.append((name,item,line.strip()))
+                    # A generated metadata preface can differ from the actual
+                    # printed header. Prefer a unique, fully spelled source
+                    # heading; competing names never establish an identity.
+                    expanded={fold(name):name for name,_,_ in printed
+                              if fold(name).startswith('truong dai hoc ')}
+                    if len(expanded)==1:label=next(iter(expanded.values()))
                     for item in document['items']:
                         if item.get('page',999)>5:continue
                         quote=next((line.strip() for line in source_body(item).splitlines()
