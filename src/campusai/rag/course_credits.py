@@ -37,11 +37,14 @@ def course_name_key(name: str) -> str:
 
 def headed_credit_rows(content: str, *, identity: str = 'code'):
     """Return explicit identity/credit cells, retaining invalid values as None."""
-    start = content.find('{"headers"')
-    if start < 0:
-        return None
     try:
-        table = json.loads(content[start:])
+        try:
+            table = json.loads(content)
+        except ValueError:
+            start = content.find('{"headers"')
+            if start < 0:
+                return None
+            table = json.loads(content[start:])
     except (ValueError, TypeError):
         return None
     if not isinstance(table, dict):

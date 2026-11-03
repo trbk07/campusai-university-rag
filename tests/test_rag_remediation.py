@@ -350,6 +350,8 @@ def test_closing_semester_marker_remains_a_proved_locator_in_final_answer():
     question='HK7 môn ZX987654 mấy tín?'
     quote=source_quote(row,claims,question)
     assert quote
+    from campusai.rag.course_credits import headed_credit_rows
+    assert any(code=='ZX987654' and credits==4 for code,credits,_ in headed_credit_rows(quote) or [])
     citation=Citation('table','catalog',8,quote)
     payload={'confidence':'high','claims':claims}
     answer=_grounding_finalize('Môn ZX987654 ở học kỳ7 có4 tín chỉ.',(citation,),payload,[row],'vi',question=question)
