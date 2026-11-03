@@ -70,6 +70,14 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   raw predictions, citation và hallucination trên PDF gốc. Nếu
   candidate FAIL, không chỉnh rồi chạy lại cùng holdout để nhận chứng nhận;
   vòng code sau cần một tập blind mới. Không tạo reviewer/approval giả.
+- [x] **RAG-95-06a — Kiểm tra export/review tự động DONE:** có CLI offline
+  `python -m scripts.release.blind_holdout` kiểm hash candidate/index, đủ200 ca,
+  history đúng từng phiên, family exposure, receipt review riêng, cách ly gold,
+  citation và binding prediction→review. Giữ mọi lỗi provider trong mẫu số;
+  không tạo thêm gate “0 outage” thay ngưỡng95%. **349 tests PASS** trên toàn bộ
+  suite, gồm fixtures giả lập ghi rõ không phải holdout/inference/review thật.
+  Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
+  validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
   Golden:NOT PASSED56%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.

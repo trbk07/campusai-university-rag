@@ -1016,3 +1016,171 @@ def test_corrupt_font_mapping_requests_ocr_and_never_publishes_bad_native_text(t
     assert page['untrusted_native_mapping'] is True
     assert page['requires_ocr'] is True
     assert page['text'] == '' and page['visible_characters'] == []
+
+
+@pytest.fixture
+def blind_contract_fixture():
+    """Fabricated contract data only: NOT a holdout, model run or review receipt."""
+    from scripts.release.blind_holdout import commitment,public_request
+    cases=[{'id':f'unit-{i}','doc_ids':['controlled-source'],'language':'en',
+            'turns':[f'What is the controlled value for unit item {i}?'],
+            'family_commitments':[commitment(['fictional-unit-family',i])]} for i in range(200)]
+    candidate=commitment('fictional-source-pins');gold=commitment('fictional-private-gold')
+    receipt={'verified':True,'gold_commitment':gold,'developer_gold_access':False,
+        'worker_job_identity':'fictional-worker-not-a-real-job','candidate_sha256':candidate,
+        'sealed_at_utc':'2026-01-01T00:00:00Z'}
+    protocol={'version':1,'candidate_sha256':candidate,'case_manifest_sha256':commitment(cases),
+        'gold_commitment':gold,'frozen_at_utc':'2026-01-02T00:00:00Z',
+        'inference_started_at_utc':'2026-01-03T00:00:00Z',
+        'exposed_families':[commitment('fictional-prior-exposed-family')],
+        'isolation_receipt_sha256':commitment(receipt),'reviewer':{
+            'kind':'independent_ai','actual_model':'fictional-review-model',
+            'author_context_id':'unit-author','review_context_id':'unit-reviewer',
+            'reviewed_gold_case_ids':[c['id'] for c in cases],
+            'raw_author_response_sha256':commitment('unit-author-response'),
+            'raw_review_response_sha256':commitment('unit-review-response')}}
+    answer={'schema_version':'grounding-public-v2','answer':'The controlled value is seven.',
+        'citations':[{'chunk_id':'rule','doc_id':'controlled-source','page':2,'page_range':[2,2],
+            'quote':'The controlled value is seven.','source_name':'controlled.pdf'}],
+        'confidence':'high','abstained':False,'abstention_reason':None,
+        'claims':[{'claim_id':'value','text':'The controlled value is seven.','citation_ids':['rule']} ]}
+    import copy
+    predictions=[{'case_id':c['id'],'prediction_kind':'real_application_http','turns':[
+        {'http_status':200,'request_id':'unit-request-'+c['id'],'request':public_request(c,0,[]),
+         'response':{'ok':True,'answer':copy.deepcopy(answer)}}]} for c in cases]
+    verdicts=[{'case_id':p['case_id'],'prediction_sha256':commitment(p),'gold_commitment':gold,
+        'all_required_facts':True,'source_scope_correct':True,'citation_grounded':True,
+        'hallucination':'absent'} for p in predictions]
+    chunks={('controlled-source','rule'):{'page':2,'content':'The controlled value is seven.'}}
+    return cases,predictions,verdicts,protocol,receipt,candidate,chunks
+
+
+def test_blind_scoring_contract_requires_every_native_case_and_fixed_threshold(blind_contract_fixture):
+    from scripts.release.blind_holdout import score_review
+    cases,predictions,verdicts,protocol,receipt,candidate,chunks=blind_contract_fixture
+    def score():return score_review(cases,predictions,verdicts,protocol,
+        observed_candidate_sha256=candidate,isolation_receipt=receipt,chunks=chunks)
+    result=score()
+    assert result['holdout_quality_pass'] and result['passed']==200
+    assert not result['overall_rag95_complete']  # This gate cannot approve the whole project.
+    for row in verdicts[:10]:row['all_required_facts']=False
+    assert score()['accuracy']==.95 and score()['holdout_quality_pass']
+    verdicts[10]['all_required_facts']=False
+    assert not score()['holdout_quality_pass'] and score()['failed_or_unverified']==11
+    predictions.pop()
+    assert score()['cases']==200 and 'missing_case_prediction_or_review' in score()['errors']
+
+
+@pytest.mark.parametrize('failure',['detected','uncertain','wrong_scope','unbound_review','fake_quote','provider_error','mock'])
+def test_blind_contract_fail_closes_on_safety_or_non_native_evidence(blind_contract_fixture,failure):
+    from scripts.release.blind_holdout import commitment,score_review
+    cases,predictions,verdicts,protocol,receipt,candidate,chunks=blind_contract_fixture
+    if failure in {'detected','uncertain'}:verdicts[0]['hallucination']=failure
+    elif failure=='wrong_scope':verdicts[0]['source_scope_correct']=False
+    elif failure=='unbound_review':verdicts[0]['prediction_sha256']=commitment('different-output')
+    else:
+        prediction=predictions[0];turn=prediction['turns'][0]
+        if failure=='fake_quote':turn['response']['answer']['citations'][0]['quote']='Unprinted value is eight.'
+        elif failure=='provider_error':turn['response']['provider_status']={'error_code':'provider_timeout'}
+        elif failure=='mock':prediction['prediction_kind']='mocked_answer'
+        verdicts[0]['prediction_sha256']=commitment(prediction)
+    result=score_review(cases,predictions,verdicts,protocol,observed_candidate_sha256=candidate,
+        isolation_receipt=receipt,chunks=chunks)
+    assert result['passed']==199
+    if failure=='provider_error':
+        # Known provider failures remain FAIL in the fixed denominator; no
+        # additional zero-outage gate is invented beyond >=95% accuracy.
+        assert result['holdout_quality_pass'] and result['provider_failure_cases']==1
+    else:assert not result['holdout_quality_pass']
+
+
+@pytest.mark.parametrize('failure',['no_isolation','local_process_only','leaked_gold','candidate_changed',
+    'exposed_family','same_review_context','no_review_receipt','late_freeze','changed_public_input',
+    'incomplete_gold_review','no_exposure_history'])
+def test_blind_contract_requires_sealed_independent_review_before_measurement(blind_contract_fixture,failure):
+    from scripts.release.blind_holdout import commitment,score_review
+    cases,predictions,verdicts,protocol,receipt,candidate,chunks=blind_contract_fixture
+    if failure=='no_isolation':receipt=None
+    elif failure=='local_process_only':receipt['verified']=False
+    elif failure=='leaked_gold':receipt['developer_gold_access']=True
+    elif failure=='candidate_changed':candidate=commitment('different-source')
+    elif failure=='exposed_family':protocol['exposed_families']=[cases[0]['family_commitments'][0]]
+    elif failure=='same_review_context':protocol['reviewer']['review_context_id']='unit-author'
+    elif failure=='no_review_receipt':protocol['reviewer']['raw_review_response_sha256']=''
+    elif failure=='late_freeze':protocol['frozen_at_utc']='2026-01-04T00:00:00Z'
+    elif failure=='changed_public_input':cases[0]['turns'][0]='Changed after freeze'
+    elif failure=='incomplete_gold_review':protocol['reviewer']['reviewed_gold_case_ids'].pop()
+    elif failure=='no_exposure_history':protocol['exposed_families']=[]
+    result=score_review(cases,predictions,verdicts,protocol,observed_candidate_sha256=candidate,
+        isolation_receipt=receipt,chunks=chunks)
+    assert not result['holdout_quality_pass'] and result['errors']
+
+
+def test_blind_public_boundary_rejects_labels_duplicate_cases_and_context_contamination(blind_contract_fixture):
+    from scripts.release.blind_holdout import public_request,validate_public_cases
+    import copy
+    cases,*_=blind_contract_fixture
+    with pytest.raises(ValueError,match='200'):validate_public_cases(cases[:199])
+    changed=copy.deepcopy(cases);changed[0]['expected']='Private golden answer'
+    with pytest.raises(ValueError,match='public_case_fields'):validate_public_cases(changed)
+    changed=copy.deepcopy(cases);changed[1]['turns']=changed[0]['turns']
+    with pytest.raises(ValueError,match='duplicate_question'):validate_public_cases(changed)
+    case=copy.deepcopy(cases[0]);case['turns'].append('Why is that?')
+    history=[{'role':'user','content':case['turns'][0]},{'role':'assistant','content':'Actual previous reply.'}]
+    assert public_request(case,1,history)['history']==history
+    assert set(public_request(case,1,history))=={'question','doc_ids','language','history'}
+    with pytest.raises(ValueError,match='without_history'):public_request(cases[1],0,history)
+    with pytest.raises(ValueError,match='order_or_session'):public_request(case,1,[
+        {'role':'user','content':'A question from another case'},history[1]])
+    history[1]['expected']='Private gold must never enter inference'
+    with pytest.raises(ValueError,match='actual_conversation'):public_request(case,1,history)
+
+
+def test_blind_offline_cli_reads_only_pinned_index_and_never_logs_private_content(blind_contract_fixture,tmp_path,capsys):
+    """Unit export/receipts are fictional; no holdout or model calls occur."""
+    import json,hashlib
+    from scripts.release.blind_holdout import commitment,main
+    cases,predictions,verdicts,protocol,receipt,_candidate,chunks=blind_contract_fixture
+    directory=tmp_path/'index'/'controlled-source';directory.mkdir(parents=True)
+    index=directory/'bm25.json'
+    row={**chunks[('controlled-source','rule')],'doc_id':'controlled-source','chunk_id':'rule'}
+    index.write_text(json.dumps({'items':[row]}),encoding='utf-8')
+    pins={'index/controlled-source/bm25.json':hashlib.sha256(index.read_bytes()).hexdigest()}
+    candidate=commitment(pins);protocol['candidate_sha256']=candidate;receipt['candidate_sha256']=candidate
+    protocol['isolation_receipt_sha256']=commitment(receipt)
+    bundle={'cases':cases,'predictions':predictions,'verdicts':verdicts,'protocol':protocol,
+            'candidate_files_sha256':pins}
+    path=tmp_path/'public-export.json';path.write_text(json.dumps(bundle),encoding='utf-8')
+    seal=tmp_path/'fictional-isolation-receipt.json';seal.write_text(json.dumps(receipt),encoding='utf-8')
+    args=['--bundle',str(path),'--isolation-receipt',str(seal),'--index',str(tmp_path/'index'),
+          '--workspace',str(tmp_path)]
+    assert main(args)==0
+    output=json.loads(capsys.readouterr().out)
+    assert output['holdout_quality_pass'] and not output['overall_rag95_complete']
+    index.write_text(json.dumps({'items':[{**row,'content':'Changed after freeze.'}]}),encoding='utf-8')
+    assert main(args)==1
+    assert not json.loads(capsys.readouterr().out)['holdout_quality_pass']
+    path.write_text(json.dumps({**bundle,'expected':'PRIVATE_GOLD_MUST_NOT_BE_PRINTED'}),encoding='utf-8')
+    assert main(args)==1
+    output=capsys.readouterr().out
+    assert 'PRIVATE_GOLD_MUST_NOT_BE_PRINTED' not in output and not json.loads(output)['holdout_quality_pass']
+
+
+def test_blind_multiturn_audits_later_requests_even_after_a_provider_failure(blind_contract_fixture):
+    from scripts.release.blind_holdout import commitment,public_request,score_review
+    import copy
+    cases,predictions,verdicts,protocol,receipt,candidate,chunks=blind_contract_fixture
+    case=cases[0];case['turns'].append('Why is that controlled value used?')
+    protocol['case_manifest_sha256']=commitment(cases)
+    first=predictions[0]['turns'][0]
+    first['http_status']=503;first['response']={'ok':False,'provider_status':{'error_code':'provider_overloaded'}}
+    history=[{'role':'user','content':case['turns'][0]},{'role':'assistant','content':''}]
+    second=copy.deepcopy(predictions[1]['turns'][0]);second['request']=public_request(case,1,history)
+    predictions[0]['turns'].append(second);verdicts[0]['all_required_facts']=False
+    verdicts[0]['prediction_sha256']=commitment(predictions[0])
+    def score():return score_review(cases,predictions,verdicts,protocol,observed_candidate_sha256=candidate,
+        isolation_receipt=receipt,chunks=chunks)
+    assert score()['provider_failure_cases']==1 and score()['passed']==199
+    second['request']['expected']='Private gold injected after the failed turn'
+    verdicts[0]['prediction_sha256']=commitment(predictions[0])
+    assert not score()['holdout_quality_pass'] and 'native_case_incomplete_or_invalid' in score()['errors']
