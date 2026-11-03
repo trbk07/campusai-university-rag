@@ -21,7 +21,7 @@ COURSE_MARKER = re.compile(r'(?<!\w)' + COURSE_CODE + r'(?!\w)', re.I)
 LOCATION_VALUE = r'[0-9]+(?:\.[0-9]+)*(?:\([a-z]\))?'
 LOCATION = re.compile(r'\b(article|dieu|section|muc|chapter|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)')
 VISIBLE_LOCATION = re.compile(r'\b(article|điều|dieu|section|mục|muc|chapter|chương|chuong|page|trang)\s+('+LOCATION_VALUE+r')(?![\w(]|\.\d)',re.I)
-SEMESTER_LOCATION = re.compile(r'\b(?:semester|(?:học\s+)?k[ỳì]|(?:hoc\s+)?k[yi])\s*'
+SEMESTER_LOCATION = re.compile(r'\b(?:semester|hk|(?:học\s+)?k[ỳì]|(?:hoc\s+)?k[yi])\s*'
                                r'(?:(?:thứ|thu)\s*)?(\d{1,2})\b',re.I)
 CALENDAR_DATE = re.compile(r'(?<!\w)(?:(\d{4})-(\d{1,2})-(\d{1,2})|(\d{1,2})/(\d{1,2})/(\d{4}))(?!\w)')
 CLOCK_TIME = re.compile(r'(?<!\w)([0-9]{1,2})(?::|h)([0-9]{2})(?!\w)', re.I)
@@ -102,6 +102,9 @@ def location_proofs(citations, registry):
                 cells=[c.strip() for c in row if c.strip()]
                 marker=SEMESTER_LOCATION.fullmatch(cells[0]) if len(cells)==1 else None
                 if marker:proven.add(('semester',str(int(marker[1]))))
+                from .semester_citations import _closing_scope
+                closing=_closing_scope(row)
+                if closing:proven.add(('semester',str(closing[0])))
                 if len(columns)==1 and len(row)>columns[0] and re.fullmatch(r'[0-9]{1,2}',row[columns[0]]):
                     proven.add(('semester',str(int(row[columns[0]]))))
             if isinstance(quoted,dict) and isinstance(quoted.get('scope'),str):
@@ -418,6 +421,35 @@ def institution_names_supported(answer, results):
     return True
 
 
+def conditional_labels_supported(assertion, quotes):
+    """Do not splice a categorical outcome onto a different condition.
+
+    Outcomes and condition labels come from literal source text, not a fixed
+    ranking or school-specific rule. An incomplete cross-page condition cannot
+    borrow the preceding complete rule's outcome.
+    """
+    condition=r'\b(?:ky luat (?:muc|hinh thuc)|disciplinary (?:level|sanction))\s+([^,.;!?]{1,70}?)\s*(?:,|\bkhi\b)'
+    cap=r'\b(?:khong (?:duoc )?vuot qua loai|must not exceed (?:class|category))\s+([^.;!?]{1,70})'
+    value=' '.join(folded(assertion).split())
+    subject=re.search(condition,value);outcome=re.search(cap,value)
+    if not subject or not outcome:return True
+    label=outcome[1].strip()
+    # Keep printed paragraph/list boundaries. Adjacent source fragments may
+    # complete the same condition, but a new condition cannot close it.
+    source='\n'.join(quotes)
+    blocks=re.split(r'(?m)^\s*(?:\d+|[a-zđ])[.)]\s*',source)
+    for block in blocks:
+        text=' '.join(folded(block).split())
+        subjects=list(re.finditer(condition,text))
+        for i,match in enumerate(subjects):
+            end=subjects[i+1].start() if i+1<len(subjects) else len(text)
+            if match[1].strip()!=subject[1].strip():continue
+            continuation=re.split(r'[.;!?]',text[match.end():end],maxsplit=1)[0][:300]
+            permitted=re.search(cap,continuation)
+            if permitted and permitted[1].strip()==label:return True
+    return False
+
+
 def source_ownership_conflicts(answer, claims, citations, results, question=''):
     """Veto simple scalar facts borrowed from a different cited source.
 
@@ -585,6 +617,9 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     if not supported:
         return True
     visible = prose(answer)
+    table_semesters={value for kind,value in locations if kind=='semester'}
+    if table_semesters and any(str(int(m[1])) not in table_semesters for m in SEMESTER_LOCATION.finditer(visible)):
+        return True
     from .numeric_inference import gpa_application_view, percentage_application_view
     for proof in (gpa_application_view, percentage_application_view):
         applied=proof(visible,supported,question)

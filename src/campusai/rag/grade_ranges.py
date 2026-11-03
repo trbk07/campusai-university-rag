@@ -39,9 +39,11 @@ def score_input(question):
 
 
 def conversion_request(question):
-    value=folded(question)
+    from ..ingestion.numeric_normalizer import normalize_spoken_decimals
+    value=folded(normalize_spoken_decimals(question))
     return bool(re.search(r'\b(?:quy doi|quy ra|doi he|he\s*4|diem chu|letter grade|convert|thang|diem he)\b|'
-                          r'\b[a-f][+]?\s+(?:hay|ha)\b',value))
+                          r'\b[a-f][+]?\s+(?:hay|ha)\b|'
+                          r'\bla\s+'+NUMBER+r'(?:\s+cham)?\s+(?:hay|or)\s+'+NUMBER+r'\b',value))
 
 
 def table_proof(content, value):

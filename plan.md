@@ -46,6 +46,10 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   Tiếp tục đo lại trên snapshot mới; chưa tuyên bố đạt ≥95%, chưa dùng replay
   hoặc kiểm thử giả lập làm số liệu E2E. Bốn index tài liệu gốc giữ nguyên;
   manifest chung có thêm tài liệu ngoài benchmark nên được ghi riêng.
+  Vòng đo tiếp giữ lại lỗi Gemini quá tải và một lần tiến trình mất trước khi
+  lưu response, không tự retry hay xóa usage. Đã tái hiện và sửa guard ghép sai
+  điều kiện–xếp loại, locator từ dòng tổng kết học kỳ và context lặp provenance.
+  **303 tests PASS**; chất lượng ≥95% vẫn chưa được xác nhận trên bản cuối.
 
 - [x] **ANS-07 — Baseline Golden 100 DONE (03/11, `8ddcd9c5`):** đã chạy đủ
   **100 case / 112 lượt HTTP thật** qua app với 4 PDF, không mock; CTX chạy đúng

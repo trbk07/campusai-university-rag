@@ -398,9 +398,20 @@ def build_context(
     """
 
     results = list(results)
+    # Header provenance identifies a document, not each individual passage.
+    # Repeating it for every chunk can consume the budget needed for the
+    # actual condition at the end of a paragraph.
+    parts = []
+    identified = set()
+    for result in results:
+        metadata, content = _context_block(result, evidence_ids)
+        if result.doc_id in identified:
+            metadata = re.sub(r'(?m)^source_identity_provenance=.*\n', '', metadata)
+        elif 'source_identity_provenance=' in metadata:
+            identified.add(result.doc_id)
+        parts.append((result, metadata, content))
     if balanced:
         from .source_windows import verbatim_window
-        parts = [(result, *_context_block(result, evidence_ids)) for result in results]
         parts = [part for part in parts if part[2]]
         char_limit = min(max_chars, max_tokens * 4) if max_tokens is not None else max_chars
         available = char_limit - sum(len(p[1]) for p in parts) - max(0, 2 * (len(parts) - 1))
@@ -463,8 +474,7 @@ def build_context(
     blocks: list[str] = []
     used_chars = 0
     char_limit = min(max_chars, max_tokens * 4) if max_tokens is not None else max_chars
-    for result in results:
-        metadata, content = _context_block(result, evidence_ids)
+    for result, metadata, content in parts:
         if not content:
             continue
         separator_chars = 2 if blocks else 0
@@ -1329,6 +1339,16 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
                                question=question, source_scope_codes=source_scope_codes):
         record_stage('grounding_reject.presentation', 0.)
         return _abstention('unsupported_claim', language=language)
+    from .presentation import conditional_labels_supported
+    if not conditional_labels_supported(answer, [c.quote for c in citations]):
+        record_stage('grounding_reject.conditional_label', 0.)
+        return _abstention('unsupported_claim', language=language)
+    by_id = {citation.chunk_id: citation for citation in citations}
+    for claim in claims:
+        referenced = [by_id[i] for i in claim.citation_ids if i in by_id]
+        if not conditional_labels_supported(claim.text, [c.quote for c in referenced]):
+            record_stage('grounding_reject.conditional_label', 0.)
+            return _abstention('unsupported_claim', language=language)
     if used_citation_ids:
         citations = tuple(citation for citation in citations if citation.chunk_id in used_citation_ids)
     if not citations:

@@ -324,3 +324,57 @@ def test_context_identity_requires_a_literal_same_document_header():
         metadata={'institution_proof':{**proof,'doc_id':'other'}}))[0]
     assert 'source_identity_provenance=' not in _context_block(replace(row,
         metadata={'institution_proof':{**proof,'name':'Trường Đại học Sai'}}))[0]
+
+
+def test_categorical_cap_cannot_be_borrowed_from_another_condition():
+    from campusai.rag.presentation import conditional_labels_supported
+    source=('2. Người học bị kỷ luật mức nhẹ, khi đánh giá không được vượt quá loại xanh.\n'
+            '3. Người học bị kỷ luật mức nặng, khi đánh giá kết quả rèn')
+    wrong='Người học bị kỷ luật mức nặng, khi đánh giá không được vượt quá loại xanh.'
+    assert not conditional_labels_supported(wrong,[source])
+    assert not conditional_labels_supported(wrong,[source,'luyện không được vượt quá loại vàng.'])
+    correct=wrong.replace('loại xanh','loại vàng')
+    assert conditional_labels_supported(correct,[source,'luyện không được vượt quá loại vàng.'])
+    assert conditional_labels_supported(wrong.replace('mức nặng','mức nhẹ'),[source])
+    assert conditional_labels_supported('Tài liệu chưa đủ để kết luận.',[source])
+
+
+def test_closing_semester_marker_remains_a_proved_locator_in_final_answer():
+    import json
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    from campusai.rag.source_citations import source_quote
+    table={'headers':['Mã HP','Tên học phần','Tổng số TC'],
+           'rows':[['ZX987654','Điều khiển','4'],['','Tổng học kỳ7','4']]}
+    row=RetrievalResult('table','catalog',8,json.dumps(table,ensure_ascii=False),'table',1.,'test',{})
+    claims=[{'claim_id':'row','text':'ZX987654 | Điều khiển | 4','citation_ids':['table']}]
+    question='HK7 môn ZX987654 mấy tín?'
+    quote=source_quote(row,claims,question)
+    assert quote
+    citation=Citation('table','catalog',8,quote)
+    payload={'confidence':'high','claims':claims}
+    answer=_grounding_finalize('Môn ZX987654 ở học kỳ7 có4 tín chỉ.',(citation,),payload,[row],'vi',question=question)
+    assert not answer.abstained
+    wrong=_grounding_finalize('Môn ZX987654 ở học kỳ6 có4 tín chỉ.',(citation,),payload,[row],'vi',question=question)
+    assert wrong.abstained
+
+
+@pytest.mark.parametrize('balanced',[True,False])
+def test_header_provenance_uses_context_budget_once_per_document(balanced):
+    from dataclasses import replace
+    from campusai.rag.grounding import build_context
+    proof={'name':'Trường Đại học Mây Xanh','quote':'Trường Đại học Mây Xanh',
+           'page':1,'chunk_id':'header','doc_id':'cloud'}
+    row=RetrievalResult('first','cloud',2,'First literal rule.','text',1.,'test',{'institution_proof':proof})
+    other=replace(row,chunk_id='second',page=3,content='Second literal rule.')
+    text=build_context([row,other],max_chars=2500,balanced=balanced)
+    assert text.count('source_identity_provenance=')==1
+    assert 'First literal rule.' in text and 'Second literal rule.' in text
+
+
+def test_spoken_numeric_alternatives_select_a_source_proved_conversion():
+    from campusai.rag.grade_ranges import deterministic_grade_answer
+    ranges=RetrievalResult('range','d',1,'B: từ 6,1 đến 7,3;','text',1.,'test',{})
+    points=RetrievalResult('points','d',2,'B quy đổi thành 2,6;','text',1.,'test',{})
+    answer=deterministic_grade_answer('7 phẩy 1 là 3 chấm hay 2 chấm 6?',[ranges,points])
+    assert answer and not answer.abstained and '2,6' in answer.answer
+    assert deterministic_grade_answer('Học phí 7 phẩy 1 là 3 chấm hay 2 chấm 6?',[ranges,points]) is None
