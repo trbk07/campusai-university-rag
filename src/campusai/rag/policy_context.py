@@ -66,7 +66,10 @@ def _closed_items(body, *, leaf_only=True):
             item = body[start.end():end.start()].strip()
             if (len(item) <= 1200 and (not leaf_only or not marker.search(item)) and not re.search(
                     r'(?mi)^\s*(?:điều|article|section|chapter)\s+\d+\b', item)
-                    and not re.search(r'\b(?:vi du|gia su|example|illustration)\b', folded(item))
+                    # Accent folding conflates "vị đủ" with "ví dụ".
+                    # Unaccented example cues need a clause boundary.
+                    and not re.search(r'\b(?:ví dụ|giả sử|example|illustration)\b',item,re.I)
+                    and not re.search(r'(?:^|[.:;!?])\s*(?:vi du|gia su)\b',folded(item))
                     and sanitize_evidence_text(item) == item):
                 yield body[start.start():end.start()].strip(), item
             break
@@ -228,8 +231,9 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
     one child item; an isolated threshold cannot establish that scope.
     """
     query = folded(question)
-    if (not re.search(r'\b(?:em|minh|toi|my|i|me)\b', query)
-            or not re.search(r'\b(?:bi|duoc|ko|khong|eligible|will|am|can)\b', query)
+    if (not (re.search(r'\b(?:em|minh|toi|e|t|my|i|me|du kien nay)\b', query)
+                 or re.search(r'\b(?:cpa|gpa|dieu kien|canh bao)\b',query))
+            or not re.search(r'\b(?:bi|duoc|ko|khong|can|bao nhieu|eligible|will|am|can)\b', query)
             or re.search(r'\b(?:dieu kien khac|kiem tra them|xet them|other criteria|other conditions)\b', folded(answer))):
         return None
     candidates = []
@@ -240,7 +244,7 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
         if source is None or source.content_type == 'table': continue
         body = source_body({'content': source.content}, decode_tables=False)
         for quoted, item in _closed_items(body, leaf_only=False):
-            markers = list(re.finditer(r'(?m)^\s*[a-zđ][)]\s+', item))
+            markers = list(re.finditer(r'(?m)^[ \t]*(?:[a-zđ][)]|[-–—•~])\s+', item))
             if len(markers) < 2: continue
             heading = item[:markers[0].start()]
             if not re.search(r'\b(?:dieu kien|danh gia|conditions?|criteria|assessment|eligibility|requirements?)\b', folded(heading)):

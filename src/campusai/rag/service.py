@@ -565,6 +565,16 @@ class CampusAIQueryService:
             if institution.doc_ids and institution.source_options and not named_documents(question,temporal_docs):
                 remembered+='\nContext topic (untrusted user input): '+institution.source_options[0]
             if len(remembered)<=2000:self._request_local.context_question=remembered
+            from ..retrieval.institution_scope import _reference_only
+            if institution.doc_ids and _reference_only(question,temporal_docs):
+                # A pure source choice with no pending substantive question
+                # needs acknowledgment, not a generated institutional intro.
+                # Pending questions have already been restored by the resolver.
+                self._request_local.conversation_kind='source_choice'
+                label='; '.join(institution.source_options)
+                message=(f'Đã chọn nguồn: {label}. Bạn muốn hỏi nội dung nào trong tài liệu?'
+                    if language=='vi' else f'Source selected: {label}. What would you like to ask about the document?')
+                return GroundedAnswer(message, (), 'low', True, reason='ambiguous_question', evidence_status='ambiguous')
         if self.confirm_institution_scope:
             cache_context={**cache_context,'institution_scope':'confirmed-v3-conversation','institution_question':question}
         temporal_intent = parse_temporal_intent(question, reference_date=self.temporal_clock(), filters=filters,
@@ -897,8 +907,12 @@ class CampusAIQueryService:
                 groups=requested_institution_documents(question,documents)
                 cap=max(top_k,self.context_candidates or top_k)
                 if len(documents)==1 or (len(groups)>=2 and 2*len(groups)<=cap):
-                    from .source_windows import registration_evidence
-                    fields=[*retrieval_evidence(question,documents),*registration_evidence(question,documents)]
+                    from .source_windows import registration_evidence,policy_field_evidence
+                    fields=[*policy_field_evidence(question,documents),*retrieval_evidence(question,documents),
+                            *registration_evidence(question,documents)]
+                    # Too many competing source clauses must not be silently
+                    # narrowed to the first convenient numeric value.
+                    if len({item.chunk_id for item in fields})>cap:fields=[]
                     if fields:
                         merged=[]
                         for item in [*fields,*results]:

@@ -96,10 +96,16 @@ def _references(raw, documents):
             # Do not map a geographic name shared by two source owners.
             if terms and terms[0]=='truong' and len(distinctive)>=2:
                 aliases.add('t'+''.join(w[0] for w in distinctive))
-            # Short references can name a distinctive contiguous part of a
-            # header. Ambiguous acronyms retain every matching source.
-            for n in range(2, min(6,len(terms))+1):
-                aliases.update(''.join(w[0] for w in terms[i:i+n]) for i in range(len(terms)-n+1))
+            if terms and terms[0]=='truong':
+                aliases.add(''.join(w[0] for w in terms[1:]))
+            # Short forms may abbreviate the distinctive name, but must not
+            # cross from a generic prefix into it ("Học Sao" -> "HS").
+            # Such accidental aliases can silently turn ordinary question
+            # words into a source selection. Ambiguous real aliases retain
+            # every matching source.
+            for n in range(2, min(6,len(distinctive))+1):
+                aliases.update(''.join(w[0] for w in distinctive[i:i+n])
+                               for i in range(len(distinctive)-n+1))
         for reference in {pair for pair in pairs if any(pair in name for name in compact_names)} | (query_words & aliases):
             matches.setdefault(reference, set()).add(doc['doc_id'])
     return matches
@@ -304,7 +310,13 @@ def _reference_only(raw,documents):
     for i,word in enumerate(words):
         if word in refs:covered.add(i)
         if i+1<len(words) and word+words[i+1] in refs:covered.update((i,i+1))
-    extras={word for i,word in enumerate(words) if i not in covered}-_GENERIC-set('hoi ve dung roi nhe a ah yes please do con the vay'.split())
+    # Scope statements contain conversational fillers, not academic fields.
+    # Reusing _GENERIC here swallowed "điểm/tín chỉ/quy chế" as a choice.
+    fillers=set('truong dai hoc dh vien university college institute of and the '
+        'em toi minh ban o tai cua la thi va voi nay kia do '
+        'hoi dang ve chon dung roi nhe a ah yes please con the vay sao '
+        'i am asking about at in choose select'.split())
+    extras={word for i,word in enumerate(words) if i not in covered}-fillers
     return not extras
 
 

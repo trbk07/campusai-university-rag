@@ -120,6 +120,47 @@ def test_school_confirmation_resumes_question_and_switches_scope(schools):
     assert not resolve_institution_request('Giải thích binary search', schools, history).doc_ids
 
 
+@pytest.mark.parametrize('query',['Em đang hỏi về WIM nhé','Tôi chọn Sao Bắc','WIM','I am asking about WIM'])
+def test_source_only_statement_acknowledges_without_retrieval_or_generated_facts(schools,query):
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class Retriever:
+        def search(self,*args,**kwargs):
+            raise AssertionError('A source selection without a question must not retrieve')
+    service=CampusAIQueryService(Retriever(),GroundedAnswerGenerator(None),confirm_institution_scope=True)
+    service._temporal_documents=lambda *_args:schools
+    try:
+        answer=service.ask(query)
+        assert answer.abstained and not answer.citations
+        assert service._request_local.conversation_kind=='source_choice'
+        assert service._request_local.context_question
+        assert 'Đã chọn nguồn:' in answer.answer
+        # The next academic question retains only the user-confirmed owner.
+        selected=resolve_institution_request('Điều kiện tốt nghiệp?',schools,
+            [('user',service._request_local.context_question),('assistant',answer.answer)])
+        assert selected.doc_ids==({'north'} if 'Sao' in query else {'west'})
+    finally:service.close()
+
+
+def test_scope_statement_resumes_pending_question_but_not_academic_field_as_choice(schools):
+    from campusai.retrieval.institution_scope import _reference_only
+    question='Điều kiện tốt nghiệp?'
+    history=[('user',question),('assistant','Bạn muốn hỏi trường nào?')]
+    selected=resolve_institution_request('Em đang hỏi về WIM nhé',schools,history)
+    assert selected.question==question and selected.doc_ids=={'west'}
+    for text in ['Điểm WIM','Tín chỉ Sao Bắc','Quy chế WIM','WIM ở đâu?',
+                 'WIM có điểm C không?']:
+        assert not _reference_only(text,schools)
+
+
+def test_institution_acronyms_do_not_cross_generic_name_boundary(schools):
+    from campusai.retrieval.institution_scope import requested_institution_documents
+    for query in ['Xét HS như thế nào?','HB có phải giấy tờ không?']:
+        assert not requested_institution_documents(query,schools)
+    for alias in ['SB','DHSB','TDHSB','TSB','WIM']:
+        assert requested_institution_documents(alias,schools)==({'west'} if alias=='WIM' else {'north'})
+
+
 def test_shared_parent_and_duplicate_files():
     first = document('a', 'ĐẠI HỌC LIÊN VÙNG\nTRƯỜNG ĐẠI HỌC SAO BẮC')
     duplicate = document('b', 'TRƯỜNG ĐẠI HỌC SAO BẮC')

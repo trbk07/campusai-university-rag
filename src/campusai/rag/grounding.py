@@ -357,7 +357,11 @@ def estimate_tokens(text: str) -> int:
 def _context_block(result: RetrievalResult, evidence_ids=None) -> tuple[str, str]:
     page_range = result.metadata.get("page_range", [result.page, result.page])
     source_name = result.metadata.get("source_name") or result.doc_id
-    section = " > ".join(result.metadata.get("heading_path", [])) or ""
+    # Inferred headings can propagate across table/semester boundaries.
+    # Expose a heading only when it is printed in this actual source chunk.
+    body = source_body({"content": result.content}, decode_tables=False)
+    section = " > ".join(label for label in result.metadata.get("heading_path", [])
+                         if isinstance(label,str) and label.strip() and label.strip() in body)
     table_line = f"table_id={result.metadata.get('table_id')}\n" if result.metadata.get("table_id") else ""
     identity_line = ''
     proof = result.metadata.get('institution_proof')
@@ -377,7 +381,6 @@ def _context_block(result: RetrievalResult, evidence_ids=None) -> tuple[str, str
     )
     # Generated index headers are not source evidence. Keep physical citation
     # coordinates above and preserve the source/table serialization verbatim.
-    body = source_body({"content": result.content}, decode_tables=False)
     return metadata, sanitize_evidence_text(body.strip())
 
 
@@ -467,7 +470,8 @@ def build_context(
                 limit = allocations[i]
                 if result.content_type != 'table' and len(content) > limit:
                     content = verbatim_window(content, question, limit - len(marker),
-                        registration=result.retriever=='source_registration_fields') + marker
+                        registration=result.retriever=='source_registration_fields',
+                        anchors=result.metadata.get('source_field_anchors',())) + marker
                 blocks.append(metadata + content)
             return '\n\n'.join(blocks)
         # Oversized tables/headers retain the established bounded serializer.

@@ -7,7 +7,7 @@ Cập nhật: **03/11/2026 · Asia/Bangkok**.
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 mới: **48/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
+Bộ Golden 100 mới: **56/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
 Theo yêu cầu ngày 31/10, các báo cáo được gom tại
@@ -33,7 +33,10 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   câu hỏi vị trí, viết tắt, không dấu và follow-up. Không whitelist benchmark.
   Batch1 đã triển khai: anchor từ code/heading nguồn, alias ở cả hai vế,
   đại từ chỉ trường và contact có nhãn trong prose/bảng; **317 tests PASS**.
-  Chưa gán accuracy mới trước lượt đủ100 ca sau sửa.
+  Đã đo đủ100 ca/112 lượt trên `b6bf27e4`: **56 PASS/44 FAIL**,96 inference thật,
+  0 lỗi HTTP/timeout/cache, p95 **8,098s**. Đây là dev review, chưa đạt95%.
+  Batch2 đang sửa xác nhận nguồn, viết tắt vượt ranh giới tên trường và recall
+  mệnh đề/ngưỡng có nguồn; không mở lại các task đã DONE.
 - [ ] **RAG-95-03 — Retrieval/grounding:** giữ trọn điều kiện, ngoại lệ và quan
   hệ bảng/học kỳ; trả lời đủ nguồn trong so sánh, giảm false abstention.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
@@ -41,18 +44,25 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
 - [ ] **RAG-95-05 — Đo lại:** sau mỗi nhóm sửa, chạy hồi quy rồi khóa code,
   profile, PDF/index và chạy đủ100 ca/112 lượt qua app/Gemini thật. Luôn giữ
   lỗi, toàn bộ mẫu số, cùng rubric; không chọn lượt tốt nhất hoặc ghép điểm.
-- [ ] **RAG-95-06 — Blind holdout:** cần người đánh giá độc lập giữ đáp án
-  ngoài quyền truy cập của Codex phát triển. Ít nhất200 câu mới; protocol/ngưỡng
-  khóa trước khi chạy, code đóng băng; không dùng kết quả để sửa chính candidate.
-  Chưa có reviewer/ngân hàng blind được xác minh; đã hỏi đầu mối, vẫn tiếp tục code.
-  Protocol: reviewer riêng tạo/kiểm ≥200 câu và giữ gold trong tài khoản/kho
-  không cấp quyền cho Codex. Khóa hash gold, code/profile/index và ngưỡng trước
-  khi trao bộ chỉ có câu hỏi/source-selection/session; developer không nhận gold.
-  Reviewer chấm raw predictions, citation và hallucination trên PDF gốc. Nếu
+- [x] **RAG-95-05a — Đo batch1 DONE:** đủ100 ca, giữ nguyên input/gold/PDF/profile
+  và các bước CTX. Lưu toàn bộ raw outputs/citations/traces; không ghép focused runs.
+  Phát hiện hai ghi chú chấm cũ sai (CTX05/NAT12), lưu correction riêng;
+  không sửa baseline hay tính điểm sửa chấm thành cải thiện nhờ code.
+- [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
+  ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
+  approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
+  Worker riêng tạo và kiểm gold, giữ gold ngoài output/context của Codex phát triển;
+  tách bước tạo và review, lưu đúng model/config/nguồn/hash thực tế. Chưa tạo hoặc
+  chạy bộ blind, không báo PASS chỉ vì đã có protocol. Không khẳng định cách ly
+  quyền quản trị OS nếu chỉ tách process. Nếu không đảm bảo được gold không lộ,
+  trạng thái phải NOT BLIND, không tính là evidence nghiệm thu.
+  Khóa hash gold, code/profile/index, protocol và ngưỡng trước inference; runtime
+  chỉ nhận question/source-selection/session, không expected/labels. Worker chấm
+  raw predictions, citation và hallucination trên PDF gốc. Nếu
   candidate FAIL, không chỉnh rồi chạy lại cùng holdout để nhận chứng nhận;
   vòng code sau cần một tập blind mới. Không tạo reviewer/approval giả.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED48%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
+  Golden:NOT PASSED56%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 
 Bằng chứng dùng lại: [QA/remediation](evaluation/results/campusai_100_remediation_20261103/report.md).

@@ -10,9 +10,26 @@ _STOP = set('a an the and or of to in on for is are was were be does do did what
             'the nao tai sao khi mot cac duoc dai truong hoc em toi minh ban bao nhieu may can'.split())
 
 
-def verbatim_window(text: str, question: str, limit: int, *, registration: bool = False) -> str:
+def verbatim_window(text: str, question: str, limit: int, *, registration: bool = False,
+                    anchors=()) -> str:
     if len(text) <= limit:
         return text
+    # Typed recall supplies only literal, source-owned field spans. Retain
+    # every alternative in this chunk when it fits; never use metadata values
+    # or a generated answer to decide which numeric clause to expose.
+    anchors=anchors if isinstance(anchors,(tuple,list)) else ()
+    spans=[(text.index(anchor),text.index(anchor)+len(anchor)) for anchor in anchors
+           if isinstance(anchor,str) and anchor and text.count(anchor)==1]
+    if spans and len(spans)==len(anchors):
+        begin,end=min(a for a,b in spans),max(b for a,b in spans)
+        if end-begin<=limit:
+            start=max(0,min(begin-120,end-limit))
+            boundary=text.find('\n',start,begin)
+            if boundary>=0:start=boundary+1
+            finish=min(len(text),start+limit)
+            boundary=text.rfind('\n',end,finish)
+            if boundary>=end:finish=boundary
+            return text[start:finish]
     # An explicitly requested article is a stronger source locator than common
     # words repeated in neighbouring articles. Keep the excerpt verbatim.
     requested = set(re.findall(r'\b(?:article|điều|dieu)\s+(\d+)\b', question,
@@ -161,3 +178,54 @@ def registration_evidence(question, documents):
             result.append(RetrievalResult(item['chunk_id'],doc['doc_id'],item['page'],item['content'],
                 item.get('content_type','text'),1.0,'source_registration_fields',item.get('metadata',{})))
     return result
+
+
+def policy_field_evidence(question, documents):
+    """Recall literal policy fields without answering or choosing their values.
+
+    Comparison ellipses may inherit the attribute from the user's topic.
+    Every matching source alternative remains eligible for normal grounding.
+    No institution, page, filename or benchmark label establishes a field.
+    """
+    from .footnotes import _fold_with_offsets
+    from ..retrieval.hybrid import RetrievalResult
+    from ..retrieval.tokenizer_vi import source_body
+    current,separator,topic=question.partition('\nContext topic (untrusted user input): ')
+    query=folded(current)
+    if separator and re.search(r'\b(?:muc do|nguong do|giong|khac|same|different)\b',query):
+        query+=' '+folded(topic)
+    thesis=(re.search(r'\b(?:gpa|cpa|diem trung binh(?: chung)? tich luy)\b',query)
+            and re.search(r'\b(?:khoa luan|kltn|thesis|do an)\b',query))
+    publication=(re.search(r'\b(?:cong bo|thong bao|publish|published|release)\b',query)
+                 and re.search(r'\b(?:diem|grades?|results?)\b',query))
+    if not (thesis or publication):return []
+    patterns=[]
+    if thesis:
+        patterns.append(('thesis',r'diem\s+trung\s+binh(?:\s+chung)?\s+tich\s+luy\s+'
+            r'[^.]{0,220}?(?:phai\s+)?dat\s+tu\s+\d+(?:[.,]\d+)?\s+tro\s+len\s*[.;]'))
+    if publication:
+        patterns.append(('publication',r'diem\s+(?:hoc\s+phan|thi)[^.]{0,160}?'
+            r'(?:cong\s+bo|thong\s+bao)[^.]{0,180}?(?:cham\s+nhat|khong\s+qua|trong\s+thoi\s+han)\s+'
+            r'\d+\s+ngay[^.]{0,100}\.'))
+    found=[]
+    for document in documents:
+        for item in document.get('items',[]):
+            if item.get('content_type','text')!='text':continue
+            body=source_body(item,decode_tables=False)
+            norm,offsets=_fold_with_offsets(body);anchors=[]
+            for field,pattern in patterns:
+                for match in re.finditer(pattern,norm):
+                    if field=='thesis':
+                        prefix=norm[max(0,match.start()-1000):match.start()]
+                        # A threshold for a different subject on this page
+                        # cannot borrow a preceding thesis article's title.
+                        prefix=re.split(r'(?m)^\s*dieu\s+\d+\s*[.:]',prefix)[-1]
+                        if not re.search(r'\b(?:khoa\s+luan|do\s+an)\b',prefix+match[0]):continue
+                    prefix=norm[max(0,match.start()-100):match.start()]
+                    if re.search(r'\b(?:vi du|gia su|example)\b[^\n]*$',prefix):continue
+                    anchors.append(body[offsets[match.start()]:offsets[match.end()-1]+1])
+            if anchors:
+                found.append(RetrievalResult(item['chunk_id'],document['doc_id'],item['page'],item['content'],
+                    'text',1.,'source_policy_fields',{**item.get('metadata',{}),
+                    'source_field_anchors':tuple(dict.fromkeys(anchors))}))
+    return found

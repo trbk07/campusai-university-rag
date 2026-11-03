@@ -442,3 +442,75 @@ def test_plain_contact_conflicts_and_truncated_fields_fail_closed():
     assert deterministic_contact_fields('Địa chỉ là gì?',[row]) is None
     row=replace(row,content='Address:12 Cloud Road\n'+('continued\n'*8))
     assert deterministic_contact_fields('Địa chỉ là gì?',[row]) is None
+
+
+def test_policy_field_recall_keeps_source_alternatives_and_comparison_topic():
+    from campusai.rag.source_windows import policy_field_evidence,verbatim_window
+    first=('Điều 12. Khóa luận tốt nghiệp\n'
+        'a) Điều kiện làm khóa luận:\n'
+        '- Điểm trung bình chung tích lũy tính đến học kỳ cận cuối khóa đạt từ 3,31 trở lên.\n'
+        '- Đơn vị có đủ cán bộ hướng dẫn.\nb) Hình thức đánh giá.\n')
+    second=('Điều 19. Khóa luận tốt nghiệp\n'
+        'Điểm trung bình chung tích lũy tính đến thời điểm xét điều kiện làm khóa luận phải đạt từ 3,42 trở lên;\n')
+    def doc(ident,body):return {'doc_id':ident,'items':[{'chunk_id':ident+'-rule','doc_id':ident,
+        'page':12,'content':body,'content_type':'text','metadata':{}}]}
+    docs=[doc('cloud',first),doc('wind',second)]
+    question='Nguồn Cloud và Wind có chung ngưỡng CPA làm khóa luận không?'
+    rows=policy_field_evidence(question,docs)
+    assert {row.doc_id for row in rows}=={'cloud','wind'}
+    assert [row.content for row in rows]==[first,second]
+    followup='Mức đó có giống không?\nContext topic (untrusted user input): CPA làm khóa luận cần bao nhiêu?'
+    assert len(policy_field_evidence(followup,docs))==2
+    assert not policy_field_evidence('Thời gian đăng ký học?',docs)
+    for row in rows:
+        anchor=row.metadata['source_field_anchors'][0]
+        text='Unrelated preface.\n'*80+row.content+'Unrelated appendix.\n'*80
+        window=verbatim_window(text,question,500,anchors=row.metadata['source_field_anchors'])
+        assert anchor in window and window in text and len(window)<=500
+    # A threshold for another subject cannot borrow a previous thesis heading.
+    other=first+'Điều 13. Học bổng\nĐiểm trung bình chung tích lũy phải đạt từ 3,98 trở lên;\n'
+    rows=policy_field_evidence(question,[doc('other',other)])
+    assert len(rows)==1 and len(rows[0].metadata['source_field_anchors'])==1
+    assert '3,98' not in rows[0].metadata['source_field_anchors'][0]
+
+
+def test_publication_deadline_recall_uses_source_values_not_prompt_or_metadata():
+    from campusai.rag.source_windows import policy_field_evidence
+    rule='6. Điểm học phần được công bố trên tài khoản của sinh viên chậm nhất 17\nngày tính từ ngày thi.'
+    item={'chunk_id':'rule','doc_id':'cloud','page':7,'content':rule,'content_type':'text',
+          'metadata':{'deadline':999}}
+    result=policy_field_evidence('Sinh viên được công bố điểm học phần trong thời hạn nào?',
+        [{'doc_id':'cloud','items':[item]}])
+    assert len(result)==1 and result[0].content==rule
+    assert result[0].metadata['source_field_anchors']==(rule[3:],)
+    item={**item,'content':'Điểm học phần chưa có lịch công bố.'}
+    assert not policy_field_evidence('Công bố điểm khi nào?',[{'doc_id':'cloud','items':[item]}])
+
+
+def test_model_context_does_not_promote_inferred_heading_to_semester_evidence():
+    from campusai.rag.grounding import _context_block
+    row=RetrievalResult('table','cloud',7,'Printed source chapter.\nActual rule.',
+        'text',1.,'test',{'heading_path':['HỌC KỲ1','Printed source chapter.']})
+    metadata,body=_context_block(row)
+    assert 'HỌC KỲ1' not in metadata and 'Printed source chapter.' in metadata
+    assert body==row.content
+
+
+def test_eligibility_scope_guidance_uses_closed_dash_group_not_single_threshold():
+    from campusai.rag.policy_context import criterion_scope_context
+    from campusai.rag.grounding import Citation
+    from campusai.rag.claims import Claim
+    fact='Điểm trung bình chung tích lũy phải đạt từ 3,31 trở lên;'
+    body='a) Điều kiện làm khóa luận:\n- '+fact+'\n- Đơn vị đủ cán bộ hướng dẫn.\nb) Hình thức đánh giá.'
+    row=RetrievalResult('criteria','cloud',7,body,'text',1.,'test',{})
+    claim=Claim('threshold',fact,'fact',1,('criteria',),'supported',1.,('criteria',),False)
+    citation=Citation('criteria','cloud',7,fact)
+    result=criterion_scope_context('e cpa 3,30 làm khóa luận được chưa?',
+        'Chưa đạt ngưỡng.',[claim],[citation],[row],'vi')
+    assert result and 'các điều kiện khác' in result[0]
+    assert 'Điều kiện' in result[1][0].quote and 'cán bộ' in result[1][0].quote
+    isolated=RetrievalResult('criteria','cloud',7,fact,'text',1.,'test',{})
+    assert criterion_scope_context('CPA làm khóa luận cần bao nhiêu?',fact,[claim],[citation],[isolated],'vi') is None
+    from campusai.rag.policy_context import _closed_items
+    for cue in ['Ví dụ:','Giả sử:','vi du:','gia su:','Example:']:
+        assert not list(_closed_items('a) '+cue+' '+fact+'\nb) Kết thúc.'))
