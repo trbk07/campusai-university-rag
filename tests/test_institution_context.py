@@ -618,7 +618,7 @@ const nodes=new Map();let sends=0,notifications=0;
 const $=key=>{if(!nodes.has(key))nodes.set(key,{value:'',textContent:'',style:{},focus(){this.focused=true},dispatchEvent(){},setAttribute(){}});return nodes.get(key)};
 const state={busy:false,aiConfigured:true,documents:[{doc_id:'a',ready:true},{doc_id:'b',ready:true}],selected:new Set(['b']),replyLanguage:'vi'};
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const context=vm.createContext({assert,$,state,esc,icon:()=>'',readySelected:()=>state.documents.filter(doc=>doc.ready&&state.selected.has(doc.doc_id)),Event:class{constructor(type){this.type=type}},notify:()=>notifications++,post:()=>{sends++;throw Error('must not submit')},postQuery:()=>{sends++;throw Error('must not submit')}});
+const context=vm.createContext({assert,$,state,esc,icon:()=>'',hasPendingAttachments:()=>false,readySelected:()=>state.documents.filter(doc=>doc.ready&&state.selected.has(doc.doc_id)),Event:class{constructor(type){this.type=type}},notify:()=>notifications++,post:()=>{sends++;throw Error('must not submit')},postQuery:()=>{sends++;throw Error('must not submit')}});
 vm.runInContext(fs.readFileSync('src/campusai/ui/features/chat.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,''),context);
 vm.runInContext(`
 messages.push({role:'assistant',error:'Failure',question:'Original user question',docIds:['a'],language:'en'});
@@ -657,6 +657,122 @@ vm.runInContext('globalThis.full=0;globalThis.jobsOnly=0;renderAll=()=>full++;re
  assert.equal(context.full,0);assert.equal(context.jobsOnly,1);assert(state.selected.has('a'));
  next.documents=[{doc_id:'a',ready:false}];await vm.runInContext('refreshDocuments()',context);
  assert.equal(context.full,1);assert.equal(state.selected.size,0);
+})().catch(error=>{console.error(error);process.exitCode=1});
+'''
+    result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)
+    assert result.returncode==0,result.stderr
+
+
+def test_pdf_thumbnail_is_small_cached_authorized_and_invalidated_on_source_change(named_pdf_web,monkeypatch):
+    from campusai.web_documents import WebDocuments,WebError
+    import pymupdf
+    request,ids,_calls=named_pdf_web
+    api=WebDocuments(request.application)
+    reads=[];original=api.source_bytes
+    def read(*args):
+        reads.append(args[0]);return original(*args)
+    monkeypatch.setattr(api,'source_bytes',read)
+    image=api.thumbnail(ids['Alpha.pdf'],{})
+    pix=pymupdf.Pixmap(image)
+    assert image.startswith(b'\x89PNG') and 0<pix.width<=321 and 0<pix.height<=211
+    assert api.thumbnail(ids['Alpha.pdf'],{})==image and len(reads)==1
+    with pytest.raises(WebError) as denied:
+        api.thumbnail(ids['Alpha.pdf'],{'campusai.authorized_doc_ids':[ids['Beta.pdf']]})
+    assert denied.value.status==404 and len(reads)==1
+    path=api.source(ids['Alpha.pdf'],{});data=path.read_bytes()
+    path.write_bytes(data+b'changed source')
+    with pytest.raises(WebError):api.thumbnail(ids['Alpha.pdf'],{})
+    assert ids['Alpha.pdf'] not in api._thumbnail_cache
+    path.write_bytes(data)
+    assert api.thumbnail(ids['Alpha.pdf'],{}).startswith(b'\x89PNG')
+    path.unlink()
+    with pytest.raises(WebError):api.thumbnail(ids['Alpha.pdf'],{})
+
+
+def test_thumbnail_route_uses_the_same_source_authorization(named_pdf_web):
+    import json
+    from campusai.web import make_wsgi_app
+    request,ids,calls=named_pdf_web;web=make_wsgi_app(request.application)
+    for allowed,status in [([ids['Alpha.pdf']],200),([ids['Beta.pdf']],404)]:
+        response={}
+        body=b''.join(web({'REQUEST_METHOD':'GET','PATH_INFO':f"/api/documents/{ids['Alpha.pdf']}/thumbnail",
+                          'campusai.authorized_doc_ids':allowed},
+                         lambda result,headers:response.update(status=result,headers=dict(headers))))
+        assert response['status'].startswith(str(status))
+        if status==200:
+            assert response['headers']['Content-Type']=='image/png' and body.startswith(b'\x89PNG')
+        else:assert not json.loads(body)['ok']
+    assert not calls
+
+
+def test_composer_tracks_uploads_two_batches_removal_errors_and_partial_readiness():
+    import shutil,subprocess
+    if not shutil.which('node'):pytest.skip('Node required for frontend upload behavior checks')
+    script=r'''
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const nodes=new Map();let writes=0,routes=[],sent=0,queue=[];
+const $=key=>{if(!nodes.has(key))nodes.set(key,{dataset:{},value:'',textContent:'',style:{},classList:{add(){},remove(){}},scrollLeft:0,
+  get innerHTML(){return this.html||''},set innerHTML(value){this.html=value;if(key==='#composer-attachments')writes++},
+  querySelectorAll:()=>[],focus(){},setAttribute(){}});return nodes.get(key)};
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const state={documents:[],jobs:[],selected:new Set(),limits:{max_mb:50,max_pages:218},uploadAvailable:true,loading:false,error:'',busy:false,aiConfigured:true};
+let library={documents:[],jobs:[],limits:state.limits,upload_available:true,runtime:{ai_configured:true}};
+const context=vm.createContext({assert,$,state,esc,icon:()=>'<svg></svg>',pdfIcon:()=>'<i>PDF</i>',bytes:()=>'',document:{activeElement:null},
+  notify:()=>{},closeDialog:()=>{},route:tab=>routes.push(tab),toast:()=>{},errorText:()=> 'Upload failed',
+  request:async()=>library,upload:()=>new Promise((resolve,reject)=>queue.push({resolve,reject})),post:()=>{sent++;throw Error('unexpected send')}});
+vm.runInContext(fs.readFileSync('src/campusai/ui/features/documents.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,''),context);
+vm.runInContext('renderAll=()=>renderComposerAttachments();schedulePoll=()=>{};',context);
+vm.runInContext(fs.readFileSync('src/campusai/ui/features/chat.js','utf8').replace(/^import .*;\r?$/gm,'').replace(/^export /gm,''),context);
+$('#question').value='Keep my draft';
+const execute=code=>vm.runInContext(code,context);
+const cards=()=>($('#composer-attachments').innerHTML.match(/role="listitem"/g)||[]).length;
+async function batch(start){
+ const before=queue.length;
+ execute(`chooseFiles(Array.from({length:5},(_,i)=>({name:'file-${start}-'+i+'.pdf',size:100})))`);
+ const running=execute('submitUpload()');assert.equal(queue.length,before+5);
+ assert(execute('hasPendingAttachments()'));execute('updateComposer()');assert($('#send').disabled);
+ await execute("send('Must wait for attached PDFs')");assert.equal(sent,0);
+ assert($('#composer-attachments').innerHTML.includes('spinner'));assert.equal($('#question').value,'Keep my draft');
+ for(let i=0;i<5;i++){
+  const id='d'+(start+i),job={job_id:'j'+id,document_id:id,name:'file-'+id+'.pdf',state:'queued',stage:'queued',created_at:start+i};
+  library.jobs.push(job);queue[before+i].resolve({job});
+ }
+ await running;assert.equal(routes.at(-1),'assistant');
+ library.documents=library.jobs.map(job=>({doc_id:job.document_id,name:job.name,ready:true,file_available:true,page_count:3,coverage_complete:true}));
+ library.jobs=library.jobs.map(job=>({...job,state:'succeeded',stage:'done'}));
+ await execute('refreshDocuments()');assert(!execute('hasPendingAttachments()'));
+ execute('updateComposer()');assert(!$('#send').disabled);
+}
+(async()=>{
+ await batch(0);assert.equal(cards(),5);await batch(5);assert.equal(cards(),10);assert.equal(state.selected.size,10);
+ const stable=writes;execute('renderComposerAttachments()');assert.equal(writes,stable);
+ execute("removeComposerAttachment('doc-d0')");assert.equal(cards(),9);assert.equal(state.documents.length,10);
+ const before=queue.length;execute("chooseFiles([{name:'new.pdf',size:100}])");const running=execute('submitUpload()');
+ const key=$('#composer-attachments').innerHTML.match(/data-attachment-remove="(upload-[^"]+)"/)[1];
+ execute(`removeComposerAttachment('${key}')`);
+ const job={job_id:'late',document_id:'late',name:'new.pdf',state:'running',stage:'ocr',created_at:100};library.jobs.push(job);
+ queue[before].resolve({job});await running;await execute('refreshDocuments()');
+ assert(!$('#composer-attachments').innerHTML.includes('new.pdf'));assert(!execute('hasPendingAttachments()'));
+ library.documents.push({doc_id:'late',name:'new.pdf',ready:true,file_available:true,page_count:1});job.state='succeeded';
+ await execute('refreshDocuments()');assert(!state.selected.has('late'));
+ execute("chooseFiles([{name:'<bad>.pdf',size:100}])");const failed=execute('submitUpload()');queue.at(-1).reject(Error('network'));await failed;
+ const html=$('#composer-attachments').innerHTML;assert(html.includes('is-error')&&html.includes('&lt;bad&gt;.pdf'));
+ assert(!html.includes('spinner'));assert(!html.includes('<bad>'));assert(execute('hasPendingAttachments()'));
+ const badKey=html.match(/data-attachment-remove="(upload-[^"]+)"/)[1];execute(`removeComposerAttachment('${badKey}')`);
+ assert(!execute('hasPendingAttachments()'));
+ library.documents[1]={...library.documents[1],coverage_complete:false};
+ library.jobs.push({job_id:'partial',document_id:'d1',name:'partial.pdf',state:'running',stage:'ocr',created_at:200});
+ await execute('refreshDocuments()');assert($('#composer-attachments').innerHTML.includes('Hỏi được phần đã đọc'));
+ assert($('#composer-attachments').innerHTML.includes('spinner'));assert(!execute('hasPendingAttachments()'));
+ library.jobs.at(-1).state='review_required';await execute('refreshDocuments()');
+ assert(!$('#composer-attachments').innerHTML.includes('spinner'));
+ const broken={job_id:'broken',document_id:'broken',name:'broken.pdf',state:'running',stage:'parsing',created_at:300,retryable:true};
+ library.jobs.push(broken);await execute('refreshDocuments()');assert(execute('hasPendingAttachments()'));
+ broken.state='failed';broken.stage='failed';await execute('refreshDocuments()');
+ assert(!$('#composer-attachments').innerHTML.includes('spinner'));
+ assert($('#composer-attachments').innerHTML.includes('data-job-retry="broken"'));
+ execute("removeComposerAttachment('job-broken')");assert(!execute('hasPendingAttachments()'));
+ assert.equal(sent,0);assert.equal($('#question').value,'Keep my draft');
 })().catch(error=>{console.error(error);process.exitCode=1});
 '''
     result=subprocess.run(['node','-'],input=script,text=True,capture_output=True)

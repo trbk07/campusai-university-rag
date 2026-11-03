@@ -16,6 +16,9 @@ const groupCount = group => group.id === 'all' ? state.documents.length : state.
 const uploadButton = '<button class="button primary upload-trigger">'+icon('upload')+'Tải tài liệu PDF đầu tiên</button>';
 const MAX_UPLOAD_FILES = 5;
 let files = [], uploading = false, deleteId = null, pollingTimer = null, pollingStarted = 0, refreshing = false;
+const pendingAttachments = new Map(), dismissedAttachments = new Set(), failedThumbnails = new Set();
+let attachmentSequence = 0;
+export const hasPendingAttachments = () => pendingAttachments.size > 0;
 
 export function badge(doc) {
   if (doc.deleting) return `<span class="status-badge status-pending">${icon('info')}${doc.delete_failed ? 'Xóa chưa thành công' : 'Đang xóa...'}</span>`;
@@ -65,16 +68,92 @@ function renderScope() {
   if (focusedId) $(`[data-select="${focusedId}"]`, $('#scope-documents'))?.focus();
 }
 const stageLabels = {receiving:'Đang nhận và lưu PDF',interrupted:'Tác vụ bị gián đoạn. Thử xử lý lại hoặc tải lại PDF gốc.',queued:'Đang chờ xử lý',validating:'Đang kiểm tra PDF',parsing:'Đang đọc nội dung',ocr:'Đang nhận diện chữ',detecting_metadata:'Đang nhận diện thông tin',extracting_tables:'Đang trích xuất bảng',chunking:'Đang tổ chức nội dung',persisting:'Đang lưu tài liệu',indexing:'Đang chuẩn bị tài liệu để hỏi đáp...',done:'Đã xử lý tài liệu',review_required:'Tài liệu cần được kiểm tra thêm',failed:'Xử lý chưa thành công. Hãy kiểm tra PDF.',cancelled:'Đã hủy xử lý'};
+const activeJob = job => ['staging','queued','running'].includes(job?.state);
+function latestComposerJobs() {
+  const latest = new Map();
+  for (const job of state.jobs) {
+    const previous = latest.get(job.document_id);
+    if (!previous || (job.created_at || job.updated_at || 0) >= (previous.created_at || previous.updated_at || 0)) latest.set(job.document_id,job);
+  }
+  return latest;
+}
+function syncComposerAttachments() {
+  const jobs = latestComposerJobs();
+  // Restore processing cards after a page reload. During upload, wait for its
+  // response identity so removing a card cannot accidentally reattach the PDF.
+  if (!uploading) for (const job of jobs.values()) {
+    if (activeJob(job) && typeof job.document_id === 'string' && job.document_id && !job.deleting && !dismissedAttachments.has(job.document_id)
+        && !state.selected.has(job.document_id) && ![...pendingAttachments.values()].some(item => item.docId === job.document_id)) {
+      const key = 'job-' + job.job_id;
+      pendingAttachments.set(key,{key,name:job.name,docId:job.document_id,phase:'processing'});
+    }
+  }
+  for (const [key,item] of pendingAttachments) {
+    if (!item.docId) continue;
+    const doc = state.documents.find(doc => doc.doc_id === item.docId), job = jobs.get(item.docId);
+    if (dismissedAttachments.has(item.docId) || doc?.deleting || job?.deleting) { pendingAttachments.delete(key); continue; }
+    if (doc?.ready) { state.selected.add(item.docId); pendingAttachments.delete(key); continue; }
+    if (job) {
+      item.jobId = job.job_id; item.retryable = job.retryable;
+      item.phase = activeJob(job) ? 'processing' : 'failed';
+      item.status = stageLabels[job.stage] || (activeJob(job) ? 'Đang xử lý tài liệu' : 'Cần kiểm tra tài liệu');
+    } else if (doc) { item.phase = 'failed'; item.status = 'Cần kiểm tra tài liệu'; }
+  }
+}
+function removeComposerAttachment(key) {
+  const item = pendingAttachments.get(key);
+  if (item) {
+    item.dismissed = true;
+    if (item.docId) dismissedAttachments.add(item.docId);
+    pendingAttachments.delete(key);
+  } else if (key.startsWith('doc-')) {
+    const id = key.slice(4); state.selected.delete(id); dismissedAttachments.add(id);
+  }
+  renderComposerAttachments(); notify('selection');
+}
+function renderComposerAttachments() {
+  syncComposerAttachments();
+  const target = $('#composer-attachments');
+  if (!target) return;
+  const jobs = latestComposerJobs();
+  const items = readySelected().map(doc => ({key:'doc-'+doc.doc_id,docId:doc.doc_id,name:doc.name,
+    loading:doc.coverage_complete === false && activeJob(jobs.get(doc.doc_id)),
+    status:doc.coverage_complete === false ? 'Hỏi được phần đã đọc' : `Sẵn sàng · ${doc.page_count} trang`}));
+  items.push(...[...pendingAttachments.values()].map(item => ({...item,loading:item.phase !== 'failed',
+    status:item.phase === 'sending' ? `Đang tải lên ${item.progress || 0}%` : item.status || 'Đang chuẩn bị tài liệu'})));
+  const html = items.map(item => {
+    const doc = state.documents.find(doc => doc.doc_id === item.docId), available = doc?.file_available;
+    const image = available && !failedThumbnails.has(item.docId)
+      ? `<img src="/api/documents/${encodeURIComponent(item.docId)}/thumbnail" data-attachment-thumbnail="${esc(item.docId)}" alt="" loading="lazy" decoding="async" width="320" height="210">` : pdfIcon();
+    const retry = item.phase === 'failed' ? item.jobId && item.retryable
+      ? `<button type="button" class="text-button attachment-retry" data-job-retry="${esc(item.jobId)}">Thử xử lý lại</button>`
+      : '<button type="button" class="text-button attachment-retry upload-trigger">Chọn lại PDF</button>' : '';
+    return `<article role="listitem" class="attachment-card ${item.phase === 'failed' ? 'is-error' : ''}" data-attachment-key="${esc(item.key)}"><button type="button" class="attachment-preview" data-preview="${esc(item.docId || '')}" aria-label="Xem ${esc(item.name)}" ${available ? '' : 'disabled'}>${image}</button>${item.loading ? '<span class="attachment-loading" aria-hidden="true"><span class="spinner"></span></span>' : ''}<button type="button" class="attachment-remove" data-attachment-remove="${esc(item.key)}" aria-label="Bỏ ${esc(item.name)} khỏi câu hỏi" title="Bỏ khỏi câu hỏi">${icon('close')}</button><div class="attachment-info"><div class="attachment-name" title="${esc(item.name)}">${icon('file')}<span>${esc(item.name)}</span></div><span class="attachment-state" title="${esc(item.status)}">${esc(item.status)}</span>${retry}</div></article>`;
+  }).join('');
+  // Unchanged heartbeats do not reload thumbnails or steal keyboard focus.
+  if (target.dataset.cards !== html) {
+    const focused = document.activeElement?.closest?.('[data-attachment-key]')?.dataset.attachmentKey;
+    const scroll = target.scrollLeft;
+    target.innerHTML = html; target.dataset.cards = html; target.scrollLeft = scroll;
+    if (focused) ([...target.querySelectorAll('[data-attachment-remove]')].find(button => button.dataset.attachmentRemove === focused) || $('#question')).focus({preventScroll:true});
+  }
+  target.hidden = !items.length;
+  const status = $('#attachment-status');
+  status.hidden = !hasPendingAttachments();
+  status.textContent = hasPendingAttachments() ? 'Có tài liệu chưa sẵn sàng. Chờ xử lý, thử lại hoặc bỏ file đó khỏi câu hỏi để gửi.' : '';
+}
 function renderJobs() {
   const jobs = state.jobs.filter(job => (job.state !== 'succeeded' || job.deleting) && !state.documents.some(doc => doc.doc_id === job.document_id && job.state === 'review_required' && !job.retryable));
   const cards = jobs.map(job => `<article class="job-card"><strong>${esc(job.name)}</strong><p>${job.deleting ? job.delete_failed ? 'Xóa chưa thành công. Bạn có thể thử xóa lại.' : 'Đang dừng xử lý để xóa PDF...' : stageLabels[job.stage] || 'Đang xử lý tài liệu...'}</p><progress value="${Number(job.progress) || 0}" max="1" aria-label="Tiến độ xử lý ${esc(job.name)}"></progress>${!job.deleting && ['staging','queued','running'].includes(job.state) ? `<button class="text-button" data-job-cancel="${esc(job.job_id)}">Yêu cầu hủy</button>` : ''}${!job.deleting && ['failed','review_required'].includes(job.state) && job.retryable ? `<button class="text-button" data-job-retry="${esc(job.job_id)}">Thử xử lý lại</button>` : ''}<button class="text-button" data-delete="${esc(job.document_id)}" ${job.deleting && !job.delete_failed ? 'disabled' : ''}>${icon('trash')} ${job.delete_failed ? 'Thử xóa lại' : 'Xóa PDF'}</button></article>`).join('');
   $('#sidebar-jobs').innerHTML = cards; $('#document-jobs').innerHTML = cards;
+  renderComposerAttachments();
 }
-function renderAll() { renderSidebar(); renderControls(); renderList(); renderScope(); renderCollections(); renderJobs(); notify('documents'); }
+function renderAll() { syncComposerAttachments(); renderSidebar(); renderControls(); renderList(); renderScope(); renderCollections(); renderJobs(); notify('documents'); }
 function schedulePoll() {
   clearTimeout(pollingTimer);
   const active = state.jobs.some(job => ['staging','queued','running'].includes(job.state) || (job.deleting && !job.delete_failed))
-    || state.documents.some(doc => doc.deleting && !doc.delete_failed);
+    || state.documents.some(doc => doc.deleting && !doc.delete_failed)
+    || [...pendingAttachments.values()].some(item => item.phase === 'processing');
   if (!active) { pollingStarted = 0; return; }
   if (!pollingStarted) pollingStarted = Date.now();
   if (document.hidden) return;
@@ -98,6 +177,7 @@ export async function refreshDocuments() {
     state.queryTimeoutMs = Number.isFinite(deadline) && deadline >= 45000 && deadline <= 300000 ? deadline : 45000;
     const valid = new Set(state.documents.filter(doc => doc.ready).map(doc => doc.doc_id));
     state.selected.forEach(id => { if (!valid.has(id)) state.selected.delete(id); });
+    syncComposerAttachments();
     $('#upload-limits').textContent = `Tối đa ${MAX_UPLOAD_FILES} PDF mỗi lượt · ${state.limits.max_mb} MB / ${state.limits.max_pages} trang mỗi file`;
   } catch (error) { state.error = errorText(error); }
   finally {
@@ -161,6 +241,10 @@ function updateUploadProgress(index) {
   const transferred = files.reduce((sum, item) => sum + item.file.size * (item.progress || 0) / 100, 0);
   const settled = files.filter(item => ['accepted', 'failed'].includes(item.state)).length;
   $('#upload-status').textContent = `Đang gửi ${settled}/${files.length} PDF · ${total ? Math.round(transferred / total * 100) : 0}%`;
+  if (entry.attachment) {
+    entry.attachment.progress = entry.progress; entry.attachment.status = entry.status;
+    renderComposerAttachments();
+  }
 }
 function chooseFiles(values) {
   if (uploading) return;
@@ -184,15 +268,28 @@ async function submitUpload() {
   if (!batch.length || uploading || !state.uploadAvailable) return;
   uploading = true; $('#file-input').disabled = true;
   $('#upload-status').classList.remove('error-text');
-  batch.forEach(entry => { entry.state = 'sending'; entry.progress = 0; entry.status = 'Đang tải lên...'; });
+  batch.forEach(entry => {
+    if (entry.attachment) pendingAttachments.delete(entry.attachment.key);
+    entry.state = 'sending'; entry.progress = 0; entry.status = 'Đang tải lên...';
+    entry.attachment = {key:'upload-'+(++attachmentSequence),name:entry.file.name,phase:'sending',progress:0};
+    pendingAttachments.set(entry.attachment.key,entry.attachment);
+  });
   renderUploadSelection();
+  renderComposerAttachments(); notify('documents');
+  closeDialog($('#upload-dialog')); route('assistant');
   await Promise.all(batch.map(async entry => {
     const index = files.indexOf(entry);
     try {
       const result = await upload(entry.file, progress => { entry.progress = progress; entry.status = progress < 100 ? `Đang tải lên ${progress}%` : 'Đã truyền file, đang kiểm tra'; updateUploadProgress(index); });
+      const id = result.document?.doc_id || result.job?.document_id;
+      if (!id) throw new Error('invalid_response');
+      Object.assign(entry.attachment,{docId:id,jobId:result.job?.job_id,phase:'processing'});
+      if (entry.attachment.dismissed) { dismissedAttachments.add(id); state.selected.delete(id); }
+      else dismissedAttachments.delete(id);
       entry.state = 'accepted'; entry.progress = 100; entry.status = result.duplicate ? 'Đã có trong thư viện' : 'Đã nhận, đang xử lý nền';
     } catch (error) {
       entry.state = 'failed'; entry.status = errorText(error);
+      entry.attachment.phase = 'failed';
     }
     updateUploadProgress(index);
   }));
@@ -202,8 +299,9 @@ async function submitUpload() {
   $('#file-input').disabled = false;
   if (accepted) {
     files = files.filter(entry => entry.state !== 'accepted');
-    route('documents'); pollingStarted = 0; await refreshDocuments();
+    pollingStarted = 0; await refreshDocuments();
   }
+  renderComposerAttachments(); notify('documents');
   if (failed) {
     $('#upload-status').textContent = accepted ? `Đã nhận ${accepted} PDF; ${failed} file lỗi vẫn được giữ để thử lại.` : `${failed} file chưa tải được. Kiểm tra lỗi bên cạnh rồi thử lại.`;
     if (!accepted) $('#upload-status').classList.add('error-text');
@@ -217,20 +315,26 @@ async function submitUpload() {
 export function initDocuments() {
   renderAll();
   renderUploadSelection();
-  events.addEventListener('selection', () => { renderScope(); renderSidebar(); renderList(); const ask = $('#ask-selected'); if (ask) { ask.disabled = !readySelected().length; ask.innerHTML = `${icon('chat')}Hỏi với ${readySelected().length} tài liệu`; } });
+  events.addEventListener('selection', () => { renderComposerAttachments(); renderScope(); renderSidebar(); renderList(); const ask = $('#ask-selected'); if (ask) { ask.disabled = !readySelected().length; ask.innerHTML = `${icon('chat')}Hỏi với ${readySelected().length} tài liệu`; } });
   events.addEventListener('search', () => { renderControls(); renderList(); renderSidebar(); });
   events.addEventListener('navigation', () => { renderControls(); renderList(); });
   document.addEventListener('visibilitychange', () => { clearTimeout(pollingTimer); if (!document.hidden) { pollingStarted = 0; refreshDocuments(); } });
   window.addEventListener('pagehide', () => clearTimeout(pollingTimer));
   document.addEventListener('change', event => {
-    if (event.target.matches('[data-select]')) selectDocument(event.target.dataset.select, event.target.checked);
+    if (event.target.matches('[data-select]')) {
+      const id = event.target.dataset.select;
+      event.target.checked ? dismissedAttachments.delete(id) : dismissedAttachments.add(id);
+      selectDocument(id,event.target.checked);
+    }
     if (['year-filter','program-filter','status-filter'].includes(event.target.id)) { state[{'year-filter':'year','program-filter':'program','status-filter':'status'}[event.target.id]] = event.target.value; renderList(); }
   });
   document.addEventListener('input', event => { if (event.target.id === 'document-search') { state.search = event.target.value; renderList(); } });
   document.addEventListener('click', async event => {
+    const attachment = event.target.closest('[data-attachment-remove]');
+    if (attachment) removeComposerAttachment(attachment.dataset.attachmentRemove);
     const category = event.target.closest('[data-category]'); if (category) { state.category = category.dataset.category; state.search = ''; state.year = ''; state.program = ''; state.status = 'all'; renderControls(); renderList(); renderSidebar(); route('documents'); }
     const details = event.target.closest('[data-detail]'); if (details) detail(details.dataset.detail);
-    const source = event.target.closest('[data-preview]'); if (source) preview(source.dataset.preview);
+    const source = event.target.closest('[data-preview]'); if (source && !source.disabled) preview(source.dataset.preview);
     const deletion = event.target.closest('[data-delete]'); if (deletion && !deletion.disabled) { deleteId = deletion.dataset.delete; $('#delete-name').textContent = state.documents.find(doc => doc.doc_id === deleteId)?.name || state.jobs.find(job => job.document_id === deleteId)?.name || ''; $('#delete-status').textContent = ''; showDialog('delete-dialog'); }
     if (event.target.closest('[data-refresh]')) { pollingStarted = 0; refreshDocuments(); }
     if (event.target.closest('#ask-selected')) route('assistant');
@@ -244,6 +348,13 @@ export function initDocuments() {
       catch (error) { jobAction.parentElement.querySelector('p').textContent = errorText(error); jobAction.disabled = false; }
     }
   });
+  document.addEventListener('error', event => {
+    const image = event.target;
+    if (image.matches?.('[data-attachment-thumbnail]')) {
+      failedThumbnails.add(image.dataset.attachmentThumbnail);
+      image.parentElement.innerHTML = pdfIcon();
+    }
+  },true);
   $('#file-input').addEventListener('change', event => { chooseFiles(event.target.files); event.target.value = ''; });
   $('#dropzone').addEventListener('dragover', event => { event.preventDefault(); $('#dropzone').classList.add('dragover'); });
   $('#dropzone').addEventListener('dragleave', () => $('#dropzone').classList.remove('dragover'));
@@ -251,10 +362,10 @@ export function initDocuments() {
   $('#upload-submit').addEventListener('click', submitUpload);
   $('#scope-open').addEventListener('click', () => { renderScope(); showDialog('scope-dialog'); });
   $('#select-all-scope').addEventListener('click', () => {
-    state.documents.filter(doc => doc.ready).forEach(doc => state.selected.add(doc.doc_id));
+    state.documents.filter(doc => doc.ready).forEach(doc => { dismissedAttachments.delete(doc.doc_id); state.selected.add(doc.doc_id); });
     notify('selection');
   });
-  $('#clear-scope').addEventListener('click', () => { state.selected.clear(); notify('selection'); });
+  $('#clear-scope').addEventListener('click', () => { state.selected.forEach(id => dismissedAttachments.add(id)); state.selected.clear(); notify('selection'); });
   $('#delete-confirm').addEventListener('click', async () => {
     if (!deleteId || $('#delete-confirm').disabled) return;
     $('#delete-confirm').disabled = true;

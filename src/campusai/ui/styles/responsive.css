@@ -43,6 +43,7 @@
   .welcome-upload {margin-top:20px;padding:16px;gap:12px}.welcome-upload>div:nth-child(2) {flex:1}.welcome-upload h2 {font-size:12px}.welcome-upload p {font-size:10px}.welcome-upload .button {margin:0 0 0 52px}.upload-outline {padding:10px}
   .composer-area {padding:8px 12px max(10px,env(safe-area-inset-bottom));border-top:1px solid var(--border)}
   .composer {padding:5px;gap:4px;border-radius:12px}.composer textarea {font-size:16px;line-height:22px}.composer .icon-button {width:34px}
+  .composer-input {gap:4px}.attachment-card {flex-basis:136px}.composer-attachments {gap:8px}.attachment-remove {width:32px;height:32px}
   .context-bar {margin-bottom:8px}.scope-button {max-width:100%;min-height:32px;font-size:10px}.composer-bottom {font-size:8px;margin-top:6px}
   .query-status {font-size:11px}.source-panel {width:100%;max-width:100%;border:0}.source-content {padding:20px}
   .source-empty {padding:32px 20px}.source-footer {font-size:10px}

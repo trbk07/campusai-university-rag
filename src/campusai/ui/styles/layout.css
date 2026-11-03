@@ -86,7 +86,26 @@ body {height:100vh;height:100dvh;overflow:hidden}
 .context-bar {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
 .composer-privacy {display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)}
 .composer-privacy svg {width:12px;height:12px}
-.composer {display:flex;align-items:flex-end;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:7px;box-shadow:0 3px 16px rgb(15 23 42 / 4%)}
+.composer {display:flex;flex-direction:column;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:7px;box-shadow:0 3px 16px rgb(15 23 42 / 4%)}
+.composer-input {display:flex;align-items:flex-end;gap:8px;min-width:0}
+.composer-attachments {display:flex;gap:10px;overflow-x:auto;max-width:100%;padding:5px 3px 3px;overscroll-behavior-x:contain}
+.attachment-card {position:relative;flex:0 0 158px;min-width:0;border:1px solid var(--border);border-radius:12px;background:var(--surface-muted);overflow:hidden}
+.attachment-preview {display:block;width:100%;height:82px;border:0;padding:0;background:var(--background);overflow:hidden;color:var(--text-muted)}
+.attachment-preview>img {width:100%;height:100%;object-fit:cover;object-position:top;display:block}
+.attachment-preview>.pdf-icon {margin:auto}
+.attachment-info {padding:8px 9px;background:var(--surface);min-width:0}
+.attachment-name {display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600}
+.attachment-name svg {width:14px;height:14px;flex-shrink:0;color:var(--danger)}
+.attachment-name span {overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attachment-state {display:block;font-size:10px;color:var(--text-muted);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.attachment-remove {position:absolute;z-index:2;right:4px;top:4px;width:28px;height:28px;display:grid;place-items:center;border:1px solid var(--border);border-radius:50%;background:var(--surface);color:var(--text-secondary);box-shadow:var(--shadow)}
+.attachment-remove svg {width:15px;height:15px}
+.attachment-loading {position:absolute;top:0;left:0;right:0;height:82px;background:rgb(15 23 42 / 25%);display:grid;place-items:center;pointer-events:none}
+.attachment-loading .spinner {width:25px;height:25px;border-color:rgb(255 255 255 / 45%);border-top-color:white;border-width:3px}
+.attachment-card.is-error {border-color:var(--warning)}
+.attachment-card.is-error .attachment-state {color:var(--warning)}
+.attachment-retry {font-size:10px;margin-top:4px;min-height:28px}
+.attachment-status {font-size:11px;color:var(--text-secondary);padding:0 5px;line-height:1.5;margin:0}
 .composer:focus-within {border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
 .composer textarea {resize:none;border:0;outline:none;background:transparent;flex:1;min-width:0;max-height:150px;min-height:44px;padding:11px 0;font-size:13px;line-height:22px}
 .composer textarea::placeholder {color:var(--text-muted)}

@@ -125,6 +125,8 @@ def make_wsgi_app(application: CampusAIApplication, *, telemetry_hook: Callable 
                     if len(parts) == 4 and parts[3] == "file" and method == "GET":
                         pdf = documents.source_bytes(doc_id, environ)
                         return _bytes_response(pdf, start_response, "application/pdf", extra=[("Content-Disposition", 'inline; filename="source.pdf"')])
+                    if len(parts) == 4 and parts[3] == 'thumbnail' and method == 'GET':
+                        return _bytes_response(documents.thumbnail(doc_id, environ), start_response, 'image/png')
                     if len(parts) == 4 and parts[3] == "locate" and method == "POST":
                         return _json_response(documents.locate_quote(doc_id, _payload(environ), environ), start_response)
             if len(parts) in {3, 4} and parts[:2] == ["api", "jobs"]:

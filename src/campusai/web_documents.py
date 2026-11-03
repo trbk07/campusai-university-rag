@@ -13,6 +13,7 @@ import shutil
 import threading
 import time
 import uuid
+from collections import OrderedDict
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -131,6 +132,7 @@ class WebDocuments:
         self.corpus_lock = CorpusAccessLock()
         self.responses: dict[str, tuple[float, set[str]]] = {}
         self._legacy_coverage = {}
+        self._thumbnail_cache = OrderedDict()
         from .web_deletions import DocumentDeletions
         self.deletions = DocumentDeletions(self)
         self._ocr_upgrade_thread = None
@@ -611,6 +613,41 @@ class WebDocuments:
         if hashlib.sha256(data).hexdigest() != doc_id:
             raise WebError("source_unavailable", 404)
         return data
+
+    def thumbnail(self, doc_id, environ):
+        """Small first-page preview only; no OCR, inference or disk artifacts.
+
+        Caller holds the document lock. Authorization/path checks precede cache
+        access; changing/removing the source invalidates its cached image.
+        """
+        source = self.source(doc_id, environ)
+        def identity():
+            stat = source.stat()
+            return (str(source), stat.st_dev, stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+        try:
+            current = identity()
+            cached = self._thumbnail_cache.get(doc_id)
+            if cached and cached[0] == current:
+                self._thumbnail_cache.move_to_end(doc_id)
+                return cached[1]
+            import pymupdf
+            with pymupdf.open(stream=self.source_bytes(doc_id, environ), filetype='pdf') as pdf:
+                if pdf.needs_pass or not len(pdf):
+                    raise WebError('source_unavailable', 404)
+                page = pdf[0]
+                scale = min(320 / max(1, page.rect.width), 210 / max(1, page.rect.height))
+                image = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), colorspace=pymupdf.csRGB,
+                                        alpha=False, annots=False).tobytes('png')
+            if identity() != current:
+                raise WebError('source_unavailable', 404)
+            self._thumbnail_cache[doc_id] = (current, image)
+            self._thumbnail_cache.move_to_end(doc_id)
+            while len(self._thumbnail_cache) > 32:
+                self._thumbnail_cache.popitem(last=False)
+            return image
+        except (OSError, RuntimeError, ValueError):
+            self._thumbnail_cache.pop(doc_id, None)
+            raise WebError('source_unavailable', 404) from None
 
     def locate_quote(self, doc_id, payload, environ):
         """Resolve a multi-page chunk's quote to its physical PDF page.

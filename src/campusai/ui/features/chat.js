@@ -1,6 +1,6 @@
 import {$, esc, icon, pdfIcon, state, events, notify, toast} from '../scripts/shared.js';
 import {post, postQuery, errorText} from '../scripts/api.js';
-import {readySelected, preview} from './documents.js';
+import {readySelected, preview, hasPendingAttachments} from './documents.js';
 import {excerptFallback, excerptSources, excerptBody, excerptCopy} from './excerpts.js';
 
 let messages = [], activeSources = null, epoch = 0;
@@ -111,7 +111,7 @@ function suggestions() {
 let providerWaitUntil = 0, waitTimer;
 function updateComposer() {
   const waiting = Date.now() < providerWaitUntil;
-  $('#send').disabled = state.busy || !state.aiConfigured || !$('#question').value.trim() || !readySelected().length;
+  $('#send').disabled = state.busy || !state.aiConfigured || !$('#question').value.trim() || !readySelected().length || hasPendingAttachments();
   const notice = $('#runtime-notice');
   notice.hidden = state.loading || state.aiConfigured;
   notice.textContent = state.error || 'Chưa cấu hình AI cho phiên này. Mở app bằng start-campusai.cmd để dùng credential local đã có.';
@@ -136,7 +136,7 @@ function updateWait() {
 async function send(question, docIds = readySelected().map(doc => doc.doc_id), language = state.replyLanguage) {
   // The server checks answers and source evidence before its durable provider
   // circuit. Keep these paths available while explicit failed-turn retries wait.
-  if (state.busy || !state.aiConfigured || !question.trim() || !docIds.length) return;
+  if (state.busy || !state.aiConfigured || !question.trim() || !docIds.length || hasPendingAttachments()) return;
   const generation = epoch;
   const scopeKey = language + ':' + [...docIds].sort().join(',');
   const history = conversationHistory(scopeKey);

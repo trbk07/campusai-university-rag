@@ -65,7 +65,11 @@
         </div>
         <div class="composer-area">
           <div id="context-bar" class="context-bar"><button class="scope-button" id="scope-open"><span data-icon="collection"></span><span id="scope-label">Chọn tài liệu để hỏi đáp</span><span data-icon="chevron-down"></span></button><label class="sr-only" for="reply-language">Ngôn ngữ trả lời</label><select id="reply-language" class="language-select"><option value="vi">Tiếng Việt</option><option value="en">English</option></select><span class="composer-privacy"><span data-icon="shield"></span>Dựa trên nguồn bạn chọn</span></div>
-          <form id="query-form" class="composer"><button type="button" class="icon-button upload-trigger" aria-label="Đính kèm tài liệu PDF"><span data-icon="paperclip"></span></button><label class="sr-only" for="question">Câu hỏi</label><textarea id="question" name="question" rows="1" maxlength="6000" placeholder="Nhập câu hỏi của bạn..." aria-describedby="composer-hint" required></textarea><button class="send-button" id="send" type="submit" aria-label="Gửi câu hỏi" disabled><span data-icon="send"></span></button></form>
+          <form id="query-form" class="composer">
+            <div id="composer-attachments" class="composer-attachments" role="list" aria-label="Tài liệu cho câu hỏi" hidden></div>
+            <p id="attachment-status" class="attachment-status" role="status" aria-live="polite" hidden></p>
+            <div class="composer-input"><button type="button" class="icon-button upload-trigger" aria-label="Đính kèm tài liệu PDF"><span data-icon="paperclip"></span></button><label class="sr-only" for="question">Câu hỏi</label><textarea id="question" name="question" rows="1" maxlength="6000" placeholder="Nhập câu hỏi của bạn..." aria-describedby="composer-hint attachment-status" required></textarea><button class="send-button" id="send" type="submit" aria-label="Gửi câu hỏi" disabled><span data-icon="send"></span></button></div>
+          </form>
           <div class="composer-bottom"><span id="composer-hint"><kbd>Enter</kbd> để gửi · <kbd>Shift + Enter</kbd> để xuống dòng</span><span>Luôn kiểm tra nguồn trích dẫn.</span></div>
           <div id="query-status" class="query-status" role="status" aria-live="polite"></div>
         </div>
