@@ -13,17 +13,8 @@ def _fold(text: str) -> str:
     return ' '.join(value.encode('ascii', 'ignore').decode('ascii').split())
 
 
-def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, dict]:
-    """Exclude a different curriculum only from explicit local section proof.
-
-    Document-wide inferred ``program`` metadata may describe a later chapter.
-    Numbered programme headings and literal programme labels establish page
-    ownership until the next such heading in the same document. Ambiguous or
-    unnamed programmes retain ordinary retrieval, never guessed mappings.
-    """
-    text=' '.join(re.sub(r'[^a-z0-9]+',' ',_fold(query)).split())
-    if not re.search(r'\b(?:nganh|chuyen nganh|chuong trinh|curriculum|program(?:me)?|hk\s*\d+|hoc k[yi]\s*\d+)\b',text):
-        return records
+def _curriculum_headings(records):
+    """Read only explicit local programme headings, never inferred metadata."""
     headings={}
     for item in records.values():
         # Read the literal page text, not the generated context header.
@@ -42,6 +33,17 @@ def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, 
             previous=headings.get(key)
             if previous is None or priority>previous[0]:headings[key]=(priority,name)
             elif priority==previous[0] and name!=previous[1]:headings[key]=(priority,None)
+    return headings
+
+
+def _curriculum_query(query):
+    text=' '.join(re.sub(r'[^a-z0-9]+',' ',_fold(query)).split())
+    return text if re.search(r'\b(?:nganh|chuyen nganh|chuong trinh|curriculum|program(?:me)?|hk\s*\d+|hoc k[yi]\s*\d+)\b',text) else ''
+
+
+def _matching_programmes(query,headings):
+    text=_curriculum_query(query)
+    if not text:return set()
     names={name for _,name in headings.values() if name}
     matched={name for name in names if re.search(r'(?<!\w)'+re.escape(name)+r'(?!\w)',text)}
     if matched:
@@ -55,6 +57,40 @@ def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, 
             if len(alias)>=3:aliases.setdefault(alias,set()).add(name)
         matched=set().union(*(values for alias,values in aliases.items()
                               if len(values)==1 and re.search(r'(?<!\w)'+re.escape(alias)+r'(?!\w)',text))) if aliases else set()
+    return matched
+
+
+def explicit_source_documents(query,documents):
+    """Source-only locator resolution, not an institutional-policy inference.
+
+    A unique literal course code or programme heading selects documents just
+    as a user-specified filename would. Ambiguous/absent anchors remain open;
+    no answer, expected page, or evaluation label is used to pick a source.
+    """
+    raw=query.partition('\nContext topic (untrusted user input): ')[0]
+    codes=detected_course_codes(raw)
+    if codes:
+        owners=[]
+        for code in codes:
+            pattern=re.compile(r'(?<!\w)'+r'\s*'.join(map(re.escape,code))+r'(?!\w)',re.I)
+            owners.append({doc['doc_id'] for doc in documents if any(
+                pattern.search(source_body(item)) for item in doc.get('items',[]))})
+        # Several requested codes must all belong to the same source; a union
+        # could hide a missing code or collapse an actual cross-document task.
+        return set.intersection(*owners) if owners else set()
+    if not _curriculum_query(raw):return set()
+    records={str(i):{**item,'doc_id':doc['doc_id']} for i,(doc,item) in enumerate(
+        (doc,item) for doc in documents for item in doc.get('items',[]))}
+    headings=_curriculum_headings(records)
+    matched=_matching_programmes(raw,headings)
+    return {doc for (doc,_),(_,name) in headings.items() if name in matched} if len(matched)==1 else set()
+
+
+def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, dict]:
+    """Exclude other programmes only from literal local section ownership."""
+    if not _curriculum_query(query):return records
+    headings=_curriculum_headings(records)
+    matched=_matching_programmes(query,headings)
     if len(matched)!=1:return records
     chosen=next(iter(matched));by_doc={}
     for (doc,page),(_priority,name) in headings.items():by_doc.setdefault(doc,[]).append((page,name))

@@ -418,3 +418,27 @@ def test_checkpoint_commit_recovers_a_windows_reader_lock_without_losing_data(tm
     measure_ocr.save(path,{'count':2,'response':'unchanged native answer'})
     assert json.loads(path.read_text(encoding='utf-8'))=={'count':2,'response':'unchanged native answer'}
     assert len(attempts)==2 and not path.with_name(path.name+'.tmp').exists()
+
+
+def test_plain_contact_labels_answer_location_without_promotional_intro():
+    from campusai.rag.table_fields import deterministic_contact_fields
+    row=RetrievalResult('contact','acme',2,
+        'ACME RESEARCH\nAddress:12 Cloud Road,\nBlue City.\nPhone:123456\nEmail: info@example.org\n\n'
+        'Our company is the best in the world.','text',1.,'test',{})
+    answer=deterministic_contact_fields('ACME RESEARCH ở đâu vậy?',[row])
+    assert answer and not answer.abstained and '12 Cloud Road' in answer.answer and 'Blue City' in answer.answer
+    assert 'best' not in answer.answer and 'Phone' not in answer.answer
+    pair=deterministic_contact_fields('Email và địa chỉ là gì?',[row])
+    assert pair and 'info@example.org' in pair.answer and 'Blue City' in pair.answer
+    assert deterministic_contact_fields('OTHER RESEARCH ở đâu vậy?',[row]) is None
+    assert deterministic_contact_fields('Nộp hồ sơ ACME RESEARCH ở đâu?',[row]) is None
+    assert deterministic_contact_fields('Email cá nhân của em?',[row]) is None
+
+
+def test_plain_contact_conflicts_and_truncated_fields_fail_closed():
+    from dataclasses import replace
+    from campusai.rag.table_fields import deterministic_contact_fields
+    row=RetrievalResult('contact','d',2,'Address:12 Cloud Road.\n\nAddress:14 Wind Road.','text',1.,'test',{})
+    assert deterministic_contact_fields('Địa chỉ là gì?',[row]) is None
+    row=replace(row,content='Address:12 Cloud Road\n'+('continued\n'*8))
+    assert deterministic_contact_fields('Địa chỉ là gì?',[row]) is None

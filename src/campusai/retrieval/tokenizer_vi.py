@@ -105,6 +105,9 @@ def normalize_retrieval_query(text: str) -> str:
         aliases.append('năng lực ngoại ngữ bậc điều kiện đầu vào')
     if re.search(r'\b(?:web|website|url)\b', folded) and re.search(r'\b(?:registration|dang k[yi]|dk)\b', folded):
         aliases.append('cổng thông tin địa chỉ đăng ký trực tuyến')
+    if (re.search(r'\b(?:o dau|where (?:is|are)|located)\b',folded)
+            and not re.search(r'\b(?:dang k[yi]|nop|thi|hoc phan|mon|cong|portal|phong|khoa|muc|chuong|phan)\b',folded)):
+        aliases.append('địa chỉ trụ sở address')
     if re.search(r'\b(?:scopus+s?|isi|scientific publication|bai bao)\b', folded):
         aliases.append('bài báo công bố khoa học điểm thưởng')
     if re.search(r'\b(?:result date|review dates|cong bo ket qua|xet duyet)\b', folded):

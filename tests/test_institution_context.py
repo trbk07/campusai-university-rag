@@ -37,6 +37,59 @@ def test_role_title_is_not_an_unknown_school_name(schools):
     assert unknown.needs_clarification and unknown.unknown_name
 
 
+@pytest.mark.parametrize('query',[
+    'ZX987654 có bao nhiêu tín chỉ?',
+    'HK7 ngành Điều khiển thông minh có mấy tín?',
+    'hk7 nganh dieu khien thong minh co may tin?',
+    'HK7 DKTM mấy tín chỉ?',
+])
+def test_unique_literal_source_locator_selects_document_without_guessing_school(schools,query):
+    import copy
+    docs=copy.deepcopy(schools)
+    docs[0]['items'].append({'doc_id':'north','page':8,'content':
+        '3. Ngành Điều khiển thông minh\nZX987654 Điều khiển robot 4 tín chỉ','metadata':{}})
+    result=resolve_institution_request(query,docs)
+    assert result.doc_ids=={'north'} and not result.needs_clarification
+
+
+def test_duplicate_source_locator_cannot_pick_a_school_or_erase_unknown_name(schools):
+    import copy
+    docs=copy.deepcopy(schools)
+    for doc in docs:doc['items'].append({'doc_id':doc['doc_id'],'page':8,
+        'content':'3. Ngành Điều khiển thông minh\nZX987654 robot 4 tín chỉ','metadata':{}})
+    assert resolve_institution_request('ZX987654 có mấy tín chỉ?',docs).needs_clarification
+    assert resolve_institution_request('Ngành Điều khiển thông minh HK7 mấy tín chỉ?',docs).needs_clarification
+    docs[1]['items'].pop()
+    request=resolve_institution_request('Trường Đại học Mây Trắng môn ZX987654 mấy tín chỉ?',docs)
+    assert request.needs_clarification and request.unknown_name and not request.doc_ids
+
+
+def test_source_locator_needs_all_codes_and_literal_programme_heading(schools):
+    import copy
+    docs=copy.deepcopy(schools)
+    docs[0]['items'].append({'doc_id':'north','page':8,'content':'ZX987654 robot 4 tín chỉ',
+                            'metadata':{'program':'Điều khiển thông minh'}})
+    assert resolve_institution_request('ZX987654 và ZX987655 có mấy tín chỉ?',docs).needs_clarification
+    assert resolve_institution_request('Ngành Điều khiển thông minh HK7 mấy tín chỉ?',docs).needs_clarification
+    assert resolve_institution_request('Học tối thiểu bao nhiêu tín chỉ?',docs).needs_clarification
+
+
+@pytest.mark.parametrize('query',[
+    'ABC và WIM có cùng giới hạn tín chỉ không?',
+    'Kỳ hè ABC và WIM đều có giới hạn tín chỉ chứ?',
+    'WIM và ABC có cùng mức tín chỉ không?',
+])
+def test_unresolved_comparison_arm_is_not_silently_discarded(schools,query):
+    request=resolve_institution_request(query,schools)
+    assert request.needs_clarification and request.unknown_name
+    assert request.unrecognized_reference=='ABC' and not request.doc_ids
+
+
+def test_deictic_school_pronoun_is_not_a_new_institution(schools):
+    request=resolve_institution_request('So sánh quy chế Sao Bắc và WIM; hai trường kia có khác nhau không?',schools)
+    assert request.doc_ids=={'north','west'} and not request.needs_clarification
+
+
 @pytest.mark.parametrize('question', [
     'Giải thích thuật toán', 'How does credit assignment work?',
     'Quy đổi đơn vị trong bài này', 'Tóm tắt hướng dẫn vận hành',

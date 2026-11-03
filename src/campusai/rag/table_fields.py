@@ -21,6 +21,19 @@ def deterministic_contact_fields(question, results, language='vi', *, calibrator
     wanted=[]
     if re.search(r'\b(?:email|e mail|thu dien tu)\b',current):wanted.append('email')
     if re.search(r'\b(?:dia chi|tru so|address|headquarters)\b',current):wanted.append('address')
+    if not wanted and re.search(r'\b(?:o dau|where (?:is|are)|located)\b',current):
+        # An implicit location request must actually name a source owner or a
+        # literal source heading. A registration/course location is a different
+        # task; it must not be answered with the institution's mailing address.
+        if re.search(r'\b(?:dang k[yi]|nop|thi|hoc phan|mon|cong|portal|phong|khoa|muc|chuong|phan)\b',current):return None
+        from ..retrieval.institution_scope import _references
+        documents=[{'doc_id':r.doc_id,'items':[{'page':r.page,'content':r.content,'metadata':r.metadata}]} for r in results]
+        owner=bool(_references(question,documents))
+        for result in results:
+            headings=source_body({'content':result.content}).splitlines()[:8]
+            owner=owner or any(2<=len(folded(line).split())<=12 and ':' not in line
+                and folded(line) in folded(question) for line in headings if line.strip())
+        if owner:wanted.append('address')
     if not wanted or len({r.doc_id for r in results})!=1:return None
     if re.search(r'\b(?:cua (?:em|minh|toi)|my|mat khau|password|secret|prompt|hoc phi|diem|tin chi|quota|deadline|'
                  r'ngay|khi nao|bao gio|thoi gian|han|dieu kien|hoc phan|chuong trinh|nganh|tai khoan|'
@@ -34,7 +47,10 @@ def deterministic_contact_fields(question, results, language='vi', *, calibrator
             table=json.loads(body[body.index('{"headers"'):]);headers=table['headers'];rows=table['rows']
             if (not isinstance(headers,list) or not all(isinstance(x,str) for x in headers)
                     or not isinstance(rows,list)):continue
-        except (ValueError,TypeError,KeyError):continue
+        except (ValueError,TypeError,KeyError):
+            plain=_plain_contact_fields(body,wanted)
+            if plain:found.append((result,*plain))
+            continue
         fields={};selected=[]
         for row in rows:
             if not isinstance(row,list) or not row or not all(isinstance(c,str) for c in row):continue
@@ -45,11 +61,11 @@ def deterministic_contact_fields(question, results, language='vi', *, calibrator
             if kind=='email' and not re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}',literal):continue
             if kind in fields and fields[kind]!=literal:fields={};break
             fields[kind]=literal;selected.append(row)
-        if set(wanted)<=fields.keys():found.append((result,headers,selected,fields))
-    signatures={tuple(x[3][key] for key in wanted) for x in found}
+        if set(wanted)<=fields.keys():
+            found.append((result,json.dumps({'headers':headers,'rows':selected},ensure_ascii=False),fields))
+    signatures={tuple(x[2][key] for key in wanted) for x in found}
     if len(signatures)!=1:return None
-    result,headers,rows,fields=min(found,key=lambda x:len(json.dumps(x[2],ensure_ascii=False)))
-    quote=json.dumps({'headers':headers,'rows':rows},ensure_ascii=False)
+    result,quote,fields=min(found,key=lambda x:len(x[1]))
     if len(quote)>1200:return None
     from .grounding import Citation,validate_citation,_grounding_finalize
     citation=Citation(result.chunk_id,result.doc_id,result.page,quote,
@@ -60,6 +76,31 @@ def deterministic_contact_fields(question, results, language='vi', *, calibrator
     answer=_grounding_finalize('\n'.join(fields[key] for key in wanted),(citation,),
         {'confidence':'high','claims':claims},results,language,question=question,calibrator=calibrator)
     return answer if not answer.abstained else None
+
+
+def _plain_contact_fields(body,wanted):
+    """Read bounded labelled prose, retaining one contiguous literal quote."""
+    lines=body.splitlines(keepends=True);offsets=[];position=0
+    for line in lines:offsets.append(position);position+=len(line)
+    fields={};spans=[]
+    for i,line in enumerate(lines):
+        value=folded(line)
+        kind='email' if re.match(r'^(?:email|e mail|thu dien tu)\s*:',value) else 'address' if re.match(r'^(?:dia chi|tru so|address|headquarters)\s*:',value) else None
+        if kind not in wanted:continue
+        end=i+1
+        while end<len(lines) and end-i<6:
+            if not lines[end].strip() or re.match(r'\s*[^\W\d_][\w ./-]{0,45}\s*:',lines[end]):break
+            end+=1
+        if (end<len(lines) and end-i==6 and lines[end].strip()
+                and not re.match(r'\s*[^\W\d_][\w ./-]{0,45}\s*:',lines[end])):continue
+        literal=''.join(lines[i:end]).strip()
+        if len(literal)>500 or not literal.partition(':')[2].strip():continue
+        if kind=='email' and not re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}',literal):continue
+        if kind in fields and fields[kind]!=literal:return None
+        fields[kind]=literal;spans.append((offsets[i],offsets[end] if end<len(lines) else len(body)))
+    if not set(wanted)<=fields.keys():return None
+    quote=body[min(a for a,_ in spans):max(b for _,b in spans)].strip()
+    return (quote,fields) if len(quote)<=1200 else None
 
 
 def admission_field_request(question):

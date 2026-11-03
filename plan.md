@@ -16,6 +16,48 @@ artifact nghiệm thu cũ đã bỏ khỏi cây làm việc. Mốc công việc 
 trạng thái lịch sử. Muốn chứng nhận lại cần bằng chứng mới khớp source được
 chọn; không dựa vào đường dẫn artifact đã xóa.
 
+## Goal RAG-95 — IN PROGRESS
+
+Mục tiêu giữ nguyên: Golden đã xác minh **≥95%** và fresh blind holdout
+**≥200 câu /≥95%**,0 hallucination phát hiện,0 nhầm trường/ngành/học kỳ hoặc
+citation giả; không regression P0/P1, mất dữ liệu hay lộ secret.
+Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PASS trên
+`ba2dfd34`. Các task DONE phía dưới giữ nguyên, không ghép kết quả nhiều bản.
+
+- [x] **RAG-95-01 — Audit FAIL DONE:** đọc52 ca FAIL, raw traces và ma trận
+  nguyên nhân trong báo cáo Golden100; xác định nhóm chọn nguồn, đoạn nguồn
+  thiếu điều kiện, ngữ cảnh/so sánh, OCR và false abstention. Lượt goal trước
+  được phân loại **progress**: có code, native evidence và commit thực tế.
+- [ ] **RAG-95-02 — Routing/intent:** nguồn duy nhất theo mã/chương trình được
+  in trong PDF; không bỏ sót một vế tên trường/alias trong câu so sánh; hiểu
+  câu hỏi vị trí, viết tắt, không dấu và follow-up. Không whitelist benchmark.
+  Batch1 đã triển khai: anchor từ code/heading nguồn, alias ở cả hai vế,
+  đại từ chỉ trường và contact có nhãn trong prose/bảng; **317 tests PASS**.
+  Chưa gán accuracy mới trước lượt đủ100 ca sau sửa.
+- [ ] **RAG-95-03 — Retrieval/grounding:** giữ trọn điều kiện, ngoại lệ và quan
+  hệ bảng/học kỳ; trả lời đủ nguồn trong so sánh, giảm false abstention.
+- [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
+  đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
+- [ ] **RAG-95-05 — Đo lại:** sau mỗi nhóm sửa, chạy hồi quy rồi khóa code,
+  profile, PDF/index và chạy đủ100 ca/112 lượt qua app/Gemini thật. Luôn giữ
+  lỗi, toàn bộ mẫu số, cùng rubric; không chọn lượt tốt nhất hoặc ghép điểm.
+- [ ] **RAG-95-06 — Blind holdout:** cần người đánh giá độc lập giữ đáp án
+  ngoài quyền truy cập của Codex phát triển. Ít nhất200 câu mới; protocol/ngưỡng
+  khóa trước khi chạy, code đóng băng; không dùng kết quả để sửa chính candidate.
+  Chưa có reviewer/ngân hàng blind được xác minh; đã hỏi đầu mối, vẫn tiếp tục code.
+  Protocol: reviewer riêng tạo/kiểm ≥200 câu và giữ gold trong tài khoản/kho
+  không cấp quyền cho Codex. Khóa hash gold, code/profile/index và ngưỡng trước
+  khi trao bộ chỉ có câu hỏi/source-selection/session; developer không nhận gold.
+  Reviewer chấm raw predictions, citation và hallucination trên PDF gốc. Nếu
+  candidate FAIL, không chỉnh rồi chạy lại cùng holdout để nhận chứng nhận;
+  vòng code sau cần một tập blind mới. Không tạo reviewer/approval giả.
+- [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
+  Golden:NOT PASSED48%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
+  candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
+
+Bằng chứng dùng lại: [QA/remediation](evaluation/results/campusai_100_remediation_20261103/report.md).
+Giữ9 đầu ra đã có; chỉ thêm dữ liệu cần tái hiện/audit, dọn fixture/log tạm.
+
 ## Tài liệu
 
 - [x] **DOC-01 — README tiếng Anh DONE (01/11):** viết lại giới thiệu, tính năng,

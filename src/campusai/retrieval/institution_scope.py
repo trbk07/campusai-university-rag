@@ -9,7 +9,7 @@ def folded(text):
     return re.sub(r'[^a-z0-9]+', ' ', ''.join(c for c in text if not unicodedata.combining(c))).strip()
 
 
-_GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung'.split())
+_GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung kia do khac'.split())
 _ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl','api','ai','ocr','llm','url','http','https'}
 _CONTEXT = '\nContext topic (untrusted user input): '
 
@@ -281,6 +281,10 @@ def _scope_decision(question,documents):
         listed=bool(re.search(r'\b(?:va|voi|and|vs|versus|so sanh|compare|khac nhau|giong nhau)\b|[,;]',folded(raw)))
         ambiguous=(unresolved or len(chosen_groups)>1 and not (len(precise)>1 and listed)) and not all_sources
         return InstitutionRequest(question,frozenset(matched),ambiguous)
+    from .source_scope import explicit_source_documents
+    anchored=explicit_source_documents(raw,documents)
+    if anchored and len({groups[doc] for doc in anchored})==1:
+        return InstitutionRequest(question,frozenset(anchored))
     # No identified institution in ordinary textbooks is not evidence that
     # they come from different schools. Unknown files remain separate when
     # other selected PDFs do establish institution-specific scopes.
@@ -339,7 +343,9 @@ def unresolved_institution_reference(question,documents):
         # Capitalization alone is not a school cue (API, SCAN, JSON, etc.).
         # A bare reply, explicit institution preposition or comparison arm is.
         comparison = bool(re.search(r'\b(?:so sanh|compare|versus|vs)\b',folded(raw)))
-        choice = folded(raw).strip()==value or comparison and previous in {'va','voi','and','vs','versus','sanh','compare'}
+        listed_arm=bool(refs and (previous in {'va','voi','and','vs','versus'}
+                                 or following in {'va','voi','and','vs','versus'}))
+        choice = folded(raw).strip()==value or listed_arm or comparison and previous in {'va','voi','and','vs','versus','sanh','compare'}
         if named or choice and token.isupper() and value not in {'sv','student','students','pdf'}:
             return token
     return ''
