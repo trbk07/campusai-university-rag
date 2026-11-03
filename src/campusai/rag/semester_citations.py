@@ -23,13 +23,20 @@ def _marker(row):
 
 
 def _subtotal(row):
-    return any(re.fullmatch(r'credits?\s*per\s+semester|tong(?: so)? tin chi(?: hoc ky)?', folded(c)) for c in row)
+    return any(re.fullmatch(r'credits?\s*per\s+semester|tong(?: so)? tin chi(?: hoc ky)?|tong hoc ky\s*\d+\s*:?', folded(c)) for c in row)
+
+
+def _closing_scope(row):
+    for cell in row:
+        match=re.fullmatch(r'tong hoc ky\s*(\d{1,2})\s*:?',folded(cell))
+        if match:return int(match[1]),cell
+    return None
 
 
 def _named_rows(rows, headers, text):
     names = [i for i,h in enumerate(headers) if folded(h) in
              {'discipline','course name','subject','subject name','hoc phan','ten hoc phan',
-              'course code','ma hoc phan','ma so hoc phan'}]
+              'course code','ma hoc phan','ma so hoc phan','ma hp','mahp','ma mon'}]
     if not names:
         return None
     found = []
@@ -86,6 +93,21 @@ def scoped_quote(result, rows, headers, texts, question):
         locations[i] = active
         if _subtotal(row):
             active = None
+    closing_ends={}
+    if not semester_columns:
+        start=0
+        for end,row in enumerate(rows):
+            marker=_marker(row)
+            if marker:start=end
+            closing=_closing_scope(row)
+            if closing:
+                number,label=closing
+                conflict=any(locations[j] and locations[j][0]!=number for j in range(start,end+1))
+                for j in range(start,end+1):
+                    locations[j]=None if conflict else (number,start,label)
+                    if not conflict:closing_ends[j]=end
+                start=end+1
+            elif _subtotal(row):start=end+1
     selected = set()
     for text in texts:
         explicit = references(text)
@@ -105,12 +127,13 @@ def scoped_quote(result, rows, headers, texts, question):
         if semester_columns and named is None and not claimed_codes:
             return True,None
         if claimed_codes:
-            columns = [i for i,h in enumerate(headers) if folded(h) in {'course code','ma hoc phan','ma so hoc phan'}]
+            columns = [i for i,h in enumerate(headers) if folded(h) in {'course code','ma hoc phan','ma so hoc phan','ma hp','mahp','ma mon'}]
             eligible = [i for i in eligible if claimed_codes<={course_code_key(rows[i][c]) for c in columns}]
         units = {Decimal(n.replace(',','.')) for n in re.findall(
             r'(?<!\w)(\d+(?:[.,]\d+)?)\s*(?:credits?\b|tin chi\b)',folded(text))}
         if units:
-            columns = [i for i,h in enumerate(headers) if folded(h) in {'credits','so tin chi'}]
+            from .course_credits import credit_columns
+            columns = credit_columns(headers)
             if len(columns)!=1 or len(units)!=1:
                 return True,None
             if named is None and not claimed_codes:
@@ -162,6 +185,7 @@ def scoped_quote(result, rows, headers, texts, question):
         selected.update(range(start,end+1))
     starts = [locations[i][1] for i in selected if locations[i]]
     first,last = min(starts),max(selected)
+    last=max(last,max((closing_ends[i] for i in selected if i in closing_ends),default=last))
     if semester_columns:
         quoted = rows[next(iter(selected))] if len(selected)==1 else [rows[i] for i in sorted(selected)]
     elif first<0:

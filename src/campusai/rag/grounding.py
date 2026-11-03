@@ -922,7 +922,10 @@ class GroundedAnswerGenerator:
                                                    calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
-        from .table_fields import deterministic_admission_field
+        from .table_fields import deterministic_admission_field,deterministic_contact_fields
+        calculated=(deterministic_contact_fields(question,results,language,calibrator=self.calibrator)
+                    if pdf_documents is None and not incomplete_source else None)
+        if calculated is not None:return calculated
         calculated = (deterministic_admission_field(question, results, language,
             calibrator=self.calibrator) if pdf_documents is None and not incomplete_source else None)
         if calculated is not None:
@@ -1069,6 +1072,11 @@ class GroundedAnswerGenerator:
                 return replace(abstain('unsupported_claim', language=language), document_absence_requested=True)
         from .request_completeness import asserts_document_absence, explicit_request_roles, roles_covered
         required_roles = explicit_request_roles(question)
+        from .numeric_inference import elective_application_conflict
+        if not payload['abstained'] and elective_application_conflict(payload['answer'],
+                [source_body({'content':r.content}) for r in results],question):
+            record_stage('grounding_reject.elective_application',0.)
+            return abstain('unsupported_claim',language=language)
         if not payload['abstained'] and asserts_document_absence(payload['answer']):
             # This path publishes no positive claim or citation. An orphan
             # citation in an unpublished diagnostic fragment must not prevent

@@ -10,6 +10,58 @@ from ..retrieval.tokenizer_vi import source_body
 IDENTIFIER = r'[a-z]{1,5}\d{1,5}'
 
 
+def deterministic_contact_fields(question, results, language='vi', *, calibrator=None):
+    """Read explicitly labelled public contact rows from one source record.
+
+    A question selects fields, never values. Missing/conflicting records,
+    private-account questions and compound non-contact requests fall back to
+    normal retrieval/grounding. No organization/address/email list is stored.
+    """
+    current=folded(question.partition('\nContext topic (untrusted user input): ')[0])
+    wanted=[]
+    if re.search(r'\b(?:email|e mail|thu dien tu)\b',current):wanted.append('email')
+    if re.search(r'\b(?:dia chi|tru so|address|headquarters)\b',current):wanted.append('address')
+    if not wanted or len({r.doc_id for r in results})!=1:return None
+    if re.search(r'\b(?:cua (?:em|minh|toi)|my|mat khau|password|secret|prompt|hoc phi|diem|tin chi|quota|deadline|'
+                 r'ngay|khi nao|bao gio|thoi gian|han|dieu kien|hoc phan|chuong trinh|nganh|tai khoan|'
+                 r'sinh vien|student account|username|when|who|why|how many)\b',current):return None
+    if re.search(r'\b(?:email|dia chi|address|contact)(?: (?:cua|of))? '
+                 r'(?:phong|khoa|ban|giang vien|can bo|department|faculty|person)\b',current):return None
+    found=[]
+    for result in results:
+        body=source_body({'content':result.content},decode_tables=False)
+        try:
+            table=json.loads(body[body.index('{"headers"'):]);headers=table['headers'];rows=table['rows']
+            if (not isinstance(headers,list) or not all(isinstance(x,str) for x in headers)
+                    or not isinstance(rows,list)):continue
+        except (ValueError,TypeError,KeyError):continue
+        fields={};selected=[]
+        for row in rows:
+            if not isinstance(row,list) or not row or not all(isinstance(c,str) for c in row):continue
+            literal=' | '.join(c.strip() for c in row if c.strip())
+            text=folded(literal)
+            kind='email' if re.match(r'^(?:email|e mail|thu dien tu)\s*[:|]',text) else 'address' if re.match(r'^(?:dia chi|tru so|address|headquarters)\s*[:|]',text) else None
+            if kind not in wanted:continue
+            if kind=='email' and not re.search(r'[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}',literal):continue
+            if kind in fields and fields[kind]!=literal:fields={};break
+            fields[kind]=literal;selected.append(row)
+        if set(wanted)<=fields.keys():found.append((result,headers,selected,fields))
+    signatures={tuple(x[3][key] for key in wanted) for x in found}
+    if len(signatures)!=1:return None
+    result,headers,rows,fields=min(found,key=lambda x:len(json.dumps(x[2],ensure_ascii=False)))
+    quote=json.dumps({'headers':headers,'rows':rows},ensure_ascii=False)
+    if len(quote)>1200:return None
+    from .grounding import Citation,validate_citation,_grounding_finalize
+    citation=Citation(result.chunk_id,result.doc_id,result.page,quote,
+        ' > '.join(result.metadata.get('heading_path',[])),result.metadata.get('source_name',''),
+        tuple(result.metadata.get('page_range',[result.page,result.page])))
+    if not validate_citation(citation,result,require_quote=True).valid:return None
+    claims=[{'claim_id':'contact-'+key,'text':fields[key],'citation_ids':[result.chunk_id]} for key in wanted]
+    answer=_grounding_finalize('\n'.join(fields[key] for key in wanted),(citation,),
+        {'confidence':'high','claims':claims},results,language,question=question,calibrator=calibrator)
+    return answer if not answer.abstained else None
+
+
 def admission_field_request(question):
     text = folded(question).strip()
     text = re.sub(r'^(?:use only (?:the )?uploaded|chi dung tai lieu da tai len) [\w.-]+\.pdf\.\s*', '', text)

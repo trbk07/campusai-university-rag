@@ -584,6 +584,11 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     if not supported:
         return True
     visible = prose(answer)
+    from .numeric_inference import gpa_application_view, percentage_application_view
+    for proof in (gpa_application_view, percentage_application_view):
+        applied=proof(visible,supported,question)
+        if applied is False:return True
+        if isinstance(applied,str):visible=applied
     visible = _threshold_premise_view(visible,supported,question)
     # A requested scale label is context, not an extra output quantity. Mask
     # that label only; the same digit used as the converted value still needs

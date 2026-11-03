@@ -7,7 +7,7 @@ import re
 from typing import Any
 
 
-COURSE_CODE_RE = re.compile(r"(?<![\w])(?:[A-ZĐ]{2,}[A-ZĐ]*[-_.]?\d{1,5}[A-Z]?|DTVT-1)(?![\w])", re.I)
+COURSE_CODE_RE = re.compile(r"(?<![\w])(?:[A-ZĐ]{2,}[A-ZĐ]*[-_.]?\d{1,12}[A-Z]?|DTVT-1)(?![\w])", re.I)
 PROGRAM_CODE_RE = re.compile(r"(?<![\w])(?:CNTT|KHMT|ĐTVT|DTVT|CTĐT\d{2}|CTDT\d{2})(?![\w])", re.I)
 
 

@@ -7,7 +7,17 @@ import json
 import re
 import unicodedata
 
-COURSE_CODE = r'(?:[a-z]{2,5}\.)?[a-z]{2,5}\s*\d{3,5}[a-z]?'
+COURSE_CODE = r'(?:[a-z]{2,5}\.)?[a-z]{2,5}\s*\d{3,10}[a-z]?'
+
+
+def credit_columns(headers):
+    """Prefer explicit total-credit labels over BB/TC elective flags."""
+    names=[folded(h) for h in headers]
+    columns=[i for i,h in enumerate(names) if h in
+             {'so tin chi','credits','tong so tc','tong so tin chi','so tc','credit count'}]
+    if not columns and 'bb' not in names:
+        columns=[i for i,h in enumerate(names) if h in {'tc','tin chi'}]
+    return columns
 
 
 def course_code_key(code: str) -> str:
@@ -41,10 +51,10 @@ def headed_credit_rows(content: str, *, identity: str = 'code'):
             or not isinstance(rows, list)):
         return None
     names = [folded(header) for header in headers]
-    identity_headers = ({'ma hoc phan', 'ma so hoc phan', 'ma so', 'course code'}
+    identity_headers = ({'ma hoc phan', 'ma so hoc phan', 'ma so', 'ma hp', 'mahp', 'ma mon', 'course code', 'subject code'}
                         if identity == 'code' else {'discipline', 'course name', 'ten hoc phan', 'hoc phan'})
     code_cols = [i for i, name in enumerate(names) if name in identity_headers]
-    credit_cols = [i for i, name in enumerate(names) if name in {'so tin chi', 'credits'}]
+    credit_cols = credit_columns(headers)
     if len(code_cols) != 1 or len(credit_cols) != 1 or code_cols[0] == credit_cols[0]:
         return None
     code_col, credit_col = code_cols[0], credit_cols[0]

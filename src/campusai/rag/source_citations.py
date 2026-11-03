@@ -8,7 +8,7 @@ from .source_windows import verbatim_window
 from ..retrieval.tokenizer_vi import normalized_tokens, source_body
 from .course_credits import COURSE_CODE, course_code_key, folded
 
-_TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,5}[A-Za-z]?(?![A-Za-z0-9])')
+_TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,12}[A-Za-z]?(?![A-Za-z0-9])')
 
 
 def _wrapped_line(previous, following, *, min_following=10):
@@ -184,6 +184,7 @@ def source_quote(result, claims, question=''):
             return quote
         identity_columns = [i for i, header in enumerate(headers) if isinstance(header, str)
                             and (folded(header) in {'course code', 'ma hoc phan', 'ma so hoc phan', 'ma so',
+                                                   'ma hp', 'mahp', 'ma mon', 'subject code',
                                                    'ma xet tuyen', 'admission code', 'programme code',
                                                    'program code', 'discipline code'}
                                  or re.fullmatch(r'ma nganh\d*', folded(header)))]

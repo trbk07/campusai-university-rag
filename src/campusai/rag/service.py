@@ -175,6 +175,7 @@ class CampusAIQueryService:
         if not candidates or len(candidates)>16 or not callable(getattr(llm,'generate_json',None)):
             return request
         key=key_for(request.unrecognized_reference)
+        alias_diagnostic=None
         with self.cache.lock(key):
             item=cached(key)
             if item is None:
@@ -197,6 +198,8 @@ class CampusAIQueryService:
                 try:
                     with self.metrics.observe('rag.institution_alias'):
                         result=llm.generate_json(prompt,schema=schema,generationConfig={'maxOutputTokens':256})
+                    if isinstance(result,dict):
+                        alias_diagnostic={k:result.get(k) for k in ['status','candidate_id','match_type']}
                     if (isinstance(result,dict) and set(result)=={'status','candidate_id','match_type'}
                             and result['status']=='confirmed'
                             and result['match_type'] in {'established_alias','name_variant'}):
@@ -212,7 +215,8 @@ class CampusAIQueryService:
                     self._institution_alias_cache[key]=(time.monotonic()+(30 if unavailable else 300),*item)
                     while len(self._institution_alias_cache)>128:self._institution_alias_cache.popitem(last=False)
             canonical,unavailable=item
-        self._request_local.institution_alias_trace={'status':'confirmed' if canonical else 'unavailable' if unavailable else 'unresolved'}
+        self._request_local.institution_alias_trace={'status':'confirmed' if canonical else 'unavailable' if unavailable else 'unresolved',
+            'reference':request.unrecognized_reference,'model_decision':alias_diagnostic}
         if canonical:
             rewritten=replace_institution_alias(question,request.unrecognized_reference,canonical)
             return resolve_institution_request(rewritten,documents,turns)
@@ -900,6 +904,26 @@ class CampusAIQueryService:
                         for item in [*fields,*results]:
                             if item.chunk_id not in {r.chunk_id for r in merged}:merged.append(item)
                         results=merged[:cap]
+            if self.confirm_institution_scope:
+                from ..retrieval.institution_scope import _source_options, _institution_label
+                provenance={}
+                for document in getattr(self._request_local,'temporal_documents',[]):
+                    labels=_source_options([document])
+                    if not labels:continue
+                    label=labels[0]
+                    for item in document['items']:
+                        if item.get('page',999)>5:continue
+                        quote=next((line.strip() for line in source_body(item).splitlines()
+                                    if _institution_label(line)==label),None)
+                        if quote:
+                            provenance[document['doc_id']]={'name':label,'chunk_id':item['chunk_id'],
+                                'doc_id':document['doc_id'],'page':item['page'],'quote':quote}
+                            break
+                # Header identity is document provenance, not a numeric policy
+                # fact. Replace an inferred owner only with a literal heading
+                # from this same authorized source; never use a filename/alias.
+                results=[replace(r,metadata={**r.metadata,'institution':provenance[r.doc_id]['name'],
+                    'institution_proof':provenance[r.doc_id]}) if r.doc_id in provenance else r for r in results]
             self.last_retrieval = list(results)
             if composition.kind != 'single':
                 intent = self._request_local.temporal_intent
@@ -939,6 +963,17 @@ class CampusAIQueryService:
     def _disambiguate_institution_answer(self,answer,question,language):
         """Do not blend different institutions' rules into one unqualified rule."""
         cited={c.doc_id for c in answer.citations}
+        from ..retrieval.institution_scope import requested_institution_documents, _institution_groups
+        available=getattr(self._request_local,'temporal_documents',[])
+        requested=requested_institution_documents(question,available)
+        if not answer.abstained and len(requested)>1:
+            _,groups=_institution_groups(available)
+            needed={groups[i] for i in requested}
+            covered={groups[i] for i in cited if i in groups}
+            if not needed<=covered:
+                return GroundedAnswer('Chưa đủ bằng chứng cho từng nguồn được yêu cầu; chưa thể hoàn tất so sánh.'
+                    if language=='vi' else 'A requested source is not supported; the comparison is incomplete.',
+                    (), 'low',True,reason='insufficient_evidence',evidence_status='missing')
         if answer.abstained or len(cited)<2:
             return answer
         documents=[d for d in getattr(self._request_local,'temporal_documents',[]) if d['doc_id'] in cited]

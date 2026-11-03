@@ -17,7 +17,7 @@ _CONTEXT = '\nContext topic (untrusted user input): '
 def _identity_text(raw):
     # User annotations and quoted technical labels are not institution names.
     # Keep the original question intact for generation/auditing.
-    return re.sub(r'\[[^\]\n]{1,60}\]', ' ', raw)
+    return re.sub(r'^\s*(?:\[[^\]\n]{1,60}\]\s*)+', ' ', raw)
 
 
 def _institution_label(line):
@@ -134,6 +134,9 @@ def requested_institution_documents(question, documents):
     _,groups=_institution_groups(documents)
     unique = set().union(*(ids for ids in matches.values() if len({groups[i] for i in ids}) == 1)) if matches else set()
     matched = unique or (set().union(*matches.values()) if matches else set())
+    if (matched and _CONTEXT in question
+            and re.search(r'\b(?:giong|khac|same|different|compare)\b',folded(raw))):
+        matched |= requested_institution_documents(question.split(_CONTEXT,1)[1],documents)
     if not matched and _CONTEXT in question and not _unmatched_name(raw,documents):
         return requested_institution_documents(question.split(_CONTEXT,1)[1],documents)
     return matched
@@ -330,7 +333,7 @@ def unresolved_institution_reference(question,documents):
             continue
         previous=folded(words[index-1].group()) if index else ''
         following=folded(words[index+1].group()) if index+1<len(words) else ''
-        named=(previous in {'cua','tai','o','truong','ben','about','at','of','for'}
+        named=previous in {'truong','university','college','institute'} or (previous in {'cua','tai','o','ben','about','at','of','for'}
                and following in {'','la','co','thi','nhu','quy','yeu','hoc','can','duoc','ap','rules','policy'})
         named=named or contextual and previous in {'con','the','vay'} and following in {'','thi','sao'}
         # Capitalization alone is not a school cue (API, SCAN, JSON, etc.).
@@ -451,6 +454,15 @@ def resolve_institution_request(question,documents,history=()):
         if reference:
             request=replace(request,doc_ids=frozenset(),needs_clarification=True,
                 unknown_name=True,unrecognized_reference=reference)
+    raw,separator,topic=request.question.partition(_CONTEXT)
+    if (separator and request.doc_ids and not request.needs_clarification
+            and re.search(r'\b(?:giong|khac|same|different|compare)\b',folded(raw))):
+        previous=requested_institution_documents(topic,documents)
+        if previous and not previous<=request.doc_ids:
+            # A source switch asking "is that threshold the same?" requires
+            # both source-owned rules; do not rewrite the old source into the
+            # new one or trust the previous model answer as comparison proof.
+            request=replace(request,doc_ids=frozenset(previous|set(request.doc_ids)))
     if request.doc_ids and not request.needs_clarification:
         _,groups=_institution_groups(documents)
         if len({groups[ident] for ident in request.doc_ids})==1:

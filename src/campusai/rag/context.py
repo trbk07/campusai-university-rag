@@ -41,6 +41,10 @@ def depends_on_previous_topic(question):
     text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
     if missing_topic_reference(question):
         return True
+    if re.search(r'\b(?:muc|nguong|gia tri|quy dinh|gioi han)\s+(?:do|nay|vua noi)\b',text):
+        return True
+    if re.fullmatch(r'(?:em|minh|toi|t)\s+(?:dang |bi |duoc |dat )[^?!.]{1,65}\bthi sao',text):
+        return True
     if re.fullmatch(r'(?:(?:em|minh|toi|t|neu|the|vay|con)\s+)*'
                     r'(?:(?:duoc|dat|len|la|co)\s+)?\d+(?:[.,]\d+)?'
                     r'(?:\s+(?:diem|thi|sao|la|duoc|lam|ngay|chu|chua|khong|ko|a|nhi|vay))*',
@@ -61,6 +65,9 @@ def depends_on_previous_topic(question):
     # request and selected scope, even when a previous question was very short.
     discourse = re.match(r'^(?:con|vay|ua)\b', text) or re.match(r'^thế\b', question, re.I)
     if discourse and len(question.split()) <= 24:
+        if (re.search(r'\b(?:khoa luan|do an|hoc phi|ky thi|hoan thi)\b',text)
+                and re.search(r'\b(?:cpa|gpa|bao nhieu|bao lau|thu tuc|can gi)\b',text)):
+            return False  # Complete new subject; institution memory is separate.
         # A discourse filler does not turn a complete new definition into a
         # follow-up; "còn phần rèn luyện thì cần tới loại nào" does need context.
         return not bool(re.search(r'\b(?:la gi|what is|what are|explain|summarize|tong hop|tom tat|giai thich)\b', text))
@@ -293,6 +300,10 @@ def resolve_query(question: str, *, history: list[dict] | None = None,
     needs_clarification = meaningless or (contextual and not anchor)
     resolved = raw
     if not meaningless and anchor and (contextual or selected_text):
+        # A changed semester updates that slot, not the underlying requested
+        # attribute. Do not ask retrieval for summer and main-term limits at once.
+        term=r'\b(?:hoc\s+)?k[ỳìyi]\s+(?:chính|chinh|hè|he|phụ|phu)\b'
+        if re.search(term,raw,re.I):anchor=re.sub(term,' ',anchor,flags=re.I)
         resolved = raw + "\nContext topic (untrusted user input): " + sanitize_evidence_text(anchor)
     state=ConversationState.from_user_input(raw,anchor if contextual else raw)
     return ResolvedQuery(raw, resolved, tuple(turns), selected_text, bool(needs_clarification), contextual,state)

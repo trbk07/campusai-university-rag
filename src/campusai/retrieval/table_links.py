@@ -75,7 +75,7 @@ def primary_course_tables(code: str, records: dict[str, dict]) -> set[str]:
                 or not isinstance(rows, list)):
             continue
         roles = [_phrase(h).strip() for h in headers]
-        columns = [i for i, role in enumerate(roles) if role in {'ma hoc phan', 'ma so hoc phan', 'ma so', 'course code'}]
+        columns = [i for i, role in enumerate(roles) if role in {'ma hoc phan', 'ma so hoc phan', 'ma so', 'ma hp', 'mahp', 'ma mon', 'course code', 'subject code'}]
         if len(columns) != 1:
             continue
         column = columns[0]

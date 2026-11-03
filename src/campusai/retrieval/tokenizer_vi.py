@@ -64,6 +64,8 @@ def normalize_retrieval_query(text: str) -> str:
     # directions. These describe query intent; no source IDs or answers are
     # supplied by the expansion.
     academic_aliases = (
+        (r'\b(?:kl|kltn|khoa luan|thesis)\b', 'khóa luận tốt nghiệp thesis'),
+        (r'\bai\b', 'trí tuệ nhân tạo artificial intelligence'),
         (r'\b(?:ths|master(?:s)?|thac\s+s[yi])\b', 'thạc sĩ master'),
         (r'\b(?:pv|interview|phong van)\b', 'phỏng vấn interview'),
         (r'\b(?:tc|tin chi|credits?)\b|\b(?:may|bao nhieu|bn|\d{1,2})\s*tin\b', 'tín chỉ credits TC'),
