@@ -49,9 +49,12 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   Giữ nguyên golden,4 PDF và index; lịch sử lỗi/các snapshot trước được giữ
   riêng trong [báo cáo](evaluation/results/campusai_100_remediation_20261103/report.md).
   Không lặp lại lượt đo đã DONE để ghép điểm của nhiều snapshot.
-  Bản sửa sau lượt đo đã **PASS305 tests**: đơn vị tín chỉ theo đúng mã/tiêu đề
-  bảng và phục hồi commit checkpoint local khi Windows có reader lock;
-  kiểm tra targeted riêng, chưa thay thế điểm48/100 của snapshot đã khóa.
+- [x] **ANS-11d — Sửa đơn vị bảng và parser scope DONE (03/11, `ba2dfd34`):**
+  **305 tests PASS**, gồm chống tráo dòng/đơn vị và giữ nguyên mã học phần.
+  Kiểm tra NAT18 qua app chuẩn: đúng KC213046,2 TC,HK5,trang29;
+  **1 Gemini call /2,68s**, không mock hoặc dùng golden làm input.
+  Đã phục hồi an toàn checkpoint local khi có Windows reader lock.
+  Đây là kiểm targeted riêng, không thay thế điểm48/100 của snapshot đã khóa.
 
 - [x] **ANS-07 — Baseline Golden 100 DONE (03/11, `8ddcd9c5`):** đã chạy đủ
   **100 case / 112 lượt HTTP thật** qua app với 4 PDF, không mock; CTX chạy đúng
