@@ -37,6 +37,11 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   0 lỗi HTTP/timeout/cache, p95 **8,098s**. Đây là dev review, chưa đạt95%.
   Batch2 đang sửa xác nhận nguồn, viết tắt vượt ranh giới tên trường và recall
   mệnh đề/ngưỡng có nguồn; không mở lại các task đã DONE.
+- [x] **RAG-95-02a — Code batch2 DONE (`eb485c16`):** xác nhận nguồn không gọi
+  model giới thiệu; giữ câu hỏi chờ và trường ở lượt tiếp theo; bỏ alias cắt qua
+  tiền tố tên trường; truy hồi mệnh đề nguồn và giữ trong context; chặn heading
+  học kỳ không in trong chunk. **327 tests PASS**, secret scan/diff check PASS,
+  đã push origin CampusAI. Đây là DONE code/hồi quy, không phải accuracy95%.
 - [ ] **RAG-95-03 — Retrieval/grounding:** giữ trọn điều kiện, ngoại lệ và quan
   hệ bảng/học kỳ; trả lời đủ nguồn trong so sánh, giảm false abstention.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
@@ -48,6 +53,10 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   và các bước CTX. Lưu toàn bộ raw outputs/citations/traces; không ghép focused runs.
   Phát hiện hai ghi chú chấm cũ sai (CTX05/NAT12), lưu correction riêng;
   không sửa baseline hay tính điểm sửa chấm thành cải thiện nhờ code.
+- [ ] **RAG-95-05b — Đo batch2:** đã khóa source/profile/index và112 lượt HTTP;
+  automatic approval từ chối phạm vi egress mới `fae32047…` trước khi chạy,
+  **0 Gemini requests**. Đã gửi yêu cầu duyệt đúng payload/đích; không dùng lại
+  packet cũ hoặc báo PASS cho lượt chưa chạy. Các sửa code327 tests đã DONE.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
