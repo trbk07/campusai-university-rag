@@ -34,7 +34,7 @@ results, limitations, and remaining work.
 | Multi-document reasoning | Compare source-specific rules while keeping citations and supported values attached to their documents. |
 | Conversation context | Carry the topic into follow-up questions and resolve source changes; request clarification when the intended source is unclear. |
 | Grounding | Check claims, citations, numeric values, and supported conditions before presenting an answer. Explain insufficient evidence rather than infer an unsupported fact. |
-| Provider management | Use a single Gemini project or an optional profile for three independent projects, with persistent quota and cooldown tracking. |
+| Provider management | Automatically rotate across three configured independent Gemini projects, or use one project when only one credential is configured. Quota and cooldown state persist locally. |
 
 There is no fixed 100-question session limit. Available provider quota,
 cooldowns, document coverage, and workload determine how many requests can be
@@ -67,12 +67,14 @@ your configuration and state directory and follow the
 
 ### 2. Configure the provider
 
-Open `.env` in your editor and set `GEMINI_API_KEY` to your own key.
-The default profile is `configs/free_llm.yaml`.
+Open `.env` in your editor and set `GEMINI_API_KEY` to your own key. If all
+three distinct project credentials are present, the local launcher automatically
+selects `configs/free_multi_project.yaml` and rotates requests across them;
+otherwise it uses `configs/free_llm.yaml`.
 
-For three **independent Google projects**, select
-`configs/free_multi_project.yaml` through `CAMPUSAI_LLM_CONFIG` and supply
-`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, and `GEMINI_API_KEY_3`.
+For three **independent Google projects**, supply
+`GEMINI_API_KEY`, `GEMINI_API_KEY_2`, and `GEMINI_API_KEY_3`. Set
+`CAMPUSAI_LLM_CONFIG` only if you want to explicitly override profile selection.
 See the [multi-project setup](docs/operations/local-install.md)
 for credential-file support and quota behavior.
 

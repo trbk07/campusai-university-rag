@@ -279,6 +279,42 @@ def test_grounding_exposes_a_verified_condition_without_an_extra_model_call():
     assert not answer.abstained and rule in answer.answer and model.calls==1
 
 
+@pytest.mark.parametrize('core,obligation,question', [
+    ('Sau khi thi lại, nếu điểm học phần vẫn không đạt thì giữ nguyên điểm cũ',
+     ' và sinh viên phải học lại học phần đó theo quy định',
+     'Sau khi thi lại mà vẫn không đạt thì sao?'),
+    ('After the retake, if the course still is not passed, the original grade is kept',
+     ' and the student must retake the course under the rules',
+     'What happens if the course is still failed after the retake?'),
+])
+def test_grounding_restores_a_cited_coordinated_obligation_from_the_same_sentence(core,obligation,question):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    core='Sau khi thi lại, nếu điểm học phần vẫn không đạt thì giữ nguyên điểm cũ'
+    obligation=' và sinh viên phải học lại học phần đó theo quy định'
+    source=core+obligation+'.'
+    class Model:
+        def generate_json(self,prompt,schema=None):
+            return {'answer':core+'.','confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'result','text':core,'citation_ids':['rule']}]}
+    result=GroundedAnswerGenerator(Model(),source_citations=True).answer(question,[source_rule(source)])
+    assert not result.abstained
+    assert core+obligation+'.' in result.answer
+    assert obligation in result.claims[0].text
+    assert result.citations[0].quote==source
+
+
+def test_coordinated_obligation_is_not_recovered_across_sentence_or_document():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import restore_claim_conditions
+    core='Sau khi thi lại, nếu điểm học phần vẫn không đạt thì giữ nguyên điểm cũ'
+    claim=Claim('result',core,citation_ids=('one','two'))
+    refs=[Citation('one','one',18,core+'. Sinh viên phải học lại học phần đó theo quy định.'),
+          Citation('two','two',19,core+' và sinh viên phải học lại học phần đó theo quy định.')]
+    assert restore_claim_conditions([claim],refs)==[claim]
+
+
 def test_uncited_document_cannot_authorize_an_expanded_institution_name():
     from dataclasses import replace
     from campusai.rag.grounding import GroundedAnswerGenerator

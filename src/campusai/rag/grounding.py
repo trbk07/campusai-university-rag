@@ -1404,6 +1404,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
             confidence="low", abstained=True, reason=decision.reason or "unsupported_claim", claims=tuple(claims),
             evidence_status=decision.reason or "unsupported_claim", confidence_score=0.0,
         )
+    from .presentation import complete_coordinated_obligations
+    answer=complete_coordinated_obligations(answer,claims,citations)
     used_citation_ids = {citation_id for claim in claims for citation_id in claim.citation_ids}
     from .presentation import presentation_conflicts, location_proofs, code_markers, omit_unverified_context, aggregate_period_conflict
     answer=omit_unverified_context(answer,claims,question)

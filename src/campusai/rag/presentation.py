@@ -545,6 +545,9 @@ MATERIAL_CONDITION = re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong h
     r'ke tu|tinh tu|voi dieu kien|provided that|except|unless|only if|'
     r'this (?:rule |condition )?does not apply|does not apply|'
     r'no (?:earlier|later) than|at (?:the )?earliest)\b')
+COORDINATED_OBLIGATION = re.compile(
+    r'\s+(?:and\s+(?:the\s+)?[\w-]+(?:\s+[\w-]+){0,4}\s+(?:must|shall|has to|needs to|is required to|are required to)|'
+    r'và\s+[\wÀ-ỹ-]+(?:\s+[\wÀ-ỹ-]+){0,4}\s+phải)\b', re.I)
 
 
 def restore_claim_conditions(claims, citations):
@@ -569,6 +572,14 @@ def restore_claim_conditions(claims, citations):
                     tail=quote[match.end():]
                     condition=MATERIAL_CONDITION.match(folded(tail.lstrip(' ,(:')))
                     if not condition:
+                        obligation=COORDINATED_OBLIGATION.match(tail)
+                        if obligation:
+                            remainder=tail[obligation.start():]
+                            boundary=re.search(r'[;!?]|\.(?:\s+|$)',remainder)
+                            end=match.end()+obligation.start()+(boundary.end() if boundary else len(remainder))
+                            full=quote[match.start():end].strip()
+                            if len(full)<=1200:
+                                candidates.add(full)
                         separator=re.match(r'^\.\s+',tail)
                         if separator:
                             from .source_citations import attached_exception_end
@@ -585,6 +596,48 @@ def restore_claim_conditions(claims, citations):
                         candidates.add(full)
         restored.append(replace(claim,text=next(iter(candidates))) if len(candidates)==1 else claim)
     return restored
+
+
+def complete_coordinated_obligations(answer, claims, citations):
+    """Restore a directly coordinated mandatory action from a proved claim.
+
+    This only exposes text already recovered from the same literal citation
+    and only after claim alignment has marked the claim supported. It does not
+    cross sentence boundaries or infer the omitted action.
+    """
+    by_id={citation.chunk_id:citation for citation in citations}
+    completed=answer
+    for claim in claims:
+        if claim.status!='supported' or not claim.citation_ids:
+            continue
+        refs=[by_id[ident] for ident in claim.citation_ids if ident in by_id]
+        if not refs or len({ref.doc_id for ref in refs})!=1:
+            continue
+        match=COORDINATED_OBLIGATION.search(claim.text)
+        if not match:
+            continue
+        prefix=claim.text[:match.start()]
+        suffix=claim.text[match.start():]
+        def tokens(text):
+            return [folded(item.group()) for item in re.finditer(r'\w+',text)]
+        prefix_tokens=tokens(prefix)
+        suffix_tokens=tokens(suffix)
+        if len(prefix_tokens)<5 or not suffix_tokens:
+            continue
+        answer_spans=list(re.finditer(r'\w+',completed))
+        answer_tokens=[folded(item.group()) for item in answer_spans]
+        starts=[index for index in range(len(answer_tokens)-len(prefix_tokens)+1)
+                if answer_tokens[index:index+len(prefix_tokens)]==prefix_tokens]
+        # Ambiguous repetition in the answer is not safe to rewrite.
+        if len(starts)!=1:
+            continue
+        index=starts[0]
+        full_tokens=prefix_tokens+suffix_tokens
+        if answer_tokens[index:index+len(full_tokens)]==full_tokens:
+            continue
+        end=answer_spans[index+len(prefix_tokens)-1].end()
+        completed=completed[:end]+suffix+completed[end:]
+    return completed
 
 
 def complete_material_conditions(answer, claims, citations, language='vi'):

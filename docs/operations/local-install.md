@@ -164,8 +164,10 @@ Các bước tải ZIP/setup encoder, thông số máy đã đo và clean-instal
 
 ## Ba project Gemini độc lập
 
-Khi chủ dự án đã xác nhận key thuộc các project độc lập, đặt
-`CAMPUSAI_LLM_CONFIG=configs/free_multi_project.yaml` trong `.env`.
+Khi chủ dự án đã xác nhận key thuộc các project độc lập, launcher tự chọn
+`configs/free_multi_project.yaml` nếu có đủ ba credential khác nhau. Đặt
+`CAMPUSAI_LLM_CONFIG=configs/free_multi_project.yaml` trong `.env` để ép profile
+này; để trống biến đó thì launcher dùng profile một key nếu thiếu credential.
 Launcher đọc `key_1`, `key_2`, `key_3` từ `configs/key.yaml` đã được Git ignore;
 biến môi trường tương ứng có sẵn luôn được ưu tiên. Profile chia đều lượt gọi,
 tạm bỏ qua project đang cooldown và chuyển câu hỏi sang project khác khi nhận
