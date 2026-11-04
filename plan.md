@@ -87,6 +87,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   khớp phép so sánh. Không suy rộng thành kết luận đủ mọi điều kiện. **402 tests
   PASS (16,40s)** trên commit `5774b20d`; gold/PDF/index/profile giữ nguyên. Native
   accuracy chưa đo lại.
+- [x] **RAG-95-03f — Literal course-row and conditional-branch extraction DONE (local):** parse course codes, credits, wrapped names, selection groups, and eligibility branches only from exact retrieved source text; require a same-span citation and explicit semester label for semester-scoped group answers. Four general regression tests pass. Full app/Gemini requalification remains under RAG-95-05g.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
@@ -128,10 +129,9 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   không retry, reset quota hoặc chọn kết quả tốt nhất. Citation101 không lỗi
   tọa độ/quote; không suy thành semantic/OCR PASS. Có lỗi khẳng định thiếu
   thông tin sai ở CTX06-L3; đã sửa code riêng ở03d, không sửa kết quả R13.
-- [ ] **RAG-95-05f — Nghiệm thu trên code mới:** hồi quy402 tests đã PASS trên
-  `5774b20d`; chưa có lượt100 ca Gemini thật trên bản này. Golden gần nhất vẫn
-  69/100 trên `5e8ea511`; không gán điểm đó cho code mới. Cần khóa code/index/
-  profile rồi đo đủ100 ca.
+- [x] **RAG-95-05f — Native candidate qualification DONE (`5774b20d`):** R15 ran 112/112 app turns on the current source-identical candidate; **68 PASS/32 FAIL/0 BLOCKED**, with 99 real Gemini inferences and no provider/HTTP errors, timeouts, or cache hits. Three project keys each served 33 successful calls; no retries or quota resets. Citation audit: 98 citations, no page/quote geometry errors. Client p50 4,201 ms, p95 9,221 ms. R14 `provider_unavailable` was an environment/network permission issue and is excluded from score. R15 is developer review only; independent review and fresh holdout remain open.
+- [ ] **RAG-95-05g — Re-measure after root-cause fixes:** prioritize source-grounded reading of curriculum tables/diagrams, conditional branches, multi-course answers, and false abstentions. Keep the R15 score as the last official measurement until the full app/Gemini run is repeated on the frozen candidate. No case-ID or question-specific lookup.
+  Current local work fixes literal course-row parsing and conditional branch association. Four generalized regressions pass. Offline replay of R15 retrieved evidence now returns source-cited answers for OCR16, OCR17, and ROB04; the three results do not count as new native predictions or change the official 68/100 score. The HK7 elective query stays unresolved because the retrieved audit/control group does not carry an explicit HK7 source label.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.

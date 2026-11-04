@@ -588,12 +588,74 @@ def test_closing_semester_marker_remains_a_proved_locator_in_final_answer():
     assert quote
     from campusai.rag.course_credits import headed_credit_rows
     assert any(code=='ZX987654' and credits==4 for code,credits,_ in headed_credit_rows(quote) or [])
+
     citation=Citation('table','catalog',8,quote)
     payload={'confidence':'high','claims':claims}
     answer=_grounding_finalize('Môn ZX987654 ở học kỳ7 có4 tín chỉ.',(citation,),payload,[row],'vi',question=question)
     assert not answer.abstained
     wrong=_grounding_finalize('Môn ZX987654 ở học kỳ6 có4 tín chỉ.',(citation,),payload,[row],'vi',question=question)
     assert wrong.abstained
+
+
+def test_diagram_course_code_answers_correct_source_identity_and_credit():
+    from campusai.rag.course_lookup import deterministic_course_code_facts
+    source=RetrievalResult('diagram','program',30,
+        'KC213046 (2) Tr\u00ed tu\u1ec7 nh\u00e2n t\u1ea1o v\u00e0 \u1ee9ng d\u1ee5ng\n'
+        'KT213035 (3) Marketing','text',1.,'test',{'source_name':'program.pdf','page_range':[30,30]})
+    answer=deterministic_course_code_facts(
+        'T\u00f4i ch\u1eafc ch\u1eafn KC213046 l\u00e0 m\u00f4n Marketing 3 t\u00edn; h\u00e3y ki\u1ec3m tra ngu\u1ed3n.',[source])
+    assert answer and not answer.abstained
+    assert 'Tr\u00ed tu\u1ec7 nh\u00e2n t\u1ea1o v\u00e0 \u1ee9ng d\u1ee5ng' in answer.answer
+    assert '(2 t\u00edn ch\u1ec9)' in answer.answer
+    assert answer.citations[0].page==30 and 'KC213046' in answer.citations[0].quote
+
+
+def test_grounded_answer_generator_uses_source_rows_before_calling_the_model():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    class NeverCallModel:
+        calls=0
+        def generate_json(self,*args,**kwargs):
+            self.calls+=1
+            raise AssertionError('literal source-row answer should not need generation')
+    model=NeverCallModel()
+    source=RetrievalResult('diagram','program',5,
+        'AB123456 (3) K\u1ef9 thu\u1eadt ph\u1ea7n m\u1ec1m\nAB123457 (2) Marketing',
+        'text',1.,'test',{'source_name':'program.pdf','page_range':[5,5]})
+    question='AB123456 l\u00e0 Marketing 2 t\u00edn ph\u1ea3i kh\u00f4ng?'
+    answer=GroundedAnswerGenerator(model).answer(question,[source],language='vi')
+    assert answer and not answer.abstained and 'K\u1ef9 thu\u1eadt ph\u1ea7n m\u1ec1m' in answer.answer
+    assert answer.citations[0].page==5 and model.calls==0
+
+
+def test_diagram_conditional_branch_keeps_condition_and_matching_course_row():
+    from campusai.rag.course_lookup import deterministic_conditional_course_lookup
+    source=RetrievalResult('diagram','program',30,
+        'N\u1ebfu \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n:\nKT216399 (10) Kh\u00f3a lu\u1eadn t\u1ed1t nghi\u1ec7p\n'
+        'N\u1ebfu kh\u00f4ng \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n:\nKT216398 (4) Chuy\u00ean \u0111\u1ec1 t\u1ed1t nghi\u1ec7p',
+        'text',1.,'test',{'source_name':'program.pdf','page_range':[30,30]})
+    answer=deterministic_conditional_course_lookup(
+        '[S\u01a0 \u0110\u1ed2] HK8, n\u1ebfu \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n th\u00ec h\u1ecdc ph\u1ea7n t\u1ed1t nghi\u1ec7p n\u00e0o, m\u1ea5y t\u00edn?',[source])
+    assert answer and not answer.abstained
+    assert 'N\u1ebfu \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n' in answer.answer
+    assert 'KT216399' in answer.answer and '10 t\u00edn ch\u1ec9' in answer.answer
+    assert 'KT216398' not in answer.answer
+    assert 'N\u1ebfu \u0111\u1ee7 \u0111i\u1ec1u ki\u1ec7n' in answer.citations[0].quote
+
+
+def test_course_selection_group_requires_same_source_semester_scope():
+    from campusai.rag.course_lookup import deterministic_course_selection_group
+    source=RetrievalResult('diagram','program',33,
+        'HK 7\nCh\u1ecdn 2/4 t\u00edn ch\u1ec9 sau:\n'
+        'KT213330 (2) Ki\u1ec3m to\u00e1n ho\u1ea1t \u0111\u1ed9ng\n'
+        'KT213319 (2) Ki\u1ec3m so\u00e1t n\u1ed9i b\u1ed9','text',1.,'test',
+        {'source_name':'program.pdf','page_range':[33,33]})
+    question='HK7 nh\u00f3m ch\u1ecdn 2/4 TC c\u00f3 nh\u1eefng m\u00f4n n\u00e0o thu\u1ed9c ph\u1ea7n ki\u1ec3m to\u00e1n/ki\u1ec3m so\u00e1t?'
+    answer=deterministic_course_selection_group(question,[source])
+    assert answer and not answer.abstained
+    assert 'KT213330' in answer.answer and 'KT213319' in answer.answer
+    wrong_scope=RetrievalResult('other','program',33,source.content.replace('HK 7','HK 8'),
+        'text',1.,'test',{'source_name':'program.pdf','page_range':[33,33]})
+    assert deterministic_course_selection_group(question,[wrong_scope]) is None
 
 
 @pytest.mark.parametrize('balanced',[True,False])

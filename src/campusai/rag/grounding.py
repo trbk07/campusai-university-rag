@@ -1067,6 +1067,14 @@ class GroundedAnswerGenerator:
             calculated = deterministic_course_lookup(question, results, language, calibrator=self.calibrator)
             if calculated is not None:
                 return calculated
+            from .course_lookup import (deterministic_course_code_facts,
+                deterministic_course_selection_group, deterministic_conditional_course_lookup)
+            for resolver in (deterministic_course_code_facts,
+                              deterministic_course_selection_group,
+                              deterministic_conditional_course_lookup):
+                calculated=resolver(question,results,language,calibrator=self.calibrator)
+                if calculated is not None:
+                    return calculated
             from .semester_totals import deterministic_semester_total
             calculated = deterministic_semester_total(question, results, language, calibrator=self.calibrator)
             if calculated is not None:

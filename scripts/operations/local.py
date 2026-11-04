@@ -81,6 +81,48 @@ def load_local_env(path: Path, environ: dict) -> None:
             environ[name] = value
 
 
+def _default_llm_profile(root: Path, env: dict) -> Path:
+    """Prefer the three-project Gemini pool when all owner credentials exist."""
+    default = root / 'configs/free_llm.yaml'
+    if not default.is_file():
+        default = root / 'configs/continuity_llm.yaml'
+    if not default.is_file():
+        default = root / 'configs/product_llm.yaml'
+
+    pooled = root / 'configs/free_multi_project.yaml'
+    if not pooled.is_file():
+        return default
+    try:
+        pool_config = _read_config(pooled)['llm']
+        names = pool_config.get('api_key_envs')
+        if (pool_config.get('independent_projects') is not True or not isinstance(names, list)
+                or len(names) != 3 or len(set(names)) != 3
+                or any(not isinstance(name, str) for name in names)):
+            return default
+        values = {name: env.get(name) for name in names}
+        missing = [name for name in names if not values[name]]
+        if missing:
+            key_file = Path(env.get('CAMPUSAI_KEY_FILE') or root / 'configs/key.yaml')
+            if not key_file.is_absolute():
+                key_file = root / key_file
+            if not key_file.is_file():
+                return default
+            if (root / '.git').exists():
+                ignored = subprocess.run(['git', 'check-ignore', '--quiet', '--no-index', '--', str(key_file)],
+                                         cwd=root, capture_output=True, check=False)
+                if ignored.returncode != 0:
+                    return default
+            for name in missing:
+                values[name] = read_key(key_file, pool_config['local_key_names'][name])
+        if any(not isinstance(value, str) or not value or value.strip() != value for value in values.values()):
+            return default
+        if len(set(values.values())) != len(names):
+            return default
+        return pooled
+    except (OSError, ValueError, KeyError, TypeError, AttributeError):
+        return default
+
+
 def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
     """Use explicit environment settings first, then the owner's local key.
 
@@ -92,11 +134,7 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
         configure_paths(root, env)
     except ValueError as error:
         raise LocalSetupError(str(error)) from None
-    default_profile = root / 'configs/free_llm.yaml'
-    if not default_profile.is_file():
-        default_profile = root / 'configs/continuity_llm.yaml'
-    if not default_profile.is_file():
-        default_profile = root / 'configs/product_llm.yaml'
+    default_profile = _default_llm_profile(root, env)
     profile = Path(env.get('CAMPUSAI_LLM_CONFIG') or default_profile)
     if not profile.is_absolute():
         profile = root / profile

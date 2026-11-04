@@ -7,7 +7,7 @@ from campusai.document_info import document_info_response, page_count_request
 from campusai.ingestion.tesseract_process import worker_environment
 from scripts.release.measure_ocr import percentile, sample
 from scripts.release.verify_answers import inference_payload, response_errors, turns, natural_variants
-from scripts.operations.local import timing_observer, LocalSetupError
+from scripts.operations.local import timing_observer, LocalSetupError, _default_llm_profile
 from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
 from campusai.rag.policies import explicit_comparison_request, has_conflicting_numeric_evidence
 from campusai.retrieval.hybrid import RetrievalResult
@@ -184,6 +184,25 @@ def test_opt_in_timing_log_excludes_question_answer_and_source_data(tmp_path):
     assert 'private' not in path.read_text(encoding='utf-8')
     with pytest.raises(LocalSetupError):
         timing_observer(path)
+
+
+def test_local_app_selects_three_project_rotation_when_all_distinct_keys_exist(tmp_path):
+    configs = tmp_path / 'configs'
+    configs.mkdir()
+    (configs / 'free_llm.yaml').write_text('llm:\n  provider: gemini\n  api_key_env: GEMINI_API_KEY\n', encoding='utf-8')
+    (configs / 'free_multi_project.yaml').write_text(
+        'llm:\n  provider: gemini\n  api_key_env: GEMINI_API_KEY\n'
+        '  api_key_envs: [GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3]\n'
+        '  independent_projects: true\n'
+        '  local_key_names: {GEMINI_API_KEY: key_1, GEMINI_API_KEY_2: key_2, GEMINI_API_KEY_3: key_3}\n',
+        encoding='utf-8')
+    multi = str(configs / 'free_multi_project.yaml')
+    single = str(configs / 'free_llm.yaml')
+    pool = {'GEMINI_API_KEY': 'distinct-key-one', 'GEMINI_API_KEY_2': 'distinct-key-two',
+            'GEMINI_API_KEY_3': 'distinct-key-three'}
+    assert str(_default_llm_profile(tmp_path, pool)) == multi
+    assert str(_default_llm_profile(tmp_path, {**pool, 'GEMINI_API_KEY_3': ''})) == single
+    assert str(_default_llm_profile(tmp_path, {**pool, 'GEMINI_API_KEY_2': pool['GEMINI_API_KEY']})) == single
 
 
 def test_previous_course_does_not_expand_to_passed_prerequisite():
