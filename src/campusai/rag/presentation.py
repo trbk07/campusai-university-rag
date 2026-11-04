@@ -501,7 +501,7 @@ def source_ownership_conflicts(answer, claims, citations, results, question=''):
             for code,credits,_row in headed_credit_rows(citation.quote) or []:
                 if code.casefold() in codes and credits is not None:
                     allowed[citation.doc_id][number(str(credits))].add('credits')
-    view=quantity_spacing(_threshold_premise_view(answer,[c.text for c in claims if c.status=='supported'],question))
+    view=quantity_spacing(answer)
     for clause in re.split(r'[;!?\n]+|\.(?:\s+|$)',view):
         value=folded(clause);words=list(re.finditer(r'\w+',value));mentions=[]
         refs=_references(clause,list(documents.values()))
@@ -523,6 +523,14 @@ def source_ownership_conflicts(answer, claims, citations, results, question=''):
             else:merged.append((start,end,owner))
         for index,(_start,end,owner) in enumerate(merged):
             segment=value[end:merged[index+1][0] if index+1<len(merged) else len(value)]
+            # A user's hypothetical quantity is not a policy scalar borrowed
+            # from another PDF. Prove it against THIS owner's claims/quotes;
+            # a valid premise from one source cannot exempt another owner.
+            from .numeric_inference import user_application_view
+            checked=user_application_view(segment,texts.get(owner,[]),question,
+                evidence=[citation.quote for citation in citations if citation.doc_id==owner])
+            if checked is False:return True
+            segment=_threshold_premise_view(checked,texts.get(owner,[]),question)
             first=UNIT.search(segment)
             if not first or not re.search(r'[:=]|\b(?:co|la|duoc|phi|gioi han|toi da|toi thieu|'
                                           r'ap dung|dang k[yi]|has|have|is|are|allows?)\b',segment[:first.start()]):
@@ -639,7 +647,7 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
     return answer+('\n\n'+'\n'.join(additions) if additions else '')
 
 
-def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=()):
+def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=()):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
@@ -648,11 +656,10 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     table_semesters={value for kind,value in locations if kind=='semester'}
     if table_semesters and any(str(int(m[1])) not in table_semesters for m in SEMESTER_LOCATION.finditer(visible)):
         return True
-    from .numeric_inference import gpa_application_view, percentage_application_view
-    for proof in (gpa_application_view, percentage_application_view):
-        applied=proof(visible,supported,question)
-        if applied is False:return True
-        if isinstance(applied,str):visible=applied
+    from .numeric_inference import user_application_view
+    applied=user_application_view(visible,supported,question,evidence=application_evidence)
+    if applied is False:return True
+    visible=applied
     visible = _threshold_premise_view(visible,supported,question)
     # A requested scale label is context, not an extra output quantity. Mask
     # that label only; the same digit used as the converted value still needs

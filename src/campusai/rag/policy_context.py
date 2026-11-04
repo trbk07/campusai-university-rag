@@ -61,18 +61,29 @@ def _bounds(text):
 
 
 def _closed_items(body, *, leaf_only=True):
-    marker = re.compile(r'(?m)^[ \t]*(?P<label>\d+|[a-zđ])[.)][ \t]*(?:\n[ \t]*)?')
+    marker = re.compile(r'(?m)^[ \t]*(?P<label>\d+|[a-zđ])[.)](?!\d)[ \t]*(?:\n[ \t]*)?')
     markers = list(marker.finditer(body))
+    alphabets=('abcdefghijklmnopqrstuvwxyz','abcdđefghijklmnopqrstuvwxyz')
+    def follows(first,second):
+        if first.isdigit() and second.isdigit():return int(second)==int(first)+1
+        return any(first in order and second in order and order.index(second)==order.index(first)+1 for order in alphabets)
     for index, start in enumerate(markers):
         label = start['label']
-        successor = str(int(label) + 1) if label.isdigit() else chr(ord(label) + 1)
+        parent=None
+        if not label.isdigit():
+            parents=[i for i,m in enumerate(markers[:index]) if m['label'].isdigit()]
+            if parents:
+                position=parents[-1]
+                siblings=''.join(m['label'] for m in markers[position+1:index+1])
+                if any(order.startswith(siblings) for order in alphabets):parent=markers[position]['label']
         for end in markers[index + 1:]:
-            # A different level may contain its own sub-items, but cannot
-            # establish the closing boundary of this item.
+            # The next parent closes its final lettered child only when the
+            # actual a/b/c... siblings establish the hierarchy. An orphaned
+            # last child or a chunk boundary is not evidence of completion.
             if end['label'].isdigit() != label.isdigit():
-                if not label.isdigit(): break
-                continue
-            if end['label'] != successor: break
+                if label.isdigit():continue
+                if parent is None or not follows(parent,end['label']):break
+            elif not follows(label,end['label']):break
             item = body[start.end():end.start()].strip()
             if (len(item) <= 1200 and (not leaf_only or not marker.search(item)) and not re.search(
                     r'(?mi)^\s*(?:điều|article|section|chapter)\s+\d+\b', item)
@@ -143,7 +154,14 @@ def policy_item_context(question, answer, claims, citations, results, language):
         source = next((item for item in results if item.chunk_id == citation.chunk_id), None)
         if source is None: continue
         for body, table in _prose_runs(source):
-            for quoted, item in _closed_items(body):
+            # Use the smallest structurally closed node containing all cited
+            # claims. A multi-item answer may need their common parent; using
+            # one child's quote would silently drop the other claims' proof.
+            items=[(quoted,item) for quoted,item in _closed_items(body,leaf_only=False)
+                   if all(_compact(claim.text) in _compact(item) for claim in related)]
+            shortest=min((len(quoted) for quoted,_ in items),default=None)
+            for quoted, item in items:
+                if len(quoted)!=shortest:continue
                 compact = _compact(item)
                 if any(_compact(claim.text) not in compact for claim in related): continue
                 # Do not translate a source sentence by guessing. Other
@@ -154,6 +172,12 @@ def policy_item_context(question, answer, claims, citations, results, language):
                 anchor = ' '.join(claim.text for claim in related)
                 denied = bool(re.search(r'\b(?:khong (?:duoc|giai quyet|cho phep)|cannot|not permitted)\b', folded(anchor)))
                 permission_cue=r'duoc dang k[yi]|duoc phep' if language.startswith('vi') else r'may|can'
+                grants_permission=bool(re.search(r'\b(?:'+permission_cue+r')\b',folded(anchor))) and not denied
+                def action_related(sentence):
+                    shared=(_words(anchor)&_words(sentence))-{'may','can','must','not','khong','phai'}
+                    short_action=(grants_permission and all(len(word)>=3 for word in shared)
+                        and not shared&{'nguoi','hoc','sinh','vien','person','student','visitor','people'})
+                    return len(shared)>=3 or len(shared)==2 and (all(len(word)>=5 for word in shared) or short_action)
                 extras = []
                 for sentence in sentences:
                     norm = folded(sentence)
@@ -164,24 +188,22 @@ def policy_item_context(question, answer, claims, citations, results, language):
                         and len(re.findall(r'\b(?:danh cho|ap dung|doi voi|provided that|eligible|applies to)\b',norm))==1
                         and not re.search(r'\b(?:trong khi|whereas)\b',norm))
                     missing_scope=same_sentence and _missing_qualifier(sentence,answer)
-                    condition = re.search(r'\b(?:tuy nhien|voi dieu kien|can dam bao|provided that|subject to)\b', norm)
+                    condition = re.search(r'\b(?:tuy nhien|voi dieu kien|can dam bao|chi ap dung|provided that|subject to|only applies)\b', norm)
                     optional = (re.search(r'^(?:ngoai|in addition to|besides)\b', norm)
                                 and re.search(r'\b(?:co the|may|can)\b', norm))
                     permission = (denied and re.search(r'\b(?:duoc dang k[yi]|duoc phep|may|can)\b', norm)
                                   and not re.search(r'\b(?:khong|not|cannot)\b', norm))
-                    shared = _words(anchor) & _words(sentence)
-                    action_related = len(shared) >= 3 or (len(shared) == 2 and all(len(word) >= 5 for word in shared))
                     if (not (condition or optional or permission or same_sentence)
-                            or _covered(sentence, answer) and not missing_scope or not action_related): continue
+                            or _covered(sentence, answer) and not missing_scope or not action_related(sentence)): continue
                     extras.append(sentence)
-                # A permission's official result and exclusion can occupy the
-                # following sentences of the same closed leaf item. Retain
-                # that short complete item rather than inventing a summary or
-                # silently presenting permission without its constraints.
-                if (not extras and not denied and 2<=len(sentences)<=3 and len(item)<=650
-                        and re.search(r'\b(?:'+permission_cue+r')\b',folded(anchor))
-                        and not _covered(item,answer)):
-                    extras=[item]
+                # Outcomes and exclusions may follow an accepted fact in the
+                # same short closed leaf. Preserve the whole item verbatim;
+                # never borrow an adjacent sibling or invent a summary.
+                if (2<=len(sentences)<=3 and len(item)<=650
+                        and not re.search(r'(?m)^\s*(?:\d+|[a-zđ])[.)]\s*',item)
+                        and all(action_related(sentence) for sentence in sentences if not _words(sentence)<=_words(answer))
+                        and (not _covered(item,answer) or not _words(item)<=_words(answer))):
+                    extras=[' '.join(item.split())]
                 if len(extras) != 1: continue
                 if table is not None:
                     _, quote = sparse_prose_quote(table, [quoted])
@@ -280,7 +302,7 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
     query = folded(question)
     if (not (re.search(r'\b(?:em|minh|toi|e|t|my|i|me|du kien nay)\b', query)
                  or re.search(r'\b(?:cpa|gpa|dieu kien|canh bao)\b',query))
-            or not re.search(r'\b(?:bi|duoc|ko|khong|can|bao nhieu|eligible|will|am|can)\b', query)
+            or not re.search(r'\b(?:bi|duoc|ko|khong|can|bao nhieu|la gi|eligible|will|am|can|what)\b', query)
             or re.search(r'\b(?:dieu kien khac|kiem tra them|xet them|other criteria|other conditions)\b', folded(answer))):
         return None
     candidates = []
@@ -299,8 +321,10 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
                 continue
             children = [item[marker.end():markers[i+1].start() if i+1 < len(markers) else len(item)]
                         for i, marker in enumerate(markers)]
-            matches = [child for child in children if all(_compact(claim.text) in _compact(child) for claim in related)]
-            if len(matches) != 1: continue
+            matches = [child for child in children if any(_compact(claim.text) in _compact(child) for claim in related)]
+            if (not matches or len(matches)==len(children)
+                    or not all(any(_compact(claim.text) in _compact(child) for child in matches) for claim in related)):
+                continue
             vietnamese = bool(re.search(r'\b(?:dieu kien|danh gia)\b', folded(heading)))
             if vietnamese != language.startswith('vi'): continue
             guidance = ('This checks the criterion you described. To assess your full situation, check the other criteria in the same source section.'
@@ -330,7 +354,7 @@ def complete_policy_context(question, answer, claims, citations, results, langua
     if explicit_comparison_request(question) or re.search(
             r'\b(?:chi (?:can|muon)|only|do not add|khong can|khong neu|dung neu)\b', folded(question)):
         return None
-    return (verified_field_context(question, answer, claims, citations, language)
-            or policy_item_context(question, answer, claims, citations, results, language)
+    return (policy_item_context(question, answer, claims, citations, results, language)
+            or verified_field_context(question, answer, claims, citations, language)
             or grade_family_context(question, answer, claims, citations, language)
             or criterion_scope_context(question, answer, claims, citations, results, language))

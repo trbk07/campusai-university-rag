@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v14-structured"
+CONTEXT_VERSION = "request-context-v15-registration-slots"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -234,7 +234,7 @@ class ConversationState:
 
     @classmethod
     def from_user_input(cls, current, topic):
-        value=_fold(current); anchor=_fold(topic or '')
+        value=' '.join(_fold(current).split()); anchor=' '.join(_fold(topic or '').split())
         combined=value+' '+anchor
         operation=next((name for name,pattern in (
             ('grade_conversion',r'quy doi|he 4|diem chu|letter grade|convert'),
@@ -244,7 +244,9 @@ class ConversationState:
         ) if re.search(pattern,combined)), 'document_question')
         programs=tuple(dict.fromkeys(m[0].strip() for m in re.finditer(
             r'\b(?:nganh|chuyen nganh|program(?:me)?)\s+[^?;.!\n]{1,80}', topic or '', re.I)))
-        semester_pattern=r'\b(?:(?:hoc\s+)?k[yi]\s+(?:chinh|he|phu|\d+)|hk\s*\d+|semester\s*\d+)\b'
+        # Accent folding merges "ký/kí" (register) with "kỳ/kì" (term).
+        # A registration quantity must not replace the remembered semester.
+        semester_pattern=r'(?<!dang )\b(?:(?:hoc\s+)?k[yi]\s+(?:chinh|he|phu|\d+)|hk\s*\d+|semester\s*\d+)\b'
         semesters=tuple(dict.fromkeys(re.findall(semester_pattern,value) or re.findall(semester_pattern,anchor)))
         codes=tuple(dict.fromkeys(re.findall(r'\b[A-Z]{2,}\d{3,}[A-Z0-9]*\b',current+' '+(topic or ''),re.I)))
         numbers=tuple(dict.fromkeys(re.findall(r'(?<!\w)\d+(?:[.,]\d+)?',current)))

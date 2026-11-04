@@ -466,6 +466,60 @@ def build_context(
                     extra = min(remaining, max(0, desired - allocations[i]))
                     allocations[i] += extra
                     remaining -= extra
+            # Evidence coverage belongs to documents, not hit counts. Several
+            # hits from one PDF must not crowd out another PDF's governing
+            # rule. Reserve full tables and minimal prose, then water-fill
+            # owner budgets; unused space from short sources is returned.
+            owners: dict[str, list[int]] = {}
+            for i, part in enumerate(parts):
+                owners.setdefault(part[0].doc_id, []).append(i)
+
+            def share_budget(demands, budget, floors):
+                if sum(demands) <= budget:
+                    return list(demands)
+                low, high = 0, max(demands) + 1
+                while low + 1 < high:
+                    level = (low + high) // 2
+                    used = sum(min(demand, max(floor, level))
+                               for demand, floor in zip(demands, floors))
+                    if used <= budget:
+                        low = level
+                    else:
+                        high = level
+                shares = [min(demand, max(floor, low))
+                          for demand, floor in zip(demands, floors)]
+                remaining = budget - sum(shares)
+                for index, demand in enumerate(demands):
+                    if remaining and shares[index] < demand:
+                        shares[index] += 1
+                        remaining -= 1
+                return shares
+
+            if len(owners) > 1:
+                groups = list(owners.values())
+                floors = [len(part[2]) if part[0].content_type == 'table' else
+                          min(len(part[2]), len(marker) + 32) for part in parts]
+                owner_budgets = share_budget(
+                    [sum(len(parts[i][2]) for i in group) for group in groups], available,
+                    [sum(floors[i] for i in group) for group in groups])
+                for group, budget in zip(groups, owner_budgets):
+                    prose = [i for i in group if parts[i][0].content_type != 'table']
+                    budget -= sum(len(parts[i][2]) for i in group if i not in prose)
+                    if not prose:
+                        continue
+                    shares = share_budget([len(parts[i][2]) for i in prose], budget,
+                                          [floors[i] for i in prose])
+                    # Prefer each owner's highest-ranked passage within its
+                    # own share, keeping the other passages' minimal evidence.
+                    desired = min(len(parts[prose[0]][2]), max(shares[0], int(budget * .4)))
+                    needed = desired - shares[0]
+                    for index in reversed(range(1, len(prose))):
+                        released = min(needed, max(0, shares[index] - minimum))
+                        shares[index] -= released
+                        shares[0] += released
+                        needed -= released
+                    for i, share in zip(prose, shares):
+                        allocations[i] = share
             for i, (result, metadata, content) in enumerate(parts):
                 limit = allocations[i]
                 if result.content_type != 'table' and len(content) > limit:
@@ -1349,7 +1403,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
         record_stage('grounding_reject.grade_application', 0.)
         return _abstention('unsupported_claim', language=language)
     if presentation_conflicts(applied if isinstance(applied,str) else answer, claims, locations=locations,
-                               question=question, source_scope_codes=source_scope_codes):
+                               question=question, source_scope_codes=source_scope_codes,
+                               application_evidence=[citation.quote for citation in citations]):
         record_stage('grounding_reject.presentation', 0.)
         return _abstention('unsupported_claim', language=language)
     from .presentation import conditional_labels_supported

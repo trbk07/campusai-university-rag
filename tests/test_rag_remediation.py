@@ -198,6 +198,100 @@ def test_gpa_input_followed_by_clause_comma_is_not_a_truncated_decimal(value):
     assert gpa_application_view(answer,[rule],f'CPA {value},7 có đủ không?') is None
 
 
+@pytest.mark.parametrize('answer',[
+    'Điểm trung bình chung tích lũy của người học đạt 3,29 là chưa đủ điều kiện; yêu cầu đạt từ 3,3 trở lên.',
+    'Theo ngưỡng điểm trung bình tích lũy từ 3,3 trở lên, điểm 3,29 chưa đạt điều kiện.',
+])
+def test_elliptical_gpa_application_binds_only_the_current_users_score(answer):
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Điểm trung bình chung tích lũy đạt từ 3,3 trở lên.'
+    question='Em được 3,29 thì sao?\nContext topic (untrusted user input): CPA tối thiểu làm đồ án?'
+    source=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{})
+    def generate(text):
+        return _grounding_finalize(text,
+            (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'minimum','text':rule,'citation_ids':['rule']}]},
+            [source],'vi',question=question)
+    assert not generate(answer).abstained
+    assert generate(answer.replace('3,29','3,28')).abstained
+    assert generate(answer.replace('3,29','3,29 đồng')).abstained
+
+
+@pytest.mark.parametrize('verb',['đăng kí','đăng   ký'])
+def test_registration_quantity_does_not_become_a_conversation_semester(verb):
+    from campusai.rag.context import ConversationState
+    state=ConversationState.from_user_input('Kì phụ '+verb+' 12 tín chỉ được không?',None)
+    assert state.semesters==('ki phu',)
+    followup=ConversationState.from_user_input(verb+' 12 tín chỉ được không?','Học kỳ hè giới hạn bao nhiêu tín?')
+    assert followup.semesters==('hoc ky he',)
+    explicit=ConversationState.from_user_input(verb+' 12 tín chỉ cho HK 5?',None)
+    assert explicit.semesters==('hk 5',)
+
+
+def test_percentage_operands_remain_bound_through_a_user_named_semester():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Tổng số tín chỉ không đạt trong học kỳ vượt quá 55% khối lượng đã đăng ký học trong học kỳ.'
+    question='Kỳ chính 30 TC mà không đạt 17 TC có thuộc điều kiện cảnh báo không?'
+    answer='Sinh viên đăng ký học kỳ chính 30 tín chỉ mà không đạt 17 tín chỉ thuộc điều kiện cảnh báo vì vượt quá 55% khối lượng đã đăng ký.'
+    source=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{})
+    def generate(text):
+        return _grounding_finalize(text,
+            (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'bound','text':rule,'citation_ids':['rule']}]},
+            [source],'vi',question=question)
+    assert not generate(answer).abstained
+    assert generate(answer.replace('kỳ chính','kỳ phụ')).abstained
+    assert generate(answer.replace('30 tín chỉ','31 tín chỉ')).abstained
+
+
+def test_full_generator_proves_personal_operands_for_only_their_actual_source_owner():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    rule='Tổng số tín chỉ không đạt trong học kỳ vượt quá 55% khối lượng đã đăng ký học trong học kỳ.'
+    first=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{'source_name':'first.pdf'})
+    fee='Phí hồ sơ là 31 USD.'
+    second=RetrievalResult('fee','wind',4,fee,'text',1.,'test',{'source_name':'second.pdf'})
+    class PreservedShape:
+        def __init__(self,owner):self.owner=owner
+        def generate_json(self,*args,**kwargs):
+            return {'answer':self.owner+': Sinh viên đăng ký học kỳ chính 30 tín chỉ mà không đạt 17 tín chỉ thuộc điều kiện cảnh báo.\nsecond.pdf: '+fee,
+                'abstained':False,'confidence':'high','citations':[{'chunk_id':'rule'},{'chunk_id':'fee'}],
+                'claims':[{'claim_id':'bound','text':rule,'citation_ids':['rule']},
+                          {'claim_id':'fee','text':fee,'citation_ids':['fee']}]}
+    question='Kỳ chính 30 TC mà không đạt 17 TC có thuộc điều kiện cảnh báo không?'
+    def generate(owner):return GroundedAnswerGenerator(PreservedShape(owner),source_citations=True,
+        repair_invalid_answers=True).answer(question,[first,second],'vi')
+    assert not generate('first.pdf').abstained
+    assert generate('second.pdf').abstained
+
+
+def test_registration_cap_proves_only_the_bound_users_negative_application():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Đối với học kỳ phụ (nếu có): Sinh viên đăng ký không vượt quá 11 tín chỉ.'
+    question='Kỳ phụ đăng kí 12 tín được không?'
+    answer='Sinh viên chỉ được đăng ký tối đa 11 tín chỉ, do đó không thể đăng ký 12 tín chỉ.'
+    def generate(text,source_rule=rule,claim_texts=None):
+        source=RetrievalResult('rule','cloud',7,source_rule,'text',1.,'test',{})
+        return _grounding_finalize(text,
+            (Citation('rule','cloud',7,source_rule,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'cap'+str(i),'text':claim,'citation_ids':['rule']}
+                       for i,claim in enumerate(claim_texts or [source_rule])]},
+            [source],'vi',question=question)
+    assert not generate(answer).abstained
+    assert generate(answer.replace('không thể','có thể')).abstained
+    assert generate(answer.replace('12 tín chỉ','13 tín chỉ')).abstained
+    assert generate(answer+' Học phí là 12 đồng.').abstained
+    assert generate(answer,rule.replace('học kỳ phụ','học kỳ chính')).abstained
+    assert generate(answer,'Nếu được cấp học bổng, '+rule).abstained
+    assert generate(answer,rule+' Sinh viên đăng ký tối đa 14 tín chỉ.').abstained
+    exception='Nếu được cấp học bổng, trong học kỳ phụ sinh viên đăng ký tối đa 14 tín chỉ.'
+    assert generate(answer,rule+'\n'+exception,[rule,exception]).abstained
+    global_exception=exception.replace('trong học kỳ phụ ','')
+    assert generate(answer,rule+'\n'+global_exception,[rule,global_exception]).abstained
+    # An exception present in the visible quote cannot be hidden by simply
+    # omitting it from the model's structured claims.
+    assert generate(answer,rule+'\n'+global_exception,[rule]).abstained
+
+
 @pytest.mark.parametrize('literal,invalid',[
     ('Văn bản được ký ngày 42 tháng 2 năm 2032.',True),
     ('Văn bản được ký ngày 12 tháng ( năm 2032.',True),
@@ -627,6 +721,60 @@ def test_permission_keeps_official_result_and_exclusion_from_one_closed_item():
     assert outcome not in generate(body,'Chỉ cần cho biết mức K có được đánh giá lại không?').answer
 
 
+def test_last_policy_child_is_closed_only_by_a_proven_parent_successor():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Đối với ca phụ (nếu có): Người đăng ký không vượt quá 11 lượt.'
+    extra='Không cấp phụ cấp cho người đăng ký trong ca này.'
+    body='3. Giới hạn theo ca:\na) Ca sáng theo lịch.\nb) Ca chiều theo lịch.\nc) '+rule+' '+extra+'\n4. Quy trình liên hệ.'
+    def generate(content):
+        source=RetrievalResult('rule','cloud',7,content,'text',1.,'test',{})
+        return _grounding_finalize(rule.replace(' (nếu có)',''),
+            (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'limit','text':rule,'citation_ids':['rule']}]},
+            [source],'vi',question='Ca phụ đăng ký tối đa bao nhiêu lượt?',complete_source_context=True)
+    accepted=generate(body)
+    assert not accepted.abstained and extra in accepted.answer and 'liên hệ' not in accepted.answer
+    for incomplete in [body[:body.index('\n4.')],body.replace('4. Quy trình','5. Quy trình'),
+                       body.replace('4. Quy trình','4.2 Quy trình'),body.replace('a) Ca sáng theo lịch.\n',''),
+                       body.replace('\n4.','\nĐiều 17. Phần khác\n4.')]:
+        assert extra not in generate(incomplete).answer
+
+
+def test_complete_parent_quote_keeps_all_claims_and_last_child_restriction():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    facts=['Đăng ký sớm trước 23 ngày','Đăng ký thường trước 9 ngày','Đăng ký muộn trong 3 ngày đầu']
+    body=('2. Các hình thức đăng ký:\na) '+facts[0]+'.\nb) '+facts[1]+'.\nc) '+facts[2]+
+          ', chỉ áp dụng cho ca chưa được bố trí.\n3. Cách thanh toán.')
+    source=RetrievalResult('rule','cloud',7,body,'text',1.,'test',{})
+    quote=body[:body.index('\n3.')]
+    answer=_grounding_finalize('; '.join(facts),
+        (Citation('rule','cloud',7,quote,source_name='cloud.pdf',page_range=(7,7)),),
+        {'claims':[{'claim_id':'f'+str(i),'text':fact,'citation_ids':['rule']} for i,fact in enumerate(facts)]},
+        [source],'vi',question='Có những hình thức đăng ký và thời hạn nào?',complete_source_context=True)
+    assert not answer.abstained and 'chỉ áp dụng cho ca chưa được bố trí' in answer.answer
+    assert all(fact in answer.answer and fact in answer.citations[0].quote for fact in facts)
+    assert 'thanh toán' not in answer.answer
+
+
+def test_multiple_requested_criteria_keep_a_reminder_without_dropping_either_proof():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    facts=['Điểm trung bình tích lũy đạt từ 3,31 trở lên.',
+           'Đã hoàn thành tối thiểu 81 tín chỉ.',
+           'Mỗi đề án có không quá 3 giảng viên hướng dẫn.']
+    body='1. Điều kiện xét đề án:\n'+''.join(chr(97+i)+') '+fact+'\n' for i,fact in enumerate(facts))+'2. Quy trình liên hệ.'
+    source=RetrievalResult('rule','cloud',7,body,'text',1.,'test',{})
+    def generate(selected):
+        return _grounding_finalize(' '.join(selected),
+            (Citation('rule','cloud',7,body,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'f'+str(i),'text':fact,'citation_ids':['rule']} for i,fact in enumerate(selected)]},
+            [source],'vi',question='Điều kiện đề án: mức GPA và số giảng viên tối đa là gì?',complete_source_context=True)
+    partial=generate([facts[0],facts[2]])
+    assert not partial.abstained and 'các điều kiện khác' in partial.answer
+    assert facts[0] in partial.citations[0].quote and facts[2] in partial.citations[0].quote
+    complete=generate(facts)
+    assert not complete.abstained and 'các điều kiện khác' not in complete.answer
+
+
 def test_closed_star_criteria_keep_credit_and_supervision_with_the_same_eligibility_rule():
     from campusai.rag.grounding import Citation,_grounding_finalize
     from campusai.rag.policy_context import _closed_star_criteria
@@ -687,3 +835,41 @@ def test_anchored_window_keeps_following_conditions_instead_of_unrelated_preface
         +anchor+'\n'+condition+'\n'+('Unrelated appendix.\n'*20))
     window=verbatim_window(text,'Can I improve a grade?',280,anchors=[anchor])
     assert anchor in window and condition in window and window in text and len(window)<=280
+
+
+@pytest.mark.parametrize('dominant_hits',[3,6])
+def test_comparison_context_shares_budget_by_document_not_hit_count(dominant_hits):
+    import re
+    from campusai.rag.grounding import build_context
+    from campusai.rag.citation_handles import evidence_handles
+    rows=[]
+    for owner,count in [('cloud',dominant_hits),('wind',1),('rain',1)]:
+        for i in range(count):
+            body=(f'{owner} eligibility rule. Conditions remain applicable.\n'*80)
+            rows.append(RetrievalResult(f'{owner}-{i}',owner,i+1,body,'text',1.,'test',{}))
+    context=build_context(rows,10000,question='Compare eligibility rules across the three sources.',
+        balanced=True,evidence_ids=evidence_handles(rows))
+    sizes={owner:0 for owner in ('cloud','wind','rain')}
+    for block in context.split('[EVIDENCE]')[1:]:
+        owner=re.search(r'(?m)^doc_id=(.+)$',block)[1]
+        content=block.partition('content:\n')[2].strip().removesuffix('[source_excerpt=true]').rstrip()
+        sizes[owner]+=len(content)
+        assert any(content in row.content for row in rows if row.doc_id==owner)
+    assert len(context)<=10000 and min(sizes.values())>1800
+    assert max(sizes.values())-min(sizes.values())<250
+
+
+def test_comparison_context_returns_short_source_space_and_preserves_table_rows():
+    import json
+    from campusai.rag.grounding import build_context
+    short='Cloud has no additional conditions.'
+    table=json.dumps({'headers':['Item','Limit'],'rows':[['Wind','17'],['Rain','23']]})
+    rows=[RetrievalResult('short','cloud',1,short,'text',1.,'test',{}),
+          RetrievalResult('long','wind',2,'Wind eligibility conditions.\n'*160,'text',1.,'test',{}),
+          RetrievalResult('table','rain',3,table,'table',1.,'test',{'table_id':'limits'})]
+    context=build_context(rows,2500,question='Compare all sources.',balanced=True)
+    assert len(context)<=2500 and short in context and table in context
+    assert context.count('Wind eligibility conditions.')>40
+    # A tiny budget still obeys the outer bound; no new content is generated.
+    tiny=build_context(rows,80,question='Compare all sources.',balanced=True)
+    assert len(tiny)<=80

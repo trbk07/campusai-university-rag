@@ -61,15 +61,80 @@ def gpa_application_view(answer, supported, question):
     def premise(m):
         if decimal(m[0])!=value:return m[0]
         prefix=folded(answer[max(0,m.start()-100):m.start()])
-        field_prefix=r'(?:cpa|gpa|diem trung binh(?: chung)? tich luy)\)?\s*(?:(?:la|dat|duoc)\s*)?$'
+        field_prefix=(r'(?:cpa|gpa|diem trung binh(?: chung)? tich luy)\)?'
+            r'(?:\s+cua\s+(?:sinh vien|nguoi hoc|ban|em|minh|toi))?\s*(?:(?:la|dat|duoc)\s*)?$')
         # In a GPA-only follow-up, "with a score of X" refers to the same
         # proved input. A different unit or an unrelated amount stays strict.
-        elliptical=r'\bvoi(?:\s+(?:muc|diem|muc diem))?$'
+        elliptical=r'\b(?:voi(?:\s+(?:muc|diem|muc diem))?|diem)$'
         if not (re.search(field_prefix,prefix) or topic and re.search(elliptical,prefix)):
             return m[0]
-        if re.match(r'\s*(?:tc\b|tín\s+chỉ|credits?|ngày|days?|%)',answer[m.end():],re.I):return m[0]
+        if re.match(r'\s*(?:tc\b|t[ií]n\s+ch[iỉ]|credits?|ng[aà]y|days?|đồng|dong\b|vnd\b|usd\b|%)',answer[m.end():],re.I):return m[0]
         return ' '
     return APPLICATION_NUMBER.sub(premise,answer)
+
+
+def registration_application_view(answer, supported, question, *, evidence=()):
+    """Prove a negative registration decision above one unconditional cap.
+
+    This is a hypothetical application of the user's input, not a verified
+    student record. A ceiling never proves eligibility for values below it.
+    Other conditions, conflicting caps or term ownership remain fail-closed.
+    """
+    raw,_,topic=str(question or '').partition('\nContext topic (untrusted user input): ')
+    query=folded(raw);context=folded(topic)
+    action=r'(?:dang k[yi]|register|enrol(?:l)?)'
+    unit=r'(?:tc|tin(?: chi)?(?!\s+(?:dung|hieu)\b)|credits?)'
+    values={decimal(m[1]) for m in re.finditer(r'\b'+action+r'\s*('+NUMBER+r')\s*'+unit+r'\b',query)}
+    if len(values)!=1:return None
+    value=next(iter(values))
+    phases={
+        'regular':r'(?:hoc )?k[yi] chinh|(?:main|regular) semester',
+        'auxiliary':r'(?:hoc )?k[yi] phu|auxiliary semester',
+        'summer':r'(?:hoc )?k[yi] he|summer semester',
+    }
+    terms=lambda text:{name for name,pattern in phases.items() if re.search(r'\b(?:'+pattern+r')\b',text)}
+    asked=terms(query) or terms(context)
+    bounds=set()
+    cap=(r'\b'+action+r'\b[^.;!?]{0,80}?\b(?:toi da|khong (?:vuot )?qua|'
+         r'at most|no more than|maximum(?: of)?)\s*('+NUMBER+r')\s*'+unit+r'\b')
+    for claim in supported:
+        text=folded(claim)
+        found={decimal(m[1]) for m in re.finditer(cap,text)}
+        if not found:continue
+        scope=terms(text)
+        if asked and not scope:return None  # An unscoped alternative may be an exception.
+        if scope!=asked:continue
+        # Optional existence of the named term is not a student condition.
+        text=re.sub(r'\(neu co\)','',text)
+        if re.search(r'\b(?:neu|truong hop|thuoc dien|khong thuoc|provided|unless|if)\b',text):return None
+        # Do not infer a student's membership of an arbitrary target group.
+        if re.search(r'\bdoi voi\s+(?!(?:hoc )?k[yi]\b)',text):return None
+        bounds.update(found)
+    if len(bounds)!=1 or value<=next(iter(bounds)):return None
+    # The complete visible quotes may veto a proof, never license new facts.
+    # A model cannot erase a conflicting limit/exception by omitting its claim.
+    for quote in evidence:
+        text=re.sub(r'\(neu co\)','',folded(quote))
+        found={decimal(m[1]) for m in re.finditer(cap,text)}
+        if not found:continue
+        scope=terms(text)
+        if asked and not scope:return None
+        if scope!=asked:continue
+        if (found-bounds or re.search(r'\b(?:neu|truong hop|thuoc dien|khong thuoc|provided|unless|if)\b',text)
+                or re.search(r'\bdoi voi\s+(?!(?:hoc )?k[yi]\b)',text)):
+            return None
+    # Mask only this operand inside an explicit permission/refusal clause.
+    # Repeating that value as a fee or a different fact still needs a source.
+    from .footnotes import _fold_with_offsets
+    text,offsets=_fold_with_offsets(answer);spans=set()
+    permission=(r'\b(?P<modal>khong (?:duoc phep|duoc|the)|duoc phep|duoc|co the|'
+                r'cannot|can|may|not allowed to)\s+'+action+r'\s*(?P<value>'+NUMBER+r')\s*'+unit+r'\b')
+    for match in re.finditer(permission,text):
+        if decimal(match['value'])!=value:continue
+        if not re.search(r'\b(?:khong|cannot|not)\b',match['modal']):return False
+        start,end=match.span('value');spans.add((offsets[start],offsets[end-1]+1))
+    if not spans:return None
+    return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
 
 
 def percentage_application_view(answer, supported, question):
@@ -109,7 +174,13 @@ def percentage_application_view(answer, supported, question):
                    (r'(?:khong dat|truot|rot|failed)',numerator)]
     roles=set()
     for index,(role,value) in enumerate(role_patterns):
-        for pattern in [r'\b'+role+r'\s*('+NUMBER+r')\s*'+unit+r'\b',
+        # An explicitly user-named term may separate the registration verb
+        # from its operand. Never infer a different term from answer wording.
+        phases=[pattern for pattern in [r'(?:hoc )?k[yi] chinh',r'(?:hoc )?k[yi] phu',
+                                         r'(?:hoc )?k[yi] he',r'(?:main|regular) semester',r'summer semester']
+                if re.search(r'\b'+pattern+r'\b',query)] if index==0 else []
+        named_term=r'(?:\s+(?:'+'|'.join(phases)+r'))?' if phases else ''
+        for pattern in [r'\b'+role+named_term+r'\s*('+NUMBER+r')\s*'+unit+r'\b',
                         r'(?<![\w.,])('+NUMBER+r')\s*'+unit+r'\s+(?:da\s+)?'+role+r'\b']:
             for m in re.finditer(pattern,text):
                 if decimal(m[1])!=value:return False
@@ -145,6 +216,17 @@ def percentage_application_view(answer, supported, question):
         mark(m)
     if not spans:return None
     return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
+
+
+def user_application_view(answer, supported, question, *, evidence=()):
+    """Use identical typed premise proofs at presentation and owner checks."""
+    visible=answer
+    for proof in (gpa_application_view,percentage_application_view,registration_application_view):
+        applied=(proof(visible,supported,question,evidence=evidence)
+                 if proof is registration_application_view else proof(visible,supported,question))
+        if applied is False:return False
+        if isinstance(applied,str):visible=applied
+    return visible
 
 
 def elective_application_conflict(answer, quotes, question):
