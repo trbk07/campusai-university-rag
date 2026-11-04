@@ -107,10 +107,13 @@ def percentage_application_view(answer, supported, question):
             if decimal(number[0])!=percent:spans.add((offsets[start],offsets[end-1]+1))
     role_patterns=[(r'(?:dang k[yi]|registered|enrolled)',denominator),
                    (r'(?:khong dat|truot|rot|failed)',numerator)]
-    for role,value in role_patterns:
-        for m in re.finditer(r'\b'+role+r'\s*('+NUMBER+r')\s*'+unit+r'\b',text):
-            if decimal(m[1])!=value:return False
-            mark(m)
+    roles=set()
+    for index,(role,value) in enumerate(role_patterns):
+        for pattern in [r'\b'+role+r'\s*('+NUMBER+r')\s*'+unit+r'\b',
+                        r'(?<![\w.,])('+NUMBER+r')\s*'+unit+r'\s+(?:da\s+)?'+role+r'\b']:
+            for m in re.finditer(pattern,text):
+                if decimal(m[1])!=value:return False
+                roles.add(index);mark(m)
     product=(r'(?P<p>'+NUMBER+r')\s*%\s*(?:cua|of)\s*(?P<d>'+NUMBER+r')'
              r'(?:\s*'+unit+r')?\s*(?:la|equals?|=)\s*(?P<x>'+NUMBER+r')')
     for m in re.finditer(product,text):
@@ -118,12 +121,23 @@ def percentage_application_view(answer, supported, question):
         if re.match(r'\s*%',text[m.end():]):return False
         mark(m)
     ratio_pattern=(r'(?P<n>'+NUMBER+r')\s*/\s*(?P<d>'+NUMBER+r')\s*'
-                   r'(?:=|la|chiem)\s*(?P<r>'+NUMBER+r')\s*%')
+                   r'(?:=|la|chiem|\(\s*(?:khoang|approximately|about))\s*(?P<r>'+NUMBER+r')\s*%')
+    proved_ratio=False
     for m in re.finditer(ratio_pattern,text):
         places=len(m['r'].replace(',','.').partition('.')[2])
         if places>2 or (decimal(m['n']),decimal(m['d']))!=(numerator,denominator):return False
         if decimal(m['r'])!=ratio.quantize(Decimal(10)**-places):return False
-        mark(m)
+        proved_ratio=True;mark(m)
+    # A separately worded percentage must name the failed-credit ratio and
+    # bind both operands elsewhere in this answer. Do not authorize the same
+    # number as a fee, credit count, or an unrelated percentage.
+    if roles=={0,1} or proved_ratio:
+        ratio_description=(r'\b(?:ty le (?:tin chi )?khong dat|so tin chi khong dat|failed credit (?:ratio|percentage))'
+            r'\s*(?:la|chiem|is|equals?)?\s*(?:khoang|approximately|about)?\s*(?P<r>'+NUMBER+r')\s*%')
+        for m in re.finditer(ratio_description,text):
+            places=len(m['r'].replace(',','.').partition('.')[2])
+            if places>2 or decimal(m['r'])!=ratio.quantize(Decimal(10)**-places):return False
+            mark(m)
     comparison=(r'(?P<n>'+NUMBER+r')\s*(?:vuot qua|lon hon|greater than|>)\s*'
                 r'(?P<p>'+NUMBER+r')\s*%\s*(?:cua|of)\s*(?P<d>'+NUMBER+r')')
     for m in re.finditer(comparison,text):

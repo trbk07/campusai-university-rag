@@ -207,6 +207,34 @@ def test_percentage_application_is_arithmetic_not_a_new_policy_threshold():
     assert isinstance(result,str) and '16,5' not in result
     assert percentage_application_view('Không thuộc điều kiện cảnh báo.',[rule],question) is False
     assert percentage_application_view('Có,17/30=16,5%, thuộc điều kiện cảnh báo.',[rule],question) is False
+
+
+@pytest.mark.parametrize('application',[
+    'Đăng ký 30 TC và không đạt 17 TC, tỷ lệ không đạt là 17/30 (khoảng 56,67%), thuộc điều kiện cảnh báo.',
+    'Với 30 TC đăng ký và không đạt 17 TC, số tín chỉ không đạt chiếm khoảng 56,67%, thuộc điều kiện cảnh báo.',
+])
+def test_credit_ratio_accepts_parenthetical_rounding_and_reordered_bound_operands(application):
+    from campusai.rag.numeric_inference import percentage_application_view
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Tổng số tín chỉ không đạt vượt quá 55% khối lượng đăng ký học trong kỳ.'
+    question='Kỳ chính 30 TC không đạt 17 TC có thuộc điều kiện cảnh báo không?'
+    view=percentage_application_view(application,[rule],question)
+    assert isinstance(view,str) and not any(value in view for value in ['17','30','56,67'])
+    assert percentage_application_view(application.replace('56,67','54,67'),[rule],question) is False
+    assert percentage_application_view(application.replace('17 TC','18 TC'),[rule],question) is False
+    extra=percentage_application_view(application+' Học phí là 56,67 đồng.',[rule],question)
+    assert '56,67 đồng' in extra
+    source=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{})
+    accepted=_grounding_finalize(application,
+        (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+        {'claims':[{'claim_id':'bound','text':rule,'citation_ids':['rule']}]},
+        [source],'vi',question=question)
+    assert not accepted.abstained
+    rejected=_grounding_finalize(application+' Học phí là 56,67 đồng.',
+        (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+        {'claims':[{'claim_id':'bound','text':rule,'citation_ids':['rule']}]},
+        [source],'vi',question=question)
+    assert rejected.abstained
     assert percentage_application_view('Có,đăng ký17 TC không đạt30 TC.',[rule],question) is False
     unsafe=percentage_application_view('Có,đăng ký30 TC không đạt17 TC. Học phí16,5 đồng.',[rule],question)
     assert isinstance(unsafe,str) and '16,5' in unsafe  # unrelated value remains unproved
