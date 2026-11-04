@@ -391,6 +391,44 @@ def test_credit_ratio_accepts_parenthetical_rounding_and_reordered_bound_operand
     assert isinstance(unsafe,str) and '16,5' in unsafe  # unrelated value remains unproved
 
 
+def test_percentage_application_completion_adds_only_proven_arithmetic():
+    from campusai.rag.numeric_inference import percentage_application_completion
+    question='Đăng ký24 TC, không đạt13 TC có vượt ngưỡng không?'
+    rule='Số tín chỉ không đạt vượt quá 50% khối lượng đã đăng ký học trong kỳ.'
+    assert percentage_application_completion('Có, vượt quá 50% nên thuộc tiêu chí này.',
+        question,[rule])=='Đối chiếu riêng tiêu chí này: 13/24 ≈ 54,17%, lớn hơn ngưỡng 50%; vì vậy số tín chỉ không đạt vượt ngưỡng của tiêu chí này.'
+    # Never add a computation when the model's conclusion conflicts with the
+    # user operands, the source rule is missing, or sources disagree.
+    assert percentage_application_completion('Không, không vượt quá 50%.',question,[rule]) is None
+    assert percentage_application_completion('Có, vượt quá 50%.',question,['Tài liệu không nêu ngưỡng.']) is None
+    assert percentage_application_completion('Có, vượt quá 50%.',question,
+        [rule,'Số tín chỉ không đạt vượt quá 60% tín chỉ đăng ký.']) is None
+    boundary='Đăng ký24 TC, không đạt12 TC có vượt ngưỡng không?'
+    assert percentage_application_completion('Không, không vượt quá 50%.',boundary,[rule])==(
+        'Đối chiếu riêng tiêu chí này: 12/24 ≈ 50%, không lớn hơn ngưỡng 50%; vì vậy số tín chỉ không đạt không vượt ngưỡng của tiêu chí này.')
+    assert percentage_application_completion('Yes, above 50%.',
+        'Registered24 credits, failed13 credits; does it exceed the rule?',
+        ['Failed credits greater than 50% of registered credits.'],language='en')==(
+            'For this criterion, 13/24 is approximately 54.17%, which is above the 50% threshold.')
+
+
+def test_grounding_completes_clear_percentage_threshold_application_from_its_citation():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    rule='Tổng số tín chỉ không đạt trong học kỳ vượt quá 50% khối lượng đã đăng ký học trong kỳ.'
+    source=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{})
+    class DirectConclusion:
+        def generate_json(self,*args,**kwargs):
+            return {'answer':'Có, vượt quá 50% nên thuộc tiêu chí này.',
+                'abstained':False,'confidence':'high','citations':[{'chunk_id':'rule','page':7,'quote':rule}],
+                'claims':[{'claim_id':'threshold','text':rule,'citation_ids':['rule']}]}
+    result=GroundedAnswerGenerator(DirectConclusion(),
+        repair_invalid_answers=False).answer(
+            'Đăng ký24 TC, không đạt13 TC có vượt ngưỡng không?',[source],'vi')
+    assert not result.abstained
+    assert '13/24' in result.answer and '54,17%' in result.answer
+    assert result.citations and result.citations[0].doc_id=='cloud'
+
+
 def test_elective_selection_cannot_promote_offered_total_to_required_total():
     from campusai.rag.numeric_inference import elective_application_conflict
     source='Chọn4/8 tín chỉ sau: ZX987001(4),ZX987002(4).'

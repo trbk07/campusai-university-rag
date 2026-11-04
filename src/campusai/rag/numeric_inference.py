@@ -218,6 +218,67 @@ def percentage_application_view(answer, supported, question):
     return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
 
 
+def percentage_application_completion(answer, question, evidence, *, language='vi'):
+    """Complete an explicit percentage-threshold application from one cited rule.
+
+    The user supplies both operands and the provider must already give a
+    consistent yes/no conclusion. This adds only the reproducible arithmetic;
+    it cannot establish overall eligibility or select between conflicting
+    source rules.
+    """
+    query=folded(str(question or '').partition('\nContext topic (untrusted user input): ')[0])
+    unit=r'(?:tc|tin chi|credits?)'
+    total={decimal(m[1]) for m in re.finditer(
+        r'\b(?:dang k[yi]|registered|enrolled|(?:hoc )?k[yi] chinh)\s*('+NUMBER+r')\s*'+unit+r'\b',query)}
+    failed={decimal(m[1]) for m in re.finditer(
+        r'\b(?:khong dat|truot|rot|failed)\s*('+NUMBER+r')\s*'+unit+r'\b',query)}
+    if len(total)!=1 or len(failed)!=1:return None
+    denominator=next(iter(total));numerator=next(iter(failed))
+    if denominator<=0 or not 0<=numerator<=denominator:return None
+    quotes=[str(item) for item in evidence if str(item).strip()]
+    if not quotes:return None
+    owners={folded(quote) for quote in quotes}
+    if len(owners)!=1:return None
+    bounds=set()
+    for quote in quotes:
+        text=folded(quote)
+        vietnamese_rule=('khong dat' in text and re.search(r'\bdang k[yi]\b',text))
+        english_rule=('failed' in text and 'registered' in text)
+        if not (re.search(r'\b(?:tin chi|tc|credits?)\b',text)
+                and (vietnamese_rule or english_rule)):
+            continue
+        bounds.update(decimal(m[1]) for m in re.finditer(
+            r'\b(?:vuot qua|lon hon|greater than)\s*('+NUMBER+r')\s*%',text))
+    if len(bounds)!=1:return None
+    threshold=next(iter(bounds))
+    if not 0<=threshold<=100 or percentage_application_view(answer,quotes,question) is False:
+        return None
+    # Required source statements and a matching threshold must be represented
+    # in the model's answer before arithmetic is added.
+    value=folded(answer)
+    if not re.search(r'\b(?:vuot qua|lon hon|greater than|above|exceeds|more than)\s*'
+                     +re.escape(str(threshold))+r'\s*%',value):
+        return None
+    applies=numerator*100>threshold*denominator
+    conclusion=_decision(answer)
+    if conclusion is None or conclusion!=applies:return None
+    ratio=(numerator*100/denominator).quantize(Decimal('0.01'))
+    def fmt(number):
+        raw=format(number,'f').rstrip('0').rstrip('.') if '.' in format(number,'f') else format(number,'f')
+        return raw if str(language).casefold().startswith('en') else raw.replace('.',',')
+    total_text=fmt(denominator);failed_text=fmt(numerator);ratio_text=fmt(ratio);threshold_text=fmt(threshold)
+    if not str(language).casefold().startswith('en'):
+        relation='lớn hơn' if applies else 'không lớn hơn'
+        outcome='vượt' if applies else 'không vượt'
+        result=('Đối chiếu riêng tiêu chí này: '+failed_text+'/'+total_text+' ≈ '+ratio_text+
+                '%, '+relation+' ngưỡng '+threshold_text+'%; vì vậy số tín chỉ không đạt '+
+                outcome+' ngưỡng của tiêu chí này.')
+    else:
+        result=('For this criterion, '+failed_text+'/'+total_text+' is approximately '+ratio_text+
+                '%, which is '+('above' if applies else 'not above')+' the '+threshold_text+'% threshold.')
+    return result
+
+
 def user_application_view(answer, supported, question, *, evidence=()):
     """Use identical typed premise proofs at presentation and owner checks."""
     visible=answer

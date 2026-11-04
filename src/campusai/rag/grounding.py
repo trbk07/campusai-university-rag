@@ -1258,6 +1258,18 @@ class GroundedAnswerGenerator:
                                      question=question,
                                      calibrator=self.calibrator,
                                      complete_source_context=self.repair_invalid_answers)
+        if (not answer.abstained and multi_hop_context is None and temporal_context is None
+                and document_scope_context is None and len(answer.citations)==1):
+            from .numeric_inference import percentage_application_completion
+            completion=percentage_application_completion(answer.answer,question,
+                [answer.citations[0].quote],language=language)
+            if completion:
+                from .claims import Claim
+                citation_id=answer.citations[0].chunk_id
+                derived=Claim('source-bound-percentage-application',completion,'calculation',1,
+                    (citation_id,),'supported',1.0,(citation_id,),False)
+                answer=replace(answer,answer=answer.answer.rstrip()+"\n\n"+completion,
+                               claims=(*answer.claims,derived))
         if multi_hop_context is not None:
             from .multi_hop_evidence import composition_complete
             if not composition_complete(answer, multi_hop_context, results):

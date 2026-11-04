@@ -81,6 +81,12 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Không thêm tên trường, giá trị hoặc câu benchmark vào runtime. **400 tests
   PASS/0 SKIP (20,57s)**, secret scan/diff check PASS. Replay đúng bản nháp lỗi
   CTX06-L3 đã bị chặn,0 lời gọi model mới; chưa tính thành prediction/accuracy mới.
+- [x] **RAG-95-03e — Tính phép áp dụng ngưỡng phần trăm DONE:** khi người dùng
+  nêu rõ hai số, câu trả lời gốc đã qua grounding và một trích dẫn duy nhất chứng
+  minh ngưỡng, hệ thống bổ sung phép tính chính xác; chỉ công bố khi kết luận model
+  khớp phép so sánh. Không suy rộng thành kết luận đủ mọi điều kiện. **402 tests
+  PASS (16,40s)** trên code hiện tại; gold/PDF/index/profile giữ nguyên. Native
+  accuracy chưa đo lại.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
@@ -122,8 +128,10 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   không retry, reset quota hoặc chọn kết quả tốt nhất. Citation101 không lỗi
   tọa độ/quote; không suy thành semantic/OCR PASS. Có lỗi khẳng định thiếu
   thông tin sai ở CTX06-L3; đã sửa code riêng ở03d, không sửa kết quả R13.
-- [ ] **RAG-95-05f — Nghiệm thu sau bản chặn thiếu thông tin:** hồi quy400 tests
-  đã PASS; chưa có lượt100 ca thật trên bản sửa sau R13. Mốc69% thuộc `5e8ea511`.
+- [ ] **RAG-95-05f — Nghiệm thu trên code mới:** hồi quy402 tests đã PASS; chưa
+  có lượt100 ca Gemini thật trên bản hiện tại. Golden gần nhất vẫn69/100 trên
+  `5e8ea511`; không gán điểm đó cho code mới. Cần khóa code/index/profile rồi đo
+  đủ100 ca.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -424,8 +432,8 @@ xác định và kiểm chứng; fresh holdout/review gold/public release vẫn 
 | FIX-14 | [x] DONE — Tra giới hạn đăng ký và khóa áp dụng từ mệnh đề nguồn rõ ràng, giữ điều kiện năm cuối, mức cảnh báo và học kỳ; không có nguồn đúng mẫu thì giữ pipeline model. Bốn ca HTTP 0,51–0,98s. |
 
 ## Hạ tầng bổ sung — 31/10/2026
-- [x] **Supermemory:** dừng theo yêu cầu; không thêm SDK, key hoặc gửi hội thoại tới dịch vụ này.
 
+- [x] **Supermemory:** dừng theo yêu cầu; không thêm SDK, key hoặc gửi hội thoại tới dịch vụ này.
 - [x] **CI/CD implementation:** thêm GitHub Actions cho Windows/Linux, package và Docker;
   Release publish image GHCR, deploy opt-in có health check/rollback. 56 tests local
   PASS, Compose config PASS. Hướng dẫn: [ci-cd.md](docs/operations/ci-cd.md).
