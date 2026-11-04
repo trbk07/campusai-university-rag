@@ -198,6 +198,25 @@ def test_gpa_input_followed_by_clause_comma_is_not_a_truncated_decimal(value):
     assert gpa_application_view(answer,[rule],f'CPA {value},7 có đủ không?') is None
 
 
+@pytest.mark.parametrize('literal,invalid',[
+    ('Văn bản được ký ngày 42 tháng 2 năm 2032.',True),
+    ('Văn bản được ký ngày 12 tháng ( năm 2032.',True),
+    ('Issued on February 30, 2032.',True),
+    ('Giờ hẹn là 25:73.',True),
+    ('Issued on February 29, 2032.',False),
+    ('Văn bản được ký ngày 29 tháng 2 năm 2032.',False),
+    ('Giờ hẹn là 23:59.',False),
+])
+def test_literal_ocr_overlap_cannot_verify_an_impossible_calendar_field(literal,invalid):
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    source=RetrievalResult('rule','cloud',7,literal,'text',1.,'test',{})
+    answer=_grounding_finalize(literal,
+        (Citation('rule','cloud',7,literal,source_name='cloud.pdf',page_range=(7,7)),),
+        {'claims':[{'claim_id':'date','text':literal,'citation_ids':['rule']}]},
+        [source],'vi',question='Văn bản được ký khi nào?')
+    assert answer.abstained is invalid
+
+
 def test_percentage_application_is_arithmetic_not_a_new_policy_threshold():
     from campusai.rag.numeric_inference import percentage_application_view
     rule='Tổng số tín chỉ không đạt trong học kỳ vượt quá55% khối lượng đã đăng ký học trong kỳ.'

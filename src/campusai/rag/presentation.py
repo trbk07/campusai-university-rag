@@ -61,6 +61,11 @@ def calendar_presentation(text):
         markers.add(('time',value))
         return value
     text=unicodedata.normalize('NFC',text)
+    # OCR may leave only punctuation where an explicit calendar month stood.
+    # Preserve the observed text as uncertain; never infer a missing month.
+    for broken in re.finditer(r'\b(?:ngày|ngay)\s+\d{1,2}\s+(?:tháng|thang)\s+'
+                              r'[^\w\s]{1,4}\s+(?:năm|nam)\s+\d{4}\b',text,re.I):
+        markers.add(('invalid_date',broken[0].casefold()))
     text=VIETNAMESE_DATE.sub(vietnamese,text)
     text=CALENDAR_DATE.sub(numeric,text)
     text=NAMED_DATE.sub(named,text)
@@ -670,6 +675,8 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
         visible,
     )
     visible, visible_calendar = calendar_presentation(visible)
+    if any(kind in {'invalid_date','invalid_time'} for kind,_ in visible_calendar):
+        return True  # Copying an impossible OCR value does not verify it.
     canonical_supported = [calendar_presentation(text) for text in supported]
     if visible_calendar - set().union(*(markers for _, markers in canonical_supported)):
         return True
