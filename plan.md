@@ -7,7 +7,7 @@ Cập nhật: **04/11/2026 · Asia/Bangkok**.
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 gần nhất: **52/100** (32 FAIL,16 BLOCKED; trước đó66/100),
+Bộ Golden 100 gần nhất: **62/100** (37 FAIL,1 BLOCKED; lượt trước52/100),
 chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
@@ -29,6 +29,9 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   nguyên nhân trong báo cáo Golden100; xác định nhóm chọn nguồn, đoạn nguồn
   thiếu điều kiện, ngữ cảnh/so sánh, OCR và false abstention. Lượt goal trước
   được phân loại **progress**: có code, native evidence và commit thực tế.
+- [ ] **RAG-95-01a — Review nguồn/fixture riêng:** đã chuẩn bị10 ca thiếu rõ
+  phạm vi hoặc có vấn đề gold/locator, kèm text54 trang nguồn. Chưa có review
+  model thật; không đổi benchmark/điểm gốc và không tính là fresh holdout.
 - [ ] **RAG-95-02 — Routing/intent:** nguồn duy nhất theo mã/chương trình được
   in trong PDF; không bỏ sót một vế tên trường/alias trong câu so sánh; hiểu
   câu hỏi vị trí, viết tắt, không dấu và follow-up. Không whitelist benchmark.
@@ -85,9 +88,13 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   84 citations không lỗi tọa độ/quote, chưa chứng minh OCR/semantic precision.
   Không chọn lượt66 thay52. Server p95 **37,174s**; p95 client không công bố do
   collector đầu tính cả cooldown vào latency lỗi (raw giữ nguyên, đã ghi rõ).
-- [ ] **RAG-95-05d — Đo batch4:** khóa code đã PASS376 tests rồi chạy đủ100 ca
-  qua app/Gemini; giữ nguyên đầu vào/gold/4 PDF/profile/mẫu số và rubric.
-  Chưa gửi yêu cầu mới; không dùng hồi quy hoặc replay thay inference thật.
+- [x] **RAG-95-05d — Đo/chấm batch4 DONE (`daae9bcb`):** đủ112 phản hồi thật,
+  **62 PASS/37 FAIL/1 BLOCKED**,97 lời gọi Gemini thành công,1 lượt provider503,
+  0 HTTP error/timeout/cache, không retry/reset quota. Giữ nguyên input/gold,
+  4 PDF/index/profile/source và rubric; mọi lỗi nằm trong mẫu số100.
+  Client p50 **5,030s**, p95 **18,020s**, đo riêng cooldown; chưa đạt mốc10s.
+  96 citations không lỗi tọa độ/quote; không suy thành semantic/OCR PASS.
+  OCR04/06 đã chọn đúng nguồn nhưng còn thiếu facts bắt buộc nên vẫn FAIL.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -110,7 +117,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
   validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED52% ở lượt gần nhất; batch4 chưa đo. Holdout:NOT RUN;
+  Golden:NOT PASSED62% ở lượt gần nhất. Holdout:NOT RUN;
   các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 
