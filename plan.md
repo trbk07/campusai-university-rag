@@ -30,8 +30,12 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   thiếu điều kiện, ngữ cảnh/so sánh, OCR và false abstention. Lượt goal trước
   được phân loại **progress**: có code, native evidence và commit thực tế.
 - [ ] **RAG-95-01a — Review nguồn/fixture riêng:** đã chuẩn bị10 ca thiếu rõ
-  phạm vi hoặc có vấn đề gold/locator, kèm text54 trang nguồn. Chưa có review
-  model thật; không đổi benchmark/điểm gốc và không tính là fresh holdout.
+  phạm vi hoặc có vấn đề gold/locator, kèm text54 trang nguồn. Đã nhận review AI
+  nhưng chưa đủ căn cứ phê duyệt: chưa giải quyết scope, FACT15 suy luận sai,
+  NAT15 tự mâu thuẫn và2 ca không khớp quote/trang. Giữ nguyên gold/điểm gốc.
+- [x] **RAG-95-01b — Thu review độc lập DONE:** đúng1 POST đã duyệt, nhận đủ10
+  records; lưu raw response, prompt, nguồn/hash và audit trong evidence đang có.
+  Đây là receipt AI, không tự chuyển verdict thành approval hoặc fresh holdout.
 - [ ] **RAG-95-02 — Routing/intent:** nguồn duy nhất theo mã/chương trình được
   in trong PDF; không bỏ sót một vế tên trường/alias trong câu so sánh; hiểu
   câu hỏi vị trí, viết tắt, không dấu và follow-up. Không whitelist benchmark.
@@ -60,7 +64,17 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   chứng minh tỷ lệ phần trăm được làm tròn và đổi thứ tự diễn đạt; tên trường
   có cụm “đối với”; giữ kết quả/ngoại lệ trong một mục quyền hạn ngắn đã đóng.
   **376 tests PASS (20,95s),0 SKIP** trên repo chính; secret scan/diff check PASS.
-  Không thêm lookup benchmark; chưa có điểm100 ca trên code batch4.
+  Không thêm lookup benchmark; điểm100 ca trên code batch4 nằm ở RAG-95-05d.
+- [x] **RAG-95-03c — Sửa pipeline batch5 DONE (`5e8ea511`):** thống nhất chứng
+  minh số liệu đầu vào của người dùng giữa lớp trình bày và kiểm nguồn; chỉ
+  chứng minh trong đúng nguồn sở hữu, không miễn kiểm tra số liệu giữa các PDF.
+  Giữ học kỳ khi người dùng nêu số tín chỉ đăng ký; giữ điều kiện/ngoại lệ từ
+  cấu trúc mục nguồn đã đóng. Phân bổ context theo tài liệu thay vì số chunk,
+  giữ nguyên bảng và giới hạn8.000 ký tự. **389 PASS/0 FAIL/0 SKIP (17,08s)**;
+  secret scan/diff check PASS. Không thêm dependency/model, không đổi gold/PDF/index.
+  Học cách tách chẩn đoán retrieval/generation của RAGChecker, giữ cấu trúc nguồn
+  của Docling và citation truy vết của RAGFlow; không chuyển cả framework nặng.
+  Replay offline chỉ kiểm cơ chế; OCR04 còn thiếu nội dung, chưa ghi accuracy mới.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
@@ -95,6 +109,9 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Client p50 **5,030s**, p95 **18,020s**, đo riêng cooldown; chưa đạt mốc10s.
   96 citations không lỗi tọa độ/quote; không suy thành semantic/OCR PASS.
   OCR04/06 đã chọn đúng nguồn nhưng còn thiếu facts bắt buộc nên vẫn FAIL.
+- [ ] **RAG-95-05e — Đo batch5:** code đã khóa và hồi quy đủ389 tests; cần lượt
+  đầy đủ100 ca/112 lượt thật trên đúng bản mới. Mốc62% vẫn thuộc batch4; không
+  dùng replay hoặc điều chỉnh gold để ghi thành điểm nghiệm thu.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
