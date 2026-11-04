@@ -560,6 +560,26 @@ def test_one_source_sentence_retains_eligibility_alongside_its_deadline():
     assert not result.abstained and 'dành cho người đã vắng đợt chính' in result.answer
 
 
+def test_permission_keeps_official_result_and_exclusion_from_one_closed_item():
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    permission='Người đạt mức K được đăng ký đánh giá lại.'
+    outcome='Kết quả chính thức là kết quả cao nhất qua các lần đánh giá.'
+    exclusion='Không áp dụng cho người đã đạt mức J trở lên.'
+    item=' '.join([permission,outcome,exclusion])
+    body='b) '+item+'\nc) Quy trình chuyển đơn vị.'
+    def generate(body,question='Đạt mức K có được đánh giá lại không?'):
+        source=RetrievalResult('rule','cloud',7,body,'text',1.,'test',{})
+        return _grounding_finalize(permission,
+            (Citation('rule','cloud',7,permission,source_name='cloud.pdf',page_range=(7,7)),),
+            {'claims':[{'claim_id':'permission','text':permission,'citation_ids':['rule']}]},
+            [source],'vi',question=question,complete_source_context=True)
+    answer=generate(body)
+    assert not answer.abstained and outcome in answer.answer and exclusion in answer.answer
+    assert 'chuyển đơn vị' not in answer.answer and len(answer.claims)==2
+    assert outcome not in generate('b) '+item).answer  # No proven closing boundary.
+    assert outcome not in generate(body,'Chỉ cần cho biết mức K có được đánh giá lại không?').answer
+
+
 def test_closed_star_criteria_keep_credit_and_supervision_with_the_same_eligibility_rule():
     from campusai.rag.grounding import Citation,_grounding_finalize
     from campusai.rag.policy_context import _closed_star_criteria

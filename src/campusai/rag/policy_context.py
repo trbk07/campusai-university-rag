@@ -153,6 +153,7 @@ def policy_item_context(question, answer, claims, citations, results, language):
                 sentences = re.split(r'(?<=[.!?;])\s+(?=[A-ZÀ-Ỹ])', ' '.join(item.split()))
                 anchor = ' '.join(claim.text for claim in related)
                 denied = bool(re.search(r'\b(?:khong (?:duoc|giai quyet|cho phep)|cannot|not permitted)\b', folded(anchor)))
+                permission_cue=r'duoc dang k[yi]|duoc phep' if language.startswith('vi') else r'may|can'
                 extras = []
                 for sentence in sentences:
                     norm = folded(sentence)
@@ -173,6 +174,14 @@ def policy_item_context(question, answer, claims, citations, results, language):
                     if (not (condition or optional or permission or same_sentence)
                             or _covered(sentence, answer) and not missing_scope or not action_related): continue
                     extras.append(sentence)
+                # A permission's official result and exclusion can occupy the
+                # following sentences of the same closed leaf item. Retain
+                # that short complete item rather than inventing a summary or
+                # silently presenting permission without its constraints.
+                if (not extras and not denied and 2<=len(sentences)<=3 and len(item)<=650
+                        and re.search(r'\b(?:'+permission_cue+r')\b',folded(anchor))
+                        and not _covered(item,answer)):
+                    extras=[item]
                 if len(extras) != 1: continue
                 if table is not None:
                     _, quote = sparse_prose_quote(table, [quoted])
