@@ -32,7 +32,7 @@ def gpa_application_view(answer, supported, question):
     query=folded(raw);context=folded(topic)
     field=r'(?:cpa|gpa|diem trung binh(?: chung)? tich luy)'
     if not re.search(r'\b'+field+r'(?=\b|\d)',query+' '+context):return None
-    explicit={decimal(m[1]) for m in re.finditer(r'\b'+field+r'\s*[:=]?\s*('+NUMBER+r')(?![\w,]|\.\d)',query)}
+    explicit={decimal(m[1]) for m in re.finditer(r'\b'+field+r'\s*[:=]?\s*('+NUMBER+r')(?!\w|[.,]\d)',query)}
     if not explicit and topic:
         # Elliptical numeric follow-up, not a new amount or course-credit input.
         if re.search(r'\b(?:tc|tin chi|credits?|ngay|days?|tien|dong|vnd|%)\b',query):return None
@@ -41,9 +41,9 @@ def gpa_application_view(answer, supported, question):
     value=next(iter(explicit));thresholds=set()
     for claim in supported:
         text=folded(claim)
-        pattern=r'\b'+field+r'\b[^.;!?]{0,180}?(?:dat tu|toi thieu|>=|≥|at least)\s*('+NUMBER+r')(?![\w,]|\.\d)'
+        pattern=r'\b'+field+r'\b[^.;!?]{0,180}?(?:dat tu|toi thieu|>=|≥|at least)\s*('+NUMBER+r')(?!\w|[.,]\d)'
         for m in re.finditer(pattern,text):thresholds.add((decimal(m[1]),True))
-        pattern=r'\b'+field+r'\b[^.;!?]{0,180}?(?:lon hon|greater than|(?<![>=])>(?!=))\s*('+NUMBER+r')(?![\w,]|\.\d)'
+        pattern=r'\b'+field+r'\b[^.;!?]{0,180}?(?:lon hon|greater than|(?<![>=])>(?!=))\s*('+NUMBER+r')(?!\w|[.,]\d)'
         for m in re.finditer(pattern,text):thresholds.add((decimal(m[1]),False))
     if len(thresholds)!=1:return None
     threshold,inclusive=next(iter(thresholds));meets=value>=threshold if inclusive else value>threshold

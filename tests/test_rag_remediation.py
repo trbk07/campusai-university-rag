@@ -181,6 +181,23 @@ def test_minimum_gpa_does_not_prove_automatic_overall_eligibility():
     assert isinstance(view,str) and 'phí3,29' in view
 
 
+@pytest.mark.parametrize('value',['3,29','3.29'])
+def test_gpa_input_followed_by_clause_comma_is_not_a_truncated_decimal(value):
+    from campusai.rag.numeric_inference import gpa_application_view
+    from campusai.rag.grounding import Citation,_grounding_finalize
+    rule='Điểm trung bình tích lũy đạt từ 3,3 trở lên, cùng các điều kiện khác.'
+    question=f'CPA {value}, đã đủ điều kiện điểm chưa?'
+    answer=f'CPA {value}, chưa đạt ngưỡng vì yêu cầu đạt từ 3,3 trở lên.'
+    source=RetrievalResult('rule','cloud',7,rule,'text',1.,'test',{})
+    result=_grounding_finalize(answer,
+        (Citation('rule','cloud',7,rule,source_name='cloud.pdf',page_range=(7,7)),),
+        {'claims':[{'claim_id':'minimum','text':rule,'citation_ids':['rule']}]},
+        [source],'vi',question=question)
+    assert not result.abstained and value in result.answer
+    assert gpa_application_view('Đạt ngưỡng CPA.',[rule],question) is False
+    assert gpa_application_view(answer,[rule],f'CPA {value},7 có đủ không?') is None
+
+
 def test_percentage_application_is_arithmetic_not_a_new_policy_threshold():
     from campusai.rag.numeric_inference import percentage_application_view
     rule='Tổng số tín chỉ không đạt trong học kỳ vượt quá55% khối lượng đã đăng ký học trong kỳ.'
@@ -277,6 +294,8 @@ def test_institution_provenance_ends_before_prose_not_inside_a_different_name():
     result=RetrievalResult('identity','cloud',1,'Rule for students.','text',1.,'test',
                            {'institution':'Trường Đại học Mây Xanh'})
     assert institution_names_supported('Trường Đại học Mây Xanh dành cho sinh viên khóa 2031.',[result])
+    assert institution_names_supported('Theo Trường Đại học Mây Xanh đối với học kỳ phụ, sinh viên phải tuân thủ giới hạn.',[result])
+    assert not institution_names_supported('Trường Đại học Mây Xanh Thành phố Sao Nam đối với học kỳ phụ, sinh viên phải tuân thủ giới hạn.',[result])
     assert institution_names_supported('Trường Đại học Mây Xanh học kỳ 7 chọn 4 tín chỉ.',[result])
     assert not institution_names_supported('Trường Đại học Mây Xanh Thành phố Sao Nam dành cho sinh viên.',[result])
 
