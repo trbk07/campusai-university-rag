@@ -85,7 +85,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   nêu rõ hai số, câu trả lời gốc đã qua grounding và một trích dẫn duy nhất chứng
   minh ngưỡng, hệ thống bổ sung phép tính chính xác; chỉ công bố khi kết luận model
   khớp phép so sánh. Không suy rộng thành kết luận đủ mọi điều kiện. **402 tests
-  PASS (16,40s)** trên code hiện tại; gold/PDF/index/profile giữ nguyên. Native
+  PASS (16,40s)** trên commit `5774b20d`; gold/PDF/index/profile giữ nguyên. Native
   accuracy chưa đo lại.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
@@ -128,10 +128,10 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   không retry, reset quota hoặc chọn kết quả tốt nhất. Citation101 không lỗi
   tọa độ/quote; không suy thành semantic/OCR PASS. Có lỗi khẳng định thiếu
   thông tin sai ở CTX06-L3; đã sửa code riêng ở03d, không sửa kết quả R13.
-- [ ] **RAG-95-05f — Nghiệm thu trên code mới:** hồi quy402 tests đã PASS; chưa
-  có lượt100 ca Gemini thật trên bản hiện tại. Golden gần nhất vẫn69/100 trên
-  `5e8ea511`; không gán điểm đó cho code mới. Cần khóa code/index/profile rồi đo
-  đủ100 ca.
+- [ ] **RAG-95-05f — Nghiệm thu trên code mới:** hồi quy402 tests đã PASS trên
+  `5774b20d`; chưa có lượt100 ca Gemini thật trên bản này. Golden gần nhất vẫn
+  69/100 trên `5e8ea511`; không gán điểm đó cho code mới. Cần khóa code/index/
+  profile rồi đo đủ100 ca.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
