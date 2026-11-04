@@ -111,7 +111,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   OCR04/06 đã chọn đúng nguồn nhưng còn thiếu facts bắt buộc nên vẫn FAIL.
 - [ ] **RAG-95-05e — Đo batch5:** code đã khóa và hồi quy đủ389 tests; cần lượt
   đầy đủ100 ca/112 lượt thật trên đúng bản mới. Mốc62% vẫn thuộc batch4; không
-  dùng replay hoặc điều chỉnh gold để ghi thành điểm nghiệm thu.
+  dùng replay hoặc điều chỉnh gold để ghi thành điểm nghiệm thu. Packet R13
+  `bf695e3d…` đã chuẩn bị,0 request; ngân sách mới112 lượt, giữ nguyên quota.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
