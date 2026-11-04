@@ -7,7 +7,8 @@ Cập nhật: **04/11/2026 · Asia/Bangkok**.
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 mới: **66/100**, chưa đạt mục tiêu ≥95%; không đổi trạng thái
+Bộ Golden 100 gần nhất: **52/100** (32 FAIL,16 BLOCKED; trước đó66/100),
+chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
 Theo yêu cầu ngày 31/10, các báo cáo được gom tại
@@ -50,8 +51,19 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   truy hồi điều khoản cải thiện điểm của từng nguồn và giữ phần điều kiện sau
   mệnh đề trong context. **356 tests PASS (18,97s)**, secret scan/diff check PASS.
   Replay local trên output cũ chỉ kiểm cơ chế, không tính là prediction hoặc điểm mới.
+- [x] **RAG-95-03b — Code batch4 DONE (`daae9bcb`):** chọn nguồn từ tiêu đề
+  mục/điều và trang người dùng nêu, kể cả mapping dạng danh sách; giữ ambiguity
+  khi nhiều nguồn trùng hoặc có nguồn chưa đọc. Sửa CPA có dấu phẩy ngăn mệnh đề,
+  chứng minh tỷ lệ phần trăm được làm tròn và đổi thứ tự diễn đạt; tên trường
+  có cụm “đối với”; giữ kết quả/ngoại lệ trong một mục quyền hạn ngắn đã đóng.
+  **376 tests PASS (20,95s),0 SKIP** trên repo chính; secret scan/diff check PASS.
+  Không thêm lookup benchmark; chưa có điểm100 ca trên code batch4.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
+- [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
+  sai không được xác minh chỉ vì trùng chuỗi OCR; ngày nhuận và giờ hợp lệ vẫn
+  qua kiểm chứng. Thuộc batch4 đã PASS376 tests; không tự sửa hoặc suy ngày thiếu.
+  Nhận dạng đúng ký hiệu “+”, số quyết định và người ký vẫn thuộc task04 đang mở.
 - [ ] **RAG-95-05 — Đo lại:** sau mỗi nhóm sửa, chạy hồi quy rồi khóa code,
   profile, PDF/index và chạy đủ100 ca/112 lượt qua app/Gemini thật. Luôn giữ
   lỗi, toàn bộ mẫu số, cùng rubric; không chọn lượt tốt nhất hoặc ghép điểm.
@@ -65,9 +77,17 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Citation audit95 citations:0 lỗi tọa độ/quote, chưa phải semantic precision.
   p50 **4,777s**, p95 **11,352s**; không nhận latency PASS theo mốc10s.
   Golden/locator còn vấn đề giữ FAIL và review riêng; không ghép focused runs.
-- [ ] **RAG-95-05c — Đo batch3:** khóa source mới rồi chạy lại đủ100 ca/112 lượt,
-  giữ input/gold/profile/PDF/index và rubric. Chưa có prediction/accuracy batch3;
-  mốc đã đo gần nhất vẫn66/100, không suy điểm từ hồi quy hoặc replay.
+- [x] **RAG-95-05c — Đo/chấm batch3 DONE (`ca0e9a8c`):** đã gửi112 lượt,
+  lưu111 phản hồi; **52 PASS/32 FAIL/16 BLOCKED**,80 lời gọi Gemini thành công,
+  15 lượt provider503 và1 lượt REA10 gián đoạn không biết kết quả. Giữ lỗi trong
+  mẫu số100; chỉ tiếp tục38 lượt chưa gửi sau khi cả hai tiến trình dừng, không
+  retry. CTX giữ đúng phiên/thứ tự. Source/profile/index/baseline đúng hash;
+  84 citations không lỗi tọa độ/quote, chưa chứng minh OCR/semantic precision.
+  Không chọn lượt66 thay52. Server p95 **37,174s**; p95 client không công bố do
+  collector đầu tính cả cooldown vào latency lỗi (raw giữ nguyên, đã ghi rõ).
+- [ ] **RAG-95-05d — Đo batch4:** khóa code đã PASS376 tests rồi chạy đủ100 ca
+  qua app/Gemini; giữ nguyên đầu vào/gold/4 PDF/profile/mẫu số và rubric.
+  Chưa gửi yêu cầu mới; không dùng hồi quy hoặc replay thay inference thật.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -90,7 +110,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
   validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED66%; holdout:NOT RUN; các gate an toàn cần kiểm lại đúng
+  Golden:NOT PASSED52% ở lượt gần nhất; batch4 chưa đo. Holdout:NOT RUN;
+  các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 
 Bằng chứng dùng lại: [QA/remediation](evaluation/results/campusai_100_remediation_20261103/report.md).
