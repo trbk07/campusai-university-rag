@@ -9,6 +9,10 @@ from ..retrieval.tokenizer_vi import normalized_tokens, source_body
 from .course_credits import COURSE_CODE, course_code_key, folded
 
 _TABLE_IDENTIFIER = re.compile(r'(?<![A-Za-z0-9])[A-Za-z]{1,6}\d{1,12}[A-Za-z]?(?![A-Za-z0-9])')
+_LIST_ITEM_MARKER = re.compile(r'\s{0,40}(?:[a-zđ]\)|\d{1,2}[.)])\s+', re.I)
+_LIST_EXCEPTION_OPENING = re.compile(
+    r'(?:trường hợp đặc biệt|truong hop đac biet|truong hop dac biet|'
+    r'ngoại lệ|ngoai le|special cases?|exception(?:al)?(?: cases?)?)\b', re.I)
 
 
 def _wrapped_line(previous, following, *, min_following=10):
@@ -25,13 +29,33 @@ def wrapped_prose(rows, *, min_following=10):
 
 def attached_exception_end(source, start, action):
     """Keep an immediately following exception about the same explicit action."""
-    if re.search(r'\n\s*\n\s*$',action):return start
+    paragraph_break=bool(re.search(r'\n\s*\n\s*$',action))
     tail=source[start:]
     stop=re.search(r'[.!?;](?:\s+|$)',tail)
     if stop is None:return start
     exception=tail[:stop.end()]
-    if len(exception)>600 or not re.match(
+    if len(exception)>600:
+        return start
+    list_item=re.match(r'\s{0,40}(?:[a-zđ]\)|\d{1,2}[.)])\s+',exception,re.I)
+    explicit_sibling_exception=bool(list_item and _LIST_EXCEPTION_OPENING.match(
+        exception[list_item.end():]))
+    if not explicit_sibling_exception and not re.match(
             r'\s*(?:khong ap dung|ngoai tru|this (?:rule |condition )?does not apply|except)\b',folded(exception)):
+        following=tail[stop.end():]
+        next_item=_LIST_ITEM_MARKER.match(following)
+        if not next_item:
+            return start
+        body=following[next_item.end():]
+        if not _LIST_EXCEPTION_OPENING.match(body):
+            return start
+        item_end=re.search(r'[;!?]|\.(?:\s+|$)',body)
+        end=next_item.end()+(item_end.end() if item_end else min(len(body),600))
+        if end-next_item.start()>600:
+            return start
+        return start+stop.end()+end
+    if explicit_sibling_exception:
+        return start+stop.end()
+    if paragraph_break:
         return start
     shared=set(normalized_tokens(action))&set(normalized_tokens(exception))
     return start+stop.end() if len(shared)>=3 else start

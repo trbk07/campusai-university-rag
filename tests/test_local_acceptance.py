@@ -315,6 +315,35 @@ def test_coordinated_obligation_is_not_recovered_across_sentence_or_document():
     assert restore_claim_conditions([claim],refs)==[claim]
 
 
+def test_grounding_recovers_an_explicit_exception_in_the_adjacent_list_item():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    core='Fewer than eight students cancels the section'
+    source=('a) '+core+' and students must register elsewhere.\n\n'
+            'b) Exception: the dean may approve a different arrangement.')
+    class Model:
+        def generate_json(self,prompt,schema=None):
+            return {'answer':core+'.','confidence':'high','abstained':False,
+                'citations':[{'chunk_id':'rule'}],
+                'claims':[{'claim_id':'rule','text':core,'citation_ids':['rule']}]}
+    result=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+        'What happens when fewer than eight students join?', [source_rule(source)])
+    assert not result.abstained
+    assert 'students must register elsewhere' in result.answer
+    assert 'Exception: the dean may approve a different arrangement' in result.answer
+    assert result.citations[0].quote==source
+
+
+def test_adjacent_non_exception_list_item_is_not_added_to_a_supported_claim():
+    from campusai.rag.claims import Claim
+    from campusai.rag.grounding import Citation
+    from campusai.rag.presentation import restore_claim_conditions
+    core='A section requires at least eight students'
+    source=core+'. The office publishes an updated schedule each month.'
+    claim=Claim('rule',core,citation_ids=('source',))
+    citation=Citation('source','doc',1,source)
+    assert restore_claim_conditions([claim],[citation])==[claim]
+
+
 def test_uncited_document_cannot_authorize_an_expanded_institution_name():
     from dataclasses import replace
     from campusai.rag.grounding import GroundedAnswerGenerator

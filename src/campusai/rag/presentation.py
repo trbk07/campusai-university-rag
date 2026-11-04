@@ -548,15 +548,36 @@ MATERIAL_CONDITION = re.compile(r'\b(?:ngoai tru|tru (?:sinh vien|nguoi|truong h
 COORDINATED_OBLIGATION = re.compile(
     r'\s+(?:and\s+(?:the\s+)?[\w-]+(?:\s+[\w-]+){0,4}\s+(?:must|shall|has to|needs to|is required to|are required to)|'
     r'và\s+[\wÀ-ỹ-]+(?:\s+[\wÀ-ỹ-]+){0,4}\s+phải)\b', re.I)
+LIST_ITEM_MARKER = re.compile(r'(?<!\w)(?:[a-zđ]\)|\d{1,2}[.)])\s+', re.I)
+LIST_EXCEPTION_OPENING = re.compile(
+    r'^(?:trường hợp đặc biệt|ngoại lệ|special cases?|exception(?:al)?(?: cases?)?)\b', re.I)
+
+
+def _following_list_exception(source, start):
+    """Return the text bounds of an immediately following explicit exception item."""
+    marker=LIST_ITEM_MARKER.search(source,start)
+    if not marker:
+        return None
+    body_start=marker.end()
+    body=source[body_start:]
+    if not LIST_EXCEPTION_OPENING.match(body.lstrip()):
+        return None
+    next_item=LIST_ITEM_MARKER.search(source,body_start)
+    item_end=next_item.start() if next_item else len(source)
+    boundary=re.search(r'[;!?]|\.(?:\s+|$)',source[body_start:item_end])
+    end=body_start+(boundary.end() if boundary else item_end-body_start)
+    if end-body_start>600:
+        return None
+    return marker.start(),body_start,end
 
 
 def restore_claim_conditions(claims, citations):
     """Keep a literal cited clause's immediate qualifier before re-verifying it.
 
     A provider can truncate both its summary and its diagnostic claim. Extend
-    only an exact claim substring followed directly by a condition in the
-    already validated quote, never another sentence or an uncited paragraph.
-    The caller must align and validate the resulting claims normally.
+    only an exact claim substring followed directly by a source condition,
+    mandatory action, or explicitly labelled sibling exception in the already
+    validated quote. The caller must align and validate the resulting claims.
     """
     from dataclasses import replace
     by_id={citation.chunk_id:citation for citation in citations}
@@ -576,7 +597,9 @@ def restore_claim_conditions(claims, citations):
                         if obligation:
                             remainder=tail[obligation.start():]
                             boundary=re.search(r'[;!?]|\.(?:\s+|$)',remainder)
-                            end=match.end()+obligation.start()+(boundary.end() if boundary else len(remainder))
+                            base_end=obligation.start()+(boundary.end() if boundary else len(remainder))
+                            exception=_following_list_exception(tail,base_end)
+                            end=match.end()+(exception[2] if exception else base_end)
                             full=quote[match.start():end].strip()
                             if len(full)<=1200:
                                 candidates.add(full)
@@ -617,7 +640,12 @@ def complete_coordinated_obligations(answer, claims, citations):
         if not match:
             continue
         prefix=claim.text[:match.start()]
-        suffix=claim.text[match.start():]
+        boundary=re.search(r'[;!?]|\.(?:\s+|$)',claim.text[match.end():])
+        base_end=match.end()+(boundary.end() if boundary else len(claim.text[match.end():]))
+        suffix=claim.text[match.start():base_end]
+        exception=_following_list_exception(claim.text,base_end)
+        if exception:
+            suffix+=' '+claim.text[exception[1]:exception[2]].strip()
         def tokens(text):
             return [folded(item.group()) for item in re.finditer(r'\w+',text)]
         prefix_tokens=tokens(prefix)
@@ -636,6 +664,8 @@ def complete_coordinated_obligations(answer, claims, citations):
         if answer_tokens[index:index+len(full_tokens)]==full_tokens:
             continue
         end=answer_spans[index+len(prefix_tokens)-1].end()
+        if re.search(r'[.!?]$',suffix.rstrip()) and re.match(r'\s*[.!?]',completed[end:]):
+            suffix=suffix.rstrip()[:-1]
         completed=completed[:end]+suffix+completed[end:]
     return completed
 
