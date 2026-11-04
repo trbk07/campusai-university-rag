@@ -75,6 +75,44 @@ def test_negative_rules_are_not_global_document_absence(answer):
     assert not asserts_document_absence(answer)
 
 
+@pytest.mark.parametrize('text',[
+    'Nguồn Cloud có ngưỡng đã công bố. Trong khi đó, tài liệu về Wind không đề cập ngưỡng này.',
+    'Nguồn Cloud có ngưỡng đã công bố; đối chiếu nguồn kia: tài liệu về Wind không cung cấp ngưỡng này.',
+    'Nguồn Cloud có ngưỡng đã công bố, nguồn về Wind chưa quy định ngưỡng này.',
+    'Cloud states a threshold. In contrast, the supplied PDF does not mention one.',
+    'Cloud states a threshold; the other result is: the available source does not specify one.',
+    'Cloud states a threshold, the selected document does not provide one.',
+])
+def test_source_absence_requires_audit_at_any_punctuated_clause_boundary(text):
+    assert asserts_document_absence(text)
+
+
+@pytest.mark.parametrize('text',[
+    'Cloud quy định rõ, sinh viên không phải trả lệ phí.',
+    'Cloud states that students do not pay a fee.',
+    'Cụm từ “tài liệu không đề cập” là một khẳng định cần kiểm chứng.',
+    'Discuss the phrase: “the document does not mention” before using it.',
+])
+def test_clause_absence_check_does_not_confuse_negative_rules_or_quoted_discussion(text):
+    assert not asserts_document_absence(text)
+
+
+def test_comparison_cannot_publish_partial_source_absence_as_a_positive_answer():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    rule='Admission requires at least 37 credits.'
+    rows=[RetrievalResult('cloud','cloud',3,rule,'text',1.,'test',{}),
+          RetrievalResult('wind','wind',4,'Admission requires at least 43 credits.','text',1.,'test',{})]
+    class PartialSourceAssertion:
+        def generate_json(self,*args,**kwargs):
+            return {'answer':rule+' In contrast, the supplied PDF does not mention a credit requirement.',
+                'abstained':False,'confidence':'high','citations':[{'chunk_id':'cloud'},{'chunk_id':'wind'}],
+                'claims':[{'claim_id':'limit','text':rule,'citation_ids':['cloud']}]}
+    answer=GroundedAnswerGenerator(PartialSourceAssertion(),source_citations=True,
+        repair_invalid_answers=False).answer('Compare admission credit requirements across both documents.',rows,'en')
+    assert answer.abstained and answer.reason=='unsupported_claim'
+    assert answer.document_absence_requested and not answer.citations
+
+
 def test_generic_password_rule_does_not_establish_personal_password():
     source=RetrievalResult('c','d',1,'Lần đầu đăng nhập mật khẩu bằng mã học viên.',
                            'text',1.0,'test',{'document_type':'regulation'})

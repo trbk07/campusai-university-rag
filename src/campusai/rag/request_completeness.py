@@ -29,7 +29,11 @@ def asserts_document_absence(answer):
     a fee, or quoting the phrase inside a source discussion, is not this claim.
     """
     text=folded(answer)
-    boundary=r'(?:^|[.!?;]\s+)'
+    # Availability assertions can start a clause within a comparison, not
+    # only a sentence. Use punctuation boundaries rather than enumerating
+    # discourse phrases or source names; quoted discussions still do not
+    # match a source subject immediately after this boundary.
+    boundary=r'(?:^|[.!?;,:]\s*)'
     english=(r'(?:(?:the|this|these|those)\s+)?'
         r'(?:(?:uploaded|provided|supplied|selected|checked|retrieved|available)\s+)*'
         r'(?:documents?|sources?|pdfs?|texts?|materials?|context)\s+'

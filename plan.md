@@ -7,7 +7,7 @@ Cập nhật: **04/11/2026 · Asia/Bangkok**.
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 gần nhất: **62/100** (37 FAIL,1 BLOCKED; lượt trước52/100),
+Bộ Golden 100 gần nhất: **69/100** (31 FAIL,0 BLOCKED; lượt trước62/100),
 chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
@@ -75,6 +75,12 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Học cách tách chẩn đoán retrieval/generation của RAGChecker, giữ cấu trúc nguồn
   của Docling và citation truy vết của RAGFlow; không chuyển cả framework nặng.
   Replay offline chỉ kiểm cơ chế; OCR04 còn thiếu nội dung, chưa ghi accuracy mới.
+- [x] **RAG-95-03d — Chặn khẳng định thiếu thông tin sai DONE:** phát hiện
+  tuyên bố nguồn không đề cập ở ranh giới mệnh đề, kể cả bên trong câu so sánh;
+  chuyển về kiểm đủ nguồn thay vì công bố thành câu trả lời dương tính.
+  Không thêm tên trường, giá trị hoặc câu benchmark vào runtime. **400 tests
+  PASS/0 SKIP (20,57s)**, secret scan/diff check PASS. Replay đúng bản nháp lỗi
+  CTX06-L3 đã bị chặn,0 lời gọi model mới; chưa tính thành prediction/accuracy mới.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
@@ -109,10 +115,15 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Client p50 **5,030s**, p95 **18,020s**, đo riêng cooldown; chưa đạt mốc10s.
   96 citations không lỗi tọa độ/quote; không suy thành semantic/OCR PASS.
   OCR04/06 đã chọn đúng nguồn nhưng còn thiếu facts bắt buộc nên vẫn FAIL.
-- [ ] **RAG-95-05e — Đo batch5:** code đã khóa và hồi quy đủ389 tests; cần lượt
-  đầy đủ100 ca/112 lượt thật trên đúng bản mới. Mốc62% vẫn thuộc batch4; không
-  dùng replay hoặc điều chỉnh gold để ghi thành điểm nghiệm thu. Packet R13
-  `bf695e3d…` đã chuẩn bị,0 request; ngân sách mới112 lượt, giữ nguyên quota.
+- [x] **RAG-95-05e — Đo/chấm batch5 DONE (`5e8ea511`):** gói R13 đã được chủ
+  dự án duyệt đúng hash `bf695e3d…`; đủ112 phản hồi thật, **69 PASS/31 FAIL/
+  0 BLOCKED**,96 lời gọi Gemini thành công,0 HTTP/provider error/timeout/cache.
+  Client p50 **4,257s**, p95 **8,898s**; giữ nguyên gold/PDF/index/profile/CTX,
+  không retry, reset quota hoặc chọn kết quả tốt nhất. Citation101 không lỗi
+  tọa độ/quote; không suy thành semantic/OCR PASS. Có lỗi khẳng định thiếu
+  thông tin sai ở CTX06-L3; đã sửa code riêng ở03d, không sửa kết quả R13.
+- [ ] **RAG-95-05f — Nghiệm thu sau bản chặn thiếu thông tin:** hồi quy400 tests
+  đã PASS; chưa có lượt100 ca thật trên bản sửa sau R13. Mốc69% thuộc `5e8ea511`.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -135,7 +146,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
   validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED62% ở lượt gần nhất. Holdout:NOT RUN;
+  Golden:NOT PASSED69% ở lượt gần nhất. Holdout:NOT RUN;
   các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 
