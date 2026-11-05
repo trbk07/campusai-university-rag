@@ -9,7 +9,7 @@ from typing import Any
 
 from ..schemas import Chunk
 
-CHUNKER_VERSION = "structure-v6"
+CHUNKER_VERSION = "structure-v7-diagram-semester-scope"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -374,6 +374,38 @@ def _truncate_table_payload_safely(
     return result[:max_chars] if len(result) > max_chars else result
 
 
+def _diagram_scopes_for_piece(pages, start_page, end_page, piece):
+    """Bind geometry-derived semester scopes only to chunks containing that group."""
+    normalized = unicodedata.normalize('NFKD', str(piece).casefold().replace('đ', 'd'))
+    compact = " ".join(''.join(c for c in normalized if not unicodedata.combining(c)).split())
+    attached = []
+    for source_page in pages:
+        page_number = int(source_page.get('page', 0))
+        if not start_page <= page_number <= end_page:
+            continue
+        scopes = source_page.get('diagram_semester_groups')
+        if not isinstance(scopes, list):
+            continue
+        for scope in scopes:
+            if (not isinstance(scope, dict) or type(scope.get('semester')) is not int
+                    or type(scope.get('selection_need')) is not int
+                    or type(scope.get('selection_total')) is not int):
+                continue
+            codes = scope.get('course_codes')
+            if (not isinstance(codes, list) or not codes
+                    or any(not isinstance(code, str) or not re.fullmatch(r'[A-Z]{2,5}\d{3,10}', code, re.I)
+                           for code in codes)):
+                continue
+            heading = re.search(rf'(?<!\w)(?:chon|choose)\s*{scope["selection_need"]}\s*/\s*'
+                                rf'{scope["selection_total"]}\s*(?:tin\s*chi|tc|credits?)\b', compact)
+            if heading and all(re.search(rf'(?<![a-z0-9]){re.escape(code.casefold())}(?![a-z0-9])', compact)
+                               for code in codes):
+                attached.append({key: scope[key] for key in (
+                    'semester', 'selection_need', 'selection_total', 'course_codes',
+                    'bbox', 'semester_label_bbox') if key in scope})
+    return attached
+
+
 def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any] | None = None):
     """Build text/table units and return diagnostics for acceptance reports."""
     chunks: list[Chunk] = []
@@ -405,6 +437,9 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                     "content_type": "text",
                 },
             }
+            diagram_scopes = _diagram_scopes_for_piece(pages, start_page, end_page, piece)
+            if diagram_scopes:
+                chunk_metadata['diagram_semester_groups'] = diagram_scopes
             chunks.append(Chunk(chunk_id, doc_id, page, contextual_content, "text", HeadingPath(headings), chunk_metadata, page_range))
 
     for table in tables or []:

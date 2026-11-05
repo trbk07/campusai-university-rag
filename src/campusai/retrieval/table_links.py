@@ -127,8 +127,24 @@ def semester_table_sources(query: str, records: dict[str, dict]) -> list[str]:
     requested = set(requested_semesters(query))
     if not requested:
         return []
-    matches = []
+    normalized = unicodedata.normalize('NFKD', query.casefold().replace('đ', 'd'))
+    folded_query = ''.join(char for char in normalized if not unicodedata.combining(char))
+    selection = re.search(r'\b(?:nhom\s+)?(?:chon|choose)\s*(\d{1,2})\s*/\s*(\d{1,2})\b',
+                          folded_query)
+    matches = {}
     for chunk, item in records.items():
+        if selection:
+            scopes = (item.get('metadata', {}) or {}).get('diagram_semester_groups', [])
+            for scope in scopes if isinstance(scopes, list) else ():
+                if (isinstance(scope, dict)
+                        and scope.get('semester') in requested
+                        and scope.get('selection_need') == int(selection.group(1))
+                        and scope.get('selection_total') == int(selection.group(2))):
+                    codes = scope.get('course_codes')
+                    body = str(item.get('content', '')).upper()
+                    if (isinstance(codes, list) and codes
+                            and all(isinstance(code, str) and code.upper() in body for code in codes)):
+                        matches[chunk] = max(matches.get(chunk, 0), len(requested))
         start = str(item.get('content', '')).find('{"headers"')
         if start < 0:
             continue
@@ -141,8 +157,8 @@ def semester_table_sources(query: str, records: dict[str, dict]) -> list[str]:
         present = {semester for cell in cells for semester in requested_semesters(cell)}
         overlap = requested & present
         if overlap:
-            matches.append((-len(overlap), chunk))
-    return [chunk for _, chunk in sorted(matches)]
+            matches[chunk] = max(matches.get(chunk, 0), len(overlap))
+    return [chunk for chunk, _score in sorted(matches.items(), key=lambda pair: (-pair[1], pair[0]))]
 
 
 def table_acronym_expansion(query: str, records: dict[str, dict]) -> str:

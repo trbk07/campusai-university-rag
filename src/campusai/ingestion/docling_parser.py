@@ -11,11 +11,81 @@ from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 import statistics
 import unicodedata
+import re
 from typing import Any, Callable
 
 import fitz
 
 TEXT_COVERAGE_VERSION = 4
+
+
+def _fold_layout_label(value):
+    value = unicodedata.normalize('NFKD', value.casefold().replace('đ', 'd'))
+    return ''.join(char for char in value if not unicodedata.combining(char))
+
+
+def diagram_semester_groups(page):
+    """Associate course-choice boxes with nearby rotated semester labels.
+
+    Only recognize pages with several vertical semester markers, a common
+    timeline/flowchart layout. The association is metadata derived from the
+    original text-block geometry; it never inserts synthetic source text.
+    """
+    try:
+        blocks = [block for block in page.get_text('blocks')
+                  if len(block) >= 7 and block[6] == 0 and isinstance(block[4], str)
+                  and block[4].strip()]
+    except (AttributeError, TypeError, ValueError):
+        return []
+    semesters = []
+    for block in blocks:
+        text = _fold_layout_label(block[4])
+        match = re.fullmatch(r'\s*(?:hk|hoc\s*ky|semester)\s*(\d{1,2})\s*', text)
+        x0, y0, x1, y1 = map(float, block[:4])
+        if match and y1 - y0 >= (x1 - x0) * 1.35:
+            semesters.append({'semester': int(match.group(1)), 'bbox': [x0, y0, x1, y1]})
+    if (len({item['semester'] for item in semesters}) < 3
+            or len(semesters) != len({item['semester'] for item in semesters})):
+        return []
+    try:
+        if len(page.get_drawings()) < 12:
+            return []
+    except (AttributeError, TypeError, ValueError):
+        return []
+
+    result = []
+    group_re = re.compile(r'(?im)^\s*(?:chon|choose)\s*(\d{1,2})\s*/\s*(\d{1,2})\s*'
+                          r'(?:tin\s*chi|tc|credits?)\s*(?:sau|below)?\s*:')
+    code_re = re.compile(r'(?<![A-Z0-9])[A-Z]{2,5}\d{3,10}(?![A-Z0-9])', re.I)
+    for block in blocks:
+        text = block[4].strip()
+        folded = _fold_layout_label(text)
+        headings = list(group_re.finditer(folded))
+        if not headings:
+            continue
+        x0, y0, x1, y1 = map(float, block[:4])
+        for index, heading in enumerate(headings):
+            # Normalization can alter string offsets; take codes from the
+            # normalized block slice, whose identifiers remain unchanged.
+            folded_end = headings[index + 1].start() if index + 1 < len(headings) else len(folded)
+            choice_text = folded[heading.start():folded_end]
+            codes = sorted({code.upper() for code in code_re.findall(choice_text)})
+            if not codes:
+                continue
+            def gap(label):
+                a, b = label['bbox'][1], label['bbox'][3]
+                return max(0., a - y1, y0 - b)
+            candidates = sorted(((gap(label), label['semester'], label) for label in semesters),
+                                key=lambda item: (item[0], item[1], tuple(item[2]['bbox'])))
+            limit = max(8., (y1 - y0) * .5)
+            if not candidates or candidates[0][0] > limit:
+                continue
+            if len(candidates) > 1 and candidates[1][0] - candidates[0][0] < 4.:
+                continue
+            result.append({'semester': candidates[0][1], 'selection_need': int(heading.group(1)),
+                           'selection_total': int(heading.group(2)), 'course_codes': codes,
+                           'bbox': [x0, y0, x1, y1], 'semester_label_bbox': candidates[0][2]['bbox']})
+    return result
 
 
 def _untrusted_latin_mapping(lines):
@@ -140,8 +210,10 @@ def parse_pdf(
                 body_font_sizes.extend(sizes)
             regions = _uncovered_images(page, [fitz.Rect(row['bbox']) for row in native_layout])
             requires_ocr = untrusted or bool(regions) or not lines and bool(page.get_image_info() or page.get_drawings())
+            diagram_scopes = [] if untrusted else diagram_semester_groups(page)
             raw_pages.append({"page": page_number, "lines": [] if untrusted else lines, "requires_ocr": requires_ocr,
                               'hybrid_layout': native_layout if lines and regions and not untrusted else None,
+                              'diagram_semester_groups': diagram_scopes,
                               'ocr_regions': [] if untrusted else regions,
                               **({'untrusted_native_mapping': True, 'visible_characters': []} if untrusted else {}),
                               **({'ignored_invisible_spans': ignored,
@@ -156,6 +228,8 @@ def parse_pdf(
         "requires_ocr": raw["requires_ocr"],
         "text": "\n".join(line["text"] for line in raw["lines"]),
         "lines_meta": [{**line, "is_larger_font": bool(body_median and line["font_size"] > body_median * 1.08)} for line in raw["lines"]],
+        **({'diagram_semester_groups': raw['diagram_semester_groups']}
+           if raw.get('diagram_semester_groups') else {}),
         **({'hybrid_layout': raw['hybrid_layout'], 'ocr_regions': raw['ocr_regions']}
            if raw['hybrid_layout'] else {}),
         **({key:raw[key] for key in ('ignored_invisible_spans','visible_characters')}

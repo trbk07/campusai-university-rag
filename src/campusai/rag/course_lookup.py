@@ -245,21 +245,35 @@ def deterministic_course_selection_group(question, results, language='vi', *, ca
             if (int(heading_match.group('need'))!=int(match.group(1))
                     or int(heading_match.group('total'))!=int(match.group(2))):
                 continue
-            if semesters:
-                explicit=list(re.finditer(r'\b(?:hk|hoc ky|semester)\s*(\d{1,2})\b',folded(body[:heading_start])))
-                if not explicit or int(explicit[-1].group(1)) not in semesters:
-                    continue
             end=headings[i+1][0] if i+1<len(headings) else len(body)
             total=re.search(r'(?im)^\s*(?:tong hoc ky|semester total)\b',body[heading_end:end])
             if total:
                 end=heading_end+total.start()
             block_rows=[row for row in rows if heading_end<=row['start']<end]
+            diagram_scope=None
+            if semesters:
+                diagram_scopes=result.metadata.get('diagram_semester_groups',[])
+                block_codes=sorted({row['code'] for row in block_rows})
+                matching_scopes=[scope for scope in diagram_scopes
+                    if isinstance(scope,dict)
+                    and scope.get('selection_need')==int(heading_match.group('need'))
+                    and scope.get('selection_total')==int(heading_match.group('total'))
+                    and sorted(set(scope.get('course_codes',[])))==block_codes]
+                if matching_scopes:
+                    if (len(matching_scopes)!=1
+                            or matching_scopes[0].get('semester') not in semesters):
+                        continue
+                    diagram_scope=matching_scopes[0]
+                else:
+                    explicit=list(re.finditer(r'\b(?:hk|hoc ky|semester)\s*(\d{1,2})\b',folded(body[:heading_start])))
+                    if not explicit or int(explicit[-1].group(1)) not in semesters:
+                        continue
             selected=[row for row in block_rows if any(phrase in folded(row['name']) for phrase in requested_phrases)]
             if selected:
-                groups.append((result,heading_start,heading_end,body,end,selected))
+                groups.append((result,heading_start,heading_end,body,end,selected,diagram_scope))
     if len(groups)!=1:
         return None
-    result,heading_start,heading_end,body,end,selected=groups[0]
+    result,heading_start,heading_end,body,end,selected,diagram_scope=groups[0]
     if len({(row['code'],row['credits'],row['name']) for row in selected})!=len(selected):
         return None
     if language.casefold().startswith('en'):
@@ -271,8 +285,11 @@ def deterministic_course_selection_group(question, results, language='vi', *, ca
     from .grounding import Citation, GroundedAnswer, validate_citation
     from .confidence import score_confidence
     quote=body[heading_start:max(r['start']+len(r['quote']) for r in selected)].strip()
+    section_path=' > '.join(result.metadata.get('heading_path',[]))
+    if diagram_scope:
+        section_path=' > '.join(value for value in (section_path,f"HK {diagram_scope['semester']}") if value)
     citation=Citation(result.chunk_id,result.doc_id,result.page,quote,
-        ' > '.join(result.metadata.get('heading_path',[])),result.metadata.get('source_name',''),
+        section_path,result.metadata.get('source_name',''),
         tuple(result.metadata.get('page_range',[result.page,result.page])),
         result.metadata.get('table_id',''),result.metadata.get('source_hash',''))
     if not validate_citation(citation,result,require_quote=True).valid:

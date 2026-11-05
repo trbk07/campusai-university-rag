@@ -658,6 +658,54 @@ def test_course_selection_group_requires_same_source_semester_scope():
     assert deterministic_course_selection_group(question,[wrong_scope]) is None
 
 
+def test_diagram_geometry_binds_a_choice_group_to_its_visual_semester():
+    from campusai.ingestion.chunker import make_chunks
+    from campusai.ingestion.docling_parser import diagram_semester_groups
+    from campusai.rag.course_lookup import deterministic_course_selection_group
+
+    audit_group=('Chọn 2/4 tín chỉ sau:\n'
+        'KT213330 (2) Kiểm toán hoạt động\nKT213319 (2) Kiểm soát nội bộ')
+    later_group=('Chọn 2/4 tín chỉ sau:\n'
+        'KT213312 (2) Kế toán kho bạc\nKT216317 (2) Kế toán chi phí')
+    class Page:
+        def get_text(self,kind):
+            assert kind=='blocks'
+            return [
+                (0,50,6,70,'HK 6',0,0), (0,100,6,120,'HK 7',0,0),
+                (0,150,6,170,'HK 8',0,0),
+                (100,102,260,126,audit_group,0,0),
+                (100,151,260,175,later_group,0,0),
+            ]
+        def get_drawings(self):
+            return [None]*12
+    scopes=diagram_semester_groups(Page())
+    assert [(x['semester'],x['course_codes']) for x in scopes]==[
+        (7,['KT213319','KT213330']),(8,['KT213312','KT216317'])]
+
+    # The native PDF reading order places HK7 after the visually aligned box.
+    text=('KT213307 (3) Kế toán máy\n'+audit_group+'\nHK 7\n'+later_group)
+    chunks=make_chunks([{'page':33,'text':text,'diagram_semester_groups':scopes}],
+        'program',{'source_name':'program.pdf'})
+    target=next(c for c in chunks if 'KT213330' in c.content)
+    assert target.metadata['diagram_semester_groups']==[scopes[0]]
+    from dataclasses import asdict
+    from campusai.retrieval.table_links import semester_table_sources
+    question='HK7 nhóm chọn 2/4 TC có những môn nào thuộc phần kiểm toán/kiểm soát?'
+    assert semester_table_sources(question,{target.chunk_id:asdict(target)})==[target.chunk_id]
+    wrong_scope={**target.metadata,'diagram_semester_groups':[scopes[1]]}
+    assert semester_table_sources(question,{target.chunk_id:{**asdict(target),'metadata':wrong_scope}})==[]
+    source=RetrievalResult(target.chunk_id,target.doc_id,target.page,target.content,
+        target.content_type,1.,'test',target.metadata)
+    answer=deterministic_course_selection_group(question,[source])
+    assert answer and not answer.abstained
+    assert 'KT213330' in answer.answer and 'KT213319' in answer.answer
+    assert answer.citations[0].quote in source.content
+    assert answer.citations[0].section_path.endswith('HK 7')
+    wrong=RetrievalResult(target.chunk_id,target.doc_id,target.page,target.content,
+        target.content_type,1.,'test',wrong_scope)
+    assert deterministic_course_selection_group(question,[wrong]) is None
+
+
 @pytest.mark.parametrize('balanced',[True,False])
 def test_header_provenance_uses_context_budget_once_per_document(balanced):
     from dataclasses import replace
