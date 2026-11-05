@@ -92,11 +92,15 @@ class OverloadCircuit:
 
     def remaining_seconds(self):
         """Read cooldown without admitting a probe or calling the provider."""
+        return self.cooldown_status()[0]
+
+    def cooldown_status(self):
+        """Return the remaining wait and its actual reason atomically."""
         with self.transaction() as db:
-            until, probe_until = db.execute(
-                "SELECT until, probe_until FROM overload JOIN provider_failure_reason USING(endpoint) WHERE endpoint=?",
+            until, probe_until, code = db.execute(
+                "SELECT until, probe_until, error_code FROM overload JOIN provider_failure_reason USING(endpoint) WHERE endpoint=?",
                 (self.endpoint,)).fetchone()
-        return max(0, int(max(until, probe_until) - time.time() + 0.999))
+        return max(0, int(max(until, probe_until) - time.time() + 0.999)), code
 
     def succeeded(self, generation):
         with self.transaction() as db:

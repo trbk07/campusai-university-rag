@@ -1,5 +1,5 @@
 # Opt-in only: the owner confirmed these keys belong to three independent projects.
-# Shared admission/cooldowns and all existing usage are preserved. No HTTP retries.
+# Shared admission and existing usage are preserved. No same-key HTTP retries.
 llm:
   provider: gemini
   model: gemini-3.5-flash-lite
@@ -7,6 +7,8 @@ llm:
   api_key_envs: [GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3]
   independent_projects: true
   project_quota_failover: true
+  project_overload_failover: true
+  project_failover_window_seconds: 10
   local_key_names:
     GEMINI_API_KEY: key_1
     GEMINI_API_KEY_2: key_2

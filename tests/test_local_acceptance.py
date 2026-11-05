@@ -167,6 +167,163 @@ def test_provider_counters_separate_real_inference_from_token_count(monkeypatch)
         client.close()
 
 
+def project_client(tmp_path, *, overload=True, window=10):
+    from campusai.llm.cache import SQLiteLLMCache
+    from campusai.llm.client import GeminiClient
+    from campusai.llm.project_router import GeminiProjectRouter
+    from campusai.llm.quota import QuotaGovernor,QuotaPolicy
+    health=tmp_path/'health.sqlite3'
+    router=GeminiProjectRouter([(f'KEY_{i}',f'unit-secret-{i}') for i in range(1,4)],
+        health_path=health,model='gemini-unit')
+    governor=QuotaGovernor(tmp_path/'quota.sqlite3','unit',QuotaPolicy(0),max_wait_seconds=0)
+    return GeminiClient('unit-secret-1',model='gemini-unit',cache=SQLiteLLMCache(':memory:'),
+        max_retries=0,timeout=60,overload_circuit_path=str(health),quota_governor=governor,
+        project_router=router,project_quota_failover=True,project_overload_failover=overload,
+        project_failover_window_seconds=window)
+
+
+def project_transport(monkeypatch, statuses, *, before_error=None, headers=None):
+    import io,json
+    from urllib.error import HTTPError
+    from campusai.llm import client as provider
+    calls=[]
+    def send(request,timeout):
+        key=dict((k.lower(),v) for k,v in request.header_items())['x-goog-api-key']
+        calls.append((key,timeout))
+        status=statuses[len(calls)-1]
+        if status!=200:
+            if before_error:before_error()
+            raise HTTPError(request.full_url,status,'unit failure',headers or {},io.BytesIO(b'{}'))
+        return io.BytesIO(json.dumps({'ok':True,'usageMetadata':{
+            'promptTokenCount':1,'totalTokenCount':2}}).encode())
+    monkeypatch.setattr(provider.urllib.request,'urlopen',send)
+    return calls
+
+
+def project_request(client):
+    import json
+    from urllib.request import Request
+    return Request(client.endpoint,data=json.dumps({'contents':[{'parts':[{'text':'Unit question'}]}],
+        'generationConfig':{'maxOutputTokens':32}}).encode())
+
+
+def test_project_503_failover_preserves_quota_skip_and_failure_telemetry(tmp_path,monkeypatch):
+    from campusai.request_timings import capture_request
+    client=project_client(tmp_path)
+    calls=project_transport(monkeypatch,[503,200])
+    with capture_request() as trace:
+        assert client._send(project_request(client))['ok']
+    assert [key for key,_ in calls]==['unit-secret-1','unit-secret-2']
+    assert 0<calls[1][1]<=10 and calls[0][1]==60
+    assert trace['stage_calls']['provider_inference_attempt_project.KEY_1']==1
+    assert trace['stage_calls']['provider_inference_attempt_project.KEY_2']==1
+    assert trace['stage_calls']['provider_inference_project.KEY_2']==1
+    assert trace['stage_calls']['provider_inference_success']==1
+    assert 'unit-secret' not in str(trace)
+    assert client.overload_circuit.remaining_seconds()==0
+    # Recreating the client preserves both charged attempts and key1's cooldown.
+    restored=project_client(tmp_path)
+    route=restored.project_router.route(project_request(restored),60)
+    assert route.reference=='KEY_2'
+    route.circuit.abandon(route.generation)
+    import sqlite3
+    with sqlite3.connect(tmp_path/'quota.sqlite3') as db:
+        assert db.execute('SELECT COUNT(*) FROM quota_attempts').fetchone()[0]==2
+        assert db.execute('SELECT MAX(lease_until) FROM quota_attempts').fetchone()[0]==0
+    client.close();restored.close()
+
+
+def test_project_pool_opens_shared_cooldown_after_all_three_503s(tmp_path,monkeypatch):
+    from campusai.llm.client import LLMProviderError
+    client=project_client(tmp_path)
+    calls=project_transport(monkeypatch,[503]*3)
+    with pytest.raises(LLMProviderError):client._send(project_request(client))
+    assert [key for key,_ in calls]==['unit-secret-1','unit-secret-2','unit-secret-3']
+    assert client.overload_circuit.remaining_seconds()>0
+    with pytest.raises(LLMProviderError):client._send(project_request(client))
+    assert len(calls)==3
+    client.close()
+
+
+@pytest.mark.parametrize('status',[401,403,400,500])
+def test_project_failover_does_not_replay_auth_or_other_errors(tmp_path,monkeypatch,status):
+    from campusai.llm.client import LLMError
+    client=project_client(tmp_path)
+    calls=project_transport(monkeypatch,[status])
+    with pytest.raises(LLMError):client._send(project_request(client))
+    assert len(calls)==1
+    client.close()
+
+
+def test_project_503_window_expiration_and_legacy_global_cooldown(tmp_path,monkeypatch):
+    from campusai.llm import client as provider
+    clock=[0.]
+    monkeypatch.setattr(provider.time,'monotonic',lambda:clock[0])
+    client=project_client(tmp_path/'bounded')
+    calls=project_transport(monkeypatch,[503],before_error=lambda:clock.__setitem__(0,11.))
+    with pytest.raises(provider.LLMProviderError):client._send(project_request(client))
+    assert len(calls)==1 and client.overload_circuit.remaining_seconds()==0
+    client.close()
+    legacy=project_client(tmp_path/'legacy',overload=False)
+    calls=project_transport(monkeypatch,[503])
+    with pytest.raises(provider.LLMProviderError):legacy._send(project_request(legacy))
+    assert len(calls)==1 and legacy.overload_circuit.remaining_seconds()>0
+    legacy.close()
+
+
+def test_project_429_still_uses_independent_project_without_global_cooldown(tmp_path,monkeypatch):
+    client=project_client(tmp_path)
+    calls=project_transport(monkeypatch,[429,200])
+    assert client._send(project_request(client))['ok']
+    assert len(calls)==2 and client.overload_circuit.remaining_seconds()==0
+    client.close()
+
+
+def test_project_failover_never_restarts_a_stream_after_partial_text(tmp_path,monkeypatch):
+    from campusai.llm.client import LLMProviderError
+    from campusai.llm.streaming import StreamCapture
+    client=project_client(tmp_path);capture=StreamCapture()
+    calls=project_transport(monkeypatch,[503],before_error=lambda:capture.text('private partial text'))
+    with pytest.raises(LLMProviderError):client._send(project_request(client),stream=capture)
+    assert len(calls)==1 and len(capture.calls)==1
+    client.close()
+
+
+def test_project_failover_respects_service_retry_after_and_existing_cooldown(tmp_path,monkeypatch):
+    from campusai.llm.client import LLMProviderError
+    client=project_client(tmp_path)
+    calls=project_transport(monkeypatch,[503],headers={'Retry-After':'120'})
+    with pytest.raises(LLMProviderError):client._send(project_request(client))
+    assert len(calls)==1 and client.overload_circuit.remaining_seconds()>=119
+    restored=project_client(tmp_path)
+    with pytest.raises(LLMProviderError):restored._send(project_request(restored))
+    assert len(calls)==1
+    client.close();restored.close()
+
+
+def test_project_failover_does_not_repeat_unknown_timeout_outcome(tmp_path,monkeypatch):
+    from campusai.llm import client as provider
+    client=project_client(tmp_path);calls=[]
+    def timeout(*args,**kwargs):
+        calls.append(1)
+        raise TimeoutError('unit timeout')
+    monkeypatch.setattr(provider.urllib.request,'urlopen',timeout)
+    with pytest.raises(provider.LLMProviderError):client._send(project_request(client))
+    assert len(calls)==1
+    client.close()
+
+
+def test_three_project_profile_enables_bounded_overload_recovery(tmp_path):
+    from campusai.llm.factory import create_llm
+    client=create_llm('configs/free_multi_project.yaml',
+        {name:'unit-secret-'+str(i) for i,name in enumerate(
+            ['GEMINI_API_KEY','GEMINI_API_KEY_2','GEMINI_API_KEY_3'])},state_root=tmp_path)
+    assert client.project_router.project_count==3
+    assert client.project_overload_failover and client.project_failover_window_seconds==10
+    assert client.max_retries==0
+    client.close()
+
+
 def test_acceptance_rejects_missing_or_malformed_answer_contract():
     assert response_errors({'ok': True, 'answer': None}, {})
     assert response_errors([], {}) == ['request_failed']

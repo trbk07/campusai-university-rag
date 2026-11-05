@@ -542,6 +542,8 @@ class GeminiClient(OpenAICompatibleClient):
         allow_pdf_scope: bool = False,
         project_router=None,
         project_quota_failover: bool = False,
+        project_overload_failover: bool = False,
+        project_failover_window_seconds: float = 10.0,
         **kwargs: Any,
     ) -> None:
         if generation_config is not None and not isinstance(generation_config, dict):
@@ -579,6 +581,16 @@ class GeminiClient(OpenAICompatibleClient):
         if type(project_quota_failover) is not bool or (project_quota_failover and project_router is None):
             raise ValueError('project quota failover requires explicit independent project routing')
         self.project_quota_failover = project_quota_failover
+        if (type(project_overload_failover) is not bool
+                or project_overload_failover and project_router is None):
+            raise ValueError('project overload failover requires explicit independent project routing')
+        if (isinstance(project_failover_window_seconds, bool)
+                or not isinstance(project_failover_window_seconds, (int, float))
+                or not math.isfinite(project_failover_window_seconds)
+                or not 0 < project_failover_window_seconds <= 30):
+            raise ValueError('project failover window must be finite and between 0 and 30 seconds')
+        self.project_overload_failover = project_overload_failover
+        self.project_failover_window_seconds = project_failover_window_seconds
         self.overload_circuit = (OverloadCircuit(overload_circuit_path, _safe_endpoint(endpoint))
                                  if overload_circuit_path else None)
 
@@ -607,23 +619,31 @@ class GeminiClient(OpenAICompatibleClient):
 
     def _send(self, request, *, token_budget=None, stream=None):
         excluded = set()
+        deadline = time.monotonic() + self.project_failover_window_seconds
         while True:
             try:
-                return self._send_once(request, token_budget=token_budget, stream=stream, excluded=excluded)
-            except LLMRateLimitError as error:
+                return self._send_once(request, token_budget=token_budget, stream=stream, excluded=excluded,
+                    recovery_deadline=deadline if excluded and self.project_overload_failover else None)
+            except LLMError as error:
                 cause = error.__cause__
                 reference = getattr(error, 'project_reference', None)
-                # Only an actual HTTP 429 can move the same question to another
-                # independent project. Each attempt has its own charged quota
-                # reservation; never repeat a credential within this call.
-                if (not self.project_quota_failover or not reference
-                        or not isinstance(cause, urllib.error.HTTPError) or cause.code != 429):
+                # A failed HTTP response can move to a different authorized
+                # project once. Never replay auth errors, malformed output,
+                # timeouts, or a stream that has already produced text.
+                eligible = (isinstance(cause, urllib.error.HTTPError) and (
+                    cause.code == 429 and self.project_quota_failover
+                    or cause.code == 503 and self.project_overload_failover))
+                partial_stream = (stream is not None and (stream.cancelled()
+                    or any(call.get('text_characters', 0) for call in stream.calls)))
+                if (not eligible or not reference or partial_stream
+                        or getattr(error, 'shared_provider_cooldown', False)):
                     raise
                 excluded.add(reference)
-                if len(excluded) >= self.project_router.project_count:
+                if (len(excluded) >= self.project_router.project_count
+                        or self.project_overload_failover and time.monotonic() >= deadline):
                     raise
 
-    def _send_once(self, request, *, token_budget=None, stream=None, excluded=()):
+    def _send_once(self, request, *, token_budget=None, stream=None, excluded=(), recovery_deadline=None):
         circuit = self.overload_circuit
         governor = self.quota_governor
         generation = None
@@ -658,6 +678,8 @@ class GeminiClient(OpenAICompatibleClient):
                     raise LLMProviderError('request is outside independent project routing scope') from None
                 request = project.request
             def check_admission():
+                if recovery_deadline is not None and time.monotonic() >= recovery_deadline:
+                    raise LLMProviderError('provider failover time window exhausted') from TimeoutError()
                 if circuit:
                     circuit.check(generation)
                 if project:
@@ -669,16 +691,20 @@ class GeminiClient(OpenAICompatibleClient):
             elif self.limiter is not None:
                 self.limiter.wait()
             check_admission()
+            request_timeout = (min(self.timeout, max(.001, recovery_deadline - time.monotonic()))
+                if recovery_deadline is not None else self.timeout)
             reader = None
             if stream is not None:
                 from .streaming import read_gemini_stream
                 stream.begin(self.model)
-                reader = lambda response: read_gemini_stream(response, stream, self.timeout)
+                reader = lambda response: read_gemini_stream(response, stream, request_timeout)
             attempted = True
             operation = ('provider_token_count' if urllib.parse.urlsplit(request.full_url).path.endswith(':countTokens')
                          else 'provider_inference')
+            if project:
+                record_stage(operation + '_attempt_project.' + project.reference, 0.)
             with stage(operation):
-                result = _request_json(request, self.timeout, self.limiter, 0 if stream is not None else self.max_retries,
+                result = _request_json(request, request_timeout, self.limiter, 0 if stream is not None else self.max_retries,
                                    retry_only_503=self.retry_only_503,
                                    retry_min_wait_seconds=self.retry_min_wait_seconds,
                                    retry_max_wait_seconds=self.retry_max_wait_seconds,
@@ -723,15 +749,29 @@ class GeminiClient(OpenAICompatibleClient):
                 if rate_limited and structured_hint is not None:
                     hint = max(hint or 0, structured_hint)
                 try:
-                    if project and rate_limited:
-                        project.circuit.failed(project.generation, overloaded=False, rate_limited=True, retry_after=hint)
+                    # An explicit service Retry-After applies to the endpoint;
+                    # another credential must not bypass that instruction.
+                    isolated_overload = bool(project and overloaded and self.project_overload_failover
+                        and not (hint is not None and hint > 0))
+                    if project and (rate_limited or isolated_overload):
+                        project.circuit.failed(project.generation, overloaded=isolated_overload,
+                            rate_limited=rate_limited, retry_after=hint)
                     elif project:
                         project.circuit.failed(project.generation, overloaded=False)
-                    circuit.failed(generation, overloaded=overloaded,
-                        rate_limited=rate_limited and project is None, retry_after=hint)
+                    pool_overload = (self.project_router.overload_retry_after(
+                        token_count=urllib.parse.urlsplit(request.full_url).path.endswith(':countTokens'))
+                        if isolated_overload else 0)
+                    if not isolated_overload or pool_overload:
+                        circuit.failed(generation, overloaded=overloaded,
+                            rate_limited=rate_limited and project is None,
+                            retry_after=max(hint or 0, pool_overload))
+                    else:
+                        circuit.abandon(generation)
+                    error.shared_provider_cooldown = bool(overloaded and not isolated_overload)
                     if overloaded or rate_limited:
                         error.retry_after_seconds = (project.circuit.remaining_seconds()
-                            if project and rate_limited else circuit.remaining_seconds())
+                            if project and (rate_limited or isolated_overload and not pool_overload)
+                            else circuit.remaining_seconds())
                 except sqlite3.Error:
                     raise LLMProviderError("provider health state unavailable; request stopped") from None
             if observations and governor is not None and project is None:

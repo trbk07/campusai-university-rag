@@ -171,7 +171,12 @@ này; để trống biến đó thì launcher dùng profile một key nếu thi�
 Launcher đọc `key_1`, `key_2`, `key_3` từ `configs/key.yaml` đã được Git ignore;
 biến môi trường tương ứng có sẵn luôn được ưu tiên. Profile chia đều lượt gọi,
 tạm bỏ qua project đang cooldown và chuyển câu hỏi sang project khác khi nhận
-HTTP 429, tối đa một lần mỗi project. Mọi attempt vẫn tính vào ngân sách chung;
+HTTP 429 hoặc 503, tối đa một lần mỗi project. Với 503, profile chỉ mở cửa sổ
+chuyển project trong 10 giây tính từ lần gọi đầu; các lần gọi tiếp theo dùng
+timeout còn lại. Cooldown của project lỗi được giữ qua lần khởi động lại.
+`Retry-After` của dịch vụ hoặc cả ba project quá tải sẽ mở cooldown chung;
+lỗi xác thực, timeout và stream đã có text không được gửi lại sang project khác.
+Mọi attempt vẫn tính vào ngân sách chung;
 không xóa usage/cooldown. Cả ba project hết hạn mức thì app trả lỗi có thời gian
 chờ. Profile một key vẫn dùng được độc lập qua `configs/free_llm.yaml`.
 Profile không đặt trần 100 câu trong phiên. Tiếp tục xoay các project còn quota;

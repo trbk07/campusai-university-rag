@@ -1,8 +1,7 @@
 """Opt-in routing across explicitly independent Gemini projects.
 
-One call uses one credential and never retries here. Shared admission budgets
-and endpoint-wide 503 cooldowns remain owned by GeminiClient. Only project quota
-cooldowns are isolated, so changing keys cannot bypass a provider-wide outage.
+One transport attempt uses one credential. GeminiClient owns bounded failover
+and shared admission; each project retains its durable quota/overload cooldown.
 """
 from dataclasses import dataclass, field
 import hashlib
@@ -55,6 +54,13 @@ class GeminiProjectRouter:
     def project_count(self):
         return len(self._projects)
 
+    def overload_retry_after(self, *, token_count=False):
+        """Open shared protection only when every project is overloaded."""
+        family = 'countTokens' if token_count else 'inference'
+        states = [circuits[family].cooldown_status() for _, _, circuits in self._projects]
+        return min(wait for wait, _ in states) if all(
+            wait > 0 and code == 'provider_overloaded' for wait, code in states) else 0
+
     def route(self, request, timeout, *, excluded=()):
         parsed = urlsplit(request.full_url)
         prefix = f'/v1beta/models/{self.model}:'
@@ -76,7 +82,7 @@ class GeminiProjectRouter:
                 try:
                     generation = circuit.acquire(timeout)
                 except ProviderCoolingDown as error:
-                    blocked.append(error.retry_after_seconds)
+                    blocked.append((error.retry_after_seconds, error.provider_error_code))
                     continue
                 headers = {k: v for k, v in request.header_items()
                            if k.lower() not in {'x-goog-api-key', 'authorization'}}
@@ -85,4 +91,5 @@ class GeminiProjectRouter:
                 routed.add_header('x-goog-api-key', secret)
                 self._next = (index + 1) % len(self._projects)
                 return ProjectRoute(routed, circuit, generation, reference)
-        raise ProviderCoolingDown(min(blocked) if blocked else 1, 'provider_rate_limited')
+        wait, code = min(blocked) if blocked else (1, 'provider_rate_limited')
+        raise ProviderCoolingDown(wait, code)
