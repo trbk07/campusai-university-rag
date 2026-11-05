@@ -95,6 +95,16 @@ def _marker_lines(body, pattern):
     return markers
 
 
+def _course_annotation_boundary(text):
+    """A legend or field label is not a continuation of a printed course name."""
+    value=folded(text)
+    return bool(re.search(
+        r'^(?:(?:chu thich|ghi chu|chu giai|legend|notes?)(?:\s*[:.]|$)|'
+        r'(?:giai thich|explanation|key to)\b.*\b(?:mui ten|ky hieu|ki hieu|arrows?|symbols?)\b|'
+        r'(?:hoc phan(?:\s+hoc)?\s+(?:tien quyet|truoc|song song)|prerequisites?|co[- ]?requisites?)\s*:)',
+        value))
+
+
 def _source_course_rows(result):
     """Read explicit code/credit/name rows from one retrieved source span."""
     from ..retrieval.tokenizer_vi import source_body
@@ -104,39 +114,38 @@ def _source_course_rows(result):
     for index,match in enumerate(matches):
         end=matches[index+1].start() if index+1<len(matches) else len(body)
         inline=' '.join(match.group('inline').split())
+        if _course_annotation_boundary(inline):
+            continue
         tail=body[match.end():end]
+        cursor=name_end=match.end()
         # Course names may wrap in scanned/diagram text. Stop at explicit
         # semester/group/branch labels and keep only a few literal lines.
         lines=[]
-        for line in tail.splitlines():
+        for line in tail.splitlines(keepends=True):
+            cursor+=len(line)
             clean=' '.join(line.split()).strip(' |\t')
             folded_line=folded(clean)
             if not clean or re.fullmatch(r'\d{1,3}',clean):
                 continue
             if (re.search(r'\b(?:hk|hoc ky|semester)\s*\d+\b',folded_line)
                     or _GROUP_LINE.fullmatch(folded_line) or _BRANCH_LINE.match(folded_line)
+                    or _course_annotation_boundary(clean)
                     or re.search(r'\b(?:tong hoc ky|semester total|tong cong)\b',folded_line)):
                 break
             lines.append(clean)
+            name_end=cursor
             if len(lines)>=4:
                 break
         name=' '.join([inline,*lines]).strip()
         name=re.sub(r'\s+', ' ', name)
         if not name:
             continue
-        quote=body[match.start():match.end()]
-        if lines:
-            # Quote exactly through the final source-name line, including any
-            # line breaks so locator validation remains tied to the PDF text.
-            name_end=match.end()
-            for line in lines:
-                pos=body.find(line,name_end,end)
-                if pos<0:break
-                name_end=pos+len(line)
-            quote=body[match.start():name_end].strip()
+        # Keep offsets from the raw lines: whitespace normalization of a
+        # displayed name must not cut its citation back to just code/credits.
+        quote=body[match.start():name_end].strip()
         found.append({'result':result,'code':match.group('code').upper(),
             'credits':int(match.group('credits')),'name':name,'quote':quote,
-            'start':match.start(),'end':end})
+            'start':match.start(),'quote_end':name_end,'end':end})
     return body,found
 
 
@@ -158,8 +167,8 @@ def _answer_source_course_facts(facts, language, calibrator, *, condition=None):
         else:
             body,_=_source_course_rows(result)
             first=min(items,key=lambda item:item['start'])
-            last=max(items,key=lambda item:item['start']+len(item['quote']))
-            quote=body[first['start']:last['start']+len(last['quote'])].strip()
+            last=max(items,key=lambda item:item['quote_end'])
+            quote=body[first['start']:last['quote_end']].strip()
         if not quote or len(quote)>1200:
             return None
         citation=Citation(result.chunk_id,result.doc_id,result.page,quote,
@@ -284,7 +293,7 @@ def deterministic_course_selection_group(question, results, language='vi', *, ca
             f"{r['code']} ({r['name']}, {r['credits']} tín chỉ)" for r in selected) + '.'
     from .grounding import Citation, GroundedAnswer, validate_citation
     from .confidence import score_confidence
-    quote=body[heading_start:max(r['start']+len(r['quote']) for r in selected)].strip()
+    quote=body[heading_start:max(r['quote_end'] for r in selected)].strip()
     section_path=' > '.join(result.metadata.get('heading_path',[]))
     if diagram_scope:
         section_path=' > '.join(value for value in (section_path,f"HK {diagram_scope['semester']}") if value)
@@ -336,8 +345,8 @@ def deterministic_conditional_course_lookup(question, results, language='vi', *,
                     quote_end=marker_end
                 else:
                     quote_start=min(marker_start,row['start'])
-                    quote_end=max(marker_end,row['start']+len(row['quote']))
-                candidates.append({**row,'start':quote_start,
+                    quote_end=max(marker_end,row['quote_end'])
+                candidates.append({**row,'start':quote_start,'quote_end':quote_end,
                     'quote':body[quote_start:quote_end].strip()})
     unique={(r['result'].doc_id,r['code'],r['credits'],r['name']):r for r in candidates}
     facts=list(unique.values())

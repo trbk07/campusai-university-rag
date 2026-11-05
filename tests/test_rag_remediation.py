@@ -610,6 +610,41 @@ def test_diagram_course_code_answers_correct_source_identity_and_credit():
     assert answer.citations[0].page==30 and 'KC213046' in answer.citations[0].quote
 
 
+@pytest.mark.parametrize('legend',[
+    'Giải thích các loại mũi tên:\nHọc phần tiên quyết:',
+    'Chú thích:\nCác đường liền biểu thị quan hệ.',
+    'Legend:\nPrerequisites:',
+    'Explanation of symbols\nSolid lines indicate dependencies.',
+])
+def test_wrapped_course_names_stop_at_diagram_annotations(legend):
+    from campusai.rag.course_lookup import deterministic_course_code_facts
+    body='ZX123456 (4) Process review\n  ZX123457 (2)\nBusiness\nanalysis\n'+legend
+    row=RetrievalResult('courses','cloud',8,body,'text',1.,'test',
+        {'source_name':'cloud.pdf','page_range':[8,8]})
+    answer=deterministic_course_code_facts('What are ZX123456 and ZX123457?', [row], 'en')
+    assert answer and not answer.abstained
+    assert 'Business analysis (2 credits)' in answer.answer
+    assert all(label not in answer.answer for label in legend.splitlines())
+    assert 'Business\nanalysis' in answer.citations[0].quote
+    assert legend.splitlines()[0] not in answer.citations[0].quote
+    assert answer.citations[0].quote in body
+
+
+def test_course_name_citation_preserves_raw_whitespace_and_real_subtitle():
+    from campusai.rag.course_lookup import deterministic_course_code_facts
+    body='ZX123457 (2)\r\nSeminar:  Data\r\nInterpretation   Methods\r\nLegend:\r\nExtra labels.'
+    row=RetrievalResult('course','cloud',8,body,'text',1.,'test',
+        {'source_name':'cloud.pdf','page_range':[8,8]})
+    result=deterministic_course_code_facts('What is ZX123457?', [row], 'en')
+    assert result and not result.abstained
+    assert 'Seminar: Data Interpretation Methods (2 credits)' in result.answer
+    assert 'Seminar:  Data\r\nInterpretation   Methods' in result.citations[0].quote
+    assert result.citations[0].quote in body and 'Legend' not in result.citations[0].quote
+    empty=RetrievalResult('empty','cloud',8,'ZX123457 (2)\nLegend:\nNo printed title.',
+        'text',1.,'test',{'source_name':'cloud.pdf','page_range':[8,8]})
+    assert deterministic_course_code_facts('What is ZX123457?', [empty], 'en') is None
+
+
 def test_grounded_answer_generator_uses_source_rows_before_calling_the_model():
     from campusai.rag.grounding import GroundedAnswerGenerator
     class NeverCallModel:
