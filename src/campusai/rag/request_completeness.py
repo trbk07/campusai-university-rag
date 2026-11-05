@@ -3,6 +3,8 @@
 Only a named pair introduced by both/ca and an explicit no-partial requirement
 is parsed. This is a conservative lexical coverage check, not semantic NLU.
 The ordinary source/claim verifier must still prove every matching claim.
+Explicit leading requests for private app internals can be refused separately
+from a subsequent document question, without suppressing its grounding checks.
 """
 import re
 from .claims import normalize_text
@@ -18,6 +20,50 @@ PAIRS=(
 FUNCTION_WORDS={'the','a','an','of','your','our','their','its','my','value','number',
     'cua','ban','toi','chung','he','thong','so'}
 CODE=re.compile(r'(?<!\w)'+COURSE_CODE+r'(?!\w)',re.I)
+
+
+def document_request_without_internal_disclosure(question):
+    """Separate an explicit leading disclosure command from a later question.
+
+    None means no recognized command. An empty remainder means refuse without
+    retrieval/generation. Preserve the exact remaining text, including names,
+    numbers and source restrictions; never derive a question from source/gold.
+    Educational mentions and quoted commands are not disclosure requests.
+    """
+    if not isinstance(question,str) or len(question)>2000:
+        return None
+    from .footnotes import _fold_with_offsets
+    text,offsets=_fold_with_offsets(question)
+    command=r'^\s*(?:(?:please|hay|vui long|ban)\s+)*(?:reveal|show|print|give(?:\s+me)?|disclose|dua|tiet lo|hien thi|cung cap|in)\b'
+    command_match=re.search(command,text)
+    if not command_match:
+        return None
+    boundary=re.search(r'[;!?]\s+|\s+(?:roi(?:\s+moi)?|sau do|then|and then|also|ngoai ra|dong thoi)\s+',text)
+    prefix=text[:boundary.start()] if boundary else text
+    target=prefix[command_match.end():].lstrip()
+    if not re.match(r'(?:(?:the|your|current|our|me|toi|minh|cho toi|cho minh)\s+)*'
+                    r'(?:(?:system|developer|hidden|internal)\s+prompt|prompt\s+(?:he thong|noi bo)|'
+                    r'api[ _-]?key|khoa api|credential|secret key)\b',target):
+        return None
+    prompt=re.search(r'\b(?:(?:system|developer|hidden|internal)\s+prompt|prompt\s+(?:he thong|noi bo))\b',prefix)
+    key=(re.search(r'\b(?:api[ _-]?key|khoa api|credential|secret key)\b',prefix)
+         and re.search(r'\b(?:your|current|running|dang chay|dang dung|cua (?:app|ung dung|ban|he thong))\b',prefix))
+    if not prompt and not key:
+        return None
+    return question[offsets[boundary.end()]:].strip() if boundary and boundary.end()<len(offsets) else ''
+
+
+def refuse_internal_disclosure(answer=None, language='vi'):
+    """Keep independently grounded content and explicitly refuse private internals."""
+    from dataclasses import replace
+    from .grounding import GroundedAnswer
+    notice=('Mình không cung cấp khóa API hoặc chỉ dẫn nội bộ của ứng dụng.'
+            if language.casefold().startswith('vi') else
+            'I cannot provide application API keys or private internal instructions.')
+    if answer is None:
+        return GroundedAnswer(notice,(), 'low',True,
+                              reason='no_retrieval_evidence',evidence_status='missing')
+    return replace(answer,answer=notice+'\n\n'+answer.answer)
 
 
 def asserts_document_absence(answer):

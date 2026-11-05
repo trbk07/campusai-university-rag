@@ -10,6 +10,9 @@ citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội b�
 Bộ Golden 100 gần nhất: **68/100** (32 FAIL,0 BLOCKED; lượt R15),
 chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
+Gemini Chat đã review đủ100 output R15: **81 PASS/19 FAIL** theo cách chấm
+nguồn của reviewer. Đây là chấm lại bản cũ, có khác biệt gold/rubric; không
+thay điểm strict68/100 hoặc chứng minh accuracy của code hiện hành.
 
 Theo yêu cầu ngày 31/10, các báo cáo được gom tại
 [báo cáo tổng quan](docs/PROJECT_OVERVIEW.md); log, bộ kiểm thử, benchmark và
@@ -143,8 +146,10 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
 - [x] **FIX-07c — Pool sáu key DONE (code, 05/11):** chủ dự án bổ sung key_4–6 và xác nhận mỗi key thuộc project riêng. Router/factory/launcher nhận 2–16 bindings tường minh; profile hiện dùng 6 key, ưu tiên thứ tự4→5→6→1→2→3. Xác minh 6 credential khác nhau mà không ghi giá trị; giữ ngân sách quota/cooldown chung và giới hạn phục hồi đã có. **431 tests PASS**, secret scan PASS. Đo lại Golden100 trên candidate khóa riêng; chưa cập nhật accuracy trước khi đủ kết quả thật.
 
 - [x] **QA-CHAT-EXPORT — DONE (05/11):** đã xuất tệp local `evaluation/results/campusai_100_remediation_20261103/campusai_gemini_review.txt`, gồm100 case/112 lượt R15 và54 case/54 lượt R19. Đủ câu hỏi, gold gốc, câu trả lời thực tế, citation, lỗi provider và lịch sử CTX; tách rõ hai candidate và46 case chưa có output mới. Không kèm verdict cũ để tránh neo điểm; kiểm tra không chứa credential. Đã nhận review Gemini Chat, lưu nguyên văn/hash trong kết quả hiện có; không ghi thành human approval/fresh holdout. Không gọi API khi xuất file.
-- [x] **QA-CHAT-AUDIT — DONE (05/11):** đối soát review nhận được: thiếu10 case CTX/ROB dù export đủ100; bảng R15 đếm73 PASS/17 FAIL nhưng summary ghi71/19; OCR19 R19 bị chấm PASS dù reviewer xác nhận lẫn chú thích. FACT15/gold và FACT24/độ đầy đủ cần chấm tách riêng. Review **INCOMPLETE**, không thay điểm strict R15 **68/100**. Một file bổ sung13 case (10 thiếu +3 tranh chấp), có prompt và output nguyên trạng, đã chuẩn bị để kiểm chứng tiếp; không hỏi lại app.
+- [x] **QA-CHAT-AUDIT — DONE (05/11, lượt đầu):** đối soát review nhận được: thiếu10 case CTX/ROB dù export đủ100; bảng R15 đếm73 PASS/17 FAIL nhưng summary ghi71/19; OCR19 R19 bị chấm PASS dù reviewer xác nhận lẫn chú thích. Review đầu **INCOMPLETE**, không thay điểm strict R15 **68/100**. Đã xuất một file bổ sung13 case (10 thiếu +3 tranh chấp), có prompt và output nguyên trạng; kết quả bổ sung ở task dưới.
 - [x] **RAG-95-03h — Tách chú thích khỏi tên học phần DONE (local, 05/11):** parser dừng ở legend/chú giải và nhãn quan hệ tiên quyết; giữ offset gốc để citation không mất tên khi xuống dòng hoặc có nhiều khoảng trắng. Kiểm ảnh trang33 PDF TTN và replay retrieval OCR19 đã lưu xác nhận tên môn sạch, quote nguyên văn. **436 tests PASS**, không gửi câu đã khóa; replay không tính là inference/accuracy mới.
+- [x] **QA-CHAT-FOLLOWUP — DONE (05/11):** nhận review bổ sung13 case và bảng đủ100; đếm lại khớp summary: R15 **81 PASS/19 FAIL**, R19 **29 PASS/7 FAIL/18 BLOCKED/46 NOT_RUN**. Reviewer đã sửa OCR19 thành FAIL. FACT24 đúng là chỉ hỏi A, còn gold yêu cầu thêm B/C/D/F; FACT15 và locator CTX03 giữ thành vấn đề gold/nguồn riêng. Lưu nguyên văn/hash/bảng vào results hiện có, không sửa gold hoặc output. Đây là review AI hồi cứu, chưa nghiệm thu code mới hoặc fresh holdout; strict R15 vẫn68/100.
+- [x] **RAG-95-03i — Giảm từ chối cả câu hỏi hỗn hợp DONE (code/local, 05/11):** tách yêu cầu tiết lộ nội bộ đứng đầu khỏi câu hỏi tài liệu tiếp theo; từ chối secret nhưng phần tra cứu vẫn qua scope/retrieval/grounding/citation bình thường. Áp dụng cả luồng hỏi và hỏi trang PDF; yêu cầu chỉ lấy secret không gọi model/truy hồi. Cache chỉ giữ câu trả lời nguồn đã kiểm chứng, không làm lời từ chối lọt sang câu hỏi thông thường. Không nhận keyword API/prompt trong câu giải thích hoặc trích dẫn thành lệnh tiết lộ. **453 tests PASS**; chưa có native accuracy mới, không gửi lại câu đã khóa.
 
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc

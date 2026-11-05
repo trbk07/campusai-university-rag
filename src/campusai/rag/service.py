@@ -287,6 +287,7 @@ class CampusAIQueryService:
         self.last_cache_hit = False
         self.last_retrieval = []
         self.retriever.last_trace = None
+        self._request_local.context_trace = None
         self._request_local.temporal_resolution = None
         self._request_local.temporal_documents = []
         self._request_local.temporal_intent = None
@@ -391,6 +392,14 @@ class CampusAIQueryService:
     ) -> list[RetrievalResult]:
         self.reset_request_state()
         doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
+        from .request_completeness import document_request_without_internal_disclosure
+        remainder = document_request_without_internal_disclosure(question)
+        if remainder is not None:
+            if not remainder:
+                self.retriever.last_trace = RoutingTrace(route='abstain',abstained=True,
+                    abstention_reason='no_retrieval_evidence')
+                return []
+            question = remainder
         resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
         self._request_local.context_trace = resolved.cache_context()
         if resolved.needs_clarification:
@@ -464,6 +473,15 @@ class CampusAIQueryService:
                          selected_text=None, requires_context=False):
         """Internal trusted-source lane; HTTP clients cannot supply evidence."""
         self.reset_request_state()
+        from .request_completeness import (document_request_without_internal_disclosure,
+                                           refuse_internal_disclosure)
+        remainder = document_request_without_internal_disclosure(question)
+        if remainder is not None:
+            answer = self.ask_source_pages(remainder,results,language=language,history=history,
+                selected_text=selected_text,requires_context=requires_context) if remainder else None
+            self._request_local.context_trace = {**(getattr(self._request_local,'context_trace',None) or {}),
+                                                'internal_disclosure_refused':True}
+            return refuse_internal_disclosure(answer,language)
         resolved = resolve_query(question, history=history, selected_text=selected_text,
                                  requires_context=requires_context)
         self._request_local.context_trace = {'raw_question':resolved.raw, **resolved.cache_context()}
@@ -529,6 +547,17 @@ class CampusAIQueryService:
     ) -> GroundedAnswer:
         self.reset_request_state()
         doc_ids = authorized_scope(doc_ids, authorized_doc_ids)
+        from .request_completeness import (document_request_without_internal_disclosure,
+                                           refuse_internal_disclosure)
+        remainder = document_request_without_internal_disclosure(question)
+        if remainder is not None:
+            answer = self.ask(remainder,doc_ids=doc_ids,filters=filters,top_k=top_k,mode=mode,
+                language=language,corpus_version=corpus_version,request_id=request_id,
+                history=history,selected_text=selected_text,requires_context=requires_context,
+                authorized_doc_ids=authorized_doc_ids) if remainder else None
+            self._request_local.context_trace = {**(getattr(self._request_local,'context_trace',None) or {}),
+                                                'internal_disclosure_refused':True}
+            return refuse_internal_disclosure(answer,language)
         resolved = resolve_query(question, history=history, selected_text=selected_text, requires_context=requires_context)
         self._request_local.context_trace = {"raw_question": resolved.raw, **resolved.cache_context()}
         kind = small_talk_kind(resolved.raw)
