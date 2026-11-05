@@ -1,10 +1,10 @@
-# Opt-in only: the owner confirmed these keys belong to three independent projects.
+# Opt-in only: the owner confirmed all six keys belong to independent projects.
 # Shared admission and existing usage are preserved. No same-key HTTP retries.
 llm:
   provider: gemini
   model: gemini-3.5-flash-lite
-  api_key_env: GEMINI_API_KEY
-  api_key_envs: [GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3]
+  api_key_env: GEMINI_API_KEY_4
+  api_key_envs: [GEMINI_API_KEY_4, GEMINI_API_KEY_5, GEMINI_API_KEY_6, GEMINI_API_KEY, GEMINI_API_KEY_2, GEMINI_API_KEY_3]
   independent_projects: true
   project_quota_failover: true
   project_overload_failover: true
@@ -13,6 +13,9 @@ llm:
     GEMINI_API_KEY: key_1
     GEMINI_API_KEY_2: key_2
     GEMINI_API_KEY_3: key_3
+    GEMINI_API_KEY_4: key_4
+    GEMINI_API_KEY_5: key_5
+    GEMINI_API_KEY_6: key_6
   timeout_seconds: 60
   max_retries: 0
   json_mode: native

@@ -313,14 +313,21 @@ def test_project_failover_does_not_repeat_unknown_timeout_outcome(tmp_path,monke
     client.close()
 
 
-def test_three_project_profile_enables_bounded_overload_recovery(tmp_path):
+def test_configured_project_profile_enables_bounded_overload_recovery(tmp_path):
     from campusai.llm.factory import create_llm
     client=create_llm('configs/free_multi_project.yaml',
         {name:'unit-secret-'+str(i) for i,name in enumerate(
-            ['GEMINI_API_KEY','GEMINI_API_KEY_2','GEMINI_API_KEY_3'])},state_root=tmp_path)
-    assert client.project_router.project_count==3
+            ['GEMINI_API_KEY','GEMINI_API_KEY_2','GEMINI_API_KEY_3',
+             'GEMINI_API_KEY_4','GEMINI_API_KEY_5','GEMINI_API_KEY_6'])},state_root=tmp_path)
+    assert client.project_router.project_count==6
     assert client.project_overload_failover and client.project_failover_window_seconds==10
     assert client.max_retries==0
+    sequence=[]
+    for _ in range(12):
+        route=client.project_router.route(project_request(client),60)
+        sequence.append(route.reference);route.circuit.abandon(route.generation)
+    assert sequence==['GEMINI_API_KEY_4','GEMINI_API_KEY_5','GEMINI_API_KEY_6',
+                       'GEMINI_API_KEY','GEMINI_API_KEY_2','GEMINI_API_KEY_3']*2
     client.close()
 
 
@@ -360,6 +367,20 @@ def test_local_app_selects_three_project_rotation_when_all_distinct_keys_exist(t
     assert str(_default_llm_profile(tmp_path, pool)) == multi
     assert str(_default_llm_profile(tmp_path, {**pool, 'GEMINI_API_KEY_3': ''})) == single
     assert str(_default_llm_profile(tmp_path, {**pool, 'GEMINI_API_KEY_2': pool['GEMINI_API_KEY']})) == single
+
+
+def test_local_profile_discovers_all_six_explicit_credential_slots(tmp_path):
+    from pathlib import Path
+    configs=tmp_path/'configs';configs.mkdir()
+    (configs/'free_llm.yaml').write_text('llm:\n  provider: gemini\n',encoding='utf-8')
+    (configs/'free_multi_project.yaml').write_bytes(Path('configs/free_multi_project.yaml').read_bytes())
+    credentials={f'key_{i}':f'unit-distinct-credential-{i}' for i in range(1,7)}
+    import json
+    (configs/'key.yaml').write_text(json.dumps(credentials),encoding='utf-8')
+    assert _default_llm_profile(tmp_path,{})==configs/'free_multi_project.yaml'
+    credentials['key_6']=credentials['key_1']
+    (configs/'key.yaml').write_text(json.dumps(credentials),encoding='utf-8')
+    assert _default_llm_profile(tmp_path,{})==configs/'free_llm.yaml'
 
 
 def test_previous_course_does_not_expand_to_passed_prerequisite():

@@ -82,7 +82,7 @@ def load_local_env(path: Path, environ: dict) -> None:
 
 
 def _default_llm_profile(root: Path, env: dict) -> Path:
-    """Prefer the three-project Gemini pool when all owner credentials exist."""
+    """Prefer the configured project pool when all owner credentials exist."""
     default = root / 'configs/free_llm.yaml'
     if not default.is_file():
         default = root / 'configs/continuity_llm.yaml'
@@ -96,7 +96,7 @@ def _default_llm_profile(root: Path, env: dict) -> Path:
         pool_config = _read_config(pooled)['llm']
         names = pool_config.get('api_key_envs')
         if (pool_config.get('independent_projects') is not True or not isinstance(names, list)
-                or len(names) != 3 or len(set(names)) != 3
+                or not 2 <= len(names) <= 16 or len(set(names)) != len(names)
                 or any(not isinstance(name, str) for name in names)):
             return default
         values = {name: env.get(name) for name in names}
@@ -155,11 +155,11 @@ def configure_local(root: Path = ROOT, environ: dict | None = None) -> dict:
     if slots is not None:
         references = config.get('api_key_envs')
         if (provider != 'gemini' or config.get('independent_projects') is not True
-                or not isinstance(references, list) or not 2 <= len(references) <= 3
+                or not isinstance(references, list) or not 2 <= len(references) <= 16
                 or any(not isinstance(name, str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', name) for name in references)
                 or references[0] != key_name or len(set(references)) != len(references)
                 or not isinstance(slots, dict) or set(slots) != set(references)
-                or any(not isinstance(value, str) or value not in {'key_1', 'key_2', 'key_3'} for value in slots.values())
+                or any(not isinstance(value, str) or not re.fullmatch(r'key_(?:[1-9]|1[0-6])',value) for value in slots.values())
                 or len(set(slots.values())) != len(slots)):
             raise LocalSetupError('Invalid independent-project local credential bindings.')
         bindings = slots

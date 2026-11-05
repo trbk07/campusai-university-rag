@@ -23,9 +23,9 @@ class ProjectRoute:
 
 class GeminiProjectRouter:
     def __init__(self, credentials, *, health_path, model):
-        if (not isinstance(credentials, list) or not 2 <= len(credentials) <= 3
+        if (not isinstance(credentials, list) or not 2 <= len(credentials) <= 16
                 or not isinstance(model, str) or not re.fullmatch(r'gemini-[A-Za-z0-9._-]+', model)):
-            raise ValueError('independent project routing requires two or three Gemini credentials')
+            raise ValueError('independent project routing requires 2 to 16 Gemini credentials')
         references, secrets, prepared = set(), set(), []
         for entry in credentials:
             if not isinstance(entry, (tuple, list)) or len(entry) != 2:

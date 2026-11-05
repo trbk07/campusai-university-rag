@@ -214,7 +214,7 @@ def create_llm(
     credentials = None
     if 'api_key_envs' in config or 'independent_projects' in config:
         if (provider != 'gemini' or independent_projects is not True
-                or not isinstance(project_keys, list) or not 2 <= len(project_keys) <= 3
+                or not isinstance(project_keys, list) or not 2 <= len(project_keys) <= 16
                 or any(not isinstance(name, str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,63}', name)
                        for name in project_keys)
                 or len(set(project_keys)) != len(project_keys) or project_keys[0] != key_name
