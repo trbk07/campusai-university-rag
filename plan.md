@@ -19,6 +19,8 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
 
 ## Goal RAG-95 — IN PROGRESS
 
+**Chỉ đạo mới 05/11 — khóa câu đã test:** đã lưu112 hash câu hỏi từng được gửi (1.228 bản ghi attempt), gồm cả PASS/FAIL/lỗi provider. Chỉ chấm offline output cũ; không tự mở lại vòng Golden100 hoặc gửi lại câu đã khóa. Các kế hoạch cũ nói chạy lại full100 được thay bằng chỉ đạo này. Lượt live tiếp theo phải dùng câu mới, báo riêng; không ghép điểm nhiều candidate.
+
 Mục tiêu giữ nguyên: Golden đã xác minh **≥95%** và fresh blind holdout
 **≥200 câu /≥95%**,0 hallucination phát hiện,0 nhầm trường/ngành/học kỳ hoặc
 citation giả; không regression P0/P1, mất dữ liệu hay lộ secret.
@@ -139,6 +141,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
 - [x] **FIX-07b — Phục hồi 503 qua pool DONE (code, 05/11):** profile ba project chuyển khi HTTP503, mỗi project tối đa một attempt trong cùng lời gọi; cửa sổ chuyển 10 giây, giảm timeout các lần tiếp theo theo thời gian còn lại. Giữ cooldown project; cả pool quá tải hoặc có Retry-After của dịch vụ thì nghỉ chung. Không lặp key, không chuyển lỗi auth/timeout hoặc stream đã có text; mọi attempt vẫn tính quota. Telemetry ghi slot key cả khi thất bại, không ghi khóa. **430 tests PASS**; kiểm tra API thật bằng prompt JSON đơn giản thành công trong **1,245s**, không phải Golden100 prediction/accuracy. Đã thử native R17 trên `8091416`: telemetry xác nhận cả key_1/key_2/key_3 đều được gọi cho FACT01; 3 HTTP attempts, 0 model success, provider vẫn503 nên dừng ngay. Source/index/baseline đều khớp hash; không retry collector. Đây là xác minh failover thật, chưa phải Golden100 hoàn tất; accuracy đầy đủ vẫn68/100.
 
 - [x] **FIX-07c — Pool sáu key DONE (code, 05/11):** chủ dự án bổ sung key_4–6 và xác nhận mỗi key thuộc project riêng. Router/factory/launcher nhận 2–16 bindings tường minh; profile hiện dùng 6 key, ưu tiên thứ tự4→5→6→1→2→3. Xác minh 6 credential khác nhau mà không ghi giá trị; giữ ngân sách quota/cooldown chung và giới hạn phục hồi đã có. **431 tests PASS**, secret scan PASS. Đo lại Golden100 trên candidate khóa riêng; chưa cập nhật accuracy trước khi đủ kết quả thật.
+
+- [x] **QA-CHAT-EXPORT — DONE (05/11):** đã xuất đúng một tệp local `evaluation/results/campusai_100_remediation_20261103/campusai_gemini_review.txt`, gồm100 case/112 lượt R15 và54 case/54 lượt R19. Đủ câu hỏi, gold gốc, câu trả lời thực tế, citation, lỗi provider và lịch sử CTX; tách rõ hai candidate và46 case chưa có output mới. Không kèm verdict cũ để tránh neo điểm; kiểm tra không chứa credential. Kèm quy trình kiểmPDF và prompt Gemini Chat; chưa nhận kết quả review, không ghi thành nghiệm thu/human approval/fresh holdout. Không gọi API khi xuất file.
 
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
