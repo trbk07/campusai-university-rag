@@ -62,7 +62,9 @@ def _bounds(text):
 
 def _closed_items(body, *, leaf_only=True):
     marker = re.compile(r'(?m)^[ \t]*(?P<label>\d+|[a-zđ])[.)](?!\d)[ \t]*(?:\n[ \t]*)?')
-    markers = list(marker.finditer(body))
+    # Preserve offsets into the original quote while recognizing PDF line
+    # boundaries in LF, CRLF and CR text alike.
+    markers = list(marker.finditer(body.replace('\r', '\n')))
     alphabets=('abcdefghijklmnopqrstuvwxyz','abcdđefghijklmnopqrstuvwxyz')
     def follows(first,second):
         if first.isdigit() and second.isdigit():return int(second)==int(first)+1
@@ -85,13 +87,13 @@ def _closed_items(body, *, leaf_only=True):
                 if parent is None or not follows(parent,end['label']):break
             elif not follows(label,end['label']):break
             item = body[start.end():end.start()].strip()
-            if (len(item) <= 1200 and (not leaf_only or not marker.search(item)) and not re.search(
+            if (len(item) <= 1200 and (not leaf_only or not marker.search(item.replace('\r', '\n'))) and not re.search(
                     r'(?mi)^\s*(?:điều|article|section|chapter)\s+\d+\b', item)
                     # Accent folding conflates "vị đủ" with "ví dụ".
                     # Unaccented example cues need a clause boundary.
                     and not re.search(r'\b(?:ví dụ|giả sử|example|illustration)\b',item,re.I)
                     and not re.search(r'(?:^|[.:;!?])\s*(?:vi du|gia su)\b',folded(item))
-                    and sanitize_evidence_text(item) == item):
+                    and sanitize_evidence_text(item) == '\n'.join(item.splitlines())):
                 yield body[start.start():end.start()].strip(), item
             break
 
@@ -127,12 +129,12 @@ def _closed_star_criteria(body):
     An end-of-chunk or an isolated footnote does not prove completion. Keep
     the original heading, conditions and exact source span together.
     """
-    markers=list(re.finditer(r'(?m)^[ \t]*\*[ \t]+([^\r\n]+)\r?\n',body))
+    markers=list(re.finditer(r'(?m)^[ \t]*\*[ \t]+([^\r\n]+)\n',body.replace('\r','\n')))
     for start,end in zip(markers,markers[1:]):
         if not all(re.search(r'\b(?:dieu kien|conditions?|requirements?)\b',folded(m[1])) for m in [start,end]):
             continue
         quoted=body[start.start():end.start()].strip()
-        if (len(quoted)<=1200 and sanitize_evidence_text(quoted)==quoted
+        if (len(quoted)<=1200 and sanitize_evidence_text(quoted)=='\n'.join(quoted.splitlines())
                 and not re.search(r'\b(?:ví dụ|giả sử|example|illustration)\b',quoted,re.I)
                 and not re.search(r'(?:^|[.:;!?])\s*(?:vi du|gia su)\b',folded(quoted))):
             yield quoted,quoted
@@ -292,6 +294,74 @@ def grade_family_context(question, answer, claims, citations, language):
     return candidates[0] if len(candidates) == 1 else None
 
 
+def application_checklist_context(question, answer, claims, citations, results, language):
+    """Keep an explicitly printed application checklist beside its cited rule.
+
+    Only a closed bullet list immediately following the accepted fact qualifies.
+    Every attachment remains literal source text, checked again by the caller.
+    """
+    candidates=[]
+    for citation in citations:
+        related=[claim for claim in claims if citation.chunk_id in claim.citation_ids]
+        source=next((row for row in results if row.chunk_id==citation.chunk_id),None)
+        if (not related or source is None or source.content_type=='table'
+                or any(claim.citation_ids!=(citation.chunk_id,) for claim in related)):
+            continue
+        body=source_body({'content':source.content},decode_tables=False)
+        lines=[];offset=0
+        for line in body.splitlines(keepends=True):
+            lines.append((offset,offset+len(line),line.strip()))
+            offset+=len(line)
+        for index,(start,end,heading) in enumerate(lines):
+            if not re.fullmatch(r'(?:ho so|giay to|documents|paperwork)\b.{0,120}:',folded(heading)):
+                continue
+            if language.startswith('vi') != bool(re.match(r'(?:ho so|giay to)\b',folded(heading))):
+                continue
+            prefix=body[max(0,start-650):start]
+            if (not all(_compact(claim.text) in _compact(prefix) for claim in related)
+                    or len(_words(heading)&_words(' '.join(c.text for c in related)))<2):
+                continue
+            entries=[];current=[];list_end=end;closed=False
+            for line_start,line_end,text in lines[index+1:]:
+                if not text:continue
+                bullet=re.match(r'^[+•–—-]\s+(.+)',text)
+                if bullet:
+                    if current:
+                        if not current[-1].endswith(('.', ';')):break
+                        entries.append(' '.join(current))
+                    current=[bullet[1]]
+                elif current and not current[-1].endswith(('.', ';')):
+                    current.append(text)
+                else:
+                    if current:entries.append(' '.join(current))
+                    closed=bool(current)
+                    break
+                list_end=line_end
+                if list_end-start>900 or len(entries)>=6:break
+            if not closed or not 2<=len(entries)<=6:continue
+            quote=citation.quote
+            # Retain every existing claim and its exact source proof when
+            # expanding; an unrelated earlier or later rule cannot be dropped.
+            anchor=body.rfind(quote,0,start)
+            if anchor<0:continue
+            quote=body[anchor:list_end].strip()
+            if (len(quote)>1200 or sanitize_evidence_text(quote)!='\n'.join(quote.splitlines())
+                    or re.search(r'\b(?:ví dụ|giả sử|example|illustration)\b',quote,re.I)):
+                continue
+            extras=[text for text in entries if not _covered(text,answer)]
+            if not extras:continue
+            identities={claim.claim_id for claim in claims};extra=[];number=1
+            for text in extras:
+                while 'checklist_context_'+str(number) in identities:number+=1
+                ident='checklist_context_'+str(number);identities.add(ident)
+                extra.append({'claim_id':ident,'text':text,'citation_ids':[citation.chunk_id]})
+            label='Documents listed in the source' if language.startswith('en') else 'Hồ sơ theo tài liệu'
+            expanded=answer+'\n\n'+label+':\n'+'\n'.join('- '+text for text in extras)
+            updated=tuple(replace(ref,quote=quote) if ref.chunk_id==citation.chunk_id else ref for ref in citations)
+            candidates.append((expanded,updated,extra))
+    return candidates[0] if len(candidates)==1 else None
+
+
 def criterion_scope_context(question, answer, claims, citations, results, language):
     """Remind a personal-decision question to check the remaining criteria.
 
@@ -314,7 +384,7 @@ def criterion_scope_context(question, answer, claims, citations, results, langua
         body = source_body({'content': source.content}, decode_tables=False)
         starred=list(_closed_star_criteria(body))
         for quoted, item in starred or _closed_items(body, leaf_only=False):
-            markers = list(re.finditer(r'(?m)^[ \t]*(?:[a-zđ][)]|[-–—•~])\s+', item))
+            markers = list(re.finditer(r'(?m)^[ \t]*(?:[a-zđ][)]|[-–—•~])\s+', item.replace('\r','\n')))
             if len(markers) < 2: continue
             heading = item[:markers[0].start()]
             if not re.search(r'\b(?:dieu kien|danh gia|conditions?|criteria|assessment|eligibility|requirements?)\b', folded(heading)):
@@ -355,6 +425,7 @@ def complete_policy_context(question, answer, claims, citations, results, langua
             r'\b(?:chi (?:can|muon)|only|do not add|khong can|khong neu|dung neu)\b', folded(question)):
         return None
     return (policy_item_context(question, answer, claims, citations, results, language)
+            or application_checklist_context(question, answer, claims, citations, results, language)
             or verified_field_context(question, answer, claims, citations, language)
             or grade_family_context(question, answer, claims, citations, language)
             or criterion_scope_context(question, answer, claims, citations, results, language))

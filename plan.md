@@ -1,13 +1,13 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **04/11/2026 · Asia/Bangkok**.
+Cập nhật: **05/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
 Web app MVP có upload PDF, OCR nền/checkpoint, truy hồi hybrid, hỏi đáp có
 citation, hội thoại và quản lý tài liệu. Phase 5 hoàn tất nội bộ; Phase 7/8
 đóng theo phạm vi Chat-quality của chủ dự án. Chưa nghiệm thu bản phát hành cuối.
-Bộ Golden 100 gần nhất: **69/100** (31 FAIL,0 BLOCKED; lượt trước62/100),
+Bộ Golden 100 gần nhất: **68/100** (32 FAIL,0 BLOCKED; lượt R15),
 chưa đạt mục tiêu ≥95%; không đổi trạng thái
 lịch sử thành một chứng nhận chất lượng tổng quát.
 
@@ -88,6 +88,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   PASS (16,40s)** trên commit `5774b20d`; gold/PDF/index/profile giữ nguyên. Native
   accuracy chưa đo lại.
 - [x] **RAG-95-03f — Literal course-row and conditional-branch extraction DONE (local):** parse course codes, credits, wrapped names, selection groups, and eligibility branches only from exact retrieved source text; require a same-span citation and explicit semester label for semester-scoped group answers. Four general regression tests pass. Full app/Gemini requalification remains under RAG-95-05g.
+- [x] **RAG-95-03g — Giữ điều kiện và hồ sơ đi kèm DONE (local, 05/11):** nhận diện nhóm điều kiện với cả LF/CRLF/CR, giữ nguyên quote gốc và chặn chỉ dẫn chèn trong nguồn; bổ sung danh sách hồ sơ được in ngay sau quy định đã chứng minh, chỉ khi danh sách có ranh giới kết thúc rõ. Replay trace R15 OCR04 giữ lời nhắc kiểm tra các điều kiện khác; NAT17 có đủ đơn, xác nhận cố vấn/Khoa và giấy tờ y tế. Citation được kiểm lại cùng source hash. Đây là replay offline, chưa phải accuracy mới.
+- [x] **RAG-95-02b — Phân biệt phạm vi khóa với chọn phiên bản DONE (local, 05/11):** câu hỏi một quy chế đã chọn có áp dụng cho một khóa hay không được đối chiếu với phạm vi in trong chính nguồn, kể cả khóa nằm ngoài phạm vi. Sửa nhận diện “áp dụng đối với các khóa tuyển sinh từ năm”; chỉ nhận metadata khi quote/trang/chunk khớp. Thiếu bằng chứng, nhiều nguồn, xung đột bộ lọc hoặc yêu cầu hiệu lực hiện hành vẫn chặn. Replay NAT11 đã tìm đúng bằng chứng khóa 2025 trên trang 1. Năm test mới và toàn suite **418 PASS**; chờ native requalification tại 05g.
 - [ ] **RAG-95-04 — OCR:** sửa cơ chế đọc ký hiệu/bảng/scan từ PDF gốc;
   đo lỗi nhận dạng riêng, không đoán ký tự hoặc sửa golden/PDF để tăng điểm.
 - [x] **RAG-95-04a — Chặn dữ liệu lịch OCR bất khả thi DONE:** ngày/tháng/giờ
@@ -131,7 +133,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   thông tin sai ở CTX06-L3; đã sửa code riêng ở03d, không sửa kết quả R13.
 - [x] **RAG-95-05f — Native candidate qualification DONE (`5774b20d`):** R15 ran 112/112 app turns on the current source-identical candidate; **68 PASS/32 FAIL/0 BLOCKED**, with 99 real Gemini inferences and no provider/HTTP errors, timeouts, or cache hits. Three project keys each served 33 successful calls; no retries or quota resets. Citation audit: 98 citations, no page/quote geometry errors. Client p50 4,201 ms, p95 9,221 ms. R14 `provider_unavailable` was an environment/network permission issue and is excluded from score. R15 is developer review only; independent review and fresh holdout remain open.
 - [ ] **RAG-95-05g — Re-measure after root-cause fixes:** prioritize source-grounded reading of curriculum tables/diagrams, conditional branches, multi-course answers, and false abstentions. Keep the R15 score as the last official measurement until the full app/Gemini run is repeated on the frozen candidate. No case-ID or question-specific lookup.
-  Current local work fixes literal course-row parsing, conditional branches, explicit sibling exceptions, and diagram semester scope. Geometry-derived semester metadata survives chunking only when the source group heading and every literal course code are present; retrieval boosts only the matching semester/selection group, with source codes checked. Offline PDF reparse/chunk/hybrid-retrieval/grounding replay on the student handbook places the HK7 audit/controls choice group first and returns its two literal course rows with a physical-page-33 citation. This is local replay, not a new Gemini prediction or Golden100 score. R15 OCR03 also replays with the Rector exception; R15 OCR06 still abstains on strict replay. The full local suite passes (**413 tests**). The official R15 remains **68/100**; independent adjudication and fresh holdout remain open. The parser/chunker version change requires re-ingestion before new geometry metadata is available in existing indexes. Next: requalify the full app/native candidate before updating the score; keep source/gold/review gates separate.
+  Current local work fixes literal course-row parsing, conditional branches, explicit sibling exceptions, and diagram semester scope. Geometry-derived semester metadata survives chunking only when the source group heading and every literal course code are present; retrieval boosts only the matching semester/selection group, with source codes checked. Offline PDF reparse/chunk/hybrid-retrieval/grounding replay on the student handbook places the HK7 audit/controls choice group first and returns its two literal course rows with a physical-page-33 citation. This is local replay, not a new Gemini prediction or Golden100 score. R15 OCR03 also replays with the Rector exception. Replaying OCR06 with the original source hash and resolved evidence IDs retains the obligation to retake the course after another failure. The full local suite passes (**418 tests**). The official R15 remains **68/100**; independent adjudication and fresh holdout remain open. The parser/chunker version change requires re-ingestion before new geometry metadata is available in existing indexes. Next: requalify the full app/native candidate before updating the score; keep source/gold/review gates separate.
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc
   approval của người dùng. Giữ nguyên **≥200 câu /≥95%** và các gate an toàn.
@@ -154,7 +156,7 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
   Worker tạo/chấm gold riêng và bộ200 câu thật **chưa triển khai/chưa chạy**;
   validator không tự tạo receipt hoặc nhận mình đã chứng minh cách ly gold.
 - [ ] **RAG-95-07 — Acceptance:** chỉ DONE khi tất cả gate có bằng chứng PASS.
-  Golden:NOT PASSED69% ở lượt gần nhất. Holdout:NOT RUN;
+  Golden:NOT PASSED68% ở lượt R15 gần nhất. Holdout:NOT RUN;
   các gate an toàn cần kiểm lại đúng
   candidate. FACT15/scope/gold có vấn đề được báo riêng, không sửa hoặc loại ca.
 

@@ -15,7 +15,7 @@ import unicodedata
 from ..ingestion.metadata_detector import _iso_date
 from ..retrieval.tokenizer_vi import source_body
 
-POLICY_VERSION = 'temporal-v1'
+POLICY_VERSION = 'temporal-v2-source-applicability'
 
 
 def fold(value):
@@ -110,7 +110,15 @@ def parse_temporal_intent(question: str, *, reference_date: date, filters=None, 
     year_filter = (filters or {}).get('academic_year')
     if year_filter is not None and any(str(year_filter) != re.search(r'\d{4}', label)[0] for label in labels):
         conflict = True
-    return TemporalIntent('compare' if compare else 'explicit_period', labels, conflict=conflict, period_kind=period_kind)
+    # Asking whether one selected source covers a cohort must also work when
+    # that cohort is *outside* its printed range. Selecting a version for a
+    # cohort is a different request. Source selection never proves coverage.
+    applicability = (source_selected and period_kind == 'cohort' and not compare
+        and re.search(r'\b(?:quy che|quy dinh|quyet dinh|van ban|regulation|policy|document)\b', text)
+        and re.search(r'\b(?:ap dung|co theo|applicable|appl(?:y|ies)|cover(?:s)?)\b', text)
+        and not re.search(r'\b(?:phien ban|version|chon|select|which)\b', text))
+    kind = 'source_applicability' if applicability else 'compare' if compare else 'explicit_period'
+    return TemporalIntent(kind, labels, conflict=conflict, period_kind=period_kind)
 
 
 def verified_documents(records):
@@ -190,7 +198,14 @@ def resolve_temporal(intent: TemporalIntent, records) -> TemporalResolution:
     by_id = {doc['doc_id']: doc for doc in docs}
     selected = []
     groups = []
-    if intent.kind in {'explicit_period', 'compare'}:
+    if intent.kind == 'source_applicability':
+        # Keep the source even for an excluded cohort, so generation can cite
+        # the actual range and explain the exclusion. Missing proof fails shut.
+        if len(docs) != 1 or 'cohort_start' not in docs[0]:
+            return TemporalResolution('insufficient_evidence', 'temporal_cohort_scope_unknown')
+        selected = docs
+        groups = [(docs[0]['doc_id'],)]
+    elif intent.kind in {'explicit_period', 'compare'}:
         for label in intent.versions:
             if intent.period_kind == 'cohort':
                 year = int(re.search(r'\d{4}', label)[0])
@@ -266,14 +281,15 @@ def document_from_items(doc_id, items):
     are admitted only if their exact label/evidence exists in the source body.
     """
     metadata = items[0].get('metadata', {}) if items else {}
-    if items and not metadata.get('temporal'):
+    if items and not (metadata.get('temporal') or {}).get('proofs'):
         # Legacy indexes predate temporal ingest fields. Reuse the current
         # source parser, then require the same exact chunk/page proof below;
         # document titles and benchmark annotations never supply these values.
         from ..ingestion.metadata_detector import detect_metadata
         source = '\n'.join(f"## Page {item['page']}\n{source_body(item, decode_tables=False)}"
                            for item in items)
-        metadata = {**metadata, 'temporal': detect_metadata(source).get('temporal', {})}
+        detected = detect_metadata(source).get('temporal', {})
+        metadata = {**metadata, 'temporal': {**detected, **(metadata.get('temporal') or {})}}
     block = dict(metadata.get('temporal') or {})
     if 'proofs' in block:
         return dict(doc_id=doc_id, items=items, temporal=block)

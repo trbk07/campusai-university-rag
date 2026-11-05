@@ -326,7 +326,12 @@ def detect_metadata(text: str) -> dict:
         }
     temporal_dates = _temporal_date_fields(text)
     temporal_block = {"schema_version": 1, "dates": temporal_dates}
-    cohort = re.search(r'(?:áp dụng|applies).{0,90}?(?:từ\s+khóa(?:\s+tuyển\s+sinh)?(?:\s+năm)?|from\s+(?:cohort|intake))\s*(?:QH[-\s]*)?((?:19|20|21)\d{2})', text, re.I | re.S)
+    cohorts = re.finditer(r'(?:áp dụng|applies).{0,90}?(?:từ\s+khóa(?:\s+tuyển\s+sinh)?(?:\s+năm)?|(?:các\s+)?khóa\s+tuyển\s+sinh\s+từ\s+năm|from\s+(?:cohort|intake))\s*(?:QH[-\s]*)?((?:19|20|21)\d{2})', text, re.I | re.S)
+    cohort = next((match for match in cohorts if not re.search(
+        r'\b(?:khong|chua|not|never)\s+(?:(?:duoc|con)\s+)?$',
+        _fold(text[max(0,match.start()-40):match.start()])) and not re.search(
+        r'\b(?:vi du|gia su|example|illustration)\b',
+        _fold(text[max(0,match.start()-120):match.start()]))), None)
     academic_period = re.search(r'(?:năm học|academic year)\s*[:\-]?\s*((?:19|20|21)\d{2})\s*[-–/]\s*((?:19|20|21)\d{2})', text, re.I)
     for field, match, value in [
         ('cohort_start', cohort, int(cohort[1]) if cohort else None),
