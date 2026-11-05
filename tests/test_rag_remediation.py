@@ -218,6 +218,41 @@ def test_two_requested_scores_are_not_silently_reduced_to_one():
     assert score_input('Quy đổi điểm 7,8 và điểm 8,2 sang hệ4?') is None
 
 
+@pytest.mark.parametrize('question',[
+    'Theo bảng trang 21-22, 7,8 là B+ hay B?',
+    'Theo trang 21–22 của policy-2032.pdf, 7 phẩy 8 là B+ hay B?',
+    'At page 21 to 22 in grades-2032.pdf, 7.8 maps to which letter grade?',
+    'Mục 4.2, Điều 17, bảng 6: điểm 7,8 quy đổi ra hệ 4 thế nào?',
+    'Năm 2032, trang 21, em được 7,8 quy ra hệ 4 là bao nhiêu?',
+])
+def test_grade_score_does_not_include_explicit_source_locators(question):
+    from decimal import Decimal
+    from campusai.rag.grade_ranges import score_input
+    assert score_input(question)==Decimal('7.8')
+
+
+def test_source_locators_do_not_license_guessing_a_score_or_an_ocr_symbol():
+    from decimal import Decimal
+    from campusai.rag.grade_ranges import score_input,proven_grades
+    assert score_input('Trang 21-22: quy đổi điểm sang hệ 4?') is None
+    assert score_input('Trang 21-22: quy đổi 7,8 và 8,2 sang hệ 4?') is None
+    # OCR letters are not evidence for a '+' glyph merely because the range fits.
+    assert not proven_grades('Bt: Từ 7,5 đến 8,0;',Decimal('7.8'))
+    assert proven_grades('B+: Từ 7,5 đến 8,0;',Decimal('7.8'))=={'B+'}
+
+
+def test_grade_conversion_with_page_locator_still_requires_same_source_proof():
+    from campusai.rag.grade_ranges import deterministic_grade_answer
+    first=RetrievalResult('grid','cloud',21,'B+: Từ 7,5 đến 8,0;',
+        'text',1.,'test',{'source_name':'cloud.pdf','page_range':[21,21]})
+    answer=deterministic_grade_answer('Trang 21, 7,8 là B+ hay B?', [first])
+    assert answer and not answer.abstained and 'B+' in answer.answer
+    assert answer.citations[0].quote in first.content
+    conflict=RetrievalResult('other','cloud',22,'B: Từ 7,5 đến 8,0;',
+        'text',1.,'test',{'source_name':'cloud.pdf','page_range':[22,22]})
+    assert deterministic_grade_answer('Trang 21-22, 7,8 là B+ hay B?', [first,conflict]) is None
+
+
 def test_curriculum_scope_uses_local_sections_not_document_wide_metadata():
     from campusai.retrieval.source_scope import curriculum_scope_records
     def item(key,page,text):

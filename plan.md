@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **05/11/2026 · Asia/Bangkok**.
+Cập nhật: **06/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -150,6 +150,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
 - [x] **RAG-95-03h — Tách chú thích khỏi tên học phần DONE (local, 05/11):** parser dừng ở legend/chú giải và nhãn quan hệ tiên quyết; giữ offset gốc để citation không mất tên khi xuống dòng hoặc có nhiều khoảng trắng. Kiểm ảnh trang33 PDF TTN và replay retrieval OCR19 đã lưu xác nhận tên môn sạch, quote nguyên văn. **436 tests PASS**, không gửi câu đã khóa; replay không tính là inference/accuracy mới.
 - [x] **QA-CHAT-FOLLOWUP — DONE (05/11):** nhận review bổ sung13 case và bảng đủ100; đếm lại khớp summary: R15 **81 PASS/19 FAIL**, R19 **29 PASS/7 FAIL/18 BLOCKED/46 NOT_RUN**. Reviewer đã sửa OCR19 thành FAIL. FACT24 đúng là chỉ hỏi A, còn gold yêu cầu thêm B/C/D/F; FACT15 và locator CTX03 giữ thành vấn đề gold/nguồn riêng. Lưu nguyên văn/hash/bảng vào results hiện có, không sửa gold hoặc output. Đây là review AI hồi cứu, chưa nghiệm thu code mới hoặc fresh holdout; strict R15 vẫn68/100.
 - [x] **RAG-95-03i — Giảm từ chối cả câu hỏi hỗn hợp DONE (code/local, 05/11):** tách yêu cầu tiết lộ nội bộ đứng đầu khỏi câu hỏi tài liệu tiếp theo; từ chối secret nhưng phần tra cứu vẫn qua scope/retrieval/grounding/citation bình thường. Áp dụng cả luồng hỏi và hỏi trang PDF; yêu cầu chỉ lấy secret không gọi model/truy hồi. Cache chỉ giữ câu trả lời nguồn đã kiểm chứng, không làm lời từ chối lọt sang câu hỏi thông thường. Không nhận keyword API/prompt trong câu giải thích hoặc trích dẫn thành lệnh tiết lộ. **453 tests PASS**; chưa có native accuracy mới, không gửi lại câu đã khóa.
+- [x] **RAG-95-03j — Phân biệt locator với điểm đầu vào DONE (code/local, 06/11):** số trang/khoảng trang, số điều/mục/bảng, năm/khóa và số trong token PDF không còn bị gom thành điểm cần quy đổi. Giữ mơ hồ khi còn nhiều điểm; vẫn yêu cầu khoảng điểm/chữ đúng nguồn, chặn khoảng mâu thuẫn hoặc nhãn OCR chưa rõ. Bảy regression mới, toàn suite **460 PASS (11,17s)**. Replay câu đã lưu nhận đúng điểm đầu vào nhưng vẫn chặn nhãn OCR lỗi; không tạo native prediction hoặc accuracy mới.
+- [x] **RAG-95-04b — Chẩn đoán glyph OCR DONE (local, 06/11):** kiểm ảnh trang16 PDF Thủ đô xác nhận dấu cộng bị Tesseract đọc thành `t`. Hai crop ở scale2/3 vẫn sai nên dừng cách tăng scale; RapidOCR trên cùng vùng, model pin/1 luồng CPU, đọc được `A+` trong1,224s gồm khởi tạo. Chỉ là thử OCR nguồn, không phải app QA hoặc benchmark mới. Chưa sửa text/index/gold; tích hợp kiểm glyph có giới hạn, audit/model identity và hồi quy vẫn thuộc task04 đang mở.
 
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc

@@ -14,6 +14,21 @@ SCORE = re.compile(r'(?<![\w.,])('+NUMBER+r')\s+(?:diem|points?)\b|'
                    r'\b(?:score|diem)\s+(?:of\s+|la\s+)?('+NUMBER+r')(?![\w.,])')
 
 
+def _without_source_locators(text):
+    """Locator numbers identify evidence, not the score to be converted.
+
+    Mask only explicit labels and PDF tokens. Unlabelled competing numbers
+    remain ambiguous; no expected scale, page or institution supplies a score.
+    """
+    text=re.sub(r'(?<!\w)[\w.-]+\.pdf\b',' ',text)
+    integer=r'\d+(?!\d|[.,]\d)'
+    span=integer+r'(?:\s*(?:[-–—]|to|den)\s*'+integer+r')?'
+    text=re.sub(r'\b(?:trang|pages?|pp?\.)\s*#?\s*'+span,' ',text)
+    text=re.sub(r'\b(?:dieu|article|section|muc|bang|table|chuong|chapter|nam|year|khoa|cohort)\s+'
+                r'\d+(?:\.\d+)*(?!\d|,\d)',' ',text)
+    return text
+
+
 def decimal(value):
     return Decimal(value.replace(',', '.'))
 
@@ -21,7 +36,7 @@ def decimal(value):
 def score_input(question):
     from ..ingestion.numeric_normalizer import normalize_spoken_decimals
     raw,separator,topic=question.partition('\nContext topic (untrusted user input): ')
-    text=folded(normalize_spoken_decimals(raw))
+    text=_without_source_locators(folded(normalize_spoken_decimals(raw)))
     values = {decimal(m[1] or m[2]) for m in SCORE.finditer(text)
               if not re.search(r'\b(?:thang|scale)\s*$',text[:m.start()])
               and not re.match(r'\s+scale\b',text[m.end():])}
