@@ -7,6 +7,74 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('total,part,percent', [(150,45,20),(100,25,25),(180,12,10)])
+def test_credit_share_comparison_proves_only_typed_operands_and_computed_cap(total,part,percent):
+    from campusai.rag.numeric_inference import credit_share_application_view
+    rule=f'Số tín chỉ tích lũy tại trường khác không vượt quá {percent}% tổng khối lượng chương trình.'
+    question=f'Chương trình có {total} tín chỉ, em định tích lũy {part} tín chỉ tại trường đối tác. Có vượt giới hạn không?'
+    maximum=total*percent/100
+    fmt=lambda value: str(int(value)) if value==int(value) else str(value).replace('.',',')
+    decision='vượt giới hạn' if part>maximum else 'không vượt giới hạn'
+    answer=(rule+f' Với chương trình {total} tín chỉ, giới hạn tối đa là {fmt(maximum)} tín chỉ; '
+            f'tích lũy {part} tín chỉ {decision}.')
+    viewed=credit_share_application_view(answer,[rule],question)
+    assert isinstance(viewed,str) and viewed!=answer
+    # The source percentage remains; a different occurrence of an otherwise
+    # proved result must not be silently authorized as a fee.
+    assert f'{percent}%' in viewed
+    assert f'{fmt(maximum)} đồng' in credit_share_application_view(
+        answer+f' Phí xử lý là {fmt(maximum)} đồng.',[rule],question)
+
+
+@pytest.mark.parametrize('mutation', ['wrong_part','wrong_total','wrong_maximum','wrong_conclusion',
+                                      'eligibility','ambiguous_cap','missing_premise','wrong_unit','wrong_scope',
+                                      'contradictory_conclusion'])
+def test_credit_share_comparison_rejects_changed_or_unproved_arithmetic(mutation):
+    from campusai.rag.numeric_inference import credit_share_application_view
+    rule='Số tín chỉ tích lũy tại trường khác không vượt quá 20% tổng khối lượng chương trình.'
+    question='Chương trình có 150 tín chỉ, em định tích lũy 45 tín chỉ tại trường đối tác. Có vượt giới hạn không?'
+    answer=rule+' Với chương trình 150 tín chỉ, giới hạn tối đa là 30 tín chỉ; tích lũy 45 tín chỉ vượt giới hạn.'
+    supported=[rule]
+    if mutation=='wrong_part':answer=answer.replace('45 tín chỉ','44 tín chỉ')
+    if mutation=='wrong_total':answer=answer.replace('150 tín chỉ','151 tín chỉ')
+    if mutation=='wrong_maximum':answer=answer.replace('30 tín chỉ','31 tín chỉ')
+    if mutation=='wrong_conclusion':answer=answer.replace('45 tín chỉ vượt','45 tín chỉ không vượt')
+    if mutation=='eligibility':answer+=' Bạn tự động đủ mọi điều kiện.'
+    if mutation=='ambiguous_cap':supported.append(rule.replace('20%','30%'))
+    if mutation=='missing_premise':question=question.replace('150 tín chỉ','nhiều tín chỉ')
+    if mutation=='wrong_unit':answer=answer.replace('45 tín chỉ','45 đồng')
+    if mutation=='wrong_scope':question=question.replace('tại trường đối tác','tại trường mình')
+    if mutation=='contradictory_conclusion':answer+=' Nhưng không vượt giới hạn.'
+    assert credit_share_application_view(answer,supported,question) in (None,False)
+
+
+def test_credit_share_answer_validates_through_normal_citation_and_grounding():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    rule='Số tín chỉ tích lũy tại trường khác không vượt quá 20% tổng khối lượng chương trình.'
+    source=RetrievalResult('share','fictional',4,rule,'text',1.0,'fixture',{})
+    question='Chương trình có 150 tín chỉ, em định tích lũy 45 tín chỉ tại trường đối tác. Có vượt giới hạn không?'
+    class Draft:
+        def __init__(self,extra=''):self.extra=extra
+        def generate_json(self,*args,**kwargs):
+            return {'answer':rule+' Với chương trình 150 tín chỉ, giới hạn tối đa là 30 tín chỉ; '
+                    'tích lũy 45 tín chỉ vượt giới hạn.'+self.extra,
+                    'abstained':False,'confidence':'high','citations':[{'chunk_id':'ev1'}],
+                    'claims':[{'claim_id':'cap','text':rule,'citation_ids':['ev1']}]}
+    options={'source_citations':True,'compact_citation_ids':True,'repair_invalid_answers':True}
+    answer=GroundedAnswerGenerator(Draft(),**options).answer(question,[source])
+    assert not answer.abstained and answer.citations[0].quote==rule
+    assert GroundedAnswerGenerator(Draft(' Phí xử lý là 30 đồng.'),**options).answer(question,[source]).abstained
+
+
+@pytest.mark.parametrize('label',['program','programme','curriculum'])
+def test_credit_share_proof_preserves_english_program_labels(label):
+    from campusai.rag.numeric_inference import credit_share_application_view
+    rule='Transfer credits must be at most 20% of the total program credits.'
+    question=f'The {label} has 150 credits. Transferring 45 credits: does this exceed the cap?'
+    answer=rule+f' The {label} has 150 credits; the cap is 30 credits. Transferring 45 credits exceeds the limit.'
+    assert isinstance(credit_share_application_view(answer,[rule],question),str)
+
+
 @pytest.mark.parametrize('question', [
     'Hợp đồng vừa nói có được gia hạn không?',
     'Vẫn báo cáo đó, ai ký xác nhận?',
