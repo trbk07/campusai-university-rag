@@ -135,19 +135,26 @@ def roles_covered(roles,claim_texts):
 
 
 def requested_credit_value_present(question, answer):
-    """A credit-count request needs a value, not a repeated empty source heading.
+    """Require the requested credit count/percentage, not an empty heading.
 
     This checks completeness only; normal source alignment must still prove
     the number, unit and subject. Years and article numbers do not count.
     """
     current=folded(question.partition('\nContext topic (untrusted user input): ')[0])
-    if not re.search(r'\b(?:how many(?: [a-z-]+){0,4} credits|bao nhieu tin chi|so tin chi.{0,80}bao nhieu)\b',current):
+    count=bool(re.search(r'\b(?:how many(?: [a-z-]+){0,4} credits|bao nhieu tin chi|'
+                         r'so tin chi[^.!?;]{0,80}bao nhieu(?!\s*(?:phan tram|%)))\b',current))
+    percentage=bool(re.search(r'\b(?:credits?|tin chi|tc)\b',current) and re.search(
+        r'\b(?:what percentage|what percent|bao nhieu\s*(?:phan tram|%))',current))
+    if not count and not percentage:
         return True
     text=folded(answer).strip()
     value=r'[0-9]{1,6}(?:[.,][0-9]{1,3})?'
     unit=r'(?:credits?|tin chi|tc)'
-    return bool(re.fullmatch(value+r'[.!]?',text) or re.search(
-        r'(?<![\w.])'+value+r'\s*'+unit+r'\b|\b'+unit+r'\s*[:=]\s*'+value+r'(?!\w)',text))
+    bare=bool(re.fullmatch(value+r'[.!]?',text))
+    has_count=bool(re.search(r'(?<![\w.])'+value+r'\s*'+unit+r'\b|\b'+unit+r'\s*[:=]\s*'+value+r'(?!\w)',text))
+    has_percentage=bool(re.search(r'(?<![\w.])'+value+r'\s*(?:%|percent\b|phan tram\b)',text))
+    return ((not count or has_count or bare and not percentage)
+            and (not percentage or has_percentage or bare and not count))
 
 
 def personal_event_requires_record(question, results):

@@ -7,6 +7,64 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('question,answer,complete', [
+    ('Số tín chỉ chuyển đổi chiếm bao nhiêu phần trăm?', 'Không quá 35%.', True),
+    ('Giới hạn số tín chỉ được miễn ở mức bao nhiêu phần trăm?', '35 phần trăm.', True),
+    ('What percentage of credits may be transferred?', 'At most 35 percent.', True),
+    ('What percentage of credits may be transferred?', '35', True),
+    ('What percentage of credits may be transferred?', '35 credits.', False),
+    ('Số tín chỉ chuyển đổi chiếm bao nhiêu phần trăm?', 'Giới hạn chuyển đổi tín chỉ.', False),
+    ('Số tín chỉ chuyển đổi là bao nhiêu?', '35%.', False),
+    ('Số tín chỉ chuyển đổi là bao nhiêu?', '35 tín chỉ.', True),
+    ('Bao nhiêu tín chỉ, tương đương bao nhiêu phần trăm?', '7 tín chỉ, tương đương 35%.', True),
+    ('Bao nhiêu tín chỉ, tương đương bao nhiêu phần trăm?', '35%.', False),
+    ('Bao nhiêu tín chỉ, tương đương bao nhiêu phần trăm?', '7 tín chỉ.', False),
+    ('How many credits and what percentage are transferable?', '7 credits (35%).', True),
+    ('How many credits and what percentage are transferable?', '7 credits.', False),
+])
+def test_credit_completeness_preserves_requested_count_and_percentage_units(question, answer, complete):
+    from campusai.rag.request_completeness import requested_credit_value_present
+    assert requested_credit_value_present(question, answer) is complete
+
+
+@pytest.mark.parametrize('predicate', ['tích lũy', 'tích luỹ', 'hoàn thành', 'tham gia', 'nộp', 'đóng', 'nhận'])
+def test_printed_institution_name_stops_before_student_action(predicate):
+    from campusai.rag.presentation import institution_names_supported
+    source=RetrievalResult('policy','fictional',3,'A source policy.', 'text',1.0,'fixture',
+                          {'institution':'TRƯỜNG ĐẠI HỌC SAO BẮC'})
+    assert institution_names_supported(f'Sinh viên Trường Đại học Sao Bắc {predicate} theo quy định.',[source])
+    assert not institution_names_supported(f'Sinh viên Trường Đại học Sao Bắc Quốc Tế {predicate} theo quy định.',[source])
+    assert not institution_names_supported(f'Sinh viên Trường Đại học Gió Tây {predicate} theo quy định.',[source])
+
+
+def test_new_predicate_boundary_cannot_shorten_a_capitalized_invented_name():
+    from campusai.rag.presentation import institution_names_supported
+    source=RetrievalResult('policy','fictional',3,'A source policy.', 'text',1.0,'fixture',
+                          {'institution':'TRƯỜNG ĐẠI HỌC SAO BẮC'})
+    assert not institution_names_supported('Trường Đại học Sao Bắc Nhận Thức có quy định.',[source])
+
+
+@pytest.mark.parametrize('reported,accepted', [('35%',True), ('35 tín chỉ',False), ('36%',False)])
+def test_percentage_answer_still_requires_exact_source_value_and_unit(reported,accepted):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    source_text='Sinh viên Trường Đại học Sao Bắc tích lũy tại trường khác tối đa 35% tổng khối lượng chương trình.'
+    answer_text=source_text.replace('35%',reported)
+    source=RetrievalResult('literal','fictional',3,source_text,'text',1.0,'fixture',
+                          {'institution':'TRƯỜNG ĐẠI HỌC SAO BẮC'})
+    class FixtureDraft:
+        def generate_json(self,*args,**kwargs):
+            return {'answer':answer_text,'abstained':False,'confidence':'high',
+                    'citations':[{'chunk_id':'ev1'}],
+                    'claims':[{'claim_id':'rule','text':answer_text,'citation_ids':['ev1']}]}
+    answer=GroundedAnswerGenerator(FixtureDraft(),source_citations=True,compact_citation_ids=True,
+                                  repair_invalid_answers=True).answer(
+        'Số tín chỉ trao đổi ở Trường Đại học Sao Bắc chiếm bao nhiêu phần trăm?',[source])
+    assert (not answer.abstained) is accepted
+    if accepted:
+        assert len(answer.citations)==1 and answer.citations[0].quote==source_text
+        assert all(claim.status=='supported' for claim in answer.claims)
+
+
 @pytest.fixture
 def sources():
     def doc(ident, text):
