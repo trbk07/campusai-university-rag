@@ -207,6 +207,17 @@ def _recognize_one(path, selected, *, data_dir, scale, timeout_seconds, progress
                         or not math.isfinite(confidence) or not 0 <= confidence <= 1):
                     raise OCRUnavailable('invalid local OCR page result')
                 result = {'page': message['page'], 'text': text, 'confidence': confidence}
+                if 'symbol_review' in message:
+                    from .ocr_symbols import validate_symbol_review
+                    try:
+                        if backend!='tesseract':raise ValueError('unexpected OCR symbol backend')
+                        audit=validate_symbol_review(message['symbol_review'],
+                            (page_bounds or {}).get(message['page']))
+                        if any(text.count(row['replacement'])!=1 for row in audit['corrections']):
+                            raise ValueError('OCR symbol audit not bound to emitted text')
+                        result['symbol_review']=audit
+                    except ValueError as error:
+                        raise OCRUnavailable('invalid local OCR symbol result') from error
                 if 'ocr_tables' in message:
                     from .ocr_tables import validate_tables
                     try:

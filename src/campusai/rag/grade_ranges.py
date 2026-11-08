@@ -172,6 +172,25 @@ def flattened_quote(content,texts,question):
     return quote if proof and _column_claims(proof,texts) and len(quote)<=1200 else None
 
 
+def _literal_grade_ranges(content, value):
+    """Keep the exact printed label/range, not an entire OCR page as a claim."""
+    from .footnotes import _fold_with_offsets
+    try:
+        cells=json.loads(content)
+    except (TypeError,ValueError):
+        cells=None
+    if isinstance(cells,list) and cells and all(isinstance(cell,str) for cell in cells):
+        return [item for cell in cells for item in _literal_grade_ranges(cell,value)]
+    normalized,offsets=_fold_with_offsets(content)
+    found=[]
+    for match in re.finditer(r'(?m)^\s*([ABCDF][+-]?)\s*:\s*(?:(?:tu|from)\s+)?('
+                             +NUMBER+r')\s+(?:den|to)\s+('+NUMBER+r')\s*[;.]?\s*$',normalized,re.I):
+        if decimal(match[2])<=value<=decimal(match[3]):
+            quote=content[offsets[match.start()]:offsets[match.end()-1]+1].strip()
+            found.append((match[1].upper(),quote))
+    return found
+
+
 def proven_grades(content, value):
     proof = table_proof(content, value)
     if proof is not None:
@@ -186,14 +205,7 @@ def proven_grades(content, value):
         cells=None
     if isinstance(cells,list) and cells and all(isinstance(cell,str) for cell in cells):
         return set().union(*(proven_grades(cell,value) for cell in cells))
-    found = set()
-    from .footnotes import _fold_with_offsets
-    for match in re.finditer(r'(?m)^\s*([ABCDF][+-]?)\s*:\s*(?:tu\s+)?('
-                             +NUMBER+r')\s+den\s+('+NUMBER+r')\s*[;.]?\s*$', _fold_with_offsets(content)[0], re.I):
-        # folded() lowers case; use the original grade spelling canonically.
-        if decimal(match[2]) <= value <= decimal(match[3]):
-            found.add(match[1].upper())
-    return found
+    return {grade for grade,_ in _literal_grade_ranges(content,value)}
 
 
 def deterministic_grade_answer(question, results, language='vi', *, calibrator=None):
@@ -236,7 +248,7 @@ def deterministic_grade_answer(question, results, language='vi', *, calibrator=N
                 texts.extend(cell for row in table['rows'] for cell in row if isinstance(cell,str))
             except (ValueError,TypeError,KeyError):pass
             for text in texts:
-                for grade in proven_grades(text,value):ranges.append((grade,result,text))
+                for grade,quote in _literal_grade_ranges(text,value):ranges.append((grade,result,quote))
         text=source_body({'content':result.content});normalized,offsets=_fold_with_offsets(text)
         pattern=r'(?m)^\s*([a-f][+-]?)\s+(?:quy\s+doi\s+thanh|maps?\s+to|converts?\s+to)\s+('+NUMBER+r')\s*[;.]?'
         for match in re.finditer(pattern,normalized,re.I):

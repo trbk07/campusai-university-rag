@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **06/11/2026 · Asia/Bangkok**.
+Cập nhật: **08/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -152,6 +152,8 @@ Mốc xuất phát:48/100 trên `0a96fe4b`;305 tests PASS và một targeted PAS
 - [x] **RAG-95-03i — Giảm từ chối cả câu hỏi hỗn hợp DONE (code/local, 05/11):** tách yêu cầu tiết lộ nội bộ đứng đầu khỏi câu hỏi tài liệu tiếp theo; từ chối secret nhưng phần tra cứu vẫn qua scope/retrieval/grounding/citation bình thường. Áp dụng cả luồng hỏi và hỏi trang PDF; yêu cầu chỉ lấy secret không gọi model/truy hồi. Cache chỉ giữ câu trả lời nguồn đã kiểm chứng, không làm lời từ chối lọt sang câu hỏi thông thường. Không nhận keyword API/prompt trong câu giải thích hoặc trích dẫn thành lệnh tiết lộ. **453 tests PASS**; chưa có native accuracy mới, không gửi lại câu đã khóa.
 - [x] **RAG-95-03j — Phân biệt locator với điểm đầu vào DONE (code/local, 06/11):** số trang/khoảng trang, số điều/mục/bảng, năm/khóa và số trong token PDF không còn bị gom thành điểm cần quy đổi. Giữ mơ hồ khi còn nhiều điểm; vẫn yêu cầu khoảng điểm/chữ đúng nguồn, chặn khoảng mâu thuẫn hoặc nhãn OCR chưa rõ. Bảy regression mới, toàn suite **460 PASS (11,17s)**. Replay câu đã lưu nhận đúng điểm đầu vào nhưng vẫn chặn nhãn OCR lỗi; không tạo native prediction hoặc accuracy mới.
 - [x] **RAG-95-04b — Chẩn đoán glyph OCR DONE (local, 06/11):** kiểm ảnh trang16 PDF Thủ đô xác nhận dấu cộng bị Tesseract đọc thành `t`. Hai crop ở scale2/3 vẫn sai nên dừng cách tăng scale; RapidOCR trên cùng vùng, model pin/1 luồng CPU, đọc được `A+` trong1,224s gồm khởi tạo. Chỉ là thử OCR nguồn, không phải app QA hoặc benchmark mới. Chưa sửa text/index/gold; tích hợp kiểm glyph có giới hạn, audit/model identity và hồi quy vẫn thuộc task04 đang mở.
+- [x] **RAG-95-04c — Kiểm glyph từ raster DONE (code/local, 08/11):** chỉ nạp model OCR phụ đã pin khi có nhãn khoảng điểm bất thường; đọc một khối nhỏ, rồi tối đa một batch dòng còn thiếu. Tối đa4 nhãn/trang,12 nhãn/mỗi process OCR,600.000 pixels/crop; CPU/OpenCV/ONNX giới hạn1, GPU tắt. Chỉ đổi ký hiệu khi hàng, chữ cái và mọi số khớp, confidence≥0,9; giữ nguyên từ/số/dấu câu còn lại. Thiếu model, nhận dạng mâu thuẫn hoặc không chắc thì giữ text gốc. Audit có tọa độ, output đọc độc lập và hash model; giao thức worker kiểm lại thay đổi trước khi nhận. Policy v4 vô hiệu cache OCR cũ nhưng vẫn đọc được journal v3; audit được giữ khi OCR tiếp trang. PDF thật trang16–17 mất **3,874s**, CPU3,656s, RSS worker đỉnh264,81MiB: A+/B+ trang16 đã đọc lại đúng, C+/D+ trang17 vẫn chưa giải quyết. Không sửa PDF/index/gold đã nghiệm thu; chưa phải đo toàn tài liệu hoặc native accuracy.
+- [x] **RAG-95-03k — Claim quy đổi điểm ngắn, đúng nguồn DONE (code/local, 08/11):** khoảng điểm in trong prose/scan được lấy bằng offset nguyên văn của đúng dòng; không gửi cả trang dài làm claim rồi thất bại giới hạn citation. Giữ nguyên proof bảng chữ nhật và chặn khoảng mâu thuẫn; hỗ trợ nhãn khoảng Việt/Anh. Replay local sau OCR trả A+ và citation đúng trang/quote, không gọi Gemini. Toàn bộ **476 tests PASS (10,28s)**; secret scan PASS. Điểm benchmark vẫn giữ riêng strict R15=68/100 và review Chat=81/100.
 
 - [ ] **RAG-95-06 — Blind holdout tự động:** chủ dự án chọn tự động hóa reviewer
   ngày03/11. Dùng **AI review độc lập**, không ghi thành human review hoặc

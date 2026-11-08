@@ -119,8 +119,9 @@ def ocr_pdf(
             progress(0,len(selected))
         if backend in {'tesseract','vietocr'}:
             from .tesseract_process import recognize_pdf
-            options = {'backend':backend,'page_bounds':{n:list(document[n-1].rect*document[n-1].derotation_matrix)
-                       for n in selected}} if backend == 'vietocr' else {}
+            options = {'page_bounds':{n:list(document[n-1].rect*document[n-1].derotation_matrix)
+                       for n in selected}}
+            if backend == 'vietocr':options['backend']=backend
             return recognize_pdf(path, selected, data_dir=data_dir, scale=max(2.,scale) if backend == 'vietocr' else scale,
                                  timeout_seconds=timeout_seconds, progress=progress, include_layout=include_layout,
                                  hybrid_regions=hybrid_regions, **options)

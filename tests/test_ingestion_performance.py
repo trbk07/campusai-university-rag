@@ -16,6 +16,119 @@ def records(count):
             for n in range(1,count+1)]
 
 
+@pytest.mark.parametrize('observed,confidence,accepted',[
+    ('B+: From 6.7 to 7.1;',.94,True),
+    ('B+: From 6,70 to 7,10;',.94,True),
+    ('B+: From 6.7 to 7.2;',.94,False),
+    ('C+: From 6.7 to 7.1;',.94,False),
+    ('B*: From 6.7 to 7.1;',.94,False),
+    ('B+: From 6.7 to 7.1;',.89,False),
+    ('B+: From 6.7 to 7.1;',float('nan'),False),
+    ('B+: From 6.7 to 7.1; 2 conditions.',.94,False),
+])
+def test_symbol_recovery_requires_independent_label_and_all_numbers(observed,confidence,accepted):
+    from campusai.ingestion.ocr_symbols import verified_label_replacement
+    original='Bt: From 6.7 to 7.1;'
+    result=verified_label_replacement(original,observed,confidence)
+    assert result==('B+: From 6.7 to 7.1;' if accepted else None)
+    assert verified_label_replacement('B+: From 6.7 to 7.1;',observed,confidence) is None
+
+
+def test_optional_symbol_model_loads_once_without_gpu_or_rpc_stdout(monkeypatch,capsys):
+    import sys
+    from campusai.ingestion import ocr_assets
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier
+    calls=[]
+    cv_threads=[]
+    def factory(**options):
+        print('optional native library notice')
+        calls.append(options)
+        return object()
+    monkeypatch.setattr(ocr_assets,'validate_rapidocr_assets',lambda:{'package':'unit-model-identity'})
+    monkeypatch.setitem(sys.modules,'rapidocr_onnxruntime',SimpleNamespace(RapidOCR=factory))
+    monkeypatch.setitem(sys.modules,'cv2',SimpleNamespace(setNumThreads=cv_threads.append))
+    reader=RasterLabelVerifier();reader._load();reader._load()
+    assert len(calls)==1 and calls[0]['intra_op_num_threads']==calls[0]['inter_op_num_threads']==1
+    assert cv_threads==[1]
+    assert all(calls[0][name] is False for name in ['det_use_cuda','cls_use_cuda','rec_use_cuda',
+                                                   'det_use_dml','cls_use_dml','rec_use_dml','print_verbose'])
+    captured=capsys.readouterr()
+    assert not captured.out and 'optional native library notice' in captured.err
+
+
+def test_raster_label_recovery_is_lazy_bounded_and_keeps_source_words():
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier,validate_symbol_review
+    from campusai.ingestion.ocr_assets import RAPIDOCR_SHA256
+    class Reader(RasterLabelVerifier):
+        loads=0
+        def _load(self):
+            self.loads+=1
+            self.identity={'package':'rapidocr-onnxruntime1.4.4','model_sha256':dict(RAPIDOCR_SHA256)}
+        def _group(self,page,boxes):
+            return [{'text':'B+: From 6.7 to 7.1;','confidence':.94,'bbox':box} for box in boxes]
+        def _lines(self,*args):raise AssertionError('already verified labels must not be retried')
+    reader=Reader()
+    normal=[{'text':'Ordinary document paragraph.','bbox':[0,0,100,10]}]
+    assert reader.refine(None,normal[0]['text'],normal)==(normal[0]['text'],normal,None)
+    assert reader.loads==0
+    for n in range(3):
+        unique=[{'text':f'Bt: From {6+i}.7 to {7+i}.1;','bbox':[0,i*20,100,i*20+10]} for i in range(6)]
+        reader._group=lambda page,boxes:[{'text':unique[i]['text'].replace('Bt:','B+:'),
+            'confidence':.94,'bbox':box} for i,box in enumerate(boxes)]
+        text='\n'.join(r['text'] for r in unique)
+        changed,lines,audit=reader.refine(None,text,unique)
+        assert len(audit['corrections'])==4
+        assert changed.count('B+:')==4 and changed.count('Bt:')==2
+        assert [r['text'] for r in lines]==changed.splitlines()
+        validate_symbol_review(audit,[0,0,100,110])
+    before=reader.loads
+    _,_,audit=reader.refine(None,text,unique)
+    assert audit['status']=='budget_exhausted' and not audit['corrections'] and reader.loads==before
+
+
+def test_symbol_recovery_missing_model_or_ambiguous_geometry_preserves_primary_ocr():
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier
+    rows=[{'text':'Ct: From 5.2 to 6.1;','bbox':[0,0,100,10]}];text=rows[0]['text']
+    reader=RasterLabelVerifier()
+    reader._load=lambda:(_ for _ in ()).throw(ImportError('optional reader absent'))
+    changed,lines,audit=reader.refine(None,text,rows)
+    assert changed==text and lines==rows and audit['status']=='unavailable'
+    class WrongLine(RasterLabelVerifier):
+        def _load(self):pass
+        def _group(self,*args):return [{'text':'C+: From 5.2 to 6.1;','confidence':.98,'bbox':[0,40,100,50]}]
+        def _lines(self,*args):return []
+    assert WrongLine().refine(None,text,rows)[:2]==(text,rows)
+    assert WrongLine().refine(None,text+'\n'+text,rows)==(text+'\n'+text,rows,None)
+
+
+def test_conflicting_independent_symbol_reads_cannot_be_overridden_by_another_attempt():
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier
+    class Conflicting(RasterLabelVerifier):
+        def _load(self):pass
+        def _group(self,*args):return [
+            {'text':f'C{glyph}: From 5.2 to 6.1;','confidence':.97,'bbox':[0,0,100,10]}
+            for glyph in ['+','-']]
+        def _lines(self,*args):raise AssertionError('conflict is not a missing detection')
+    row={'text':'Ct: From 5.2 to 6.1;','bbox':[0,0,100,10]}
+    text,lines,audit=Conflicting().refine(None,row['text'],[row])
+    assert text==row['text'] and lines==[row] and not audit['corrections']
+
+
+def test_symbol_audit_rejects_forged_replacement_model_or_bounds():
+    from campusai.ingestion.ocr_symbols import SYMBOL_POLICY,validate_symbol_review
+    from campusai.ingestion.ocr_assets import RAPIDOCR_SHA256
+    audit={'policy':SYMBOL_POLICY,'status':'checked',
+           'model_identity':{'package':'rapidocr-onnxruntime1.4.4','model_sha256':dict(RAPIDOCR_SHA256)},
+           'corrections':[{'original':'Dt: From 4.2 to 4.9;','replacement':'D+: From 4.2 to 4.9;',
+              'observed':'D+: From 4.2 to 4.9;','confidence':.94,'bbox':[0,0,100,10]}]}
+    validate_symbol_review(audit,[0,0,100,10])
+    invalid=deepcopy(audit);invalid['corrections'][0]['replacement']='D+: From 4.2 to 5.9;'
+    with pytest.raises(ValueError):validate_symbol_review(invalid,[0,0,100,10])
+    invalid=deepcopy(audit);invalid['model_identity']['model_sha256']={}
+    with pytest.raises(ValueError):validate_symbol_review(invalid,[0,0,100,10])
+    with pytest.raises(ValueError):validate_symbol_review(audit,[0,0,90,10])
+
+
 def tracked_index():
     index=DenseIndex();calls=[]
     def encode(texts):
@@ -570,7 +683,8 @@ def test_ocr_coloured_regions_keep_the_original_rgb_pixels_and_resolution():
         assert pix.samples==original.samples
 
 
-def test_new_ocr_policy_reprocesses_legacy_checkpoints_then_reuses_current_results(tmp_path,monkeypatch):
+@pytest.mark.parametrize('legacy_policy',[None,'gray-small-print-v3'])
+def test_new_ocr_policy_reprocesses_legacy_checkpoints_then_reuses_current_results(tmp_path,monkeypatch,legacy_policy):
     import json,hashlib
     from campusai.ingestion import pipeline
     from campusai.ingestion.ocr import OCRDocument
@@ -589,9 +703,9 @@ def test_new_ocr_policy_reprocesses_legacy_checkpoints_then_reuses_current_resul
     first=pipeline.ingest_document(source,**options)
     meta=store/first.doc_id/'meta.json';pages=meta.with_name('ocr-pages.json')
     saved=json.loads(meta.read_text(encoding='utf-8'));raw=json.loads(pages.read_text(encoding='utf-8'))
-    saved['metadata']['ocr_resume_identity'].pop('render_policy')
-    saved['metadata']['ocr']['model_identity'].pop('render_policy')
-    raw['ocr']['model_identity'].pop('render_policy')
+    for identity in [saved['metadata']['ocr_resume_identity'],saved['metadata']['ocr']['model_identity'],raw['ocr']['model_identity']]:
+        if legacy_policy:identity['render_policy']=legacy_policy
+        else:identity.pop('render_policy')
     encoded=json.dumps(raw).encode('utf-8');pages.write_bytes(encoded)
     saved['metadata']['ocr_pages_sha256']=hashlib.sha256(encoded).hexdigest()
     meta.write_text(json.dumps(saved),encoding='utf-8')
@@ -617,6 +731,13 @@ def test_upgraded_ocr_upload_has_a_new_identity_without_invalidating_the_old_jou
         'text_coverage_version':TEXT_COVERAGE_VERSION,'table_extractor_version':TABLE_EXTRACTOR_VERSION},
         sort_keys=True,separators=(',',':')).encode()).hexdigest()
     assert old in accepted_job_identities('c'*64,options)
+    v3={'source_sha256':'c'*64,'options':prior,'text_coverage_version':TEXT_COVERAGE_VERSION,
+        'table_extractor_version':TABLE_EXTRACTOR_VERSION,'ocr_render_policy':'gray-small-print-v3'}
+    v3_hash=hashlib.sha256(json.dumps(v3,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    assert v3_hash in accepted_job_identities('c'*64,options)
+    assert job_identity('c'*64,options)!=v3_hash
+    v3['ocr_render_policy']='unknown-producer'
+    assert hashlib.sha256(json.dumps(v3,sort_keys=True,separators=(',',':')).encode()).hexdigest() not in accepted_job_identities('c'*64,options)
     assert job_identity('c'*64,options)!=old
     assert job_identity('c'*64,options)==job_identity('c'*64,dict(options))
 
@@ -630,10 +751,13 @@ def test_progressive_ocr_keeps_all_image_audits_and_averages_all_completed_pages
     monkeypatch.setattr(pipeline,'validate_pdf',lambda *a,**k:SimpleNamespace(pages=2,warnings=[]))
     monkeypatch.setattr(pipeline,'parse_pdf',lambda *a,**k:[{'page':n,'text':'','requires_ocr':True,'lines_meta':[]} for n in [1,2]])
     monkeypatch.setattr(pipeline,'extract_tables',lambda *a,**k:[])
+    symbol_review={'policy':'raster-grade-label-v1','status':'unavailable',
+                   'model_identity':None,'corrections':[]}
     def recognize(*a,**options):
         number=options['page_numbers'][0];confidence=.8 if number==1 else 1.
         return OCRDocument([{'page':number,'text':f'Recognized source paragraph on physical page {number}.',
-            'confidence':confidence,**({'image_audit':[{'bbox':[0,0,10,10],'outcome':'recognized'}]}
+            'confidence':confidence,**({'symbol_review':symbol_review} if number==1 else {}),
+            **({'image_audit':[{'bbox':[0,0,10,10],'outcome':'recognized'}]}
                                       if number==1 or second_audit else {})}],
             'tesseract-vie-eng',confidence,.1,{'render_policy':RENDER_POLICY})
     monkeypatch.setattr(pipeline,'_bounded_ocr',recognize)
@@ -643,6 +767,7 @@ def test_progressive_ocr_keeps_all_image_audits_and_averages_all_completed_pages
     complete=pipeline.ingest_document(source,**options)
     assert complete.metadata['ocr']['page_numbers']==[1,2]
     assert [row['page'] for row in complete.metadata['ocr']['image_audits']]==([1,2] if second_audit else [1])
+    assert complete.metadata['ocr']['symbol_reviews']==[{'page':1,'review':symbol_review}]
     assert complete.metadata['ocr']['average_confidence']==.9
 
 

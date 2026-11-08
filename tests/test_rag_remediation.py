@@ -253,6 +253,18 @@ def test_grade_conversion_with_page_locator_still_requires_same_source_proof():
     assert deterministic_grade_answer('Trang 21-22, 7,8 là B+ hay B?', [first,conflict]) is None
 
 
+@pytest.mark.parametrize('literal',['B+: Từ 7,5 đến 8,0;','B+: From 7.5 to 8.0;'])
+def test_long_ocr_page_grade_proof_keeps_literal_field_in_a_bounded_citation(literal):
+    from campusai.rag.grade_ranges import deterministic_grade_answer
+    body=('Unrelated source introduction.\n'*70)+'\n'+literal+'\nB: From 6.5 to 7.4;'
+    row=RetrievalResult('page','cloud',21,body,'text',1.,'test',
+        {'source_name':'cloud.pdf','page_range':[21,21]})
+    result=deterministic_grade_answer('Trang 21, 7,8 là B+ hay B?', [row])
+    assert result and not result.abstained and 'B+' in result.answer
+    assert len(result.citations[0].quote)<=1200 and literal in result.citations[0].quote
+    assert result.citations[0].quote in body
+
+
 def test_curriculum_scope_uses_local_sections_not_document_wide_metadata():
     from campusai.retrieval.source_scope import curriculum_scope_records
     def item(key,page,text):

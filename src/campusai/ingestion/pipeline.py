@@ -358,6 +358,12 @@ def ingest_document(
             if image_audits or previous_audits:
                 by_page = {audit['page']:audit for audit in [*previous_audits, *image_audits]}
                 ocr_info['image_audits'] = [by_page[number] for number in sorted(by_page)]
+            symbol_reviews = [{'page':page['page'],'review':page['symbol_review']}
+                              for page in ocr_result.pages if page.get('symbol_review')]
+            previous_symbols = (resumed_ocr or {}).get('symbol_reviews',[]) if allow_partial else []
+            if symbol_reviews or previous_symbols:
+                by_page = {audit['page']:audit for audit in [*previous_symbols,*symbol_reviews]}
+                ocr_info['symbol_reviews'] = [by_page[number] for number in sorted(by_page)]
             unread_pages = [number for number in unread_pages if number not in recognized]
             report_progress('ocr', 1.0)
         except (OCRLimitExceeded, OCRUnavailable) as error:

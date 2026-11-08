@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 
-RENDER_POLICY = 'gray-small-print-v3'
+RENDER_POLICY = 'gray-small-print-symbol-v4'
 
 
 def paper_like(image):
@@ -76,6 +76,10 @@ def main():
     # Set before importing native libraries, only in this child process.
     os.environ['OMP_THREAD_LIMIT'] = '1'
     os.environ['OMP_NUM_THREADS'] = '1'
+    from contextlib import redirect_stdout
+    # Package/native imports can print notices; stdout is exclusively JSON RPC.
+    with redirect_stdout(sys.stderr):
+        from campusai.ingestion.ocr_symbols import RasterLabelVerifier, has_ambiguous_label
     import pymupdf as fitz
     from PIL import Image
     import tesserocr
@@ -96,6 +100,7 @@ def main():
     with fitz.open(request['path']) as pdf, tesserocr.PyTessBaseAPI(
             path=str(directory), lang='vie+eng', oem=tesserocr.OEM.LSTM_ONLY,
             psm=tesserocr.PSM.AUTO) as api:
+        label_verifier=RasterLabelVerifier()
         emit({'type': 'ready', 'engine': 'tesseract-vie-eng',
               'tesseract_version': tesserocr.tesseract_version().splitlines()[0],
               'render_policy': RENDER_POLICY,
@@ -139,8 +144,10 @@ def main():
                     lines.extend(region_lines)
                     texts.extend(row['text'] for row in region_lines)
                     if region_lines: confidences.append(confidence)
-                emit({'type': 'page', 'page': number, 'text': '\n'.join(texts), 'lines': lines,
+                text,lines,symbol_review=label_verifier.refine(page,'\n'.join(texts),lines)
+                emit({'type': 'page', 'page': number, 'text': text, 'lines': lines,
                       'image_audit': audits,
+                      **({'symbol_review':symbol_review} if symbol_review else {}),
                       'confidence': sum(confidences) / len(confidences) if confidences else 0})
                 continue
             if page.rect.width * page.rect.height * scale ** 2 > 20_000_000:
@@ -151,7 +158,7 @@ def main():
             text = api.GetUTF8Text()
             result = {'type': 'page', 'page': number, 'text': text,
                       'confidence': api.MeanTextConf() / 100}
-            if request.get('include_layout'):
+            if request.get('include_layout') or has_ambiguous_label(text):
                 lines = []
                 iterator = api.GetIterator()
                 if iterator is not None:
@@ -161,7 +168,10 @@ def main():
                         if value and value.strip() and box:
                             rect = fitz.Rect([coordinate / render_scale for coordinate in box]) * page.derotation_matrix
                             lines.append({'text': value.strip(), 'bbox': list(rect)})
-                result['lines'] = lines
+                text,lines,symbol_review=label_verifier.refine(page,text,lines)
+                result['text']=text
+                if symbol_review:result['symbol_review']=symbol_review
+                if request.get('include_layout'):result['lines'] = lines
             emit(result)
         emit({'type': 'done'})
     return 0

@@ -104,6 +104,11 @@ def accepted_job_identities(digest, options):
                 from ..ocr_tables import OCR_TABLE_POLICY
                 previous['ocr_table_policy'] = OCR_TABLE_POLICY
             identities.add(hashlib.sha256(json.dumps(previous,sort_keys=True,separators=(',',':')).encode()).hexdigest())
+            if options.get('enable_ocr') and options.get('ocr_backend')=='tesseract':
+                # The v3 producer remains a valid historical ledger identity.
+                # New v4 work gets a different key and reparses stale OCR text.
+                previous['ocr_render_policy']='gray-small-print-v3'
+                identities.add(hashlib.sha256(json.dumps(previous,sort_keys=True,separators=(',',':')).encode()).hexdigest())
     return identities
 
 
