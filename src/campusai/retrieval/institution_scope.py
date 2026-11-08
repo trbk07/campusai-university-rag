@@ -9,8 +9,14 @@ def folded(text):
     return re.sub(r'[^a-z0-9]+', ' ', ''.join(c for c in text if not unicodedata.combining(c))).strip()
 
 
-_GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung kia do khac'.split())
-_ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl','api','ai','ocr','llm','url','http','https'}
+_GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung kia do khac theo trong according following per'.split())
+_ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl','api','ai','ocr','llm','url','http','https',
+             'json','xml','csv','sql','cpu','gpu','rnn','ncs','nckh','khcn','ctdt',
+             'student','students','course','courses','program','programme','faculty','department',
+             'nganh','khoa','mon'}
+_NUMBER_WORDS = set('mot hai ba bon tu nam sau bay tam chin muoi tram nghin trieu '
+                    'one two three four five six seven eight nine ten hundred thousand million '
+                    'first second third both all every'.split())
 _CONTEXT = '\nContext topic (untrusted user input): '
 
 
@@ -117,9 +123,25 @@ def _references(raw, documents):
     return matches
 
 
+def _reference_words(raw, documents):
+    words=list(re.finditer(r'[^\W_]+',raw))
+    refs=_references(raw,documents)
+    covered=set()
+    for index,word in enumerate(words):
+        if folded(word.group()) in refs:covered.add(index)
+        if index+1<len(words) and folded(word.group())+folded(words[index+1].group()) in refs:
+            covered.update((index,index+1))
+    return words,refs,covered
+
+
 def _unmatched_name(raw, documents):
     # A new named school must not silently inherit the previous school.
     raw = _identity_text(raw)
+    # A degree-level phrase followed by ordinary lowercase prose does not
+    # name a university. Keep a capitalized actual name ("cấp Đại học Sao
+    # Bắc") intact so an unknown institution cannot silently inherit scope.
+    raw=re.sub(r'(?i:\b(?:cấp|cap|bậc|bac|trình độ|trinh do))\s+(?i:đại học|dai hoc)'
+               r'(?=\s+(?:gồm|gom|có|co|phải|phai|được|duoc|thì|thi|trong)\b|\s*$)', ' ',raw)
     for part in re.split(r'\b(?:va|voi|and|versus|vs)\b|[,;]',folded(raw)):
         # "Hiệu trưởng hiện tại" names a role, not a school called Hiện.
         # A following explicit school ("Hiệu trưởng Trường ...") stays intact.
@@ -132,10 +154,18 @@ def _unmatched_name(raw, documents):
         if (named and named[1] not in _GENERIC|{'do','khac','chinh','dao','vua','tu','thac','tien','nhu','the','hop'}
                 and not _references(part,documents)):
             return True
-    acronyms=set(re.findall(r'\b[A-Z]{2,12}\b',raw))
+    # Most requests contain no unknown uppercase abbreviation or start with
+    # an ordinary content question. Avoid rebuilding source-name coverage
+    # for those requests; the result is the same as the final guard below.
+    candidates={a for a in re.findall(r'\b[A-Z]{2,12}\b',raw) if a.casefold() not in _ACADEMIC}
+    if not candidates or not (raw.strip() in candidates or re.match(
+            r'^(?:con|the|vay|o|tai|what about|at)\b',folded(raw))):return False
+    if not _institution_dependent(raw,documents):return False
+    words,_refs,covered=_reference_words(raw,documents)
+    acronyms={word.group() for index,word in enumerate(words)
+              if index not in covered and re.fullmatch(r'[A-Z]{2,12}',word.group())}
     unknown={a for a in acronyms if a.casefold() not in _ACADEMIC and not _references(a,documents)}
-    return bool(unknown and _institution_dependent(raw,documents) and (raw.strip() in unknown or re.match(
-        r'^(?:con|the|vay|o|tai|what about|at)\b',folded(raw))))
+    return bool(unknown)
 
 
 def requested_institution_documents(question, documents):
@@ -269,6 +299,8 @@ def _institution_dependent(question,documents):
         r'phuc khao|phuc tra|hoan thi|thi lai|thi cuoi|ky thi|hoc ky|hoc ki|ky chinh|ky he|'
         r'dang k[yi]|hoc lai|hoc cai thien|hoc truoc|tien quyet|canh bao|tuyen sinh|nhap hoc|'
         r'diem chu|quy doi diem|thoi gian hoc|tuan hoc|'
+        r'so tay|nghien cuu sinh|ncs|hoc vien|tien si|thac si|luan an|luan van|tieu luan|chuyen de|hoi dong|'
+        r'handbook|doctoral|phd|masters?|thesis|dissertation|supervisor|committee|'
         r'rules?|regulations?|polic(?:y|ies)|credits?|tuition|scholarship|graduation|admission|register|registration|prerequisite|exam|semester)\b|'
         r'\b(?:\d+(?:[.,]\d+)?|may|bao nhieu)\s+(?:tin|diem)\b|\bdiem\s+[a-f][+-]?(?!\w)',value)
         or re.search(r'\bthi\b',question,re.I))
@@ -340,23 +372,34 @@ def unresolved_institution_reference(question,documents):
     raw = _identity_text(raw)
     contextual=bool(separator and _institution_dependent(topic,documents))
     if not (_institution_dependent(raw,documents) or contextual or _references(raw,documents)):return ''
-    words=list(re.finditer(r'[^\W_]+',raw))
-    refs=_references(raw,documents)
-    covered=set()
-    for index,word in enumerate(words):
-        if folded(word.group()) in refs:covered.add(index)
-        if index+1<len(words) and folded(word.group())+folded(words[index+1].group()) in refs:
-            covered.update((index,index+1))
+    words,refs,covered=_reference_words(raw,documents)
     for index,word in enumerate(words):
         if index in covered:continue
         token=word.group();value=folded(token)
-        if (not re.fullmatch(r'[A-Za-z]{3,12}',token) or value in _GENERIC|_ACADEMIC
-                or _references(token,documents)):
-            continue
         previous=folded(words[index-1].group()) if index else ''
         following=folded(words[index+1].group()) if index+1<len(words) else ''
-        named=previous in {'truong','university','college','institute'} or (previous in {'cua','tai','o','ben','about','at','of','for'}
+        explicit_name=previous in {'truong','university','college','institute'}
+        if (not re.fullmatch(r'[A-Za-z]{3,12}',token) or value in _GENERIC|_ACADEMIC
+                or value in _NUMBER_WORDS and not explicit_name
+                or _references(token,documents)):
+            continue
+        named=explicit_name or (previous in {'cua','tai','o','ben','about','at','of','for'}
                and following in {'','la','co','thi','nhu','quy','yeu','hoc','can','duoc','ap','rules','policy'})
+        # A policy/handbook attribution or a leading organisation predicate
+        # can carry an unfamiliar abbreviation inside a complete question.
+        # This only asks the existing verifier; it never selects a school.
+        prefix=folded(raw[:word.start()])
+        attributed=bool(re.search(r'\b(?:quy che|quy dinh|so tay|regulations?|policy|handbook)'
+                                  r'(?:\s+(?:cua|of|at))?\s*$',prefix))
+        leading=(index==0 and following in {'yeu','quy','cho','co','khong','tuyen','ap',
+                                            'requires','require','allows','stipulates','regulates'})
+        placed=(previous in {'cua','tai','o','ben','about','at','of','for'} and (
+            any(c.isupper() for c in token) or raw[word.end():].lstrip().startswith((',',':'))))
+        located=bool(re.search(r'\b(?:trang|pages?)\s+(?:pdf\s+)?\d+'
+                              r'(?:\s*[-–]\s*\d+)?(?:\s+(?:cua|of))?\s*$',prefix))
+        located=located and (any(c.isupper() for c in token)
+                            or raw[word.end():].lstrip().startswith((',',':')))
+        named=named or attributed or leading or placed or located
         named=named or contextual and previous in {'con','the','vay'} and following in {'','thi','sao'}
         # Capitalization alone is not a school cue (API, SCAN, JSON, etc.).
         # A bare reply, explicit institution preposition or comparison arm is.
