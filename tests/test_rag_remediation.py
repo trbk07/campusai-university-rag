@@ -7,6 +7,126 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('text', [
+    'Luật số 34/2018/QH14 về giáo dục đại học.',
+    'Các học phần: sinh viên đăng ký trong năm học.',
+    'Catalog\nABC101 | First course | 3 credits\nXYZ202 | Second course | 2 credits',
+    'Không có môn học nào. Mã báo cáo AB123.',
+    'Course code: ABC101\nCourse code: XYZ202',
+])
+def test_document_metadata_does_not_promote_prose_or_incidental_codes(text):
+    from campusai.ingestion.metadata_detector import detect_metadata
+    result = detect_metadata(text)
+    assert result['course'] is None and result['course_code'] is None
+    assert result['course_confidence'] == 0
+
+
+@pytest.mark.parametrize('text,expected', [
+    ('Mã học phần: PH1234', 'PH1234'), ('Course code: A1', 'A1'),
+    ('COURSE: CS-321', 'CS-321'), ('Course code - ME_123', 'ME_123'),
+])
+def test_document_course_requires_an_unambiguous_explicit_code_label(text, expected):
+    from campusai.ingestion.metadata_detector import detect_metadata
+    result = detect_metadata('## Page 3\n' + text)
+    assert result['course_code'] == expected
+    assert expected in result['course_code_evidence']
+    assert result['course_code_source_page'] == 3
+
+
+@pytest.mark.parametrize('text,expected', [
+    ('## Page 1\nTRƯỜNG ĐHSP MỸ THUẬT NAM SƠN\n## Page 2\nEmail: art@school-TT.edu',
+     'TRƯỜNG ĐHSP MỸ THUẬT NAM SƠN'),
+    ('## Page 1\nSổ tay\n## Page 2\nTRƯỜNG ĐẠI HỌC NAM SƠN\nNhà trường. Ngoài cách đăng ký bằng phần mềm.',
+     'TRƯỜNG ĐẠI HỌC NAM SƠN'),
+    ('Quy chế đào tạo trình độ đại học của Trường Đại học Nam Sơn cung cấp cho sinh viên.',
+     'Trường Đại học Nam Sơn'),
+    ('## Page 1\nStudent handbook\n## Page 2\nNorthern Valley University\n',
+     'Northern Valley University'),
+    ('Institution: northern valley university\nPolicy details.', 'northern valley university'),
+    ('Báo cáo thiết bị. Nhà trường - Ngoài cách sử dụng. ABC123.', None),
+])
+def test_institution_metadata_comes_from_a_name_not_a_suffix_or_predicate(text, expected):
+    from campusai.ingestion.metadata_detector import detect_metadata
+    result = detect_metadata(text)
+    assert result['institution'] == expected
+    if expected:
+        assert expected in result['institution_evidence']
+
+
+def test_metadata_rejects_form_placeholders_and_prose_versions():
+    from campusai.ingestion.metadata_detector import detect_metadata
+    result = detect_metadata('Khoa: ………………………\nNgành: ........\n'
+                             'Sinh viên áp dụng phiên bản chương trình của năm đó.')
+    assert all(result[field] is None for field in ['faculty', 'program', 'version'])
+    assert detect_metadata('Version: 2.0')['version'] == '2.0'
+
+
+def test_metadata_only_cache_upgrade_preserves_pdf_bodies_without_repeating_extraction(tmp_path, monkeypatch):
+    import fitz
+    import json
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.metadata_detector import METADATA_VERSION
+    source = tmp_path / 'guide.pdf'
+    with fitz.open() as pdf:
+        page = pdf.new_page()
+        page.insert_text((60, 60), 'Northern Valley University\nStudent policy\nStudents must apply before term begins.')
+        pdf.save(source)
+    real_detect = pipeline.detect_metadata
+    def old_detect(text):
+        result = real_detect(text)
+        result.update(institution='TT', course='QH14', course_code='QH14')
+        result.pop('metadata_detector_version')
+        return result
+    monkeypatch.setattr(pipeline, 'detect_metadata', old_detect)
+    old = pipeline.ingest_document(source, store_dir=tmp_path/'store')
+    bodies = [chunk.content.partition('\n')[2] for chunk in old.chunks]
+    monkeypatch.setattr(pipeline, 'detect_metadata', real_detect)
+    def forbidden(*args, **kwargs):
+        pytest.fail('metadata-only migration must not repeat PDF/OCR extraction')
+    monkeypatch.setattr(pipeline, 'parse_pdf', forbidden)
+    monkeypatch.setattr(pipeline, 'ocr_pdf', forbidden)
+    fresh = pipeline.ingest_document(source, store_dir=tmp_path/'store')
+    assert fresh.cached and fresh.doc_id == old.doc_id
+    assert fresh.metadata['metadata_detector_version'] == METADATA_VERSION
+    assert fresh.metadata['institution'] == 'Northern Valley University'
+    assert fresh.metadata['course_code'] is None
+    assert bodies == [chunk.content.partition('\n')[2] for chunk in fresh.chunks]
+    assert [chunk.citation for chunk in fresh.chunks] == [chunk.citation for chunk in old.chunks]
+    assert all(chunk.metadata['course_code'] is None for chunk in fresh.chunks)
+    saved = json.loads((tmp_path/'store'/old.doc_id/'meta.json').read_text(encoding='utf-8'))
+    assert saved['chunks'][0]['metadata']['institution'] == 'Northern Valley University'
+
+
+def test_metadata_cache_refresh_rejects_unproved_context_or_missing_pages(tmp_path):
+    from campusai.ingestion.pipeline import _refresh_cached_metadata
+    from campusai.ingestion.chunker import make_chunks
+    from campusai.ingestion.metadata_detector import detect_metadata
+    from campusai.schemas import Document
+    text = '## Page 1\nNorthern Valley University\nStudent policy.'
+    parsed = tmp_path/'parsed.md'
+    parsed.write_text(text, encoding='utf-8')
+    metadata = detect_metadata(text)
+    chunks = make_chunks([{'page':1, 'text':'Student policy.'}], 'source', metadata)
+    document = Document('source', 'source.pdf', 2, metadata=metadata, chunks=chunks, status='succeeded')
+    assert _refresh_cached_metadata(document, parsed) is None
+    document.page_count = 1
+    chunks[0].content = '[Unrecognized context]\n\nStudent policy.'
+    original = document.to_dict()
+    assert _refresh_cached_metadata(document, parsed) is None
+    assert document.to_dict() == original
+
+
+def test_background_job_identity_versions_metadata_and_chunks_but_keeps_old_journals_readable():
+    from campusai.ingestion.background.state import (accepted_job_identities, job_identity,
+        normalize_options, _producer_identity)
+    options = normalize_options({})
+    digest = 'a'*64
+    historical = _producer_identity(digest, options, current=False)
+    current = job_identity(digest, options)
+    assert current != historical
+    assert {current, historical} <= accepted_job_identities(digest, options)
+
+
 @pytest.mark.parametrize('question',[
     'Ai tiếp nhận đơn xin nghỉ học?', 'Việc đổi chương trình cần ai đồng ý?',
     'trach nhiem nay thuoc ve ai?', 'Đơn vị nào và ai đánh giá kết quả?',
