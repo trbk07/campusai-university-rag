@@ -354,14 +354,25 @@ def estimate_tokens(text: str) -> int:
     return max(1, math.ceil(len(text) / 4)) if text else 0
 
 
+def _printed_section(result, content):
+    return " > ".join(' '.join(label.split()) for label in result.metadata.get("heading_path", [])
+                     if isinstance(label,str) and label.strip() and label.strip() in content)
+
+
+def _visible_context_metadata(result, metadata, content):
+    # Windowing/truncation may remove a heading that occurred elsewhere in
+    # the original chunk. Never promote that absent label over the text the
+    # model can actually inspect. This can only shrink the reserved header.
+    return re.sub(r'(?m)^section=[^\n]*$',lambda _: 'section='+_printed_section(result,content),metadata)
+
+
 def _context_block(result: RetrievalResult, evidence_ids=None) -> tuple[str, str]:
     page_range = result.metadata.get("page_range", [result.page, result.page])
     source_name = result.metadata.get("source_name") or result.doc_id
     # Inferred headings can propagate across table/semester boundaries.
     # Expose a heading only when it is printed in this actual source chunk.
     body = source_body({"content": result.content}, decode_tables=False)
-    section = " > ".join(label for label in result.metadata.get("heading_path", [])
-                         if isinstance(label,str) and label.strip() and label.strip() in body)
+    section = _printed_section(result,body)
     table_line = f"table_id={result.metadata.get('table_id')}\n" if result.metadata.get("table_id") else ""
     identity_line = ''
     proof = result.metadata.get('institution_proof')
@@ -526,7 +537,7 @@ def build_context(
                     content = verbatim_window(content, question, limit - len(marker),
                         registration=result.retriever=='source_registration_fields',
                         anchors=result.metadata.get('source_field_anchors',())) + marker
-                blocks.append(metadata + content)
+                blocks.append(_visible_context_metadata(result,metadata,content) + content)
             return '\n\n'.join(blocks)
         # Oversized tables/headers retain the established bounded serializer.
     blocks: list[str] = []
@@ -547,7 +558,7 @@ def build_context(
             excerpt += marker
         else:
             excerpt = content
-        block = metadata + excerpt
+        block = _visible_context_metadata(result,metadata,excerpt) + excerpt
         blocks.append(block)
         used_chars += separator_chars + len(block)
     return "\n\n".join(blocks)

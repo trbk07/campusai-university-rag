@@ -23,6 +23,22 @@ def verbatim_window(text: str, question: str, limit: int, *, registration: bool 
     if spans and len(spans)==len(anchors):
         begin,end=min(a for a,b in spans),max(b for a,b in spans)
         if end-begin<=limit:
+            # A printed list heading can be farther away than a fixed
+            # look-behind. Preserve it with its anchored field when it fits;
+            # otherwise a thesis/fee/eligibility value can look like a rule
+            # for the next section. This is contiguous source text, not a
+            # generated or inherited metadata heading.
+            headings=list(re.finditer(r'(?m)^[ \t]*(?:[*•][ \t]+)?[^\r\n:]{3,160}:[ \t]*\r?$',text))
+            preceding=[h for h in headings if h.end()<=begin and end-h.start()<=limit]
+            if preceding:
+                heading=preceding[-1]
+                following=next((h.start() for h in headings if h.start()>=end),len(text))
+                if following-heading.start()<=limit:
+                    return text[heading.start():following].rstrip()
+                finish=min(len(text),heading.start()+limit)
+                boundary=text.rfind('\n',end,finish)
+                if boundary>=end:finish=boundary
+                return text[heading.start():finish]
             # Keep a little governing context before the field, then use
             # remaining space for its following conditions. Starting at
             # end-limit unnecessarily filled the window with earlier prose.

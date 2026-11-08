@@ -1009,6 +1009,48 @@ def test_model_context_does_not_promote_inferred_heading_to_semester_evidence():
     assert body==row.content
 
 
+def test_anchored_excerpt_keeps_the_governing_heading_beyond_a_fixed_lookbehind():
+    from campusai.rag.source_windows import verbatim_window
+    heading='* Eligibility for the final project:'
+    anchor='The cumulative average must be at least 3.31.'
+    requirements='- The applicant must complete the preceding study stage.\n'*4
+    block=heading+'\n'+requirements+'- '+anchor+'\n- A supervisor must be available.\n'
+    text=('Unrelated administrative text.\n'*35)+block+'* Eligibility for alternative work:\nA separate rule applies.'
+    window=verbatim_window(text,'Compare cumulative-average thresholds for final projects.',
+                           len(block)+20,anchors=[anchor])
+    assert window in text and heading in window and anchor in window
+    assert 'A supervisor must be available.' in window
+    assert '* Eligibility for alternative work:' not in window
+
+
+@pytest.mark.parametrize('balanced',[False,True])
+def test_context_section_metadata_describes_the_visible_excerpt_only(balanced):
+    from campusai.rag.grounding import build_context
+    anchor='The cumulative average must be at least 3.31.'
+    heading='* Eligibility for the final project:'
+    unrelated='Article 28. Disciplinary review'
+    body=(heading+'\n- '+anchor+'\n- A supervisor must be available.\n'
+          '* Eligibility for alternative work:\n'+('Other source paragraphs.\n'*70)+'\n'+unrelated)
+    row=RetrievalResult('policy','cloud',8,body,'text',1.,'source_policy_fields',
+        {'heading_path':[unrelated,heading],'source_field_anchors':[anchor]})
+    context=build_context([row],650,question='Compare final-project cumulative-average thresholds.',balanced=balanced)
+    meta,_,excerpt=context.partition('content:\n')
+    assert len(context)<=650 and unrelated not in meta
+    assert heading in meta and heading in excerpt and anchor in excerpt
+    assert '[source_excerpt=true]' in context if balanced else '[truncated=true]' in context
+
+
+def test_all_typed_field_alternatives_remain_visible_across_printed_headings():
+    from campusai.rag.source_windows import verbatim_window
+    first='The minimum completion workload is 81 credits.'
+    second='The minimum completion workload is 96 credits.'
+    text=('Unrelated preface.\n'*40)+'First program:\n'+first+'\nSecond program:\n'+second+'\nThird program:\nOther rules.'
+    window=verbatim_window(text,'Compare completion workload.',250,anchors=[first,second])
+    assert window in text and first in window and second in window
+    assert 'First program:' in window and 'Second program:' in window
+    assert 'Third program:' not in window
+
+
 def test_eligibility_scope_guidance_uses_closed_dash_group_not_single_threshold():
     from campusai.rag.policy_context import criterion_scope_context
     from campusai.rag.grounding import Citation
