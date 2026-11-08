@@ -7,6 +7,94 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('question',[
+    'Ai tiếp nhận đơn xin nghỉ học?', 'Việc đổi chương trình cần ai đồng ý?',
+    'trach nhiem nay thuoc ve ai?', 'Đơn vị nào và ai đánh giá kết quả?',
+])
+def test_person_question_does_not_expand_to_artificial_intelligence(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    expanded=normalize_retrieval_query(question)
+    assert 'artificial intelligence' not in expanded and question in expanded
+
+
+@pytest.mark.parametrize('question', ['Môn AI có nội dung gì?', 'ngành ai học gì?', 'What is AI?', 'Artificial intelligence course'])
+def test_explicit_technical_ai_keeps_bilingual_recall(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    assert 'trí tuệ nhân tạo artificial intelligence' in normalize_retrieval_query(question)
+
+
+@pytest.mark.parametrize('question',[
+    'Ai đồng ý đơn xin học lại?', 'Đóng học phí có bắt buộc không?',
+    'nguoi hoc can ai dong y?', 'Đồng thời cần giấy tờ gì?',
+])
+def test_consent_or_payment_does_not_add_registration_deadline(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    assert 'deadline' not in normalize_retrieval_query(question)
+
+
+@pytest.mark.parametrize('question', ['Khi nào đóng cổng đăng ký?', 'cong dang ky se dong khi nao?', 'What is the deadline?'])
+def test_explicit_registration_closing_retains_deadline_recall(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    assert 'deadline' in normalize_retrieval_query(question)
+
+
+@pytest.mark.parametrize('question',[
+    'Đăng ký tạm trú cần gì?', 'dang ky tam tru co bat buoc khong?',
+    'Đăng ký hai học phần.', 'Hồ sơ cần chữ ký tám người?', 'ký hai bản hợp đồng',
+])
+def test_registration_or_signature_does_not_create_semester_number(question):
+    from campusai.retrieval.tokenizer_vi import requested_semesters,normalize_retrieval_query
+    assert requested_semesters(question)==()
+    assert 'semester ' not in normalize_retrieval_query(question)
+
+
+@pytest.mark.parametrize('question,expected',[
+    ('Đăng ký học kỳ tám ra sao?',(8,)), ('Học kì 3 có gì?',(3,)),
+    ('hoc ki bon',(4,)), ('kỳ tám',(8,)), ('HK7',(7,)), ('semester 2',(2,)),
+])
+def test_explicit_semester_survives_registration_disambiguation(question,expected):
+    from campusai.retrieval.tokenizer_vi import requested_semesters
+    assert requested_semesters(question)==expected
+
+
+def test_literal_topic_preference_uses_source_body_and_preserves_scores():
+    from campusai.retrieval.hybrid import _literal_phrase_priority
+    records={'generic':{'content':'Thông tin người học đăng ký.', 'metadata':{'topic':'maternity leave'}},
+             'specific':{'content':'The policy governs maternity leave applications.'},
+             'irrelevant':{'content':'Artificial intelligence course.'}}
+    ranked=[('generic',0.9),('irrelevant',0.8),('specific',0.2)]
+    result=_literal_phrase_priority('Who approves maternity leave?',ranked,records)
+    assert result==[('specific',0.2),('generic',0.9),('irrelevant',0.8)]
+    assert ranked[0][0]=='generic'
+
+
+def test_literal_topic_does_not_join_numbers_or_sentences_or_import_context():
+    from campusai.retrieval.hybrid import _literal_phrase_priority
+    ranked=[('first',0.9),('other',0.2)]
+    records={'first':{'content':'General material.'},'other':{'content':'maternity leave'}}
+    for question in ['maternity 4 leave', 'maternity. Leave',
+                     'Who approves?\nContext topic (untrusted user input): maternity leave']:
+        assert _literal_phrase_priority(question,ranked,records)==ranked
+
+
+def test_literal_topic_keeps_short_vietnamese_content_words_not_question_fillers():
+    from campusai.retrieval.hybrid import _literal_phrase_priority
+    ranked=[('general',0.9),('topic',0.2)]
+    records={'general':{'content':'Đánh giá bài tập. Có bao nhiêu sinh viên?'},
+             'topic':{'content':'Đánh giá đề tài nghiên cứu.'}}
+    assert _literal_phrase_priority('Ai đánh giá đề tài?',ranked,records)[0]==('topic',0.2)
+    assert _literal_phrase_priority('Có bao nhiêu?',ranked,records)==ranked
+
+
+def test_literal_topic_preference_cannot_override_calibrated_policies():
+    from campusai.retrieval.hybrid import HybridRetriever
+    assert not HybridRetriever('unused-test-index').prefer_literal_phrases
+    with pytest.raises(ValueError,match='not a calibrated'):
+        HybridRetriever('unused-test-index',prefer_literal_phrases=True,policies={'frozen':object()})
+    with pytest.raises(ValueError,match='not a calibrated'):
+        HybridRetriever('unused-test-index',prefer_literal_phrases=True,phase7_enabled=True)
+
+
 @pytest.mark.parametrize('question,answer,complete', [
     ('Số tín chỉ chuyển đổi chiếm bao nhiêu phần trăm?', 'Không quá 35%.', True),
     ('Giới hạn số tín chỉ được miễn ở mức bao nhiêu phần trăm?', '35 phần trăm.', True),

@@ -7,6 +7,7 @@ import hashlib
 import math
 import re
 import time
+import unicodedata
 from dataclasses import dataclass, replace
 from collections import OrderedDict
 from pathlib import Path
@@ -25,6 +26,32 @@ from .negative import negative_query_reason
 from .rerank_policy import Phase7Policy
 from .cross_encoder_provider import RerankCandidate, RerankerProvider, RerankerUnavailable
 from .tokenizer_vi import normalize_retrieval_query, normalized_tokens, retrieval_text, corpus_typo_expansion, source_body
+
+
+def _literal_phrase_priority(query, ranked, records):
+    """Keep a rare literal topic in source text ahead of generic similarity.
+
+    Only reorder retrieved candidates; generated metadata/aliases do not
+    establish an anchor, and fusion scores/thresholds remain unchanged.
+    """
+    def canonical(text):
+        text=unicodedata.normalize('NFD',text.casefold()).replace('đ','d')
+        return ' '.join(''.join(c for c in text if not unicodedata.combining(c)).split())
+    stop=set('cho em hoi minh toi ban nay do thi can duoc co cua la va ai voi trong theo phai ve khi sinh vien nguoi hoc quy dinh bao nhieu may gi nao sao the what who which how many does is are of and to my for'.split())
+    original=canonical(query.partition('\nContext topic (untrusted user input): ')[0])
+    words=list(re.finditer(r'[^\W\d_]+',original))
+    phrases={a[0]+' '+b[0] for a,b in zip(words,words[1:])
+             if original[a.end():b.start()].isspace()
+             and all(len(word)>=2 and word not in stop for word in (a[0],b[0]))}
+    if not phrases or not ranked:return ranked
+    bodies={ident:canonical(source_body(records[ident])) for ident,_ in ranked}
+    matches={phrase:{ident for ident,body in bodies.items()
+                     if re.search(r'(?<!\w)'+re.escape(phrase)+r'(?!\w)',body)} for phrase in phrases}
+    frequencies=[len(ids) for ids in matches.values() if ids]
+    if not frequencies or min(frequencies)>3:return ranked
+    rare=min(frequencies)
+    anchored=set().union(*(ids for ids in matches.values() if len(ids)==rare))
+    return sorted(ranked,key=lambda pair:0 if pair[0] in anchored else 1)
 
 
 @dataclass(frozen=True)
@@ -86,7 +113,13 @@ class HybridRetriever:
         dense_device: str | None = None,
         dense_model_name: str | None = None,
         dense_model_revision: str | None = None,
+        prefer_literal_phrases: bool = False,
     ) -> None:
+        if type(prefer_literal_phrases) is not bool:
+            raise ValueError('literal phrase preference must be boolean')
+        if prefer_literal_phrases and (policies or phase7_enabled):
+            raise ValueError('literal phrase preference is not a calibrated retrieval policy')
+        self.prefer_literal_phrases=prefer_literal_phrases
         if dense_device not in {None, "cpu", "cuda", "cuda:0"}:
             raise ValueError("unsupported dense serving device")
         self._dense_device = dense_device
@@ -317,6 +350,7 @@ class HybridRetriever:
             self.rerank_candidate_limit,
             self.candidate_limit,
             self.rrf_weights,
+            self.prefer_literal_phrases,
             _candidate_generation,
             required_course_rows,
             getattr(self.reranker, "model_name", None),
@@ -559,6 +593,10 @@ class HybridRetriever:
             named_ids = set(named_table_sources(search_query, records))
             ranked.sort(key=lambda pair: (0 if pair[0] in named_ids else 1,
                                          0 if pair[0] in semester_ids else 1, -pair[1], pair[0]))
+        if (self.prefer_literal_phrases and len(doc_ids)==1 and not _candidate_generation
+                and label in {'hybrid','hybrid_rrf'} and not course_codes
+                and not requested_pages and not semester_ids and not fact_ids):
+            ranked=_literal_phrase_priority(query,ranked,records)
         if (len(course_codes) == 1 or required_course_rows and course_codes) and exact_candidate_ids:
             from .table_links import primary_course_tables, course_table_fields_requested
             primary_tables = set().union(*(primary_course_tables(code,
