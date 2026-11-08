@@ -266,6 +266,40 @@ class CampusAIQueryService:
                 self._temporal_index_cache.popitem(last=False)
         return result
 
+    def source_page_tables(self, question, doc_id, pages):
+        """Reuse headed course tables contained in the requested physical pages.
+
+        Read existing indexed cells, never rerun extraction or retrieval/LLM.
+        Preserve conflicting matches; an out-of-range table is not evidence.
+        """
+        from ..retrieval.routing import detected_course_codes
+        from .course_credits import headed_credit_rows, course_code_key
+        codes={course_code_key(code) for code in detected_course_codes(question)}
+        if not codes:return []
+        allowed=set(pages);results=[]
+        for document in self._temporal_documents([doc_id]):
+            if document.get('doc_id')!=doc_id:continue
+            for item in document.get('items',[]):
+                if not isinstance(item,dict):continue
+                metadata=item.get('metadata') or {}
+                if not isinstance(metadata,dict) or not isinstance(item.get('chunk_id'),str) or not item['chunk_id']:
+                    continue
+                page=item.get('page');span=metadata.get('page_range',[page,page])
+                if (item.get('doc_id')!=doc_id or item.get('content_type')!='table'
+                        or metadata.get('source_hash')!=doc_id or not metadata.get('table_id')
+                        or type(page) is not int or page not in allowed
+                        or not isinstance(span,(list,tuple)) or len(span)!=2
+                        or any(type(n) is not int for n in span)
+                        or not 1<=span[0]<=page<=span[1] or span[1]-span[0]>=12
+                        or not set(range(span[0],span[1]+1))<=allowed):continue
+                content=item.get('content')
+                if not isinstance(content,str) or len(content)>80_000:continue
+                if not any(code in codes for code,_value,_row in headed_credit_rows(content) or []):continue
+                results.append(RetrievalResult(item['chunk_id'],doc_id,page,content,'table',1.0,
+                                               'source_page_tables',dict(metadata)))
+                if len(results)>24:return []
+        return results
+
     @property
     def last_cache_hit(self):
         return getattr(self._request_local, "cache_hit", False)

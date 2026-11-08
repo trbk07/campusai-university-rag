@@ -8,8 +8,9 @@ import unicodedata
 from typing import Any
 
 from ..schemas import Chunk
+from ..table_headers import embedded_credit_header
 
-CHUNKER_VERSION = "structure-v7-diagram-semester-scope"
+CHUNKER_VERSION = "structure-v8-embedded-table-headers"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -291,7 +292,13 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
     current: list[list[str]] = []
     scope_marker = None
     closed_scope = False
+    header_index=embedded_credit_header({'headers':headers,'rows':rows})
+    printed_header=rows[header_index] if header_index is not None else None
+    active_header=None
+    positions={id(row):index for index,row in enumerate(rows)}
     for row in rows:
+        if printed_header is not None and row==printed_header:
+            active_header=row
         cells = [cell for cell in row if isinstance(cell, str) and cell.strip()]
         marker = len(cells) == 1 and re.fullmatch(r'semester\s*\d+', cells[0], re.I)
         if closed_scope and not marker and current:
@@ -313,6 +320,12 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
                     # Repeat only an actual original marker as context; never
                     # invent a section or duplicate a course/credit row.
                     current = scoped
+            if active_header is not None and not any(item is active_header for item in current):
+                headed=sorted([active_header,*current],key=lambda item:positions[id(item)])
+                if len(json.dumps({'headers':headers,'rows':headed},ensure_ascii=False))<=budget:
+                    # Same printed cells and original row indices, carried
+                    # forward only when the complete payload still fits.
+                    current=headed
         else:
             current = candidate
         if scope_marker is not None and any(re.fullmatch(r'credits?\s*per\s+semester', cell, re.I)

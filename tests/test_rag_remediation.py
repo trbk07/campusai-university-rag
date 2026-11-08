@@ -66,6 +66,137 @@ def test_percentage_answer_still_requires_exact_source_value_and_unit(reported,a
 
 
 @pytest.fixture
+def merged_title_table():
+    return {'headers':['Semester 4','','','',''], 'rows':[
+        ['Serial','Course code','Course name','Credits','Hours'],
+        ['1','ZX654321','Fictional robotics','4','60'],
+        ['2','ZX654322','Fictional networks','2','45']]}
+
+
+def test_merged_title_uses_printed_embedded_header_without_inventing_columns(merged_title_table):
+    import json
+    from campusai.rag.course_credits import headed_credit_rows,course_credit_support
+    body=json.dumps(merged_title_table)
+    assert [(code,value) for code,value,_ in headed_credit_rows(body)]==[('ZX654321',4),('ZX654322',2)]
+    assert course_credit_support('Course ZX654321 has 4 credits.',body) is True
+    assert course_credit_support('Course ZX654321 has 60 credits.',body) is False
+
+
+@pytest.mark.parametrize('change',['reordered','missing_unit','outer_schema','no_header','ragged'])
+def test_embedded_course_header_rejects_conflicting_or_unproven_schema(merged_title_table,change):
+    import json
+    from campusai.rag.course_credits import headed_credit_rows
+    table=merged_title_table
+    if change=='reordered':table['rows'].append(['Serial','Course code','Course name','Hours','Credits'])
+    elif change=='missing_unit':table['rows'].append(['Serial','Course code','Course name','Total','Hours'])
+    elif change=='outer_schema':table['headers']=['Serial','Course code','Course name','Hours','Notes']
+    elif change=='no_header':table['rows'].pop(0)
+    elif change=='ragged':table['rows'].append(['2','ZX654322'])
+    assert headed_credit_rows(json.dumps(table)) is None
+
+
+def test_embedded_header_cannot_prove_data_before_the_header(merged_title_table):
+    import json
+    from campusai.rag.course_credits import headed_credit_rows
+    merged_title_table['rows'].insert(0,['0','ZX654320','Unheaded row','9','60'])
+    assert 'ZX654320' not in {code for code,_,_ in headed_credit_rows(json.dumps(merged_title_table))}
+
+
+def test_split_table_continuations_keep_printed_headers_and_source_rows(merged_title_table):
+    import json
+    from campusai.ingestion.chunker import _table_row_batches
+    from campusai.rag.course_credits import headed_credit_rows
+    header=merged_title_table['rows'][0]
+    rows=[header]+[[str(i),f'ZX{654300+i}','Fictional course '+str(i),'4','60'] for i in range(1,12)]
+    original=json.dumps(rows)
+    batches=_table_row_batches(merged_title_table['headers'],rows,300)
+    assert len(batches)>2
+    codes=[]
+    for batch in batches:
+        payload=json.dumps({'headers':merged_title_table['headers'],'rows':batch})
+        assert len(payload)<=300 and batch[0] is header
+        codes.extend(code for code,_,_ in headed_credit_rows(payload))
+        assert all(any(row is original_row for original_row in rows) for row in batch)
+    assert codes==[f'ZX{654300+i}' for i in range(1,12)]
+    assert json.dumps(rows)==original
+
+
+def test_conflicting_embedded_headers_are_not_carried_into_continuations(merged_title_table):
+    from campusai.ingestion.chunker import _table_row_batches
+    rows=merged_title_table['rows']
+    rows.append(['Serial','Course code','Course name','Hours','Credits'])
+    batches=_table_row_batches(merged_title_table['headers'],rows,220)
+    assert sum(row is rows[0] for batch in batches for row in batch)==1
+
+
+def test_model_citation_keeps_original_title_header_and_printed_column_row(merged_title_table):
+    import json
+    from campusai.rag.grounding import GroundedAnswerGenerator,validate_citation
+    source=RetrievalResult('table','fictional',4,json.dumps(merged_title_table),'table',1.0,'fixture',
+                          {'table_id':'original-table','source_hash':'fictional'})
+    class FixtureDraft:
+        def generate_json(self,*args,**kwargs):
+            return {'answer':'Course ZX654321 has 4 credits.','abstained':False,'confidence':'high',
+                    'citations':[{'chunk_id':'ev1'}],
+                    'claims':[{'claim_id':'credit','text':'Course ZX654321 has 4 credits.','citation_ids':['ev1']}]}
+    answer=GroundedAnswerGenerator(FixtureDraft(),source_citations=True,compact_citation_ids=True).answer(
+        'How many credits does course ZX654321 have?',[source],language='en')
+    assert not answer.abstained and validate_citation(answer.citations[0],source).valid
+    quote=json.loads(answer.citations[0].quote)
+    assert quote=={'headers':merged_title_table['headers'],'rows':merged_title_table['rows'][:2]}
+    assert all(claim.status=='supported' for claim in answer.claims)
+
+
+@pytest.fixture
+def indexed_page_table_reader(merged_title_table):
+    import copy,json
+    from campusai.rag.service import CampusAIQueryService
+    item={'chunk_id':'table','doc_id':'fictional','page':4,'content_type':'table',
+          'content':json.dumps(merged_title_table),
+          'metadata':{'table_id':'original-table','source_hash':'fictional','page_range':[4,4]}}
+    documents=[{'doc_id':'fictional','items':[item]}]
+    service=object.__new__(CampusAIQueryService)
+    calls=[]
+    def load(ids):
+        calls.append(ids)
+        return copy.deepcopy(documents)
+    service._temporal_documents=load
+    return service,item,documents,calls
+
+
+def test_source_page_tables_reuse_only_requested_source_and_pages(indexed_page_table_reader):
+    service,item,documents,calls=indexed_page_table_reader
+    documents.append({'doc_id':'other','items':[{**item,'doc_id':'other'}]})
+    result=service.source_page_tables('Read ZX654321 on page 4','fictional',[4])
+    assert len(result)==1 and result[0].doc_id=='fictional' and result[0].page==4
+    assert result[0].content==item['content'] and result[0].metadata==item['metadata']
+    assert calls==[['fictional']]
+
+
+@pytest.mark.parametrize('change',['source_hash','wrong_page','outside_range','bool_page','no_table_id','other_code','not_table'])
+def test_source_page_tables_reject_hidden_or_unbound_evidence(indexed_page_table_reader,change):
+    service,item,_documents,_calls=indexed_page_table_reader
+    if change=='source_hash':item['metadata']['source_hash']='different-source'
+    elif change=='wrong_page':item['page']=5
+    elif change=='outside_range':item['metadata']['page_range']=[3,4]
+    elif change=='bool_page':item['metadata']['page_range']=[True,4]
+    elif change=='no_table_id':item['metadata'].pop('table_id')
+    elif change=='other_code':item['content']=item['content'].replace('ZX654321','ZX654399')
+    elif change=='not_table':item['content_type']='text'
+    assert service.source_page_tables('Read ZX654321 on page 4','fictional',[4])==[]
+
+
+def test_source_page_tables_keep_conflicting_source_rows_and_skip_ordinary_queries(indexed_page_table_reader):
+    service,item,documents,calls=indexed_page_table_reader
+    documents[0]['items'].append({**item,'chunk_id':'conflicting-table',
+                                  'content':item['content'].replace('"4", "60"','"5", "60"')})
+    assert len(service.source_page_tables('Read ZX654321','fictional',[4]))==2
+    calls.clear()
+    assert service.source_page_tables('Summarize page 4','fictional',[4])==[]
+    assert calls==[]
+
+
+@pytest.fixture
 def sources():
     def doc(ident, text):
         return {'doc_id':ident,'items':[{'doc_id':ident,'chunk_id':ident+'-1','page':1,

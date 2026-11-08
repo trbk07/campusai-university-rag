@@ -48,6 +48,7 @@ def scanned_page_reader(tmp_path, monkeypatch):
     monkeypatch.setattr('campusai.web_documents.visible_page_text', lambda _: '')
     def read(page=2):
         return web.answer_physical_pages(f'Read page {page}', [selected], {'language':'en'}, {})
+    read.service=service
     return read, record, selected, captured, parsed
 
 
@@ -87,6 +88,27 @@ def test_scan_reuse_never_borrows_another_physical_page(scanned_page_reader):
     read, _record, _selected, captured, _parsed = scanned_page_reader
     result = read(1)
     assert not captured and result['document_info']['kind'] == 'page_text_unavailable'
+
+
+def test_page_transport_keeps_indexed_table_next_to_requested_ocr(scanned_page_reader):
+    read,_record,selected,captured,_parsed=scanned_page_reader
+    table=RetrievalResult('table',selected['doc_id'],2,'Original headed cells','table',1.0,'fixture',{})
+    calls=[]
+    def tables(question,doc_id,pages):
+        calls.append((doc_id,pages))
+        return [table]
+    read.service.source_page_tables=tables
+    read()
+    assert calls==[(selected['doc_id'],[2])]
+    assert captured[0] is table and captured[1].page==2 and captured[1].content=='Recorded second-page OCR.'
+
+
+def test_indexed_table_cannot_bypass_unread_requested_page(scanned_page_reader):
+    read,_record,_selected,captured,_parsed=scanned_page_reader
+    def forbidden(*_):
+        raise AssertionError('Do not consult tables to hide an unread page')
+    read.service.source_page_tables=forbidden
+    assert read(1)['document_info']['kind']=='page_text_unavailable' and not captured
 
 
 @pytest.fixture
