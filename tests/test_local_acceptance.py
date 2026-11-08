@@ -15,6 +15,81 @@ from campusai.rag.regulation_facts import deterministic_regulation_fact, regulat
 
 
 @pytest.fixture
+def scanned_page_reader(tmp_path, monkeypatch):
+    """Page transport with a capture-only model spy, never native predictions."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    from campusai.web_documents import WebDocuments
+    from campusai.rag.grounding import GroundedAnswer
+    from campusai.ingestion.docling_parser import TEXT_COVERAGE_VERSION
+    import fitz
+
+    captured = []
+    def capture(question, results, **options):
+        captured.extend(results)
+        return GroundedAnswer('Capture-only unit fixture; no inference.', (), 'low', True)
+    service = SimpleNamespace(reset_request_state=lambda: None, ask_source_pages=capture,
+                              last_cache_hit=False)
+    web = WebDocuments(SimpleNamespace(query_service=service, ingestion_defaults={'store_dir':tmp_path}))
+    ident = 'a' * 64
+    selected = {'doc_id':ident, 'name':'Fictional scan.pdf', 'page_count':2,
+                'ready':True, 'coverage_complete':True, 'readable_pages':[]}
+    record = {'status':'succeeded', 'metadata':{'text_coverage_version':TEXT_COVERAGE_VERSION,
+                                              'ocr':{'page_numbers':[2]}}}
+    parsed = tmp_path / ident / 'parsed.md'
+    parsed.parent.mkdir()
+    parsed.write_text('## Page 1\nFirst-page text.\n## Page 2\nRecorded second-page OCR.', encoding='utf-8')
+    web.record = lambda *_: record
+    web.source_bytes = lambda *_: b'Unit-only PDF transport stub'
+    pdf = MagicMock()
+    pdf.__enter__.return_value = pdf
+    pdf.__len__.return_value = 2
+    monkeypatch.setattr(fitz, 'open', lambda **_: pdf)
+    monkeypatch.setattr('campusai.web_documents.visible_page_text', lambda _: '')
+    def read(page=2):
+        return web.answer_physical_pages(f'Read page {page}', [selected], {'language':'en'}, {})
+    return read, record, selected, captured, parsed
+
+
+def test_completed_nonprogressive_scan_reuses_only_requested_persisted_ocr(scanned_page_reader):
+    read, _record, _selected, captured, _parsed = scanned_page_reader
+    read()
+    assert [(row.page,row.content) for row in captured] == [(2,'Recorded second-page OCR.')]
+    assert captured[0].metadata['page_range'] == [2,2]
+    assert captured[0].doc_id == 'a' * 64
+
+
+@pytest.mark.parametrize('change', [
+    'explicit_empty', 'partial', 'incomplete', 'old_policy', 'unknown_policy',
+    'unread_requested', 'bad_type', 'out_of_range', 'duplicates', 'missing_ocr',
+    'duplicate_page_headers', 'blank_page',
+])
+def test_scan_reuse_does_not_promote_unverified_or_wrong_pages(scanned_page_reader, change):
+    read, record, selected, captured, parsed = scanned_page_reader
+    metadata = record['metadata']
+    if change == 'explicit_empty': metadata['readable_pages'] = []
+    elif change == 'partial': record['status'] = 'partial'
+    elif change == 'incomplete': metadata['coverage_complete'] = False
+    elif change == 'old_policy': metadata['text_coverage_version'] = 1
+    elif change == 'unknown_policy': metadata.pop('text_coverage_version')
+    elif change == 'unread_requested': selected['coverage_complete'] = False
+    elif change == 'bad_type': metadata['ocr']['page_numbers'] = [True]
+    elif change == 'out_of_range': metadata['ocr']['page_numbers'] = [3]
+    elif change == 'duplicates': metadata['ocr']['page_numbers'] = [2,2]
+    elif change == 'missing_ocr': metadata.pop('ocr')
+    elif change == 'duplicate_page_headers': parsed.write_text('## Page 2\nOne\n## Page 2\nTwo', encoding='utf-8')
+    elif change == 'blank_page': parsed.write_text('## Page 1\nOther-page text.\n## Page 2\n  ', encoding='utf-8')
+    result = read()
+    assert not captured and result['document_info']['kind'] == 'page_text_unavailable'
+
+
+def test_scan_reuse_never_borrows_another_physical_page(scanned_page_reader):
+    read, _record, _selected, captured, _parsed = scanned_page_reader
+    result = read(1)
+    assert not captured and result['document_info']['kind'] == 'page_text_unavailable'
+
+
+@pytest.fixture
 def documents():
     return [{'doc_id': 'alpha', 'name': 'alpha.pdf', 'page_count': 7},
             {'doc_id': 'beta', 'name': 'beta.pdf', 'page_count': 11}]

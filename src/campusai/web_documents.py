@@ -457,6 +457,25 @@ class WebDocuments:
                     numbers = [int(n) for n in blocks[1::2]]
                     if len(numbers) == len(set(numbers)) and all(1 <= n <= doc['page_count'] for n in numbers):
                         readable = set(doc.get('readable_pages', []))
+                        if not readable:
+                            # Non-progressive ingestion records OCR pages but
+                            # predates the progressive readable-pages field.
+                            # Reuse only its current, complete source-bound OCR;
+                            # an explicit empty/partial list must stay unreadable.
+                            from .ingestion.docling_parser import TEXT_COVERAGE_VERSION
+                            record = self.record(doc['doc_id'], environ)
+                            metadata = record.get('metadata', {})
+                            if ('readable_pages' not in metadata
+                                    and record.get('status') == 'succeeded'
+                                    and doc.get('ready') and doc.get('coverage_complete') is True
+                                    and metadata.get('coverage_complete') is not False
+                                    and metadata.get('text_coverage_version') == TEXT_COVERAGE_VERSION):
+                                ocr = metadata.get('ocr')
+                                recognized = ocr.get('page_numbers') if isinstance(ocr, dict) else None
+                                if (isinstance(recognized, list)
+                                        and all(type(n) is int and 1 <= n <= doc['page_count'] for n in recognized)
+                                        and len(recognized) == len(set(recognized))):
+                                    readable = set(recognized)
                         parsed = {int(n):text.strip() for n,text in zip(blocks[1::2],blocks[2::2])
                                   if int(n) in readable}
             except (OSError, ValueError, WebError):
