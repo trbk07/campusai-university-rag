@@ -237,6 +237,7 @@ def lookup_curriculum(question, documents, *, doc_ids, language='vi', calibrator
     """Return an answer and exact indexed proof, only for one selected source."""
     if doc_ids is None or len(doc_ids) != 1 or len(documents) != 1 or documents[0]['doc_id'] != doc_ids[0]:
         return None
+    scope_question=question
     question, _, topic = question.partition(_CONTEXT)
     if topic and re.search(r'\b(?:neu|if|unless|mien|waiver|transfer|chuyen nganh|so sanh|compare|versus)\b', folded(topic)):
         return None
@@ -245,6 +246,13 @@ def lookup_curriculum(question, documents, *, doc_ids, language='vi', calibrator
     if code is None and semester is None and not (re.search(r'\b(?:tin|tc|credits)\b', folded(question))
                                 and re.search(r'\b(?:ky|hk|semester|luc nao)\b', folded(question))):
         return None
+    from ..retrieval.source_scope import curriculum_scope_records
+    records={str(index):{**item,'doc_id':documents[0]['doc_id']}
+             for index,item in enumerate(documents[0]['items'])}
+    scoped=curriculum_scope_records(scope_question,records)
+    if scoped is not records:
+        documents=[{**documents[0],'items':[item for index,item in enumerate(documents[0]['items'])
+                                          if str(index) in scoped]}]
     tables = _tables(documents[0])
     if not tables:
         return None

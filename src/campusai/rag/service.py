@@ -503,6 +503,51 @@ class CampusAIQueryService:
             mode=selected_mode,
         )
 
+    def _with_institution_provenance(self, results, documents):
+        """Attach only a literal header from the same authorized document.
+
+        Page-specific answers retain their exact evidence text and coordinates;
+        the separate header proves identity, never a policy claim.
+        """
+        from ..retrieval.institution_scope import _source_options, _institution_label
+        provenance={}
+        selected={r.doc_id for r in results}
+        for document in documents:
+            doc_id=document.get('doc_id')
+            if doc_id not in selected:continue
+            items=[item for item in document['items']
+                   if item.get('doc_id',doc_id)==doc_id
+                   and item.get('metadata',{}).get('source_hash',doc_id)==doc_id]
+            labels=_source_options([{**document,'items':items}])
+            if not labels:continue
+            label=labels[0]
+            printed=[]
+            for item in items:
+                if item.get('page',999)>5:continue
+                for line in source_body(item).splitlines():
+                    name=_institution_label(line)
+                    if name:printed.append((name,item,line.strip()))
+            # A generated metadata preface can differ from the actual
+            # printed header. Prefer a unique, fully spelled source
+            # heading; competing names never establish an identity.
+            expanded={fold(name):name for name,_,_ in printed
+                      if fold(name).startswith('truong dai hoc ')}
+            if len(expanded)>1:continue
+            if len(expanded)==1:label=next(iter(expanded.values()))
+            for item in items:
+                if item.get('page',999)>5:continue
+                quote=next((line.strip() for line in source_body(item).splitlines()
+                            if _institution_label(line)==label),None)
+                if quote:
+                    provenance[document['doc_id']]={'name':label,'chunk_id':item['chunk_id'],
+                        'doc_id':document['doc_id'],'page':item['page'],'quote':quote}
+                    break
+        # Header identity is document provenance, not a numeric policy
+        # fact. Replace an inferred owner only with a literal heading
+        # from this same authorized source; never use a filename/alias.
+        return [replace(r,metadata={**r.metadata,'institution':provenance[r.doc_id]['name'],
+            'institution_proof':provenance[r.doc_id]}) if r.doc_id in provenance else r for r in results]
+
     def ask_source_pages(self, question, results, *, language='vi', history=None,
                          selected_text=None, requires_context=False):
         """Internal trusted-source lane; HTTP clients cannot supply evidence."""
@@ -528,6 +573,9 @@ class CampusAIQueryService:
             return GroundedAnswer('Bạn muốn hỏi phần nào trong các trang đã chọn?' if language == 'vi'
                 else 'Which topic in the selected pages do you mean?', (), 'low', True,
                 reason='ambiguous_question', evidence_status='ambiguous')
+        if self.confirm_institution_scope:
+            results=self._with_institution_provenance(results,
+                self._temporal_documents(sorted({r.doc_id for r in results})))
         self.last_retrieval = list(results)
         self.retriever.last_trace = RoutingTrace(route='source_pages')
         identity = hashlib.sha256(json.dumps([(r.doc_id,r.page,r.content,r.metadata) for r in results],
@@ -982,37 +1030,8 @@ class CampusAIQueryService:
                             if item.chunk_id not in {r.chunk_id for r in merged}:merged.append(item)
                         results=merged[:cap]
             if self.confirm_institution_scope:
-                from ..retrieval.institution_scope import _source_options, _institution_label
-                provenance={}
-                for document in getattr(self._request_local,'temporal_documents',[]):
-                    labels=_source_options([document])
-                    if not labels:continue
-                    label=labels[0]
-                    printed=[]
-                    for item in document['items']:
-                        if item.get('page',999)>5:continue
-                        for line in source_body(item).splitlines():
-                            name=_institution_label(line)
-                            if name:printed.append((name,item,line.strip()))
-                    # A generated metadata preface can differ from the actual
-                    # printed header. Prefer a unique, fully spelled source
-                    # heading; competing names never establish an identity.
-                    expanded={fold(name):name for name,_,_ in printed
-                              if fold(name).startswith('truong dai hoc ')}
-                    if len(expanded)==1:label=next(iter(expanded.values()))
-                    for item in document['items']:
-                        if item.get('page',999)>5:continue
-                        quote=next((line.strip() for line in source_body(item).splitlines()
-                                    if _institution_label(line)==label),None)
-                        if quote:
-                            provenance[document['doc_id']]={'name':label,'chunk_id':item['chunk_id'],
-                                'doc_id':document['doc_id'],'page':item['page'],'quote':quote}
-                            break
-                # Header identity is document provenance, not a numeric policy
-                # fact. Replace an inferred owner only with a literal heading
-                # from this same authorized source; never use a filename/alias.
-                results=[replace(r,metadata={**r.metadata,'institution':provenance[r.doc_id]['name'],
-                    'institution_proof':provenance[r.doc_id]}) if r.doc_id in provenance else r for r in results]
+                results=self._with_institution_provenance(results,
+                    getattr(self._request_local,'temporal_documents',[]))
             self.last_retrieval = list(results)
             if composition.kind != 'single':
                 intent = self._request_local.temporal_intent

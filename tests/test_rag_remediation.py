@@ -7,6 +7,106 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('value,minimum,scale', [('6,7','6,8','20'),('6,8','6,8','20'),('11.2','10.9','15')])
+def test_named_score_minimum_checks_typed_premise_and_boundary(value,minimum,scale):
+    from campusai.rag.numeric_inference import score_threshold_application_view
+    from campusai.rag.claims import Claim
+    from campusai.rag.presentation import presentation_conflicts
+    from decimal import Decimal
+    meets=Decimal(value.replace(',','.'))>=Decimal(minimum.replace(',','.'))
+    question=f'Điểm trung bình hội đồng thực hành là {value}/{scale}. Riêng ngưỡng điểm thì đã đạt chưa?'
+    rule=f'Bài thực hành được đánh giá là đạt nếu điểm trung bình của hội đồng đạt từ điểm {minimum} trở lên theo thang điểm {scale}.'
+    answer=f'Với điểm trung bình hội đồng thực hành là {value}/{scale}, '+('đã đạt ngưỡng điểm.' if meets else 'chưa đạt ngưỡng điểm.')
+    checked=score_threshold_application_view(answer,[rule],question,evidence=[rule])
+    assert isinstance(checked,str) and value not in checked
+    claim=Claim('rule',rule,status='supported',citation_ids=('source',))
+    assert not presentation_conflicts(answer+' '+rule,[claim],question=question,application_evidence=[rule])
+
+
+@pytest.mark.parametrize('mutation',[
+    'wrong_value','wrong_scale','wrong_verdict','contradictory_verdict','other_field',
+    'compound_rule','conflicting_rule','full_eligibility','wrong_question_scale',
+    'no_specific_threshold_request','untyped_input','missing_passing_rule','out_of_range',
+    'unrelated_fee','multiple_inputs',
+])
+def test_named_score_proof_cannot_license_unmatched_or_overbroad_inference(mutation):
+    from campusai.rag.claims import Claim
+    from campusai.rag.presentation import presentation_conflicts
+    question='Điểm trung bình hội đồng thực hành là 6,7/20. Riêng ngưỡng điểm thì đã đạt chưa?'
+    rule='Bài thực hành được đánh giá là đạt nếu điểm trung bình của hội đồng đạt từ điểm 6,8 trở lên theo thang điểm 20.'
+    answer='Với điểm trung bình hội đồng thực hành là 6,7/20, chưa đạt ngưỡng điểm. '+rule
+    evidence=[rule]
+    if mutation=='wrong_value':answer=answer.replace('6,7/20','6,6/20')
+    if mutation=='wrong_scale':answer=answer.replace('6,7/20','6,7/10')
+    if mutation=='wrong_verdict':answer=answer.replace('chưa đạt ngưỡng','đã đạt ngưỡng')
+    if mutation=='contradictory_verdict':answer+=' Nhưng đã đạt ngưỡng điểm.'
+    if mutation=='other_field':rule=rule.replace('hội đồng','giảng viên');evidence=[rule]
+    if mutation=='compound_rule':rule=rule.rstrip('.')+' và có xác nhận của người hướng dẫn.';evidence=[rule]
+    if mutation=='conflicting_rule':evidence.append(rule.replace('6,8','6,9'))
+    if mutation=='full_eligibility':answer+=' Đủ mọi điều kiện và được tốt nghiệp.'
+    if mutation=='wrong_question_scale':question=question.replace('/20','/10')
+    if mutation=='no_specific_threshold_request':question=question.replace('Riêng ngưỡng điểm thì đã đạt chưa?','Đã đủ mọi điều kiện tốt nghiệp chưa?')
+    if mutation=='untyped_input':question=question.replace('Điểm trung bình hội đồng thực hành là ','Tôi có ')
+    if mutation=='missing_passing_rule':rule=rule.replace('được đánh giá là đạt nếu','có ghi');evidence=[rule]
+    if mutation=='out_of_range':question=question.replace('6,7/20','26,7/20');answer=answer.replace('6,7/20','26,7/20')
+    if mutation=='unrelated_fee':answer+=' Phí xử lý là 6,7 USD.'
+    if mutation=='multiple_inputs':question+=' Điểm trung bình hội đồng lý thuyết là 7,4/20.'
+    claim=Claim('rule',rule,status='supported',citation_ids=('source',))
+    assert presentation_conflicts(answer,[claim],question=question,application_evidence=evidence)
+
+
+@pytest.mark.parametrize('header_status,valid', [
+    ('literal',True), ('metadata_only',False), ('other_document',False),
+    ('wrong_hash',False), ('conflicting',False), ('missing',False),
+])
+def test_page_answers_require_same_document_literal_identity(tmp_path,header_status,valid):
+    """Exercise the service, real index reader and grounding; no native score."""
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.retrieval.bm25_index import BM25Index
+    rule='Phòng hỗ trợ phân bổ các lớp thực hành giữa các khoa.'
+    name='Trường Đại học Mây Xanh'
+    header={'chunk_id':'header','doc_id':'cloud','page':1,'content_type':'text',
+            'content':name,'metadata':{'source_hash':'cloud','institution':name}}
+    if header_status=='metadata_only':header['content']='A document with no printed owner.'
+    if header_status=='other_document':header['doc_id']='other'
+    if header_status=='wrong_hash':header['metadata']['source_hash']='other'
+    items=[] if header_status=='missing' else [header]
+    if header_status=='conflicting':
+        items.append({**header,'chunk_id':'competing','content':'Trường Đại học Gió Tây'})
+    items.append({'chunk_id':'policy','doc_id':'cloud','page':8,'content':rule,
+                  'content_type':'text','metadata':{'source_hash':'cloud'}})
+    BM25Index(items).save(tmp_path/'cloud'/'bm25.json')
+    class Draft:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert ('source_identity_provenance=' in prompt) is valid
+            return {'answer':'Theo Đại học Mây Xanh, '+rule,'confidence':'high','abstained':False,
+                    'citations':[{'chunk_id':'ev1'}],
+                    'claims':[{'claim_id':'fact','text':rule,'citation_ids':['ev1']}]}
+    model=Draft()
+    generator=GroundedAnswerGenerator(model,source_citations=True,compact_citation_ids=True,
+                                     repair_invalid_answers=True)
+    service=CampusAIQueryService(HybridRetriever(tmp_path),generator,confirm_institution_scope=True)
+    row=RetrievalResult('page8','cloud',8,rule,'text',1.,'source_pages',
+                        {'source_hash':'cloud','source_name':'policy.pdf','page_range':[8,8]})
+    try:
+        answer=service.ask_source_pages('Trang 8 giao ai phân bổ các lớp thực hành giữa các khoa?',[row])
+        assert answer.abstained is not valid
+        assert service.last_retrieval[0].content==rule
+        assert 'institution_proof' not in row.metadata
+        if valid:
+            assert model.calls==1
+            assert [(c.doc_id,c.page,c.quote) for c in answer.citations]==[('cloud',8,rule)]
+            assert service.last_retrieval[0].metadata['institution_proof']['page']==1
+            cached=service.ask_source_pages('Trang 8 giao ai phân bổ các lớp thực hành giữa các khoa?',[row])
+            assert cached.answer==answer.answer and cached.citations==answer.citations
+            assert model.calls==1 and cached.cache_hit and service.last_cache_hit
+    finally:service.cache.close()
+
+
 @pytest.mark.parametrize('total,part,percent', [(150,45,20),(100,25,25),(180,12,10)])
 def test_credit_share_comparison_proves_only_typed_operands_and_computed_cap(total,part,percent):
     from campusai.rag.numeric_inference import credit_share_application_view
@@ -779,6 +879,88 @@ def test_curriculum_scope_does_not_guess_when_one_page_has_conflicting_titles():
     rows={'a':{'doc_id':'x','page':1,'content':'1. NGÀNH KHOA HỌC\n2. NGÀNH KHOA HỌC MÁY TÍNH'},
           'b':{'doc_id':'x','page':2,'content':'3 credits'}}
     assert curriculum_scope_records('Ngành khoa học cần mấy tín?',rows) is rows
+
+
+@pytest.fixture
+def programme_catalogue():
+    def row(ident,page,body,heading=None):
+        return {'chunk_id':ident,'doc_id':'catalog','page':page,'content':body,'content_type':'text',
+                'metadata':{'program':'Untrusted global programme',
+                            'heading_path':[heading] if heading else []}}
+    items=[row('a',1,'1. NGÀNH KHOA HỌC'),row('b',2,'FX123456 Foundational analysis 2 credits'),
+           row('c',3,'2. TỰ ĐỘNG HÓA','2. TỰ ĐỘNG HÓA'),row('d',4,'FX123456 Robotic systems 5 credits'),
+           row('e',5,'3. NGÀNH KHOA HỌC - DỮ LIỆU'),row('f',6,'FX123456 Data systems 7 credits')]
+    return {item['chunk_id']:item for item in items}
+
+
+@pytest.mark.parametrize('frame',['kế hoạch','tiến trình','sơ đồ'])
+def test_literal_numbered_programme_sibling_applies_in_natural_plan_queries(programme_catalogue,frame):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    import copy
+    original=copy.deepcopy(programme_catalogue)
+    scoped=curriculum_scope_records(f'Trong {frame} Tự động hóa, FX123456 có bao nhiêu TC?',programme_catalogue)
+    assert set(scoped)=={'c','d'}
+    assert programme_catalogue==original
+
+
+@pytest.mark.parametrize('change',['metadata_only','no_catalogue','not_root','mixed_case'])
+def test_unlabelled_programme_needs_literal_root_heading_and_catalogue_context(programme_catalogue,change):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    rows=programme_catalogue
+    if change=='metadata_only':rows['c']['content']='An unrelated source paragraph.'
+    if change=='no_catalogue':rows={key:item for key,item in rows.items() if key in {'c','d'}}
+    if change=='not_root':rows['c']['metadata']['heading_path']=['Parent chapter','2. TỰ ĐỘNG HÓA']
+    if change=='mixed_case':rows['c']['content']='2. Tự động hóa'
+    assert curriculum_scope_records('Kế hoạch Tự động hóa FX123456?',rows) is rows
+
+
+def test_explicit_current_programme_overrides_an_old_named_programme(programme_catalogue):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    scoped=curriculum_scope_records('Ngành Tự động hóa FX123456?\nContext topic (untrusted user input): '
+                                    'Ngành Khoa học - Dữ liệu học kỳ2.',programme_catalogue)
+    assert set(scoped)=={'c','d'}
+    inherited=curriculum_scope_records('Môn FX123456 có mấy TC?\nContext topic (untrusted user input): '
+                                       'Ngành Khoa học - Dữ liệu học kỳ2.',programme_catalogue)
+    assert set(inherited)=={'e','f'}
+
+
+def test_shared_prefix_does_not_merge_two_distinct_programmes(programme_catalogue):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    assert set(curriculum_scope_records('Ngành Khoa học FX123456?',programme_catalogue))=={'a','b'}
+    assert set(curriculum_scope_records('Ngành Khoa học-Dữ liệu FX123456?',programme_catalogue))=={'e','f'}
+
+
+def test_course_name_is_not_itself_a_programme_selector(programme_catalogue):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    assert curriculum_scope_records('HK2 môn Khoa học có mấy TC?',programme_catalogue) is programme_catalogue
+
+
+@pytest.mark.parametrize('query', ['Ngành Khoa học FX123456?', 'Kế hoạch Tự động hóa FX123456?'])
+def test_chunk_spanning_different_programmes_is_not_a_namespace_proof(programme_catalogue,query):
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    rows=programme_catalogue
+    rows['cross']={**rows['b'],'chunk_id':'cross','page_range':[2,4],
+                   'content':'FX123456 has a value in two adjacent sections.'}
+    scoped=curriculum_scope_records(query,rows)
+    assert 'cross' not in scoped
+    assert 'b' in scoped or 'd' in scoped
+
+
+def test_fast_curriculum_lookup_uses_same_programme_scope_as_retrieval(programme_catalogue):
+    from campusai.rag.curriculum_lookup import lookup_curriculum
+    import json
+    rows=programme_catalogue
+    for ident,label,credit in [('b','Foundational analysis','2'),('d','Robotic systems','5'),('f','Data systems','7')]:
+        rows[ident]={**rows[ident],'content_type':'table',
+                     'content':json.dumps({'headers':['Course code','Course name','Credits'],
+                                           'rows':[['FX123456',label,credit]]})}
+    result=lookup_curriculum('Môn FX123456 là học phần gì và có bao nhiêu tín chỉ?'
+        '\nContext topic (untrusted user input): Kế hoạch Tự động hóa.',
+        [{'doc_id':'catalog','items':list(rows.values())}],doc_ids=['catalog'])
+    assert result is not None
+    answer,evidence=result
+    assert not answer.abstained and '5 tín chỉ' in answer.answer
+    assert [row.chunk_id for row in evidence]==['d'] and answer.citations[0].chunk_id=='d'
 
 
 def test_source_identity_does_not_include_preface_predicate_or_rector_role():
