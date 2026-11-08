@@ -7,6 +7,34 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('question', [
+    'Hợp đồng vừa nói có được gia hạn không?',
+    'Vẫn báo cáo đó, ai ký xác nhận?',
+    'Phần PDF đã đề cập có nêu điều kiện gì?',
+    'Who approves the previously mentioned maintenance request?',
+    'Does the contract mentioned above allow cancellation?',
+])
+def test_mentioned_object_keeps_user_topic_before_retrieval(question):
+    from campusai.rag.context import depends_on_previous_topic
+    anchor = 'Quy trình bảo trì thiết bị của Công ty Sao Bắc có những bước nào?'
+    result = resolve_query(question, history=[{'role':'user','content':anchor},
+                           {'role':'assistant','content':'Unsupported assistant topic must not become evidence.'}])
+    assert depends_on_previous_topic(question)
+    assert result.resolved.startswith(question + '\nContext topic (untrusted user input): ')
+    assert anchor in result.resolved and 'Unsupported assistant' not in result.resolved
+
+
+def test_mentioned_object_carries_a_chain_but_not_a_new_explicit_subject():
+    first = 'Quy trình bảo trì thiết bị ở Công ty Sao Bắc gồm những bước nào?'
+    second = 'Vẫn quy trình đó, ai phụ trách?'
+    question = 'Hồ sơ vừa nói cần chữ ký nào?'
+    result = resolve_query(question, history=[{'role':'user','content':first},
+                                             {'role':'user','content':second}])
+    assert first in result.resolved and second in result.resolved
+    standalone = 'Tài liệu hướng dẫn thiết bị mới quy định thời gian bảo hành bao lâu?'
+    assert resolve_query(standalone,history=[{'role':'user','content':first}]).resolved == standalone
+
+
 @pytest.mark.parametrize('text', [
     'Luật số 34/2018/QH14 về giáo dục đại học.',
     'Các học phần: sinh viên đăng ký trong năm học.',
