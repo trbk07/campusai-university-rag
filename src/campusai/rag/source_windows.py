@@ -2,12 +2,39 @@
 import re
 from collections import Counter
 import math
+from fractions import Fraction
 from ..retrieval.tokenizer_vi import normalized_tokens, normalize_retrieval_query
 from .course_credits import folded
 
 _STOP = set('a an the and or of to in on for is are was were be does do did what which how why when '
             'should would could called this that these those it its la cua va hay cho nhung gi nao '
             'the nao tai sao khi mot cac duoc dai truong hoc em toi minh ban bao nhieu may can'.split())
+
+_WORD_FRACTIONS = (
+    (re.compile(r'\b(?:mot\s+nua|mot\s+phan\s+hai|one(?:[-–]|\s)+half)\b'),Fraction(1,2)),
+    (re.compile(r'\b(?:mot\s+phan\s+(?:tu|bon)|one(?:[-–]|\s)+quarter)\b'),Fraction(1,4)),
+    (re.compile(r'\b(?:mot\s+phan\s+ba|one(?:[-–]|\s)+third)\b'),Fraction(1,3)),
+    (re.compile(r'\b(?:hai\s+phan\s+ba|two(?:[-–]|\s)+thirds)\b'),Fraction(2,3)),
+    (re.compile(r'\b(?:ba\s+phan\s+(?:tu|bon)|three(?:[-–]|\s)+quarters)\b'),Fraction(3,4)),
+)
+
+
+def _fraction_spans(text):
+    """Literal fractional qualifiers, used only to select verbatim evidence."""
+    from .footnotes import _fold_with_offsets
+    normalized,offsets=_fold_with_offsets(text)
+    spans=[]
+    for pattern,value in _WORD_FRACTIONS:
+        spans.extend((offsets[m.start()],offsets[m.end()-1]+1,value) for m in pattern.finditer(normalized))
+    for match in re.finditer(r'(?<![\w/])([1-9]\d{0,2})\s*/\s*([1-9]\d{0,2})(?![\w/])',normalized):
+        numerator,denominator=map(int,match.groups())
+        if numerator<=denominator:
+            spans.append((offsets[match.start()],offsets[match.end()-1]+1,Fraction(numerator,denominator)))
+    return spans
+
+
+def fraction_markers(text):
+    return frozenset(value for _start,_end,value in _fraction_spans(text))
 
 
 def verbatim_window(text: str, question: str, limit: int, *, registration: bool = False,
@@ -107,6 +134,8 @@ def verbatim_window(text: str, question: str, limit: int, *, registration: bool 
             if len(selected) == 1:
                 text = section
     terms = {t for t in normalized_tokens(normalize_retrieval_query(question)) if len(t) >= 2 and t not in _STOP}
+    fractions=fraction_markers(question)
+    fraction_spans=_fraction_spans(text) if fractions else ()
     terms.update(m[0].lower() for m in re.finditer(r'(?<!\w)[ABCDF](?!\w)',question))
     lines = []
     offset = 0
@@ -154,7 +183,12 @@ def verbatim_window(text: str, question: str, limit: int, *, registration: bool 
         # and governing condition. Generic administrative prose cannot win
         # merely by repeating more of the question's vocabulary.
         complete=required is not None and start<=required[0] and start+len(excerpt)>=required[1]
-        return (complete,len(terms & set(normalized_tokens(excerpt))),
+        fractional={value for low,high,value in fraction_spans
+                    if value in fractions and start<=low and high<=start+len(excerpt)}
+        ends=[high for low,high,value in fraction_spans
+              if value in fractions and start<=low and high<=start+len(excerpt)]
+        following=min(120,limit//3,start+len(excerpt)-max(ends)) if ends else 0
+        return (complete,len(terms & set(normalized_tokens(excerpt))),len(fractional),following,
                 bool(numeric_focus is not None and start<=numeric_focus<=start+len(excerpt)),
                 -abs(start + len(excerpt) / 2 - focus), -start)
     start = max(starts, key=score)

@@ -531,6 +531,26 @@ def build_context(
                         needed -= released
                     for i, share in zip(prose, shares):
                         allocations[i] = share
+            # A requested fractional qualifier can occur near the end of a
+            # lower-ranked passage. A tiny heading-only excerpt loses both
+            # that qualifier and its explanation. Borrow within the SAME
+            # document's existing budget; never shrink a table or add tokens.
+            from .source_windows import fraction_markers
+            fractions=fraction_markers(question)
+            if fractions:
+                for group in owners.values():
+                    prose=[i for i in group if parts[i][0].content_type!='table']
+                    relevant={i for i in prose if fractions & fraction_markers(parts[i][2])}
+                    floors={i:min(len(parts[i][2]),max(minimum,len(marker)+320) if i in relevant else minimum)
+                            for i in prose}
+                    if sum(floors.values())>sum(allocations[i] for i in prose):continue
+                    for i in prose:
+                        needed=max(0,floors[i]-allocations[i])
+                        for donor in reversed(prose):
+                            if not needed:break
+                            if donor==i or parts[donor][0].metadata.get('source_field_anchors'):continue
+                            released=min(needed,max(0,allocations[donor]-floors[donor]))
+                            allocations[donor]-=released;allocations[i]+=released;needed-=released
             for i, (result, metadata, content) in enumerate(parts):
                 limit = allocations[i]
                 if result.content_type != 'table' and len(content) > limit:

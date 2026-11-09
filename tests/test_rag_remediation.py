@@ -2117,3 +2117,35 @@ def test_small_positive_ratio_is_not_presented_as_zero(ratio_source):
     claims=[Claim(str(i),' | '.join(row),'fact',1,(result.chunk_id,),'supported') for i,row in enumerate(rows)]
     proof=table_ratio_proof('The value decreases.',claims,EvidenceRegistry([result]),question)
     assert proof and '= 0.0000000000001.' in proof[1]
+
+
+def test_fraction_window_preserves_source_qualifier_and_following_explanation():
+    from campusai.rag.source_windows import verbatim_window
+    prefix=('Warranty overview and general information.\n'*40)
+    rule='Warranty adjustment: one-half of the repair cost is covered.\nReason: the owner retains responsibility for the remaining share.\n'
+    text=prefix+rule+'Contact the supplier for the original inspection record.\n'
+    excerpt=verbatim_window(text,'Warranty áp dụng một nửa như thế nào?',250)
+    assert rule.rstrip() in excerpt and excerpt in text and len(excerpt)<=250
+
+
+@pytest.mark.parametrize('text,expected',[
+    ('một nửa',{'1/2'}),('one-quarter full',{'1/4'}),('two-thirds of the total',{'2/3'}),
+    ('2/4 of the balance',{'1/2'}),('ngày 01/02/2026',set()),
+    ('3/0',set()),('quarterly report',set()),('NUAE and NUA',set())])
+def test_fraction_window_hints_are_literal_and_not_generic_entity_aliases(text,expected):
+    from campusai.rag.source_windows import fraction_markers
+    assert {str(value) for value in fraction_markers(text)}==expected
+
+
+def test_fraction_budget_stays_inside_owner_budget_and_preserves_table():
+    import json
+    from campusai.rag.grounding import build_context
+    first=RetrievalResult('main','manual',2,('Warranty overview.\n'*80)+'Warranty: one-quarter of repair cost.\n','text',1.,'test',{})
+    detail=('Warranty overview.\n'*60)+'Warranty: one-half of repair cost.\nReason: owner pays the remaining share.\n'
+    results=[first,*[RetrievalResult('extra'+str(i),'manual',i+3,'Warranty overview.\n'*100,'text',.8,'test',{}) for i in range(5)],
+             RetrievalResult('detail','manual',10,detail,'text',.7,'test',{}),
+             RetrievalResult('table','other',1,json.dumps({'headers':['Part','Cost'],'rows':[['Inspection','42']]}),'table',1.,'test',{})]
+    context=build_context(results,4500,question='Warranty áp dụng một nửa thay vì một phần tư như thế nào?',balanced=True)
+    assert len(context)<=4500
+    assert 'one-half of repair cost' in context and 'Reason: owner pays the remaining share.' in context
+    assert results[-1].content in context
