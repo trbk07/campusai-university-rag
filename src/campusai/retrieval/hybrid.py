@@ -521,7 +521,8 @@ class HybridRetriever:
         fallback_reason = route_fallback
         fusion_started = time.perf_counter()
         from .table_links import linked_table_sources, semester_table_sources
-        semester_ids = semester_table_sources(query, records)
+        semester_ids = semester_table_sources(query, records,
+            require_curriculum_intent=self.prefer_literal_phrases)
         linked_ids = list(dict.fromkeys([
             *semester_ids, *linked_table_sources(search_query, records, self.candidate_limit,
                                                 include_named_curriculum=True,

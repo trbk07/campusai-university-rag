@@ -221,7 +221,14 @@ def policy_field_evidence(question, documents):
     publication=(re.search(r'\b(?:cong bo|thong bao|publish|published|release)\b',query)
                  and re.search(r'\b(?:diem|grades?|results?)\b',query))
     improvement=re.search(r'\b(?:cai thien|hoc lai keo|grade improvement|improve (?:my |the )?grade)\b',query)
-    if not (thesis or publication or improvement):return []
+    registration=re.search(r'\b(?:dang k[yi]|register|registration|enrol)\b',query)
+    from ..retrieval.tokenizer_vi import requested_semesters
+    onboarding=registration and set(requested_semesters(current))=={1}
+    class_size=(re.search(r'\b(?:lop|hoc phan|class|course)\b',query)
+        and re.search(r'\b(?:so luong|si so|duoi\s+\d+|it hon\s+\d+|'
+                      r'\d+\s+(?:ban|sinh vien|nguoi|students?)|class size)\b',query)
+        and (registration or re.search(r'\b(?:mo|huy|open|cancel)\b',query)))
+    if not (thesis or publication or improvement or onboarding or class_size):return []
     patterns=[]
     if thesis:
         patterns.append(('thesis',r'diem\s+trung\s+binh(?:\s+chung)?\s+tich\s+luy\s+'
@@ -234,6 +241,17 @@ def policy_field_evidence(question, documents):
         patterns.append(('improvement',r'(?:(?:nguoi\s+hoc|sinh\s+vien)\s+[^.;]{0,220}?'
             r'(?:duoc|co\s+the)\s+[^.;]{0,100}?(?:hoc\s+lai|cai\s+thien)[^.;]{0,180}'
             r'|khong\s+giai\s+quyet[^.;]{0,180}?hoc\s+cai\s+thien[^.;]{0,180})[.;]'))
+    if onboarding:
+        patterns.append(('onboarding',r'sinh\s+vien\s+moi\s+trung\s+tuyen[^.]{0,140}?'
+            r'(?:khong\s+phai|phai|duoc)\s+dang\s+k[yi][^.]{0,160}?'
+            r'(?:hoc\s+k[yi]|k[yi]\s+hoc)\s+(?:dau|thu\s+nhat)[^.]{0,100}\.'))
+    if class_size:
+        patterns.extend([
+            ('class_size',r'(?:truong\s+chi\s+)?mo\s+lop\s+hoc\s+phan[^.]{0,180}?'
+             r'\d+\s+sinh\s+vien\s+dang\s+k[yi][^.]{0,220}\.'),
+            ('class_size',r'(?:truong\s+hop\s+)?so\s+luong\s+sinh\s+vien\s+dang\s+k[yi]'
+             r'[^.]{0,220}?lop\s+hoc\s+phan[^.]{0,300}?bi\s+huy[^.]{0,200}\.'),
+        ])
     found=[]
     for document in documents:
         for item in document.get('items',[]):

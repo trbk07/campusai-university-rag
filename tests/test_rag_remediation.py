@@ -7,6 +7,98 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('newline',['\n','\r\n'])
+@pytest.mark.parametrize('kind',['onboarding','class_size'])
+def test_registration_procedure_fields_keep_literal_conditions_in_context(newline,kind):
+    from campusai.rag.source_windows import policy_field_evidence
+    from campusai.rag.grounding import build_context
+    if kind=='onboarding':
+        question='Tân sinh viên có phải tự đăng ký môn học kỳ đầu không?'
+        rules=['Sinh viên mới trúng tuyển không phải đăng ký học phần trong học kỳ đầu của khóa học.']
+    else:
+        question='Lớp học phần dưới 19 bạn đăng ký thì có bị hủy không?'
+        rules=['Trường chỉ mở lớp học phần khi có tối thiểu 19 sinh viên đăng ký, trừ ngành ít tuyển sinh.',
+               'Trường hợp số lượng sinh viên đăng ký vào một lớp học phần ít hơn 19, lớp học phần sẽ bị hủy và sinh viên đăng ký lớp khác.']
+    body=('Administrative unrelated text. '+newline)*25+newline.join(rules)
+    item={'chunk_id':'policy','doc_id':'cloud','page':4,'content':body,'content_type':'text',
+          'metadata':{'source_name':'fictional.pdf','source_hash':'cloud'}}
+    fields=policy_field_evidence(question,[{'doc_id':'cloud','items':[item]}])
+    assert len(fields)==1 and list(fields[0].metadata['source_field_anchors'])==rules
+    context=build_context(fields,max_chars=1800,balanced=True,question=question)
+    assert all(rule in context for rule in rules)
+    assert body==item['content'] and fields[0].page==4
+
+
+def test_registration_fields_do_not_import_other_intents_or_metadata_values():
+    from campusai.rag.source_windows import policy_field_evidence
+    item={'chunk_id':'policy','doc_id':'cloud','page':4,'content':'General policy.',
+          'metadata':{'registration_rule':'Sinh viên mới trúng tuyển không phải đăng ký học phần trong học kỳ đầu.'}}
+    docs=[{'doc_id':'cloud','items':[item]}]
+    assert not policy_field_evidence('Đăng ký môn kỳ đầu?',docs)
+    item['content']='Sinh viên mới trúng tuyển không phải đăng ký học phần trong học kỳ đầu.'
+    assert not policy_field_evidence('Đăng ký môn học kỳ 3?',docs)
+    assert not policy_field_evidence('Học kỳ đầu có môn nào?',docs)
+
+
+@pytest.mark.parametrize('marker',['Điều 9.','Article 12.','CHAPTER IV.','Mục 3.'])
+def test_ocr_standalone_article_marker_starts_its_own_physical_section(marker):
+    from campusai.ingestion.chunker import make_chunks
+    pages=[{'page':4,'text':'# Previous scope\nA preceding unrelated regulation.'},
+           {'page':5,'text':marker+'\nRegistration procedure and record keeping\n'
+                           '1.\nThe office assigns the first study plan.\n'
+                           '2.\nStudents update later selections.'}]
+    chunks=make_chunks(pages,doc_id='fictional',metadata={'source_name':'policy.pdf'})
+    rule=next(c for c in chunks if 'The office assigns' in c.content)
+    assert rule.metadata['heading_path']==[marker]
+    assert rule.page_range==(5,5)
+    assert 'A preceding unrelated regulation.' not in rule.content
+    assert marker in rule.content and 'Students update' in rule.content
+
+
+@pytest.mark.parametrize('layout',[None,{'bold':False,'is_larger_font':False}])
+def test_long_explicit_article_title_survives_missing_or_plain_ocr_layout(layout):
+    from campusai.ingestion.chunker import make_chunks
+    title='Article 14. Procedure for recording and updating individual study plans across consecutive academic terms'
+    lines=['# Previous rule','Previous text.',title,'The office records each approved request.']
+    page={'page':4,'text':'\n'.join(lines),'lines_meta':[layout]*len(lines)}
+    chunks=make_chunks([page],doc_id='fictional',metadata={})
+    rule=next(c for c in chunks if 'The office records' in c.content)
+    assert rule.metadata['heading_path']==[title]
+    assert 'Previous text.' not in rule.content
+
+
+@pytest.mark.parametrize('following',['ordinary wrapped prose','A sentence ending here.','1. A list entry',''])
+def test_ocr_bare_reference_does_not_invent_an_article_boundary(following):
+    from campusai.ingestion.chunker import make_chunks
+    chunks=make_chunks([{'page':3,'text':'# Scope\nThe reference is printed below:\nArticle 12.\n'+following}],
+                       doc_id='fictional',metadata={})
+    assert all('Article 12.' not in c.metadata['heading_path'] for c in chunks)
+    assert any('Article 12.' in c.content for c in chunks)
+
+
+@pytest.mark.parametrize('question,table_requested',[
+    ('Tân sinh viên có phải tự đăng ký môn ở kỳ đầu không?',False),
+    ('Đăng ký học kỳ 2 tối thiểu mấy tín chỉ?',False),
+    ('Must new students register courses in semester 1?',False),
+    ('May I withdraw in semester 1?',False),
+    ('HK1 học những môn nào?',True),
+    ('Tổng tín chỉ kỳ đầu là bao nhiêu?',True),
+    ('Đọc bảng HK1: phần BB và TC là bao nhiêu?',True),
+    ('Which courses are in semester 1?',True),
+    ('Kế hoạch HK1 cho đăng ký môn nào?',True),
+])
+def test_semester_tables_do_not_override_registration_rules(question,table_requested):
+    import json
+    from campusai.retrieval.table_links import semester_table_sources
+    table={'chunk_id':'schedule','doc_id':'book','page':5,'content_type':'table',
+           'content':json.dumps({'headers':['HỌC KỲ 1','Tên học phần','TC'],
+                                'rows':[['','Nhập môn hệ thống','3']]},ensure_ascii=False)}
+    records={'schedule':table,'rule':{'content':'Người mới trúng tuyển không phải tự đăng ký.'}}
+    assert bool(semester_table_sources(question,records,require_curriculum_intent=True)) is table_requested
+    # This opt-in does not change frozen calibrated retrieval behavior.
+    assert semester_table_sources(question,records)==['schedule'] or '2' in question
+
+
 @pytest.mark.parametrize('value,minimum,scale', [('6,7','6,8','20'),('6,8','6,8','20'),('11.2','10.9','15')])
 def test_named_score_minimum_checks_typed_premise_and_boundary(value,minimum,scale):
     from campusai.rag.numeric_inference import score_threshold_application_view

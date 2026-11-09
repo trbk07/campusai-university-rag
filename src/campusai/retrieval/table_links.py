@@ -118,7 +118,8 @@ def _named_curriculum_row(cells: list[str], headers: list[str]) -> tuple[set[str
     return {t for t in normalized_tokens(name) if len(t) >= 3}, sequence
 
 
-def semester_table_sources(query: str, records: dict[str, dict]) -> list[str]:
+def semester_table_sources(query: str, records: dict[str, dict], *,
+                           require_curriculum_intent: bool = False) -> list[str]:
     """Locate explicit semester section rows in original tables.
 
     Document-level semester metadata can describe another page. Only the
@@ -129,6 +130,21 @@ def semester_table_sources(query: str, records: dict[str, dict]) -> list[str]:
         return []
     normalized = unicodedata.normalize('NFKD', query.casefold().replace('đ', 'd'))
     folded_query = ''.join(char for char in normalized if not unicodedata.combining(char))
+    if require_curriculum_intent:
+        explicit_table=re.search(r'\b(?:bang|table|so do|diagram|tien trinh|ke hoach|'
+            r'curriculum|study plan|nhom chon|choose|select|chon\s+\d+)\b',folded_query)
+        course_list=re.search(r'\b(?:mon|hoc phan)\s+(?:gi|nao)\b|'
+                              r'\b(?:which|what)\s+(?:courses?|subjects?)\b',folded_query)
+        field=re.search(r'\b(?:tin(?: chi)?|tc|credits?|ma hoc phan|course codes?|'
+                        r'gio hoc|contact hours?)\b',folded_query)
+        procedural=re.search(r'\b(?:dang k[yi]|registration|register|enrol|withdraw|'
+                             r'rut|bao luu|huy lop)\b',folded_query)
+        # A term locates both regulations and course schedules. Only a
+        # requested schedule/field can promote every matching semester table.
+        # Preserve the calibrated historical path unless explicitly enabled.
+        if not (explicit_table or course_list or field) or (
+                procedural and not (explicit_table or course_list)):
+            return []
     selection = re.search(r'\b(?:nhom\s+)?(?:chon|choose)\s*(\d{1,2})\s*/\s*(\d{1,2})\b',
                           folded_query)
     matches = {}
