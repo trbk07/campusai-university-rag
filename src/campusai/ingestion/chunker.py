@@ -46,6 +46,9 @@ class HeadingPath(list[str]):
 
 def _context_header(metadata: dict, headings: list[str], page: int, page_range: tuple[int, int] | None = None) -> str:
     """Inject searchable academic context without requiring a new framework."""
+    if metadata.get('context_header_policy')=='coordinates-only-v1':
+        start,end=page_range or (page,page)
+        return f'[Page: {start}]' if start==end else f'[Page: {start}-{end}]'
     parts = []
     document_type = metadata.get("document_type")
     if document_type and document_type != "unknown":

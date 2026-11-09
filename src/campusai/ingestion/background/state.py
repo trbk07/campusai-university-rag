@@ -6,6 +6,8 @@ import math
 from pathlib import Path
 from ..docling_parser import TEXT_COVERAGE_VERSION
 from ..table_extractor import TABLE_EXTRACTOR_VERSION
+from ..chunker import CHUNKER_VERSION
+from ..metadata_detector import METADATA_VERSION
 
 ACTIVE = frozenset({'staging','queued','running'})
 TERMINAL = frozenset({'succeeded','failed','cancelled','review_required'})
@@ -55,10 +57,13 @@ def normalize_options(options):
     return result
 
 
-def job_identity(digest,options):
+def _producer_identity(digest, options, *, current, chunker_version=None, metadata_version=None):
     options = {k:v for k,v in options.items() if k != 'progressive_ocr' or v}
     payload={'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION,
              'table_extractor_version':TABLE_EXTRACTOR_VERSION}
+    if current:
+        payload.update(chunker_version=chunker_version or CHUNKER_VERSION,
+                       metadata_detector_version=metadata_version or METADATA_VERSION)
     if options.get('ocr_backend')=='vietocr':
         from ..ocr_tables import OCR_TABLE_POLICY
         payload['ocr_table_policy']=OCR_TABLE_POLICY
@@ -69,6 +74,10 @@ def job_identity(digest,options):
         from ..tesseract_worker import RENDER_POLICY
         payload['ocr_render_policy'] = RENDER_POLICY
     return hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
+def job_identity(digest, options):
+    return _producer_identity(digest, options, current=True)
 
 
 def legacy_job_identity(digest, options):
@@ -86,6 +95,13 @@ def accepted_job_identities(digest, options):
         variants.append({k:v for k,v in options.items() if k not in {'ocr_backend','ocr_data_dir'}})
     identities = {function(digest,variant) for variant in variants
                   for function in (job_identity,legacy_job_identity)}
+    identities.update(_producer_identity(digest, variant, current=False) for variant in variants)
+    # Read historical producer-bound ledgers without reusing their identity for
+    # new uploads. The owner restored the v7 code after v8/v9 had produced jobs.
+    identities.update(_producer_identity(digest,variant,current=True,
+        chunker_version=version,metadata_version='source-labelled-v2')
+        for variant in variants for version in ('structure-v7-diagram-semester-scope',
+            'structure-v8-embedded-table-headers','structure-v9-article-boundaries'))
     identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
         'text_coverage_version':version},sort_keys=True,separators=(',',':')).encode()).hexdigest()
         for variant in variants for version in (1,2,3,4))

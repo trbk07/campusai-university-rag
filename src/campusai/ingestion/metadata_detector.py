@@ -1,10 +1,58 @@
-"""Detect deterministic, auditable metadata for university documents."""
+"""Detect deterministic metadata from source labels and literal names."""
 
 from __future__ import annotations
 
 import re
 import unicodedata
 from datetime import datetime
+
+METADATA_VERSION = 'source-labelled-v3-field-provenance'
+
+_FIELD_LABELS = {
+    'institution': r'institution|university|school|trường(?:[ \t]+đại[ \t]+học)?|đơn vị',
+    'faculty': r'faculty|school|khoa|viện',
+    'program': r'program|programme|chương trình(?: đào tạo)?|ngành|major',
+    'course': r'course code|course|mã học phần|học phần',
+    'course_code': r'course code|course|mã học phần|học phần',
+    'version': r'version|revision|phiên bản|lần ban hành',
+}
+
+
+def _labelled_value(labels: str, text: str, value_pattern: str = r'[^\n,;]+', *, numeric=False) -> str | None:
+    """Accept a complete field label, never a substring inside ordinary prose.
+
+    A document containing several different labelled values has no single
+    document-wide value. Form placeholders are not entities either.
+    """
+    pattern = (r'^[ \t]*(?i:' + labels + r')[ \t]*(?::|[ \t]+-[ \t]+)[ \t]*('
+               + value_pattern + r')[ \t]*$')
+    values = [' '.join(m[1].split()).strip(' -:;,.\t')
+              for m in re.finditer(pattern, text, re.M)]
+    values = [v for v in values if any(c.isalpha() for c in v)
+              or numeric and any(c.isdigit() for c in v)]
+    distinct = {v.casefold() for v in values}
+    return values[0] if len(distinct) == 1 else None
+
+
+def _institution_name(text: str) -> str | None:
+    labelled = _labelled_value(
+        r'institution|university|school|trường(?:[ \t]+đại[ \t]+học)?|đơn vị', text)
+    if labelled:
+        return labelled
+    # Prefer a literal header name. Capitalized name words stop before a
+    # lowercase prose predicate; no acronym-to-school dictionary is used.
+    word = r'[A-ZÀ-ỸĐ][\wÀ-ỹ.-]*'
+    prefix = r'(?i:trường[ \t]+(?:đại[ \t]+học|đh[A-ZĐ]*)|đại[ \t]+học|học[ \t]+viện)'
+    pattern = r'(?<!\w)(' + prefix + r'(?:[ \t]+' + word + r'){1,14})'
+    matches = list(re.finditer(pattern, text))
+    headers = [m[1] for m in matches if not text[text.rfind('\n', 0, m.start())+1:m.start()].strip()]
+    if headers:
+        return headers[0].strip()
+    if matches:
+        return matches[0][1].strip()
+    english = re.search(r'^([A-Z][\w.-]*(?:[ \t]+[A-Z][\w.-]*){0,6}[ \t]+'
+                        r'(?:University|College|Institute))[ \t]*$', text, re.M)
+    return english[1] if english else None
 
 
 def _repair_mojibake(value: str) -> str:
@@ -25,21 +73,18 @@ def _fold(value: str) -> str:
     return normalized.replace("đ", "d").replace("Ä‘", "d")
 
 
-def _first_match(patterns: list[str], text: str) -> str | None:
-    for pattern in patterns:
-        match = re.search(pattern, text, re.IGNORECASE)
-        if match:
-            value = " ".join(match.group(1).split()).strip(" -:;,.\t")
-            if value:
-                return value
-    return None
-
-
 def _evidence_for(text: str, value: object, field: str) -> tuple[str | None, int | None]:
     """Return a short source excerpt and physical page for a detected value."""
 
     if value is None:
         return None, None
+    if field in _FIELD_LABELS:
+        pattern=r'^[ \t]*(?i:'+_FIELD_LABELS[field]+r')[ \t]*(?::|[ \t]+-[ \t]+)[ \t]*([^\n,;]+)[ \t]*$'
+        normalized=lambda s:' '.join(unicodedata.normalize('NFC',str(s)).casefold().split()).strip(' -:;,.\t')
+        for labelled in re.finditer(pattern,text,re.M):
+            if normalized(labelled[1])==normalized(value):
+                markers=list(re.finditer(r'(?:^|\n)##\s*Page\s+(\d+)\b',text[:labelled.start()]))
+                return labelled[0].strip(),int(markers[-1][1]) if markers else 1
     candidates = [str(value)]
     if field in {"academic_year", "semester"}:
         candidates = [str(value)]
@@ -56,11 +101,12 @@ def _evidence_for(text: str, value: object, field: str) -> tuple[str | None, int
             break
     if match is None:
         # Inferred language has no single label; retain a bounded source sample.
-        first_line = next((line.strip() for line in text.splitlines() if line.strip()), None)
-        if not first_line:
+        first_line = next((line for line in re.finditer(r'(?m)^[ \t]*\S[^\r\n]*$',text)
+                           if not re.match(r'[ \t]*##\s*Page\s+\d+\b',line[0])),None)
+        if first_line is None:
             return None, None
-        match_start, match_end = 0, min(len(first_line), 160)
-        snippet = first_line[:match_end]
+        match_start,match_end=first_line.start(),min(first_line.end(),first_line.start()+160)
+        snippet=text[match_start:match_end].strip()
     else:
         match_start, match_end = match.start(), match.end()
         snippet = text[max(0, match_start - 80) : min(len(text), match_end + 80)].strip()
@@ -160,38 +206,19 @@ def _temporal_date_fields(text: str) -> dict:
 
 def _extract_entities(text: str, years: list[int]) -> dict[str, object]:
     """Extract labelled entities; absent evidence is deliberately ``None``."""
-    institution = _first_match(
-        [
-            r"(?:institution|university|school|trường(?:\s+đại\s+học)?|đơn vị)\s*[:\-]\s*([^\n]+)",
-            r"((?:trường\s+đại\s+học|đại học)\s+[^\n,;]+)",
-            r"((?:[A-ZĐ][\wÀ-ỹ]+\s+){1,6}(?:University|College))",
-        ],
-        text,
-    )
-    program = _first_match(
-        [
-            r"(?:program|programme|chương trình(?: đào tạo)?)\s*[:\-]\s*([^\n,;]+)",
-            r"(?:ngành|major)\s*[:\-]\s*([^\n,;]+)",
-        ],
-        text,
-    )
-    course = _first_match(
-        [r"(?:course code|course|mã học phần|học phần)\s*[:\-]\s*([A-ZĐ][A-Z0-9._-]{2,})"],
-        text,
-    )
-    if course is None:
-        codes = re.findall(r"\b[A-Z]{2,}[A-Z0-9-]*\d{2,4}\b", text)
-        course = codes[0] if codes else None
-    version = _first_match(
-        [r"(?:version|revision|phiên bản|lần ban hành)\s*[:#\-]?\s*([^\n,;]+)"], text
-    )
+    institution = _institution_name(text)
+    program = _labelled_value(r'program|programme|chương trình(?: đào tạo)?|ngành|major', text)
+    # A law reference, catalog row or incidental code does not identify the
+    # whole document as a syllabus for that course. Require its own label and
+    # at least one digit, rather than case-insensitively accepting body words.
+    course = _labelled_value(r'course code|course|mã học phần|học phần', text,
+                            r'[A-Za-zĐđ][A-Za-z0-9._-]*\d[A-Za-z0-9._-]*')
+    version = _labelled_value(r'version|revision|phiên bản|lần ban hành', text, numeric=True)
     dates = _temporal_date_fields(text)
     effective_date = dates['effective_date']['value'] if dates['effective_date'] and dates['effective_date']['precision'] == 'day' else None
     issue_date = dates['issue_date']['value'] if dates['issue_date'] and dates['issue_date']['precision'] == 'day' else None
-    faculty = _first_match(
-        [r"(?:faculty|school|khoa|viện)\s*[:\-]\s*([^\n,;]+)"], text
-    )
-    course_code = course if course and re.fullmatch(r"[A-ZĐ][A-Z0-9._-]{2,}", course) else None
+    faculty = _labelled_value(r'faculty|school|khoa|viện', text)
+    course_code = course
     return {
         "institution": institution,
         "faculty": faculty,
@@ -345,6 +372,7 @@ def detect_metadata(text: str) -> dict:
             metadata_evidence[field]['evidence'] = entry['quote']
             metadata_evidence[field]['source_page'] = entry['source_page']
     return {
+        "metadata_detector_version": METADATA_VERSION,
         "temporal": temporal_block,
         "domain": "academic" if is_academic else "general",
         "language": language,
