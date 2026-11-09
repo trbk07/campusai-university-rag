@@ -1621,6 +1621,41 @@ def test_unknown_school_followup_keeps_all_alias_candidates_and_plain_followup_k
     assert retarget_filename_context(ordinary,docs)==ordinary
 
 
+@pytest.mark.parametrize('claim',[
+    'On page 2 the warranty duration is 999 days.',
+    'Page 2 confirms that the moon is made of cheese.',
+    'Ở trang 2, thời hạn bảo hành là 999 ngày.',
+])
+def test_physical_page_locator_does_not_prove_an_attached_false_fact(claim):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    row=RetrievalResult('warranty','manual',2,
+        'Warranty duration is 7 days. Thời hạn bảo hành là 7 ngày.',
+        'text',1.,'test',{'source_name':'Maintenance manual.pdf','page_range':[2,2]})
+    class Model:
+        def generate_json(self,prompt,**kwargs):
+            return {'answer':claim,'abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'warranty'}],
+                'claims':[{'claim_id':'rule','text':claim,'citation_ids':['warranty']}]}
+    answer=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+        'What does the warranty state?', [row],language='en')
+    assert answer.abstained and claim not in answer.answer
+
+
+@pytest.mark.parametrize('claim',[
+    'The requirement is on page 2.',
+    'On page 2 the warranty duration is 7 days.',
+    'Ở trang 2, thời hạn bảo hành là 7 ngày.',
+])
+def test_page_locator_keeps_supported_content_and_location_only_answers(claim):
+    from campusai.rag.claims import Claim,align_claims
+    from campusai.rag.evidence import EvidenceRegistry
+    row=RetrievalResult('warranty','manual',2,
+        'Warranty duration is 7 days. Thời hạn bảo hành là 7 ngày.',
+        'text',1.,'test',{'source_name':'Maintenance manual.pdf','page_range':[2,2]})
+    registry=EvidenceRegistry([row])
+    assert align_claims([Claim('rule',claim,citation_ids=('warranty',))],registry,{})[0].status=='supported'
+
+
 @pytest.mark.parametrize('shared_institution',[False,True])
 def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path,shared_institution):
     from campusai.retrieval.bm25_index import BM25Index

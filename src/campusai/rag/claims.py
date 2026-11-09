@@ -34,6 +34,12 @@ MINIMUM_QUALIFIER_RE = re.compile(
 )
 MAXIMUM_QUALIFIER_RE = re.compile(r"\b(?:at\s+most|maximum|max\.?|không\s+quá|khong\s+qua|no\s+more\s+than)\b", re.I)
 EXACT_QUALIFIER_RE = re.compile(r"\b(?:exactly|precisely|chính\s+xác|đúng|dung)\b", re.I)
+PAGE_LOCATOR_RE = re.compile(r'\b(?:page|trang)\s+(\d+)\b', re.I)
+_LOCATION_ONLY_WORDS = frozenset(
+    'requirement requirements rule rules information answer document source evidence '
+    'it this that on in at located found appears see shown stated '
+    'thông tin quy định yêu cầu tài liệu nguồn bằng chứng câu trả lời '
+    'này đó ở tại trên nằm được nêu xem'.split())
 
 
 def semester_spacing(value: str) -> str:
@@ -275,8 +281,16 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
                 'supported' if supported else 'contradicted', 1.0 if supported else 0.0,
                 tuple(item.chunk_id for item in evidence), not supported))
             continue
-        claim_tokens = _tokens(claim.text)
-        markers = _exact_markers(claim.text)
+        normalized_claim = normalize_text(claim.text)
+        page_markers = {int(match[1]) for match in PAGE_LOCATOR_RE.finditer(normalized_claim)}
+        # Physical coordinates prove a locator, not the assertion next to it.
+        # Strip ONLY the locator span before checking the remaining factual
+        # text; a second occurrence of that number is still a factual marker.
+        fact_text = PAGE_LOCATOR_RE.sub(' ', normalized_claim) if page_markers else claim.text
+        claim_tokens = _tokens(fact_text)
+        markers = _exact_markers(fact_text)
+        location_only = bool(page_markers and not markers
+                             and claim_tokens <= _LOCATION_ONLY_WORDS)
         best = 0.0
         best_records = []
         contradicted = False
@@ -296,10 +310,11 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
             # Citation metadata itself is valid support for page/source claims;
             # content-only matching would incorrectly reject answers such as
             # "the requirement is on page 1".
-            page_markers = {int(value) for value in re.findall(r"\b(?:page|trang)\s+(\d+)\b", normalize_text(claim.text))}
-            if page_markers and page_markers <= {item.page}:
+            if location_only and page_markers <= {item.page}:
                 best = max(best, 1.0)
                 best_records = [item]
+                continue
+            if page_markers and not all(item.page_range[0] <= p <= item.page_range[1] for p in page_markers):
                 continue
             evidence_tokens = _tokens(" ".join((item.content, item.doc_id, item.source_name,
                                                   *item.heading_path, *item.metadata_tokens)))
@@ -340,6 +355,8 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         if len(evidence) > 1:
             ranked_support = []
             for item in evidence:
+                if page_markers and not all(item.page_range[0] <= p <= item.page_range[1] for p in page_markers):
+                    continue
                 item_tokens = _tokens(" ".join((item.content, item.doc_id, item.source_name,
                                                   *item.heading_path, *item.metadata_tokens)))
                 overlap = len(claim_tokens & item_tokens) / max(1, len(claim_tokens))
