@@ -5,13 +5,101 @@ checks an explicitly hypothetical application, retaining all source thresholds,
 units and other eligibility conditions. Unknown grammar keeps strict validation.
 """
 import re
-from decimal import Decimal
+import json
+import unicodedata
+from decimal import Decimal, ROUND_HALF_UP, Context
+from fractions import Fraction
 
 from .course_credits import folded
 
 NUMBER=r'\d+(?:[.,]\d+)?'
 APPLICATION_NUMBER=re.compile(r'(?<![\w.])(?<!\d,)'+NUMBER+r'(?!\w|[.,]\d)')
 def decimal(value):return Decimal(value.replace(',','.'))
+
+
+def table_ratio_proof(answer, claims, registry, question, language='vi'):
+    """Prove a requested new/old ratio from two verified rows of ONE table.
+
+    This deliberately requires numeric integer row keys, an explicit from/to
+    question and complete literal row claims. It never combines arbitrary
+    numbers, rows from different sources or quantities from different columns.
+    Unknown/ambiguous layouts keep the ordinary strict grounding path.
+    """
+    query=folded(str(question or '').partition('\nContext topic (untrusted user input): ')[0])
+    if not re.search(r'\b(?:gap (?:may|bao nhieu) lan|how many times|by what factor)\b',query):return None
+    axis=lambda cell: int(cell.replace(',','')) if len(cell.strip())<=32 and re.fullmatch(r'(?:\d+|\d{1,3}(?:,\d{3})+)',cell.strip()) else None
+    amounts=re.compile(r'(?<![\w.,])\d+(?:[.,]\d+)*(?!\w|[.,]\d)')
+    candidates=[]
+    for record in registry.values():
+        if record.content_type!='table':continue
+        supported={tuple(part.strip() for part in claim.text.split('|'))
+                   for claim in claims if claim.status=='supported' and record.chunk_id in claim.citation_ids}
+        try:
+            table=json.loads(record.content[record.content.index('{"headers"'):])
+            headers,rows=table['headers'],table['rows']
+            if (not isinstance(headers,list) or len(headers)!=2
+                    or not all(isinstance(h,str) and h.strip() for h in headers)
+                    or len({folded(h) for h in headers})!=2):continue
+            if not isinstance(rows,list) or any(not isinstance(row,list) or len(row)!=2
+                or not all(isinstance(c,str) for c in row) for row in rows):continue
+        except (ValueError,TypeError,KeyError):continue
+        keys=[axis(row[0]) for row in rows]
+        if None in keys or len(keys)!=len(set(keys)):continue
+        mentions=[]
+        for match in amounts.finditer(query):
+            value=match[0]
+            if len(value)>32:continue
+            options={int(value)} if value.isdigit() else set()
+            if re.fullmatch(r'\d{1,3}(?:[.,]\d{3})+',value):options.add(int(re.sub(r'[.,]','',value)))
+            found=set(keys)&options
+            if len(found)>1:mentions=[];break
+            if found:mentions.append((match,next(iter(found))))
+        if len(mentions)!=2 or mentions[0][1]==mentions[1][1]:continue
+        first,last=mentions[0][0],mentions[1][0]
+        if not re.search(r'\b(?:tu|from)\s*$',query[:first.start()]):continue
+        if not re.fullmatch(r'\s*(?:len|xuong|den|sang|to)\s*',query[first.end():last.start()]):continue
+        selected=[rows[keys.index(value)] for _,value in mentions]
+        if any(tuple(cell.strip() for cell in row) not in supported for row in selected):continue
+        # Explicit decimal point, no inferred units or locale conversion for
+        # measured cells. Ambiguous comma/embedded-unit cells remain unsupported.
+        if any(len(row[1].strip())>32 or not re.fullmatch(r'\d+(?:\.\d+)?',row[1].strip()) for row in selected):continue
+        old,new=[Decimal(row[1].strip()) for row in selected]
+        if old<=0:continue
+        candidates.append((record.chunk_id,old,new))
+    if len(candidates)!=1:return None
+    identity,old,new=candidates[0]
+    arithmetic=Context(prec=96,rounding=ROUND_HALF_UP)
+    ratio=arithmetic.divide(new,old)
+    # Check every visible factor before removing just its derived digits from
+    # ordinary marker verification. An unrelated repetition still needs proof.
+    factor=re.compile(r'\b(?:gap\s*('+NUMBER+r')\s*lan|('+NUMBER+r')\s*(?:times|fold)\b|'
+                      r'(?:chinh xac la\s+)?(?:khoang|approximately|about)\s*('+NUMBER+r')\s*lan)')
+    characters=[];positions=[]
+    for index,char in enumerate(answer):
+        for value in unicodedata.normalize('NFD',char.casefold()).replace('đ','d'):
+            if not unicodedata.combining(value):characters.append(value);positions.append(index)
+    visible=''.join(characters);spans=[]
+    for match in factor.finditer(visible):
+        group=next(i for i in range(1,4) if match[i] is not None)
+        raw=match[group];value=decimal(raw);places=len(re.split(r'[.,]',raw)[1]) if re.search(r'[.,]',raw) else 0
+        if places>6:return False
+        approximate=group==3 or bool(re.search(r'(?:xap xi|khoang|gan|about|approximately|roughly|~|≈)\s*$',
+            visible[max(0,match.start()-32):match.start()]))
+        expected=arithmetic.quantize(ratio,Decimal(10)**-places) if approximate else ratio
+        if value!=expected:return False
+        start,end=match.span(group)
+        spans.append((positions[start],positions[end-1]+1))
+    view=answer
+    for start,end in reversed(spans):view=view[:start]+' '*(end-start)+view[end:]
+    fmt=lambda value:format(value,'f').rstrip('0').rstrip('.') if '.' in format(value,'f') else format(value,'f')
+    rounded=arithmetic.quantize(ratio,Decimal('.000001'))
+    if ratio and not rounded:
+        rounded=arithmetic.quantize(ratio,Decimal(10)**(ratio.adjusted()-5))
+    operator='=' if Fraction(rounded)*Fraction(old)==Fraction(new) else '≈'
+    formula=f'{fmt(new)} / {fmt(old)} {operator} {fmt(rounded)}'
+    completion=('Phép tính tỷ số từ hai giá trị đã dẫn: ' if language=='vi' else
+                'Ratio calculated from the two cited values: ')+formula+'.'
+    return view,completion,identity
 
 
 def _spaced_application(text):

@@ -1433,17 +1433,23 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
         return _abstention('unsupported_claim', language=language)
     source_scope_codes = set().union(*(code_markers(citation.quote) for citation in citations))
     locations = location_proofs(citations, registry)
+    from .numeric_inference import table_ratio_proof
+    ratio=table_ratio_proof(answer,claims,visible_registry,question,language)
+    if ratio is False:
+        record_stage('grounding_reject.table_ratio',0.)
+        return _abstention('unsupported_claim',language=language)
+    verification_answer=ratio[0] if ratio is not None else answer
     from .year_cells import numeric_answer_units_valid
-    if not numeric_answer_units_valid(answer, claims, registry, question, locations=locations):
+    if not numeric_answer_units_valid(verification_answer, claims, registry, question, locations=locations):
         record_stage('grounding_reject.numeric_units', 0.)
         return _abstention('unsupported_claim', language=language)
     from .grade_ranges import application_view
-    applied = application_view(answer, [citation.quote for citation in citations], question,
+    applied = application_view(verification_answer, [citation.quote for citation in citations], question,
                                doc_ids=[citation.doc_id for citation in citations])
     if applied is False:
         record_stage('grounding_reject.grade_application', 0.)
         return _abstention('unsupported_claim', language=language)
-    if presentation_conflicts(applied if isinstance(applied,str) else answer, claims, locations=locations,
+    if presentation_conflicts(applied if isinstance(applied,str) else verification_answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes,
                                application_evidence=[citation.quote for citation in citations],
                                source_names=[citation.source_name for citation in citations]):
@@ -1488,6 +1494,15 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     evidence_status = "partial" if any(claim.status == "partial" for claim in claims) else "found"
     from .presentation import complete_material_conditions
     answer=complete_material_conditions(answer,claims,citations,language)
+    if ratio is not None:
+        from .claims import Claim
+        completion,identity=ratio[1:]
+        expanded=answer.rstrip()+'\n\n'+completion
+        if len(expanded)>1600:
+            return _abstention('unsupported_claim',language=language)
+        answer=expanded
+        claims=[*claims,Claim('source-bound-table-ratio',completion,'calculation',1,
+            (identity,),'supported',1.0,(identity,),False)]
     checked=GroundedAnswer(answer=answer, citations=citations, confidence=confidence.label,
                           abstained=False, claims=tuple(claims), evidence_status=evidence_status,
                           confidence_score=confidence.score, raw_confidence_score=confidence.raw_score,

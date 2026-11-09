@@ -2000,3 +2000,120 @@ def test_numeric_body_guard_preserves_actual_numbered_titles():
     from campusai.ingestion.chunker import _looks_like_heading
     assert _looks_like_heading('2. Storage requirements',{'bold':True})[0]
     assert _looks_like_heading('3. Quy trình kiểm tra',{'is_larger_font':True})[0]
+
+
+@pytest.fixture
+def ratio_source():
+    import json
+    from campusai.rag.evidence import EvidenceRegistry
+    from campusai.rag.claims import Claim
+    text=json.dumps({'headers':['N','time (seconds)'],'rows':[['100','12.5'],['200','37.5']]})
+    result=RetrievalResult('measurements','manual',12,text,'table',1.,'test',{'source_name':'measurements.pdf'})
+    claims=[Claim('row'+str(i),' | '.join(row),'fact',1,('measurements',),'supported',1.,('measurements',),False)
+            for i,row in enumerate([['100','12.5'],['200','37.5']])]
+    question='When N changes from 100 to 200, by what factor does the time change?'
+    return result,claims,question,EvidenceRegistry([result])
+
+
+def test_ratio_proof_uses_same_column_and_two_supported_rows(ratio_source):
+    from campusai.rag.numeric_inference import table_ratio_proof
+    result,claims,question,registry=ratio_source
+    proof=table_ratio_proof('Time increases 3 times.',claims,registry,question,'en')
+    assert proof and '3' not in proof[0] and '37.5 / 12.5 = 3' in proof[1]
+    assert proof[2]==result.chunk_id
+    missing=table_ratio_proof('The times are 12.5 and 37.5 seconds.',claims,registry,question,'en')
+    assert missing and missing[0]=='The times are 12.5 and 37.5 seconds.'
+
+
+@pytest.mark.parametrize('answer',['Time increases 4 times.','Time increases about 4 times.',
+    'About 12.5 seconds; time increases exactly 4 times.'])
+def test_incorrect_ratio_is_rejected_even_when_another_quantity_is_approximate(ratio_source,answer):
+    from campusai.rag.numeric_inference import table_ratio_proof
+    _,claims,question,registry=ratio_source
+    assert table_ratio_proof(answer,claims,registry,question) is False
+
+
+def test_ratio_proof_refuses_missing_rows_or_implicit_direction(ratio_source):
+    from campusai.rag.numeric_inference import table_ratio_proof
+    _,claims,question,registry=ratio_source
+    assert table_ratio_proof('3 times',claims[:1],registry,question) is None
+    assert table_ratio_proof('3 times',claims,registry,question.replace('from 100 to 200','between 100 and 200')) is None
+    assert table_ratio_proof('3 times',claims,registry,'What are the times at 100 and 200?') is None
+
+
+@pytest.mark.parametrize('rows',[
+    [['100','0'],['200','37.5']],
+    [['100','12.5'],['100','37.5'],['200','37.5']],
+    [['100','12,5'],['200','37,5']],
+    [['100','12.5 seconds'],['200','37.5 seconds']]])
+def test_ratio_does_not_guess_ambiguous_cells_or_divide_by_zero(ratio_source,rows):
+    import json
+    from dataclasses import replace
+    from campusai.rag.evidence import EvidenceRegistry
+    from campusai.rag.claims import Claim
+    from campusai.rag.numeric_inference import table_ratio_proof
+    result,_,question,_=ratio_source
+    result=replace(result,content=json.dumps({'headers':['N','time (seconds)'],'rows':rows}))
+    claims=[Claim('row'+str(i),' | '.join(row),'fact',1,(result.chunk_id,),'supported') for i,row in enumerate(rows)]
+    assert table_ratio_proof('3 times',claims,EvidenceRegistry([result]),question) is None
+
+
+def test_ratio_cannot_join_claims_across_tables(ratio_source):
+    from dataclasses import replace
+    from campusai.rag.evidence import EvidenceRegistry
+    from campusai.rag.numeric_inference import table_ratio_proof
+    result,claims,question,_=ratio_source
+    other=replace(result,chunk_id='other',doc_id='different-manual')
+    claims[1]=replace(claims[1],citation_ids=('other',))
+    assert table_ratio_proof('3 times',claims,EvidenceRegistry([result,other]),question) is None
+
+
+def test_ratio_completion_passes_through_finalizer_without_licensing_extra_numbers(ratio_source):
+    from campusai.rag.grounding import _grounding_finalize,Citation
+    result,claims,question,_=ratio_source
+    payload={'claims':[{'claim_id':c.claim_id,'text':c.text,'citation_ids':list(c.citation_ids)} for c in claims]}
+    citation=Citation(result.chunk_id,result.doc_id,result.page,result.content,source_name='measurements.pdf',page_range=(12,12))
+    answer='At N=100 the time is 12.5 seconds; at N=200 it is 37.5 seconds.'
+    response=_grounding_finalize(answer,(citation,),payload,[result],'en',question)
+    assert not response.abstained and '37.5 / 12.5 = 3' in response.answer
+    assert response.claims[-1].claim_type=='calculation' and response.claims[-1].citation_ids==(result.chunk_id,)
+    failed=_grounding_finalize(answer+' Store the record for 3 days.',(citation,),payload,[result],'en',question)
+    assert failed.abstained
+
+
+@pytest.mark.parametrize('answer,valid',[
+    ('Time increases about 4 times.',True),
+    ('Time increases exactly 4 times.',False),
+    ('About 2 seconds; time increases exactly 4 times.',False),
+    ('Xấp xỉ gấp 4 lần; giữ thêm 4 bản.',True)])
+def test_noninteger_ratio_rounding_is_explicit_and_mask_is_span_local(ratio_source,answer,valid):
+    import json,unicodedata
+    from dataclasses import replace
+    from campusai.rag.evidence import EvidenceRegistry
+    from campusai.rag.claims import Claim
+    from campusai.rag.numeric_inference import table_ratio_proof
+    result,_,question,_=ratio_source
+    rows=[['100','2'],['200','7']]
+    result=replace(result,content=json.dumps({'headers':['N','time (seconds)'],'rows':rows}))
+    claims=[Claim(str(i),' | '.join(row),'fact',1,(result.chunk_id,),'supported') for i,row in enumerate(rows)]
+    answer=unicodedata.normalize('NFD',answer)
+    proof=table_ratio_proof(answer,claims,EvidenceRegistry([result]),question)
+    if valid:
+        assert proof and '7 / 2 = 3.5' in proof[1]
+        if 'giữ thêm' in unicodedata.normalize('NFC',answer):
+            assert proof[0].count('4')==1
+    else:assert proof is False
+
+
+def test_small_positive_ratio_is_not_presented_as_zero(ratio_source):
+    import json
+    from dataclasses import replace
+    from campusai.rag.evidence import EvidenceRegistry
+    from campusai.rag.claims import Claim
+    from campusai.rag.numeric_inference import table_ratio_proof
+    result,_,question,_=ratio_source
+    rows=[['100','1000000'],['200','0.0000001']]
+    result=replace(result,content=json.dumps({'headers':['N','time (seconds)'],'rows':rows}))
+    claims=[Claim(str(i),' | '.join(row),'fact',1,(result.chunk_id,),'supported') for i,row in enumerate(rows)]
+    proof=table_ratio_proof('The value decreases.',claims,EvidenceRegistry([result]),question)
+    assert proof and '= 0.0000000000001.' in proof[1]
