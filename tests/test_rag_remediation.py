@@ -1563,14 +1563,16 @@ def test_filename_context_retarget_preserves_explicit_comparison_and_unknown_sco
     assert retarget_filename_context(unknown,docs)==unknown
 
 
-def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path):
+@pytest.mark.parametrize('shared_institution',[False,True])
+def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path,shared_institution):
     from campusai.retrieval.bm25_index import BM25Index
     from campusai.retrieval.hybrid import HybridRetriever
     from campusai.rag.service import CampusAIQueryService
     from campusai.rag.grounding import GroundedAnswerGenerator
     for ident,name,text in [('a','Old manual.pdf','Warranty duration is 11 days.'),('b','New manual.pdf','Warranty duration is 19 days.')]:
         BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':text,'content_type':'text',
-            'metadata':{'source_name':name,'document_type':'manual'}}]).save(tmp_path/ident/'bm25.json')
+            'metadata':{'source_name':name,'document_type':'manual',
+                        'institution':'Northern Valley University' if shared_institution else None}}]).save(tmp_path/ident/'bm25.json')
     class Model:
         def generate_json(self,prompt,**kwargs):
             assert 'Warranty duration is 11 days.' in prompt and 'Warranty duration is 19 days.' in prompt
@@ -1582,6 +1584,121 @@ def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sour
         answer=service.ask('Compare the warranty in "Old manual.pdf" and "New manual.pdf".',doc_ids=['a','b'],mode='bm25')
         assert answer.abstained and answer.reason=='insufficient_evidence'
     finally:service.close()
+
+
+@pytest.mark.parametrize('source_count',[3,5])
+def test_descriptive_comparison_of_named_pdfs_has_independent_source_proofs(tmp_path,source_count):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    bodies={ident:f'Policy {ident.upper()}: inspection interval is {days} days.' for ident,days in [('a',7),('b',13),('c',29),('d',31),('e',37)][:source_count]}
+    for ident,body in bodies.items():
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':body,'content_type':'text',
+            'metadata':{'source_name':ident+'.pdf','document_type':'manual','institution':'Northern Valley University'}}]).save(tmp_path/ident/'bm25.json')
+    class Model:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert all(body in prompt for body in bodies.values())
+            return {'answer':'\n'.join(bodies.values()),'abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':ident} for ident in bodies],
+                'claims':[{'claim_id':ident,'text':body,'citation_ids':[ident]} for ident,body in bodies.items()]}
+    model=Model();service=CampusAIQueryService(HybridRetriever(tmp_path),GroundedAnswerGenerator(model,source_citations=True),confirm_institution_scope=True,context_candidates=8)
+    try:
+        answer=service.ask('Compare inspection intervals in '+', '.join(ident+'.pdf' for ident in bodies)+'.',doc_ids=list(bodies),mode='bm25')
+        assert not answer.abstained, (answer.reason,model.calls,service.retriever.last_trace,
+                                     getattr(service._request_local,'temporal_trace',None))
+        assert {c.doc_id for c in answer.citations}==set(bodies) and model.calls==1
+    finally:service.close()
+
+
+def test_existential_document_question_does_not_require_unclaimed_other_sources(tmp_path):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    for ident,text in [('a','Calibration uses optical sensors.'),('b','Battery storage requires a dry room.')]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':text,'content_type':'text',
+            'metadata':{'source_name':ident+'.pdf','document_type':'manual','institution':'Northern Valley University'}}]).save(tmp_path/ident/'bm25.json')
+    class Model:
+        def generate_json(self,prompt,**kwargs):
+            return {'answer':'Calibration uses optical sensors.','abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'a'}],
+                'claims':[{'claim_id':'calibration','text':'Calibration uses optical sensors.','citation_ids':['a']}]}
+    service=CampusAIQueryService(HybridRetriever(tmp_path),GroundedAnswerGenerator(Model(),source_citations=True),confirm_institution_scope=True)
+    try:
+        answer=service.ask('Does at least one document among a.pdf and b.pdf describe optical calibration?',doc_ids=['a','b'],mode='bm25')
+        assert not answer.abstained and {c.doc_id for c in answer.citations}=={'a'}
+    finally:service.close()
+
+
+def test_more_than_two_named_sources_does_not_bypass_typed_arithmetic_proof_limit():
+    from campusai.rag.multi_hop import plan_request
+    docs=[{'doc_id':ident,'items':[{'metadata':{'source_name':ident+'.pdf'}}]} for ident in ('a','b','c')]
+    plan=plan_request('Sum credits of AB123 in a.pdf, BC234 in b.pdf and CD345 in c.pdf.',docs)
+    assert plan.problem=='more_than_two_source_groups'
+
+
+@pytest.mark.parametrize('ending',['.','?','!',',',';'])
+def test_named_pdf_before_sentence_punctuation_is_not_silently_dropped(ending):
+    from campusai.retrieval.source_scope import source_filename_references
+    docs=[{'doc_id':'a','items':[{'metadata':{'source_name':'notes.pdf'}}]}]
+    question='Read notes.pdf'+ending
+    refs,unknown=source_filename_references(question,docs)
+    assert len(refs)==1 and not unknown
+    assert question[refs[0][0]:refs[0][1]]=='notes.pdf'
+
+
+@pytest.mark.parametrize('suffix',['.exe','_v2','2'])
+def test_extra_extension_is_an_unknown_source_not_a_selected_pdf_prefix(suffix):
+    from campusai.retrieval.source_scope import source_filename_references
+    docs=[{'doc_id':'a','items':[{'metadata':{'source_name':'notes.pdf'}}]}]
+    refs,unknown=source_filename_references('Read notes.pdf'+suffix+'.',docs)
+    assert not refs and 'notes.pdf'+suffix in unknown
+
+
+@pytest.mark.parametrize('quote', [('"','"'),('“','”'),("'","'")])
+def test_apostrophe_inside_literal_pdf_name_is_not_a_quote_delimiter(quote):
+    from campusai.retrieval.source_scope import source_filename_references
+    filename="Newton's laboratory notes.pdf"
+    docs=[{'doc_id':'a','items':[{'metadata':{'source_name':filename}}]}]
+    question=f'Read {quote[0]}{filename}{quote[1]}.'
+    refs,unknown=source_filename_references(question,docs)
+    assert len(refs)==1 and not unknown and question[refs[0][0]:refs[0][1]]==filename
+
+
+def test_quoted_topic_and_quoted_filename_remain_separate_spans():
+    from campusai.retrieval.source_scope import source_filename_references
+    docs=[{'doc_id':'a','items':[{'metadata':{'source_name':'notes.pdf'}}]}]
+    for question in ['Explain "calibration" in "notes.pdf".',"Explain 'calibration' in 'notes.pdf'."]:
+        refs,unknown=source_filename_references(question,docs)
+        assert len(refs)==1 and not unknown and question[refs[0][0]:refs[0][1]]=='notes.pdf'
+
+
+@pytest.mark.parametrize('question,ambiguous',[
+    ('Compare intervals in a.pdf, b.pdf.',False),
+    ('Compare leases in a.pdf, b.pdf.',False),
+    ('Compare a.pdf, b.pdf.',True),
+    ('So sánh a.pdf, b.pdf.',True),
+])
+def test_short_explicit_file_question_uses_subject_not_conjunction_count(question,ambiguous):
+    from campusai.rag.policies import is_ambiguous_question
+    rows=[RetrievalResult(ident,ident,1,'The inspection procedure has a fixed interval.','text',1.,'unit',
+        {'source_name':ident+'.pdf'}) for ident in ('a','b')]
+    assert is_ambiguous_question(question,rows) is ambiguous
+
+
+@pytest.mark.parametrize('language',['vi','en'])
+def test_document_prompt_is_domain_neutral_without_loosening_source_requirements(language):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    row=RetrievalResult('inspection','manual',1,'Inspect the pressure valve before starting the pump.',
+        'text',1.,'unit',{'source_name':'maintenance.pdf'})
+    prompt=GroundedAnswerGenerator(None).prompt('How is the pump inspected?',[row],language)
+    assert 'selected PDFs may cover any subject' in prompt
+    assert 'all answers still require direct support' in prompt
+    assert 'university knowledge assistant' not in prompt and 'trợ lý tri thức đại học' not in prompt
+    assert row.content in prompt
 
 
 @pytest.mark.parametrize('question',[

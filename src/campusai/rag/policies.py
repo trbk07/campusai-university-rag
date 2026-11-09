@@ -38,6 +38,24 @@ def is_ambiguous_question(question: str, results: list[RetrievalResult]) -> bool
     ))
     if scoped or len(tokens) > 5 or len({result.doc_id for result in results}) < 2:
         return False
+    from ..retrieval.source_scope import source_filename_references
+    documents={}
+    for result in results:
+        documents.setdefault(result.doc_id,{'doc_id':result.doc_id,'items':[]})['items'].append(
+            {'metadata':result.metadata})
+    references,unknown=source_filename_references(question,list(documents.values()))
+    if references and not unknown:
+        visible=list(question)
+        for start,end,_name,_owners in references:visible[start:end]=' '*(end-start)
+        from .source_windows import _STOP
+        fillers=_STOP|{'compare','comparison','so','sanh','read','show','tell','please',
+            'document','documents','file','files','pdf','pdfs','tai','lieu','tep','nguon',
+            'this','that','it','they','them','their','can','you'}
+        if _tokens(folded(''.join(visible)))-fillers:
+            # A literal source plus a stated attribute is a complete request.
+            # Comma-separated files must not become ambiguous merely because
+            # there is no extra conjunction to cross a token-count threshold.
+            return False
     matching_docs = {
         result.doc_id for result in results if tokens & _tokens(result.content)
     }

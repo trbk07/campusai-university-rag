@@ -29,12 +29,14 @@ def source_filename_references(query,documents):
             if isinstance(name,str) and name.casefold().endswith('.pdf'):
                 entry=names.setdefault(key(name),[name,set()])
                 entry[1].add(document['doc_id'])
-    quoted=list(re.finditer(r'["“\']([^"”\'\r\n]{1,240}\.pdf)["”\']',query,re.I))
-    unknown=[m[1] for m in quoted if key(m[1]) not in names]
-    protected=[m.span(1) for m in quoted if key(m[1]) not in names]
+    quoted=list(re.finditer(r'"(?P<double>[^"\r\n]{1,240}\.pdf)"|'
+        r'“(?P<curly>[^”\r\n]{1,240}\.pdf)”|'
+        r"(?<!\w)'(?P<single>(?:[^'\r\n]|(?<=\w)'(?=\w)){1,240}\.pdf)'(?!\w)",query,re.I))
+    unknown=[m[m.lastgroup] for m in quoted if key(m[m.lastgroup]) not in names]
+    protected=[m.span(m.lastgroup) for m in quoted if key(m[m.lastgroup]) not in names]
     candidates=[]
     for name,owners in names.values():
-        pattern=r'(?<![\w.-])'+r'\s+'.join(map(re.escape,name.split()))+r'(?![\w.])'
+        pattern=r'(?<![\w.-])'+r'\s+'.join(map(re.escape,name.split()))+r'(?!\w|\.\w)'
         for match in re.finditer(pattern,query,re.I):
             if any(a<=match.start() and match.end()<=b for a,b in protected):continue
             candidates.append((match.start(),match.end(),name,tuple(sorted(owners))))
@@ -44,7 +46,10 @@ def source_filename_references(query,documents):
     residual=list(query)
     for start,end,_name,_owners in chosen:
         residual[start:end]=' '*(end-start)
-    unknown.extend(m[1] for m in re.finditer(r'(?<![\w.])([\w.-]+\.pdf)(?![\w.])',''.join(residual),re.I))
+    remaining=''.join(residual)
+    # A sentence-ending period is punctuation; an added extension is a
+    # different, unselected filename and cannot silently select its PDF prefix.
+    unknown.extend(m[1].rstrip('.') for m in re.finditer(r'(?<![\w.])([\w.-]+\.pdf[\w.-]*)(?!\w)',remaining,re.I))
     return sorted(chosen),tuple(dict.fromkeys(unknown))
 
 

@@ -73,8 +73,6 @@ def plan_request(question, documents):
         if role.doc_id not in {r.doc_id for r in roles}:
             roles.append(role)
             spans.append((start,end))
-    if len(roles) > 2:
-        return MultiHopRequest('unresolved', problem='more_than_two_source_groups')
     # Filenames can contain numeric fragments that are not course codes.
     clean=list(raw)
     for start,end,_filename,_owners in refs:
@@ -89,6 +87,11 @@ def plan_request(question, documents):
     prerequisite = bool(re.search(r'\b(?:tien quyet|prerequisites?)\b', text)
         and (codes or credit or re.search(r'\b(?:course|courses|hoc phan|mon)\b',text)))
     comparison = bool(re.search(r'\b(?:so sanh|compare|comparison)\b', text))
+    if len(roles)>2 and (credit or prerequisite):
+        # The typed arithmetic/prerequisite proof engine remains two-source.
+        # Ordinary descriptive questions can name more documents; their facts
+        # still need independent source/citation coverage in the service.
+        return MultiHopRequest('unresolved',problem='more_than_two_source_groups')
     # A comparison of one code in exactly two selected documents identifies
     # both sides without requiring the user to type filenames. Document order
     # is kept; it will be part of the request fingerprint, never sorted away.

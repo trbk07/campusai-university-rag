@@ -1139,6 +1139,25 @@ class CampusAIQueryService:
         cited={c.doc_id for c in answer.citations}
         from ..retrieval.institution_scope import requested_institution_documents, _institution_groups
         available=getattr(self._request_local,'temporal_documents',[])
+        from ..retrieval.source_scope import source_filename_references
+        filenames,unknown=source_filename_references(question,available)
+        named_files={ref[3][0] for ref in filenames if len(ref[3])==1}
+        if not answer.abstained and named_files and not unknown:
+            # Publisher/institution identity cannot collapse distinct PDFs into
+            # one proof. Each explicitly requested file needs its own citation.
+            # An explicit existential request is different: one proved source
+            # suffices, without claiming anything about the other documents.
+            current=question.partition('\nContext topic (untrusted user input): ')[0]
+            from .course_credits import folded
+            existential=bool(re.search(r'\b(?:at least one|any one|either)\s+(?:of (?:the |these |those )?)?'
+                r'(?:documents?|files?|sources?|pdfs?)\b|'
+                r'\b(?:it nhat mot|bat ky mot|mot trong (?:cac|nhung))\s+(?:tai lieu|nguon|tep|pdf)\b',folded(current)))
+            enough=bool(cited&named_files) if existential else named_files<=cited
+            if not enough:
+                return GroundedAnswer('Chưa đủ bằng chứng cho từng PDF được yêu cầu.' if language=='vi'
+                    else 'A requested PDF is not supported; the answer is incomplete.',(), 'low',True,
+                    reason='insufficient_evidence',evidence_status='missing')
+            if existential:return answer
         requested=requested_institution_documents(question,available)
         if not answer.abstained and len(requested)>1:
             _,groups=_institution_groups(available)
