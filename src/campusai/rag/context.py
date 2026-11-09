@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v16-mentioned-topic"
+CONTEXT_VERSION = "request-context-v17-procedural-followups"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -32,6 +32,26 @@ def meaningless_fragment(question):
                  or re.search(r'(.)\1{5,}', text, re.I)))
 
 
+def procedural_followup(question):
+    """Relative steps need a process antecedent, not an arbitrary selected PDF."""
+    text=' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
+    relative=bool(re.search(r'\b(?:buoc|giai doan|pha)\s+(?:ke tiep|tiep theo|truoc do|sau do|ke truoc|cuoi(?: cung)?|dau tien)\b|'
+        r'\b(?:next|following|previous|preceding|last|final|first)\s+(?:step|stage|phase)\b|'
+        r'\b(?:sau|truoc)\s+(?:buoc|giai doan|pha)\b|'
+        r'\b(?:after|before)\s+(?:the\s+)?(?:step|stage|phase)\b',text))
+    relative=relative or bool(re.fullmatch(r'(?:and )?(?:what (?:happens |comes )?next|then what|sau do (?:lam gi|thi sao))',text))
+    if not relative:return False
+    # A current source or explicitly named process starts its own scope. A
+    # label such as "that procedure" still depends on earlier USER intent.
+    if re.search(r'\.pdf(?!\w|\.\w)',question,re.I):return False
+    if re.search(r'\b(?:quy trinh|thu tuc|phuong phap|thuat toan)\s+'
+                 r'(?!(?:nay|do|tren|vua|da|nao|gi|tiep|ke|buoc)\b)[a-z][a-z0-9]*(?:\s+[a-z0-9]+){0,7}',text):return False
+    if re.search(r'\b(?:in|for|of|under)\s+(?:the\s+)?'
+                 r'(?!(?:this|that|above|previous|following)\b)[a-z][a-z0-9-]*'
+                 r'(?:\s+[a-z][a-z0-9-]*){0,5}\s+(?:process|procedure|method|algorithm)\b',text):return False
+    return True
+
+
 def depends_on_previous_topic(question):
     """Require a reference or ellipsis; brevity alone never inherits a topic."""
     # A selected file identifies the source, not the antecedent of "it".
@@ -39,6 +59,8 @@ def depends_on_previous_topic(question):
     question = re.sub(r'^(?:use only (?:the )?uploaded|chỉ dùng tài liệu đã tải lên)\s+'
                       r'[\w.-]+\.pdf\.\s*', '', question, flags=re.I)
     text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
+    if procedural_followup(question):
+        return True
     if missing_topic_reference(question):
         return True
     # A noun may refer back without a pronoun: "the contract mentioned
