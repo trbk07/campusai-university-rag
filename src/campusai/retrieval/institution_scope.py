@@ -23,7 +23,17 @@ _CONTEXT = '\nContext topic (untrusted user input): '
 def _identity_text(raw):
     # User annotations and quoted technical labels are not institution names.
     # Keep the original question intact for generation/auditing.
-    return re.sub(r'^\s*(?:\[[^\]\n]{1,60}\]\s*)+', ' ', raw)
+    raw=re.sub(r'^\s*(?:\[[^\]\n]{1,60}\]\s*)+', ' ', raw)
+    # "trường dữ liệu" is a field, not a school named "Dữ liệu". Keep
+    # proper names and explicit university prefixes intact; only ordinary
+    # lower-case noun phrases are removed from institution interpretation.
+    def common_noun(match):
+        before=folded(raw[max(0,match.start()-50):match.start()])
+        if re.search(r'\b(?:truong|dai hoc|university|college|institute)\s*$',before):
+            return match[0]
+        return ' source term '
+    return re.sub(r'\b(?:[Tt]rường (?:dữ liệu|thông tin|nhập liệu|bắt buộc|tùy chọn)|'
+                  r'[Mm]ôi trường|[Tt]hị trường|[Đđ]iện trường|[Tt]ừ trường)\b',common_noun,raw)
 
 
 def _institution_label(line):
@@ -85,7 +95,7 @@ def institution_headers(items):
 
 
 def _references(raw, documents):
-    words = folded(raw).split()
+    words = folded(_identity_text(raw)).split()
     pairs = {a+b for a,b in zip(words,words[1:]) if not (a in _GENERIC and b in _GENERIC)
              and a.isalpha() and b.isalpha() and len(a+b) >= 5}
     query_words = {w for w in words if w not in _GENERIC|_ACADEMIC and len(w) >= 2}
@@ -281,10 +291,14 @@ def _institution_dependent(question,documents):
     Require an institutional rule question and source evidence of academic
     administration. Other PDF subjects retain ordinary content retrieval.
     """
-    value=folded(question)
+    value=folded(_identity_text(question))
     if re.search(r'\b(?:truong (?:cua )?(?:em|minh|toi|t)|my (?:school|university|college))\b',value):return True
     administrative=False
     for doc in documents:
+        # Corporate policies and software handbooks can be classified as
+        # regulations too. Their metadata category alone is not proof that
+        # department/product acronyms should be verified as school aliases.
+        if not institution_headers(doc.get('items',[])):continue
         for item in doc.get('items',[]):
             kind=folded(str(item.get('metadata',{}).get('document_type','')))
             if kind in {'regulation','admission','curriculum','handbook','academic calendar'}:
@@ -467,7 +481,7 @@ def _resolve_institution_request(question,documents,history=()):
     """Resolve source intent from user input; never use a model answer as fact."""
     turns=[(turn['role'],turn['content']) if isinstance(turn,dict) else turn for turn in history]
     raw=question.partition(_CONTEXT)[0]
-    if not _references(raw,documents) and re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+    if not _references(raw,documents) and re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(_identity_text(raw))):
         return InstitutionRequest(question,needs_clarification=True)
     if turns:
         if _reference_only(raw,documents):
@@ -496,7 +510,7 @@ def _resolve_institution_request(question,documents,history=()):
                     unrecognized_reference=raw)
     decision=_scope_decision(question,documents)
     if decision.doc_ids or decision.unknown_name or _multi_source_request(raw):return decision
-    if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+    if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(_identity_text(raw))):
         return InstitutionRequest(question,needs_clarification=True)
     if not _institution_dependent(question,documents):return decision
     # An explicit user school remains usable for a new subject in the same

@@ -49,9 +49,16 @@ def choose_query_mode(question: str, *, reranker_available: bool) -> str:
     return "hybrid_rerank" if hard and reranker_available else "hybrid"
 
 
-def retrieval_query(question: str) -> str:
+def retrieval_query(question: str, *, documents=()) -> str:
     """Prefer an explicit topic anchor while retaining page/scope markers."""
     raw = str(question).strip()
+    if documents:
+        from ..retrieval.source_scope import source_filename_references
+        references,_unknown=source_filename_references(raw,documents)
+        visible=list(raw)
+        for start,end,_name,_owners in references:
+            visible[start:end]=' '*(end-start)
+        raw=''.join(visible)
     from .course_credits import folded
     separator='\nContext topic (untrusted user input): '
     if separator in raw:
@@ -411,6 +418,18 @@ class CampusAIQueryService:
             question, reranker_available=self.retriever.reranker is not None
         )
 
+    def _filename_scope(self, question, documents):
+        """Resolve named files within authorization before school interpretation."""
+        if not self.confirm_institution_scope:return documents,None
+        from ..retrieval.source_scope import source_filename_references
+        references,unknown=source_filename_references(question,documents)
+        if unknown:return documents,'missing'
+        if any(len(owners)!=1 for _start,_end,_name,owners in references):
+            return documents,'ambiguous'
+        if not references:return documents,None
+        named={owners[0] for _start,_end,_name,owners in references}
+        return [doc for doc in documents if doc['doc_id'] in named],None
+
     def retrieve(
         self,
         question: str,
@@ -441,6 +460,14 @@ class CampusAIQueryService:
             return []
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
+        selected,problem=self._filename_scope(question,temporal_docs)
+        if problem:
+            self.retriever.last_trace=RoutingTrace(route='abstain',abstained=True,
+                                                   abstention_reason='ambiguous_question')
+            return []
+        if selected is not temporal_docs:
+            temporal_docs=selected
+            doc_ids=sorted(doc['doc_id'] for doc in selected)
         institution = self._institution_request(question,temporal_docs,resolved.history)
         if institution.needs_clarification:
             self.retriever.last_trace = RoutingTrace(route='abstain', abstained=True,
@@ -495,8 +522,10 @@ class CampusAIQueryService:
             self._request_local.multi_hop_trace = trace
             self.last_retrieval = list(results)
             return results
+        search_question=(retrieval_query(question,documents=temporal_docs)
+                         if self.confirm_institution_scope else question)
         return self.retriever.search(
-            re.sub(r'\b(?:19|20|21)\d{2}\b', '', question) if temporal.status == 'resolved' else question,
+            re.sub(r'\b(?:19|20|21)\d{2}\b', '', search_question) if temporal.status == 'resolved' else search_question,
             doc_ids=doc_ids,
             filters=filters,
             top_k=top_k,
@@ -659,6 +688,22 @@ class CampusAIQueryService:
                                   reason="ambiguous_question", evidence_status="ambiguous")
         question = resolved.resolved
         temporal_docs = self._temporal_documents(doc_ids, filters)
+        if self.confirm_institution_scope:
+            selected,problem=self._filename_scope(question,temporal_docs)
+            unknown=problem=='missing'
+            ambiguous=problem=='ambiguous'
+            if unknown or ambiguous:
+                self.retriever.last_trace=RoutingTrace(route='abstain',abstained=True,
+                                                       abstention_reason='ambiguous_question')
+                message=(('Không tìm thấy PDF được nêu trong các tài liệu đã chọn. Hãy chọn hoặc tải đúng file.'
+                          if unknown else 'Có nhiều PDF trùng tên. Hãy chỉ chọn đúng bản tài liệu cần hỏi.')
+                         if language=='vi' else
+                         ('The named PDF is not among the selected documents. Select or upload the file.'
+                          if unknown else 'Several selected PDFs share that filename. Select the intended version.'))
+                return GroundedAnswer(message,(), 'low',True,reason='ambiguous_question',evidence_status='ambiguous')
+            if selected is not temporal_docs:
+                temporal_docs=selected
+                doc_ids=sorted(doc['doc_id'] for doc in selected)
         institution = self._institution_request(question,temporal_docs,resolved.history)
         if institution.needs_clarification:
             self.retriever.last_trace = RoutingTrace(route='abstain',abstained=True,abstention_reason='ambiguous_question')
@@ -916,7 +961,9 @@ class CampusAIQueryService:
             legacy_comparison = composition.kind == 'compare' and not PDF.search(question)
             with stage("retrieval"):
                 temporal = getattr(self._request_local, 'temporal_resolution', None)
-                temporal_query = retrieval_query(question)
+                temporal_query = retrieval_query(question,
+                    documents=getattr(self._request_local,'temporal_documents',())
+                    if self.confirm_institution_scope else ())
                 if temporal and temporal.status == 'resolved':
                     # Eligibility was resolved already. A request's year need
                     # not occur in the selected fact chunk's text.

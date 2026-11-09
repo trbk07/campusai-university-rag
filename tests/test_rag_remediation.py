@@ -7,6 +7,91 @@ from campusai.retrieval.hybrid import RetrievalResult
 from campusai.retrieval.institution_scope import resolve_institution_request
 
 
+@pytest.mark.parametrize('filename',['Quy chế nghỉ phép.pdf','Annual report 2043.pdf','工程手册.pdf'])
+def test_full_source_filename_with_spaces_unicode_and_duplicate_identity(filename):
+    from campusai.retrieval.source_scope import source_filename_references
+    from campusai.rag.multi_hop import plan_request
+    def doc(ident,name):
+        return {'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
+    docs=[doc('first',filename),doc('other','manual.pdf')]
+    query=f'Read "{filename}".'
+    refs,unknown=source_filename_references(query,docs)
+    assert not unknown and len(refs)==1 and refs[0][3]==('first',)
+    assert query[refs[0][0]:refs[0][1]]==filename
+    assert plan_request(query,docs).problem is None
+    duplicate=[*docs,doc('second',filename)]
+    assert plan_request(query,duplicate).problem=='source_identity_ambiguous'
+
+
+def test_unknown_quoted_full_filename_cannot_select_authorized_suffix():
+    from campusai.retrieval.source_scope import source_filename_references
+    docs=[{'doc_id':'manual','items':[{'metadata':{'source_name':'manual.pdf'}}]}]
+    refs,unknown=source_filename_references('Read "Unselected manual.pdf".',docs)
+    assert not refs and unknown
+
+
+def test_code_shaped_filename_prefix_is_not_a_requested_course():
+    from campusai.rag.multi_hop import plan_request
+    docs=[{'doc_id':'manual','items':[{'metadata':{'source_name':'ZX123456 operations.pdf'}}]}]
+    plan=plan_request('Explain prerequisites in "ZX123456 operations.pdf".',docs)
+    assert plan.target_code is None and plan.problem is None and plan.kind=='single'
+
+
+def test_file_spans_do_not_shift_explicit_arithmetic_source_assignments():
+    from campusai.rag.multi_hop import plan_request
+    docs=[{'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
+          for ident,name in [('a','First manual.pdf'),('b','Second manual.pdf')]]
+    plan=plan_request('On page 2 sum credits of ZX123456 in "First manual.pdf" and AB654321 in "Second manual.pdf".',docs)
+    assert plan.kind=='sum'
+    assert [(role.doc_id,role.code) for role in plan.roles]==[('a','ZX123456'),('b','AB654321')]
+
+
+@pytest.mark.parametrize('kind',['selected','unknown','duplicate','unauthorized'])
+@pytest.mark.parametrize('lane',['ask','retrieve'])
+@pytest.mark.parametrize('filename',['Quy chế nghỉ phép.pdf','ZX123456 operations.pdf'])
+def test_generic_named_pdf_scope_precedes_school_alias_resolution(tmp_path,kind,lane,filename):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    body='Nhân viên thử việc có quyền nghỉ 7 ngày.'
+    for ident,name,text,institution in [('work',filename,body,''),
+        ('school',filename if kind=='duplicate' else 'University policy.pdf',
+         'Trường Đại học Mây Xanh\nSinh viên nghỉ 33 ngày.','Trường Đại học Mây Xanh')]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':text,'content_type':'text',
+            'metadata':{'source_name':name,'source_hash':ident,'institution':institution,
+                        'document_type':'regulation'}}]).save(tmp_path/ident/'bm25.json')
+    class Draft:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert body in prompt and '33' not in prompt
+            return {'answer':body,'abstained':False,'confidence':'high','citations':[{'chunk_id':'work'}],
+                    'claims':[{'claim_id':'rule','text':body,'citation_ids':['work']}]}
+    model=Draft()
+    service=CampusAIQueryService(HybridRetriever(tmp_path),
+        GroundedAnswerGenerator(model,source_citations=True,repair_invalid_answers=True),
+        confirm_institution_scope=True)
+    if kind=='unknown':filename='Unselected policy.pdf'
+    question=f'Theo "{filename}", HRO quy định ngày nghỉ cho nhân viên thử việc thế nào?'
+    try:
+        if lane=='retrieve':
+            rows=service.retrieve(question,doc_ids=None if kind=='unauthorized' else ['work','school'],
+                mode='bm25',authorized_doc_ids=['school'] if kind=='unauthorized' else None)
+            assert bool(rows) is (kind=='selected')
+            if rows:assert {row.doc_id for row in rows}=={'work'}
+            assert model.calls==0
+            return
+        answer=service.ask(question,doc_ids=None if kind=='unauthorized' else ['work','school'],mode='bm25',
+                           authorized_doc_ids=['school'] if kind=='unauthorized' else None)
+        assert answer.abstained is (kind!='selected')
+        if kind=='selected':
+            assert model.calls==1 and {c.doc_id for c in answer.citations}=={'work'}
+            assert {r.doc_id for r in service.last_retrieval}=={'work'}
+        else:assert model.calls==0 and not answer.citations
+    finally:service.cache.close()
+
+
 @pytest.mark.parametrize('newline',['\n','\r\n'])
 @pytest.mark.parametrize('kind',['onboarding','class_size'])
 def test_registration_procedure_fields_keep_literal_conditions_in_context(newline,kind):

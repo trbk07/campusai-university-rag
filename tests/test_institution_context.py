@@ -14,6 +14,42 @@ def schools():
             document('west', 'WESTERN INSTITUTE OF METEOROLOGY')]
 
 
+@pytest.mark.parametrize('question',[
+    'HRO có quy định ngày nghỉ thế nào?',
+    'ACME policy có áp dụng cho nhân viên thử việc không?',
+    'Còn XTR thì quy chế cấp quyền thế nào?',
+])
+def test_nonacademic_policy_acronyms_are_not_school_choices(question):
+    sources=[document('workplace','ACME — Employee policy','regulation'),
+             document('technical','XTR — Operations handbook','handbook')]
+    result=resolve_institution_request(question,sources)
+    assert not result.needs_clarification and not result.unknown_name
+    assert not result.unrecognized_reference and result.question==question
+
+
+@pytest.mark.parametrize('question',[
+    'Trường dữ liệu client_id có nghĩa gì?',
+    'API có trường thông tin trạng thái nào?',
+    'Mô tả trường nhập liệu địa chỉ.',
+    'Trường bắt buộc nào cần điền?',
+    'Điện trường và từ trường khác nhau thế nào?',
+])
+def test_technical_common_nouns_are_not_unknown_school_names(schools,question):
+    sources=[*schools,document('technical','API fields and physical quantities','manual')]
+    result=resolve_institution_request(question,sources)
+    assert not result.needs_clarification and not result.unknown_name
+    assert result.question==question
+
+
+def test_common_noun_guard_preserves_explicit_and_capitalized_institution_names(schools):
+    for question in ['Quy chế Trường Đại học Dữ liệu thế nào?',
+                     'Trường Dữ Liệu có quy định tín chỉ gì?']:
+        assert resolve_institution_request(question,schools).needs_clarification
+    sources=[document('environment','Trường Đại học Môi trường'),*schools]
+    result=resolve_institution_request('Quy chế đại học môi trường thế nào?',sources)
+    assert result.doc_ids=={'environment'} and not result.needs_clarification
+
+
 @pytest.mark.parametrize('question', [
     'Học tối thiểu bao nhiêu tín chỉ?', '8,6 điểm quy đổi ra sao?',
     'Điều kiện tốt nghiệp?', 'Trường em được hoãn thi không?',

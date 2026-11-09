@@ -14,6 +14,40 @@ def _fold(text: str) -> str:
     return ' '.join(value.encode('ascii', 'ignore').decode('ascii').split())
 
 
+def source_filename_references(query,documents):
+    """Return literal authorized filename spans and unresolved PDF names.
+
+    Filenames identify source scope, never facts. Match full names before
+    shorter suffixes, preserving spaces, Unicode and duplicate-name ambiguity.
+    No user path is opened or used to discover an unselected document.
+    """
+    names={}
+    key=lambda name:' '.join(name.casefold().split())
+    for document in documents:
+        for item in document.get('items',[]):
+            name=(item.get('metadata') or {}).get('source_name')
+            if isinstance(name,str) and name.casefold().endswith('.pdf'):
+                entry=names.setdefault(key(name),[name,set()])
+                entry[1].add(document['doc_id'])
+    quoted=list(re.finditer(r'["“\']([^"”\'\r\n]{1,240}\.pdf)["”\']',query,re.I))
+    unknown=[m[1] for m in quoted if key(m[1]) not in names]
+    protected=[m.span(1) for m in quoted if key(m[1]) not in names]
+    candidates=[]
+    for name,owners in names.values():
+        pattern=r'(?<![\w.-])'+r'\s+'.join(map(re.escape,name.split()))+r'(?![\w.])'
+        for match in re.finditer(pattern,query,re.I):
+            if any(a<=match.start() and match.end()<=b for a,b in protected):continue
+            candidates.append((match.start(),match.end(),name,tuple(sorted(owners))))
+    chosen=[]
+    for ref in sorted(candidates,key=lambda r:(-(r[1]-r[0]),r[0])):
+        if not any(ref[0]<old[1] and old[0]<ref[1] for old in chosen):chosen.append(ref)
+    residual=list(query)
+    for start,end,_name,_owners in chosen:
+        residual[start:end]=' '*(end-start)
+    unknown.extend(m[1] for m in re.finditer(r'(?<![\w.])([\w.-]+\.pdf)(?![\w.])',''.join(residual),re.I))
+    return sorted(chosen),tuple(dict.fromkeys(unknown))
+
+
 def _curriculum_headings(records):
     """Read only explicit local programme headings, never inferred metadata."""
     headings={};siblings=[]
