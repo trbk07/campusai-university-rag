@@ -1893,13 +1893,65 @@ def test_long_corrected_metadata_preserves_full_cached_body_and_never_repeats_oc
         assert all(c.content.split('\n',1)[0]==_context_header(c.metadata,c.heading_path,c.page,c.page_range) for c in fresh.chunks)
 
 
-@pytest.mark.parametrize('version',['structure-v7-diagram-semester-scope',
-    'structure-v8-embedded-table-headers','structure-v9-article-boundaries'])
-def test_old_metadata_job_receipts_remain_readable_without_becoming_current_work(version):
+@pytest.mark.parametrize('version,metadata_version',[
+    ('structure-v7-diagram-semester-scope','source-labelled-v2'),
+    ('structure-v8-embedded-table-headers','source-labelled-v2'),
+    ('structure-v9-article-boundaries','source-labelled-v2'),
+    ('structure-v7-diagram-semester-scope','source-labelled-v3-field-provenance')])
+def test_old_metadata_job_receipts_remain_readable_without_becoming_current_work(version,metadata_version):
     from campusai.ingestion.background.state import (_producer_identity,accepted_job_identities,
         job_identity,normalize_options)
     digest='b'*64;options=normalize_options({})
-    historical=_producer_identity(digest,options,current=True,chunker_version=version,metadata_version='source-labelled-v2')
+    historical=_producer_identity(digest,options,current=True,chunker_version=version,metadata_version=metadata_version)
     assert historical in accepted_job_identities(digest,options) and historical!=job_identity(digest,options)
     unknown=_producer_identity(digest,options,current=True,chunker_version='unknown-producer',metadata_version='source-labelled-v2')
     assert unknown not in accepted_job_identities(digest,options)
+
+
+def test_split_section_locates_each_piece_on_its_actual_physical_pages():
+    import re
+    from campusai.ingestion.chunker import make_chunks
+    from campusai.retrieval.tokenizer_vi import source_body
+    pages=[{'page':n,'text':'\n'.join(
+        f'physical_{n}_line_{i}: preserve the complete technical procedure and its original details.'
+        for i in range(24))} for n in range(4,17)]
+    chunks=make_chunks(pages,'source',{})
+    assert len(chunks)>=13
+    seen=set()
+    for chunk in chunks:
+        body=source_body({'content':chunk.content},decode_tables=False)
+        owners={int(value) for value in re.findall(r'physical_(\d+)_line_\d+:',body)}
+        assert owners
+        assert chunk.page_range==(min(owners),max(owners))
+        assert chunk.page==min(owners)==chunk.metadata['citation']['page']
+        assert chunk.metadata['citation']['page_range']==list(chunk.page_range)
+        assert len(chunk.content)<=2400
+        seen.update(owners)
+    assert seen==set(range(4,17))
+
+
+def test_page_localization_preserves_cross_page_condition_and_accepts_page_iterator():
+    from campusai.ingestion.chunker import make_chunks
+    pages=[{'page':7,'text':'The maintenance warranty applies only when'},
+           {'page':8,'text':'the original inspection record is retained.'}]
+    chunks=make_chunks(iter(pages),'source',{})
+    assert len(chunks)==1 and chunks[0].page_range==(7,8)
+    assert 'applies only when\nthe original inspection record is retained.' in chunks[0].content
+
+
+def test_cited_filename_digits_are_scope_but_cannot_license_a_factual_quantity():
+    from campusai.rag.presentation import presentation_conflicts
+    from campusai.rag.claims import Claim
+    fact='The original inspection record must be retained.'
+    claims=[Claim('record',fact,'fact',1,('source',),'supported',1.,('source',),False)]
+    name='Maintenance 2048.pdf'
+    question='What record is required in '+name+'?'
+    answer='According to '+name+', '+fact
+    assert not presentation_conflicts(answer,claims,question=question,source_names=[name])
+    assert presentation_conflicts(answer,claims,question=question)
+    assert presentation_conflicts(answer+' Retain it for 2048 days.',claims,question=question,source_names=[name])
+    assert presentation_conflicts(answer.replace(name,'Maintenance 4096.pdf'),claims,
+        question=question,source_names=[name])
+    assert presentation_conflicts(answer.replace(name,name+'.exe'),claims,
+        question=question,source_names=[name])
+    assert presentation_conflicts(answer,claims,question='What record is required?',source_names=[name])

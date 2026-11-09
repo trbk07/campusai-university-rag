@@ -730,11 +730,24 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
     return answer+('\n\n'+'\n'.join(additions) if additions else '')
 
 
-def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=()):
+def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=(), source_names=()):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
         return True
+    # A verified source filename is a locator, not a factual quantity. Mask
+    # only the complete name repeated from the question and an actual citation;
+    # a separate occurrence of its digits must still be proved by claims.
+    if source_names:
+        from ..retrieval.source_scope import source_filename_references
+        documents=[{'doc_id':str(i),'items':[{'metadata':{'source_name':name}}]}
+                   for i,name in enumerate(dict.fromkeys(source_names)) if isinstance(name,str)]
+        requested,_=source_filename_references(str(question or ''),documents)
+        allowed={ref[2] for ref in requested}
+        references,_=source_filename_references(answer,documents)
+        for start,end,name,_owners in reversed(references):
+            if name in allowed:
+                answer=answer[:start]+' '*(end-start)+answer[end:]
     visible = quantity_spacing(prose(answer))
     table_semesters={value for kind,value in locations if kind=='semester'}
     if table_semesters and any(str(int(m[1])) not in table_semesters for m in SEMESTER_LOCATION.finditer(visible)):

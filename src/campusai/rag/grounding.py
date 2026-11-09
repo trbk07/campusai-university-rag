@@ -1445,7 +1445,8 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
         return _abstention('unsupported_claim', language=language)
     if presentation_conflicts(applied if isinstance(applied,str) else answer, claims, locations=locations,
                                question=question, source_scope_codes=source_scope_codes,
-                               application_evidence=[citation.quote for citation in citations]):
+                               application_evidence=[citation.quote for citation in citations],
+                               source_names=[citation.source_name for citation in citations]):
         record_stage('grounding_reject.presentation', 0.)
         return _abstention('unsupported_claim', language=language)
     from .presentation import conditional_labels_supported

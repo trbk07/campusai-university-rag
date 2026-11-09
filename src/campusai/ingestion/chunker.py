@@ -9,7 +9,7 @@ from typing import Any
 
 from ..schemas import Chunk
 
-CHUNKER_VERSION = "structure-v7-diagram-semester-scope"
+CHUNKER_VERSION = "structure-v8-piece-page-provenance"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -149,7 +149,7 @@ def _text_sections(text: str) -> list[tuple[str, list[str]]]:
     return [(content, headings) for content, headings, _start, _end in sections]
 
 
-def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str], int, int]], dict[str, Any]]:
+def _sectionize(pages: list[dict[str, Any]], *, page_spans=None) -> tuple[list[tuple[str, list[str], int, int]], dict[str, Any]]:
     sections: list[tuple[str, list[str], int, int]] = []
     heading_path: list[str] = []
     buffer: list[str] = []
@@ -163,6 +163,17 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
         content = "\n".join(buffer).strip()
         if content:
             sections.append((content, list(heading_path), min(buffer_pages), max(buffer_pages)))
+            if page_spans is not None:
+                # Offsets refer to whitespace-normalized section text, while
+                # each span retains its original physical source page.
+                spans = []
+                offset = 0
+                for line, number in zip(buffer, buffer_pages):
+                    size = len(' '.join(line.split()))
+                    if size:
+                        spans.append((offset, offset + size, number))
+                        offset += size + 1
+                page_spans.append(spans)
         buffer.clear()
         buffer_pages.clear()
 
@@ -412,23 +423,43 @@ def _diagram_scopes_for_piece(pages, start_page, end_page, piece):
 def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any] | None = None):
     """Build text/table units and return diagnostics for acceptance reports."""
     chunks: list[Chunk] = []
-    sections, report = _sectionize(list(pages))
+    pages = list(pages)
+    section_spans = []
+    sections, report = _sectionize(pages, page_spans=section_spans)
     for section_index, (content, headings, start_page, end_page) in enumerate(sections, start=1):
         page_range = (start_page, end_page)
         # The context header is part of the persisted chunk and therefore part
         # of the hard size invariant. Reserve its budget before splitting body.
         provisional_header = _context_header(metadata, headings, start_page, page_range)
-        body_budget = max(1, _MAX_CHARS - len(provisional_header) - 2)
+        # A later piece can begin on a page with more digits than the section
+        # start (e.g. 4-16 becomes 10-11). Reserve that coordinate growth too.
+        coordinate_growth = max(0, len(str(end_page)) - len(str(start_page)))
+        body_budget = max(1, _MAX_CHARS - len(provisional_header) - 2 - coordinate_growth)
         pieces = _split_with_overlap(content, body_budget)
+        normalized_content = ' '.join(content.split())
+        previous_start = -1
         for position, piece in enumerate(pieces, start=1):
-            page = start_page
+            normalized_piece = ' '.join(piece.split())
+            offset = normalized_content.find(normalized_piece, previous_start + 1)
+            # Splitting changes whitespace and adds source overlap, not words.
+            # If alignment cannot be proved, retain the conservative section
+            # range rather than inventing a more precise locator.
+            piece_range = page_range
+            if offset >= 0 and normalized_piece:
+                end = offset + len(normalized_piece)
+                owners = [number for low, high, number in section_spans[section_index - 1]
+                          if low < end and high > offset]
+                if owners:
+                    piece_range = (min(owners), max(owners))
+                    previous_start = offset
+            page = piece_range[0]
             chunk_id = f"{doc_id}_p{page}_s{section_index}_c{position}"
-            contextual_content = f"{_context_header(metadata, headings, page, page_range)}\n\n{piece}"
+            contextual_content = f"{_context_header(metadata, headings, page, piece_range)}\n\n{piece}"
             chunk_metadata = {
                 **metadata,
                 "doc_id": doc_id,
                 "page": page,
-                "page_range": list(page_range),
+                "page_range": list(piece_range),
                 "content_type": "text",
                 "heading_path": HeadingPath(headings),
                 "section_index": section_index,
@@ -436,14 +467,14 @@ def make_chunks(pages, doc_id, metadata, tables=None, diagnostics: dict[str, Any
                     "chunk_id": chunk_id,
                     "doc_id": doc_id,
                     "page": page,
-                    "page_range": list(page_range),
+                    "page_range": list(piece_range),
                     "content_type": "text",
                 },
             }
-            diagram_scopes = _diagram_scopes_for_piece(pages, start_page, end_page, piece)
+            diagram_scopes = _diagram_scopes_for_piece(pages, *piece_range, piece)
             if diagram_scopes:
                 chunk_metadata['diagram_semester_groups'] = diagram_scopes
-            chunks.append(Chunk(chunk_id, doc_id, page, contextual_content, "text", HeadingPath(headings), chunk_metadata, page_range))
+            chunks.append(Chunk(chunk_id, doc_id, page, contextual_content, "text", HeadingPath(headings), chunk_metadata, piece_range))
 
     for table in tables or []:
         first_page = table.pages[0]
