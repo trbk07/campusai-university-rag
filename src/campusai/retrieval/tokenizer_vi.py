@@ -106,7 +106,7 @@ def normalize_retrieval_query(text: str) -> str:
         aliases.append('điểm chữ quy đổi điểm học phần')
     if re.search(r"thac\s+s[yi]|thạc\s+s[ĩỹ]", lowered):
         aliases.extend(("thạc sĩ", "thac si", "master"))
-    if re.search(r'(?:dao\s*tao|training).*?(?:may\s*nam|bn\s*nam|bao\s*lau|duration|years?)|training duration|\bduration\b', folded):
+    if re.search(r'(?:dao\s*tao|training).*?(?:may\s*nam|bn\s*nam|bao\s*lau|duration|years?)|training duration', folded):
         aliases.extend(("thời gian đào tạo", "training duration"))
     if re.search(r'\b(?:entry|dau vao)\b', folded) and re.search(r'\b(?:english|language|nn|ngoai ngu)\b', folded):
         aliases.append('năng lực ngoại ngữ bậc điều kiện đầu vào')

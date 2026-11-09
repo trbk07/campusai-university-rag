@@ -14,6 +14,57 @@ def _fold(text: str) -> str:
     return ' '.join(value.encode('ascii', 'ignore').decode('ascii').split())
 
 
+def source_filename_references(query,documents):
+    """Return literal authorized filename spans and unresolved PDF names.
+
+    Filenames identify source scope, never facts. Match full names before
+    shorter suffixes, preserving spaces, Unicode and duplicate-name ambiguity.
+    No user path is opened or used to discover an unselected document.
+    """
+    names={}
+    key=lambda name:' '.join(name.casefold().split())
+    for document in documents:
+        for item in document.get('items',[]):
+            name=(item.get('metadata') or {}).get('source_name')
+            if isinstance(name,str) and name.casefold().endswith('.pdf'):
+                entry=names.setdefault(key(name),[name,set()])
+                entry[1].add(document['doc_id'])
+    quoted=list(re.finditer(r'["“\']([^"”\'\r\n]{1,240}\.pdf)["”\']',query,re.I))
+    unknown=[m[1] for m in quoted if key(m[1]) not in names]
+    protected=[m.span(1) for m in quoted if key(m[1]) not in names]
+    candidates=[]
+    for name,owners in names.values():
+        pattern=r'(?<![\w.-])'+r'\s+'.join(map(re.escape,name.split()))+r'(?![\w.])'
+        for match in re.finditer(pattern,query,re.I):
+            if any(a<=match.start() and match.end()<=b for a,b in protected):continue
+            candidates.append((match.start(),match.end(),name,tuple(sorted(owners))))
+    chosen=[]
+    for ref in sorted(candidates,key=lambda r:(-(r[1]-r[0]),r[0])):
+        if not any(ref[0]<old[1] and old[0]<ref[1] for old in chosen):chosen.append(ref)
+    residual=list(query)
+    for start,end,_name,_owners in chosen:
+        residual[start:end]=' '*(end-start)
+    unknown.extend(m[1] for m in re.finditer(r'(?<![\w.])([\w.-]+\.pdf)(?![\w.])',''.join(residual),re.I))
+    return sorted(chosen),tuple(dict.fromkeys(unknown))
+
+
+def retarget_filename_context(question,documents):
+    """Keep a follow-up topic while honoring its newly selected literal file."""
+    separator='\nContext topic (untrusted user input): '
+    current,marker,topic=question.partition(separator)
+    if not marker:return question
+    from ..rag.policies import explicit_comparison_request
+    if explicit_comparison_request(current):return question
+    targets,unknown=source_filename_references(current,documents)
+    if unknown or len({r[2] for r in targets})!=1 or any(len(r[3])!=1 for r in targets):
+        return question
+    previous,unknown=source_filename_references(topic,documents)
+    if unknown:return question
+    for start,end,_name,_owners in reversed(previous):
+        topic=topic[:start]+targets[0][2]+topic[end:]
+    return current+marker+topic
+
+
 def _curriculum_headings(records):
     """Read only explicit local programme headings, never inferred metadata."""
     headings={}
@@ -69,6 +120,9 @@ def explicit_source_documents(query,documents):
     no answer, expected page, or evaluation label is used to pick a source.
     """
     raw=query.partition('\nContext topic (untrusted user input): ')[0]
+    references,unknown=source_filename_references(raw,documents)
+    if references and not unknown and all(len(ref[3])==1 for ref in references):
+        return {ref[3][0] for ref in references}
     codes=detected_course_codes(raw)
     if codes:
         owners=[]

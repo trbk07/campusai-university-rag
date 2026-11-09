@@ -1427,3 +1427,176 @@ def test_mentioned_object_carries_a_chain_but_not_a_new_explicit_subject():
     assert first in result.resolved and second in result.resolved
     standalone = 'Tài liệu hướng dẫn thiết bị mới quy định thời gian bảo hành bao lâu?'
     assert resolve_query(standalone,history=[{'role':'user','content':first}]).resolved == standalone
+
+
+@pytest.mark.parametrize('filename',['Quy chế nghỉ phép.pdf','Annual report 2043.pdf','工程手册.pdf'])
+def test_full_source_filename_with_spaces_unicode_and_duplicate_identity(filename):
+    from campusai.retrieval.source_scope import source_filename_references
+    from campusai.rag.multi_hop import plan_request
+    def doc(ident,name):
+        return {'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
+    docs=[doc('first',filename),doc('other','manual.pdf')]
+    query=f'Read "{filename}".'
+    refs,unknown=source_filename_references(query,docs)
+    assert not unknown and len(refs)==1 and refs[0][3]==('first',)
+    assert query[refs[0][0]:refs[0][1]]==filename
+    assert plan_request(query,docs).problem is None
+    duplicate=[*docs,doc('second',filename)]
+    assert plan_request(query,duplicate).problem=='source_identity_ambiguous'
+
+
+def test_unknown_quoted_full_filename_cannot_select_authorized_suffix():
+    from campusai.retrieval.source_scope import source_filename_references
+    docs=[{'doc_id':'manual','items':[{'metadata':{'source_name':'manual.pdf'}}]}]
+    refs,unknown=source_filename_references('Read "Unselected manual.pdf".',docs)
+    assert not refs and unknown
+
+
+def test_code_shaped_filename_prefix_is_not_a_requested_course():
+    from campusai.rag.multi_hop import plan_request
+    docs=[{'doc_id':'manual','items':[{'metadata':{'source_name':'ZX123456 operations.pdf'}}]}]
+    plan=plan_request('Explain prerequisites in "ZX123456 operations.pdf".',docs)
+    assert plan.target_code is None and plan.problem is None and plan.kind=='single'
+
+
+def test_file_spans_do_not_shift_explicit_arithmetic_source_assignments():
+    from campusai.rag.multi_hop import plan_request
+    docs=[{'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
+          for ident,name in [('a','First manual.pdf'),('b','Second manual.pdf')]]
+    plan=plan_request('On page 2 sum credits of ZX123456 in "First manual.pdf" and AB654321 in "Second manual.pdf".',docs)
+    assert plan.kind=='sum'
+    assert [(role.doc_id,role.code) for role in plan.roles]==[('a','ZX123456'),('b','AB654321')]
+
+
+@pytest.mark.parametrize('kind',['selected','unknown','duplicate','unauthorized'])
+@pytest.mark.parametrize('lane',['ask','retrieve'])
+@pytest.mark.parametrize('filename',['Quy chế nghỉ phép.pdf','ZX123456 operations.pdf'])
+def test_generic_named_pdf_scope_precedes_school_alias_resolution(tmp_path,kind,lane,filename):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    body='Nhân viên thử việc có quyền nghỉ 7 ngày.'
+    for ident,name,text,institution in [('work',filename,body,''),
+        ('school',filename if kind=='duplicate' else 'University policy.pdf',
+         'Trường Đại học Mây Xanh\nSinh viên nghỉ 33 ngày.','Trường Đại học Mây Xanh')]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':text,'content_type':'text',
+            'metadata':{'source_name':name,'source_hash':ident,'institution':institution,
+                        'document_type':'regulation'}}]).save(tmp_path/ident/'bm25.json')
+    class Draft:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert body in prompt and '33' not in prompt
+            return {'answer':body,'abstained':False,'confidence':'high','citations':[{'chunk_id':'work'}],
+                    'claims':[{'claim_id':'rule','text':body,'citation_ids':['work']}]}
+    model=Draft()
+    service=CampusAIQueryService(HybridRetriever(tmp_path),
+        GroundedAnswerGenerator(model,source_citations=True,repair_invalid_answers=True),
+        confirm_institution_scope=True)
+    if kind=='unknown':filename='Unselected policy.pdf'
+    question=f'Theo "{filename}", HRO quy định ngày nghỉ cho nhân viên thử việc thế nào?'
+    try:
+        if lane=='retrieve':
+            rows=service.retrieve(question,doc_ids=None if kind=='unauthorized' else ['work','school'],
+                mode='bm25',authorized_doc_ids=['school'] if kind=='unauthorized' else None)
+            assert bool(rows) is (kind=='selected')
+            if rows:assert {row.doc_id for row in rows}=={'work'}
+            assert model.calls==0
+            return
+        answer=service.ask(question,doc_ids=None if kind=='unauthorized' else ['work','school'],mode='bm25',
+                           authorized_doc_ids=['school'] if kind=='unauthorized' else None)
+        assert answer.abstained is (kind!='selected')
+        if kind=='selected':
+            assert model.calls==1 and {c.doc_id for c in answer.citations}=={'work'}
+            assert {r.doc_id for r in service.last_retrieval}=={'work'}
+        else:assert model.calls==0 and not answer.citations
+    finally:service.cache.close()
+
+
+@pytest.mark.parametrize('names',[
+    ('Alpha manual.pdf','Beta manual.pdf'),
+    ('ZX123456 maintenance.pdf','QY654321 operations.pdf'),
+    ('University research notes.pdf','Trường khác software guide.pdf'),
+    ('工程手册.pdf','Quy trình kho vận.pdf'),
+])
+@pytest.mark.parametrize('lane',['ask','retrieve'])
+def test_new_named_pdf_followup_keeps_topic_and_replaces_old_source_scope(tmp_path,names,lane):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    for ident,name,body in [('a',names[0],'Warranty duration is 11 days.'),('b',names[1],'Warranty duration is 19 days.')]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':body,'content_type':'text',
+            'metadata':{'source_name':name,'source_hash':ident,'document_type':'manual'}}]).save(tmp_path/ident/'bm25.json')
+    class Model:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert 'Warranty duration is 19 days.' in prompt and 'Warranty duration is 11 days.' not in prompt
+            return {'answer':'Warranty duration is 19 days.','abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'b'}],
+                'claims':[{'claim_id':'warranty','text':'Warranty duration is 19 days.','citation_ids':['b']}]}
+    model=Model();service=CampusAIQueryService(HybridRetriever(tmp_path),GroundedAnswerGenerator(model,source_citations=True),confirm_institution_scope=True)
+    history=[{'role':'user','content':f'What warranty duration is stated in "{names[0]}"?'},
+             {'role':'assistant','content':'The earlier reply is not evidence for the next file.'}]
+    try:
+        question=f'Còn file "{names[1]}" thì sao?'
+        if lane=='retrieve':
+            rows=service.retrieve(question,doc_ids=['a','b'],mode='bm25',history=history)
+            assert rows and {r.doc_id for r in rows}=={'b'} and model.calls==0
+        else:
+            answer=service.ask(question,doc_ids=['a','b'],mode='bm25',history=history)
+            assert not answer.abstained and {c.doc_id for c in answer.citations}=={'b'} and model.calls==1
+    finally:service.close()
+
+
+def test_filename_context_retarget_preserves_explicit_comparison_and_unknown_scope():
+    from campusai.retrieval.source_scope import retarget_filename_context
+    docs=[{'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
+          for ident,name in [('a','Old manual.pdf'),('b','New manual.pdf')]]
+    separator='\nContext topic (untrusted user input): '
+    topic='What warranty is stated in "Old manual.pdf"?'
+    comparison='Compare that warranty with "New manual.pdf".'+separator+topic
+    assert retarget_filename_context(comparison,docs)==comparison
+    unknown='Còn "Unknown manual.pdf" thì sao?'+separator+topic
+    assert retarget_filename_context(unknown,docs)==unknown
+
+
+def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    for ident,name,text in [('a','Old manual.pdf','Warranty duration is 11 days.'),('b','New manual.pdf','Warranty duration is 19 days.')]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,'content':text,'content_type':'text',
+            'metadata':{'source_name':name,'document_type':'manual'}}]).save(tmp_path/ident/'bm25.json')
+    class Model:
+        def generate_json(self,prompt,**kwargs):
+            assert 'Warranty duration is 11 days.' in prompt and 'Warranty duration is 19 days.' in prompt
+            return {'answer':'Warranty duration is 19 days.','abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'b'}],
+                'claims':[{'claim_id':'warranty','text':'Warranty duration is 19 days.','citation_ids':['b']}]}
+    service=CampusAIQueryService(HybridRetriever(tmp_path),GroundedAnswerGenerator(Model(),source_citations=True),confirm_institution_scope=True)
+    try:
+        answer=service.ask('Compare the warranty in "Old manual.pdf" and "New manual.pdf".',doc_ids=['a','b'],mode='bm25')
+        assert answer.abstained and answer.reason=='insufficient_evidence'
+    finally:service.close()
+
+
+@pytest.mark.parametrize('question',[
+    'What is the battery warranty duration?',
+    'Specify the lease duration and renewal conditions.',
+    'What is the duration of the pressure test?',
+])
+def test_generic_duration_does_not_invent_an_academic_training_topic(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    expanded=normalize_retrieval_query(question)
+    assert 'training duration' not in expanded and 'thời gian đào tạo' not in expanded
+    assert question in expanded and 'thời gian duration' in expanded
+
+
+@pytest.mark.parametrize('question',['What is the training duration?','Đào tạo bao lâu?','dao tao bn nam?'])
+def test_explicit_training_duration_retains_its_academic_recall(question):
+    from campusai.retrieval.tokenizer_vi import normalize_retrieval_query
+    assert 'thời gian đào tạo' in normalize_retrieval_query(question)

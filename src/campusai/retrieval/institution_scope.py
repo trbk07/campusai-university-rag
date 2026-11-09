@@ -11,13 +11,30 @@ def folded(text):
 
 _GENERIC = set('truong dai hoc dh vien hocvien university college institute national of and the em toi minh ban o tai cua co la thi duoc khong nam ky ki diem tin chi at in is to for an it tu va voi nay nao sao can quy che ap dung kia do khac'.split())
 _ACADEMIC = {'gpa','cpa','tc','ects','pdf','cntt','ielts','toefl','api','ai','ocr','llm','url','http','https'}
+_NAME_FILLERS = {'do','khac','chinh','dao','vua','tu','thac','tien','nhu','the','hop'}
 _CONTEXT = '\nContext topic (untrusted user input): '
 
 
-def _identity_text(raw):
+def _identity_text(raw,documents=()):
     # User annotations and quoted technical labels are not institution names.
     # Keep the original question intact for generation/auditing.
-    return re.sub(r'^\s*(?:\[[^\]\n]{1,60}\]\s*)+', ' ', raw)
+    raw=re.sub(r'^\s*(?:\[[^\]\n]{1,60}\]\s*)+', ' ', raw)
+    if documents:
+        from .source_scope import source_filename_references
+        references,_unknown=source_filename_references(raw,documents)
+        visible=list(raw)
+        for start,end,_name,_owners in references:visible[start:end]=' '*(end-start)
+        raw=''.join(visible)
+    # "trường dữ liệu" is a field, not a school named "Dữ liệu". Keep
+    # proper names and explicit university prefixes intact; only ordinary
+    # lower-case noun phrases are removed from institution interpretation.
+    def common_noun(match):
+        before=folded(raw[max(0,match.start()-50):match.start()])
+        if re.search(r'\b(?:truong|dai hoc|university|college|institute)\s*$',before):
+            return match[0]
+        return ' source term '
+    return re.sub(r'\b(?:[Tt]rường (?:dữ liệu|thông tin|nhập liệu|bắt buộc|tùy chọn)|'
+                  r'[Mm]ôi trường|[Tt]hị trường|[Đđ]iện trường|[Tt]ừ trường)\b',common_noun,raw)
 
 
 def _institution_label(line):
@@ -79,7 +96,7 @@ def institution_headers(items):
 
 
 def _references(raw, documents):
-    words = folded(raw).split()
+    words = folded(_identity_text(raw,documents)).split()
     pairs = {a+b for a,b in zip(words,words[1:]) if not (a in _GENERIC and b in _GENERIC)
              and a.isalpha() and b.isalpha() and len(a+b) >= 5}
     query_words = {w for w in words if w not in _GENERIC|_ACADEMIC and len(w) >= 2}
@@ -119,8 +136,9 @@ def _references(raw, documents):
 
 def _unmatched_name(raw, documents):
     # A new named school must not silently inherit the previous school.
-    raw = _identity_text(raw)
-    for part in re.split(r'\b(?:va|voi|and|versus|vs)\b|[,;]',folded(raw)):
+    raw = _identity_text(raw,documents)
+    for original_part in re.split(r'\b(?:và|va|với|voi|and|versus|vs)\b|[,;]',raw,flags=re.I):
+        part=folded(original_part)
         # "Hiệu trưởng hiện tại" names a role, not a school called Hiện.
         # A following explicit school ("Hiệu trưởng Trường ...") stays intact.
         part=re.sub(r'\bhieu truong\b',' ',part)
@@ -128,12 +146,25 @@ def _unmatched_name(raw, documents):
         # Remove only that noun phrase; a separately named unknown school
         # in the same comparison must still trigger confirmation.
         part = re.sub(r'\b(?:tat ca(?: cac)?|cac|moi|hai|ba|\d+)\s+truong\b', ' ', part)
-        named=re.search(r'\b(?:truong(?: dai hoc)?|dai hoc|dh|university|college|institute)\s+(\w+)',part)
-        if (named and named[1] not in _GENERIC|{'do','khac','chinh','dao','vua','tu','thac','tien','nhu','the','hop'}
-                and not _references(part,documents)):
-            return True
-    acronyms=set(re.findall(r'\b[A-Z]{2,12}\b',raw))
-    unknown={a for a in acronyms if a.casefold() not in _ACADEMIC and not _references(a,documents)}
+        names=list(re.finditer(r'\b(?:truong(?: dai hoc)?|dai hoc|dh|(?:university|college|institute)(?: of)?)\s+(\w+)',part))
+        for i,named in enumerate(names):
+            # A recognized first name must not conceal an unknown second
+            # institution in the same clause. Each name has its own span.
+            end=names[i+1].start() if i+1<len(names) else len(part)
+            if (named[1] not in _GENERIC|_NAME_FILLERS
+                    and not _references(part[named.start():end],documents)):
+                return True
+    # Capitalized words already covered by the literal institution reference
+    # are not separate new acronyms (e.g. an uppercase multiword source title).
+    words=list(re.finditer(r'[^\W_]+',raw));refs=_references(raw,documents)
+    covered=set()
+    for i,word in enumerate(words):
+        if folded(word[0]) in refs:covered.add(i)
+        if i+1<len(words) and folded(word[0])+folded(words[i+1][0]) in refs:
+            covered.update((i,i+1))
+    unknown={word[0] for i,word in enumerate(words) if i not in covered
+             and re.fullmatch(r'[A-Z]{2,12}',word[0]) and word[0].casefold() not in _ACADEMIC
+             and not _references(word[0],documents)}
     return bool(unknown and _institution_dependent(raw,documents) and (raw.strip() in unknown or re.match(
         r'^(?:con|the|vay|o|tai|what about|at)\b',folded(raw))))
 
@@ -142,6 +173,10 @@ def requested_institution_documents(question, documents):
     # A shared city name cannot override a specific school. Multiple files
     # of one school count as one institution, not an ambiguous abbreviation.
     raw = question.split(_CONTEXT, 1)[0]
+    from .source_scope import source_filename_references
+    filenames,unknown=source_filename_references(raw,documents)
+    if filenames and not unknown and all(len(ref[3])==1 for ref in filenames):
+        return {ref[3][0] for ref in filenames}
     matches=_references(raw,documents)
     _,groups=_institution_groups(documents)
     unique = set().union(*(ids for ids in matches.values() if len({groups[i] for i in ids}) == 1)) if matches else set()
@@ -251,10 +286,14 @@ def _institution_dependent(question,documents):
     Require an institutional rule question and source evidence of academic
     administration. Other PDF subjects retain ordinary content retrieval.
     """
-    value=folded(question)
+    value=folded(_identity_text(question,documents))
     if re.search(r'\b(?:truong (?:cua )?(?:em|minh|toi|t)|my (?:school|university|college))\b',value):return True
     administrative=False
     for doc in documents:
+        # Corporate policies and software handbooks can be classified as
+        # regulations too. Their metadata category alone is not proof that
+        # department/product acronyms should be verified as school aliases.
+        if not institution_headers(doc.get('items',[])):continue
         for item in doc.get('items',[]):
             kind=folded(str(item.get('metadata',{}).get('document_type','')))
             if kind in {'regulation','admission','curriculum','handbook','academic calendar'}:
@@ -280,6 +319,12 @@ def _scope_decision(question,documents):
     refs=_references(raw,documents)
     if _unmatched_name(raw,documents) and any(profiles.values()):
         return InstitutionRequest(question,needs_clarification=True,unknown_name=True)
+    from .source_scope import explicit_source_documents,source_filename_references
+    anchored=explicit_source_documents(raw,documents)
+    filenames,unknown=source_filename_references(raw,documents)
+    if anchored and not refs and (len({groups[doc] for doc in anchored})==1
+                                 or filenames and not unknown):
+        return InstitutionRequest(question,frozenset(anchored))
     if not refs and separator:
         inherited=_scope_decision(topic,documents)
         if inherited.doc_ids or inherited.unknown_name:
@@ -293,10 +338,6 @@ def _scope_decision(question,documents):
         listed=bool(re.search(r'\b(?:va|voi|and|vs|versus|so sanh|compare|khac nhau|giong nhau)\b|[,;]',folded(raw)))
         ambiguous=(unresolved or len(chosen_groups)>1 and not (len(precise)>1 and listed)) and not all_sources
         return InstitutionRequest(question,frozenset(matched),ambiguous)
-    from .source_scope import explicit_source_documents
-    anchored=explicit_source_documents(raw,documents)
-    if anchored and len({groups[doc] for doc in anchored})==1:
-        return InstitutionRequest(question,frozenset(anchored))
     # No identified institution in ordinary textbooks is not evidence that
     # they come from different schools. Unknown files remain separate when
     # other selected PDFs do establish institution-specific scopes.
@@ -337,7 +378,7 @@ def _unrecognized_choice(raw):
 def unresolved_institution_reference(question,documents):
     """Find a name-like token in a rule question, without a school whitelist."""
     raw,separator,topic=question.partition(_CONTEXT)
-    raw = _identity_text(raw)
+    raw = _identity_text(raw,documents)
     contextual=bool(separator and _institution_dependent(topic,documents))
     if not (_institution_dependent(raw,documents) or contextual or _references(raw,documents)):return ''
     words=list(re.finditer(r'[^\W_]+',raw))
@@ -350,12 +391,16 @@ def unresolved_institution_reference(question,documents):
     for index,word in enumerate(words):
         if index in covered:continue
         token=word.group();value=folded(token)
-        if (not re.fullmatch(r'[A-Za-z]{3,12}',token) or value in _GENERIC|_ACADEMIC
+        adjacent=bool(index and raw[words[index-1].end():word.start()].isspace())
+        unicode_predicate=bool(refs and adjacent and token.isalpha() and token.islower()
+                               and 3<=len(token)<=12 and folded(words[index-1][0]) in
+                               {'truong','school','university','college','institute'})
+        if ((not re.fullmatch(r'[A-Za-z]{3,12}',token) and not unicode_predicate) or value in _GENERIC|_ACADEMIC|_NAME_FILLERS
                 or _references(token,documents)):
             continue
         previous=folded(words[index-1].group()) if index else ''
         following=folded(words[index+1].group()) if index+1<len(words) else ''
-        named=previous in {'truong','university','college','institute'} or (previous in {'cua','tai','o','ben','about','at','of','for'}
+        named=adjacent and previous in {'truong','university','college','institute','school'} or (previous in {'cua','tai','o','ben','about','at','of','for'}
                and following in {'','la','co','thi','nhu','quy','yeu','hoc','can','duoc','ap','rules','policy'})
         named=named or contextual and previous in {'con','the','vay'} and following in {'','thi','sao'}
         # Capitalization alone is not a school cue (API, SCAN, JSON, etc.).
@@ -424,7 +469,7 @@ def _resolve_institution_request(question,documents,history=()):
     """Resolve source intent from user input; never use a model answer as fact."""
     turns=[(turn['role'],turn['content']) if isinstance(turn,dict) else turn for turn in history]
     raw=question.partition(_CONTEXT)[0]
-    if not _references(raw,documents) and re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+    if not _references(raw,documents) and re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(_identity_text(raw,documents))):
         return InstitutionRequest(question,needs_clarification=True)
     if turns:
         if _reference_only(raw,documents):
@@ -453,7 +498,7 @@ def _resolve_institution_request(question,documents,history=()):
                     unrecognized_reference=raw)
     decision=_scope_decision(question,documents)
     if decision.doc_ids or decision.unknown_name or _multi_source_request(raw):return decision
-    if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(raw)):
+    if re.search(r'\b(?:truong khac|doi truong|chuyen truong|other (?:school|institution|university))\b',folded(_identity_text(raw,documents))):
         return InstitutionRequest(question,needs_clarification=True)
     if not _institution_dependent(question,documents):return decision
     # An explicit user school remains usable for a new subject in the same

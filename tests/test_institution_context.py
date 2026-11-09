@@ -565,6 +565,113 @@ def test_context_alias_check_is_not_used_for_non_institutional_pdfs(alias_servic
     assert not request.needs_clarification and not model.calls
 
 
+@pytest.mark.parametrize('predicate',['coi','xem','xét','xếp','reviews','considers'])
+def test_source_predicate_is_not_registered_as_an_institution_alias(schools,alias_service,predicate):
+    service,model,_,history=alias_service({'status':'confirmed','candidate_id':'c1',
+        'match_type':'name_variant','reference':'WIM','suspect_role':'predicate'})
+    question=f'WIM: trường {predicate} việc thi thay là vi phạm quy định không?'
+    for _ in range(2):
+        result=service._institution_request(question,schools,[])
+        assert result.doc_ids=={'west'} and not result.needs_clarification
+        assert f'trường {predicate} việc thi thay' in result.question
+    assert len(model.calls)==1
+    assert model.calls[0][1]['schema']['properties']['suspect_role']['enum']==['institution','predicate','unknown']
+    assert question in model.calls[0][0]
+    # No globally cached alias for a verb, even after successful classification.
+    model.result={'status':'unknown','candidate_id':'none','match_type':'none'}
+    unknown=service._institution_request(predicate,schools,history)
+    assert not unknown.doc_ids and unknown.needs_clarification and len(model.calls)==2
+
+
+@pytest.mark.parametrize('result',[
+    {'status':'confirmed','candidate_id':'c1','match_type':'name_variant','reference':'WIM','suspect_role':'institution'},
+    {'status':'confirmed','candidate_id':'c1','match_type':'name_variant','reference':'WIM','suspect_role':'unknown'},
+    {'status':'confirmed','candidate_id':'c0','match_type':'name_variant','reference':'WIM','suspect_role':'predicate'},
+    {'status':'confirmed','candidate_id':'c1','match_type':'name_variant','reference':'Invented','suspect_role':'predicate'},
+    {'status':'confirmed','candidate_id':'c1','match_type':'name_variant','reference':'WIM'},
+])
+def test_syntax_disambiguation_cannot_guess_or_change_the_literal_source(schools,alias_service,result):
+    service,model,_,_=alias_service(result)
+    response=service._institution_request('WIM: trường coi việc thi thay là vi phạm quy định không?',schools,[])
+    assert response.needs_clarification and not response.doc_ids
+    assert len(model.calls)==1
+
+
+def test_predicate_disambiguation_does_not_erase_another_named_source(schools,alias_service):
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c1',
+        'match_type':'name_variant','reference':'WIM','suspect_role':'predicate'})
+    question='WIM: trường coi việc chuyển sang Trường Đại học Mây Trắng là đúng quy định không?'
+    response=service._institution_request(question,schools,[])
+    assert response.needs_clarification and not response.doc_ids
+    assert 'Mây Trắng' in response.question
+
+
+def test_source_alias_confirmed_earlier_is_preserved_during_predicate_check(schools,alias_service):
+    service,model,_,history=alias_service({'status':'confirmed','candidate_id':'c1','match_type':'established_alias'})
+    assert service._institution_request('WestAlias',schools,history).doc_ids=={'west'}
+    model.result={'status':'confirmed','candidate_id':'c1','match_type':'name_variant',
+        'reference':'WESTERN INSTITUTE OF METEOROLOGY','suspect_role':'predicate'}
+    response=service._institution_request('WestAlias: trường coi việc thi thay là vi phạm quy định không?',schools,[])
+    assert response.doc_ids=={'west'} and not response.needs_clarification
+    assert 'trường coi việc thi thay' in response.question and len(model.calls)==2
+
+
+def test_unicode_predicate_at_clause_end_is_checked_in_context(schools,alias_service):
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c1',
+        'match_type':'name_variant','reference':'WIM','suspect_role':'predicate'})
+    response=service._institution_request('WIM có cho tự chọn lịch thi hay trường xếp?',schools,[])
+    assert response.doc_ids=={'west'} and not response.needs_clarification
+    assert response.question.endswith('hay trường xếp?') and len(model.calls)==1
+
+
+@pytest.mark.parametrize('question',[
+    'So sánh quy định Sao Bắc và WIM. Tách rõ từng trường, dẫn nguồn.',
+    'So sanh quy dinh Sao Bac va WIM. Tach ro tung truong, dan nguon.',
+])
+def test_institution_name_cannot_be_formed_across_clause_punctuation(schools,question):
+    response=resolve_institution_request(question,schools)
+    assert response.doc_ids=={'north','west'} and not response.needs_clarification
+
+
+@pytest.mark.parametrize('prefix',['Ở','Tại','At'])
+def test_uppercase_source_name_does_not_create_separate_unknown_acronyms(schools,prefix):
+    question=prefix+' WESTERN INSTITUTE OF METEOROLOGY, quy định học phí thế nào?'
+    response=resolve_institution_request(question,schools)
+    assert response.doc_ids=={'west'} and not response.needs_clarification
+
+
+@pytest.mark.parametrize('question',[
+    'Trường Đại học Sao Bắc chuyển sang Trường Đại học Mây Trắng cần điều kiện gì?',
+    'WESTERN INSTITUTE OF METEOROLOGY chuyển đến Trường Đại học Mây Trắng cần điều kiện gì?',
+    'Trường Đại học Sao Bắc và University of Silent Island có cùng quy định không?',
+])
+def test_each_explicit_institution_is_checked_even_in_one_clause(schools,question):
+    response=resolve_institution_request(question,schools)
+    assert response.needs_clarification and response.unknown_name and not response.doc_ids
+
+
+@pytest.mark.parametrize('question',[
+    'Trường Đại học Sao Bắc và WESTERN INSTITUTE OF METEOROLOGY có cùng quy định không?',
+    'Trường Đại học Sao Bắc và Trường Đại học Sao Bắc quy định tín chỉ thế nào?',
+])
+def test_known_named_institutions_remain_usable_after_span_checks(schools,question):
+    response=resolve_institution_request(question,schools)
+    assert not response.needs_clarification and response.doc_ids
+
+
+@pytest.mark.parametrize('title,kind,question',[
+    ('Battery maintenance instructions','manual','Who signs the battery maintenance record?'),
+    ('Hướng dẫn kho vận','manual','Ai xác nhận biên bản giao hàng?'),
+    ('ACME personnel rules','regulation','Who approves leave and what is the deadline?'),
+    ('Laboratory protocol','article','Does the current field require a calibration value?'),
+])
+def test_nonacademic_documents_never_invoke_school_identity_model(alias_service,title,kind,question):
+    service,model,_,_=alias_service(AssertionError('No school identity call for arbitrary PDFs'))
+    docs=[document('arbitrary-one',title,kind),document('arbitrary-two','Technical reference','manual')]
+    result=service._institution_request(question,docs,[])
+    assert not result.needs_clarification and not model.calls
+
+
 def test_repeated_school_switches_keep_question_and_never_blend_old_names(schools):
     from campusai.rag.context import resolve_query
     question='Học kỳ chính của Sao Bắc tối thiểu bao nhiêu tín chỉ?'
@@ -1060,3 +1167,39 @@ async function batch(start){
 '''
     result=subprocess.run(['node','-e',script],text=True,capture_output=True,timeout=30)
     assert result.returncode==0,result.stderr
+
+
+@pytest.mark.parametrize('question',[
+    'HRO có quy định ngày nghỉ thế nào?',
+    'ACME policy có áp dụng cho nhân viên thử việc không?',
+    'Còn XTR thì quy chế cấp quyền thế nào?',
+])
+def test_nonacademic_policy_acronyms_are_not_school_choices(question):
+    sources=[document('workplace','ACME — Employee policy','regulation'),
+             document('technical','XTR — Operations handbook','handbook')]
+    result=resolve_institution_request(question,sources)
+    assert not result.needs_clarification and not result.unknown_name
+    assert not result.unrecognized_reference and result.question==question
+
+
+@pytest.mark.parametrize('question',[
+    'Trường dữ liệu client_id có nghĩa gì?',
+    'API có trường thông tin trạng thái nào?',
+    'Mô tả trường nhập liệu địa chỉ.',
+    'Trường bắt buộc nào cần điền?',
+    'Điện trường và từ trường khác nhau thế nào?',
+])
+def test_technical_common_nouns_are_not_unknown_school_names(schools,question):
+    sources=[*schools,document('technical','API fields and physical quantities','manual')]
+    result=resolve_institution_request(question,sources)
+    assert not result.needs_clarification and not result.unknown_name
+    assert result.question==question
+
+
+def test_common_noun_guard_preserves_explicit_and_capitalized_institution_names(schools):
+    for question in ['Quy chế Trường Đại học Dữ liệu thế nào?',
+                     'Trường Dữ Liệu có quy định tín chỉ gì?']:
+        assert resolve_institution_request(question,schools).needs_clarification
+    sources=[document('environment','Trường Đại học Môi trường'),*schools]
+    result=resolve_institution_request('Quy chế đại học môi trường thế nào?',sources)
+    assert result.doc_ids=={'environment'} and not result.needs_clarification
