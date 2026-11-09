@@ -418,10 +418,15 @@ def replace_institution_alias(question,reference,canonical):
     return re.sub(r'(?<!\w)'+re.escape(reference)+r'(?!\w)',lambda _m:canonical,question,flags=re.I)
 
 
-def _retarget_question(pending,documents,name):
+def _retarget_question(pending,documents,name,*,retarget_files=False):
     """Keep the requested rule/attribute, replacing its old institution only."""
     raw,separator,topic=pending.partition(_CONTEXT)
-    suffix=separator+_retarget_question(topic,documents,name) if separator else ''
+    suffix=separator+_retarget_question(topic,documents,name,retarget_files=retarget_files) if separator else ''
+    if retarget_files:
+        from .source_scope import source_filename_references
+        files,_unknown=source_filename_references(raw,documents)
+        for start,end,_filename,_owners in reversed(files):
+            raw=raw[:start]+name+raw[end:]
     refs=_references(raw,documents)
     words=list(re.finditer(r'[^\W_]+',raw))
     spans=[]
@@ -489,7 +494,7 @@ def _resolve_institution_request(question,documents,history=()):
                         question_clarification=True)
                 selected=[doc for doc in documents if doc['doc_id'] in confirmed.doc_ids]
                 labels=_source_options(selected)
-                effective=_retarget_question(pending,documents,labels[0]) if labels else pending
+                effective=_retarget_question(pending,documents,labels[0],retarget_files=True) if labels else pending
                 return InstitutionRequest(effective,confirmed.doc_ids)
             if pending:question=raw+_CONTEXT+pending
         elif turns[-1][0]=='assistant' and _school_clarification(turns[-1][1]):

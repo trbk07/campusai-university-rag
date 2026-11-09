@@ -1551,6 +1551,44 @@ def test_new_named_pdf_followup_keeps_topic_and_replaces_old_source_scope(tmp_pa
     finally:service.close()
 
 
+@pytest.mark.parametrize('lane',['ask','retrieve'])
+def test_explicit_school_switch_overrides_historical_pdf_filename(tmp_path,lane):
+    from campusai.retrieval.bm25_index import BM25Index
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.rag.service import CampusAIQueryService
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    for ident,name,title,days in [('a','Old rules.pdf','Trường Đại học Sao Bắc',11),
+                                 ('b','New rules.pdf','WESTERN INSTITUTE OF METEOROLOGY',19)]:
+        BM25Index([{'chunk_id':ident,'doc_id':ident,'page':1,
+            'content':f'{title}\nThời hạn đăng ký nghỉ học là {days} ngày.',
+            'content_type':'text','metadata':{'source_name':name,'source_hash':ident,
+                'institution':title,'document_type':'regulation'}}]).save(tmp_path/ident/'bm25.json')
+    class Model:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert '19 ngày' in prompt and '11 ngày' not in prompt
+            return {'answer':'Thời hạn đăng ký nghỉ học là 19 ngày.','abstained':False,
+                'confidence':'high','citations':[{'chunk_id':'b'}],
+                'claims':[{'claim_id':'rule','text':'Thời hạn đăng ký nghỉ học là 19 ngày.',
+                           'citation_ids':['b']}]}
+    model=Model()
+    service=CampusAIQueryService(HybridRetriever(tmp_path),
+        GroundedAnswerGenerator(model,source_citations=True),confirm_institution_scope=True)
+    history=[{'role':'user','content':'Trong "Old rules.pdf", thời hạn đăng ký nghỉ học là bao lâu?'},
+             {'role':'assistant','content':'Câu trả lời trước không phải bằng chứng.'}]
+    try:
+        if lane=='retrieve':
+            rows=service.retrieve('Còn WIM thì sao?',doc_ids=['a','b'],history=history,mode='bm25')
+            assert rows and {r.doc_id for r in rows}=={'b'}
+            assert model.calls==0
+        else:
+            answer=service.ask('Còn WIM thì sao?',doc_ids=['a','b'],history=history,mode='bm25')
+            assert not answer.abstained and {c.doc_id for c in answer.citations}=={'b'}
+            assert model.calls==1
+    finally:service.close()
+
+
 def test_filename_context_retarget_preserves_explicit_comparison_and_unknown_scope():
     from campusai.retrieval.source_scope import retarget_filename_context
     docs=[{'doc_id':ident,'items':[{'metadata':{'source_name':name}}]}
@@ -1561,6 +1599,26 @@ def test_filename_context_retarget_preserves_explicit_comparison_and_unknown_sco
     assert retarget_filename_context(comparison,docs)==comparison
     unknown='Còn "Unknown manual.pdf" thì sao?'+separator+topic
     assert retarget_filename_context(unknown,docs)==unknown
+
+
+def test_unknown_school_followup_keeps_all_alias_candidates_and_plain_followup_keeps_file():
+    from campusai.retrieval.source_scope import retarget_filename_context
+    from campusai.rag.service import CampusAIQueryService
+    from types import SimpleNamespace
+    docs=[{'doc_id':ident,'items':[{'content':title,'metadata':{
+        'source_name':name,'institution':title,'document_type':'regulation'}}]}
+        for ident,name,title in [('a','Old rules.pdf','Trường Đại học Sao Bắc'),
+                                 ('b','New rules.pdf','WESTERN INSTITUTE OF METEOROLOGY')]]
+    separator='\nContext topic (untrusted user input): '
+    topic='Trong "Old rules.pdf", học tối thiểu bao nhiêu tín chỉ?'
+    query='Còn trường ZZZ thì sao?'+separator+topic
+    rewritten=retarget_filename_context(query,docs)
+    scoped,problem=CampusAIQueryService._filename_scope(
+        SimpleNamespace(confirm_institution_scope=True),rewritten,docs)
+    assert 'ZZZ' in rewritten and 'Old rules.pdf' not in rewritten
+    assert scoped is docs and problem is None
+    ordinary='Thời hạn đó tính thế nào?'+separator+topic
+    assert retarget_filename_context(ordinary,docs)==ordinary
 
 
 @pytest.mark.parametrize('shared_institution',[False,True])

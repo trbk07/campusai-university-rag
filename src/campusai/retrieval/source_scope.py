@@ -61,10 +61,23 @@ def retarget_filename_context(question,documents):
     from ..rag.policies import explicit_comparison_request
     if explicit_comparison_request(current):return question
     targets,unknown=source_filename_references(current,documents)
-    if unknown or len({r[2] for r in targets})!=1 or any(len(r[3])!=1 for r in targets):
+    if unknown:
         return question
     previous,unknown=source_filename_references(topic,documents)
     if unknown:return question
+    if not targets:
+        from .institution_scope import requested_institution_documents, unresolved_institution_reference
+        # Resolve the current source choice against every authorized PDF before
+        # a filename from history can hide the requested institution. Unknown
+        # aliases likewise need the full candidate set, or clarification.
+        current_scope=requested_institution_documents(current,documents)
+        if not current_scope and not unresolved_institution_reference(question,documents):
+            return question
+        for start,end,_name,_owners in reversed(previous):
+            topic=topic[:start]+topic[end:]
+        return current+marker+topic
+    if len({r[2] for r in targets})!=1 or any(len(r[3])!=1 for r in targets):
+        return question
     for start,end,_name,_owners in reversed(previous):
         topic=topic[:start]+targets[0][2]+topic[end:]
     return current+marker+topic
