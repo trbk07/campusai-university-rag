@@ -9,7 +9,7 @@ from typing import Any
 
 from ..schemas import Chunk
 
-CHUNKER_VERSION = "structure-v8-piece-page-provenance"
+CHUNKER_VERSION = "structure-v9-source-body-syntax"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -78,6 +78,12 @@ def _looks_like_heading(line: str, layout: dict[str, Any] | None = None) -> tupl
     if stripped.startswith("#"):
         level = len(stripped) - len(stripped.lstrip("#"))
         return True, max(1, min(level, 6)), stripped.lstrip("#").strip()
+    # Numeric arrays and simple variable assignments are body data, even
+    # when PDF layout marks them bold/large. Splitting on such a row can
+    # detach a console result from the example that defines its meaning.
+    if (not any(char.isalpha() for char in stripped)
+            or re.fullmatch(r'[A-Za-z]\s*(?:=|<=|>=|<|>|≤|≥)\s*[-+]?\d+(?:[.,]\d+)?', stripped)):
+        return False, 0, ''
     # A short uppercase course identifier is a table/body value, not evidence
     # of a section boundary. Keep spaced codes and dotted namespaces intact.
     if re.fullmatch(r'(?:(?:[A-Z]{2,5})\.)?[A-Z]{2,5}\s*\d{3,5}[A-Z]?',stripped,re.I):

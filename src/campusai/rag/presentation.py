@@ -730,6 +730,30 @@ def complete_material_conditions(answer, claims, citations, language='vi'):
     return answer+('\n\n'+'\n'.join(additions) if additions else '')
 
 
+def _source_identifier_view(answer, question, evidence):
+    """Separate literal technical identifiers from quantities in visible prose.
+
+    Only a complete source-printed identifier repeated in the question supplies
+    scope. Its digits never authorize a different value elsewhere in the answer.
+    Ordinary hyphenated quantities remain subject to numeric/unit verification.
+    """
+    identifier = re.compile(r'(?<![\w.-])(?:[A-Z]{2,}(?:-\d+(?:\.\d+)*)+|'
+                            r'\d+(?:-[A-Z]{2,})+)(?!\w|[.-]\w)')
+    quantity = re.compile(r'^\d+-(?:YEARS?|MONTHS?|WEEKS?|DAYS?|HOURS?|MINUTES?|SECONDS?|'
+                          r'CREDITS?|PERCENT|USD|VND|EUR|GBP|BYTES?|BITS?|KB|MB|GB|TB|MS|CM|MM|KM|KG)$')
+    identity_context = re.compile(r'\b(?:algorithms?|methods?|procedures?|standards?|protocols?|'
+        r'formats?|encodings?|ciphers?|hash(?:es)?|versions?|identifiers?|models?|'
+        r'thuật toán|thuật giải|quy trình|tiêu chuẩn|giao thức|định dạng|mã hóa|phiên bản|mô hình)\b', re.I)
+    candidates = {m[0] for text in evidence if isinstance(text, str)
+                  for line in text.splitlines() if len(line) <= 240 and identity_context.search(line)
+                  for m in identifier.finditer(line) if not quantity.fullmatch(m[0])}
+    for name in sorted(candidates, key=len, reverse=True):
+        pattern = r'(?<![\w.-])' + re.escape(name) + r'(?!\w|[.-]\w)'
+        if re.search(pattern, str(question or ''), re.I):
+            answer = re.sub(pattern, lambda m: ' ' * len(m[0]), answer, flags=re.I)
+    return answer
+
+
 def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=(), source_names=()):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
@@ -748,6 +772,7 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
         for start,end,name,_owners in reversed(references):
             if name in allowed:
                 answer=answer[:start]+' '*(end-start)+answer[end:]
+    answer = _source_identifier_view(answer, question, application_evidence)
     visible = quantity_spacing(prose(answer))
     table_semesters={value for kind,value in locations if kind=='semester'}
     if table_semesters and any(str(int(m[1])) not in table_semesters for m in SEMESTER_LOCATION.finditer(visible)):

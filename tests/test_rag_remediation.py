@@ -1897,7 +1897,8 @@ def test_long_corrected_metadata_preserves_full_cached_body_and_never_repeats_oc
     ('structure-v7-diagram-semester-scope','source-labelled-v2'),
     ('structure-v8-embedded-table-headers','source-labelled-v2'),
     ('structure-v9-article-boundaries','source-labelled-v2'),
-    ('structure-v7-diagram-semester-scope','source-labelled-v3-field-provenance')])
+    ('structure-v7-diagram-semester-scope','source-labelled-v3-field-provenance'),
+    ('structure-v8-piece-page-provenance','source-labelled-v3-field-provenance')])
 def test_old_metadata_job_receipts_remain_readable_without_becoming_current_work(version,metadata_version):
     from campusai.ingestion.background.state import (_producer_identity,accepted_job_identities,
         job_identity,normalize_options)
@@ -1955,3 +1956,47 @@ def test_cited_filename_digits_are_scope_but_cannot_license_a_factual_quantity()
     assert presentation_conflicts(answer.replace(name,name+'.exe'),claims,
         question=question,source_names=[name])
     assert presentation_conflicts(answer,claims,question='What record is required?',source_names=[name])
+
+
+@pytest.mark.parametrize('identifier',['7-PATH','SHA-512','ISO-27001'])
+def test_source_printed_technical_identifier_is_scope_not_a_free_numeric_allowance(identifier):
+    from campusai.rag.presentation import presentation_conflicts
+    from campusai.rag.claims import Claim
+    fact='The original inspection record must be retained.'
+    claims=[Claim('record',fact,'fact',1,('source',),'supported',1.,('source',),False)]
+    question='Explain the record requirement for '+identifier+'.'
+    answer='For '+identifier.lower()+', '+fact
+    quote='The '+identifier+' procedure. '+fact
+    assert not presentation_conflicts(answer,claims,question=question,application_evidence=[quote])
+    assert presentation_conflicts(answer,claims,question=question,application_evidence=[fact])
+    assert presentation_conflicts(answer,claims,question=question,application_evidence=[identifier+' '+fact])
+    assert presentation_conflicts(answer,claims,question='Explain the requirement.',application_evidence=[quote])
+    assert presentation_conflicts(answer+' Retain it for 512 days.',claims,question=question,application_evidence=[quote])
+    assert presentation_conflicts(answer.replace(identifier.lower(),identifier.lower()+'-999'),claims,
+        question=question,application_evidence=[quote])
+
+
+@pytest.mark.parametrize('quantity',['4-YEARS','8-CREDITS','12-USD','32-BYTES'])
+def test_hyphenated_quantity_still_requires_claim_support(quantity):
+    from campusai.rag.presentation import presentation_conflicts
+    from campusai.rag.claims import Claim
+    fact='The original inspection record must be retained.'
+    claims=[Claim('record',fact,'fact',1,('source',),'supported',1.,('source',),False)]
+    assert presentation_conflicts('Retain for '+quantity+'. '+fact,claims,
+        question='What does '+quantity+' mean?',application_evidence=[quantity+' '+fact])
+
+
+@pytest.mark.parametrize('data',['18 -9 4 0 7 -2','N = 8','x <= 17'])
+def test_numeric_data_and_variable_assignment_do_not_split_an_example(data):
+    from campusai.ingestion.chunker import _looks_like_heading,make_chunks
+    assert not _looks_like_heading(data,{'bold':True,'is_larger_font':True})[0]
+    page={'page':12,'text':'Example: path enumeration\n'+data+'\n% run paths sample.txt\n6'}
+    chunks=make_chunks([page],'source',{})
+    assert len(chunks)==1 and 'Example: path enumeration\n'+data+'\n% run paths sample.txt\n6' in chunks[0].content
+    assert not chunks[0].heading_path
+
+
+def test_numeric_body_guard_preserves_actual_numbered_titles():
+    from campusai.ingestion.chunker import _looks_like_heading
+    assert _looks_like_heading('2. Storage requirements',{'bold':True})[0]
+    assert _looks_like_heading('3. Quy trình kiểm tra',{'is_larger_font':True})[0]
