@@ -700,7 +700,9 @@ class GroundedAnswerGenerator:
             '\nClaims are verification records. For ordinary factual claims, prefer a short '
             'statement in the exact wording of the cited evidence; do not add inferred details '
             'or synonyms to claims[].text. Preserve the explicit course-credit and calculation '
-            'formats above where applicable. Write answer naturally in the requested language.'
+            'formats above where applicable. Preserve source negation and quantifiers in '
+            'both claims and answer; never turn a prohibition into permission or drop '
+            'not/never from a source rule. Write answer naturally in the requested language.'
         )
         instructions += (
             '\nWhen answering a rule or eligibility question, include its material '
@@ -1455,8 +1457,11 @@ def _grounding_finalize(answer: str, citations: tuple[Citation, ...], payload: d
     decision = decide(claims, allow_partial=False)
     if decision.status != "answered":
         if validation_feedback is not None:
-            validation_feedback.append({'code':'claim_not_supported',
-                'claim_indices':[i+1 for i,claim in enumerate(claims) if claim.status!='supported'][:8]})
+            diagnostic={'code':'claim_not_supported',
+                'claim_indices':[i+1 for i,claim in enumerate(claims) if claim.status!='supported'][:8]}
+            contradicted=[i+1 for i,claim in enumerate(claims) if claim.status=='contradicted'][:8]
+            if contradicted:diagnostic['contradicted_claim_indices']=contradicted
+            validation_feedback.append(diagnostic)
         record_stage('grounding_reject.claim_alignment', 0.)
         for claim in claims:
             record_stage('grounding_claim.' + claim.status, 0.)

@@ -187,6 +187,30 @@ def _markers_match(claim_markers: set[str], evidence_markers: set[str]) -> bool:
     return required <= evidence_markers
 
 
+def _literal_polarity(value: str) -> tuple[tuple[str, ...], int]:
+    """A narrow literal contrast, not a general semantic entailment model."""
+    value = normalize_text(value).replace('’', "'")
+    for short, expanded in (("can't", 'can not'), ("won't", 'will not'), ("shan't", 'shall not')):
+        value = re.sub(r'(?<!\w)' + re.escape(short) + r'(?!\w)', expanded, value)
+    value = re.sub(r"\b([a-z]+)n't\b", r'\1 not', value)
+    tokens = re.findall(r'[^\W_]+', value)
+    negatives = {'not', 'never', 'không', 'chẳng', 'chưa'}
+    return tuple(t for t in tokens if t not in negatives), sum(t in negatives for t in tokens) % 2
+
+
+def _literal_negation_conflict(claim: str, evidence: str) -> bool:
+    core, polarity = _literal_polarity(claim)
+    if len(core) < 2:
+        return False
+    # Compare complete clauses; an unrelated negative sentence elsewhere in
+    # the chunk must not reverse the assertion currently being verified.
+    for sentence in re.split(r'(?<=[.!?。！？])\s+|\n+', evidence):
+        other, opposite = _literal_polarity(sentence)
+        if core == other and polarity != opposite:
+            return True
+    return False
+
+
 def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_map: dict[str, tuple[str, ...]],
                  *, question: str = '', original_registry: EvidenceRegistry | None = None) -> list[Claim]:
     aligned: list[Claim] = []
@@ -291,6 +315,10 @@ def align_claims(claims: Iterable[Claim], registry: EvidenceRegistry, citation_m
         markers = _exact_markers(fact_text)
         location_only = bool(page_markers and not markers
                              and claim_tokens <= _LOCATION_ONLY_WORDS)
+        if any(_literal_negation_conflict(fact_text, item.content) for item in evidence):
+            aligned.append(Claim(claim.claim_id, claim.text, claim.claim_type, claim.required_citations,
+                ids, 'contradicted', 0.0, tuple(item.chunk_id for item in evidence), False))
+            continue
         best = 0.0
         best_records = []
         contradicted = False

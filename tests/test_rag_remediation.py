@@ -1656,6 +1656,65 @@ def test_page_locator_keeps_supported_content_and_location_only_answers(claim):
     assert align_claims([Claim('rule',claim,citation_ids=('warranty',))],registry,{})[0].status=='supported'
 
 
+@pytest.mark.parametrize('source,claim',[
+    ('The reader stores passwords.','The reader never stores passwords.'),
+    ('The reader does not store passwords.','The reader does store passwords.'),
+    ('The reader can store passwords.',"The reader can't store passwords."),
+    ('Bộ đọc không lưu mật khẩu.','Bộ đọc lưu mật khẩu.'),
+    ('Bộ đọc lưu mật khẩu.','Bộ đọc không lưu mật khẩu.'),
+])
+def test_literal_opposite_prose_cannot_be_supported_by_word_overlap(source,claim):
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    row=RetrievalResult('privacy','manual',1,source,'text',1.,'test',{'source_name':'Device manual.pdf'})
+    class Model:
+        def generate_json(self,prompt,**kwargs):
+            return {'answer':claim,'abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'privacy'}],
+                'claims':[{'claim_id':'storage','text':claim,'citation_ids':['privacy']}]}
+    answer=GroundedAnswerGenerator(Model(),source_citations=True).answer(
+        'What does the manual state about storage?', [row],language='en')
+    assert answer.abstained and claim not in answer.answer
+
+
+@pytest.mark.parametrize('source,claim',[
+    ('The reader never stores passwords.','The reader never stores passwords.'),
+    ('The reader does not store passwords.',"The reader doesn't store passwords."),
+    ('Inspections are not required. The reader stores passwords.','The reader stores passwords.'),
+    ('Bộ đọc không lưu mật khẩu.','Bộ đọc không lưu mật khẩu.'),
+    ('Không cần kiểm tra. Bộ đọc lưu mật khẩu.','Bộ đọc lưu mật khẩu.'),
+    ('In training the reader does not store passwords. In production the reader does store passwords.',
+     'In production the reader does store passwords.'),
+    ('The reader does store passwords.','The reader does not not store passwords.'),
+])
+def test_polarity_check_preserves_agreement_and_unrelated_negative_sentences(source,claim):
+    from campusai.rag.claims import Claim,align_claims
+    from campusai.rag.evidence import EvidenceRegistry
+    row=RetrievalResult('privacy','manual',1,source,'text',1.,'test',{})
+    assert align_claims([Claim('storage',claim,citation_ids=('privacy',))],EvidenceRegistry([row]),{})[0].status=='supported'
+
+
+def test_single_repair_can_correct_reversed_polarity_using_source_feedback():
+    from campusai.rag.grounding import GroundedAnswerGenerator
+    source='The reader does not store passwords.'
+    row=RetrievalResult('privacy','manual',1,source,'text',1.,'test',{'source_name':'Device manual.pdf'})
+    class Model:
+        calls=0
+        def generate_json(self,prompt,**kwargs):
+            self.calls+=1
+            assert self.calls<=2
+            if self.calls==2:
+                assert 'contradicted_claim_indices' in prompt and source in prompt
+            text='The reader does store passwords.' if self.calls==1 else source
+            return {'answer':text,'abstained':False,'confidence':'high',
+                'citations':[{'chunk_id':'privacy'}],
+                'claims':[{'claim_id':'storage','text':text,'citation_ids':['privacy']}]}
+    model=Model()
+    result=GroundedAnswerGenerator(model,source_citations=True,repair_invalid_answers=True).answer(
+        'What does the manual say about storing passwords?', [row],language='en')
+    assert not result.abstained and result.answer==source and model.calls==2
+    assert 'contradicted_claim_indices' not in str(result.to_public_dict())
+
+
 @pytest.mark.parametrize('shared_institution',[False,True])
 def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path,shared_institution):
     from campusai.retrieval.bm25_index import BM25Index
