@@ -55,16 +55,11 @@ def plan_request(question, documents):
     raw = str(question)
     text = folded(raw)
     names = _names(documents)
-    from ..retrieval.source_scope import source_filename_references
-    refs,unknown = source_filename_references(raw,documents)
-    if unknown:
-        return MultiHopRequest('unresolved', problem='source_not_in_selected_scope')
+    refs = list(PDF.finditer(raw))
     roles = []
     spans = []
-    for start,end,filename,_owners in refs:
-        if len(_owners)!=1:
-            return MultiHopRequest('unresolved', problem='source_identity_ambiguous')
-        name = filename.casefold()
+    for ref in refs:
+        name = ref[1].casefold()
         matching = names.get(name, [])
         if len(matching) != 1:
             problem = 'source_not_in_selected_scope' if not matching else 'source_identity_ambiguous'
@@ -72,22 +67,17 @@ def plan_request(question, documents):
         role = matching[0]
         if role.doc_id not in {r.doc_id for r in roles}:
             roles.append(role)
-            spans.append((start,end))
+            spans.append(ref.span())
     if len(roles) > 2:
         return MultiHopRequest('unresolved', problem='more_than_two_source_groups')
     # Filenames can contain numeric fragments that are not course codes.
-    clean=list(raw)
-    for start,end,_filename,_owners in refs:
-        clean[start:end]=' '*(end-start)
-    role_clean=''.join(clean)
+    clean = PDF.sub(' ', raw)
     # Calendar/section labels with spaces are not course identifiers. Keep
     # contiguous identifiers (including such prefixes) unchanged.
-    clean = re.sub(r'\b(?:in|on|year|cohort|article|page|semester)\s+\d{1,4}\b', ' ', role_clean, flags=re.I)
-    text=folded(clean)
+    clean = re.sub(r'\b(?:in|on|year|cohort|article|page|semester)\s+\d{1,4}\b', ' ', clean, flags=re.I)
     codes = tuple(dict.fromkeys(course_code_key(m[1]) for m in CODE.finditer(clean)))
     credit = bool(re.search(r'\b(?:tin chi|credits?)\b', text))
-    prerequisite = bool(re.search(r'\b(?:tien quyet|prerequisites?)\b', text)
-        and (codes or credit or re.search(r'\b(?:course|courses|hoc phan|mon)\b',text)))
+    prerequisite = bool(re.search(r'\b(?:tien quyet|prerequisites?)\b', text))
     comparison = bool(re.search(r'\b(?:so sanh|compare|comparison)\b', text))
     # A comparison of one code in exactly two selected documents identifies
     # both sides without requiring the user to type filenames. Document order
@@ -135,7 +125,7 @@ def plan_request(question, documents):
             assigned = []
             previous = 0
             for role, (start, end) in zip(roles, spans):
-                preceding = list(CODE.finditer(role_clean[previous:start]))
+                preceding = list(CODE.finditer(PDF.sub(' ', raw[previous:start])))
                 if len(preceding) != 1:
                     return MultiHopRequest('unresolved', tuple(roles), problem='operand_source_assignment_ambiguous')
                 assigned.append(SourceRole(role.doc_id, role.source_name, course_code_key(preceding[0][1])))

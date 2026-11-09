@@ -6,10 +6,18 @@ establish a course's credit value. Only directly cited tables are inspected.
 import json
 import re
 import unicodedata
-from ..table_headers import (credit_columns, embedded_credit_header,
-                             CODE_HEADERS as _CODE_HEADERS, NAME_HEADERS as _NAME_HEADERS)
 
 COURSE_CODE = r'(?:[a-z]{2,5}\.)?[a-z]{2,5}\s*\d{3,10}[a-z]?'
+
+
+def credit_columns(headers):
+    """Prefer explicit total-credit labels over BB/TC elective flags."""
+    names=[folded(h) for h in headers]
+    columns=[i for i,h in enumerate(names) if h in
+             {'so tin chi','credits','tong so tc','tong so tin chi','so tc','credit count'}]
+    if not columns and 'bb' not in names:
+        columns=[i for i,h in enumerate(names) if h in {'tc','tin chi'}]
+    return columns
 
 
 def course_code_key(code: str) -> str:
@@ -45,11 +53,9 @@ def headed_credit_rows(content: str, *, identity: str = 'code'):
     if (not isinstance(headers, list) or any(not isinstance(h, str) for h in headers)
             or not isinstance(rows, list)):
         return None
-    embedded=embedded_credit_header(table)
-    if embedded is not None:
-        headers,rows=rows[embedded],rows[embedded+1:]
     names = [folded(header) for header in headers]
-    identity_headers = _CODE_HEADERS if identity == 'code' else _NAME_HEADERS
+    identity_headers = ({'ma hoc phan', 'ma so hoc phan', 'ma so', 'ma hp', 'mahp', 'ma mon', 'course code', 'subject code'}
+                        if identity == 'code' else {'discipline', 'course name', 'ten hoc phan', 'hoc phan'})
     code_cols = [i for i, name in enumerate(names) if name in identity_headers]
     credit_cols = credit_columns(headers)
     if len(code_cols) != 1 or len(credit_cols) != 1 or code_cols[0] == credit_cols[0]:

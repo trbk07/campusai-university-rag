@@ -489,11 +489,6 @@ class WebDocuments:
                 abstained=True,confidence='low')
             info['document_info']['kind'] = 'page_text_unavailable'
             return info
-        table_reader=getattr(service,'source_page_tables',None)
-        if callable(table_reader):
-            # Keep headed cells next to their exact physical page text. This
-            # preserves code/credit relationships lost by plain PDF extraction.
-            results=table_reader(question,doc['doc_id'],pages)+results
         answer = service.ask_source_pages(question,results,language=options.get('language','vi'),
             history=options.get('history'),selected_text=options.get('selected_text'),
             requires_context=options.get('requires_context',False))

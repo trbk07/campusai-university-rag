@@ -14,47 +14,9 @@ def _fold(text: str) -> str:
     return ' '.join(value.encode('ascii', 'ignore').decode('ascii').split())
 
 
-def source_filename_references(query,documents):
-    """Return literal authorized filename spans and unresolved PDF names.
-
-    Filenames identify source scope, never facts. Match full names before
-    shorter suffixes, preserving spaces, Unicode and duplicate-name ambiguity.
-    No user path is opened or used to discover an unselected document.
-    """
-    names={}
-    key=lambda name:' '.join(name.casefold().split())
-    for document in documents:
-        for item in document.get('items',[]):
-            name=(item.get('metadata') or {}).get('source_name')
-            if isinstance(name,str) and name.casefold().endswith('.pdf'):
-                entry=names.setdefault(key(name),[name,set()])
-                entry[1].add(document['doc_id'])
-    quoted=list(re.finditer(r'["“\']([^"”\'\r\n]{1,240}\.pdf)["”\']',query,re.I))
-    unknown=[m[1] for m in quoted if key(m[1]) not in names]
-    protected=[m.span(1) for m in quoted if key(m[1]) not in names]
-    candidates=[]
-    for name,owners in names.values():
-        pattern=r'(?<![\w.-])'+r'\s+'.join(map(re.escape,name.split()))+r'(?![\w.])'
-        for match in re.finditer(pattern,query,re.I):
-            if any(a<=match.start() and match.end()<=b for a,b in protected):continue
-            candidates.append((match.start(),match.end(),name,tuple(sorted(owners))))
-    chosen=[]
-    for ref in sorted(candidates,key=lambda r:(-(r[1]-r[0]),r[0])):
-        if not any(ref[0]<old[1] and old[0]<ref[1] for old in chosen):chosen.append(ref)
-    residual=list(query)
-    for start,end,_name,_owners in chosen:
-        residual[start:end]=' '*(end-start)
-    unknown.extend(m[1] for m in re.finditer(r'(?<![\w.])([\w.-]+\.pdf)(?![\w.])',''.join(residual),re.I))
-    return sorted(chosen),tuple(dict.fromkeys(unknown))
-
-
 def _curriculum_headings(records):
     """Read only explicit local programme headings, never inferred metadata."""
-    headings={};siblings=[]
-    def remember(key,priority,name):
-        previous=headings.get(key)
-        if previous is None or priority>previous[0]:headings[key]=(priority,name)
-        elif priority==previous[0] and name!=previous[1]:headings[key]=(priority,None)
+    headings={}
     for item in records.values():
         # Read the literal page text, not the generated context header.
         for line in source_body(item).splitlines():
@@ -64,51 +26,31 @@ def _curriculum_headings(records):
             if not match:
                 match=re.match(r'^(?:chuyen nganh|chuong trinh)\s+dao tao\s*:\s*(.{2,100})$',value)
                 priority=1
-            if not match:
-                # A catalogue may omit "Ngành" from one numbered sibling
-                # title. Require the same literal root heading in source text
-                # and the parsed hierarchy, not a document-wide programme tag.
-                path=item.get('metadata',{}).get('heading_path',[])
-                bare=re.match(r'^\d+[.)]?\s+(.{2,100})$',line.strip())
-                if (item.get('content_type','text')=='text' and bare
-                        and bare[1].isupper() and not any(c.isdigit() for c in bare[1])
-                        and isinstance(path,list) and path and _fold(path[0])==value):
-                    name=' '.join(re.findall(r'[a-z]+',_fold(bare[1])))
-                    if 2<=len(name.split())<=12:
-                        siblings.append(((item['doc_id'],int(item['page'])),name))
-                continue
+            if not match:continue
             name=re.split(r'\s*\(?\d+\s*(?:tin chi|credits?)\b',match[1],maxsplit=1)[0]
             name=' '.join(re.findall(r'[a-z]+',name))
             if not name or len(name.split())>12:continue
             key=(item['doc_id'],int(item['page']))
-            remember(key,priority,name)
-    catalogue_docs={doc for doc,_ in headings}
-    for key,name in siblings:
-        if key[0] in catalogue_docs:remember(key,0,name)
+            previous=headings.get(key)
+            if previous is None or priority>previous[0]:headings[key]=(priority,name)
+            elif priority==previous[0] and name!=previous[1]:headings[key]=(priority,None)
     return headings
 
 
 def _curriculum_query(query):
     text=' '.join(re.sub(r'[^a-z0-9]+',' ',_fold(query)).split())
-    return text if re.search(r'\b(?:nganh|chuyen nganh|chuong trinh|ke hoach|tien trinh|so do|diagram|study plan|curriculum|program(?:me)?|hk\s*\d+|hoc k[yi]\s*\d+)\b',text) else ''
+    return text if re.search(r'\b(?:nganh|chuyen nganh|chuong trinh|curriculum|program(?:me)?|hk\s*\d+|hoc k[yi]\s*\d+)\b',text) else ''
 
 
 def _matching_programmes(query,headings):
     text=_curriculum_query(query)
     if not text:return set()
     names={name for _,name in headings.values() if name}
-    def literal_matches(value):
-        return {name for name in names for match in re.finditer(r'(?<!\w)'+re.escape(name)+r'(?!\w)',value)
-                if not re.search(r'\b(?:mon|hoc phan|course|subject)\s*$',value[:match.start()])}
-    # An explicit new programme takes precedence over a previous user topic.
-    raw=query.partition('\nContext topic (untrusted user input): ')[0]
-    raw=' '.join(re.sub(r'[^a-z0-9]+',' ',_fold(raw)).split())
-    matched=literal_matches(raw) or literal_matches(text)
+    matched={name for name in names if re.search(r'(?<!\w)'+re.escape(name)+r'(?!\w)',text)}
     if matched:
         # "Accounting" is not a second requested programme when contained in
         # the explicit longer name "Accounting - Auditing".
-        matched={name for name in matched if not any(name!=other and re.search(
-            r'(?<!\w)'+re.escape(name)+r'(?!\w)',other) for other in matched)}
+        matched={name for name in matched if not any(name!=other and name in other for other in matched)}
     if not matched:
         aliases={}
         for name in names:
@@ -256,18 +198,9 @@ def curriculum_scope_records(query: str, records: dict[str, dict]) -> dict[str, 
     for values in by_doc.values():values.sort()
     scoped={}
     for key,item in records.items():
-        markers=by_doc.get(item['doc_id'],[])
-        span=item.get('page_range') or item.get('metadata',{}).get('page_range') or [item['page'],item['page']]
-        if (not isinstance(span,(list,tuple)) or len(span)!=2 or any(type(p) is not int for p in span)
-                or not 1<=span[0]<=item['page']<=span[1]):continue
-        checkpoints=[span[0],span[1],*(page for page,_ in markers if span[0]<page<span[1])]
-        owners=[]
-        for point in checkpoints:
-            preceding=[name for page,name in markers if page<=point]
-            owners.append(preceding[-1] if preceding else None)
-        # A chunk crossing into a different programme cannot prove a value
-        # for the requested one; do not choose which part of its body to trust.
-        if all(owner is None or owner==chosen for owner in owners):scoped[key]=item
+        preceding=[(page,name) for page,name in by_doc.get(item['doc_id'],[]) if page<=item['page']]
+        owner=preceding[-1][1] if preceding else None
+        if owner is None or owner==chosen:scoped[key]=item
     return scoped
 
 

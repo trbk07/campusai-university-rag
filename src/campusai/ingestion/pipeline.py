@@ -6,15 +6,14 @@ import hashlib
 import json
 import re
 import shutil
-from dataclasses import replace
 from pathlib import Path
 from typing import Callable
 
 from ..schemas import Document
-from .chunker import CHUNKER_VERSION, _context_header, make_chunks
+from .chunker import CHUNKER_VERSION, make_chunks
 from .background.commit import atomic_text
 from .docling_parser import TEXT_COVERAGE_VERSION, parse_pdf
-from .metadata_detector import METADATA_VERSION, detect_metadata
+from .metadata_detector import detect_metadata
 from .ocr import OCRLimitExceeded, OCRUnavailable, ocr_pdf
 from .table_extractor import TABLE_EXTRACTOR_VERSION, extract_tables, table_page_selection
 from .validate import ValidationError, validate_pdf
@@ -145,38 +144,6 @@ def _save_table(table, output_dir: Path) -> None:
     )
 
 
-def _refresh_cached_metadata(document: Document, parsed_path: Path) -> Document | None:
-    """Upgrade labels without repeating OCR or changing any source/table body.
-
-    Only the known generated context line may be replaced. If its provenance,
-    readable page set or size cannot be preserved, use normal ingestion instead.
-    The caller still rebuilds indexes from the returned chunk content.
-    """
-    try:
-        text = parsed_path.read_text(encoding='utf-8')
-    except (OSError, UnicodeError):
-        return None
-    pages = [int(m[1]) for m in re.finditer(r'^## Page (\d+)\s*$', text, re.M)]
-    expected = document.metadata.get('readable_pages')
-    if expected is None:
-        expected = list(range(1, document.page_count + 1)) if document.status == 'succeeded' else []
-    if (not pages or pages != expected or any(type(p) is not int for p in expected)
-            or len(set(pages)) != len(pages)):
-        return None
-    fresh = detect_metadata(text)
-    chunks = []
-    for chunk in document.chunks:
-        first, separator, body = chunk.content.partition('\n')
-        if (not separator or first != _context_header(chunk.metadata, chunk.heading_path,
-                                                      chunk.page, chunk.page_range)):
-            return None
-        content = _context_header(fresh, chunk.heading_path, chunk.page, chunk.page_range) + separator + body
-        if len(content) > 2400:
-            return None
-        chunks.append(replace(chunk, content=content, metadata={**chunk.metadata, **fresh}))
-    return replace(document, metadata={**document.metadata, **fresh}, chunks=chunks)
-
-
 def ingest_document(
     path: str | Path,
     store_dir: str | Path = "data/store",
@@ -296,13 +263,6 @@ def ingest_document(
             from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
             if document.metadata.get('ocr_numeric_policy') != NUMERIC_TABLE_POLICY:
                 cache_versions_current = False
-        if cache_versions_current and document.metadata.get('metadata_detector_version') != METADATA_VERSION:
-            refreshed = _refresh_cached_metadata(document, output_dir / 'parsed.md')
-            if refreshed is None:
-                cache_versions_current = False
-            else:
-                document = refreshed
-                atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
         if preview_page_limit is not None and cache_versions_current and document.chunks:
             # Never downgrade an existing useful snapshot to a small preview.
             document.cached = True

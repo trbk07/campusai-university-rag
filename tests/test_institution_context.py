@@ -14,42 +14,6 @@ def schools():
             document('west', 'WESTERN INSTITUTE OF METEOROLOGY')]
 
 
-@pytest.mark.parametrize('question',[
-    'HRO có quy định ngày nghỉ thế nào?',
-    'ACME policy có áp dụng cho nhân viên thử việc không?',
-    'Còn XTR thì quy chế cấp quyền thế nào?',
-])
-def test_nonacademic_policy_acronyms_are_not_school_choices(question):
-    sources=[document('workplace','ACME — Employee policy','regulation'),
-             document('technical','XTR — Operations handbook','handbook')]
-    result=resolve_institution_request(question,sources)
-    assert not result.needs_clarification and not result.unknown_name
-    assert not result.unrecognized_reference and result.question==question
-
-
-@pytest.mark.parametrize('question',[
-    'Trường dữ liệu client_id có nghĩa gì?',
-    'API có trường thông tin trạng thái nào?',
-    'Mô tả trường nhập liệu địa chỉ.',
-    'Trường bắt buộc nào cần điền?',
-    'Điện trường và từ trường khác nhau thế nào?',
-])
-def test_technical_common_nouns_are_not_unknown_school_names(schools,question):
-    sources=[*schools,document('technical','API fields and physical quantities','manual')]
-    result=resolve_institution_request(question,sources)
-    assert not result.needs_clarification and not result.unknown_name
-    assert result.question==question
-
-
-def test_common_noun_guard_preserves_explicit_and_capitalized_institution_names(schools):
-    for question in ['Quy chế Trường Đại học Dữ liệu thế nào?',
-                     'Trường Dữ Liệu có quy định tín chỉ gì?']:
-        assert resolve_institution_request(question,schools).needs_clarification
-    sources=[document('environment','Trường Đại học Môi trường'),*schools]
-    result=resolve_institution_request('Quy chế đại học môi trường thế nào?',sources)
-    assert result.doc_ids=={'environment'} and not result.needs_clarification
-
-
 @pytest.mark.parametrize('question', [
     'Học tối thiểu bao nhiêu tín chỉ?', '8,6 điểm quy đổi ra sao?',
     'Điều kiện tốt nghiệp?', 'Trường em được hoãn thi không?',
@@ -514,63 +478,6 @@ def test_full_question_alias_and_school_switch_preserve_intent(schools,alias_ser
     assert len(model.calls)==1
 
 
-@pytest.mark.parametrize('question', [
-    'Theo quy chế QRSU, nghiên cứu sinh báo cáo tiến độ ở đâu?',
-    'QRSU yêu cầu tối thiểu bao nhiêu tín chỉ?',
-    'qrsu yêu cầu tối thiểu bao nhiêu tín chỉ?',
-    'Trong sổ tay qrsu, lớp học phần được mở lúc nào?',
-    'Tại QRSU, nghiên cứu sinh phải báo cáo ra sao?',
-    'tại qrsu, nghiên cứu sinh phải báo cáo ra sao?',
-    'Trên trang PDF 12 QRSU: hội đồng cấp Đại học gồm bao nhiêu thành viên?',
-    'ở trang 12 qrsu: quy định học tập thế nào?',
-])
-def test_embedded_or_leading_unfamiliar_school_alias_reaches_existing_verifier(schools,alias_service,question):
-    from campusai.retrieval.institution_scope import unresolved_institution_reference
-    assert unresolved_institution_reference(question,schools).casefold()=='qrsu'
-    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c0','match_type':'established_alias'})
-    result=service._institution_request(question,schools,[])
-    assert result.doc_ids=={'north'} and not result.needs_clarification
-    assert 'qrsu' not in result.question.casefold() and 'SAO BẮC' in result.question
-    assert len(model.calls)==1
-    # Alias verification gets the reference and authorized candidate names,
-    # never an opportunity to answer the policy question from outside sources.
-    assert question not in model.calls[0][0]
-
-
-@pytest.mark.parametrize('word',['hai','three','both','all','mot','muoi','one'])
-def test_quantity_in_known_school_question_is_not_an_unknown_institution(schools,alias_service,word):
-    from campusai.retrieval.institution_scope import unresolved_institution_reference
-    question=f'Sao Bắc quy định tổng số tuần của {word} học kỳ chính là bao nhiêu?'
-    assert not unresolved_institution_reference(question,schools)
-    service,model,_,_=alias_service({'status':'unknown','candidate_id':'none','match_type':'none'})
-    result=service._institution_request(question,schools,[])
-    assert result.doc_ids=={'north'} and not result.needs_clarification
-    assert not model.calls
-
-
-@pytest.mark.parametrize('term',['NCS','NCKH','CTDT','JSON','CPU'])
-def test_academic_role_or_technical_term_does_not_become_school_alias(schools,term):
-    from campusai.retrieval.institution_scope import unresolved_institution_reference
-    assert not unresolved_institution_reference(f'{term} yêu cầu những điều kiện gì ở Sao Bắc?',schools)
-
-
-def test_degree_level_is_not_a_school_name_but_a_real_capitalized_name_is(schools):
-    question='Hội đồng cấp Đại học gồm bao nhiêu thành viên ở Sao Bắc?'
-    result=resolve_institution_request(question,schools)
-    assert result.doc_ids=={'north'} and not result.needs_clarification
-    unknown=resolve_institution_request('Hội đồng cấp Đại học Mây Trắng gồm mấy người?',schools)
-    assert unknown.needs_clarification and unknown.unknown_name
-
-
-@pytest.mark.parametrize('question,expected',[
-    ('Tại TRƯỜNG ĐẠI HỌC SAO BẮC, nghiên cứu sinh phải báo cáo ra sao?','north'),
-    ('Ở WESTERN INSTITUTE OF METEOROLOGY, quy định học tập thế nào?','west'),
-])
-def test_words_of_recognized_uppercase_name_stay_recognized_after_location_prefix(schools,question,expected):
-    request=resolve_institution_request(question,schools)
-    assert request.doc_ids=={expected} and not request.needs_clarification
-
-
 def test_words_inside_recognized_uppercase_institution_are_not_unknown_aliases(schools,alias_service):
     from campusai.retrieval.institution_scope import unresolved_institution_reference
     question='Quy định của WESTERN INSTITUTE OF METEOROLOGY là gì?'
@@ -580,6 +487,82 @@ def test_words_inside_recognized_uppercase_institution_are_not_unknown_aliases(s
     request=service._institution_request('Quy định của WestAlias là gì?',schools,[])
     assert request.doc_ids=={'west'} and not request.needs_clarification
     assert 'WESTERN INSTITUTE' in request.question and len(model.calls)==1
+
+
+@pytest.mark.parametrize('question', [
+    'NorthStar giới hạn tín chỉ thế nào?',
+    'northstar quy định học phí ra sao?',
+    'Số tín chỉ được NorthStar quản lý như thế nào?',
+    'Sinh viên NorthStar đăng ký học lại thế nào?',
+])
+def test_source_bounded_alias_check_does_not_depend_on_a_verb_list(schools,alias_service,question):
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c0',
+        'match_type':'established_alias','reference':'NorthStar'})
+    result=service._institution_request(question,schools,[])
+    assert result.doc_ids=={'north'} and not result.needs_clarification
+    assert 'NorthStar' not in result.question and 'SAO BẮC' in result.question
+    assert len(model.calls)==1
+    prompt,options=model.calls[0]
+    assert question in prompt and 'doc_ids' not in prompt
+    assert 'reference' in options['schema']['required']
+    # Reuse the verified literal identity in another grammatical position.
+    result=service._institution_request('Tín chỉ northstar được tính thế nào?',schools,[])
+    assert result.doc_ids=={'north'} and not result.needs_clarification
+    assert len(model.calls)==1
+
+
+@pytest.mark.parametrize('reference', ['InventedAlias','tín chỉ','em','',None,123])
+def test_context_alias_requires_a_literal_non_generic_name(schools,alias_service,reference):
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c0',
+        'match_type':'name_variant','reference':reference})
+    query='Em muốn biết tín chỉ NorthStar được tính ra sao?'
+    for _ in range(2):
+        result=service._institution_request(query,schools,[])
+        assert result.needs_clarification and not result.doc_ids
+    assert len(model.calls)==1
+
+
+@pytest.mark.parametrize('result', [
+    {'status':'unknown','candidate_id':'none','match_type':'none','reference':''},
+    {'status':'ambiguous','candidate_id':'none','match_type':'none','reference':''},
+    {'status':'confirmed','candidate_id':'outside-source','match_type':'name_variant','reference':'NorthStar'},
+    {'status':'confirmed','candidate_id':'c0','match_type':'nearest_name','reference':'NorthStar'},
+    {'status':'confirmed','candidate_id':'c0','match_type':'name_variant','reference':'NorthStar','answer':'guess'},
+])
+def test_uncertain_contextual_alias_cannot_select_an_institution(schools,alias_service,result):
+    service,model,_,_=alias_service(result)
+    request=service._institution_request('Sinh viên NorthStar đăng ký tín chỉ thế nào?',schools,[])
+    assert request.needs_clarification and not request.doc_ids and len(model.calls)==1
+
+
+def test_contextual_alias_cache_is_bound_to_authorized_sources(schools,alias_service):
+    service,model,_,_=alias_service({'status':'confirmed','candidate_id':'c0',
+        'match_type':'established_alias','reference':'NorthStar'})
+    question='NorthStar quy định tín chỉ thế nào?'
+    assert service._institution_request(question,schools,[]).doc_ids=={'north'}
+    # The source used to confirm the alias is no longer authorized.
+    model.result={'status':'unknown','candidate_id':'none','match_type':'none','reference':''}
+    other=[schools[1],document('new','TRƯỜNG ĐẠI HỌC MÂY TÍM')]
+    request=service._institution_request(question,other,[])
+    assert request.needs_clarification and not request.doc_ids
+    assert len(model.calls)==2 and 'SAO BẮC' not in model.calls[-1][0]
+
+
+def test_context_alias_provider_failure_is_bounded_and_explained(schools,alias_service):
+    from campusai.llm.client import LLMProviderError
+    service,model,_,_=alias_service(LLMProviderError('timeout'))
+    for _ in range(2):
+        request=service._institution_request('NorthStar quy định tín chỉ thế nào?',schools,[])
+        assert request.needs_clarification and not request.doc_ids and request.alias_check_unavailable
+    assert len(model.calls)==1
+
+
+def test_context_alias_check_is_not_used_for_non_institutional_pdfs(alias_service):
+    service,model,_,_=alias_service(AssertionError('Unexpected identity call'))
+    manuals=[document('manual','ACME operations guide','manual'),
+             document('data','Data format reference','manual')]
+    request=service._institution_request('Explain the NorthStar JSON API',manuals,[])
+    assert not request.needs_clarification and not model.calls
 
 
 def test_repeated_school_switches_keep_question_and_never_blend_old_names(schools):

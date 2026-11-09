@@ -277,16 +277,6 @@ def source_quote(result, claims, question=''):
                 if not eligible:
                     return None
                 selected.add(max(eligible, key=lambda i: len(terms & set(normalized_tokens(' '.join(rows[i]))))))
-        if selected:
-            from .course_credits import embedded_credit_header
-            header_row=embedded_credit_header(table,before_row=min(selected))
-            if header_row is not None:
-                # Retain the actual printed heading as a source row. Do not
-                # replace a merged title with synthetic column labels.
-                selected.add(header_row)
-                quote=json.dumps({'headers':headers,'rows':[row for i,row in enumerate(rows) if i in selected]},
-                                 ensure_ascii=False)
-                return quote if len(quote)<=1200 else None
         if len(headers) == 1 and wrapped_prose(rows):
             expanded = set(selected)
             for index in selected:

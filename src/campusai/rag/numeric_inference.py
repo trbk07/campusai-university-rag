@@ -137,70 +137,6 @@ def registration_application_view(answer, supported, question, *, evidence=()):
     return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
 
 
-def score_threshold_application_view(answer, supported, question, *, evidence=()):
-    """Prove only a named average-score minimum, not overall eligibility.
-
-    Require a user score with an explicit scale, a matching source field and
-    scale, and a question confined to that threshold. Unknown/compound rules
-    retain ordinary claim validation instead of licensing an inference.
-    """
-    raw=str(question or '').partition('\nContext topic (untrusted user input): ')[0]
-    query=folded(raw)
-    if not re.search(r'\b(?:rieng|chi xet)\s+(?:nguong|yeu cau|dieu kien)\s+diem\b',query):return None
-    field=r'\bdiem trung binh\s+(?P<label>[a-z ]{2,65}?)\s+'
-    premises=list(re.finditer(field+r'(?:la|=|:)\s*(?P<value>'+NUMBER+r')\s*/\s*(?P<scale>'+NUMBER+r')(?!\w|[.,]\d)',query))
-    if len(premises)!=1:return None
-    premise=premises[0]
-    labels=lambda text:set(text.split())-{'cua','muc','diem','la'}
-    asked=labels(premise['label'])
-    if not asked:return None
-    value,scale=decimal(premise['value']),decimal(premise['scale'])
-    if not 0<=value<=scale or scale<=0:return None
-    bound=re.compile(field+r'dat tu\s+(?:diem\s+)?(?P<minimum>'+NUMBER+r')\s+tro len\s+(?:theo\s+)?thang diem\s+(?P<scale>'+NUMBER+r')(?!\w|[.,]\d)')
-    def bounds(claims):
-        found=set()
-        for claim in claims:
-            text=folded(claim)
-            for match in bound.finditer(text):
-                named=labels(match['label'])
-                if not named or not named<=asked:continue
-                # The source must define this score as the passing condition.
-                # Do not discard another premise in a compound eligibility rule.
-                clause=text[max(0,text.rfind('.',0,match.start())+1):match.start()]
-                if not re.search(r'\bduoc danh gia la dat neu\s*$',clause):continue
-                suffix=text[match.end():].lstrip()
-                if re.match(r'(?:va|hoac|nhung|tru|neu|and|or|unless)\b',suffix):return None
-                found.add((decimal(match['minimum']),decimal(match['scale'])))
-        return found
-    thresholds=bounds(supported)
-    if not thresholds or len(thresholds)!=1:return None
-    minimum,source_scale=next(iter(thresholds))
-    if scale!=source_scale or not 0<=minimum<=scale:return None
-    alternatives=bounds(evidence)
-    if alternatives is None or alternatives-thresholds:return None
-    meets=value>=minimum
-    text=folded(answer)
-    negative=r'\b(?:chua|khong) dat (?:nguong(?: diem)?|yeu cau)\b'
-    positive=r'\b(?:da dat (?:nguong(?: diem)?|yeu cau)|dap ung nguong(?: diem)?)\b'
-    verdicts=set()
-    if re.search(negative,text):verdicts.add(False)
-    if re.search(positive,text):verdicts.add(True)
-    if not verdicts:return None
-    if verdicts!={meets}:return False
-    if re.search(r'\b(?:du (?:moi |tat ca )?dieu kien|duoc bao ve|duoc tot nghiep|tu dong|chac chan)\b',text):return False
-    from .footnotes import _fold_with_offsets
-    text,offsets=_fold_with_offsets(answer);spans=set()
-    repeated=re.compile(r'\bdiem trung binh(?:\s+(?:[a-z]+)){0,9}?\s*(?:la\s*)?(?P<value>'+NUMBER+r')\s*/\s*(?P<scale>'+NUMBER+r')(?!\w|[.,]\d)')
-    for match in repeated.finditer(text):
-        prefix=text[match.start():match.start('value')]
-        named=labels(re.sub(r'^diem trung binh\s*','',prefix).strip())
-        if named and not named<=asked:continue
-        if decimal(match['value'])!=value or decimal(match['scale'])!=scale:return False
-        start,end=match.span('value');spans.add((offsets[start],offsets[end-1]+1))
-    if not spans:return None
-    return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
-
-
 def percentage_application_view(answer, supported, question):
     """Prove failed/registered credit percentage against one printed bound."""
     query=folded(str(question or '').partition('\nContext topic (untrusted user input): ')[0])
@@ -343,75 +279,12 @@ def percentage_application_completion(answer, question, evidence, *, language='v
     return result
 
 
-def credit_share_application_view(answer, supported, question):
-    """Verify an explicit part/whole credit calculation against one upper cap.
-
-    Only typed occurrences belonging to the user's operands or the computed
-    maximum are masked. A matching number elsewhere is still untrusted. This
-    establishes a comparison, never permission or full student eligibility.
-    """
-    query=folded(str(question or '').partition('\nContext topic (untrusted user input): ')[0])
-    unit=r'(?:tin chi|tc|credits?)'
-    cross_school=r'\b(?:truong (?:khac|doi tac)|(?:other|another|partner) (?:school|university|institution)|transfer(?:ring)?)\b'
-    if not re.search(cross_school,query):return None
-    total_pattern=(r'\b(?:chuong trinh(?: (?:dao tao|hoc))?(?: (?:co|gom))?|'
-                   r'(?:program(?:me)?|curriculum)(?: (?:has|of|with))?)\s*('+NUMBER+r')\s*'+unit+r'\b')
-    part_pattern=r'\b(?:tich luy|transfer(?:ring)?)\s*('+NUMBER+r')\s*'+unit+r'\b'
-    totals={decimal(m[1]) for m in re.finditer(total_pattern,query)}
-    parts={decimal(m[1]) for m in re.finditer(part_pattern,query)}
-    if len(totals)!=1 or len(parts)!=1:return None
-    total=next(iter(totals));part=next(iter(parts))
-    if total<=0 or not 0<=part<=total:return None
-    bounds=set()
-    for claim in supported:
-        rule=folded(claim)
-        if not (re.search(r'\b'+unit+r'\b',rule)
-                and re.search(r'\b(?:tong khoi luong|total|program(?:me)?|chuong trinh)\b',rule)
-                and re.search(r'\b(?:tich luy|transfer)\b',rule)
-                and re.search(cross_school,rule)):
-            continue
-        bounds.update(decimal(m[1]) for m in re.finditer(
-            r'\b(?:khong (?:duoc )?(?:vuot qua|qua)|toi da|at most|no more than)\s*('+NUMBER+r')\s*%',rule))
-    if len(bounds)!=1:return None
-    percent=next(iter(bounds))
-    if not 0<=percent<=100:return None
-    maximum=total*percent/100
-    from .footnotes import _fold_with_offsets
-    text,offsets=_fold_with_offsets(answer)
-    negative=r'\b(?:(?:khong|chua) vuot(?: qua)? (?:gioi han|muc|nguong)|does not exceed (?:the )?(?:limit|cap))\b'
-    positive=r'\b(?:vuot(?: qua)? (?:gioi han|muc|nguong)|exceeds? (?:the )?(?:limit|cap))\b'
-    no_excess=bool(re.search(negative,text))
-    has_excess=bool(re.search(positive,re.sub(negative,' ',text)))
-    if no_excess and has_excess:return False
-    if no_excess:exceeds=False
-    elif has_excess:exceeds=True
-    else:return None
-    if exceeds!=(part>maximum):return False
-    if re.search(r'\b(?:chac chan|tu dong|du moi dieu kien|duoc phep|automatically|guaranteed|fully eligible)\b',text):
-        return False
-    spans=set()
-    roles=set()
-    for role,pattern,expected in [('total',total_pattern,total),('part',part_pattern,part),
-        ('maximum',r'\b(?:gioi han(?: toi da)?|toi da|maximum|cap)\s*(?:(?:la|tuong ung|is|of)\s*)?('+NUMBER+r')\s*'+unit+r'\b',maximum)]:
-        for match in re.finditer(pattern,text):
-            if decimal(match[1])!=expected:return False
-            start,end=match.span(1)
-            spans.add((offsets[start],offsets[end-1]+1));roles.add(role)
-    # Both operands must be visible and correctly labelled. Do not validate
-    # a bare result just because a question happens to contain two numbers.
-    if not {'total','part'}<=roles:return None
-    return APPLICATION_NUMBER.sub(lambda m:' ' if m.span() in spans else m[0],answer)
-
-
 def user_application_view(answer, supported, question, *, evidence=()):
     """Use identical typed premise proofs at presentation and owner checks."""
     visible=answer
-    for proof in (gpa_application_view,percentage_application_view,registration_application_view,
-                  score_threshold_application_view,
-                  credit_share_application_view):
+    for proof in (gpa_application_view,percentage_application_view,registration_application_view):
         applied=(proof(visible,supported,question,evidence=evidence)
-                 if proof in (registration_application_view,score_threshold_application_view)
-                 else proof(visible,supported,question))
+                 if proof is registration_application_view else proof(visible,supported,question))
         if applied is False:return False
         if isinstance(applied,str):visible=applied
     return visible

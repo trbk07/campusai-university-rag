@@ -7,7 +7,7 @@ import unicodedata
 
 from .policies import sanitize_evidence_text
 
-CONTEXT_VERSION = "request-context-v16-mentioned-topic"
+CONTEXT_VERSION = "request-context-v15-registration-slots"
 FOLLOWUP = re.compile(r"\b(?:môn này|mon nay|cái đó|cai do|nó|that course|that program|this course|it|what about)\b", re.I)
 
 
@@ -40,14 +40,6 @@ def depends_on_previous_topic(question):
                       r'[\w.-]+\.pdf\.\s*', '', question, flags=re.I)
     text = ' '.join(re.sub(r'[^\w\s]', ' ', _fold(question)).split())
     if missing_topic_reference(question):
-        return True
-    # A noun may refer back without a pronoun: "the contract mentioned
-    # above", "báo cáo vừa nói". Resolve this before the document-scope
-    # exemption so selecting a PDF does not erase the conversational subject.
-    if re.search(r'\b(?:(?:vua|da)\s+(?:noi|nhac(?: den)?|de cap)|'
-                 r'(?:previously|already)\s+mentioned|mentioned\s+(?:above|earlier)|aforementioned)\b', text):
-        return True
-    if re.match(r'^vẫn\b', question, re.I) and re.search(r'\b(?:do|nay)\b', text):
         return True
     if re.search(r'\b(?:muc|nguong|gia tri|quy dinh|gioi han)\s+(?:do|nay|vua noi)\b',text):
         return True

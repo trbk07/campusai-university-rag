@@ -8,9 +8,8 @@ import unicodedata
 from typing import Any
 
 from ..schemas import Chunk
-from ..table_headers import embedded_credit_header
 
-CHUNKER_VERSION = "structure-v9-article-boundaries"
+CHUNKER_VERSION = "structure-v7-diagram-semester-scope"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -87,14 +86,6 @@ def _looks_like_heading(line: str, layout: dict[str, Any] | None = None) -> tupl
                     r'(?:credits?|tín\s+chỉ|tin\s+chi|ects|tc)[.!]?',
                     unicodedata.normalize('NFC', stripped), re.I):
         return False,0,''
-    structural=re.match(r'^(?:điều|article|chương|chapter|mục|section)\s+'
-                        r'(?:\d+|[IVXLCDM]+)[.):]\s+(.+)$',stripped,re.I)
-    if (structural and 2<=len(structural[1].split())<=32
-            and structural[1][0].isupper()
-            and not stripped.endswith(('.', ';', ',', '?', '!'))):
-        # Explicit legal section identifiers remain structural even when a
-        # wrapped title is long or the OCR has no bold/font-size evidence.
-        return True,1,stripped
     numbered_or_article = bool(_ARTICLE_HEADING.match(stripped) or _NUMBERED_HEADING.match(stripped))
     ends_with_sentence_punct = stripped.endswith((".", ";", ",", "?", "!")) and not stripped.endswith("...")
     if numbered_or_article:
@@ -234,18 +225,6 @@ def _sectionize(pages: list[dict[str, Any]]) -> tuple[list[tuple[str, list[str],
         list_run_indexes = _numbered_list_run_lines(lines)
         for line_index, line in enumerate(lines):
             is_heading, level, heading = _looks_like_heading(line, metas[line_index])
-            # OCR often prints the article number on its own line without
-            # reliable font metadata. A following title establishes the
-            # boundary even though the marker ends with a full stop. Do not
-            # promote a trailing citation or an ordinary numbered list item.
-            marker=re.fullmatch(r'(?:điều|article|chương|chapter|mục|section)\s+'
-                                r'(?:\d+|[IVXLCDM]+)[.)]?',line,re.I)
-            if marker and line_index+1<len(lines):
-                title=lines[line_index+1]
-                if (2<=len(title.split())<=24 and title[0].isupper()
-                        and not title.endswith(('.', ';', ',', '?', '!'))
-                        and not re.match(r'^\d+[.)]',title)):
-                    is_heading,level,heading=True,1,line
             if (is_heading and line_index in list_run_indexes
                     and not _ARTICLE_HEADING.match(line.strip())):
                 is_heading = False
@@ -312,13 +291,7 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
     current: list[list[str]] = []
     scope_marker = None
     closed_scope = False
-    header_index=embedded_credit_header({'headers':headers,'rows':rows})
-    printed_header=rows[header_index] if header_index is not None else None
-    active_header=None
-    positions={id(row):index for index,row in enumerate(rows)}
     for row in rows:
-        if printed_header is not None and row==printed_header:
-            active_header=row
         cells = [cell for cell in row if isinstance(cell, str) and cell.strip()]
         marker = len(cells) == 1 and re.fullmatch(r'semester\s*\d+', cells[0], re.I)
         if closed_scope and not marker and current:
@@ -340,12 +313,6 @@ def _table_row_batches(headers: list[str], rows: list[list[str]], budget: int) -
                     # Repeat only an actual original marker as context; never
                     # invent a section or duplicate a course/credit row.
                     current = scoped
-            if active_header is not None and not any(item is active_header for item in current):
-                headed=sorted([active_header,*current],key=lambda item:positions[id(item)])
-                if len(json.dumps({'headers':headers,'rows':headed},ensure_ascii=False))<=budget:
-                    # Same printed cells and original row indices, carried
-                    # forward only when the complete payload still fits.
-                    current=headed
         else:
             current = candidate
         if scope_marker is not None and any(re.fullmatch(r'credits?\s*per\s+semester', cell, re.I)

@@ -67,7 +67,7 @@ def build_application():
             Path(os.getenv("CAMPUSAI_RERANKER_DEV", "data/benchmark/human_retrieval_dev.jsonl")),
             dense_device=device)
     else:
-        retriever = HybridRetriever(index_dir, dense_device=device, prefer_literal_phrases=True,
+        retriever = HybridRetriever(index_dir, dense_device=device,
             **({'dense_model_name':os.environ['CAMPUSAI_DENSE_MODEL'],
                 'dense_model_revision':revision} if pinned else {}))
     service = None
