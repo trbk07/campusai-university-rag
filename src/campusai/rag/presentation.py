@@ -754,7 +754,7 @@ def _source_identifier_view(answer, question, evidence):
     return answer
 
 
-def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=(), source_names=()):
+def presentation_conflicts(answer, claims, *, locations=(), question=None, source_scope_codes=(),application_evidence=(), source_names=(), diagnostics=None):
     """Only supported claims supply allowable visible markers, not random source numbers."""
     supported = [claim.text for claim in claims if claim.status == 'supported']
     if not supported:
@@ -828,15 +828,21 @@ def presentation_conflicts(answer, claims, *, locations=(), question=None, sourc
     # different ID or an arbitrary number elsewhere in the answer.
     scope_codes = code_markers(str(question or '')) & set(source_scope_codes)
     if code_markers(visible) - code_markers(support) - scope_codes:
+        if diagnostics is not None:diagnostics.append({'code':'visible_identifiers_not_in_verified_claims'})
         return True
     visible_numbers = {number(v) for v in NUMBER.findall(visible)}
     supported_numbers = {number(v) for v in NUMBER.findall(support)}
     ungrounded_numbers = visible_numbers - supported_numbers - {number(str(year)) for year in allowed_scope_years}
     if ungrounded_numbers:
+        if diagnostics is not None:
+            diagnostics.append({'code':'visible_numbers_not_in_verified_claims',
+                'values':[format(value,'f') for value in sorted(ungrounded_numbers)
+                          if len(format(value,'f'))<=32][:8]})
         return True
     known_units = quantities(support)
     for value, units in quantities(visible).items():
         if known_units.get(value) and not units <= known_units[value]:
+            if diagnostics is not None:diagnostics.append({'code':'visible_units_not_in_verified_claims'})
             return True
     # Opposite negation of the same explicit clause is a contradiction. Do not
     # guess polarity across unrelated clauses or infer it from vocabulary alone.
