@@ -65,7 +65,6 @@ def normalize_retrieval_query(text: str) -> str:
     # supplied by the expansion.
     academic_aliases = (
         (r'\b(?:kl|kltn|khoa luan|thesis)\b', 'khóa luận tốt nghiệp thesis'),
-        (r'\bai\b', 'trí tuệ nhân tạo artificial intelligence'),
         (r'\b(?:ths|master(?:s)?|thac\s+s[yi])\b', 'thạc sĩ master'),
         (r'\b(?:pv|interview|phong van)\b', 'phỏng vấn interview'),
         (r'\b(?:tc|tin chi|credits?)\b|\b(?:may|bao nhieu|bn|\d{1,2})\s*tin\b', 'tín chỉ credits TC'),
@@ -83,7 +82,7 @@ def normalize_retrieval_query(text: str) -> str:
         (r'\b(?:dang ki|dk)\b', 'đăng ký registration'),
         (r'\b(?:lp|le phi|phi du tuyen|fee)\b', 'lệ phí fee'),
         (r'\b(?:when|ngay nao|ngay may|bao gio)\b', 'thời gian ngày'),
-        (r'\b(?:deadline|han chot|het han|dong|closure)\b', 'hạn cuối thời gian đăng ký deadline'),
+        (r'\b(?:deadline|han chot|het han|closure)\b', 'hạn cuối thời gian đăng ký deadline'),
         (r'\b(?:prerequisite|tien quyet)\b', 'tiên quyết prerequisite'),
         (r'\b(?:hoc truoc|prior course|previous course)\b', 'học phần học trước'),
         (r'\b(?:tru so|dia chi|headquarters|office address|located)\b', 'địa chỉ trụ sở address'),
@@ -92,6 +91,14 @@ def normalize_retrieval_query(text: str) -> str:
     for pattern, expansion in academic_aliases:
         if re.search(pattern, folded):
             aliases.append(expansion)
+    # Vietnamese "ai" asks who; accent folding also turns consent/payment
+    # words into "dong". Expand only explicit technical/closing contexts.
+    if (re.search(r'(?<!\w)AI(?!\w)',value)
+            or re.search(r'\b(?:mon|nganh|hoc phan|course)\s+ai\b|\b(?:artificial intelligence|tri tue nhan tao)\b',folded)):
+        aliases.append('trí tuệ nhân tạo artificial intelligence')
+    if re.search(r'\b(?:dong\s+(?:cong|portal|dang k[yi]|registration)|'
+                 r'(?:cong|portal)\s+(?:dang k[yi]\s+)?(?:(?:se|da|sap)\s+)?dong)\b',folded):
+        aliases.append('hạn cuối thời gian đăng ký deadline')
     if (re.search(r'\b(?:tin(?: chi)?|tc|credits?)\b',folded)
             and re.search(r'\b(?:toi da|toi thieu|gioi han|limit|dang k[yi]|registration)\b',folded)):
         aliases.append('đăng ký học tập số lượng TC khối lượng học tập')
@@ -158,13 +165,20 @@ def source_body(item: dict, *, decode_tables: bool = True) -> str:
 
 def requested_semesters(text: str) -> tuple[int, ...]:
     """Read explicit semester labels, without using document-level metadata."""
-    value = unicodedata.normalize('NFKD', repair_mojibake(text).casefold().replace('đ', 'd'))
+    value=unicodedata.normalize('NFC',repair_mojibake(text).casefold())
+    # Preserve lexical distinctions before accent folding: "ký tạm trú" and
+    # "chữ ký tám người" do not request semester eight. Full academic labels
+    # remain explicit even when "kí/ký" is used as a spelling variant.
+    value=re.sub(r'\b(?:đăng|dang|chữ|chu)\s+(?:ký|kí|ky|ki)\b',' registration ',value)
+    value=re.sub(r'\b(?:học|hoc)\s+(?:ký|kí|ky|ki|kỳ|kì)\b',' semester ',value)
+    value=re.sub(r'\b(?:ký|kí)\b',' signature ',value)
+    value = unicodedata.normalize('NFKD', value.replace('đ', 'd'))
     value = value.encode('ascii', 'ignore').decode('ascii')
     number_words = {'mot': 1, 'dau': 1, 'mo dau': 1, 'first': 1, 'hai': 2,
                     'ba': 3, 'bon': 4, 'nam': 5, 'sau': 6, 'bay': 7, 'tam': 8,
                     'chin': 9, 'muoi': 10}
     words = '|'.join(sorted(number_words, key=len, reverse=True))
-    pattern = rf'\b(?:hoc\s*ky|ky|hk|semester|sem)\s*(?:thu\s*)?(\d{{1,2}}|{words})\b'
+    pattern = rf'\b(?:hoc\s*k[yi]|k[yi]|hk|semester|sem)\s*(?:thu\s*)?(\d{{1,2}}|{words})\b'
     values = []
     for match in re.finditer(pattern, value):
         token = match.group(1)
