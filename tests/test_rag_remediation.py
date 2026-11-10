@@ -2542,3 +2542,31 @@ def test_numeric_feedback_is_bounded_and_does_not_approve_source_alternatives():
     feedback=[]
     assert presentation_conflicts('The price is 42 credits.',claims,diagnostics=feedback)
     assert feedback==[{'code':'visible_units_not_in_verified_claims'}]
+
+
+def test_opaque_review_ids_bind_exact_facts_without_changing_evidence_or_verdict():
+    import copy
+    from scripts.release.blind_holdout import canonicalize_fact_id_review
+    gold=[{'case_id':'case','turns':[{'required_facts':[{'fact_id':'case:t1:f1:a'},{'fact_id':'case:t1:f2:b'}]}]}]
+    raw={'cases':[{'case_id':'case','verdict':'approved','turns':[{'turn':1,'verdict':'approved',
+        'approved_fact_ids':['case:t1:f2:b','case:t1:f1:a'],
+        'approved_evidence':[{'fact_id':'case:t1:f2:b','page':20,'quote':'The measured value is 0.2.'}]}]}]}
+    before=copy.deepcopy(raw);canonical,meta=canonicalize_fact_id_review(raw,gold)
+    assert raw==before and not meta['quarantined_turns']
+    turn=canonical['cases'][0]['turns'][0]
+    assert turn['approved_fact_indices']==[2,1]
+    assert turn['approved_evidence']==[{'fact_index':2,'page':20,'quote':'The measured value is 0.2.'}]
+    assert canonical['cases'][0]['verdict']=='approved' and turn['verdict']=='approved'
+
+
+@pytest.mark.parametrize('ids,error',[(['0'],'unknown_review_fact_id'),
+                                    (['another-case:t1:f1'],'unknown_review_fact_id'),
+                                    (['fact','fact'],'duplicate_review_fact_id')])
+def test_opaque_review_ids_never_guess_foreign_numeric_or_duplicate_bindings(ids,error):
+    from scripts.release.blind_holdout import canonicalize_fact_id_review
+    gold=[{'case_id':'case','turns':[{'required_facts':[{'fact_id':'fact'}]}]}]
+    raw={'cases':[{'case_id':'case','turns':[{'turn':1,'verdict':'approved',
+        'approved_fact_ids':ids,'approved_evidence':[]}]}]}
+    with pytest.raises(ValueError,match=error):canonicalize_fact_id_review(raw,gold)
+    quarantined,meta=canonicalize_fact_id_review(raw,gold,quarantine_invalid=True)
+    assert quarantined==raw and meta['quarantined_turns']==[{'case_id':'case','turn':1,'error':error}]

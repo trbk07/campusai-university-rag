@@ -65,6 +65,32 @@ def normalize_review_indices(review, proposals, *, quarantine_invalid=False):
         'normalized_turns':shifts,'quarantined_turns':quarantined}
 
 
+def canonicalize_fact_id_review(review, proposals, *, quarantine_invalid=False):
+    """Bind reviewer evidence to exact opaque fact IDs; never guess indices."""
+    if (not isinstance(review,dict) or set(review)!={'cases'}
+            or [c.get('case_id') for c in review['cases']]!=[c.get('case_id') for c in proposals]
+            or len({c.get('case_id') for c in proposals})!=len(proposals)):
+        raise ValueError('review_case_binding_mismatch')
+    canonical=json.loads(json.dumps(review));quarantine=[]
+    for case,proposed in zip(canonical['cases'],proposals):
+        if len(case['turns'])!=len(proposed['turns']):raise ValueError('review_turn_binding_mismatch')
+        for n,(turn,gold) in enumerate(zip(case['turns'],proposed['turns']),1):
+            if turn['turn']!=n:raise ValueError('review_turn_binding_mismatch')
+            ids=[f.get('fact_id') for f in gold['required_facts']]
+            if any(not isinstance(i,str) or not i for i in ids) or len(set(ids))!=len(ids):
+                raise ValueError('proposal_fact_ids_invalid')
+            mapping={ident:i for i,ident in enumerate(ids,1)}
+            approved=turn['approved_fact_ids'];values=approved+[e['fact_id'] for e in turn['approved_evidence']]
+            error=('unknown_review_fact_id' if any(not isinstance(i,str) or i not in mapping for i in values)
+                   else 'duplicate_review_fact_id' if len(set(approved))!=len(approved) else None)
+            if error:
+                if not quarantine_invalid:raise ValueError(error)
+                quarantine.append({'case_id':case['case_id'],'turn':n,'error':error});continue
+            turn['approved_fact_indices']=[mapping[i] for i in turn.pop('approved_fact_ids')]
+            for evidence in turn['approved_evidence']:evidence['fact_index']=mapping[evidence.pop('fact_id')]
+    return canonical,{'source_representation':'opaque_fact_ids','canonical_base':1,'quarantined_turns':quarantine}
+
+
 def commitment(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
         separators=(',', ':'), allow_nan=False).encode('utf-8')).hexdigest()

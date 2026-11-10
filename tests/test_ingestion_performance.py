@@ -34,6 +34,67 @@ def test_symbol_recovery_requires_independent_label_and_all_numbers(observed,con
     assert verified_label_replacement('B+: From 6.7 to 7.1;',observed,confidence) is None
 
 
+@pytest.mark.parametrize('original,observed,accepted',[
+    ('B* quy đổi thành 3,5;','B+ quy đổi thành 3,5;',True),
+    ('Ct maps to 2.5 points.','C+ maps to 2.5 points.',True),
+    ('Dy=1.25','D-=1.25',True),
+    ('B* quy đổi thành 3,5;','B+ quy đổi thành 4,0;',False),
+    ('B* quy đổi thành 3,5;','C+ quy đổi thành 3,5;',False),
+    ('B* see footnote 3.5','B+ see footnote 3.5',False),
+    ('B*','B+',False),
+    ('B*: 3.5 and 4.0','B+: 3.5 and 4.0',False),
+])
+def test_scalar_grade_symbol_requires_a_printed_mapping_and_unchanged_numbers(original,observed,accepted):
+    from campusai.ingestion.ocr_symbols import verified_label_replacement
+    result=verified_label_replacement(original,observed,.96)
+    assert result==(original.replace(original[1],observed[1],1) if accepted else None)
+
+
+@pytest.mark.parametrize('observed,confidence,box,accepted',[
+    ('B+',.97,[101,100,121,115],True),
+    ('B+',.94,[101,100,121,115],False),
+    ('C+',.99,[101,100,121,115],False),
+    ('B+',.99,[180,100,200,115],False),
+    ('B+',.99,[101,125,121,140],False),
+    ('B+ 7.0',.99,[101,100,121,115],False),
+])
+def test_isolated_glyph_must_be_exactly_the_same_leading_printed_label(observed,confidence,box,accepted):
+    from campusai.ingestion.ocr_symbols import verified_isolated_label_replacement
+    original='B* maps to 3.25 points.'
+    result=verified_isolated_label_replacement(original,observed,confidence,[100,100,240,118],box)
+    assert result==('B+ maps to 3.25 points.' if accepted else None)
+
+
+def test_split_label_reader_never_adopts_misread_neighbouring_numbers():
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier,validate_symbol_review
+    from campusai.ingestion.ocr_assets import RAPIDOCR_SHA256
+    class Reader(RasterLabelVerifier):
+        def _load(self):self.identity={'package':'rapidocr-onnxruntime1.4.4','model_sha256':dict(RAPIDOCR_SHA256)}
+        def _group(self,*args):return [
+            {'text':'B+','confidence':.97,'bbox':[101,100,121,115]},
+            {'text':'maps to 99.0','confidence':.99,'bbox':[125,100,240,115]}]
+        def _lines(self,*args):pytest.fail('A verified leading glyph needs no additional OCR')
+    original='B* maps to 3.25 points.'
+    changed,_,audit=Reader().refine(None,original,[{'text':original,'bbox':[100,100,240,118]}])
+    assert changed=='B+ maps to 3.25 points.' and '99' not in changed
+    assert audit['corrections'][0]['observed_bbox']==[101,100,121,115]
+    validate_symbol_review(audit,[0,0,300,150])
+    audit['corrections'][0]['observed_bbox']=[180,100,200,115]
+    with pytest.raises(ValueError,match='symbol correction'):validate_symbol_review(audit)
+
+
+def test_distant_scalar_labels_use_bounded_detection_windows():
+    from campusai.ingestion.ocr_symbols import RasterLabelVerifier
+    import pymupdf
+    class Reader(RasterLabelVerifier):
+        windows=[]
+        def _image(self,page,box):self.windows.append(box);return None,None
+    reader=Reader();reader.engine=lambda data:([],None)
+    page=SimpleNamespace(derotation_matrix=pymupdf.Matrix(1,1))
+    assert reader._group(page,[[10,y,140,y+15] for y in [0,60,120,180]])==[]
+    assert len(reader.windows)==2 and all(b[3]-b[1]<=160 for b in reader.windows)
+
+
 def test_optional_symbol_model_loads_once_without_gpu_or_rpc_stdout(monkeypatch,capsys):
     import sys
     from campusai.ingestion import ocr_assets

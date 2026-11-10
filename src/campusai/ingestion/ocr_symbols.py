@@ -7,9 +7,10 @@ import math
 import re
 import unicodedata
 
-SYMBOL_POLICY = 'raster-grade-label-v1'
-_SUSPECT = re.compile(r'(?m)^[ \t]*(?P<label>[ABCDF][tTyY*†\x27’])(?=\s*:)')
-_READ = re.compile(r'^[ \t]*(?P<label>[ABCDF][+\-])(?=\s*:)')
+SYMBOL_POLICY = 'raster-grade-label-v2-scalar-fields'
+_FIELD = r'(?=\s*(?::|=|quy\b|maps?\b|converts?\b|corresponds?\b))'
+_SUSPECT = re.compile(r'(?m)^[ \t]*(?P<label>[ABCDF][tTyY*†\x27’])'+_FIELD)
+_READ = re.compile(r'^[ \t]*(?P<label>[ABCDF][+\-])'+_FIELD)
 _NUMBER = re.compile(r'\d+(?:[.,]\d+)?')
 
 
@@ -24,13 +25,24 @@ def _interval(text):
                           r'(?:den|to|[-–—÷])\s+\d+(?:[.,]\d+)?',value))
 
 
+def _numeric_field(text):
+    if _interval(text):return True
+    value=''.join(c for c in unicodedata.normalize('NFD',text.casefold())
+                  if not unicodedata.combining(c)).replace('đ','d')
+    # A scalar conversion is also a printed numeric field. Require its actual
+    # mapping syntax; a starred footnote or a bare grade label is insufficient.
+    return bool(re.fullmatch(r'\s*[abcdf][+\-ty*†\x27’]\s*(?::\s*)?'
+        r'(?:(?:quy doi(?: thanh)?|quy ra|maps? to|converts? to|corresponds? to)\s+|=\s*)'
+        r'\d+(?:[.,]\d+)?(?:\s*(?:points?|diem))?[.;]?\s*',value))
+
+
 def verified_label_replacement(original, observed, confidence):
     """A changed number, letter, uncertain glyph or low confidence cannot pass."""
     old=_SUSPECT.match(original);new=_READ.match(observed)
     if (not old or not new or old['label'][0]!=new['label'][0]
             or isinstance(confidence,bool) or not isinstance(confidence,(int,float))
             or not math.isfinite(confidence) or not .9<=confidence<=1
-            or not _interval(original) or not _interval(observed)):
+            or not _numeric_field(original) or not _numeric_field(observed)):
         return None
     numbers=lambda s:[n.replace(',','.').rstrip('0').rstrip('.') if '.' in n.replace(',','.')
                       else n for n in _NUMBER.findall(s)]
@@ -50,6 +62,26 @@ def _same_line(first,second):
     width=max(0,min(first[2],second[2])-max(first[0],second[0]))
     return (overlap>=.6*min(first[3]-first[1],second[3]-second[1])
             and width>=.6*min(first[2]-first[0],second[2]-second[0]))
+
+
+def verified_isolated_label_replacement(original,observed,confidence,line_box,glyph_box):
+    """A separately detected leading glyph can prove only the label modifier.
+
+    OCR often splits a superscript plus from the rest of a conversion line.
+    Require a high-confidence label in the original line's leading footprint;
+    retain every original body character and number without adopting other OCR.
+    """
+    old=_SUSPECT.match(original)
+    if (not old or not _numeric_field(original) or not re.fullmatch(r'[ABCDF][+\-]',observed.strip())
+            or old['label'][0]!=observed.strip()[0] or isinstance(confidence,bool)
+            or not isinstance(confidence,(int,float)) or not math.isfinite(confidence)
+            or not .95<=confidence<=1 or not _same_line(line_box,glyph_box)):
+        return None
+    a,b,c,d=line_box;x0,y0,x1,y1=glyph_box;width=c-a;height=d-b
+    if (x0<a-1.5 or x0>a+.1*width+1.5 or x1>a+min(.35*width,max(2.25*height,12))
+            or y0<b-.4*height or y1>d+.25*height):
+        return None
+    return original[:old.start('label')]+observed.strip()+original[old.end('label'):]
 
 
 class RasterLabelVerifier:
@@ -91,7 +123,19 @@ class RasterLabelVerifier:
         import pymupdf as fitz
         box=[min(b[0] for b in boxes),min(b[1] for b in boxes),
              max(b[2] for b in boxes),max(b[3] for b in boxes)]
-        if box[3]-box[1]>160:return []
+        if box[3]-box[1]>160:
+            if len(boxes)==1:return []
+            # Several scalar mappings can be far apart. Keep detection crops
+            # bounded instead of abandoning the entire group and losing tiny
+            # superscript modifiers in a recognizer-only fallback.
+            groups=[];current=[]
+            for candidate in sorted(boxes,key=lambda b:b[1]):
+                if current and candidate[3]-min(b[1] for b in current)>160:
+                    groups.append(current);current=[]
+                current.append(candidate)
+            if current:groups.append(current)
+            if len(groups)==1:return []
+            return [row for group in groups for row in self._group(page,group)]
         image=self._image(page,box)
         if image is None:return []
         data,pix=image
@@ -119,7 +163,7 @@ class RasterLabelVerifier:
 
     def refine(self,page,text,lines):
         candidates=[r for r in lines if isinstance(r.get('text'),str)
-                    and _SUSPECT.match(r['text']) and _interval(r['text'])
+                    and _SUSPECT.match(r['text']) and _numeric_field(r['text'])
                     and _valid_box(r.get('bbox')) and len(r['text'])<=512
                     and text.count(r['text'])==1]
         if not candidates:return text,lines,None
@@ -136,6 +180,10 @@ class RasterLabelVerifier:
                 for other in observations:
                     if not _same_line(row['bbox'],other['bbox']):continue
                     replacement=verified_label_replacement(row['text'],other['text'],other['confidence'])
+                    if replacement is None:
+                        replacement=verified_isolated_label_replacement(row['text'],other['text'],
+                            other['confidence'],row['bbox'],other['bbox'])
+                        if replacement is not None:other={**other,'isolated_label':True}
                     if replacement is not None:choices.append((replacement,other))
                 return choices[0] if len(choices)==1 else False if choices else None
             matches={i:match(row,observed) for i,row in enumerate(selected)}
@@ -149,7 +197,8 @@ class RasterLabelVerifier:
                 replacement,other=choice;row=selected[i]
                 changes[row['text']]=replacement
                 audit['corrections'].append({'original':row['text'],'replacement':replacement,
-                    'observed':other['text'],'confidence':other['confidence'],'bbox':list(row['bbox'])})
+                    'observed':other['text'],'confidence':other['confidence'],'bbox':list(row['bbox']),
+                    **({'observed_bbox':list(other['bbox'])} if other.get('isolated_label') else {})})
             for old,new in changes.items():text=text.replace(old,new,1)
             lines=[{**r,'text':changes.get(r['text'],r['text'])} for r in lines]
             return text,lines,audit
@@ -171,10 +220,12 @@ def validate_symbol_review(audit,bounds=None):
             or audit['status']!='checked' and audit['corrections']):
         raise ValueError('invalid OCR symbol audit')
     for row in audit['corrections']:
-        if (not isinstance(row,dict) or set(row)!={'original','replacement','observed','confidence','bbox'}
+        if (not isinstance(row,dict) or set(row) not in ({'original','replacement','observed','confidence','bbox'},
+                    {'original','replacement','observed','confidence','bbox','observed_bbox'})
                 or any(not isinstance(row[k],str) or len(row[k])>512 for k in ['original','replacement','observed'])
                 or not _valid_box(row['bbox'])
-                or verified_label_replacement(row['original'],row['observed'],row['confidence'])!=row['replacement']
+                or (verified_isolated_label_replacement(row['original'],row['observed'],row['confidence'],row['bbox'],row['observed_bbox'])
+                    if 'observed_bbox' in row else verified_label_replacement(row['original'],row['observed'],row['confidence']))!=row['replacement']
                 or bounds and (row['bbox'][0]<bounds[0] or row['bbox'][1]<bounds[1]
                               or row['bbox'][2]>bounds[2] or row['bbox'][3]>bounds[3])):
             raise ValueError('invalid OCR symbol correction')
