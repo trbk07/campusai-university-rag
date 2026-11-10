@@ -1,6 +1,6 @@
 # CampusAI — Roadmap local
 
-Cập nhật: **09/11/2026 · Asia/Bangkok**.
+Cập nhật: **10/11/2026 · Asia/Bangkok**.
 
 ## Trạng thái
 
@@ -62,6 +62,8 @@ chọn; không dựa vào đường dẫn artifact đã xóa.
   **Còn OPEN:** tạo/review gold đầy đủ và chạy app thật. Owner đã duyệt scope `82a9fd68…` (35 packet/cap105) để tạo đề xuất gold; worker đang chạy, receipt tại `authoring.json` trong cùng thư mục. Gói đầu đã hủy0POSTs; không dùng lại approval/cap. Mọi ca thiếu gold giữ trong bộ200, không tự giảm mẫu số; review scope chưa gửi. Đây chưa phải blind holdout.
 - [x] **GENERALIZATION-22 — Chặn claim sai núp sau số trang đúng:** tái hiện3 câu trả lời sai vẫn được chấp nhận chỉ vì có “page/trang2”. Đã tách locator khỏi nội dung cần kiểm; chỉ câu thuần vị trí được chứng minh bằng metadata trang, còn số liệu/mệnh đề đi kèm phải có evidence thật, không ghép chunk sai phạm vi trang để vượt kiểm. Giữ câu đúng và locator đơn thuần. Full regression **741 PASS / 0 FAIL / 0 SKIP (21,71s)**. Cache đã gắn fingerprint toàn source và đổi identity khi restart nên không tái dùng output cũ trên bản mới. Không gọi model để test, không sửa câu/gold hoặc điểm native cũ.
 - [x] **GENERALIZATION-23 — Chặn đảo nghĩa literal trong prose:** tái hiện5 câu sai vẫn được chấp nhận khi thêm/bỏ phủ định tiếng Anh/Việt. So sánh toàn mệnh đề sát nguyên văn và parity phủ định, không coi câu phủ định không liên quan trong cùng chunk là mâu thuẫn; giữ contraction, scope khác và phủ định kép. Prompt yêu cầu giữ phủ định/định lượng; repair duy nhất nhận đúng indices claim mâu thuẫn, không nhận đáp án thay thế. Test xác nhận sửa được nháp sai thành câu có nguồn trong2 lần sinh, không lộ diagnostics ra API. Full regression **754 PASS / 0 FAIL / 0 SKIP (15,89s)**. Đây là guard đối chiếu literal, không thay thế semantic entailment tổng quát; chưa có native accuracy mới.
+- [x] **GENERALIZATION-24 — Thu đủ200 đề xuất gold từ PDF gốc:** worker gốc188 ca/80POST; hai packet503hai lần được giữ nguyên lỗi, phục hồi bằng project khác với cùng model/payload đã duyệt, mỗi packet1POST cho6 ca. Tổng200 đề xuất/82POST, raw response và provenance được giữ; không tính annotation thành app predictions hoặc human review. Kiểm nguồn text trước peer review:150 ca khớp binding,50 ca cần kiểm thêm; đây không phải accuracy. Scope đổi sangLite bịtừchối đãretire0POST, không dùng để gửi dữliệu. Receipt tại `data/operations/rag95-development200-semantic-20261109/authoring.json`, `gold-recovery-09`, `gold-recovery-32-flash` và `source-audit.json`.
+- [x] **GENERALIZATION-25 ? Kh?i ph?c review ?? l?u, kh?ng s?a gold:** chu?n h?a fact-index 0-based/1-based theo t?ng l??t; gi? nguy?n verdict/quote/page. Ch? s? m? h? ho?c ngo?i ph?m vi ???c c?ch ly, kh?ng d?ng ?? ph? duy?t gold. Kh?i ph?c offline 24 review v?i 0 POST; worker b? qua m?i packet ?? nh?n v? packet gi?n ?o?n ch?a r? ph?n h?i, ch? g?i packet ch?a th? trong scope owner ?? duy?t. Full regression **759 PASS / 0 FAIL / 0 SKIP (21,71s)**. **Ki?m ngu?n, review ?? 200 ca v? native accuracy c?n OPEN**.
 - [ ] **RAG-95 — Mục tiêu vẫn ≥95%:** cần phép đo câu trả lời thực tế trên cùng candidate/rubric; mốc cải thiện phải >70%. Chưa có accuracy native của bản vừa sửa. Không ghép điểm các candidate, không gửi lại câu đã khóa. Review offline hoặc unit tests không phải accuracy mới.
 
 ## Goal RAG-95 — IN PROGRESS

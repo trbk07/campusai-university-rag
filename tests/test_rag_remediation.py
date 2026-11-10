@@ -1715,6 +1715,60 @@ def test_single_repair_can_correct_reversed_polarity_using_source_feedback():
     assert 'contradicted_claim_indices' not in str(result.to_public_dict())
 
 
+@pytest.mark.parametrize('base',[0,1])
+def test_review_reference_normalization_does_not_change_gold_verdict_quote_or_page(base):
+    import copy
+    from scripts.release.blind_holdout import normalize_review_indices
+    gold=[{'case_id':'synthetic','turns':[{'required_facts':[{'text':'Zero retries are allowed.'}]}]}]
+    raw={'cases':[{'case_id':'synthetic','verdict':'review_required','turns':[{
+        'turn':1,'approved_fact_indices':[base],
+        'approved_evidence':[{'fact_index':base,'page':2,'quote':'0 retries are allowed.'}],
+        'reason':'0 means no retries, not a changed expected answer.'}]}]}
+    unchanged=copy.deepcopy(raw)
+    normalized,meta=normalize_review_indices(raw,gold)
+    assert raw==unchanged and gold[0]['turns'][0]['required_facts'][0]['text']=='Zero retries are allowed.'
+    turn=normalized['cases'][0]['turns'][0]
+    assert turn['approved_fact_indices']==[1] and turn['approved_evidence'][0]=={
+        'fact_index':1,'page':2,'quote':'0 retries are allowed.'}
+    assert normalized['cases'][0]['verdict']=='review_required' and turn['reason']==raw['cases'][0]['turns'][0]['reason']
+    assert meta['source_base']==base and meta['canonical_base']==1
+
+
+def test_review_reference_normalization_rejects_mixed_conventions_and_unknown_cases():
+    from scripts.release.blind_holdout import normalize_review_indices
+    gold=[{'case_id':'synthetic','turns':[{'required_facts':[{'text':'Fact.'}]}]}]
+    raw={'cases':[{'case_id':'synthetic','turns':[{'turn':1,'approved_fact_indices':[0],
+        'approved_evidence':[{'fact_index':1}]}]}]}
+    with pytest.raises(ValueError,match='mixed_or_out_of_range'):normalize_review_indices(raw,gold)
+    raw['cases'][0]['case_id']='other'
+    with pytest.raises(ValueError,match='case_binding_mismatch'):normalize_review_indices(raw,gold)
+
+
+def test_review_quarantines_unmapped_fact_without_promoting_it_or_losing_other_cases():
+    import copy
+    from scripts.release.blind_holdout import normalize_review_indices
+    gold=[{'case_id':i,'turns':[{'required_facts':[{'text':'One source fact.'}]}]} for i in ['good','bad']]
+    raw={'cases':[{'case_id':'good','verdict':'approved','turns':[{'turn':1,'approved_fact_indices':[0],
+        'approved_evidence':[{'fact_index':0,'page':1,'quote':'Fact.'}]}]},
+        {'case_id':'bad','verdict':'approved','turns':[{'turn':1,'approved_fact_indices':[0,1],
+        'approved_evidence':[{'fact_index':0},{'fact_index':1}]}]}]}
+    before=copy.deepcopy(raw)
+    normalized,meta=normalize_review_indices(raw,gold,quarantine_invalid=True)
+    assert raw==before and normalized['cases'][0]['turns'][0]['approved_fact_indices']==[1]
+    assert normalized['cases'][1]==raw['cases'][1]
+    assert meta['quarantined_turns']==[{'case_id':'bad','turn':1,'error':'review_indices_mixed_or_out_of_range'}]
+
+
+def test_review_reference_convention_can_differ_between_unambiguously_bound_turns():
+    from scripts.release.blind_holdout import normalize_review_indices
+    gold=[{'case_id':i,'turns':[{'required_facts':[{},{}]}]} for i in ['zero','one']]
+    raw={'cases':[{'case_id':i,'turns':[{'turn':1,'approved_fact_indices':values,
+        'approved_evidence':[{'fact_index':v} for v in values]}]} for i,values in [('zero',[0,1]),('one',[1,2])]]}
+    normalized,meta=normalize_review_indices(raw,gold)
+    assert all(c['turns'][0]['approved_fact_indices']==[1,2] for c in normalized['cases'])
+    assert meta['source_base']=='mixed_by_turn' and not meta['quarantined_turns']
+
+
 @pytest.mark.parametrize('shared_institution',[False,True])
 def test_generic_comparison_cannot_publish_one_named_documents_fact_as_both_sources(tmp_path,shared_institution):
     from campusai.retrieval.bm25_index import BM25Index

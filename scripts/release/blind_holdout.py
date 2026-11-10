@@ -20,6 +20,51 @@ MIN_CASES = 200
 MIN_ACCURACY = .95
 
 
+def normalize_review_indices(review, proposals, *, quarantine_invalid=False):
+    """Canonicalize consistent zero-based fact references, never review content.
+
+    This is representation repair only: no verdict, expected fact, quote, page
+    or approval changes. Mixed/out-of-range references within a turn fail
+    closed, or remain unmodified with an explicit quarantine flag. Downstream
+    approval must reject quarantined turns and verify full fact/source coverage.
+    """
+    if not isinstance(review, dict) or set(review) != {'cases'}:
+        raise ValueError('review_cases_required')
+    if ([c.get('case_id') for c in review['cases']] != [c.get('case_id') for c in proposals]
+            or len({c.get('case_id') for c in proposals}) != len(proposals)):
+        raise ValueError('review_case_binding_mismatch')
+    canonical = json.loads(json.dumps(review))
+    bases = set(); reference_count = 0; quarantined = []; shifts = 0
+    for case, gold in zip(canonical['cases'], proposals):
+        if len(case['turns']) != len(gold['turns']):
+            raise ValueError('review_turn_binding_mismatch')
+        for n, (turn, proposed) in enumerate(zip(case['turns'], gold['turns']), 1):
+            if turn['turn'] != n:
+                raise ValueError('review_turn_binding_mismatch')
+            size = len(proposed['required_facts'])
+            values = list(turn['approved_fact_indices']) + [e['fact_index'] for e in turn['approved_evidence']]
+            reference_count += len(values)
+            error = ('review_integer_fact_references_required' if any(type(v) is not int for v in values) else None)
+            base = 0 if 0 in values else 1
+            if error is None and any(not (0 <= v < size if base == 0 else 1 <= v <= size) for v in values):
+                error = 'review_indices_mixed_or_out_of_range'
+            if error:
+                if not quarantine_invalid:
+                    raise ValueError(error)
+                quarantined.append({'case_id':case['case_id'],'turn':n,'error':error})
+                continue
+            if values:bases.add(base)
+            if base == 0:
+                turn['approved_fact_indices'] = [value + 1 for value in turn['approved_fact_indices']]
+                for evidence in turn['approved_evidence']:
+                    evidence['fact_index'] += 1
+                shifts += 1
+    source_base = next(iter(bases)) if len(bases)==1 else 'mixed_by_turn' if bases else 1
+    return canonical, {'source_base':source_base,'canonical_base':1,
+        'shift':int(bool(shifts)),'reference_count':reference_count,
+        'normalized_turns':shifts,'quarantined_turns':quarantined}
+
+
 def commitment(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
         separators=(',', ':'), allow_nan=False).encode('utf-8')).hexdigest()
