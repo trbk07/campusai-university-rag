@@ -103,6 +103,24 @@ def _curriculum_headings(records):
             previous=headings.get(key)
             if previous is None or priority>previous[0]:headings[key]=(priority,name)
             elif priority==previous[0] and name!=previous[1]:headings[key]=(priority,None)
+    # Some curricula introduce a section with only "4. PROGRAMME NAME",
+    # then spell out "Programme: NAME" on its final page. Without the first
+    # boundary, those early course rows inherit the previous programme and
+    # are incorrectly excluded. Accept only a standalone numbered title that
+    # exactly repeats a source-declared name, on a page with semester content.
+    names={}
+    for (doc,_),(_,name) in headings.items():
+        if name:names.setdefault(doc,set()).add(name)
+    semester_pages={(item['doc_id'],int(item['page'])) for item in records.values()
+        if re.search(r'\b(?:hoc k[yi]|semester|term)\s*\d+\b',_fold(source_body(item)))}
+    for item in records.values():
+        key=(item['doc_id'],int(item['page']))
+        if key not in semester_pages:continue
+        match=re.fullmatch(r'\d+[.)]\s+([a-z ]{2,100})',_fold(source_body(item)))
+        if not match or match[1] not in names.get(item['doc_id'],set()):continue
+        previous=headings.get(key)
+        if previous is None:headings[key]=(0,match[1])
+        elif previous[0]==0 and previous[1]!=match[1]:headings[key]=(0,None)
     return headings
 
 

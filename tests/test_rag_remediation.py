@@ -288,6 +288,28 @@ def test_curriculum_scope_does_not_guess_when_one_page_has_conflicting_titles():
     assert curriculum_scope_records('Ngành khoa học cần mấy tín?',rows) is rows
 
 
+def test_curriculum_short_title_uses_later_declaration_and_local_semester():
+    from campusai.retrieval.source_scope import curriculum_scope_records
+    def row(page,text,doc='catalog'):
+        return {'doc_id':doc,'page':page,'content':text}
+    rows={'old':row(2,'1. Programme Warehouse Systems'),
+          'title':row(5,'2. ROBOTICS DESIGN'),
+          'course':row(5,'Semester 1\nZX654321\nControl systems\n4 credits'),
+          'declaration':row(8,'2. Programme Robotics Design')}
+    scoped=curriculum_scope_records('Programme Robotics Design semester 1 ZX654321?',rows)
+    assert set(scoped)=={'title','course','declaration'}
+    assert 'old' not in scoped
+
+
+@pytest.mark.parametrize('same_document,semester_context',[(False,True),(True,False)])
+def test_curriculum_short_title_needs_same_document_declaration_and_semester(same_document,semester_context):
+    from campusai.retrieval.source_scope import _curriculum_headings
+    rows={'title':{'doc_id':'a','page':5,'content':'2. ROBOTICS DESIGN'},
+          'context':{'doc_id':'a','page':5,'content':'Semester 1' if semester_context else 'Warranty conditions'},
+          'declaration':{'doc_id':'a' if same_document else 'b','page':8,'content':'2. Programme Robotics Design'}}
+    assert ('a',5) not in _curriculum_headings(rows)
+
+
 def test_source_identity_does_not_include_preface_predicate_or_rector_role():
     from campusai.retrieval.institution_scope import institution_headers
     items=[{'page':1,'content':'Trường Đại học Mây Xanh phê duyệt. Mặc dù đã cố gắng.'},
