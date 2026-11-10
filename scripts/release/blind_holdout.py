@@ -11,6 +11,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import unicodedata
 from datetime import datetime, timezone
 
 from .verify_answers import inference_payload, response_errors
@@ -18,6 +19,44 @@ from .verify_answers import inference_payload, response_errors
 
 MIN_CASES = 200
 MIN_ACCURACY = .95
+
+
+def expand_source_quote(quote, proposed_quote, page_text):
+    """Recover an elided quote's full literal source span, never an approval.
+
+    All reviewer paragraphs, including punctuation, must occur unchanged and
+    in order inside the already proposed span. Both endpoints must agree. The
+    returned evidence retains ALL omitted source words, exceptions and numbers.
+    Callers must independently validate reviewer/fact/document/page bindings.
+    No fuzzy matching, spelling repair, value correction or verdict changes.
+    """
+    def normalize(value):
+        return ' '.join(unicodedata.normalize('NFKC', value).split())
+
+    if any(not isinstance(value, str) or not value.strip()
+           for value in (quote, proposed_quote, page_text)):
+        return None
+    short, full, source = map(normalize, (quote, proposed_quote, page_text))
+    if full not in source:
+        return None
+    wanted, available = short.split(), full.split()
+    if (len(wanted) < 8 or len(wanted) >= len(available)
+            or wanted[0] != available[0] or wanted[-1] != available[-1]):
+        return None
+    paragraphs = [normalize(part).split() for part in
+                  re.split(r'\n\s*\n', proposed_quote.strip()) if part.strip()]
+    if len(paragraphs) < 3:
+        return None
+    # Only whole intervening paragraphs may be omitted. Never drop a negation,
+    # exception, operator or quantity from inside a retained paragraph.
+    positions = {0}
+    for index, paragraph in enumerate(paragraphs):
+        following = set(positions) if 0 < index < len(paragraphs)-1 else set()
+        for position in positions:
+            if wanted[position:position+len(paragraph)] == paragraph:
+                following.add(position+len(paragraph))
+        positions = following
+    return proposed_quote if len(wanted) in positions else None
 
 
 def normalize_review_indices(review, proposals, *, quarantine_invalid=False):

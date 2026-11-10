@@ -2570,3 +2570,40 @@ def test_opaque_review_ids_never_guess_foreign_numeric_or_duplicate_bindings(ids
     with pytest.raises(ValueError,match=error):canonicalize_fact_id_review(raw,gold)
     quarantined,meta=canonicalize_fact_id_review(raw,gold,quarantine_invalid=True)
     assert quarantined==raw and meta['quarantined_turns']==[{'case_id':'case','turn':1,'error':error}]
+
+
+def test_source_quote_expansion_restores_omitted_paragraph_without_changing_source():
+    from scripts.release.blind_holdout import expand_source_quote
+    opening='The following conditions govern the documented service policy:'
+    middle='a) The basic plan costs 25 USD, except during maintenance.'
+    ending='b) The premium plan does not include free repairs.'
+    source='\n\n'.join([opening,middle,ending])
+    short=opening+' '+ending
+    assert expand_source_quote(short,source,'Page heading\n'+source+'\nFooter')==source
+    assert expand_source_quote(short,source,'Another page without that provision.') is None
+    assert expand_source_quote(short,source,source.replace('25','26')) is None
+
+
+@pytest.mark.parametrize('change',[
+    lambda s:s.replace('does not','does'),
+    lambda s:s.replace('repairs.','repairs!'),
+    lambda s:s.replace('premium','basic'),
+    lambda s:s.replace('b) ','c) '),
+    lambda s:s.lower(),
+    lambda s:' '.join(reversed(s.split())),
+])
+def test_source_quote_expansion_never_repairs_words_operators_or_negation(change):
+    from scripts.release.blind_holdout import expand_source_quote
+    opening='The following conditions govern the documented service policy:'
+    ending='b) The premium plan does not include free repairs.'
+    source='\n\n'.join([opening,'a) The basic plan costs <= 25 USD.',ending])
+    assert expand_source_quote(change(opening+' '+ending),source,source) is None
+    assert expand_source_quote(opening+' '+ending,source.replace('<=','<'),source) is None
+
+
+def test_source_quote_expansion_requires_whole_paragraphs_and_retained_endpoints():
+    from scripts.release.blind_holdout import expand_source_quote
+    source='One rule applies to all users. Do not share secrets. Final restrictions remain in force.'
+    assert expand_source_quote(source.replace('Do not share secrets. ',''),source,source) is None
+    assert expand_source_quote('',source,source) is None
+    assert expand_source_quote(None,source,source) is None
