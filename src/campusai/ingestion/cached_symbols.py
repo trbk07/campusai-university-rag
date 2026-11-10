@@ -12,6 +12,7 @@ from pathlib import Path
 
 from ..schemas import Document
 from .chunker import make_chunks
+from .docling_parser import visible_page_text
 from .ocr_symbols import (SYMBOL_POLICY, _SUSPECT, _numeric_field,
                           validate_symbol_review)
 
@@ -32,6 +33,20 @@ def source_pages(text, count):
         raise ValueError('cached symbol upgrade requires complete physical pages')
     return {int(m[1]):(m.end(),markers[i+1].start() if i+1<len(markers) else len(text))
             for i,m in enumerate(markers)}
+
+
+def needs_cached_symbol_upgrade(record, parsed_path):
+    """Cheap startup scheduling hint; the worker performs all source checks."""
+    metadata=record.get('metadata',{});ocr=metadata.get('ocr') or {}
+    if (record.get('status')!='succeeded' or ocr.get('backend')!='tesseract'
+            or metadata.get('coverage_complete') is False or metadata.get('ocr_symbol_policy')==SYMBOL_POLICY):
+        return False
+    try:
+        text=Path(parsed_path).read_text(encoding='utf-8');spans=source_pages(text,record['page_count'])
+        recognized=set(ocr.get('page_numbers',[]))
+        return any(n in recognized and any(_SUSPECT.match(line) and _numeric_field(line)
+                   for line in text[a:b].splitlines()) for n,(a,b) in spans.items())
+    except (OSError,UnicodeError,ValueError,KeyError,TypeError):return False
 
 
 def apply_patches(text, count, patches):
@@ -88,7 +103,7 @@ def upgrade_cached_symbols(document, pdf_path, directory, *, reader, max_pages,
         for number,body in bodies.items():
             if number not in ocr_pages:continue
             suspect=[line for line in body.splitlines() if _SUSPECT.match(line) and _numeric_field(line)]
-            if suspect:native[number]=normalize(pdf[number-1].get_text(sort=True))
+            if suspect:native[number]=normalize(visible_page_text(pdf[number-1]))
     candidates=[n for n,body in bodies.items() if n in native
         and any(_SUSPECT.match(line) and _numeric_field(line) and normalize(line) not in native[n] for line in body.splitlines())
         and old_checks.get(str(n))!={'policy':SYMBOL_POLICY,'text_sha256':digest(body)}]

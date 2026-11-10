@@ -258,6 +258,54 @@ def test_cached_symbol_upgrade_requires_exact_returned_physical_page_scope(legac
     assert not (store/old.doc_id/'symbol-upgrade.json').exists()
 
 
+def test_invisible_native_ocr_does_not_hide_a_scan_symbol_upgrade(legacy_symbol_cache,tmp_path):
+    import json,hashlib,pymupdf
+    from dataclasses import replace
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.cached_symbols import upgrade_cached_symbols
+    source,store,old,before=legacy_symbol_cache;hidden=tmp_path/'hidden.pdf'
+    with pymupdf.open(source) as pdf:
+        pdf[1].insert_text((40,60),'B* maps to 3.25 points.',render_mode=3)
+        pdf.save(hidden)
+    doc_id=hashlib.sha256(hidden.read_bytes()).hexdigest()
+    directory=store/old.doc_id;directory.rename(store/doc_id);directory=store/doc_id
+    old=replace(old,doc_id=doc_id,source_path=str(hidden),metadata={**old.metadata,'source_hash':doc_id})
+    (directory/'meta.json').write_text(json.dumps(old.to_dict()),encoding='utf-8')
+    calls=[]
+    fresh=upgrade_cached_symbols(old,hidden,directory,reader=symbol_cache_reader(calls),max_pages=3,
+        timeout_seconds=10,data_dir=None,atomic_text=pipeline.atomic_text,table_writer=pipeline._save_table)
+    assert len(calls)==1 and fresh.metadata['ocr_symbol_overlays']
+    assert (directory/'parsed.md').read_text(encoding='utf-8')==before.replace('B*','B+')
+
+
+@pytest.mark.parametrize('previous_state,scheduled',[('succeeded',True),('failed',False),('cancelled',False)])
+def test_web_startup_schedules_only_stale_precision_and_preserves_failure_history(legacy_symbol_cache,previous_state,scheduled):
+    import json,shutil
+    from dataclasses import replace
+    from campusai.documents.registry import DocumentRegistry
+    from campusai.web_documents import WebDocuments
+    source,store,old,_=legacy_symbol_cache
+    uploaded=store/'uploads'/old.doc_id/source.name;uploaded.parent.mkdir(parents=True);shutil.copyfile(source,uploaded)
+    old=replace(old,source_path=str(uploaded))
+    (store/old.doc_id/'meta.json').write_text(json.dumps(old.to_dict()),encoding='utf-8')
+    DocumentRegistry(store/'registry.json').add(old)
+    rows=[{'document_id':old.doc_id,'source_path':str(uploaded),'state':previous_state,'created_at':1,'ready':True}]
+    calls=[]
+    defaults={'store_dir':str(store),'index_dir':str(store/'index'),'enable_ocr':True,'progressive_ocr':True,'ocr_backend':'tesseract'}
+    app=SimpleNamespace(jobs=None,ingestion_defaults=defaults,query_service=SimpleNamespace(retriever=SimpleNamespace(index_root=store/'index')),
+                        jobs_snapshot=lambda:{'jobs':rows})
+    documents=WebDocuments(app)  # Disable its thread only for deterministic unit scheduling.
+    def submit(path,**options):
+        calls.append((path,options));rows.append({'document_id':old.doc_id,'source_path':str(uploaded),'state':'queued','created_at':2,'ready':False})
+        return 'new-policy-job'
+    app.jobs=SimpleNamespace(submit=submit)
+    documents._resume_legacy_ocr();documents._resume_legacy_ocr()
+    assert len(calls)==int(scheduled)
+    if scheduled:assert calls[0][1]['expected_sha256']==old.doc_id
+    documents.documents({})  # A GET must never queue another precision job.
+    assert len(calls)==int(scheduled)
+
+
 def test_optional_symbol_model_loads_once_without_gpu_or_rpc_stdout(monkeypatch,capsys):
     import sys
     from campusai.ingestion import ocr_assets

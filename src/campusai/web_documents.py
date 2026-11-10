@@ -146,9 +146,17 @@ class WebDocuments:
 
     def _resume_legacy_ocr(self):
         def eligible(record):
-            return (record.get('status') == 'review_required'
+            legacy=(record.get('status') == 'review_required'
                 and record.get('review_reason') in {'ocr_required', 'ocr_unavailable'}
                 and 'coverage_complete' not in record.get('metadata', {}))
+            if legacy:return True
+            defaults=self.application.ingestion_defaults
+            doc_id=record.get('doc_id','')
+            if defaults.get('ocr_backend')!='tesseract' or not re.fullmatch('[0-9a-f]{64}',doc_id):return False
+            from .ingestion.cached_symbols import needs_cached_symbol_upgrade
+            try:parsed=contained(self.store,self.store/doc_id/'parsed.md')
+            except WebError:return False
+            return needs_cached_symbol_upgrade(record,parsed)
         try:
             candidates = [r['doc_id'] for r in self.registry.metadata_list() if eligible(r)]
         except (OSError, ValueError):
