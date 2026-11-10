@@ -184,6 +184,31 @@ def _refresh_cached_metadata(document: Document, parsed_path: Path) -> Document 
     return replace(document, metadata={**document.metadata, **fresh}, chunks=chunks)
 
 
+def _rechunk_cached_source(document: Document, parsed_path: Path) -> Document | None:
+    """Apply a chunk-only upgrade to complete cached text, never repeat OCR."""
+    try:
+        text=parsed_path.read_text(encoding='utf-8')
+    except (OSError,UnicodeError):
+        return None
+    markers=list(re.finditer(r'^## Page (\d+)\s*$',text,re.M))
+    expected=list(range(1,document.page_count+1))
+    if (document.status!='succeeded' or document.metadata.get('source_hash')!=document.doc_id
+            or [int(m[1]) for m in markers]!=expected
+            or document.metadata.get('readable_pages',expected)!=expected
+            or document.metadata.get('coverage_complete') is False):
+        return None
+    pages=[{'page':int(m[1]),'text':text[m.end():markers[i+1].start() if i+1<len(markers) else len(text)]}
+           for i,m in enumerate(markers)]
+    if any(not table.pages or any(page not in expected for page in table.pages)
+           for table in document.tables):return None
+    metadata={**document.metadata,'chunker_version':CHUNKER_VERSION,
+              'rechunked_from':document.metadata.get('chunker_version')}
+    diagnostics={}
+    chunks=make_chunks(pages,document.doc_id,metadata,document.tables,diagnostics=diagnostics)
+    metadata['chunk_diagnostics']=diagnostics
+    return replace(document,metadata=metadata,chunks=chunks)
+
+
 def ingest_document(
     path: str | Path,
     store_dir: str | Path = "data/store",
@@ -252,6 +277,13 @@ def ingest_document(
             and document.metadata.get("table_extractor_version") == TABLE_EXTRACTOR_VERSION
             and document.metadata.get("text_coverage_version") == TEXT_COVERAGE_VERSION
         )
+        chunk_only_upgrade = (
+            document.status=='succeeded'
+            and parser_version in {'pymupdf-text-v1','rapidocr-onnx-v1','tesseract-vie-eng-v1','vietocr-vgg-seq2seq-v1'}
+            and document.metadata.get('chunker_version')=='structure-v9-source-body-syntax'
+            and document.metadata.get('table_extractor_version')==TABLE_EXTRACTOR_VERSION
+            and document.metadata.get('text_coverage_version')==TEXT_COVERAGE_VERSION)
+        cache_versions_current = cache_versions_current or chunk_only_upgrade
         cached_ocr = document.metadata.get('ocr')
         if (document.status == 'succeeded'
                 and parser_version in {'rapidocr-onnx-v1', 'tesseract-vie-eng-v1', 'vietocr-vgg-seq2seq-v1'}
@@ -303,6 +335,13 @@ def ingest_document(
             from .ocr_numeric_tables import NUMERIC_TABLE_POLICY
             if document.metadata.get('ocr_numeric_policy') != NUMERIC_TABLE_POLICY:
                 cache_versions_current = False
+        if cache_versions_current and chunk_only_upgrade:
+            refreshed=_rechunk_cached_source(document,output_dir/'parsed.md')
+            if refreshed is None:
+                cache_versions_current=False
+            else:
+                document=refreshed
+                atomic_text(metadata_path,json.dumps(document.to_dict(),ensure_ascii=False,indent=2),encoding='utf-8')
         if cache_versions_current and document.metadata.get('metadata_detector_version') != METADATA_VERSION:
             refreshed = _refresh_cached_metadata(document, output_dir / 'parsed.md')
             if refreshed is None:

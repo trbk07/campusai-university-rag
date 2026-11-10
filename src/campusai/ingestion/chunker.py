@@ -9,7 +9,7 @@ from typing import Any
 
 from ..schemas import Chunk
 
-CHUNKER_VERSION = "structure-v9-source-body-syntax"
+CHUNKER_VERSION = "structure-v10-running-header-continuity"
 _MAX_CHARS = 2400
 _OVERLAP_CHARS = 240
 _NUMBERED_HEADING = re.compile(r"^(?:\d+(?:\.\d+){0,4}|[IVXLC]+)[.)]?\s+\S+")
@@ -191,6 +191,20 @@ def _sectionize(pages: list[dict[str, Any]], *, page_spans=None) -> tuple[list[t
         metas = list(raw_meta) if isinstance(raw_meta, list) and len(raw_meta) == len(lines) else [None] * len(lines)
         normalized_pages.append((page_number, lines, metas))
 
+    # A repeated running header is page furniture, not a new section. Keep
+    # its literal text and page provenance, but do not let it replace the
+    # article/programme heading governing a continuation on the next page.
+    # Require the same leading position on at least three pages and broad
+    # document coverage. The first occurrence still establishes the title.
+    header_pages: dict[tuple[int, str], set[int]] = {}
+    for number, lines, metas in normalized_pages:
+        for position, line in enumerate(lines[:2]):
+            if _looks_like_heading(line, metas[position])[0]:
+                header_pages.setdefault((position, line), set()).add(number)
+    minimum = max(3, (len(normalized_pages) + 1) // 2)
+    running_headers = {key for key, numbers in header_pages.items() if len(numbers) >= minimum}
+    first_headers = {key: min(header_pages[key]) for key in running_headers}
+
     # PDF text extraction can split a short heading over two visual lines or a
     # page boundary. Join only an obvious numbered heading fragment followed by
     # a title-like continuation; ordinary prose remains untouched.
@@ -245,6 +259,11 @@ def _sectionize(pages: list[dict[str, Any]], *, page_spans=None) -> tuple[list[t
         list_run_indexes = _numbered_list_run_lines(lines)
         for line_index, line in enumerate(lines):
             is_heading, level, heading = _looks_like_heading(line, metas[line_index])
+            header_key = (line_index, line)
+            if (header_key in running_headers
+                    and page_number != first_headers[header_key]):
+                flush()  # Keep the new page's furniture out of the prior page's citation.
+                is_heading = False
             if (is_heading and line_index in list_run_indexes
                     and not _ARTICLE_HEADING.match(line.strip())):
                 is_heading = False

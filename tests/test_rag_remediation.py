@@ -310,6 +310,64 @@ def test_curriculum_short_title_needs_same_document_declaration_and_semester(sam
     assert ('a',5) not in _curriculum_headings(rows)
 
 
+def test_repeated_running_header_preserves_article_continuation_and_literal_text():
+    from campusai.ingestion.chunker import _sectionize
+    pages=[{'page':1,'text':'SERVICE MANUAL\nArticle 1. Eligibility\nEligible customers have an active account.'},
+           {'page':2,'text':'SERVICE MANUAL\nThe same account must not be suspended.'},
+           {'page':3,'text':'SERVICE MANUAL\nArticle 2. Cancellation\nCancellation requires written notice.'}]
+    sections,_=_sectionize(pages)
+    continuation=next(x for x in sections if 'must not be suspended' in x[0])
+    assert 'Article 1. Eligibility' in continuation[1]
+    assert continuation[2:]==(2,2)
+    cancellation=next(x for x in sections if 'written notice' in x[0])
+    assert cancellation[1]==['Article 2. Cancellation']
+    assert sum(text.count('SERVICE MANUAL') for text,*_ in sections)==3
+    assert all(sentence in '\n'.join(x[0] for x in sections) for sentence in
+               ['Eligible customers have an active account.','The same account must not be suspended.'])
+
+
+def test_repeated_heading_in_body_does_not_become_running_header():
+    from campusai.ingestion.chunker import _sectionize
+    pages=[{'page':n,'text':f'Page opening {n}.\nOrdinary body sentence.\nWARNING\nSpecific warning {n}.'} for n in range(1,4)]
+    sections,_=_sectionize(pages)
+    assert sum('WARNING'==x[0] or x[0].startswith('WARNING\n') for x in sections)==3
+
+
+def test_chunk_only_upgrade_reuses_complete_cached_extraction(tmp_path,monkeypatch):
+    import json,pymupdf
+    from campusai.ingestion import pipeline
+    source=tmp_path/'service.pdf';store=tmp_path/'store'
+    with pymupdf.open() as pdf:
+        for n in range(3):
+            page=pdf.new_page();page.insert_text((40,50),'SERVICE MANUAL\nArticle 1. Eligibility\nAn active account is required.')
+        pdf.save(source)
+    document=pipeline.ingest_document(source,store_dir=store)
+    meta=store/document.doc_id/'meta.json';old=json.loads(meta.read_text(encoding='utf-8'))
+    old['metadata']['chunker_version']='structure-v9-source-body-syntax'
+    meta.write_text(json.dumps(old),encoding='utf-8')
+    def forbidden(*args,**kwargs):pytest.fail('Chunk-only upgrade must not parse/OCR/extract tables again')
+    monkeypatch.setattr(pipeline,'parse_pdf',forbidden)
+    monkeypatch.setattr(pipeline,'ocr_pdf',forbidden)
+    monkeypatch.setattr(pipeline,'extract_tables',forbidden)
+    fresh=pipeline.ingest_document(source,store_dir=store)
+    assert fresh.cached and fresh.metadata['chunker_version']==pipeline.CHUNKER_VERSION
+    assert fresh.metadata['rechunked_from']=='structure-v9-source-body-syntax'
+    assert fresh.page_count==3 and fresh.tables==document.tables
+    assert {page for c in fresh.chunks for page in range(c.page_range[0],c.page_range[1]+1)}=={1,2,3}
+    assert pipeline.ingest_document(source,store_dir=store).cached
+
+
+@pytest.mark.parametrize('text',['## Page 1\nA clause.\n## Page 3\nAnother clause.',
+                               '## Page 1\nA clause.\n## Page 1\nDuplicated page.'])
+def test_rechunk_cache_rejects_missing_or_duplicate_physical_pages(tmp_path,text):
+    from campusai.schemas import Document
+    from campusai.ingestion.pipeline import _rechunk_cached_source
+    parsed=tmp_path/'parsed.md';parsed.write_text(text,encoding='utf-8')
+    doc=Document(doc_id='source',source_path='source.pdf',page_count=2,language='en',
+                 metadata={'source_hash':'source'},chunks=[],tables=[],status='succeeded')
+    assert _rechunk_cached_source(doc,parsed) is None
+
+
 def test_source_identity_does_not_include_preface_predicate_or_rector_role():
     from campusai.retrieval.institution_scope import institution_headers
     items=[{'page':1,'content':'Trường Đại học Mây Xanh phê duyệt. Mặc dù đã cố gắng.'},
@@ -2126,7 +2184,8 @@ def test_long_corrected_metadata_preserves_full_cached_body_and_never_repeats_oc
     ('structure-v8-embedded-table-headers','source-labelled-v2'),
     ('structure-v9-article-boundaries','source-labelled-v2'),
     ('structure-v7-diagram-semester-scope','source-labelled-v3-field-provenance'),
-    ('structure-v8-piece-page-provenance','source-labelled-v3-field-provenance')])
+    ('structure-v8-piece-page-provenance','source-labelled-v3-field-provenance'),
+    ('structure-v9-source-body-syntax','source-labelled-v3-field-provenance')])
 def test_old_metadata_job_receipts_remain_readable_without_becoming_current_work(version,metadata_version):
     from campusai.ingestion.background.state import (_producer_identity,accepted_job_identities,
         job_identity,normalize_options)

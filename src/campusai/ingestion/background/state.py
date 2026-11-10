@@ -105,7 +105,7 @@ def accepted_job_identities(digest, options):
     identities.update(_producer_identity(digest,variant,current=True,
         chunker_version=version,metadata_version='source-labelled-v3-field-provenance')
         for variant in variants for version in ('structure-v7-diagram-semester-scope',
-            'structure-v8-piece-page-provenance'))
+            'structure-v8-piece-page-provenance','structure-v9-source-body-syntax'))
     identities.update(hashlib.sha256(json.dumps({'source_sha256':digest,'options':variant,
         'text_coverage_version':version},sort_keys=True,separators=(',',':')).encode()).hexdigest()
         for variant in variants for version in (1,2,3,4))
