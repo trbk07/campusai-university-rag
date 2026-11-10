@@ -95,6 +95,169 @@ def test_distant_scalar_labels_use_bounded_detection_windows():
     assert len(reader.windows)==2 and all(b[3]-b[1]<=160 for b in reader.windows)
 
 
+@pytest.fixture
+def legacy_symbol_cache(tmp_path):
+    import hashlib,json,pymupdf
+    from campusai.schemas import Document
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.chunker import make_chunks
+    from campusai.ingestion.metadata_detector import METADATA_VERSION
+    from campusai.ingestion.tesseract_worker import RENDER_POLICY
+    source=tmp_path/'manual.pdf';store=tmp_path/'store'
+    with pymupdf.open() as image:
+        image.new_page().insert_text((40,60),'B+ maps to 3.25 points.')
+        pixels=image[0].get_pixmap().tobytes('png')
+    with pymupdf.open() as pdf:
+        pdf.new_page().insert_text((40,60),'First untouched page 12 months.')
+        page=pdf.new_page();page.insert_image(page.rect,stream=pixels)
+        pdf.new_page().insert_text((40,60),'Last untouched page 99 units.')
+        pdf.save(source)
+    doc_id=hashlib.sha256(source.read_bytes()).hexdigest();directory=store/doc_id;directory.mkdir(parents=True)
+    pages=[{'page':1,'text':'First untouched page 12 months.'},
+           {'page':2,'text':'B* maps to 3.25 points.'},
+           {'page':3,'text':'Last untouched page 99 units.'}]
+    metadata={'source_hash':doc_id,'source_name':source.name,'parser_version':'tesseract-vie-eng-v1',
+        'chunker_version':pipeline.CHUNKER_VERSION,'table_extractor_version':pipeline.TABLE_EXTRACTOR_VERSION,
+        'text_coverage_version':pipeline.TEXT_COVERAGE_VERSION,'metadata_detector_version':METADATA_VERSION,
+        'coverage_complete':True,'readable_pages':[1,2,3],
+        'ocr':{'backend':'tesseract','page_numbers':[2],'model_identity':{'render_policy':RENDER_POLICY}},
+        'ocr_pages_sha256':'historical-checkpoint','ocr_resume_identity':{'old':True}}
+    doc=Document(doc_id=doc_id,source_path=str(source),page_count=3,language='en',metadata=metadata,
+        chunks=make_chunks(pages,doc_id,metadata),tables=[],status='succeeded')
+    (directory/'meta.json').write_text(json.dumps(doc.to_dict(),ensure_ascii=False,indent=2),encoding='utf-8')
+    parsed='\n\n'.join(f"## Page {p['page']}\n{p['text']}" for p in pages)
+    (directory/'parsed.md').write_text(parsed,encoding='utf-8')
+    return source,store,doc,parsed
+
+
+def symbol_cache_reader(calls):
+    from campusai.ingestion.ocr_symbols import SYMBOL_POLICY
+    from campusai.ingestion.ocr_assets import RAPIDOCR_SHA256
+    def reader(path,**options):
+        calls.append(options)
+        audit={'policy':SYMBOL_POLICY,'status':'checked','model_identity':{
+            'package':'rapidocr-onnxruntime1.4.4','model_sha256':dict(RAPIDOCR_SHA256)},
+            'corrections':[{'original':'B* maps to 3.25 points.','replacement':'B+ maps to 3.25 points.',
+                'observed':'B+ maps to 3.25 points.','confidence':.98,'bbox':[40,40,250,60]}]}
+        return SimpleNamespace(pages=[{'page':2,'text':'Unrelated fresh OCR error 77 months.',
+            'symbol_review':audit}],model_identity={'unit_test':'source-reader'})
+    return reader
+
+
+def test_cached_symbol_upgrade_reads_only_affected_page_and_preserves_other_source_values(legacy_symbol_cache,monkeypatch):
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.ocr_symbols import SYMBOL_POLICY
+    source,store,old,before=legacy_symbol_cache;calls=[]
+    monkeypatch.setattr(pipeline,'_bounded_ocr',symbol_cache_reader(calls))
+    monkeypatch.setattr(pipeline,'parse_pdf',lambda *a,**k:pytest.fail('No full PDF extraction'))
+    fresh=pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract')
+    text=(store/old.doc_id/'parsed.md').read_text(encoding='utf-8')
+    assert fresh.cached and text==before.replace('B*','B+')
+    assert len(calls)==1 and calls[0]['page_numbers']==[2] and calls[0]['max_pages']==1
+    assert '77 months' not in text and fresh.metadata['ocr_symbol_policy']==SYMBOL_POLICY
+    assert 'ocr_pages_sha256' not in fresh.metadata and 'ocr_resume_identity' not in fresh.metadata
+    assert not (store/old.doc_id/'symbol-upgrade.json').exists()
+    assert pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract').cached
+    assert len(calls)==1
+
+
+def test_cached_symbol_upgrade_recovers_interrupted_publication_without_repeating_ocr(legacy_symbol_cache,monkeypatch):
+    from campusai.ingestion import pipeline
+    source,store,old,before=legacy_symbol_cache;calls=[];atomic=pipeline.atomic_text
+    monkeypatch.setattr(pipeline,'_bounded_ocr',symbol_cache_reader(calls))
+    def fail_metadata(path,*args,**kwargs):
+        if path.name=='meta.json':raise OSError('simulated interrupted metadata publication')
+        return atomic(path,*args,**kwargs)
+    monkeypatch.setattr(pipeline,'atomic_text',fail_metadata)
+    with pytest.raises(OSError,match='interrupted'):pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract')
+    assert (store/old.doc_id/'symbol-upgrade.json').is_file()
+    monkeypatch.setattr(pipeline,'atomic_text',atomic)
+    fresh=pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract')
+    assert fresh.cached and len(calls)==1
+    assert (store/old.doc_id/'parsed.md').read_text(encoding='utf-8')==before.replace('B*','B+')
+    assert not (store/old.doc_id/'symbol-upgrade.json').exists()
+
+
+def test_symbol_policy_job_identity_preserves_old_receipts_without_reusing_old_work():
+    from campusai.ingestion.background.state import job_identity,accepted_job_identities,normalize_options,_producer_identity
+    options=normalize_options({'enable_ocr':True,'ocr_backend':'tesseract'})
+    previous=_producer_identity('a'*64,options,current=True,symbol_policy=False)
+    assert previous in accepted_job_identities('a'*64,options)
+    assert previous!=job_identity('a'*64,options)
+
+
+@pytest.mark.parametrize('ambiguous',[False,True])
+def test_cached_symbol_table_overlay_requires_unique_source_label(legacy_symbol_cache,monkeypatch,ambiguous):
+    import json
+    from dataclasses import replace
+    from campusai.ingestion import pipeline
+    from campusai.schemas import Table
+    from campusai.retrieval.tokenizer_vi import source_body
+    source,store,old,before=legacy_symbol_cache;directory=store/old.doc_id;calls=[]
+    if ambiguous:
+        before+='\nB* maps to 7.25 points.'
+        (directory/'parsed.md').write_text(before,encoding='utf-8')
+    table=Table('table',old.doc_id,[2,3] if ambiguous else [2],['Grade','Points'],[['B*','3.25']],{'parser':'heuristic'})
+    old=replace(old,tables=[table]);(directory/'meta.json').write_text(json.dumps(old.to_dict()),encoding='utf-8')
+    monkeypatch.setattr(pipeline,'_bounded_ocr',symbol_cache_reader(calls))
+    fresh=pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract')
+    if ambiguous:
+        assert fresh.tables[0].rows==[['B*','3.25']]
+        assert (directory/'parsed.md').read_text(encoding='utf-8')==before
+        assert fresh.metadata['ocr_symbol_unresolved'][0]['reason']=='ambiguous_table_source_label'
+    else:
+        assert fresh.tables[0].rows==[['B+','3.25']]
+        assert fresh.tables[0].schema['source_symbol_overlay'][0]['page']==2
+        assert any('B+' in source_body({'content':c.content}) for c in fresh.chunks if c.content_type=='table')
+    assert old.tables[0].rows==[['B*','3.25']],'Never mutate the previous document/table objects'
+
+
+def test_cached_symbol_upgrade_does_not_correct_an_exact_native_printed_label(legacy_symbol_cache,monkeypatch):
+    import json,pymupdf,hashlib
+    from dataclasses import replace
+    from campusai.ingestion import pipeline
+    source,store,old,before=legacy_symbol_cache;directory=store/old.doc_id
+    # This control's native PDF really prints the starred label: it must not
+    # be interpreted as an OCR error based on a familiar grading convention.
+    native=source.with_name('native.pdf')
+    with pymupdf.open() as pdf:
+        for text in ['First untouched page 12 months.','B* maps to 3.25 points.','Last untouched page 99 units.']:
+            pdf.new_page().insert_text((40,60),text)
+        pdf.save(native)
+    native_id=hashlib.sha256(native.read_bytes()).hexdigest()
+    directory.rename(store/native_id);directory=store/native_id
+    old=replace(old,doc_id=native_id,source_path=str(native),metadata={**old.metadata,'source_hash':native_id})
+    (directory/'meta.json').write_text(json.dumps(old.to_dict()),encoding='utf-8')
+    from campusai.ingestion.cached_symbols import upgrade_cached_symbols
+    monkeypatch.setattr(pipeline,'_bounded_ocr',lambda *a,**k:pytest.fail('Native printed content must not be OCR-corrected'))
+    fresh=upgrade_cached_symbols(old,native,directory,reader=pipeline._bounded_ocr,max_pages=3,
+        timeout_seconds=10,data_dir=None,atomic_text=pipeline.atomic_text,table_writer=pipeline._save_table)
+    assert (directory/'parsed.md').read_text(encoding='utf-8')==before
+    assert not fresh.metadata['ocr_symbol_overlays']
+
+
+def test_cached_symbol_upgrade_rejects_another_pdf_before_any_read_or_publish(legacy_symbol_cache,tmp_path):
+    from campusai.ingestion import pipeline
+    from campusai.ingestion.cached_symbols import upgrade_cached_symbols
+    source,store,old,before=legacy_symbol_cache;other=tmp_path/'other.pdf'
+    other.write_bytes(source.read_bytes()+b'\n% a different original source\n')
+    with pytest.raises(ValueError,match='source-bound cache'):
+        upgrade_cached_symbols(old,other,store/old.doc_id,reader=lambda *a,**k:pytest.fail('Wrong source must not be OCR-read'),
+            max_pages=3,timeout_seconds=10,data_dir=None,atomic_text=pipeline.atomic_text,table_writer=pipeline._save_table)
+    assert (store/old.doc_id/'parsed.md').read_text(encoding='utf-8')==before
+    assert not (store/old.doc_id/'symbol-upgrade.json').exists()
+
+
+def test_cached_symbol_upgrade_requires_exact_returned_physical_page_scope(legacy_symbol_cache,monkeypatch):
+    from campusai.ingestion import pipeline
+    source,store,old,before=legacy_symbol_cache
+    monkeypatch.setattr(pipeline,'_bounded_ocr',lambda *a,**k:SimpleNamespace(pages=[{'page':1}],model_identity={}))
+    with pytest.raises(ValueError,match='page coverage mismatch'):
+        pipeline.ingest_document(source,store_dir=store,enable_ocr=True,ocr_backend='tesseract')
+    assert (store/old.doc_id/'parsed.md').read_text(encoding='utf-8')==before
+    assert not (store/old.doc_id/'symbol-upgrade.json').exists()
+
+
 def test_optional_symbol_model_loads_once_without_gpu_or_rpc_stdout(monkeypatch,capsys):
     import sys
     from campusai.ingestion import ocr_assets

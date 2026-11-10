@@ -57,7 +57,7 @@ def normalize_options(options):
     return result
 
 
-def _producer_identity(digest, options, *, current, chunker_version=None, metadata_version=None):
+def _producer_identity(digest, options, *, current, chunker_version=None, metadata_version=None, symbol_policy=True):
     options = {k:v for k,v in options.items() if k != 'progressive_ocr' or v}
     payload={'source_sha256':digest,'options':options,'text_coverage_version':TEXT_COVERAGE_VERSION,
              'table_extractor_version':TABLE_EXTRACTOR_VERSION}
@@ -73,6 +73,9 @@ def _producer_identity(digest, options, *, current, chunker_version=None, metada
     if options.get('enable_ocr') and options.get('ocr_backend') == 'tesseract':
         from ..tesseract_worker import RENDER_POLICY
         payload['ocr_render_policy'] = RENDER_POLICY
+        if current and symbol_policy and chunker_version is None and metadata_version is None:
+            from ..ocr_symbols import SYMBOL_POLICY
+            payload['ocr_symbol_policy']=SYMBOL_POLICY
     return hashlib.sha256(json.dumps(payload,sort_keys=True,separators=(',',':')).encode()).hexdigest()
 
 
@@ -96,6 +99,7 @@ def accepted_job_identities(digest, options):
     identities = {function(digest,variant) for variant in variants
                   for function in (job_identity,legacy_job_identity)}
     identities.update(_producer_identity(digest, variant, current=False) for variant in variants)
+    identities.update(_producer_identity(digest,variant,current=True,symbol_policy=False) for variant in variants)
     # Read historical producer-bound ledgers without reusing their identity for
     # new uploads. The owner restored the v7 code after v8/v9 had produced jobs.
     identities.update(_producer_identity(digest,variant,current=True,

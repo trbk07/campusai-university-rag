@@ -244,6 +244,9 @@ def ingest_document(
 
     output_dir = Path(store_dir) / document_id
     metadata_path = output_dir / "meta.json"
+    if (output_dir/'symbol-upgrade.json').exists():
+        from .cached_symbols import recover_upgrade
+        recover_upgrade(output_dir,document_id,atomic_text=atomic_text,table_writer=_save_table)
     resumed_pages = {}
     resumed_ocr = None
     resume_identity = {'source': document_id, 'coverage': TEXT_COVERAGE_VERSION,
@@ -349,6 +352,12 @@ def ingest_document(
             else:
                 document = refreshed
                 atomic_text(metadata_path, json.dumps(document.to_dict(), ensure_ascii=False, indent=2), encoding='utf-8')
+        if (cache_versions_current and enable_ocr and ocr_backend=='tesseract'
+                and document.status=='succeeded' and cached_ocr and cached_ocr.get('backend')=='tesseract'):
+            from .cached_symbols import upgrade_cached_symbols
+            document=upgrade_cached_symbols(document,pdf_path,output_dir,reader=_bounded_ocr,
+                max_pages=ocr_max_pages,timeout_seconds=ocr_timeout_seconds,data_dir=ocr_data_dir,
+                atomic_text=atomic_text,table_writer=_save_table,progress=progress or _default_progress)
         if preview_page_limit is not None and cache_versions_current and document.chunks:
             # Never downgrade an existing useful snapshot to a small preview.
             document.cached = True
@@ -430,6 +439,9 @@ def ingest_document(
                 'elapsed_seconds': ocr_result.elapsed_seconds, 'pages': len(recognized),
                 'page_numbers': sorted(recognized), 'backend': ocr_backend,
                 'model_identity': ocr_result.model_identity}
+            if ocr_backend=='tesseract':
+                from .ocr_symbols import SYMBOL_POLICY
+                ocr_info['symbol_policy']=(SYMBOL_POLICY if not resumed_ocr or resumed_ocr.get('symbol_policy')==SYMBOL_POLICY else 'legacy-mixed')
             if allow_partial:
                 resumed_pages.update({page['page']:page for page in pages
                     if page['page'] in recognized})
@@ -518,6 +530,11 @@ def ingest_document(
         metadata['untrusted_native_pages'] = untrusted_pages
     if ocr_info is not None:
         metadata["ocr"] = ocr_info
+        if ocr_backend=='tesseract':
+            from .ocr_symbols import SYMBOL_POLICY
+            if ocr_info.get('symbol_policy')==SYMBOL_POLICY:
+                metadata.update(ocr_symbol_policy=SYMBOL_POLICY,
+                    ocr_symbol_text_sha256=hashlib.sha256(full_text.encode('utf-8')).hexdigest())
         metadata["parser_version"] = ({'tesseract':'tesseract-vie-eng-v1',
             'vietocr':'vietocr-vgg-seq2seq-v1'}.get(ocr_backend,'rapidocr-onnx-v1'))
         metadata["warnings"] = ["ocr_used"]
