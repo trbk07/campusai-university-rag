@@ -2607,3 +2607,103 @@ def test_source_quote_expansion_requires_whole_paragraphs_and_retained_endpoints
     assert expand_source_quote(source.replace('Do not share secrets. ',''),source,source) is None
     assert expand_source_quote('',source,source) is None
     assert expand_source_quote(None,source,source) is None
+
+
+def test_review_source_spans_preserve_literal_text_and_all_review_judgments():
+    import copy
+    from scripts.release.blind_holdout import resolve_review_source_spans, commitment
+    span={'doc_id':'a'*64,'page':7,'quote':'The allowance is <= 2.5 credits; it is not automatic.'}
+    span_id='source:'+commitment(span)
+    raw={'cases':[{'case_id':'case','verdict':'review_required','turns':[{'turn':1,
+        'verdict':'review_required','expected_answer_unchanged':False,
+        'approved_evidence':[{'fact_id':'fact','span_id':span_id}]}]}]}
+    before=copy.deepcopy(raw)
+    result,meta=resolve_review_source_spans(raw,{span_id:span},{'case':['a'*64]})
+    assert raw==before and not meta['quarantined_turns']
+    assert result['cases'][0]['turns'][0]['approved_evidence']==[{'fact_id':'fact',**span}]
+    result['cases'][0]['turns'][0]['approved_evidence']=before['cases'][0]['turns'][0]['approved_evidence']
+    assert result==before
+
+
+@pytest.mark.parametrize('failure',['unknown','foreign','mixed','tampered','boolean_page'])
+def test_review_source_spans_reject_unbound_or_tampered_evidence(failure):
+    from scripts.release.blind_holdout import resolve_review_source_spans, commitment
+    span={'doc_id':'a'*64,'page':7,'quote':'The source explicitly states a limit of 2.5 credits.'}
+    span_id='source:'+commitment(span);spans={span_id:dict(span)}
+    evidence=[{'fact_id':'fact','span_id':span_id}]
+    allowed=['a'*64]
+    if failure=='unknown':evidence[0]['span_id']='invented'
+    if failure=='mixed':evidence.append({'fact_id':'other','span_id':'invented'})
+    if failure=='foreign':allowed=['b'*64]
+    if failure=='tampered':spans[span_id]['quote']=span['quote'].replace('2.5','25')
+    if failure=='boolean_page':spans[span_id]['page']=True
+    raw={'cases':[{'case_id':'case','turns':[{'turn':1,'verdict':'approved','approved_evidence':evidence}]}]}
+    with pytest.raises(ValueError):resolve_review_source_spans(raw,spans,{'case':allowed})
+    if failure not in {'tampered','boolean_page'}:
+        result,meta=resolve_review_source_spans(raw,spans,{'case':allowed},quarantine_invalid=True)
+        assert result==raw and meta['quarantined_turns'][0]['turn']==1
+
+
+def _native_journal_cases():
+    return [{'id':f'case-{i}','doc_ids':['a'*64],'language':'en',
+             'turns':[f'What is the documented policy number {i}?'] + (['And what are its exceptions?'] if i==0 else []),
+             'family_commitments':['b'*64]} for i in range(200)]
+
+
+def test_native_journal_lock_survives_crash_and_never_replays_question(tmp_path):
+    from scripts.release.native_journal import NativeJournal
+    path=tmp_path/'journal.sqlite3';cases=_native_journal_cases()
+    first=NativeJournal(path,'c'*64,cases)
+    digest,body=first.reserve('case-0',0);first.close()
+    second=NativeJournal(path,'c'*64,cases)
+    with pytest.raises(ValueError,match='incomplete_conversation'):second.reserve('case-0',0)
+    with pytest.raises(ValueError,match='incomplete_conversation'):second.reserve('case-0',1)
+    assert second.db.execute('SELECT status FROM attempts WHERE digest=?',(digest,)).fetchone()==('reserved',)
+    assert set(body)=={'question','doc_ids','language','history'} and not body['history']
+    _,independent=second.reserve('case-1',0)
+    assert independent['history']==[]
+    second.close()
+
+
+def test_native_journal_uses_only_saved_actual_history_and_pins_candidate(tmp_path):
+    from scripts.release.native_journal import NativeJournal
+    path=tmp_path/'journal.sqlite3';cases=_native_journal_cases()
+    journal=NativeJournal(path,'c'*64,cases)
+    digest,body=journal.reserve('case-0',0)
+    actual={'ok':True,'answer':{'answer':'The actual ungraded app answer.'}}
+    journal.complete(digest,200,actual)
+    _,follow=journal.reserve('case-0',1)
+    assert follow['history']==[{'role':'user','content':body['question']},
+                               {'role':'assistant','content':actual['answer']['answer']}]
+    with pytest.raises(ValueError,match='already_completed'):journal.complete(digest,200,actual)
+    journal.close()
+    with pytest.raises(ValueError,match='candidate_or_bank_changed'):NativeJournal(path,'d'*64,cases)
+    changed=_native_journal_cases();changed[0]['turns'][0]='A changed question?'
+    with pytest.raises(ValueError,match='candidate_or_bank_changed'):NativeJournal(path,'c'*64,changed)
+
+
+@pytest.mark.parametrize('response,http',[
+    ({'ok':True,'provider_status':{'error_code':'provider_timeout'},'answer':{'answer':'Unavailable'}},200),
+    ({'ok':True,'answer':{'answer':'Unavailable','abstention_reason':'provider_abstention'}},200),
+    ({'ok':False},503), ([],200),
+])
+def test_native_journal_provider_failure_remains_locked_and_blocks_context(tmp_path,response,http):
+    from scripts.release.native_journal import NativeJournal
+    journal=NativeJournal(tmp_path/'journal.sqlite3','c'*64,_native_journal_cases())
+    digest,_=journal.reserve('case-0',0);journal.complete(digest,http,response)
+    assert journal.db.execute('SELECT status FROM attempts WHERE digest=?',(digest,)).fetchone()==('failed',)
+    with pytest.raises(ValueError,match='incomplete_conversation'):journal.reserve('case-0',1)
+    journal.close()
+
+
+def test_native_journal_honors_external_normalized_locks_and_rejects_gold_inputs(tmp_path):
+    from scripts.release.native_journal import NativeJournal, question_digest
+    cases=_native_journal_cases()
+    locked=question_digest(cases[0]['turns'][0].upper().replace('?','!!!'))
+    journal=NativeJournal(tmp_path/'journal.sqlite3','c'*64,cases,locked_questions=[locked])
+    with pytest.raises(ValueError,match='already_locked'):journal.reserve('case-0',0)
+    assert journal.db.execute('SELECT COUNT(*) FROM attempts').fetchone()==(0,)
+    journal.close()
+    cases[0]['expected']='A forbidden golden answer'
+    with pytest.raises(ValueError,match='public_case_fields_only'):
+        NativeJournal(tmp_path/'other.sqlite3','c'*64,cases)

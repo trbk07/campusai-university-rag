@@ -130,6 +130,50 @@ def canonicalize_fact_id_review(review, proposals, *, quarantine_invalid=False):
     return canonical,{'source_representation':'opaque_fact_ids','canonical_base':1,'quarantined_turns':quarantine}
 
 
+def resolve_review_source_spans(review, spans, case_sources, *, quarantine_invalid=False):
+    """Resolve reviewer-selected literal spans without changing any judgments.
+
+    The manifest must be pinned to the original physical pages by its caller.
+    Content hashes prevent a span ID from silently acquiring different text.
+    Unknown or out-of-scope references quarantine the entire unchanged turn.
+    """
+    for ident, span in spans.items():
+        if (set(span) != {'doc_id', 'page', 'quote'}
+                or not isinstance(span['doc_id'], str) or not _hash(span['doc_id'])
+                or type(span['page']) is not int or span['page'] < 1
+                or not isinstance(span['quote'], str) or not span['quote'].strip()
+                or ident != 'source:'+commitment(span)):
+            raise ValueError('invalid_source_span_manifest')
+    canonical = json.loads(json.dumps(review)); quarantined = []
+    seen = set()
+    for case in canonical['cases']:
+        ident = case['case_id']
+        if ident in seen or ident not in case_sources:
+            raise ValueError('review_case_binding_mismatch')
+        seen.add(ident)
+        for number, turn in enumerate(case['turns'], 1):
+            if type(turn['turn']) is not int or turn['turn'] != number:
+                raise ValueError('review_turn_binding_mismatch')
+            converted = []; error = None
+            for evidence in turn['approved_evidence']:
+                if (set(evidence) != {'fact_id', 'span_id'}
+                        or not isinstance(evidence['span_id'], str)
+                        or evidence['span_id'] not in spans):
+                    error = 'unknown_review_source_span'; break
+                span = spans[evidence['span_id']]
+                if span['doc_id'] not in case_sources[ident]:
+                    error = 'review_source_span_outside_case_scope'; break
+                converted.append({'fact_id': evidence['fact_id'], **span})
+            if error:
+                if not quarantine_invalid:
+                    raise ValueError(error)
+                quarantined.append({'case_id': ident, 'turn': number, 'error': error})
+            else:
+                turn['approved_evidence'] = converted
+    return canonical, {'source_representation': 'content_addressed_source_spans',
+                       'quarantined_turns': quarantined}
+
+
 def commitment(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True, ensure_ascii=False,
         separators=(',', ':'), allow_nan=False).encode('utf-8')).hexdigest()
