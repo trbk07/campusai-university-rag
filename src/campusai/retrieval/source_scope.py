@@ -133,18 +133,32 @@ def _matching_programmes(query,headings):
     text=_curriculum_query(query)
     if not text:return set()
     names={name for _,name in headings.values() if name}
-    matched={name for name in names if re.search(r'(?<!\w)'+re.escape(name)+r'(?!\w)',text)}
-    if matched:
-        # "Accounting" is not a second requested programme when contained in
-        # the explicit longer name "Accounting - Auditing".
-        matched={name for name in matched if not any(name!=other and name in other for other in matched)}
+    # A programme name can also occur inside a course title. The nearest
+    # explicit field marker owns that mention; course text must not create a
+    # second requested programme and disable the actual curriculum filter.
+    markers=list(re.finditer(r'\b(?P<course>hoc phan|mon hoc|mon|courses?|modules?|subjects?)\b'
+                             r'|\b(?P<programme>chuyen nganh|nganh|chuong trinh|curriculum|program(?:me)?)\b',text))
+    def programme_mention(start,end):
+        # English also puts the role after its name: "Robotics programme".
+        if re.match(r'\s+(?:degree\s+)?(?:curriculum|program(?:me)?|major)\b',text[end:]):return True
+        if re.match(r'\s+(?:courses?|modules?|subjects?)\b',text[end:]):return False
+        preceding=[marker for marker in markers if marker.end()<=start]
+        return not preceding or preceding[-1].lastgroup!='course'
+    mentions=[(name,match.start(),match.end()) for name in names
+              for match in re.finditer(r'(?<!\w)'+re.escape(name)+r'(?!\w)',text)
+              if programme_mention(match.start(),match.end())]
+    # Suppress a shorter title only at the same mention. Explicitly asking for
+    # Accounting AND Accounting-Auditing must retain both separate mentions.
+    matched={name for name,start,end in mentions if not any(
+        name!=other and left<=start and end<=right for other,left,right in mentions)}
     if not matched:
         aliases={}
         for name in names:
             alias=''.join(word[0] for word in name.split())
             if len(alias)>=3:aliases.setdefault(alias,set()).add(name)
         matched=set().union(*(values for alias,values in aliases.items()
-                              if len(values)==1 and re.search(r'(?<!\w)'+re.escape(alias)+r'(?!\w)',text))) if aliases else set()
+                              if len(values)==1 and any(programme_mention(m.start(),m.end())
+                                  for m in re.finditer(r'(?<!\w)'+re.escape(alias)+r'(?!\w)',text)))) if aliases else set()
     return matched
 
 

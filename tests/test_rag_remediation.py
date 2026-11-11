@@ -2707,3 +2707,25 @@ def test_native_journal_honors_external_normalized_locks_and_rejects_gold_inputs
     cases[0]['expected']='A forbidden golden answer'
     with pytest.raises(ValueError,match='public_case_fields_only'):
         NativeJournal(tmp_path/'other.sqlite3','c'*64,cases)
+
+
+@pytest.mark.parametrize('question,expected',[
+    ('Programme Robotics: what credits does the Economics module carry?',{'robotics'}),
+    ('What credits does the Economics course carry in the Robotics programme?',{'robotics'}),
+    ('Programme Robotics and Economics: compare their semester plans.',{'robotics','economics'}),
+    ('For semester 3, what does the Economics module require?',set()),
+    ('Programme Robotics Auditing: which courses are required?',{'robotics auditing'}),
+    ('Compare programme Robotics and Robotics Auditing.',{'robotics','robotics auditing'}),
+])
+def test_programme_scope_does_not_confuse_course_titles_or_collapse_separate_mentions(question,expected):
+    from campusai.retrieval.source_scope import _matching_programmes
+    headings={('doc',1):(0,'robotics'),('doc',5):(0,'economics'),('doc',9):(0,'robotics auditing')}
+    assert _matching_programmes(question,headings)==expected
+
+
+def test_programme_scope_distinguishes_vietnamese_fields_and_source_derived_acronyms():
+    from campusai.retrieval.source_scope import _matching_programmes
+    headings={('doc',1):(0,'tu dong hoa'),('doc',5):(0,'co hoc'),('doc',9):(0,'robotics')}
+    assert _matching_programmes('Chương trình ngành Tự động hóa, học phần Cơ học cần mấy tín chỉ?',headings)=={'tu dong hoa'}
+    assert _matching_programmes('Ngành TDH, môn Cơ học có mã gì?',headings)=={'tu dong hoa'}
+    assert _matching_programmes('Học kỳ 2 môn TDH cần học gì?',headings)==set()
