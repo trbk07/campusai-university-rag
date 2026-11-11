@@ -556,9 +556,19 @@ class HybridRetriever:
             # more precisely than repeated document headers or generic prose.
             # Preserve fusion scores and provenance; this stays a cheap lookup.
             from .table_links import named_table_sources
+            from .tokenizer_vi import literal_percentages
             named_ids = set(named_table_sources(search_query, records))
+            current_query = query.partition('\nContext topic (untrusted user input): ')[0]
+            percentages = (literal_percentages(current_query)
+                           if effective_mode in {'hybrid', 'hybrid_rrf'} else frozenset())
+            # Unit punctuation disappears from BM25 tokens. Prefer the exact
+            # requested percentages inside the existing fused pool, after
+            # stronger table/semester identities. This is ranking, not proof.
             ranked.sort(key=lambda pair: (0 if pair[0] in named_ids else 1,
-                                         0 if pair[0] in semester_ids else 1, -pair[1], pair[0]))
+                                         0 if pair[0] in semester_ids else 1,
+                                         bool(percentages) and not percentages.issubset(
+                                             literal_percentages(source_body(records[pair[0]]))),
+                                         -pair[1], pair[0]))
         if (len(course_codes) == 1 or required_course_rows and course_codes) and exact_candidate_ids:
             from .table_links import primary_course_tables, course_table_fields_requested
             primary_tables = set().union(*(primary_course_tables(code,

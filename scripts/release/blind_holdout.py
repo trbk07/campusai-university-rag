@@ -130,7 +130,7 @@ def canonicalize_fact_id_review(review, proposals, *, quarantine_invalid=False):
     return canonical,{'source_representation':'opaque_fact_ids','canonical_base':1,'quarantined_turns':quarantine}
 
 
-def resolve_review_source_spans(review, spans, case_sources, *, quarantine_invalid=False):
+def resolve_review_source_spans(review, spans, case_sources, *, aliases=None, quarantine_invalid=False):
     """Resolve reviewer-selected literal spans without changing any judgments.
 
     The manifest must be pinned to the original physical pages by its caller.
@@ -144,6 +144,12 @@ def resolve_review_source_spans(review, spans, case_sources, *, quarantine_inval
                 or not isinstance(span['quote'], str) or not span['quote'].strip()
                 or ident != 'source:'+commitment(span)):
             raise ValueError('invalid_source_span_manifest')
+    if aliases is not None and (not isinstance(aliases, dict)
+            or any(not isinstance(key,str) or re.fullmatch(r's\d{4,6}',key) is None
+                   or not isinstance(value,str) or value not in spans for key,value in aliases.items())
+            or len(set(aliases.values())) != len(aliases)
+            or set(aliases.values()) != set(spans)):
+        raise ValueError('invalid_source_span_alias_manifest')
     canonical = json.loads(json.dumps(review)); quarantined = []
     seen = set()
     for case in canonical['cases']:
@@ -156,11 +162,13 @@ def resolve_review_source_spans(review, spans, case_sources, *, quarantine_inval
                 raise ValueError('review_turn_binding_mismatch')
             converted = []; error = None
             for evidence in turn['approved_evidence']:
+                reference = evidence.get('span_id')
+                if aliases is not None and isinstance(reference,str):
+                    reference = aliases.get(reference)
                 if (set(evidence) != {'fact_id', 'span_id'}
-                        or not isinstance(evidence['span_id'], str)
-                        or evidence['span_id'] not in spans):
+                        or not isinstance(reference, str) or reference not in spans):
                     error = 'unknown_review_source_span'; break
-                span = spans[evidence['span_id']]
+                span = spans[reference]
                 if span['doc_id'] not in case_sources[ident]:
                     error = 'review_source_span_outside_case_scope'; break
                 converted.append({'fact_id': evidence['fact_id'], **span})

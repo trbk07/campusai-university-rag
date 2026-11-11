@@ -2729,3 +2729,48 @@ def test_programme_scope_distinguishes_vietnamese_fields_and_source_derived_acro
     assert _matching_programmes('Chương trình ngành Tự động hóa, học phần Cơ học cần mấy tín chỉ?',headings)=={'tu dong hoa'}
     assert _matching_programmes('Ngành TDH, môn Cơ học có mã gì?',headings)=={'tu dong hoa'}
     assert _matching_programmes('Học kỳ 2 môn TDH cần học gì?',headings)==set()
+
+
+def test_review_short_span_aliases_resolve_only_through_exact_frozen_mapping():
+    from scripts.release.blind_holdout import resolve_review_source_spans,commitment
+    span={'doc_id':'a'*64,'page':12,'quote':'The exact source states <= 7 units, with no exceptions.'}
+    ident='source:'+commitment(span);spans={ident:span};aliases={'s0001':ident}
+    raw={'cases':[{'case_id':'case','turns':[{'turn':1,'verdict':'approved',
+        'approved_evidence':[{'fact_id':'fact','span_id':'s0001'}]}]}]}
+    result,meta=resolve_review_source_spans(raw,spans,{'case':['a'*64]},aliases=aliases)
+    assert result['cases'][0]['turns'][0]['approved_evidence']==[{'fact_id':'fact',**span}]
+    assert raw['cases'][0]['turns'][0]['approved_evidence'][0]['span_id']=='s0001'
+    assert not meta['quarantined_turns']
+    for invalid in ['S0001','s0002',ident]:
+        raw['cases'][0]['turns'][0]['approved_evidence'][0]['span_id']=invalid
+        with pytest.raises(ValueError,match='unknown_review_source_span'):
+            resolve_review_source_spans(raw,spans,{'case':['a'*64]},aliases=aliases)
+    for invalid in [{},{'s0001':'unknown'},{'s0001':ident,'s0002':ident},{'paragraph':ident}]:
+        with pytest.raises(ValueError,match='invalid_source_span_alias_manifest'):
+            resolve_review_source_spans(raw,spans,{'case':['a'*64]},aliases=invalid)
+
+
+def test_literal_percentage_cues_preserve_units_signs_and_decimal_values():
+    from decimal import Decimal
+    from campusai.retrieval.tokenizer_vi import literal_percentages,source_body
+    assert literal_percentages('7.50% and -0,25 percent; 18 phần trăm')=={Decimal('7.5'),Decimal('-.25'),Decimal('18')}
+    assert literal_percentages('0.075%')!={Decimal('7.5')}
+    assert literal_percentages('2×3%, −0.25%, uncertainty ±4%')=={Decimal('3'),Decimal('-.25'),Decimal('4')}
+    assert not literal_percentages('identifier AB-3% or AB+3%')
+    assert not literal_percentages('37 credits, identifier AB37, version 1e2%')
+    item={'content':'[Document type: manual | Section: 37%]\nThe current source says 8%.'}
+    assert literal_percentages(source_body(item))=={Decimal('8')}
+
+
+def test_hybrid_literal_percentage_ranking_keeps_real_source_scope_and_values(tmp_path):
+    from campusai.retrieval.hybrid import HybridRetriever
+    from campusai.retrieval.bm25_index import BM25Index
+    generic='Which eligible holders receive a discount of 37 units? '+('discount policy eligible holders receive '*8)
+    precise='Eligible holders receive a 37% discount on annual renewals, except trial accounts.'
+    items=[{'chunk_id':'generic','doc_id':'manual','page':1,'content':generic,'metadata':{},'content_type':'text'},
+           {'chunk_id':'precise','doc_id':'manual','page':2,'content':precise,'metadata':{},'content_type':'text'}]
+    BM25Index(items).save(tmp_path/'manual'/'bm25.json')
+    retriever=HybridRetriever(tmp_path)
+    results=retriever.search('Which eligible holders receive a 37% discount?',doc_ids=['manual'],top_k=2,mode='hybrid')
+    assert results[0].chunk_id=='precise' and {r.chunk_id for r in results}=={'generic','precise'}
+    assert results[0].content==precise and results[0].page==2

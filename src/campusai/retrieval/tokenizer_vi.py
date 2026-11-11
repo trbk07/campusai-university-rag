@@ -138,6 +138,15 @@ def normalize_retrieval_query(text: str) -> str:
     return " ".join([original, value, *aliases])
 
 
+def literal_percentages(text: str) -> frozenset:
+    """Exact number/unit cues for ranking, never values inferred from context."""
+    from decimal import Decimal
+    value = ''.join(c for c in unicodedata.normalize('NFKD', str(text).replace('\u2212','-'))
+                    if not unicodedata.combining(c)).casefold()
+    pattern = r'(?<![\w.,+-])([+-]?\d{1,24}(?:[.,]\d{1,24})?)\s*(?:%(?![\w%])|percent(?:age)?\b|phan tram\b)'
+    return frozenset(Decimal(match[1].replace(',', '.')) for match in re.finditer(pattern, value))
+
+
 def source_body(item: dict, *, decode_tables: bool = True) -> str:
     """Read source text and actual table cells, excluding generated provenance.
 
