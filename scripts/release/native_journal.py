@@ -41,8 +41,11 @@ class NativeJournal:
             CREATE TABLE IF NOT EXISTS attempts (
                 digest TEXT PRIMARY KEY, case_id TEXT NOT NULL, turn INTEGER NOT NULL,
                 request TEXT NOT NULL, status TEXT NOT NULL, response TEXT, http_status INTEGER,
+                execution TEXT,
                 UNIQUE(case_id, turn));
         ''')
+        if 'execution' not in {row[1] for row in self.db.execute('PRAGMA table_info(attempts)')}:
+            self.db.execute('ALTER TABLE attempts ADD COLUMN execution TEXT')
         identity = commitment({'candidate': candidate, 'public_cases': cases})
         try:
             with self.transaction():
@@ -92,17 +95,18 @@ class NativeJournal:
                             (digest, case_id, turn_index, json.dumps(body, ensure_ascii=False), 'reserved'))
         return digest, body
 
-    def complete(self, digest, http_status, response):
+    def complete(self, digest, http_status, response, *, execution=None):
         """Save the actual raw response; completion is not a quality PASS."""
         raw = json.dumps(response, ensure_ascii=False, allow_nan=False)
+        metadata = json.dumps(execution or {}, ensure_ascii=False, allow_nan=False)
         answer = response.get('answer') if isinstance(response, dict) else None
         usable = (isinstance(response, dict) and http_status == 200 and response.get('ok') is True
                   and not response.get('provider_status') and isinstance(answer, dict)
                   and isinstance(answer.get('answer'), str)
                   and answer.get('abstention_reason') != 'provider_abstention')
         with self.transaction():
-            changed = self.db.execute('UPDATE attempts SET response=?,http_status=?,status=? WHERE digest=? AND status=?',
-                                     (raw, http_status, 'completed' if usable else 'failed', digest, 'reserved')).rowcount
+            changed = self.db.execute('UPDATE attempts SET response=?,http_status=?,status=?,execution=? WHERE digest=? AND status=?',
+                                     (raw, http_status, 'completed' if usable else 'failed', metadata, digest, 'reserved')).rowcount
             if changed != 1:
                 raise ValueError('attempt_missing_or_already_completed')
 
