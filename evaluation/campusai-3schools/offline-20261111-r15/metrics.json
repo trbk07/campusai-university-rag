@@ -1,0 +1,23 @@
+{
+  "kind": "HISTORICAL_TRANSCRIPT_COMPLIANCE_ONLY",
+  "counts": {
+    "PASS": 54,
+    "FAIL": 17,
+    "GOLD_REVIEW": 1,
+    "MISSING": 1
+  },
+  "observed_turns": 72,
+  "expected_turns": 73,
+  "pass_turns": 54,
+  "valid_expected_turns": 72,
+  "transcript_compliance_percent": 75.0,
+  "case_pass": 46,
+  "valid_cases": 64,
+  "case_transcript_compliance_percent": 71.875,
+  "generation_accuracy_three_school_fixture": null,
+  "recall_at_1": null,
+  "recall_at_3": null,
+  "recall_at_5": null,
+  "conditional_generation_accuracy": null,
+  "reason": "Historical requests selected four PDFs; stored ranks are not a verified pre-generation snapshot and packed contexts are absent. Missing predictions remain in the denominator. FACT15 is separately quarantined."
+}

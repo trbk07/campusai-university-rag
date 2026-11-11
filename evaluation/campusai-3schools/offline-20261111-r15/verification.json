@@ -1,0 +1,74 @@
+{
+  "artifact_validation": "PASS",
+  "checks": [
+    "73 unique rows",
+    "unchanged source bank",
+    "single historical candidate",
+    "separate supplement",
+    "gold-free HTTP allowlist",
+    "reservation/central lock persisted",
+    "source archive hash verified",
+    "no Gemini-key patterns found"
+  ],
+  "historical_summary": {
+    "historical_run": "r15-rag95-elevated-native-5774b20d",
+    "population": "72 exact-question historical matches only; not new latency",
+    "latency_p95_nearest_rank_ms": 8786.86,
+    "latency_min_ms": 866.004,
+    "latency_max_ms": 12002.925,
+    "http_status_counts": {
+      "200": 72,
+      "None": 1
+    },
+    "group_counts": {
+      "ABS": {
+        "PASS": 5,
+        "FAIL": 0,
+        "GOLD_REVIEW": 0,
+        "MISSING": 1
+      },
+      "CROSS": {
+        "PASS": 4,
+        "FAIL": 0,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      },
+      "CTX": {
+        "PASS": 12,
+        "FAIL": 0,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      },
+      "FACT": {
+        "PASS": 15,
+        "FAIL": 2,
+        "GOLD_REVIEW": 1,
+        "MISSING": 0
+      },
+      "NAT": {
+        "PASS": 8,
+        "FAIL": 7,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      },
+      "OCR": {
+        "PASS": 3,
+        "FAIL": 5,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      },
+      "REA": {
+        "PASS": 6,
+        "FAIL": 1,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      },
+      "ROB": {
+        "PASS": 1,
+        "FAIL": 2,
+        "GOLD_REVIEW": 0,
+        "MISSING": 0
+      }
+    }
+  }
+}

@@ -666,3 +666,9 @@ kiểm tra mới cập nhật vào báo cáo tổng quan; xóa đầu ra tạm k
 Đợt tinh gọn không tuyên bố nghiệm thu bản cuối, không gọi API chỉ để tạo báo
 cáo và không reset quota. Commit/push qua `origin` CampusAI; legacy financial
 remote chỉ để fetch.
+
+## THREE-SCHOOLS-65 - 11/11/2026
+
+- [x] Owner chose locked-question offline review: R15 has 72/73 exact-question turns; 54 PASS, 17 FAIL, 1 GOLD_REVIEW (FACT15), 1 MISSING. Historical transcript compliance is 54/72 = 75%; this is not three-school fixture accuracy because historical requests selected four PDFs. No candidate mixing or gold changes. Report: [three-school offline audit](evaluation/campusai-3schools/offline-20261111-r15/final_report.md).
+- [x] Owner authorized missing-turn supplementation: one ABS07 POST through the real API, exactly three sources, HTTP 200, safe-abstention PASS, 1.432 seconds; reserve/lock before sending, no retry. Separate artifacts: `evaluation/campusai-3schools/supplement-20261111-abs07/`; never added to R15 scoring.
+- [ ] Before/after accuracy and Recall@5 for the exact fixture remain unmeasured. UI BLOCKED: no browser available. No production changes in this task. OCR modifiers, condition/exception completeness, temporal gating and draft-to-final rejection have historical evidence, not current-candidate validation.

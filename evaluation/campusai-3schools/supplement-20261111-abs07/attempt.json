@@ -1,0 +1,23 @@
+{
+  "case_id": "ABS07",
+  "question_sha256": "0b03996008326ebe4a42c8957dd590c02f802e58bfb4519f51b41069e1203967",
+  "prediction_kind": "real_application_http",
+  "http_status": 200,
+  "response": {
+    "ok": true,
+    "answer": {
+      "answer": "Chưa đủ bằng chứng để xác định đúng phiên bản hoặc thời điểm áp dụng trong tài liệu đã chọn. Bạn hãy bổ sung nguồn cập nhật có ngày áp dụng rõ ràng để xác minh thời điểm đang hỏi.",
+      "citations": [],
+      "confidence": "low",
+      "abstained": true,
+      "abstention_reason": "unsupported_claim",
+      "claims": [],
+      "schema_version": "grounding-public-v2"
+    },
+    "cache_hit": false,
+    "context_question": "Hiệu trưởng hiện tại năm 2026 của cả 3 trường trong tài liệu là ai?"
+  },
+  "request_id": "06149310366c424296598ba616acf5ed",
+  "status": "completed",
+  "elapsed_seconds": 1.4318726000001334
+}

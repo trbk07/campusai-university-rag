@@ -1,0 +1,38 @@
+{
+  "run_id": "supplement-20261111-abs07",
+  "kind": "SEPARATE_MISSING_TURN_SUPPLEMENT",
+  "workspace_commit": "ab081f3a8336e11fc8a0aa82a16cc9fe370a22a1",
+  "workspace_diff_sha256": "cbe4cc25ec4b39cbdb9c02302ef56cc868f49eb4d239dd400fb8bf9f1d650172",
+  "running_process_candidate": "UNVERIFIED; workspace hash is not a process identity",
+  "config_files_sha256": {
+    "configs\\continuity_llm.yaml": "059015533b8634ff6e910f1c6692c1fd36e4bbf17ad82fd080680176f37c9947",
+    "configs\\default.yaml": "3e65b63bc55f1db57e6c0e2586aa8a7f6e7dd9588d1a54be9250e259471b64be",
+    "configs\\free_llm.yaml": "6e507e697717a09a3af2bebc9dbf7dc29ab9937d0699d790a46500c4047766b2",
+    "configs\\free_multi_project.yaml": "c91b97f16bb000ce9cfed7c0d5cefb081ead440c6ddafcff0c50b663e150094c",
+    "configs\\product_llm.yaml": "b9a1062728e8644423d0c57d4a4e105943940b4fb1a106e0cb422a3f249215cd"
+  },
+  "observed_index_files_sha256": {
+    "data\\web-test\\index\\manifest.json": "154d68e45196788648b40f317b7bc4af2e65d235f03241b18a098d996b2469d3",
+    "data\\web-test\\index\\5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b\\bm25.json": "91eeeef12dd8f197ac1dce70197b1e3ac67d788d9a26ae5a2e3243172ad8cfe8",
+    "data\\web-test\\index\\5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b\\dense.json": "fb4d8ee26a0fd36cc056940c8df2b5e54379a9d30c75983345fd61502d494dae",
+    "data\\web-test\\index\\6a3c5f98161eae23012569d8184979b478eb945fb12112b186f03773359af0bb\\bm25.json": "4658471cb289c1241a654d9ad8e10e080b48ae2446c06d421d8675ed47bc87ac",
+    "data\\web-test\\index\\6a3c5f98161eae23012569d8184979b478eb945fb12112b186f03773359af0bb\\dense.json": "8571260366942c36bad1e61c46490a3c13f4c779fb4c4e922512224022ab7368",
+    "data\\web-test\\index\\73280b79fc73d55517d7c2d7b1057fc4995b810b6c81fd0f8e13a9fe2e73cc56\\bm25.json": "04ad3814f6c723acffb91bb243d4bce353476fd08fbee1abbc33b518570bd760",
+    "data\\web-test\\index\\73280b79fc73d55517d7c2d7b1057fc4995b810b6c81fd0f8e13a9fe2e73cc56\\dense.json": "319a3e3cb9056105fd7d442bfd8386fb21e86021f95bb0766f75d33854b0ed98",
+    "data\\web-test\\index\\8bc0a4fbc6adbac3c062f356eb5356ef49586502b2fb3b50405f70d6e76d1c37\\bm25.json": "a023d4f93764d4ccdfdea7e90a9a5437ba6391356caaa1f40010099fec0bda26",
+    "data\\web-test\\index\\8bc0a4fbc6adbac3c062f356eb5356ef49586502b2fb3b50405f70d6e76d1c37\\dense.json": "0a58a165e08c5e716b882630c25343bd09c1fc56d44a87d0f247c6ec5cfba36d",
+    "data\\web-test\\index\\a99544b72a810c73224fdad1e4a7cee77264f36a7ed699f5a303ff8f6f550692\\bm25.json": "d8bbf1bcdc03dd5b2d8931beb40e7503e8f1c2c3ea6e5d0f64797d4a3cca7d4f",
+    "data\\web-test\\index\\a99544b72a810c73224fdad1e4a7cee77264f36a7ed699f5a303ff8f6f550692\\dense.json": "e5a4e7b1333c24c008633d03b0686fe101dfc395371e9b66b50799e972be04c7"
+  },
+  "index_identity": "Observed data/web-test index; running-process binding unverified",
+  "pdf_sha256": {
+    "2025-1390-quy-che-dao-tao-trinh-do-dai-hoc-tu-d25.pdf": "8bc0a4fbc6adbac3c062f356eb5356ef49586502b2fb3b50405f70d6e76d1c37",
+    "QCDT_2025_5445_QD-DHBK.pdf": "5aa6141fe77d928d7b8828ee18111d5cfeab9d5db0fa0ebefa23847a62beb77b",
+    "So-tay-SV-NUAE-nam-2024.pdf": "6a3c5f98161eae23012569d8184979b478eb945fb12112b186f03773359af0bb"
+  },
+  "question_sha256": "0b03996008326ebe4a42c8957dd590c02f802e58bfb4519f51b41069e1203967",
+  "registry_before_sha256": "1864cc3e084e358f28dbd86a4099baa6e5dc288fffd624b7119dd08b27f1bb40",
+  "authorization": "Owner: nếu thiếu hoặc k đủ thì tự chạy lại những câu còn thiếu",
+  "ui_status": "BLOCKED: no browsers exposed by computer-use runtime",
+  "retrieval_trace_status": "UNAVAILABLE from existing public API; not reconstructed from citations"
+}

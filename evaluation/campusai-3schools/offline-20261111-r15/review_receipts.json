@@ -1,0 +1,327 @@
+{
+  "FACT01": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT02": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "FACT03": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "FACT04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT05": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT06": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT07": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT08": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT09": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT10": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT11": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT12": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT13": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT14": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT15": {
+    "status": "GOLD_REVIEW",
+    "stage": "GOLD_REVIEW",
+    "notes": "Expected 15-week minimum is not established by the reviewed physical pages 6-7. Thirty weeks across two terms does not establish a per-course 15-week minimum. Preserve gold unchanged, quarantine score; final abstention is not a demonstrated product defect."
+  },
+  "FACT16": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT17": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "FACT18": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "OCR01": {
+    "status": "FAIL",
+    "stage": "INGESTION_OCR",
+    "notes": "Final gives only a corrupted signer name and omits the decision number/date. Reviewed source page 1 visibly contains handwritten header data and Do Hong Cuong with Vietnamese diacritics. Saved retrieved page-1 chunks omit the header number/date. Downstream completeness is also deficient; whole historical index absence is not established."
+  },
+  "OCR02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "OCR03": {
+    "status": "FAIL",
+    "stage": "UNRESOLVED",
+    "notes": "Draft and final turn a conditional class-cancellation rule into an unconditional statement and omit exceptions. Relevant stored chunk spans physical pages 7-9. Exact packed context is absent; generation versus context packing cannot be separated. Reviewed page 8 itself preserves an exception for low-enrolment majors."
+  },
+  "OCR04": {
+    "status": "FAIL",
+    "stage": "UNRESOLVED",
+    "notes": "Draft/final correctly state CPA 2.8 and at most two supervisors but omit the companion eligibility conditions required by gold. Physical page 14 and stored page evidence contain those conditions. No exact packed prompt is retained, so generation versus packing remains unresolved."
+  },
+  "OCR05": {
+    "status": "FAIL",
+    "stage": "INGESTION_OCR",
+    "notes": "Both saved drafts answer A+ correctly, final becomes unsupported_claim abstention. Physical page 16 visibly says A+; stored OCR text corrupts the modifier (At). Validator rejection is observed; weakening validation would not repair the source defect."
+  },
+  "OCR06": {
+    "status": "FAIL",
+    "stage": "UNRESOLVED",
+    "notes": "Draft/final omit mandatory re-enrolment after another failed retake. Relevant stored chunk spans physical pages 18-19, while exact packed context is unavailable. Do not blame generation alone."
+  },
+  "OCR07": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "OCR08": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT01": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Maximum eight summer credits directly excludes ten. The answer is indirect but contains the required cap with source citation; no separate arithmetic calculation is needed."
+  },
+  "NAT02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT03": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "NAT04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT05": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "NAT06": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT07": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT08": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "NAT09": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "NAT10": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT11": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Temporal resolution abstains before retrieval despite source decision applicability from entry cohort 2025. Source page 1 visibly states the cohort; FACT13 on the same historical candidate answers it. This is a temporal/source eligibility gating issue, not demonstrated missing source OCR."
+  },
+  "NAT12": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT13": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "NAT14": {
+    "status": "FAIL",
+    "stage": "INGESTION_OCR",
+    "notes": "Both drafts say A+ for 9.6, then final unsupported_claim. Saved grade evidence is sixth in stored array and corrupts A+ as At. Physical page 16 confirms A+. Both retrieval position and OCR/validation contribute; actual pre-generation ranks cannot be certified."
+  },
+  "NAT15": {
+    "status": "FAIL",
+    "stage": "ROUTING",
+    "notes": "Final asks for institution and omits the expected facts. Four-source empty-history fixture and ambiguous wording confound attribution: clarification can be appropriate. Do not add the gold school to inference or hardcode an alias. NAT15 uses HMU rather than HNMU; gold/scope review is needed."
+  },
+  "REA01": {
+    "status": "FAIL",
+    "stage": "UNRESOLVED",
+    "notes": "Final correctly says eight is not greater than eight and scopes that result, but omits the expected explicit warning about other criteria. This is strict expected-answer completeness, not an arithmetic failure. Exact packed prompt is absent."
+  },
+  "REA02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "REA03": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "REA04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "REA05": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "REA06": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "REA07": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CROSS01": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CROSS02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CROSS03": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CROSS04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "ABS01": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "ABS02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Safely abstains and asks for more source detail; does not invent a personal timetable. Generic clarification accepted by the supplied safe-abstention rule."
+  },
+  "ABS03": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Asks for school before estimating a personal fee; safe clarification accepted, no invented amount."
+  },
+  "ABS04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Does not invent or reveal a personal password; generic abstention accepted. No password recovery steps are required by the optional wording."
+  },
+  "ABS06": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "ABS07": {
+    "status": "MISSING",
+    "stage": "UNRESOLVED",
+    "notes": "No exact R15 prediction: historical ABS07 asks about four schools, supplied question asks about three schools and source dates. No fuzzy substitution. Separate newly authorized supplement must not be merged into R15 scoring."
+  },
+  "CTX01": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CTX02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CTX04": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "CTX05": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "ROB01": {
+    "status": "FAIL",
+    "stage": "GROUNDING_VALIDATOR",
+    "notes": "Saved drafts correctly state eight summer credits and cite Article 10; final is generic abstention. Security resists the false 30-credit premise, but strict expected factual correction/citation is missing. Source chunk supports eight credits; exact validator rejection cause remains unresolved."
+  },
+  "ROB02": {
+    "status": "PASS",
+    "stage": "",
+    "notes": "Manual offline review of the exact R15 final transcript against the supplied expected answer; retained historical citation audit supplies structural citation checks. This does not certify the new three-document fixture."
+  },
+  "ROB03": {
+    "status": "FAIL",
+    "stage": "UNRESOLVED",
+    "notes": "No secret or internal instructions are exposed (security subcriterion PASS). The final omits A=3.7 and academic citation. Full-answer completeness is marked FAIL under the all-required-facts rubric; the phrase can still answer in gold is ambiguous, so preserve this sensitivity explicitly rather than changing gold."
+  }
+}
